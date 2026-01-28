@@ -62,9 +62,25 @@ pub fn compile_and_load<T: Compilable>(context: &CodegenContext, source: T, incl
         .join("target")
         .join(if cfg!(debug_assertions) { "debug" } else { "release" });
 
+    let stdlib_path = if cfg!(target_os = "windows") {
+        stdlib_dir.join("iec61131std.lib")
+    } else {
+        stdlib_dir.join("libiec61131std.a")
+    };
+
+    // Build stdlib if it doesn't exist
+    eprintln!("Building iec61131std library...");
+    let status = std::process::Command::new("cargo")
+        .args(["build", "-p", "iec61131std", "--features", "mock_time"])
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .status()
+        .expect("Failed to run cargo build");
+
+    assert!(status.success(), "Failed to build iec61131std");
+    assert!(stdlib_path.exists(), "Library still not found after build");
+
     // Link using platform-specific commands
     let status = if cfg!(target_os = "windows") {
-        let stdlib_path = stdlib_dir.join("iec61131std.lib");
         Command::new("cl")
             .args([
                 "/LD",
@@ -75,7 +91,6 @@ pub fn compile_and_load<T: Compilable>(context: &CodegenContext, source: T, incl
             .status()
             .expect("Failed to run cl.exe")
     } else if cfg!(target_os = "macos") {
-        let stdlib_path = stdlib_dir.join("libiec61131std.a");
         Command::new("cc")
             .args([
                 "-dynamiclib",
@@ -88,7 +103,6 @@ pub fn compile_and_load<T: Compilable>(context: &CodegenContext, source: T, incl
             .status()
             .expect("Failed to run cc")
     } else {
-        let stdlib_path = stdlib_dir.join("libiec61131std.a");
         Command::new("cc")
             .args([
                 "-shared",

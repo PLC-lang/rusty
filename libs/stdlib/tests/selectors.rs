@@ -2,6 +2,7 @@
 mod common;
 
 use plc::codegen::CodegenContext;
+use plc_source::Compilable;
 
 use crate::common::compile_and_load as compile;
 use crate::common::compile_and_run_no_params;
@@ -19,7 +20,7 @@ fn test_mux() {
     main := MUX(2,a,b,c);
     END_FUNCTION";
 
-    let res: i32 = compile_and_run_no_params(src, "");
+    let res: i32 = compile_and_run_no_params(src.containers(), vec![]);
     assert_eq!(res, 3);
 }
 
@@ -34,7 +35,7 @@ fn test_sel() {
     main := SEL(FALSE,a,b);
     END_FUNCTION";
 
-    let res: i32 = compile_and_run_no_params(src, "");
+    let res: i32 = compile_and_run_no_params(src.containers(), vec![]);
     assert_eq!(res, 1);
 }
 
@@ -48,7 +49,7 @@ fn test_move() {
     main := MOVE(a);
     END_FUNCTION";
 
-    let res: i32 = compile_and_run_no_params(src, "");
+    let res: i32 = compile_and_run_no_params(src.containers(), vec![]);
     assert_eq!(res, 1);
 }
 

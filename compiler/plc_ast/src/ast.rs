@@ -354,9 +354,13 @@ impl LinkageType {
     pub fn is_external_or_included(&self) -> bool {
         matches!(self, LinkageType::External | LinkageType::Include)
     }
-    
+
     pub fn is_external(&self) -> bool {
         matches!(self, LinkageType::External)
+    }
+
+    pub fn is_included(&self) -> bool {
+        matches!(self, LinkageType::Include)
     }
 
     pub fn is_built_in(&self) -> bool {
@@ -480,6 +484,7 @@ pub struct CompilationUnit {
     pub interfaces: Vec<Interface>,
     pub user_types: Vec<UserTypeDeclaration>,
     pub file: FileMarker,
+    pub linkage: LinkageType,
 }
 
 impl CompilationUnit {
@@ -492,11 +497,17 @@ impl CompilationUnit {
             interfaces: Vec::new(),
             user_types: Vec::new(),
             file: FileMarker::File(file_name),
+            linkage: LinkageType::Internal,
         }
     }
 
     pub fn with_implementations(mut self, implementations: Vec<Implementation>) -> Self {
         self.implementations = implementations;
+        self
+    }
+
+    pub fn with_linkage(mut self, linkage: LinkageType) -> Self {
+        self.linkage = linkage;
         self
     }
 

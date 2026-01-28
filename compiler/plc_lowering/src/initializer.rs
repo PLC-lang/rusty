@@ -317,8 +317,13 @@ impl Initializer {
                 }
             }
         }
+        let should_generate_constructor = match unit.linkage {
+            LinkageType::Internal => true,
+            LinkageType::External if self.generate_externals => true,
+            _ => false,
+        };
         // Add a global constructor function with the global constructor calls
-        if !self.global_constructor.is_empty() {
+        if !self.global_constructor.is_empty() && should_generate_constructor {
             let unit_name = get_unit_name(&unit);
             let (pou, implementation) =
                 new_unit_constructor(&unit_name, self.global_constructor, self.id_provider.clone());

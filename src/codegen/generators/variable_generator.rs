@@ -71,12 +71,6 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             } {
                 globals.push(dep);
             }
-
-            if let Some(init) =
-                self.global_index.find_global_initializer(&get_initializer_name(dep.get_name()))
-            {
-                globals.push((init.get_name(), init));
-            }
         });
 
         for (name, variable) in &globals {

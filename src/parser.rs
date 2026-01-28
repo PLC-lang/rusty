@@ -66,7 +66,7 @@ pub fn parse_file(
 }
 
 pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str) -> ParsedAst {
-    let mut unit = CompilationUnit::new(file_name);
+    let mut unit = CompilationUnit::new(file_name).with_linkage(lnk);
 
     let mut linkage = lnk;
     let mut constant = false;
