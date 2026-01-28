@@ -1,7 +1,7 @@
 // Import common functionality into the integration tests
 mod common;
 
-use common::{get_includes, compile_and_run};
+use common::{compile_and_run, get_includes};
 use std::fmt::Debug;
 
 #[derive(Default, Debug)]

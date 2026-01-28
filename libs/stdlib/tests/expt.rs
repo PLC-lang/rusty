@@ -3,8 +3,6 @@ use plc_driver::runner::MainType;
 
 mod common;
 
-use common::add_std;
-
 use crate::common::get_includes;
 
 #[test]

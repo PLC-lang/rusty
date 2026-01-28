@@ -4,7 +4,6 @@ use iec61131std::bistable_functionblocks::SetResetParams;
 // Import common functionality into the integration tests
 mod common;
 
-use common::add_std;
 use plc::codegen::CodegenContext;
 
 use crate::common::get_includes;

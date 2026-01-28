@@ -39,7 +39,11 @@ pub fn compile_with_includes<T: Compilable>(
     let source = source.containers();
     let includes = includes.containers();
     let project = Project::new("TestProject".to_string()).with_sources(source).with_source_includes(includes);
-    let context = GlobalContext::new().with_source(project.get_sources(), None).unwrap();
+    let context = GlobalContext::new()
+        .with_source(project.get_sources(), None)
+        .unwrap()
+        .with_source(project.get_includes(), None)
+        .unwrap();
     let diagnostician = Diagnostician::null_diagnostician();
     let mut pipeline = BuildPipeline {
         context,

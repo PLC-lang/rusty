@@ -1,12 +1,11 @@
 use std::time::Duration;
 
-use common::compile_and_load;
+use common::{compile_and_load, get_includes};
 use iec61131std::timers::TimerParams;
 
 // Import common functionality into the integration tests
 mod common;
 
-use common::add_std;
 use plc::codegen::CodegenContext;
 /*
  * ┌───────────────────────────────────────────────────────┐   ┌────────────────────────────────────────────────────────────┐     ┌────────────────────────────────────────────────────────────┐
@@ -69,9 +68,10 @@ fn tp_true_for_time() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "timers.st");
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
     let context = CodegenContext::create();
-    let module = compile_and_load(&context, source);
+    let module = compile_and_load(&context, sources, includes);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     //On first call, out is true, et is 0
     module.run::<_, ()>("main", &mut main_inst);
@@ -117,9 +117,10 @@ fn tp_does_not_retrigger_on_consecutive_input() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "timers.st");
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
     let context = CodegenContext::create();
-    let module = compile_and_load(&context, source);
+    let module = compile_and_load(&context, sources, includes);
 
     let mut main_inst = MainType { value: true, ..MainType::default() };
     //On first call, out is true, et is 0
@@ -159,9 +160,10 @@ fn tp_not_interrupted_by_signal_change() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "timers.st");
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
     let context = CodegenContext::create();
-    let module = compile_and_load(&context, source);
+    let module = compile_and_load(&context, sources, includes);
     let mut main_inst = MainType { value: true, ..MainType::default() };
 
     //On first call with true, out is true, et is 0
@@ -203,9 +205,10 @@ fn ton_returns_true_after_time_preset() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "timers.st");
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
     let context = CodegenContext::create();
-    let module = compile_and_load(&context, source);
+    let module = compile_and_load(&context, sources, includes);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     module.run::<_, ()>("main", &mut main_inst);
@@ -255,9 +258,10 @@ fn ton_q_defaults_to_false() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "timers.st");
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
     let context = CodegenContext::create();
-    let module = compile_and_load(&context, source);
+    let module = compile_and_load(&context, sources, includes);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     module.run::<_, ()>("main", &mut main_inst);
@@ -280,9 +284,10 @@ fn ton_counts_elapsed_time_while_waiting() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "timers.st");
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
     let context = CodegenContext::create();
-    let module = compile_and_load(&context, source);
+    let module = compile_and_load(&context, sources, includes);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true, counter starts at 0
     module.run::<_, ()>("main", &mut main_inst);
@@ -318,9 +323,10 @@ fn ton_waits_again_after_turining_off() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "timers.st");
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
     let context = CodegenContext::create();
-    let module = compile_and_load(&context, source);
+    let module = compile_and_load(&context, sources, includes);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     module.run::<_, ()>("main", &mut main_inst);
@@ -374,9 +380,10 @@ fn toff_starts_timer_after_input_is_off() {
     END_PROGRAM
 "#;
 
-    let source = add_std!(prog, "timers.st");
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
     let context = CodegenContext::create();
-    let module = compile_and_load(&context, source);
+    let module = compile_and_load(&context, sources, includes);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> true
     module.run::<_, ()>("main", &mut main_inst);
@@ -411,9 +418,10 @@ fn toff_runs_for_preset_time() {
     END_PROGRAM
 "#;
 
-    let source = add_std!(prog, "timers.st");
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
     let context = CodegenContext::create();
-    let module = compile_and_load(&context, source);
+    let module = compile_and_load(&context, sources, includes);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> true
     module.run::<_, ()>("main", &mut main_inst);
@@ -456,9 +464,10 @@ fn toff_keeps_returning_true_if_input_returns_to_true() {
     END_PROGRAM
 "#;
 
-    let source = add_std!(prog, "timers.st");
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
     let context = CodegenContext::create();
-    let module = compile_and_load(&context, source);
+    let module = compile_and_load(&context, sources, includes);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     module.run::<_, ()>("main", &mut main_inst);

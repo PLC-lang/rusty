@@ -2,7 +2,15 @@ fn main() {
     let llvm_config = if is_os("windows") {
         "llvm-config.exe".to_string()
     } else {
-        std::env::var("LLVM_CONFIG").unwrap_or_else(|_| "llvm-config-21".to_string())
+        // first check for LLVM_CONFIG env var
+        std::env::var("LLVM_CONFIG").unwrap_or_else(|_| {
+            // Check if llvm-config exists in the path, otherwise check for llvm-config-21
+            if which::which("llvm-config").is_ok() {
+                "llvm-config".to_string()
+            } else {
+                "llvm-config-21".to_string()
+            }
+        })
     };
 
     // Fetch CXXFLAGS from llvm-config
@@ -33,19 +41,7 @@ fn main() {
     }
 
     for flag in cxxflags.split_whitespace() {
-        if flag.starts_with("-I") {
-            let path = flag.trim_start_matches("-I");
-
-            // On non-MSVC (GNU/Clang) targets, use -isystem
-            if !is_msvc {
-                build.flag(format!("-isystem{path}"));
-            } else {
-                // MSVC doesn't use -I or -isystem. It uses /I.
-                // We assume llvm-config outputs -I flags even for Windows,
-                // so we just pass them through if we use /external:W0 above.
-                build.flag(flag);
-            }
-        } else if flag.starts_with("-D") {
+        if flag.starts_with("-I") || flag.starts_with("-D") {
             build.flag(flag);
         }
     }
