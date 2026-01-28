@@ -9,29 +9,36 @@ target triple = "[filtered]"
 
 %myStruct = type { i32, double, [11 x i32] }
 
-@b = global [11 x %myStruct] zeroinitializer, !dbg !0
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !14
-@gStruct = global %myStruct zeroinitializer, !dbg !17
+@gStruct = global %myStruct zeroinitializer, !dbg !0
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !13
+@b = global [11 x %myStruct] zeroinitializer, !dbg !16
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
 
-define void @__init_mystruct(ptr %0) {
+define void @myStruct_ctor(ptr %0) {
 entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
-define void @__user_init_myStruct(ptr %0) {
+define void @__global_b_ctor(ptr %0) {
 entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
-define void @__init___Test() {
+define void @__myStruct_c_ctor(ptr %0) {
 entry:
-  call void @__init_mystruct(ptr @gStruct)
-  call void @__user_init_myStruct(ptr @gStruct)
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
+  ret void
+}
+
+define void @____internal___ctor() {
+entry:
+  call void @myStruct_ctor(ptr @gStruct)
+  call void @__global_b_ctor(ptr @b)
   ret void
 }
 
@@ -39,25 +46,25 @@ entry:
 !llvm.dbg.cu = !{!21}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-!1 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, line: 12, type: !3, isLocal: false, isDefinition: true)
+!1 = distinct !DIGlobalVariable(name: "gStruct", scope: !2, file: !2, line: 11, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "<internal>", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 5632, align: 64, elements: !12)
-!4 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 2, size: 512, align: 64, flags: DIFlagPublic, elements: !5, identifier: "myStruct")
-!5 = !{!6, !8, !10}
-!6 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 3, baseType: !7, size: 32, align: 32, flags: DIFlagPublic)
-!7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!8 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !9, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
-!9 = !DIBasicType(name: "LREAL", size: 64, encoding: DW_ATE_float, flags: DIFlagPublic)
-!10 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !11, size: 352, align: 32, offset: 128, flags: DIFlagPublic)
-!11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !7, size: 352, align: 32, elements: !12)
-!12 = !{!13}
-!13 = !DISubrange(count: 11, lowerBound: 0)
-!14 = !DIGlobalVariableExpression(var: !15, expr: !DIExpression())
-!15 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 2, type: !16, isLocal: false, isDefinition: true)
-!16 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-!17 = !DIGlobalVariableExpression(var: !18, expr: !DIExpression())
-!18 = distinct !DIGlobalVariable(name: "gStruct", scope: !2, file: !2, line: 11, type: !4, isLocal: false, isDefinition: true)
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 2, size: 512, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "myStruct")
+!4 = !{!5, !7, !9}
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 3, baseType: !6, size: 32, align [filtered], flags: DIFlagPublic)
+!6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !8, size: 64, align [filtered], offset: 64, flags: DIFlagPublic)
+!8 = !DIBasicType(name: "LREAL", size: 64, encoding: DW_ATE_float, flags: DIFlagPublic)
+!9 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !10, size: 352, align [filtered], offset: 128, flags: DIFlagPublic)
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 352, align [filtered], elements: !11)
+!11 = !{!12}
+!12 = !DISubrange(count: 11, lowerBound: 0)
+!13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
+!14 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 2, type: !15, isLocal: false, isDefinition: true)
+!15 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !3)
+!16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
+!17 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, line: 12, type: !18, isLocal: false, isDefinition: true)
+!18 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 5632, align [filtered], elements: !11)
 !19 = !{i32 2, !"Dwarf Version", i32 5}
 !20 = !{i32 2, !"Debug Info Version", i32 3}
 !21 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !22, splitDebugInlining: false)
-!22 = !{!17, !14, !0}
+!22 = !{!0, !13, !16}

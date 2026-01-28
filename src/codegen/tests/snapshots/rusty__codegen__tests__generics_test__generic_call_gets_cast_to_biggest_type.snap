@@ -9,20 +9,20 @@ target triple = "[filtered]"
 
 define double @main() {
 entry:
-  %main = alloca double, align 8
-  store double 0.000000e+00, ptr %main, align 8
-  %0 = alloca [4 x double], align 8
+  %main = alloca double, align [filtered]
+  store double 0.000000e+00, ptr %main, align [filtered]
+  %0 = alloca [4 x double], align [filtered]
   %1 = getelementptr inbounds [4 x double], ptr %0, i32 0, i32 0
-  store double 5.000000e+00, ptr %1, align 8
+  store double 5.000000e+00, ptr %1, align [filtered]
   %2 = getelementptr inbounds [4 x double], ptr %0, i32 0, i32 1
-  store double 1.000000e+00, ptr %2, align 8
+  store double 1.000000e+00, ptr %2, align [filtered]
   %3 = getelementptr inbounds [4 x double], ptr %0, i32 0, i32 2
-  store double 1.500000e+00, ptr %3, align 8
+  store double 1.500000e+00, ptr %3, align [filtered]
   %4 = getelementptr inbounds [4 x double], ptr %0, i32 0, i32 3
-  store double 1.200000e+00, ptr %4, align 8
+  store double 1.200000e+00, ptr %4, align [filtered]
   %call = call double @MAX__LREAL(i32 4, ptr %0)
-  store double %call, ptr %main, align 8
-  %main_ret = load double, ptr %main, align 8
+  store double %call, ptr %main, align [filtered]
+  %main_ret = load double, ptr %main, align [filtered]
   ret double %main_ret
 }
 

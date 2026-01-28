@@ -1,11 +1,9 @@
 use chrono::DurationRound;
 use chrono::TimeZone;
-use common::compile_and_run;
+use common::{compile_and_run, get_includes};
 
 // Import common functionality into the integration tests
 mod common;
-
-use common::add_std;
 
 #[allow(dead_code)]
 #[derive(Default)]
@@ -41,9 +39,10 @@ fn add_time() {
         c := ADD(LTIME#-10s,LTIME#-10s);
         d := ADD_LTIME(LTIME#10s,LTIME#10s);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, get_time_from_hms(5, 0, 30).and_utc().timestamp_nanos_opt().unwrap());
     assert_eq!(maintype.b, get_time_from_hms(0, 0, 5).and_utc().timestamp_nanos_opt().unwrap());
     let time_20s = get_time_from_hms(0, 0, 20).and_utc().timestamp_nanos_opt().unwrap();
@@ -66,9 +65,10 @@ fn add_tod_time() {
         c := ADD_LTOD_LTIME(LTOD#12:00:00, LTIME#12m12s);
         d := ADD(LTOD#12:00:00, LTIME#12m12s);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let tod_20h_1s = get_time_from_hms(20, 0, 1).and_utc().timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.a, tod_20h_1s);
     assert_eq!(maintype.b, tod_20h_1s);
@@ -92,9 +92,10 @@ fn add_dt_time() {
         c := ADD_LDT_LTIME(LDT#2000-01-01-12:00:00, LTIME#1d12m12s123ms);
         d := ADD(LDT#2000-01-01-12:00:00, LTIME#1d12m12s123ms);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let dt_2000y_1m_2d_12h_12m_12s_123ms = chrono::NaiveDate::from_ymd_opt(2000, 1, 2)
         .unwrap()
         .and_hms_milli_opt(12, 12, 12, 123)
@@ -119,9 +120,10 @@ fn add_overflow() {
     END_VAR
         a := ADD(TIME#9223372036854775807ms, TIME#1ms);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
 }
 
 #[test]
@@ -140,9 +142,10 @@ fn sub_time() {
         c := SUB(LTIME#10h50m, LTIME#6h20m);
         d := SUB_LTIME(LTIME#5h35m20s, LTIME#1h5m20s);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, get_time_from_hms(11, 0, 0).and_utc().timestamp_nanos_opt().unwrap());
     let time_4h_30m = get_time_from_hms(4, 30, 0).and_utc().timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.b, time_4h_30m);
@@ -166,9 +169,10 @@ fn sub_date() {
         c := SUB(LDATE#2000-12-31, LDATE#2000-01-01);
         d := SUB_LDATE_LDATE(LDATE#2000-05-21, LDATE#2000-05-01);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let time_1y = chrono::Duration::try_days(365).unwrap().num_nanoseconds().unwrap();
     let time_20d = chrono::Duration::try_days(20).unwrap().num_nanoseconds().unwrap();
     assert_eq!(maintype.a, time_1y);
@@ -192,9 +196,10 @@ fn sub_tod_time() {
         c := SUB_LTOD_LTIME(LTOD#23:10:05.123, LTIME#3h10m5s123ms);
         d := SUB(LTOD#23:10:05.123, LTIME#3h10m5s123ms);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let tod_20h = get_time_from_hms(20, 0, 0).and_utc().timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.a, tod_20h);
     assert_eq!(maintype.b, tod_20h);
@@ -217,9 +222,10 @@ fn sub_tod() {
         c := SUB(LTOD#23:10:05.123, LTOD#3:10:05.123);
         d := SUB_LTOD_LTOD(LTOD#23:10:05.123, LTOD#3:10:05.123);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let time_20h = get_time_from_hms(20, 0, 0).and_utc().timestamp_nanos_opt().unwrap();
     assert_eq!(maintype.a, time_20h);
     assert_eq!(maintype.a, time_20h);
@@ -242,9 +248,10 @@ fn sub_dt_time() {
         c := SUB(LDT#2000-01-02-21:15:12.345, LTIME#1d1h15m12s345ms);
         d := SUB_LDT_LTIME(LDT#2000-01-02-21:15:12.345, LTIME#1d1h15m12s345ms);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let dt_2000y_1m_1d_20h = chrono::NaiveDate::from_ymd_opt(2000, 1, 1)
         .unwrap()
         .and_hms_opt(20, 0, 0)
@@ -273,9 +280,10 @@ fn sub_dt() {
         c := SUB(LDT#2000-01-02-21:22:33.444, LDT#2000-01-01-10:00:00.000);
         d := SUB_LDT_LDT(LDT#2000-01-02-21:22:33.444, LDT#2000-01-01-10:00:00.000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let time_1d_11h_22m_33s_444ms = get_time_from_hms_milli(11, 22, 33, 444)
         .checked_add_signed(chrono::Duration::try_days(1).unwrap())
         .unwrap()
@@ -299,9 +307,10 @@ fn sub_overflow() {
     END_VAR
         a := SUB(TIME#-9223372036854775807ms, TIME#1ms);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
 }
 
 #[test]
@@ -320,9 +329,10 @@ fn mul_signed() {
         c := MUL(LTIME#1000ms, DINT#86400);
         d := MUL(LTIME#1000ms, LINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         maintype.a,
         -chrono::Duration::try_days(120).unwrap().num_nanoseconds().unwrap() // -120 days
@@ -344,9 +354,10 @@ fn mul_signed_overflow() {
         // overflow -> 0 will be returned
         a := MUL(TIME#10ns, LINT#9223372036854775807);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
 }
 
 #[test]
@@ -365,9 +376,10 @@ fn mul_unsigned() {
         c := MUL(LTIME#1000ms, UDINT#86400);
         d := MUL(LTIME#1000ms, ULINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         maintype.a,
         -chrono::Duration::try_days(120).unwrap().num_nanoseconds().unwrap() // -120 days
@@ -389,9 +401,10 @@ fn mul_unsigned_overflow() {
         // overflow -> 0 will be returned
         a := MUL(TIME#1ns, ULINT#9223372036854775808);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
 }
 
 #[test]
@@ -409,9 +422,10 @@ fn mul_time_signed() {
         c := MUL_TIME(TIME#1000ms, DINT#86400);
         d := MUL_TIME(TIME#1000ms, LINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         maintype.a,
         -chrono::Duration::try_days(120).unwrap().num_nanoseconds().unwrap() // -120 days
@@ -436,9 +450,10 @@ fn mul_time_unsigned() {
         c := MUL_TIME(TIME#1000ms, UDINT#86400);
         d := MUL_TIME(TIME#1000ms, ULINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         maintype.a,
         -chrono::Duration::try_days(120).unwrap().num_nanoseconds().unwrap() // -120 days
@@ -463,9 +478,10 @@ fn mul_ltime_signed() {
         c := MUL_LTIME(LTIME#1000ms, DINT#86400);
         d := MUL_LTIME(LTIME#1000ms, LINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         maintype.a,
         -chrono::Duration::try_days(120).unwrap().num_nanoseconds().unwrap() // -120 try_days
@@ -490,9 +506,10 @@ fn mul_ltime_unsigned() {
         c := MUL_LTIME(LTIME#1000ms, UDINT#86400);
         d := MUL_LTIME(LTIME#1000ms, ULINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         maintype.a,
         -chrono::Duration::try_days(120).unwrap().num_nanoseconds().unwrap() // -120 days
@@ -517,9 +534,10 @@ fn div_signed() {
         c := DIV(LTIME#1d, DINT#86400);
         d := DIV(LTIME#10000d, DINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let time_1s = chrono::Duration::try_seconds(1).unwrap().num_nanoseconds().unwrap();
     assert_eq!(maintype.a, time_1s);
     assert_eq!(maintype.b, -time_1s); // -1 second
@@ -542,9 +560,10 @@ fn div_unsigned() {
         c := DIV(LTIME#1d, UDINT#86400);
         d := DIV(LTIME#10000d, UDINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let time_1s = chrono::Duration::try_seconds(1).unwrap().num_nanoseconds().unwrap();
     assert_eq!(maintype.a, time_1s);
     assert_eq!(maintype.b, -time_1s); // -1 second
@@ -563,9 +582,10 @@ fn div_by_zero() {
     END_VAR
         a := DIV(TIME#1m, USINT#0);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
 }
 
 #[test]
@@ -583,9 +603,10 @@ fn div_time_signed() {
         c := DIV_TIME(TIME#1d, DINT#86400);
         d := DIV_TIME(TIME#10000d, DINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let time_1s = chrono::Duration::try_seconds(1).unwrap().num_nanoseconds().unwrap();
     assert_eq!(maintype.a, time_1s);
     assert_eq!(maintype.b, -time_1s); // -1 second
@@ -608,9 +629,10 @@ fn div_time_unsigned() {
         c := DIV_TIME(TIME#1d, UDINT#86400);
         d := DIV_TIME(TIME#10000d, UDINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let time_1s = chrono::Duration::try_seconds(1).unwrap().num_nanoseconds().unwrap();
     assert_eq!(maintype.a, time_1s);
     assert_eq!(maintype.b, -time_1s); // -1 second
@@ -633,9 +655,10 @@ fn div_ltime_signed() {
         c := DIV_LTIME(LTIME#1d, DINT#86400);
         d := DIV_LTIME(LTIME#10000d, DINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let time_1s = chrono::Duration::try_seconds(1).unwrap().num_nanoseconds().unwrap();
     assert_eq!(maintype.a, time_1s);
     assert_eq!(maintype.b, -time_1s); // -1 second
@@ -658,9 +681,10 @@ fn div_ltime_unsigned() {
         c := DIV_LTIME(LTIME#1d, UDINT#86400);
         d := DIV_LTIME(LTIME#10000d, UDINT#864000000);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let time_1s = chrono::Duration::try_seconds(1).unwrap().num_nanoseconds().unwrap();
     assert_eq!(maintype.a, time_1s);
     assert_eq!(maintype.b, -time_1s); // -1 second
@@ -682,9 +706,10 @@ fn mul_real() {
         b := MUL(LTIME#2s700ms, REAL#3.14e5);
         c := MUL(TIME#2s700ms, REAL#-3.14);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let target = chrono::Duration::nanoseconds(-8_478_000_640).num_nanoseconds().unwrap().abs();
     assert!(chrono::Duration::nanoseconds(maintype.a).num_nanoseconds().unwrap().abs() - target <= 1);
     // -8_478_000_641ns = -8s 478ms [641ns -> deviation see example std::time::Duration::mul_f32()]
@@ -711,9 +736,10 @@ fn mul_real_overflow() {
     END_VAR
         a := MUL(TIME#-2s700ms, REAL#3.40282347e38);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
 }
 
 #[test]
@@ -730,9 +756,10 @@ fn mul_lreal() {
         b := MUL(LTIME#2s700ms, LREAL#3.14e5);
         c := MUL(TIME#-2s700ms, LREAL#-3.14);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         maintype.a,
         -chrono::Duration::try_milliseconds(8_478) // -8_478ms => -8s 478ms
@@ -767,9 +794,10 @@ fn mul_lreal_overflow() {
     END_VAR
         a := MUL(TIME#-2s700ms, LREAL#3.40282347e38);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
 }
 
 #[test]
@@ -783,9 +811,10 @@ fn mul_time() {
         a := MUL_TIME(TIME#2s700ms, REAL#3.14);
         b := MUL_TIME(TIME#2s700ms, LREAL#3.14e5);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let target = chrono::Duration::nanoseconds(8_478_000_640).num_nanoseconds().unwrap().abs();
     assert!(chrono::Duration::nanoseconds(maintype.a).num_nanoseconds().unwrap().abs() - target <= 1);
     // 8_478_000_640ns = 8s 478ms [641ns -> deviation see example std::time::Duration::mul_f32()]
@@ -809,9 +838,10 @@ fn mul_ltime() {
         a := MUL_LTIME(LTIME#2s700ms, REAL#3.14);
         b := MUL_LTIME(LTIME#2s700ms, LREAL#3.14e5);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
 
     let target = chrono::Duration::nanoseconds(8_478_000_640).num_nanoseconds().unwrap().abs();
     assert!(chrono::Duration::nanoseconds(maintype.a).num_nanoseconds().unwrap().abs() - target <= 1);
@@ -836,9 +866,10 @@ fn div_real() {
         a := DIV(TIME#-8s478ms, REAL#3.14);
         b := DIV(LTIME#847800s, REAL#3.14e5);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         chrono::Utc.timestamp_nanos(maintype.a).duration_round(chrono::Duration::microseconds(1)).unwrap(),
         chrono::Utc.timestamp_millis_opt(-2_700).unwrap() // -2_700ms => -2s 700ms
@@ -860,9 +891,10 @@ fn div_real_by_zero() {
     END_VAR
         a := DIV(TIME#-2s700ms, REAL#0.0);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
 }
 
 #[test]
@@ -876,9 +908,10 @@ fn div_lreal() {
         a := DIV(TIME#-8s478ms, LREAL#3.14);
         b := DIV(LTIME#847800s, LREAL#3.14e5);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         chrono::Utc.timestamp_nanos(maintype.a).duration_round(chrono::Duration::microseconds(1)).unwrap(),
         chrono::Utc.timestamp_millis_opt(-2_700).unwrap() // -2_700ms => -2s 700ms
@@ -900,9 +933,10 @@ fn div_lreal_by_zero() {
     END_VAR
         a := DIV(TIME#-2s700ms, LREAL#0.0);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
 }
 
 #[test]
@@ -916,9 +950,10 @@ fn div_time() {
         a := DIV_TIME(TIME#8s478ms, REAL#3.14);
         b := DIV_TIME(TIME#847800s, LREAL#3.14e5);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         chrono::Utc.timestamp_nanos(maintype.a).duration_round(chrono::Duration::microseconds(1)).unwrap(),
         chrono::Utc.timestamp_millis_opt(2_700).unwrap() // 2_700ms => 2s 700ms
@@ -940,9 +975,10 @@ fn div_ltime() {
         a := DIV_LTIME(LTIME#8s478ms, REAL#3.14);
         b := DIV_LTIME(LTIME#847800s, LREAL#3.14e5);
     END_PROGRAM";
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         chrono::Utc.timestamp_nanos(maintype.a).duration_round(chrono::Duration::microseconds(1)).unwrap(),
         chrono::Utc.timestamp_millis_opt(2_700).unwrap() // 2_700ms => 2s 700ms
@@ -970,9 +1006,10 @@ fn date_time_overloaded_add_function_called_with_too_many_params() {
         END_FUNCTION
     ";
 
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let res: i64 = compile_and_run(sources, &mut maintype);
+    let res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(res, get_time_from_hms(10, 0, 30).and_utc().timestamp_nanos_opt().unwrap());
 }
 
@@ -1001,9 +1038,10 @@ fn date_time_overloaded_add_and_numerical_add_compile_correctly() {
         b: f32,
     }
 
-    let sources = add_std!(src, "date_time_numeric_functions.st", "arithmetic_functions.st");
+    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
+    let sources = vec![src.into()];
     let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, &mut maintype);
+    let _: i64 = compile_and_run(sources, includes, &mut maintype);
     let tod_23h_56m = get_time_from_hms(23, 56, 0).and_utc().timestamp_nanos_opt().unwrap();
 
     assert_eq!(tod_23h_56m, maintype.a);

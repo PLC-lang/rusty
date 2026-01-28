@@ -9,14 +9,14 @@ target triple = "[filtered]"
 
 define i16 @main() {
 entry:
-  %main = alloca i16, align 2
-  %c = alloca i32, align 4
-  store i32 0, ptr %c, align 4
-  store i16 0, ptr %main, align 2
-  %0 = load i32, ptr %c, align 4
+  %main = alloca i16, align [filtered]
+  %c = alloca i32, align [filtered]
+  store i32 0, ptr %c, align [filtered]
+  store i16 0, ptr %main, align [filtered]
+  %0 = load i32, ptr %c, align [filtered]
   %erase = and i32 %0, -65536
   %or = or i32 %erase, 256
-  store i32 %or, ptr %c, align 4
-  %main_ret = load i16, ptr %main, align 2
+  store i32 %or, ptr %c, align [filtered]
+  %main_ret = load i16, ptr %main, align [filtered]
   ret i16 %main_ret
 }

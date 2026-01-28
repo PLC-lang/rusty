@@ -158,7 +158,7 @@ fn assigning_structs() {
     entry:
       %p1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
       %p2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %p1, ptr align 1 %p2, i64 ptrtoint (ptr getelementptr (%Point, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %p1, ptr align [filtered] %p2, i64 ptrtoint (ptr getelementptr (%Point, ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
@@ -220,8 +220,8 @@ fn accessing_struct_members() {
       %x = getelementptr inbounds nuw %Point, ptr %topLeft, i32 0, i32 0
       %bottomRight = getelementptr inbounds nuw %Rect, ptr %rect2, i32 0, i32 1
       %x1 = getelementptr inbounds nuw %Point, ptr %bottomRight, i32 0, i32 0
-      %load_x = load i16, ptr %x1, align 2
-      store i16 %load_x, ptr %x, align 2
+      %load_x = load i16, ptr %x1, align [filtered]
+      store i16 %load_x, ptr %x, align [filtered]
       ret void
     }
     "#);

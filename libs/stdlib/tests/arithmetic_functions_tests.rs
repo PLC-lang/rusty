@@ -1,10 +1,8 @@
 // Import common functionality into the integration tests
 mod common;
 
-use common::add_std;
+use common::{compile_and_run, get_includes};
 use std::fmt::Debug;
-
-use common::compile_and_run;
 
 #[derive(Default, Debug)]
 struct MainType<T>
@@ -26,9 +24,10 @@ fn sqrt_called_on_real() {
             b := SQRT(REAL#1.0);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert_eq!(maintype.a.abs(), 2.0f32);
     assert_eq!(maintype.b.abs(), 1.0f32);
@@ -44,9 +43,10 @@ fn sqrt_called_on_lreal() {
             b := SQRT(LREAL#1.0);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert_eq!(maintype.a.abs(), 2.0f64);
     assert_eq!(maintype.b.abs(), 1.0f64);
@@ -63,9 +63,10 @@ fn sqrt_called_on_none_real() {
             b := SQRT(DINT_TO_REAL(1));
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st", "num.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st", "num.st"]);
     let mut maintype = MainType::<i32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert_eq!(maintype.a.abs(), 2);
     assert_eq!(maintype.b.abs(), 1);
@@ -81,9 +82,10 @@ fn ln_called_on_real() {
             b := LN(REAL#1.0);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f32::EPSILON);
     assert!(maintype.b.abs() <= f32::EPSILON);
@@ -99,9 +101,10 @@ fn ln_called_on_lreal() {
             b := LN(LREAL#1.0);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f64::EPSILON);
     assert!(maintype.b.abs() <= f64::EPSILON);
@@ -117,9 +120,10 @@ fn log_called_on_real() {
                 b := LOG(REAL#100);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert_eq!(maintype.a.abs(), 1.0f32);
     assert_eq!(maintype.b.abs(), 2.0f32);
@@ -135,9 +139,10 @@ fn log_called_on_lreal() {
                 b := LOG(LREAL#100);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert_eq!(maintype.a.abs(), 1.0f64);
     assert_eq!(maintype.b.abs(), 2.0f64);
@@ -153,9 +158,10 @@ fn exp_called_on_real() {
             b := EXP(REAL#0.0) - REAL#1.0;
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f32::EPSILON);
     assert!(maintype.b.abs() <= f32::EPSILON);
@@ -171,9 +177,10 @@ fn exp_called_on_lreal() {
             b := EXP(LREAL#0.0) - LREAL#1.0;
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f64::EPSILON);
     assert!(maintype.b.abs() <= f64::EPSILON);
@@ -189,9 +196,10 @@ fn sin_called_on_real() {
             b := SIN(REAL#0.0);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f32::EPSILON);
     assert!(maintype.b.abs() <= f32::EPSILON);
@@ -207,9 +215,10 @@ fn sin_called_on_lreal() {
             b := SIN(LREAL#0.0);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f64::EPSILON);
     assert!(maintype.b.abs() <= f64::EPSILON);
@@ -225,9 +234,10 @@ fn cos_called_on_real() {
             b := COS(REAL#0.0) - REAL#1.0;
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f32::EPSILON);
     assert!(maintype.b.abs() <= f32::EPSILON);
@@ -243,9 +253,10 @@ fn cos_called_on_lreal() {
             b := COS(LREAL#0.0) - LREAL#1.0;
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f64::EPSILON);
     assert!(maintype.b.abs() <= f64::EPSILON);
@@ -261,9 +272,10 @@ fn tan_called_on_real() {
             b := TAN(PI_REAL);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f32::EPSILON);
     assert!(maintype.b.abs() <= f32::EPSILON);
@@ -279,9 +291,10 @@ fn tan_called_on_lreal() {
             a := TAN(PI_LREAL);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f64::EPSILON);
     assert!(maintype.b.abs() <= f64::EPSILON);
@@ -296,9 +309,10 @@ fn asin_called_on_real() {
             a := ASIN(REAL#1.0) - FRAC_PI_2_REAL;
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f32::EPSILON);
 }
@@ -312,9 +326,10 @@ fn asin_called_on_lreal() {
             a := ASIN(LREAL#1.0) - FRAC_PI_2_LREAL;
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f64::EPSILON);
 }
@@ -328,9 +343,10 @@ fn acos_called_on_real() {
             a := ACOS(REAL#0.0) - FRAC_PI_2_REAL;
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f32::EPSILON);
 }
@@ -344,9 +360,10 @@ fn acos_called_on_lreal() {
             a := ACOS(LREAL#0.0) - FRAC_PI_2_LREAL;
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f64::EPSILON);
 }
@@ -360,9 +377,10 @@ fn atan_called_on_real() {
             a := ATAN(REAL#1.0) - FRAC_PI_4_REAL;
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f32::EPSILON);
 }
@@ -376,9 +394,10 @@ fn atan_called_on_lreal() {
             a := ATAN(LREAL#1.0) - FRAC_PI_4_LREAL;
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f64::EPSILON);
 }
@@ -393,9 +412,10 @@ fn atan2_called_on_real() {
             b := ATAN2(REAL#3.0, REAL#-3.0) - (REAL#3.0 * FRAC_PI_4_REAL);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f32::EPSILON);
     assert!(maintype.b.abs() <= f32::EPSILON);
@@ -411,9 +431,10 @@ fn atan2_called_on_lreal() {
             b := ATAN2(LREAL#3.0, LREAL#-3.0) - (REAL#3.0 * FRAC_PI_4_LREAL);
             END_PROGRAM
         ";
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!(maintype.a.abs() <= f64::EPSILON);
     assert!(maintype.b.abs() <= f64::EPSILON);
@@ -429,9 +450,10 @@ fn expt_called_on_real() {
             a := EXPT(REAL#2.0, REAL#7.0);
         END_PROGRAM
     "#;
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!((maintype.a - 128.0) <= f32::EPSILON);
 }
@@ -448,9 +470,10 @@ fn expt_called_on_dint_literal() {
             b := EXPT(DINT#2, 7);
         END_PROGRAM
     "#;
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<i32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert_eq!(4, maintype.a);
     assert_eq!(128, maintype.b);
@@ -468,9 +491,10 @@ fn expt_called_on_lint_lreal() {
             b := EXPT(LINT#2, LREAL#7.0);
         END_PROGRAM
     "#;
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f64>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert_eq!(0.25_f64, maintype.a);
     assert!(maintype.b - 128_f64 <= f64::EPSILON);
@@ -487,9 +511,10 @@ fn expt_called_with_operator() {
         END_PROGRAM
     "#;
 
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert!((maintype.a - 128.0) <= f32::EPSILON);
 }
@@ -513,9 +538,10 @@ fn expt_called_with_references() {
             c := z**x;
         END_PROGRAM
     "#;
-    let sources = add_std!(src, "arithmetic_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["arithmetic_functions.st"]);
     let mut maintype = MainType::<f32>::default();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(sources, includes, &mut maintype);
 
     assert_eq!(0.25, maintype.a);
     assert_eq!(4.0, maintype.b);

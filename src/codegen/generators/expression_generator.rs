@@ -1509,6 +1509,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(reference_statement).and_then(|it| {
             let v: Result<PointerValue, _> = it.get_basic_value_enum().try_into();
             v.map_err(|err| {
+                log::debug!("Failed to generate lvalue for statement {:?}: {err:?}", reference_statement);
                 CodegenError::GenericError(format!("{err:?}"), reference_statement.get_location().clone())
             })
         })
@@ -2110,6 +2111,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         literal_statement: &AstNode,
     ) -> Result<ExpressionValue<'ink>, CodegenError> {
         let cannot_generate_literal = || {
+            panic!("{literal_statement:?}");
             Diagnostic::codegen_error(
                 format!("Cannot generate Literal for {literal_statement:?}"),
                 literal_statement,
