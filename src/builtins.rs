@@ -1015,8 +1015,13 @@ fn extract_parameter_by_name_or_position<'a>(
 ) -> &'a AstNode {
     if let Some(name) = option_name {
         let param = params.iter().find(|param| {
-            let identifier = param.get_assignment_identifier().unwrap_or("**").to_lowercase();
-            identifier == name.to_lowercase()
+            let opt_identifier = param.get_assignment_identifier();
+
+            if let Some(identifier) = opt_identifier {
+                return identifier.to_lowercase() == name.to_lowercase();
+            }
+
+            false
         });
 
         if let Some(actual_param) = param {
