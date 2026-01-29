@@ -2111,7 +2111,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         literal_statement: &AstNode,
     ) -> Result<ExpressionValue<'ink>, CodegenError> {
         let cannot_generate_literal = || {
-            panic!("{literal_statement:?}");
             Diagnostic::codegen_error(
                 format!("Cannot generate Literal for {literal_statement:?}"),
                 literal_statement,

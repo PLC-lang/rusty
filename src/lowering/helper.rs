@@ -8,7 +8,7 @@ use plc_ast::{
     },
     provider::IdProvider,
 };
-use plc_source::source_location::{FileMarker, SourceLocation};
+use plc_source::source_location::SourceLocation;
 
 #[derive(Clone, Default)]
 pub struct Context {
@@ -149,7 +149,7 @@ pub fn create_assignment(
     lhs_ident: &str,
     base_ident: Option<&str>,
     rhs: &AstNode,
-    mut id_provider: IdProvider,
+    id_provider: IdProvider,
 ) -> AstNode {
     create_assignment_with_index(lhs_ident, base_ident, rhs, id_provider, None, None)
 }
@@ -210,7 +210,7 @@ fn qualify_local_references(
             if base.is_none() {
                 if let Some(var_name) = node.get_flat_reference_name() {
                     // Check if this resolves to a local variable in the current POU
-                    if let Some(variable) = index.find_variable(Some(pou_name), &[&var_name]) {
+                    if let Some(variable) = index.find_variable(Some(pou_name), &[var_name]) {
                         if variable.is_local() {
                             // Qualify it with the base identifier
                             let qualified_base =

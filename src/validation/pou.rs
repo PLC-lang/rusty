@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use plc_ast::ast::{
-    AstId, Identifier, Implementation, Interface, LinkageType, Pou, PouType, VariableBlockType,
+    AstId, Identifier, Implementation, Interface, Pou, PouType, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;

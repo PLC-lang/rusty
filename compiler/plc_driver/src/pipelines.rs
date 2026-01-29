@@ -266,7 +266,6 @@ impl<T: SourceContainer> BuildPipeline<T> {
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(
-                self.project.get_init_symbol_name(),
                 self.context.provider(),
                 self.context.should_generate_external_constructors(),
             )),
@@ -574,9 +573,9 @@ impl ParsedProject {
         global_index.import(indexer::index(&builtins));
 
         //TODO: evaluate constants should probably be a participant
-        let (index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
+        let (index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
 
-        IndexedProject { project: ParsedProject { units }, index, unresolvables }
+        IndexedProject { project: ParsedProject { units }, index, _unresolvables }
     }
 }
 
@@ -585,7 +584,8 @@ impl ParsedProject {
 pub struct IndexedProject {
     project: ParsedProject,
     index: Index,
-    unresolvables: Vec<UnresolvableConstant>,
+    //TODO: do we still need this
+    _unresolvables: Vec<UnresolvableConstant>,
 }
 
 impl IndexedProject {

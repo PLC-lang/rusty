@@ -12,7 +12,7 @@ use std::{
     sync::{Arc, Mutex, RwLock},
 };
 
-use ast::{provider::IdProvider, visitor::AstVisitor};
+use ast::provider::IdProvider;
 use plc::{
     codegen::GeneratedModule,
     lowering::{
@@ -214,14 +214,13 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
 }
 
 pub struct InitParticipant {
-    symbol_name: &'static str,
     id_provider: IdProvider,
     generate_externals: bool,
 }
 
 impl InitParticipant {
-    pub fn new(symbol_name: &'static str, id_provider: IdProvider, generate_externals: bool) -> Self {
-        Self { symbol_name, id_provider, generate_externals }
+    pub fn new(id_provider: IdProvider, generate_externals: bool) -> Self {
+        Self { id_provider, generate_externals }
     }
 }
 
@@ -278,7 +277,7 @@ impl PipelineParticipantMut for InheritanceLowerer {
                 units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
             },
             index,
-            unresolvables: vec![],
+            _unresolvables: vec![],
         }
         .annotate(self.provider())
     }
@@ -310,7 +309,7 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
         let indexed_project = IndexedProject {
             project: ParsedProject { units },
             index: self.index.take().expect("Index"),
-            unresolvables: vec![],
+            _unresolvables: vec![],
         };
         indexed_project.annotate(self.id_provider.clone())
     }
@@ -344,7 +343,7 @@ impl PipelineParticipantMut for PolymorphicCallLowerer {
         let indexed_project = IndexedProject {
             project: ParsedProject { units },
             index: self.index.take().expect("Index"),
-            unresolvables: vec![],
+            _unresolvables: vec![],
         };
 
         indexed_project.annotate(self.ids.clone())

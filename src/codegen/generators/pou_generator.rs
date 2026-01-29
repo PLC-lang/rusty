@@ -114,7 +114,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
             _ => None,
         })
         .filter(|(_, it)| it.is_in_unit(location));
-    for (pou, implementation) in implementations {
+    for (_pou, implementation) in implementations {
         let type_name = implementation.get_type_name();
         //TODO: should we skip includes here?
         if implementation.is_init() {

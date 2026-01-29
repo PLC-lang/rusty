@@ -28,7 +28,7 @@ impl PipelineParticipantMut for PropertyLowerer {
         let project = IndexedProject {
             project: ParsedProject { units: units.into_iter().map(|annotated| annotated.unit).collect() },
             index,
-            unresolvables: vec![],
+            _unresolvables: vec![],
         };
 
         project.annotate(self.id_provider.clone())

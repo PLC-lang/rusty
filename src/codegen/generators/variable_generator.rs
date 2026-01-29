@@ -3,7 +3,7 @@
 /// offers operations to generate global variables
 use crate::{
     codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
-    index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
     OnlineChange,
 };
