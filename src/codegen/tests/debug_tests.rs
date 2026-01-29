@@ -367,99 +367,102 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     %__vtable_fb = type { ptr, ptr }
     %fb = type { ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
-    @__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !0
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
-    define void @fb(ptr %0) !dbg !14 {
+    define void @fb(ptr %0) !dbg !4 {
     entry:
-        #dbg_declare(ptr %0, !18, !DIExpression(), !19)
+        #dbg_declare(ptr %0, !14, !DIExpression(), !15)
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
-      ret void, !dbg !19
+      ret void, !dbg !15
     }
 
-    define void @fb__foo(ptr %0) !dbg !20 {
+    define void @fb__foo(ptr %0) !dbg !16 {
     entry:
-        #dbg_declare(ptr %0, !21, !DIExpression(), !22)
+        #dbg_declare(ptr %0, !17, !DIExpression(), !18)
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
-      ret void, !dbg !22
+      ret void, !dbg !18
     }
 
-    define void @__init___vtable_fb(ptr %0) {
+    define void @__vtable_fb_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @fb, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %foo = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 1
-      store ptr @fb__foo, ptr %foo, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      %deref = load ptr, ptr %self, align [filtered], !dbg !15
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0, !dbg !15
+      store ptr @fb, ptr %__body, align [filtered], !dbg !15
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !15
+      %foo = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 1, !dbg !15
+      store ptr @fb__foo, ptr %foo, align [filtered], !dbg !15
+      ret void, !dbg !15
     }
 
-    define void @__init_fb(ptr %0) {
+    define void @__fb___vtable_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_fb_instance, ptr %__vtable, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      ret void, !dbg !15
     }
 
-    define void @__user_init_fb(ptr %0) {
+    define void @____vtable_fb___body_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      ret void, !dbg !15
     }
 
-    define void @__user_init___vtable_fb(ptr %0) {
+    define void @____vtable_fb_foo_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      ret void, !dbg !15
     }
 
-    define void @__init___Test() {
+    define void @fb_ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb(ptr @__vtable_fb_instance)
-      call void @__user_init___vtable_fb(ptr @__vtable_fb_instance)
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      %deref = load ptr, ptr %self, align [filtered], !dbg !15
+      %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0, !dbg !15
+      call void @__fb___vtable_ctor(ptr %__vtable), !dbg !15
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !15
+      %__vtable2 = getelementptr inbounds nuw %fb, ptr %deref1, i32 0, i32 0, !dbg !15
+      store ptr @__vtable_fb_instance, ptr %__vtable2, align [filtered], !dbg !15
+      ret void, !dbg !15
     }
 
-    !llvm.module.flags = !{!10, !11}
-    !llvm.dbg.cu = !{!12}
+    define void @__unit___internal___ctor() {
+    entry:
+      call void @__vtable_fb_ctor(ptr @__vtable_fb_instance), !dbg !15
+      ret void, !dbg !15
+    }
 
-    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-    !1 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
-    !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 64, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "fb")
-    !5 = !{!6}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align [filtered], flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____fb___vtable", scope: !2, file: !2, baseType: !8, align [filtered])
-    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__fb___vtable", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !9 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
-    !10 = !{i32 2, !"Dwarf Version", i32 5}
-    !11 = !{i32 2, !"Debug Info Version", i32 3}
-    !12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false)
-    !13 = !{!0}
-    !14 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !15, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !17)
-    !15 = !DISubroutineType(flags: DIFlagPublic, types: !16)
-    !16 = !{null, !4}
-    !17 = !{}
-    !18 = !DILocalVariable(name: "fb", scope: !14, file: !2, line: 5, type: !4)
-    !19 = !DILocation(line: 5, column: 8, scope: !14)
-    !20 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !14, file: !2, line: 3, type: !15, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !17)
-    !21 = !DILocalVariable(name: "fb", scope: !20, file: !2, line: 4, type: !4)
-    !22 = !DILocation(line: 4, column: 8, scope: !20)
+    !llvm.module.flags = !{!0, !1}
+    !llvm.dbg.cu = !{!2}
+
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
+    !1 = !{i32 2, !"Debug Info Version", i32 3}
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !3 = !DIFile(filename: "<internal>", directory: "")
+    !4 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !3, file: !3, line: 2, type: !5, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !13)
+    !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+    !6 = !{null, !7}
+    !7 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !3, file: !3, line: 2, size: 64, align [filtered], flags: DIFlagPublic, elements: !8, identifier: "fb")
+    !8 = !{!9}
+    !9 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !3, file: !3, baseType: !10, size: 64, align [filtered], flags: DIFlagPublic)
+    !10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____fb___vtable", scope: !3, file: !3, baseType: !11, align [filtered])
+    !11 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__fb___vtable", baseType: !12, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !12 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !13 = !{}
+    !14 = !DILocalVariable(name: "fb", scope: !4, file: !3, line: 5, type: !7)
+    !15 = !DILocation(line: 5, column: 8, scope: !4)
+    !16 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !4, file: !3, line: 3, type: !5, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !13)
+    !17 = !DILocalVariable(name: "fb", scope: !16, file: !3, line: 4, type: !7)
+    !18 = !DILocation(line: 4, column: 8, scope: !16)
     "#);
 }
 

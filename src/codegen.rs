@@ -341,9 +341,24 @@ impl<'ink> CodeGen<'ink> {
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && !entry.get_linkage().is_external_or_included() {
                     let noop_debug = DebugBuilderEnum::None;
-                    let debug = if matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit) {
+                    // Use noop debug ONLY for compiler-generated types (Init/ProjectInit POUs)
+                    // User-defined functions should retain full debug info even if they have internal locations
+                    // (internal locations can result from lowering/transformation of user code)
+                    let is_compiler_generated =
+                        matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit);
+                    let debug = if is_compiler_generated {
+                        log::debug!(
+                            "Using noop debug for {} (compiler-generated type: {:?})",
+                            implementation.name,
+                            implementation.pou_type
+                        );
                         &noop_debug
                     } else {
+                        log::debug!(
+                            "Using full debug for {} (user-defined, type: {:?})",
+                            implementation.name,
+                            implementation.pou_type
+                        );
                         &self.debug
                     };
                     pou_generator.generate_implementation(implementation, debug)?;

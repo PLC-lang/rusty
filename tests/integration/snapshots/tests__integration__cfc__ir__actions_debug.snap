@@ -7,7 +7,7 @@ target triple = "[filtered]"
 %main = type { i32, i32 }
 
 @main_instance = global %main zeroinitializer, !dbg !0
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___cfc_ctor, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___cfc_ctor, ptr null }]
 
 define void @main(ptr %0) !dbg !12 {
 entry:
@@ -22,35 +22,35 @@ entry:
 
 define void @main_ctor(ptr %0) {
 entry:
-  %self = alloca ptr, align [filtered], !dbg !21
-  store ptr %0, ptr %self, align [filtered], !dbg !21
-  ret void, !dbg !21
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
+  ret void
 }
 
-define void @____internal___cfc_ctor() {
+define void @__unit___internal___cfc_ctor() {
 entry:
-  call void @main_ctor(ptr @main_instance), !dbg !21
-  ret void, !dbg !21
+  call void @main_ctor(ptr @main_instance)
+  ret void
 }
 
 define void @main__newAction(ptr %0) {
 entry:
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  %load_a = load i32, ptr %a, align [filtered], !dbg !22
-  %tmpVar = add i32 %load_a, 1, !dbg !22
-  store i32 %tmpVar, ptr %a, align [filtered], !dbg !22
-  ret void, !dbg !21
+  %load_a = load i32, ptr %a, align [filtered]
+  %tmpVar = add i32 %load_a, 1
+  store i32 %tmpVar, ptr %a, align [filtered]
+  ret void
 }
 
 define void @main__newAction2(ptr %0) {
 entry:
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  %load_b = load i32, ptr %b, align [filtered], !dbg !23
-  %tmpVar = add i32 %load_b, 2, !dbg !23
-  store i32 %tmpVar, ptr %b, align [filtered], !dbg !23
-  ret void, !dbg !21
+  %load_b = load i32, ptr %b, align [filtered]
+  %tmpVar = add i32 %load_b, 2
+  store i32 %tmpVar, ptr %b, align [filtered]
+  ret void
 }
 
 !llvm.module.flags = !{!8, !9}
@@ -77,6 +77,3 @@ entry:
 !18 = !DILocation(line: 3, scope: !12)
 !19 = !DILocation(line: 2, scope: !12)
 !20 = !DILocation(line: 0, scope: !12)
-!21 = !DILocation(line: 0, scope: !2)
-!22 = !DILocation(line: 1, scope: !2)
-!23 = !DILocation(line: 2, scope: !2)

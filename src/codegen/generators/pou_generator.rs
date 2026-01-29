@@ -207,7 +207,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         implementation: &ImplementationIndexEntry,
         module: &Module<'ink>,
         debug: &mut DebugBuilderEnum<'ink>,
-        new_llvm_index: &mut LlvmTypedIndex<'ink>,
+        llvm_index: &mut LlvmTypedIndex<'ink>,
         file_name: &str,
     ) -> Result<FunctionValue<'ink>, CodegenError> {
         log::trace!(
@@ -228,7 +228,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 match param {
                     Some(v) if v.is_in_parameter_by_ref() => {
                         let ty = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
-                        let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
+                        let _ = llvm_index.associate_type(v.get_type_name(), ty.into());
                         ty.into()
                     }
                     _ => {
@@ -314,7 +314,22 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             function: curr_f,
             blocks: FxHashMap::default(),
         };
-        if implementation.is_in_unit(file_name) {
+        // Register debug info for all user-defined functions (not compiler-generated types like Init/ProjectInit).
+        // We should NOT skip based on location (internal locations can result from lowering of user code).
+        // The ImplementationType is the reliable indicator: only Init/ProjectInit are truly compiler-generated.
+        let is_compiler_generated = matches!(
+            implementation.get_implementation_type(),
+            ImplementationType::Init | ImplementationType::ProjectInit
+        );
+        log::debug!(
+            "Stub registration for {}: is_compiler_generated={}, impl_type={:?}, impl_file={:?}, module_file={}",
+            implementation.get_call_name(),
+            is_compiler_generated,
+            implementation.get_implementation_type(),
+            implementation.get_location().get_file_name(),
+            file_name
+        );
+        if !is_compiler_generated {
             debug.register_function(
                 (self.index, self.llvm_index),
                 &function_context,
