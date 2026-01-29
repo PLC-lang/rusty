@@ -150,6 +150,23 @@ impl AstVisitor for Initializer {
             );
             self.global_constructor.push(call);
         }
+        // If a stateless POU with a named return type, add constructor call for the return value
+        if !pou.is_stateful() {
+            if let Some(return_type) = &pou.return_type {
+                if let Some(return_type_name) = return_type.get_name() {
+                    if self.constructors.contains_key(return_type_name) {
+                        let call = create_call_statement(
+                            &format!("{}_ctor", return_type_name),
+                            pou.get_return_name(),
+                            None,
+                            self.id_provider.clone(),
+                            &SourceLocation::internal(),
+                        );
+                        self.add_to_current_stack_constructor(vec![call]);
+                    }
+                }
+            }
+        }
         self.context.exit_pou();
     }
 
