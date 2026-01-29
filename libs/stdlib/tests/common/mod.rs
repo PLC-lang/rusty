@@ -69,14 +69,16 @@ pub fn compile_and_load<T: Compilable>(context: &CodegenContext, source: T, incl
     };
 
     // Build stdlib if it doesn't exist
-    eprintln!("Building iec61131std library...");
-    let status = std::process::Command::new("cargo")
-        .args(["build", "-p", "iec61131std", "--features", "mock_time"])
-        .current_dir(env!("CARGO_MANIFEST_DIR"))
-        .status()
-        .expect("Failed to run cargo build");
+    if !stdlib_path.exists() {
+        eprintln!("Building iec61131std library...");
+        let status = std::process::Command::new("cargo")
+            .args(["build", "-p", "iec61131std"])
+            .current_dir(env!("CARGO_MANIFEST_DIR"))
+            .status()
+            .expect("Failed to run cargo build");
+        assert!(status.success(), "Failed to build iec61131std");
+    }
 
-    assert!(status.success(), "Failed to build iec61131std");
     assert!(stdlib_path.exists(), "Library still not found after build");
 
     // Link using platform-specific commands

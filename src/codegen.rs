@@ -341,7 +341,6 @@ impl<'ink> CodeGen<'ink> {
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && !entry.get_linkage().is_external_or_included() {
                     let noop_debug = DebugBuilderEnum::None;
-                    dbg!(&implementation.name);
                     let debug = if matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit) {
                         &noop_debug
                     } else {

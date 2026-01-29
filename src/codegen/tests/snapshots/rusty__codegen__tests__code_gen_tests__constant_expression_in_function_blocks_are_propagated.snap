@@ -9,8 +9,6 @@ target triple = "[filtered]"
 
 %fbWithConstant = type { i16, i16 }
 
-@__fbWithConstant__init = unnamed_addr constant %fbWithConstant { i16 0, i16 2 }
-
 define void @fbWithConstant(ptr %0) {
 entry:
   %this = alloca ptr, align [filtered]

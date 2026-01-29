@@ -11,7 +11,6 @@ target triple = "[filtered]"
 %fb_t = type { i8, i8, ptr, i8, ptr }
 
 @mainProg_instance = global %mainProg zeroinitializer
-@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
 
 define void @mainProg(ptr %0) {
 entry:

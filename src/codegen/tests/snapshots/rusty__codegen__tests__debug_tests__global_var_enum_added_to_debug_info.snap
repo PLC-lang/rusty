@@ -17,7 +17,7 @@ target triple = "[filtered]"
 @__global_en3.a = unnamed_addr constant i64 0, !dbg !23
 @__global_en3.b = unnamed_addr constant i64 1, !dbg !26
 @__global_en3.c = unnamed_addr constant i64 2, !dbg !28
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
 define void @en1_ctor(ptr %0) {
 entry:
@@ -40,7 +40,7 @@ entry:
   ret void
 }
 
-define void @____internal___ctor() {
+define void @__unit___internal___ctor() {
 entry:
   call void @__global_en3_ctor(ptr @en3)
   ret void

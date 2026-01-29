@@ -9,7 +9,7 @@ target triple = "[filtered]"
 
 @a = global ptr null, !dbg !0
 @b = global ptr null, !dbg !6
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
 define void @__global_a_ctor(ptr %0) {
 entry:
@@ -32,7 +32,7 @@ entry:
   ret void
 }
 
-define void @____internal___ctor() {
+define void @__unit___internal___ctor() {
 entry:
   call void @__global_a_ctor(ptr @a)
   call void @__global_b_ctor(ptr @b)

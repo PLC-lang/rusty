@@ -11,7 +11,6 @@ target triple = "[filtered]"
 %file_t = type { i8, i8 }
 
 @main_instance = global %main zeroinitializer
-@__file_t__init = unnamed_addr constant %file_t zeroinitializer
 
 define void @main(ptr %0) {
 entry:

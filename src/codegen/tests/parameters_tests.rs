@@ -1114,12 +1114,10 @@ fn var_output_aggregate_types_are_memcopied() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FB = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16] }
-    %OUT_TYPE = type { i8 }
     %PRG = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16], %FB }
+    %OUT_TYPE = type { i8 }
+    %FB = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16] }
 
-    @__FB__init = unnamed_addr constant %FB zeroinitializer
-    @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer
     @PRG_instance = global %PRG zeroinitializer
 
     define void @FB(ptr %0) {
@@ -1455,10 +1453,9 @@ fn function_block_with_array_of_array_parameter_stride_calculation() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %MatrixProcessor = type { ptr }
     %main = type { %MatrixProcessor, [2 x [4 x float]] }
+    %MatrixProcessor = type { ptr }
 
-    @__MatrixProcessor__init = unnamed_addr constant %MatrixProcessor zeroinitializer
     @main_instance = global %main zeroinitializer
 
     define void @MatrixProcessor(ptr %0) {
@@ -1600,10 +1597,9 @@ fn method_with_var_in_out_nested_integer_arrays() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %DataProcessor = type {}
     %main = type { %DataProcessor, [2 x [2 x i32]] }
+    %DataProcessor = type {}
 
-    @__DataProcessor__init = unnamed_addr constant %DataProcessor zeroinitializer
     @main_instance = global %main zeroinitializer
 
     define void @DataProcessor(ptr %0) {
@@ -1682,10 +1678,9 @@ fn method_with_mixed_array_types() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %ComplexHandler = type {}
     %main = type { %ComplexHandler, [2 x [21 x i8]], [3 x [2 x i16]] }
+    %ComplexHandler = type {}
 
-    @__ComplexHandler__init = unnamed_addr constant %ComplexHandler zeroinitializer
     @main_instance = global %main zeroinitializer
     @utf08_literal_0 = private unnamed_addr constant [5 x i8] c"Data\00"
     @utf08_literal_1 = private unnamed_addr constant [11 x i8] c"Processing\00"

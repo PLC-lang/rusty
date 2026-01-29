@@ -26,17 +26,13 @@ fn members_from_base_class_are_available_in_subclasses() {
     target triple = "[filtered]"
 
     %__vtable_foo = type { ptr }
-    %foo = type { ptr, i16, [81 x i8], [11 x [81 x i8]] }
     %__vtable_bar = type { ptr }
+    %foo = type { ptr, i16, [81 x i8], [11 x [81 x i8]] }
     %bar = type { %foo }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -135,7 +131,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_foo_ctor(ptr @__vtable_foo_instance)
       call void @__vtable_bar_ctor(ptr @__vtable_bar_instance)
@@ -174,22 +170,16 @@ fn write_to_parent_variable_qualified_access() {
     target triple = "[filtered]"
 
     %__vtable_fb = type { ptr }
-    %fb = type { ptr, i16, i16 }
     %__vtable_fb2 = type { ptr }
-    %fb2 = type { %fb }
     %__vtable_foo = type { ptr }
+    %fb = type { ptr, i16, i16 }
+    %fb2 = type { %fb }
     %foo = type { ptr, %fb2 }
 
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
-    @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
-    @__fb__init = unnamed_addr constant %fb zeroinitializer
     @__vtable_fb2_instance = global %__vtable_fb2 zeroinitializer
-    @____vtable_fb2__init = unnamed_addr constant %__vtable_fb2 zeroinitializer
-    @__fb2__init = unnamed_addr constant %fb2 zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @fb(ptr %0) {
     entry:
@@ -329,7 +319,7 @@ fn write_to_parent_variable_qualified_access() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_fb_ctor(ptr @__vtable_fb_instance)
       call void @__vtable_fb2_ctor(ptr @__vtable_fb2_instance)
@@ -581,22 +571,16 @@ fn array_in_parent_generated() {
     target triple = "[filtered]"
 
     %__vtable_grandparent = type { ptr }
-    %grandparent = type { ptr, [6 x i16], i16 }
     %__vtable_parent = type { ptr }
-    %parent = type { %grandparent, [11 x i16], i16 }
     %__vtable_child = type { ptr }
+    %grandparent = type { ptr, [6 x i16], i16 }
+    %parent = type { %grandparent, [11 x i16], i16 }
     %child = type { %parent, [11 x i16] }
 
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
-    @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
-    @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @grandparent(ptr %0) {
     entry:
@@ -796,7 +780,7 @@ fn array_in_parent_generated() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_grandparent_ctor(ptr @__vtable_grandparent_instance)
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
@@ -845,22 +829,16 @@ fn complex_array_access_generated() {
     target triple = "[filtered]"
 
     %__vtable_grandparent = type { ptr }
-    %grandparent = type { ptr, [6 x i16], i16 }
     %__vtable_parent = type { ptr }
-    %parent = type { %grandparent, [11 x i16], i16 }
     %__vtable_child = type { ptr }
+    %grandparent = type { ptr, [6 x i16], i16 }
+    %parent = type { %grandparent, [11 x i16], i16 }
     %child = type { %parent, [11 x i16] }
 
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
-    @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
-    @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @grandparent(ptr %0) {
     entry:
@@ -1045,7 +1023,7 @@ fn complex_array_access_generated() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_grandparent_ctor(ptr @__vtable_grandparent_instance)
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
@@ -1130,9 +1108,7 @@ fn this_in_method_call_chain() {
     %FB_Test = type { ptr }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1217,7 +1193,7 @@ fn this_in_method_call_chain() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_FB_Test_ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -1252,9 +1228,7 @@ fn this_in_method_and_body_in_function_block() {
     %FB_Test = type { ptr, i16 }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test { ptr null, i16 5 }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1339,7 +1313,7 @@ fn this_in_method_and_body_in_function_block() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_FB_Test_ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -1591,9 +1565,7 @@ fn this_with_shadowed_variable() {
     %FB_Test = type { ptr, i16 }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test { ptr null, i16 5 }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1676,7 +1648,7 @@ fn this_with_shadowed_variable() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_FB_Test_ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -1712,9 +1684,7 @@ fn this_calling_function_and_passing_this() {
     %FB_Test = type { ptr, i16 }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1785,7 +1755,7 @@ fn this_calling_function_and_passing_this() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_FB_Test_ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -1827,9 +1797,7 @@ fn this_in_property_and_calling_method() {
     %FB_Test = type { ptr, i16 }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1960,7 +1928,7 @@ fn this_in_property_and_calling_method() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_FB_Test_ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -1995,9 +1963,7 @@ fn this_with_self_pointer() {
     %FB_Test = type { ptr, ptr }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -2080,7 +2046,7 @@ fn this_with_self_pointer() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_FB_Test_ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -2113,9 +2079,7 @@ fn this_in_variable_initialization() {
     %FB = type { ptr, i16, ptr, i16 }
 
     @__vtable_FB_instance = global %__vtable_FB zeroinitializer
-    @____vtable_FB__init = unnamed_addr constant %__vtable_FB zeroinitializer
-    @__FB__init = unnamed_addr constant %FB { ptr null, i16 5, ptr null, i16 5 }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @FB(ptr %0) {
     entry:
@@ -2178,7 +2142,7 @@ fn this_in_variable_initialization() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_FB_ctor(ptr @__vtable_FB_instance)
       ret void
@@ -2208,9 +2172,7 @@ fn this_in_action_in_functionblock() {
     %fb = type { ptr }
 
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
-    @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
-    @__fb__init = unnamed_addr constant %fb zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @fb(ptr %0) {
     entry:
@@ -2257,7 +2219,7 @@ fn this_in_action_in_functionblock() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_fb_ctor(ptr @__vtable_fb_instance)
       ret void
@@ -2296,9 +2258,7 @@ fn this_calling_functionblock_body_from_method() {
     %fb = type { ptr }
 
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
-    @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
-    @__fb__init = unnamed_addr constant %fb zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @fb(ptr %0) {
     entry:
@@ -2368,7 +2328,7 @@ fn this_calling_functionblock_body_from_method() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_fb_ctor(ptr @__vtable_fb_instance)
       ret void
@@ -2406,17 +2366,13 @@ fn fb_extension_with_output() {
     target triple = "[filtered]"
 
     %__vtable_foo = type { ptr, ptr }
-    %foo = type { ptr }
     %__vtable_foo2 = type { ptr, ptr }
+    %foo = type { ptr }
     %foo2 = type { %foo }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo2_instance = global %__vtable_foo2 zeroinitializer
-    @____vtable_foo2__init = unnamed_addr constant %__vtable_foo2 zeroinitializer
-    @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2548,7 +2504,7 @@ fn fb_extension_with_output() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_foo_ctor(ptr @__vtable_foo_instance)
       call void @__vtable_foo2_ctor(ptr @__vtable_foo2_instance)

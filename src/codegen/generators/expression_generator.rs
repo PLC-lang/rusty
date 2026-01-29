@@ -2420,9 +2420,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let llvm_type = self.llvm_index.get_associated_type(inner_type.get_name())?;
         let mut v = Vec::new();
+        // For array literal initialization, always generate elements using a context-free generator.
+        // This ensures that all literals (especially strings) are generated as const values (RValues)
+        // rather than pointers to globals (LValues), even when we're inside a constructor function.
+        // The refactor moved initialization into constructors, so we're now in a function_context,
+        // but array literals need const element values, not runtime pointer values.
+        let ctx_free_gen = ExpressionCodeGenerator::new_context_free(
+            self.llvm,
+            self.index,
+            self.annotations,
+            self.llvm_index,
+        );
         for e in elements {
-            //generate with correct type hint
-            let value = self.generate_literal(e)?;
+            //generate with correct type hint using context-free generator
+            let value = ctx_free_gen.generate_literal(e)?;
             v.push(value.get_basic_value_enum());
         }
 

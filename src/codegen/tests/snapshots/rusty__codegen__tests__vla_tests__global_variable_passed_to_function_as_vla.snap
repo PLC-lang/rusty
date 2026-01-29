@@ -10,7 +10,6 @@ target triple = "[filtered]"
 %__foo_vla = type { ptr, [2 x i32] }
 
 @arr = global [2 x i16] zeroinitializer
-@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
 define i16 @foo(ptr %0) {
 entry:

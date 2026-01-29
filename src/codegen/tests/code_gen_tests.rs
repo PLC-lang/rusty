@@ -3974,14 +3974,10 @@ fn variables_in_var_external_block_are_not_generated() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %bar = type {}
     %baz = type {}
-    %qux = type {}
 
     @arr = global [101 x i16] zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer
     @baz_instance = global %baz zeroinitializer
-    @__qux__init = unnamed_addr constant %qux zeroinitializer
 
     define void @foo() {
     entry:

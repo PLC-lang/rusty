@@ -303,8 +303,6 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
 
     %main_fb = type { i16, ptr, i16, i16 }
 
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, ptr null, i16 0, i16 1 }
-
     define void @main_fb(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -348,7 +346,6 @@ fn calling_a_function_block() {
     %main_fb = type { i16, ptr, i16, i16 }
 
     @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, ptr null, i16 0, i16 1 } }
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, ptr null, i16 0, i16 1 }
 
     define void @foo(ptr %0) {
     entry:
@@ -593,10 +590,9 @@ fn passing_aggregate_types_to_functions_by_value() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %myStruct = type { i32, i32, i32, [81 x i8] }
     %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
+    %myStruct = type { i32, i32, i32, [81 x i8] }
 
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
     @main_instance = global %main zeroinitializer
 
     define void @foo(ptr %0, ptr %1, ptr %2, ptr %3) {

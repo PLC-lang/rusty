@@ -12,7 +12,6 @@ target triple = "[filtered]"
 %main = type {}
 
 @global1 = global %STRUCT_params zeroinitializer
-@__STRUCT_params__init = unnamed_addr constant %STRUCT_params zeroinitializer
 @global2 = global %STRUCT_params zeroinitializer
 @global3 = global %STRUCT_params zeroinitializer
 @global4 = global i32 0

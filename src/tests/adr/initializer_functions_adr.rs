@@ -663,12 +663,6 @@ fn generating_init_functions() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %myStruct = type { i8, i8 }
-    %myRefStruct = type { ptr }
-
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
-    @__myRefStruct__init = unnamed_addr constant %myRefStruct zeroinitializer
-
     define void @myStruct_ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1093,9 +1087,7 @@ fn initializing_method_variables() {
     %foo = type { ptr }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -1174,7 +1166,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_foo_ctor(ptr @__vtable_foo_instance)
       ret void
@@ -1553,17 +1545,13 @@ fn external_initializers_in_fbs() {
 
     %main = type { ptr, %foo }
     %foo = type { ptr, i32 }
-    %__vtable_foo = type { ptr }
     %__vtable_main = type { ptr }
+    %__vtable_foo = type { ptr }
 
     @main_inst = global %main { ptr null, %foo { ptr null, i32 5 } }
-    @__main__init = unnamed_addr constant %main { ptr null, %foo { ptr null, i32 5 } }
-    @__foo__init = external unnamed_addr constant %foo
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @____vtable_main__init = unnamed_addr constant %__vtable_main zeroinitializer
     @__vtable_main_instance = global %__vtable_main zeroinitializer
     @__vtable_foo_instance = external global %__vtable_foo
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @main(ptr %0) {
     entry:
@@ -1589,12 +1577,7 @@ fn external_initializers_in_fbs() {
       ret void
     }
 
-    define void @__foo___vtable_ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
+    declare void @__foo___vtable_ctor(ptr)
 
     define void @__main___vtable_ctor(ptr %0) {
     entry:
@@ -1603,12 +1586,7 @@ fn external_initializers_in_fbs() {
       ret void
     }
 
-    define void @____vtable_foo___body_ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
+    declare void @____vtable_foo___body_ctor(ptr)
 
     define void @____vtable_main___body_ctor(ptr %0) {
     entry:
@@ -1635,7 +1613,7 @@ fn external_initializers_in_fbs() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_main_ctor(ptr @__vtable_main_instance)
       call void @__vtable_foo_ctor(ptr @__vtable_foo_instance)
@@ -1809,8 +1787,7 @@ fn external_struct_and_program_initializers() {
     %myStruct = type { i32 }
 
     @baz_instance = external global %baz
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     declare void @baz(ptr)
 
@@ -1827,7 +1804,7 @@ fn external_struct_and_program_initializers() {
 
     declare void @baz_ctor(ptr)
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @baz_ctor(ptr @baz_instance)
       ret void

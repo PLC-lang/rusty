@@ -441,10 +441,6 @@ fn regular_pointers_to_function_blocks_are_called_directly() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %A = type {}
-
-    @__A__init = unnamed_addr constant %A zeroinitializer
-
     define void @A(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]

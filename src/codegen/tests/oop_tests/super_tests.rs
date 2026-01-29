@@ -24,17 +24,13 @@ fn super_keyword_basic_access() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr }
-    %parent = type { ptr, i16 }
     %__vtable_child = type { ptr }
+    %parent = type { ptr, i16 }
     %child = type { %parent }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 10 }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 10 } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @parent(ptr %0) {
     entry:
@@ -126,7 +122,7 @@ fn super_keyword_basic_access() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -161,17 +157,13 @@ fn super_without_deref() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr }
-    %parent = type { ptr, i16 }
     %__vtable_child = type { ptr }
+    %parent = type { ptr, i16 }
     %child = type { %parent, ptr }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 10 }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 10 }, ptr null }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @parent(ptr %0) {
     entry:
@@ -273,7 +265,7 @@ fn super_without_deref() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -315,17 +307,13 @@ fn super_in_method_calls() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr, ptr }
-    %parent = type { ptr, i16 }
     %__vtable_child = type { ptr, ptr, ptr }
+    %parent = type { ptr, i16 }
     %child = type { %parent }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 10 }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 10 } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @parent(ptr %0) {
     entry:
@@ -492,7 +480,7 @@ fn super_in_method_calls() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -528,17 +516,13 @@ fn super_in_complex_expressions() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr }
-    %parent = type { ptr, i16, i16 }
     %__vtable_child = type { ptr }
+    %parent = type { ptr, i16, i16 }
     %child = type { %parent, i16 }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 10, i16 20 }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 10, i16 20 }, i16 30 }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @parent(ptr %0) {
     entry:
@@ -646,7 +630,7 @@ fn super_in_complex_expressions() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -681,17 +665,13 @@ fn super_with_array_access() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr }
-    %parent = type { ptr, [6 x i16] }
     %__vtable_child = type { ptr }
+    %parent = type { ptr, [6 x i16] }
     %child = type { %parent, i16 }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }, i16 3 }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
 
     define void @parent(ptr %0) {
@@ -803,7 +783,7 @@ fn super_with_array_access() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -855,22 +835,16 @@ fn super_in_multi_level_inheritance() {
     target triple = "[filtered]"
 
     %__vtable_grandparent = type { ptr, ptr }
-    %grandparent = type { ptr, i16 }
     %__vtable_parent = type { ptr, ptr, ptr }
-    %parent = type { %grandparent, i16 }
     %__vtable_child = type { ptr, ptr, ptr, ptr }
+    %grandparent = type { ptr, i16 }
+    %parent = type { %grandparent, i16 }
     %child = type { %parent, i16 }
 
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
-    @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
-    @__grandparent__init = unnamed_addr constant %grandparent { ptr null, i16 10 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { %grandparent { ptr null, i16 10 }, i16 20 }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { %grandparent { ptr null, i16 10 }, i16 20 }, i16 30 }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @grandparent(ptr %0) {
     entry:
@@ -1115,7 +1089,7 @@ fn super_in_multi_level_inheritance() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_grandparent_ctor(ptr @__vtable_grandparent_instance)
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
@@ -1151,17 +1125,13 @@ fn super_with_pointer_operations() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr }
-    %parent = type { ptr, i16, ptr }
     %__vtable_child = type { ptr }
+    %parent = type { ptr, i16, ptr }
     %child = type { %parent }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 10, ptr null }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 10, ptr null } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @parent(ptr %0) {
     entry:
@@ -1273,7 +1243,7 @@ fn super_with_pointer_operations() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -1318,17 +1288,13 @@ fn super_in_conditionals() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr }
-    %parent = type { ptr, i16, i16 }
     %__vtable_child = type { ptr, ptr }
+    %parent = type { ptr, i16, i16 }
     %child = type { %parent }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 50, i16 10 }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 50, i16 10 } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @parent(ptr %0) {
     entry:
@@ -1483,7 +1449,7 @@ fn super_in_conditionals() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -1518,17 +1484,13 @@ fn super_with_const_variables() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr }
-    %parent = type { ptr, i16, i16 }
     %__vtable_child = type { ptr }
+    %parent = type { ptr, i16, i16 }
     %child = type { %parent }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 100, i16 50 }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 100, i16 50 } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @parent(ptr %0) {
     entry:
@@ -1621,7 +1583,7 @@ fn super_with_const_variables() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -1670,17 +1632,13 @@ fn super_as_function_parameter() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr }
-    %parent = type { ptr, i16 }
     %__vtable_child = type { ptr, ptr }
+    %parent = type { ptr, i16 }
     %child = type { %parent }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 10 }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 10 } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @parent(ptr %0) {
     entry:
@@ -1822,7 +1780,7 @@ fn super_as_function_parameter() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -1867,17 +1825,13 @@ fn super_with_deeply_nested_expressions() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr, ptr }
-    %parent = type { ptr, i16, i16, i16 }
     %__vtable_child = type { ptr, ptr, ptr }
+    %parent = type { ptr, i16, i16, i16 }
     %child = type { %parent }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 1, i16 2, i16 3 }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 1, i16 2, i16 3 } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @parent(ptr %0) {
     entry:
@@ -2061,7 +2015,7 @@ fn super_with_deeply_nested_expressions() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -2119,17 +2073,13 @@ fn super_in_loop_constructs() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr, ptr }
-    %parent = type { ptr, i16, [6 x i16] }
     %__vtable_child = type { ptr, ptr, ptr }
+    %parent = type { ptr, i16, [6 x i16] }
     %child = type { %parent }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
 
     define void @parent(ptr %0) {
@@ -2390,7 +2340,7 @@ fn super_in_loop_constructs() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
@@ -2431,22 +2381,16 @@ fn super_with_method_overrides_in_three_levels() {
     target triple = "[filtered]"
 
     %__vtable_grandparent = type { ptr, ptr }
-    %grandparent = type { ptr }
     %__vtable_parent = type { ptr, ptr }
-    %parent = type { %grandparent }
     %__vtable_child = type { ptr, ptr }
+    %grandparent = type { ptr }
+    %parent = type { %grandparent }
     %child = type { %parent }
 
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
-    @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
-    @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @grandparent(ptr %0) {
     entry:
@@ -2646,7 +2590,7 @@ fn super_with_method_overrides_in_three_levels() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_grandparent_ctor(ptr @__vtable_grandparent_instance)
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
@@ -2966,17 +2910,13 @@ fn super_in_action_blocks() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr, ptr }
-    %parent = type { ptr, i16 }
     %__vtable_child = type { ptr, ptr }
+    %parent = type { ptr, i16 }
     %child = type { %parent }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, i16 10 }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 10 } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @parent(ptr %0) {
     entry:
@@ -3100,7 +3040,7 @@ fn super_in_action_blocks() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)

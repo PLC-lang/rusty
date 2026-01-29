@@ -283,9 +283,7 @@ fn method_call_within_method() {
     %A = type { ptr }
 
     @__vtable_A_instance = global %__vtable_A zeroinitializer
-    @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
-    @__A__init = unnamed_addr constant %A zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -380,7 +378,7 @@ fn method_call_within_method() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_A_ctor(ptr @__vtable_A_instance)
       ret void
@@ -434,22 +432,16 @@ fn this_is_untouched() {
     target triple = "[filtered]"
 
     %__vtable_A = type { ptr, ptr, ptr }
-    %A = type { ptr }
     %__vtable_B = type { ptr, ptr, ptr }
-    %B = type { %A }
     %__vtable_C = type { ptr, ptr, ptr }
+    %A = type { ptr }
+    %B = type { %A }
     %C = type { %A }
 
     @__vtable_A_instance = global %__vtable_A zeroinitializer
-    @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
-    @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
-    @____vtable_B__init = unnamed_addr constant %__vtable_B zeroinitializer
-    @__B__init = unnamed_addr constant %B zeroinitializer
     @__vtable_C_instance = global %__vtable_C zeroinitializer
-    @____vtable_C__init = unnamed_addr constant %__vtable_C zeroinitializer
-    @__C__init = unnamed_addr constant %C zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -691,7 +683,7 @@ fn this_is_untouched() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_A_ctor(ptr @__vtable_A_instance)
       call void @__vtable_B_ctor(ptr @__vtable_B_instance)
@@ -742,17 +734,13 @@ fn super_is_untouched() {
     target triple = "[filtered]"
 
     %__vtable_A = type { ptr, ptr, ptr }
-    %A = type { ptr }
     %__vtable_B = type { ptr, ptr, ptr }
+    %A = type { ptr }
     %B = type { %A }
 
     @__vtable_A_instance = global %__vtable_A zeroinitializer
-    @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
-    @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
-    @____vtable_B__init = unnamed_addr constant %__vtable_B zeroinitializer
-    @__B__init = unnamed_addr constant %B zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -924,7 +912,7 @@ fn super_is_untouched() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_A_ctor(ptr @__vtable_A_instance)
       call void @__vtable_B_ctor(ptr @__vtable_B_instance)
