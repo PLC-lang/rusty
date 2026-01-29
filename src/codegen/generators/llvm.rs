@@ -395,6 +395,12 @@ impl<'a> Llvm<'a> {
                     value.into_int_value(),
                     type_size?,
                 )?;
+            } else if value.is_array_value() || value.is_struct_value() {
+                // After the initializer refactor, aggregate initialization happens through
+                // constructor calls. When we get ArrayValue or StructValue here, it means
+                // the constructor will handle the initialization, so we don't need to do
+                // anything here. Just skip the initialization.
+                // This is a no-op - constructor handles it.
             } else {
                 Err(Diagnostic::codegen_error(
                     "initializing an array should be memcpy-able or memset-able",

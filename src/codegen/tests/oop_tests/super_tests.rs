@@ -2686,19 +2686,14 @@ fn super_with_structured_types() {
     target triple = "[filtered]"
 
     %__vtable_parent = type { ptr }
-    %parent = type { ptr, %Complex_Type, [2 x %Complex_Type] }
-    %Complex_Type = type { i16, i16, float }
     %__vtable_child = type { ptr, ptr }
+    %Complex_Type = type { i16, i16, float }
+    %parent = type { ptr, %Complex_Type, [2 x %Complex_Type] }
     %child = type { %parent }
 
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { ptr null, %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] }
-    @__Complex_Type__init = unnamed_addr constant %Complex_Type zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { ptr null, %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
     @__parent.data__init = unnamed_addr constant %Complex_Type { i16 10, i16 20, float 3.050000e+01 }
     @__parent.arr_data__init = unnamed_addr constant [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }]
 
@@ -2726,7 +2721,6 @@ fn super_with_structured_types() {
       store ptr %0, ptr %this, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
       %local_data = alloca %Complex_Type, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %local_data, ptr align [filtered] @__Complex_Type__init, i64 ptrtoint (ptr getelementptr (%Complex_Type, ptr null, i32 1) to i64), i1 false)
       call void @Complex_Type_ctor(ptr %local_data)
       %x = getelementptr inbounds nuw %Complex_Type, ptr %local_data, i32 0, i32 0
       %data = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
@@ -2865,17 +2859,12 @@ fn super_with_structured_types() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_parent_ctor(ptr @__vtable_parent_instance)
       call void @__vtable_child_ctor(ptr @__vtable_child_instance)
       ret void
     }
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 

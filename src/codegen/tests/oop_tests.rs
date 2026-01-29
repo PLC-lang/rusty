@@ -363,17 +363,13 @@ fn write_to_parent_variable_in_instance() {
     target triple = "[filtered]"
 
     %__vtable_foo = type { ptr, ptr }
-    %foo = type { ptr, [81 x i8] }
     %__vtable_bar = type { ptr, ptr }
+    %foo = type { ptr, [81 x i8] }
     %bar = type { %foo }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
 
@@ -411,7 +407,6 @@ fn write_to_parent_variable_in_instance() {
       %s = alloca [81 x i8], align [filtered]
       %fb = alloca %bar, align [filtered]
       call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__bar__init, i64 ptrtoint (ptr getelementptr (%bar, ptr null, i32 1) to i64), i1 false)
       call void @bar_ctor(ptr %fb)
       %__foo = getelementptr inbounds nuw %bar, ptr %fb, i32 0, i32 0
       call void @foo__baz(ptr %__foo)
@@ -507,7 +502,7 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_foo_ctor(ptr @__vtable_foo_instance)
       call void @__vtable_bar_ctor(ptr @__vtable_bar_instance)
@@ -519,9 +514,6 @@ fn write_to_parent_variable_in_instance() {
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
@@ -1356,17 +1348,13 @@ fn pass_this_to_method() {
     target triple = "[filtered]"
 
     %__vtable_FB_Test = type { ptr, ptr }
+    %__vtable_FB_Test2 = type { ptr, ptr }
     %FB_Test = type { ptr, i16 }
     %FB_Test2 = type { ptr }
-    %__vtable_FB_Test2 = type { ptr, ptr }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test { ptr null, i16 5 }
-    @__FB_Test2__init = unnamed_addr constant %FB_Test2 zeroinitializer
-    @____vtable_FB_Test2__init = unnamed_addr constant %__vtable_FB_Test2 zeroinitializer
     @__vtable_FB_Test2_instance = global %__vtable_FB_Test2 zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1385,7 +1373,6 @@ fn pass_this_to_method() {
       %x = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %test = alloca %FB_Test2, align [filtered]
       %x1 = alloca i16, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %test, ptr align [filtered] @__FB_Test2__init, i64 ptrtoint (ptr getelementptr (%FB_Test2, ptr null, i32 1) to i64), i1 false)
       store i16 0, ptr %x1, align [filtered]
       %1 = load ptr, ptr %this, align [filtered]
       %call = call i16 @FB_Test2__bar(ptr %test, ptr %1)
@@ -1521,17 +1508,12 @@ fn pass_this_to_method() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_FB_Test_ctor(ptr @__vtable_FB_Test_instance)
       call void @__vtable_FB_Test2_ctor(ptr @__vtable_FB_Test2_instance)
       ret void
     }
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -2556,17 +2538,13 @@ fn function_with_output_used_in_main_by_extension() {
     target triple = "[filtered]"
 
     %__vtable_foo = type { ptr, ptr }
-    %foo = type { ptr }
     %__vtable_foo2 = type { ptr, ptr }
+    %foo = type { ptr }
     %foo2 = type { %foo, i16 }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo2_instance = global %__vtable_foo2 zeroinitializer
-    @____vtable_foo2__init = unnamed_addr constant %__vtable_foo2 zeroinitializer
-    @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2616,8 +2594,6 @@ fn function_with_output_used_in_main_by_extension() {
       %foo_inst = alloca %foo, align [filtered]
       %foo2_inst = alloca %foo2, align [filtered]
       %out = alloca i16, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %foo_inst, ptr align [filtered] @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %foo2_inst, ptr align [filtered] @__foo2__init, i64 ptrtoint (ptr getelementptr (%foo2, ptr null, i32 1) to i64), i1 false)
       store i16 0, ptr %out, align [filtered]
       store i32 0, ptr %main, align [filtered]
       call void @foo_ctor(ptr %foo_inst)
@@ -2717,16 +2693,11 @@ fn function_with_output_used_in_main_by_extension() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_foo_ctor(ptr @__vtable_foo_instance)
       call void @__vtable_foo2_ctor(ptr @__vtable_foo2_instance)
       ret void
     }
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }

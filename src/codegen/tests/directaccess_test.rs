@@ -149,8 +149,6 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     %FOO = type { i8, i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO zeroinitializer
-
     define void @FOO(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -166,7 +164,6 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       %error_bits = alloca i8, align [filtered]
       %f = alloca %FOO, align [filtered]
       store i8 0, ptr %error_bits, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %f, ptr align [filtered] @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %main, align [filtered]
       %0 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
       %load_error_bits = load i8, ptr %error_bits, align [filtered]
@@ -216,11 +213,6 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -253,8 +245,6 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
-
     define void @FOO(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -269,7 +259,6 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       %error_bits = alloca i8, align [filtered]
       %f = alloca %FOO, align [filtered]
       store i8 -17, ptr %error_bits, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %f, ptr align [filtered] @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %main, align [filtered]
       call void @FOO(ptr %f)
       %0 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 0
@@ -282,11 +271,6 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -319,8 +303,6 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
-
     define void @FOO(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -335,7 +317,6 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       %error_bits = alloca i8, align [filtered]
       %f = alloca %FOO, align [filtered]
       store i8 -17, ptr %error_bits, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %f, ptr align [filtered] @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %main, align [filtered]
       call void @FOO(ptr %f)
       %0 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 0
@@ -348,11 +329,6 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -396,10 +372,6 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     %foo_struct = type { %bar_struct }
     %bar_struct = type { i64 }
 
-    @__QUUX__init = unnamed_addr constant %QUUX zeroinitializer
-    @__foo_struct__init = unnamed_addr constant %foo_struct zeroinitializer
-    @__bar_struct__init = unnamed_addr constant %bar_struct zeroinitializer
-
     define void @QUUX(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -413,8 +385,6 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       %main = alloca i32, align [filtered]
       %foo = alloca %foo_struct, align [filtered]
       %f = alloca %QUUX, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %foo, ptr align [filtered] @__foo_struct__init, i64 ptrtoint (ptr getelementptr (%foo_struct, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %f, ptr align [filtered] @__QUUX__init, i64 ptrtoint (ptr getelementptr (%QUUX, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %main, align [filtered]
       call void @QUUX(ptr %f)
       %bar = getelementptr inbounds nuw %foo_struct, ptr %foo, i32 0, i32 0
@@ -441,10 +411,5 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }

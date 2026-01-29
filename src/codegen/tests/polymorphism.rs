@@ -52,17 +52,13 @@ fn simple_overridden_method() {
     target triple = "[filtered]"
 
     %__vtable_A = type { ptr, ptr }
-    %A = type { ptr, i16, i16 }
     %__vtable_B = type { ptr, ptr }
+    %A = type { ptr, i16, i16 }
     %B = type { %A, i16, i16 }
 
     @__vtable_A_instance = global %__vtable_A zeroinitializer
-    @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
-    @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
-    @____vtable_B__init = unnamed_addr constant %__vtable_B zeroinitializer
-    @__B__init = unnamed_addr constant %B zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -119,8 +115,6 @@ fn simple_overridden_method() {
       %instanceA = alloca %A, align [filtered]
       %instanceB = alloca %B, align [filtered]
       %refInstanceA = alloca ptr, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %instanceA, ptr align [filtered] @__A__init, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %instanceB, ptr align [filtered] @__B__init, i64 ptrtoint (ptr getelementptr (%B, ptr null, i32 1) to i64), i1 false)
       store ptr null, ptr %refInstanceA, align [filtered]
       call void @A_ctor(ptr %instanceA)
       call void @B_ctor(ptr %instanceB)
@@ -239,17 +233,12 @@ fn simple_overridden_method() {
       ret void
     }
 
-    define void @____internal___ctor() {
+    define void @__unit___internal___ctor() {
     entry:
       call void @__vtable_A_ctor(ptr @__vtable_A_instance)
       call void @__vtable_B_ctor(ptr @__vtable_B_instance)
       ret void
     }
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 

@@ -9,13 +9,10 @@ target triple = "[filtered]"
 
 %myStruct = type { i8 }
 
-@__myStruct__init = unnamed_addr constant %myStruct { i8 1 }
-
 define i16 @main() {
 entry:
   %main = alloca i16, align [filtered]
   %str = alloca %myStruct, align [filtered]
-  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %str, ptr align [filtered] @__myStruct__init, i64 ptrtoint (ptr getelementptr (%myStruct, ptr null, i32 1) to i64), i1 false)
   store i16 0, ptr %main, align [filtered]
   %x = getelementptr inbounds nuw %myStruct, ptr %str, i32 0, i32 0
   %0 = load i8, ptr %x, align [filtered]
@@ -30,8 +27,3 @@ entry:
   %main_ret = load i16, ptr %main, align [filtered]
   ret i16 %main_ret
 }
-
-; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

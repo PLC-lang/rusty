@@ -1091,9 +1091,11 @@ fn struct_types() {
 
     @s = global [81 x i8] c"Hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @s2 = global [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"]
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @prog_instance = global %prog zeroinitializer
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___ctor, ptr null }]
+    @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"Hello world!\00"
+    @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"hello\00"
+    @utf08_literal_2 = private unnamed_addr constant [6 x i8] c"world\00"
 
     define void @prog(ptr %0) {
     entry:
@@ -1101,7 +1103,7 @@ fn struct_types() {
       ret void
     }
 
-    define void @__init_mystruct(ptr %0) {
+    define void @myStruct_ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1114,39 +1116,57 @@ fn struct_types() {
       ret void
     }
 
-    define void @__init_prog(ptr %0) {
+    define void @__global_s2_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__myStruct_member_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__myStruct_member2__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__myStruct_member2_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @prog_ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %str = getelementptr inbounds nuw %prog, ptr %deref, i32 0, i32 0
-      call void @__init_mystruct(ptr %str)
+      call void @myStruct_ctor(ptr %str)
       ret void
     }
 
-    define void @__user_init_myStruct(ptr %0) {
+    define void @__unit___internal___ctor() {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] @s, ptr align [filtered] @utf08_literal_0, i32 13, i1 false)
+      call void @__global_s2_ctor(ptr @s2)
+      store [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], ptr @s2, align [filtered]
+      call void @prog_ctor(ptr @prog_instance)
       ret void
     }
 
-    define void @__user_init_prog(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %str = getelementptr inbounds nuw %prog, ptr %deref, i32 0, i32 0
-      call void @__user_init_myStruct(ptr %str)
-      ret void
-    }
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
 
-    define void @__init___Test() {
-    entry:
-      call void @__init_prog(ptr @prog_instance)
-      call void @__user_init_prog(ptr @prog_instance)
-      ret void
-    }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 

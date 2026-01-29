@@ -899,8 +899,6 @@ fn by_value_function_arg_structs_are_memcopied() {
 
     %S_TY = type { i8, i8 }
 
-    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer
-
     define i32 @foo(ptr %0) {
     entry:
       %foo = alloca i32, align [filtered]
@@ -915,7 +913,6 @@ fn by_value_function_arg_structs_are_memcopied() {
     entry:
       %main = alloca i32, align [filtered]
       %s = alloca %S_TY, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %s, ptr align [filtered] @__S_TY__init, i64 ptrtoint (ptr getelementptr (%S_TY, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %main, align [filtered]
       %call = call i32 @foo(ptr %s)
       %main_ret = load i32, ptr %main, align [filtered]
@@ -970,9 +967,6 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     %AGGREGATE_COLLECTOR_TY = type { [65537 x i32], [65537 x i8], %S_TY }
     %S_TY = type { i8, i8 }
 
-    @__AGGREGATE_COLLECTOR_TY__init = unnamed_addr constant %AGGREGATE_COLLECTOR_TY zeroinitializer
-    @__S_TY__init = unnamed_addr constant %S_TY zeroinitializer
-
     define i32 @foo(ptr %0) {
     entry:
       %foo = alloca i32, align [filtered]
@@ -987,7 +981,6 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     entry:
       %main = alloca i32, align [filtered]
       %s = alloca %AGGREGATE_COLLECTOR_TY, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %s, ptr align [filtered] @__AGGREGATE_COLLECTOR_TY__init, i64 ptrtoint (ptr getelementptr (%AGGREGATE_COLLECTOR_TY, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %main, align [filtered]
       %call = call i32 @foo(ptr %s)
       %main_ret = load i32, ptr %main, align [filtered]
@@ -1031,8 +1024,6 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     %FOO = type { [65537 x i8], [1024 x i32] }
 
-    @__FOO__init = unnamed_addr constant %FOO zeroinitializer
-
     define i32 @main() {
     entry:
       %main = alloca i32, align [filtered]
@@ -1041,7 +1032,6 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       %fb = alloca %FOO, align [filtered]
       call void @llvm.memset.p0.i64(ptr align [filtered] %str, i8 0, i64 ptrtoint (ptr getelementptr ([65537 x i8], ptr null, i32 1) to i64), i1 false)
       call void @llvm.memset.p0.i64(ptr align [filtered] %arr, i8 0, i64 ptrtoint (ptr getelementptr ([1024 x i32], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %main, align [filtered]
       %0 = getelementptr inbounds %FOO, ptr %fb, i32 0, i32 0
       call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %0, ptr align [filtered] %str, i32 65536, i1 false)
@@ -1065,10 +1055,10 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #1
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #1
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #1
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #1
 
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
