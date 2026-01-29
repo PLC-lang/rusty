@@ -25,8 +25,8 @@ use std::rc::Rc;
 use plc::{
     index::{FxIndexMap, Index},
     lowering::helper::{
-        create_assignment, create_call_statement, create_member_reference, get_unit_name, new_constructor,
-        new_unit_constructor,
+        create_assignment, create_assignment_with_index, create_call_statement, create_member_reference,
+        get_unit_name, new_constructor, new_unit_constructor,
     },
 };
 use plc_ast::{
@@ -202,8 +202,14 @@ impl AstVisitor for Initializer {
         }
         if let Some(initializer) = &variable.initializer {
             // Create a call to the type constructor
-            let assignment =
-                create_assignment(variable.get_name(), base, initializer, self.id_provider.clone());
+            let assignment = create_assignment_with_index(
+                variable.get_name(),
+                base,
+                initializer,
+                self.id_provider.clone(),
+                self.index.as_ref().map(|idx| idx.as_ref()),
+                self.context.current_pou.as_deref(),
+            );
             stmts.push(assignment);
         }
         if variable_block_type.is_temp() || (variable_block_type.is_local() && !is_stateful) {
@@ -396,11 +402,19 @@ impl Initializer {
             // Search for the user defined constructor for the given struct
             if let Some(user_defined_ctor_name) = self.user_defined_constructors.get(type_name) {
                 if let Some(_pou) = index.find_method(type_name, user_defined_ctor_name) {
-                    let op = create_member_reference(
-                        &format!("{var_name}.{user_defined_ctor_name}"),
-                        self.id_provider.clone(),
-                        None,
+                    // Create an explicit base reference (e.g., "self")
+                    // Wrap in a ReferenceExpr with Member access for consistency
+                    let base_ident = AstFactory::create_identifier(
+                        var_name,
+                        SourceLocation::internal(),
+                        self.id_provider.next_id(),
                     );
+                    let base =
+                        AstFactory::create_member_reference(base_ident, None, self.id_provider.next_id());
+
+                    // Create member reference with explicit base: member(FB_INIT) base(self)
+                    let op =
+                        create_member_reference(user_defined_ctor_name, self.id_provider.clone(), Some(base));
                     let call = AstFactory::create_call_statement(
                         op,
                         None,
@@ -924,6 +938,34 @@ mod tests {
         self.overrideMeth := ADR(MyFB.overrideMeth)
         self.FB_INIT := ADR(MyFB.FB_INIT)
         self.localMeth := ADR(MyFB.localMeth)
+        ");
+    }
+
+    #[test]
+    fn reference_to_local_variable_is_qualified_in_initializer() {
+        let src = r#"
+        VAR_GLOBAL
+            globalVar : INT;
+        END_VAR
+
+        FUNCTION_BLOCK foo
+        VAR
+            i : INT;
+            pi: REF_TO INT := REF(i);
+            pglobal: REF_TO INT := REF(globalVar);
+        END_VAR
+        END_FUNCTION_BLOCK
+        "#;
+        let initializer = parse_and_init(src);
+        // Check that local references are qualified with 'self.' but global references are not
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("foo").unwrap()), @"
+        intern:
+        __foo___vtable_ctor(self.__vtable)
+        __foo_pi_ctor(self.pi)
+        self.pi := REF(self.i)
+        __foo_pglobal_ctor(self.pglobal)
+        self.pglobal := REF(globalVar)
+        self.__vtable := ADR(__vtable_foo_instance)
         ");
     }
 }

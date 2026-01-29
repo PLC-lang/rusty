@@ -4,13 +4,11 @@ expression: output_file_content_without_headers
 ---
 target triple = "[filtered]"
 
-%__vtable_conditional_return = type { ptr }
+%__vtable_conditional_return.1 = type { ptr }
 %conditional_return = type { ptr, i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__conditional_return_cfc_ctor, ptr null }]
-@__vtable_conditional_return_instance = global %__vtable_conditional_return zeroinitializer
-@____vtable_conditional_return__init = unnamed_addr constant %__vtable_conditional_return zeroinitializer
-@__conditional_return__init = unnamed_addr constant %conditional_return zeroinitializer
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit_conditional_return_cfc_ctor, ptr null }]
+@__vtable_conditional_return_instance = global %__vtable_conditional_return.1 zeroinitializer
 
 define i32 @main() {
 entry:
@@ -18,7 +16,6 @@ entry:
   %my_val = alloca i32, align [filtered]
   %conditional = alloca %conditional_return, align [filtered]
   store i32 5, ptr %my_val, align [filtered]
-  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %conditional, ptr align [filtered] @__conditional_return__init, i64 ptrtoint (ptr getelementptr (%conditional_return, ptr null, i32 1) to i64), i1 false)
   store i32 0, ptr %main, align [filtered]
   store i32 5, ptr %my_val, align [filtered]
   %val = getelementptr inbounds nuw %conditional_return, ptr %conditional, i32 0, i32 1
@@ -32,10 +29,7 @@ entry:
   ret i32 %main_ret
 }
 
-; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-define void @__conditional_return_cfc_ctor() {
+define void @__unit_conditional_return_cfc_ctor() {
 entry:
   call void @__vtable_conditional_return_ctor(ptr @__vtable_conditional_return_instance)
   ret void
@@ -46,7 +40,7 @@ entry:
   %self = alloca ptr, align [filtered]
   store ptr %0, ptr %self, align [filtered]
   %deref = load ptr, ptr %self, align [filtered]
-  %__body = getelementptr inbounds nuw %__vtable_conditional_return, ptr %deref, i32 0, i32 0
+  %__body = getelementptr inbounds nuw %__vtable_conditional_return.1, ptr %deref, i32 0, i32 0
   store ptr @conditional_return, ptr %__body, align [filtered]
   ret void
 }
@@ -95,5 +89,3 @@ entry:
   store ptr @__vtable_conditional_return_instance, ptr %__vtable2, align [filtered]
   ret void
 }
-
-attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

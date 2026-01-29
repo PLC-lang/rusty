@@ -8,9 +8,7 @@ target triple = "[filtered]"
 %conditional_return = type { ptr, i32 }
 
 @__vtable_conditional_return_instance = global %__vtable_conditional_return zeroinitializer
-@____vtable_conditional_return__init = unnamed_addr constant %__vtable_conditional_return zeroinitializer
-@__conditional_return__init = unnamed_addr constant %conditional_return zeroinitializer
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__conditional_return_cfc_ctor, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit_conditional_return_cfc_ctor, ptr null }]
 
 define void @conditional_return(ptr %0) {
 entry:
@@ -67,7 +65,7 @@ entry:
   ret void
 }
 
-define void @__conditional_return_cfc_ctor() {
+define void @__unit_conditional_return_cfc_ctor() {
 entry:
   call void @__vtable_conditional_return_ctor(ptr @__vtable_conditional_return_instance)
   ret void

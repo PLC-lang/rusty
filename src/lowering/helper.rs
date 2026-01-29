@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use crate::index::Index;
 use plc_ast::{
     ast::{
         Assignment, AstFactory, AstId, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration,
@@ -150,12 +151,112 @@ pub fn create_assignment(
     rhs: &AstNode,
     mut id_provider: IdProvider,
 ) -> AstNode {
+    create_assignment_with_index(lhs_ident, base_ident, rhs, id_provider, None, None)
+}
+
+pub fn create_assignment_with_index(
+    lhs_ident: &str,
+    base_ident: Option<&str>,
+    rhs: &AstNode,
+    mut id_provider: IdProvider,
+    index: Option<&Index>,
+    current_pou: Option<&str>,
+) -> AstNode {
     let lhs = create_member_reference(
         lhs_ident,
         id_provider.clone(),
         base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
     );
-    AstFactory::create_assignment(lhs, rhs.to_owned(), id_provider.next_id())
+
+    // Process the RHS to qualify local variable references with base_ident
+    let processed_rhs = if let (Some(idx), Some(base), Some(pou)) = (index, base_ident, current_pou) {
+        qualify_local_references(rhs, base, pou, idx, id_provider.clone())
+    } else {
+        rhs.to_owned()
+    };
+
+    AstFactory::create_assignment(lhs, processed_rhs, id_provider.next_id())
+}
+
+/// Walks through an AST expression and qualifies any unqualified member references
+/// that resolve to local variables of the given POU with the base identifier (typically "self").
+fn qualify_local_references(
+    node: &AstNode,
+    base_ident: &str,
+    pou_name: &str,
+    index: &Index,
+    mut id_provider: IdProvider,
+) -> AstNode {
+    match node.get_stmt() {
+        // Handle CallStatement: REF(i) where i needs qualification
+        AstStatement::CallStatement(call) => {
+            let qualified_params = call.parameters.as_ref().map(|params| {
+                Box::new(qualify_local_references(params, base_ident, pou_name, index, id_provider.clone()))
+            });
+
+            AstNode::new(
+                AstStatement::CallStatement(plc_ast::ast::CallStatement {
+                    operator: call.operator.clone(),
+                    parameters: qualified_params,
+                }),
+                id_provider.next_id(),
+                node.get_location(),
+            )
+        }
+
+        // Handle ReferenceExpr: check if it's an unqualified reference to a local variable
+        AstStatement::ReferenceExpr(ReferenceExpr { access, base }) => {
+            // Only process unqualified references (base is None)
+            if base.is_none() {
+                if let Some(var_name) = node.get_flat_reference_name() {
+                    // Check if this resolves to a local variable in the current POU
+                    if let Some(variable) = index.find_variable(Some(pou_name), &[&var_name]) {
+                        if variable.is_local() {
+                            // Qualify it with the base identifier
+                            let qualified_base =
+                                create_member_reference(base_ident, id_provider.clone(), None);
+                            return AstNode::new(
+                                AstStatement::ReferenceExpr(ReferenceExpr {
+                                    access: access.clone(),
+                                    base: Some(Box::new(qualified_base)),
+                                }),
+                                id_provider.next_id(),
+                                node.get_location(),
+                            );
+                        }
+                    }
+                }
+            }
+            node.clone()
+        }
+
+        // Handle ExpressionList: qualify each element
+        AstStatement::ExpressionList(nodes) => {
+            let qualified_nodes = nodes
+                .iter()
+                .map(|n| qualify_local_references(n, base_ident, pou_name, index, id_provider.clone()))
+                .collect();
+            AstNode::new(
+                AstStatement::ExpressionList(qualified_nodes),
+                id_provider.next_id(),
+                node.get_location(),
+            )
+        }
+
+        // For other statements, recurse if they contain sub-expressions
+        AstStatement::ParenExpression(inner) => {
+            let qualified_inner =
+                qualify_local_references(inner, base_ident, pou_name, index, id_provider.clone());
+            AstNode::new(
+                AstStatement::ParenExpression(Box::new(qualified_inner)),
+                id_provider.next_id(),
+                node.get_location(),
+            )
+        }
+
+        // For other statement types, return as-is
+        _ => node.clone(),
+    }
 }
 
 pub fn create_call_statement(
