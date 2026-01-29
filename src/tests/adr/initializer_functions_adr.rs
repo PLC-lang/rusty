@@ -1291,11 +1291,14 @@ fn external_inherited_initializers() {
       %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @foo_ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %y = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 1
+      %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
+      call void @foo_ctor(ptr %__foo2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %y = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 1
       store i32 10, ptr %y, align [filtered]
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__foo3 = getelementptr inbounds nuw %bar, ptr %deref2, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo3, i32 0, i32 0
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__foo5 = getelementptr inbounds nuw %bar, ptr %deref4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo5, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
       ret void
     }

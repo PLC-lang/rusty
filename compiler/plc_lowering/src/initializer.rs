@@ -121,6 +121,17 @@ impl AstVisitor for Initializer {
                 return;
             }
         };
+        // If the POU has a base class, call the base constructor first
+        if let Some(super_class) = &pou.super_class {
+            let base_ctor_call = create_call_statement(
+                &format!("{}_ctor", super_class.name),
+                &format!("__{}", super_class.name),
+                Some("self"),
+                self.id_provider.clone(),
+                &SourceLocation::internal(),
+            );
+            self.add_to_current_constructor(vec![base_ctor_call]);
+        }
         pou.walk(self);
         // If the POU is a function block or a class, add an assignment to the vtable
         if pou.is_function_block() || pou.is_class() {
@@ -485,13 +496,16 @@ mod tests {
     }
 
     fn parse_and_init(src: &str) -> Initializer {
-        parse_and_init_internal(src, false)
+        parse_and_init_internal(vec![src.into()], false)
     }
 
-    fn parse_and_init_internal(src: &str, generate_externals: bool) -> Initializer {
-        let src: SourceCode = src.into();
+    fn parse_and_init_multi(sources: Vec<SourceCode>) -> Initializer {
+        parse_and_init_internal(sources, false)
+    }
+
+    fn parse_and_init_internal(sources: Vec<SourceCode>, generate_externals: bool) -> Initializer {
         let diagnostician = Diagnostician::buffered();
-        let mut pipeline = BuildPipeline::from_sources("test.st", vec![(src)], diagnostician).unwrap();
+        let mut pipeline = BuildPipeline::from_sources("test.st", sources, diagnostician).unwrap();
         pipeline.register_mut_participants(vec![Box::new(VirtualTableGenerator::new(
             pipeline.context.provider(),
             generate_externals,
@@ -920,6 +934,7 @@ mod tests {
         // Check that the constructor for MyFB calls the base FB constructor
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyFB").unwrap()), @"
         intern:
+        MyBaseFB_ctor(self.__MyBaseFB)
         self.fbVar := 10
         self.__vtable := ADR(__vtable_MyFB_instance)
         self.FB_INIT()
@@ -966,6 +981,85 @@ mod tests {
         __foo_pglobal_ctor(self.pglobal)
         self.pglobal := REF(globalVar)
         self.__vtable := ADR(__vtable_foo_instance)
+        ");
+    }
+
+    /// Test that verifies constructor generation when base and child FBs are in separate files.
+    /// This is similar to the lit test at tests/lit/multi/constructors/src
+    ///
+    /// BUG: The child constructor should call baseFb_ctor(self.__baseFb) to initialize
+    /// the parent properly, but currently it only sets up the vtable and calls FB_INIT
+    /// directly without initializing the base's fields (like the reference 'y').
+    /// This causes unresolved references when the parent constructor logic is skipped.
+    ///
+    /// Expected child_ctor behavior:
+    ///   baseFb_ctor(self.__baseFb)      // <-- MISSING: should call parent constructor first
+    ///   self.__vtable := ADR(__vtable_child_instance)
+    ///
+    /// Current (buggy) child_ctor behavior:
+    ///   self.__vtable := ADR(__vtable_child_instance)
+    ///   self.FB_INIT()                  // calls FB_INIT but parent fields not initialized
+    #[test]
+    fn child_constructor_calls_parent_constructor_across_files() {
+        let base: SourceCode = SourceCode::new(
+            r#"
+            FUNCTION_BLOCK baseFb
+                VAR_OUTPUT
+                    x : DINT;
+                    y : REFERENCE TO DINT REF= x;
+                END_VAR
+
+                METHOD FB_INIT
+                    THIS^.x := 10;
+                    THIS^.y := THIS^.x + 1; //x and y are 11
+                END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+            "base.st",
+        );
+
+        let child: SourceCode = SourceCode::new(
+            r#"
+            FUNCTION_BLOCK child EXTENDS baseFb
+                THIS^.x := This^.x + 5; // x is now 16
+                THIS^.y := THIS^.y + 2; // y is now 18
+            END_FUNCTION_BLOCK
+            "#,
+            "child.st",
+        );
+
+        let main: SourceCode = SourceCode::new(
+            r#"
+            VAR_GLOBAL
+                childInst : child;
+            END_VAR
+
+            FUNCTION main : DINT
+                childInst();
+                main := childInst.y + childInst.x; // Should be 36 (18 + 18)
+            END_FUNCTION
+            "#,
+            "main.st",
+        );
+
+        let initializer = parse_and_init_multi(vec![base, child, main]);
+
+        // baseFb constructor properly initializes vtable, reference field 'y', and calls FB_INIT
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("baseFb").unwrap()), @r"
+        intern:
+        __baseFb___vtable_ctor(self.__vtable)
+        __baseFb_y_ctor(self.y)
+        self.y := x
+        self.__vtable := ADR(__vtable_baseFb_instance)
+        self.FB_INIT()
+        ");
+
+        // child constructor calls baseFb_ctor first, then sets up its own vtable
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("child").unwrap()), @r"
+        intern:
+        baseFb_ctor(self.__baseFb)
+        self.__vtable := ADR(__vtable_child_instance)
+        self.FB_INIT()
         ");
     }
 }

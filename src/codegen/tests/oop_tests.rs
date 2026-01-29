@@ -126,7 +126,10 @@ fn members_from_base_class_are_available_in_subclasses() {
       call void @foo_ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
+      call void @foo_ctor(ptr %__foo2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__foo4 = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -298,7 +301,10 @@ fn write_to_parent_variable_qualified_access() {
       call void @fb_ctor(ptr %__fb)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__fb2 = getelementptr inbounds nuw %fb2, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %fb, ptr %__fb2, i32 0, i32 0
+      call void @fb_ctor(ptr %__fb2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__fb4 = getelementptr inbounds nuw %fb2, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %__fb4, i32 0, i32 0
       store ptr @__vtable_fb2_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -497,7 +503,10 @@ fn write_to_parent_variable_in_instance() {
       call void @foo_ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
+      call void @foo_ctor(ptr %__foo2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__foo4 = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -745,11 +754,14 @@ fn array_in_parent_generated() {
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @grandparent_ctor(ptr %__grandparent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %x = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 1
+      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
+      call void @grandparent_ctor(ptr %__grandparent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %x = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 1
       call void @__parent_x_ctor(ptr %x)
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__grandparent3 = getelementptr inbounds nuw %parent, ptr %deref2, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 0
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__grandparent5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent5, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -762,11 +774,14 @@ fn array_in_parent_generated() {
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %z = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 1
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %z = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1
       call void @__child_z_ctor(ptr %z)
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__parent3 = getelementptr inbounds nuw %child, ptr %deref2, i32 0, i32 0
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent3, i32 0, i32 0
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
@@ -988,11 +1003,14 @@ fn complex_array_access_generated() {
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @grandparent_ctor(ptr %__grandparent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %x = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 1
+      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
+      call void @grandparent_ctor(ptr %__grandparent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %x = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 1
       call void @__parent_x_ctor(ptr %x)
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__grandparent3 = getelementptr inbounds nuw %parent, ptr %deref2, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 0
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__grandparent5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent5, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -1005,11 +1023,14 @@ fn complex_array_access_generated() {
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %z = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 1
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %z = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1
       call void @__child_z_ctor(ptr %z)
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__parent3 = getelementptr inbounds nuw %child, ptr %deref2, i32 0, i32 0
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent3, i32 0, i32 0
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
@@ -2481,7 +2502,10 @@ fn fb_extension_with_output() {
       call void @foo_ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %foo2, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
+      call void @foo_ctor(ptr %__foo2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__foo4 = getelementptr inbounds nuw %foo2, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
       store ptr @__vtable_foo2_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -2688,7 +2712,10 @@ fn function_with_output_used_in_main_by_extension() {
       call void @foo_ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %foo2, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
+      call void @foo_ctor(ptr %__foo2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__foo4 = getelementptr inbounds nuw %foo2, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
       store ptr @__vtable_foo2_instance, ptr %__vtable, align [filtered]
       ret void
     }

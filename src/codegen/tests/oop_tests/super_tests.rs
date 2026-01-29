@@ -117,7 +117,10 @@ fn super_keyword_basic_access() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -256,11 +259,14 @@ fn super_without_deref() {
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %p = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 1
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %p = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1
       call void @__child_p_ctor(ptr %p)
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__parent3 = getelementptr inbounds nuw %child, ptr %deref2, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent3, i32 0, i32 0
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -475,7 +481,10 @@ fn super_in_method_calls() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -621,11 +630,14 @@ fn super_in_complex_expressions() {
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %z = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 1
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %z = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1
       store i16 30, ptr %z, align [filtered]
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__parent3 = getelementptr inbounds nuw %child, ptr %deref2, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent3, i32 0, i32 0
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -774,11 +786,14 @@ fn super_with_array_access() {
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %index = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 1
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %index = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1
       store i16 3, ptr %index, align [filtered]
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__parent3 = getelementptr inbounds nuw %child, ptr %deref2, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent3, i32 0, i32 0
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -1062,11 +1077,14 @@ fn super_in_multi_level_inheritance() {
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @grandparent_ctor(ptr %__grandparent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %p_val = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 1
+      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
+      call void @grandparent_ctor(ptr %__grandparent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %p_val = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 1
       store i16 20, ptr %p_val, align [filtered]
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__grandparent3 = getelementptr inbounds nuw %parent, ptr %deref2, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 0
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__grandparent5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent5, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -1079,11 +1097,14 @@ fn super_in_multi_level_inheritance() {
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %c_val = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 1
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %c_val = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1
       store i16 30, ptr %c_val, align [filtered]
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__parent3 = getelementptr inbounds nuw %child, ptr %deref2, i32 0, i32 0
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent3, i32 0, i32 0
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
@@ -1238,7 +1259,10 @@ fn super_with_pointer_operations() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -1444,7 +1468,10 @@ fn super_in_conditionals() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -1578,7 +1605,10 @@ fn super_with_const_variables() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -1775,7 +1805,10 @@ fn super_as_function_parameter() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -2010,7 +2043,10 @@ fn super_with_deeply_nested_expressions() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -2335,7 +2371,10 @@ fn super_in_loop_constructs() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -2570,7 +2609,10 @@ fn super_with_method_overrides_in_three_levels() {
       call void @grandparent_ctor(ptr %__grandparent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent2, i32 0, i32 0
+      call void @grandparent_ctor(ptr %__grandparent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__grandparent4 = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent4, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -2584,7 +2626,10 @@ fn super_with_method_overrides_in_three_levels() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
@@ -2854,7 +2899,10 @@ fn super_with_structured_types() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -3024,7 +3072,10 @@ fn super_in_action_blocks() {
       call void @parent_ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      call void @parent_ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
