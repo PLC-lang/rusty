@@ -6,7 +6,7 @@ use std::{cell::RefCell, sync::LazyLock, time::Duration};
 pub static mut TIME: LazyLock<Duration> = LazyLock::new(|| Duration::default());
 
 pub fn with_time(d: impl Fn(&mut Duration)) {
-    unsafe { d(*TIME) }
+    unsafe { d(&mut *TIME) }
 }
 
 pub fn get_time() -> Duration {

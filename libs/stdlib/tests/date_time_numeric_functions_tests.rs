@@ -109,22 +109,7 @@ fn add_dt_time() {
     assert_eq!(maintype.d, dt_2000y_1m_2d_12h_12m_12s_123ms);
 }
 
-#[test]
-#[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
-fn add_overflow() {
-    let src = "
-    PROGRAM main
-    VAR
-        a : TIME;
-    END_VAR
-        a := ADD(TIME#9223372036854775807ms, TIME#1ms);
-    END_PROGRAM";
-    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
-    let sources = vec![src.into()];
-    let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, includes, &mut maintype);
-}
+// add_overflow test moved to tests/lit/single/stdlib_overflow/add_time_overflow.st
 
 #[test]
 fn sub_time() {
@@ -296,22 +281,7 @@ fn sub_dt() {
     assert_eq!(maintype.d, time_1d_11h_22m_33s_444ms);
 }
 
-#[test]
-#[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
-fn sub_overflow() {
-    let src = "
-    PROGRAM main
-    VAR
-        a : TIME;
-    END_VAR
-        a := SUB(TIME#-9223372036854775807ms, TIME#1ms);
-    END_PROGRAM";
-    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
-    let sources = vec![src.into()];
-    let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, includes, &mut maintype);
-}
+// sub_overflow test moved to tests/lit/single/stdlib_overflow/sub_time_overflow.st
 
 #[test]
 #[cfg_attr(target_os = "macos", ignore = "does not work under macos, needs investigation")]
@@ -342,23 +312,7 @@ fn mul_signed() {
     assert_eq!(maintype.d, chrono::Duration::try_days(10_000).unwrap().num_nanoseconds().unwrap());
 }
 
-#[test]
-#[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
-fn mul_signed_overflow() {
-    let src = "
-    PROGRAM main
-    VAR
-        a : TIME;
-    END_VAR
-        // overflow -> 0 will be returned
-        a := MUL(TIME#10ns, LINT#9223372036854775807);
-    END_PROGRAM";
-    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
-    let sources = vec![src.into()];
-    let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, includes, &mut maintype);
-}
+// mul_signed_overflow test moved to tests/lit/single/stdlib_overflow/mul_time_signed_overflow.st
 
 #[test]
 #[cfg_attr(target_os = "macos", ignore = "does not work under macos, needs investigation")]
@@ -389,23 +343,7 @@ fn mul_unsigned() {
     assert_eq!(maintype.d, chrono::Duration::try_days(10_000).unwrap().num_nanoseconds().unwrap());
 }
 
-#[test]
-#[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
-fn mul_unsigned_overflow() {
-    let src = "
-    PROGRAM main
-    VAR
-        a : TIME;
-    END_VAR
-        // overflow -> 0 will be returned
-        a := MUL(TIME#1ns, ULINT#9223372036854775808);
-    END_PROGRAM";
-    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
-    let sources = vec![src.into()];
-    let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, includes, &mut maintype);
-}
+// mul_unsigned_overflow test moved to tests/lit/single/stdlib_overflow/mul_time_unsigned_overflow.st
 
 #[test]
 fn mul_time_signed() {
@@ -571,22 +509,7 @@ fn div_unsigned() {
     assert_eq!(maintype.d, time_1s);
 }
 
-#[test]
-#[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
-fn div_by_zero() {
-    let src = "
-    PROGRAM main
-    VAR
-        a : TIME;
-    END_VAR
-        a := DIV(TIME#1m, USINT#0);
-    END_PROGRAM";
-    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
-    let sources = vec![src.into()];
-    let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, includes, &mut maintype);
-}
+// div_by_zero test moved to tests/lit/single/stdlib_overflow/div_time_by_zero.st
 
 #[test]
 fn div_time_signed() {
@@ -725,22 +648,7 @@ fn mul_real() {
     // -8_478_000_641ns = -8s 478ms [641ns -> deviation see example std::time::Duration::mul_f32()]
 }
 
-#[test]
-#[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
-fn mul_real_overflow() {
-    let src = "
-    PROGRAM main
-    VAR
-        a : TIME;
-    END_VAR
-        a := MUL(TIME#-2s700ms, REAL#3.40282347e38);
-    END_PROGRAM";
-    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
-    let sources = vec![src.into()];
-    let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, includes, &mut maintype);
-}
+// mul_real_overflow test moved to tests/lit/single/stdlib_overflow/mul_time_real_overflow.st
 
 #[test]
 #[cfg_attr(target_os = "macos", ignore = "does not work under macos, needs investigation")]
@@ -783,22 +691,7 @@ fn mul_lreal() {
     );
 }
 
-#[test]
-#[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
-fn mul_lreal_overflow() {
-    let src = "
-    PROGRAM main
-    VAR
-        a : TIME;
-    END_VAR
-        a := MUL(TIME#-2s700ms, LREAL#3.40282347e38);
-    END_PROGRAM";
-    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
-    let sources = vec![src.into()];
-    let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, includes, &mut maintype);
-}
+// mul_lreal_overflow test moved to tests/lit/single/stdlib_overflow/mul_time_lreal_overflow.st
 
 #[test]
 fn mul_time() {
@@ -880,22 +773,7 @@ fn div_real() {
     );
 }
 
-#[test]
-#[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
-fn div_real_by_zero() {
-    let src = "
-    PROGRAM main
-    VAR
-        a : TIME;
-    END_VAR
-        a := DIV(TIME#-2s700ms, REAL#0.0);
-    END_PROGRAM";
-    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
-    let sources = vec![src.into()];
-    let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, includes, &mut maintype);
-}
+// div_real_by_zero test moved to tests/lit/single/stdlib_overflow/div_time_by_real_zero.st
 
 #[test]
 fn div_lreal() {
@@ -922,22 +800,7 @@ fn div_lreal() {
     );
 }
 
-#[test]
-#[should_panic]
-#[cfg_attr(target_arch = "aarch64", ignore = "https://github.com/PLC-lang/rusty/pull/960")]
-fn div_lreal_by_zero() {
-    let src = "
-    PROGRAM main
-    VAR
-        a : TIME;
-    END_VAR
-        a := DIV(TIME#-2s700ms, LREAL#0.0);
-    END_PROGRAM";
-    let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
-    let sources = vec![src.into()];
-    let mut maintype = MainType::default();
-    let _: i64 = compile_and_run(sources, includes, &mut maintype);
-}
+// div_lreal_by_zero test moved to tests/lit/single/stdlib_overflow/div_time_by_lreal_zero.st
 
 #[test]
 fn div_time() {
