@@ -321,8 +321,6 @@ fn pass() {
 
     %__foo_arr = type { ptr, [2 x i32] }
 
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
-
     define i32 @main() {
     entry:
       %main = alloca i32, align [filtered]
@@ -388,8 +386,6 @@ fn access() {
 
     %__foo_arr = type { ptr, [2 x i32] }
 
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
-
     define i32 @foo(ptr %0) {
     entry:
       %foo = alloca i32, align [filtered]
@@ -447,8 +443,6 @@ fn multi_dimensional() {
     target triple = "[filtered]"
 
     %__foo_arr = type { ptr, [4 x i32] }
-
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
 
     define i32 @foo(ptr %0) {
     entry:
