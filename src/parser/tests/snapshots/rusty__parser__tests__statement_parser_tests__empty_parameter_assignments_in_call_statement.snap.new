@@ -1,0 +1,187 @@
+---
+source: src/parser/tests/statement_parser_tests.rs
+assertion_line: 267
+expression: ast_string
+---
+CompilationUnit {
+    global_vars: [],
+    var_config: [],
+    pous: [
+        POU {
+            name: "foo",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "input1",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Input(
+                        ByVal,
+                    ),
+                },
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "output1",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Output,
+                },
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "inout1",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                    ],
+                    variable_block_type: InOut,
+                },
+            ],
+            pou_type: Function,
+            return_type: Some(
+                DataTypeReference {
+                    referenced_type: "INT",
+                },
+            ),
+            interfaces: [],
+            properties: [],
+        },
+        POU {
+            name: "main",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "a",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                        Variable {
+                            name: "b",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                        Variable {
+                            name: "c",
+                            data_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+            ],
+            pou_type: Program,
+            return_type: None,
+            interfaces: [],
+            properties: [],
+        },
+    ],
+    implementations: [
+        Implementation {
+            name: "foo",
+            type_name: "foo",
+            linkage: Internal,
+            pou_type: Function,
+            statements: [],
+            location: SourceLocation {
+                span: Range(11:8 - 10:15),
+            },
+            name_location: SourceLocation {
+                span: Range(1:17 - 1:20),
+            },
+            end_location: SourceLocation {
+                span: Range(11:8 - 11:20),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+        Implementation {
+            name: "main",
+            type_name: "main",
+            linkage: Internal,
+            pou_type: Program,
+            statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "input1",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: EmptyStatement,
+                                },
+                                OutputAssignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "output1",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: EmptyStatement,
+                                },
+                                OutputAssignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "inout1",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: EmptyStatement,
+                                },
+                            ],
+                        },
+                    ),
+                },
+            ],
+            location: SourceLocation {
+                span: Range(17:8 - 17:49),
+            },
+            name_location: SourceLocation {
+                span: Range(13:16 - 13:20),
+            },
+            end_location: SourceLocation {
+                span: Range(18:8 - 18:19),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+    ],
+    interfaces: [],
+    user_types: [],
+    file: File(
+        "test.st",
+    ),
+    linkage: Internal,
+}

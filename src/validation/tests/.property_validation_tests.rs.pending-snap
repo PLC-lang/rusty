@@ -1,0 +1,10 @@
+{"run_id":"1769696902-192677319","line":15,"new":{"module_name":"rusty__validation__tests__property_validation_tests","snapshot_name":"invalid_pou_type","metadata":{"source":"src/validation/tests/property_validation_tests.rs","assertion_line":15,"expression":"diagnostics"},"snapshot":"Compilation aborted due to critical parse errors"},"old":{"module_name":"rusty__validation__tests__property_validation_tests","metadata":{},"snapshot":"error[E001]: Properties cannot be declared in a Function\n  ┌─ <internal>:2:24\n  │\n2 │         FUNCTION foo : DINT\n  │                        ^^^^ Properties cannot be declared in a Function"}}
+{"run_id":"1769696902-192677319","line":421,"new":null,"old":null}
+{"run_id":"1769696902-192677319","line":253,"new":null,"old":null}
+{"run_id":"1769696902-192677319","line":284,"new":null,"old":null}
+{"run_id":"1769696902-192677319","line":402,"new":null,"old":null}
+{"run_id":"1769696902-192677319","line":53,"new":null,"old":null}
+{"run_id":"1769696902-192677319","line":746,"new":null,"old":null}
+{"run_id":"1769696902-192677319","line":785,"new":null,"old":null}
+{"run_id":"1769696902-192677319","line":370,"new":null,"old":null}
+{"run_id":"1769696902-192677319","line":327,"new":null,"old":null}

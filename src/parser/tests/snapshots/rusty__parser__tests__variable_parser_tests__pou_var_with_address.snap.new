@@ -1,0 +1,291 @@
+---
+source: src/parser/tests/variable_parser_tests.rs
+assertion_line: 200
+expression: result
+---
+CompilationUnit {
+    global_vars: [],
+    var_config: [],
+    pous: [
+        POU {
+            name: "main",
+            variable_blocks: [
+                VariableBlock {
+                    variables: [
+                        Variable {
+                            name: "a",
+                            data_type: DataTypeDefinition {
+                                data_type: PointerType {
+                                    name: None,
+                                    referenced_type: DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                    auto_deref: Some(
+                                        Alias,
+                                    ),
+                                    type_safe: true,
+                                    is_function: false,
+                                },
+                            },
+                            address: Some(
+                                HardwareAccess {
+                                    direction: Input,
+                                    access: Template,
+                                    address: [],
+                                    location: SourceLocation {
+                                        span: Range(2:14 - 2:20),
+                                    },
+                                },
+                            ),
+                        },
+                        Variable {
+                            name: "b",
+                            data_type: DataTypeDefinition {
+                                data_type: PointerType {
+                                    name: None,
+                                    referenced_type: DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                    auto_deref: Some(
+                                        Alias,
+                                    ),
+                                    type_safe: true,
+                                    is_function: false,
+                                },
+                            },
+                            address: Some(
+                                HardwareAccess {
+                                    direction: Output,
+                                    access: Template,
+                                    address: [],
+                                    location: SourceLocation {
+                                        span: Range(3:14 - 3:20),
+                                    },
+                                },
+                            ),
+                        },
+                        Variable {
+                            name: "c",
+                            data_type: DataTypeDefinition {
+                                data_type: PointerType {
+                                    name: None,
+                                    referenced_type: DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                    auto_deref: Some(
+                                        Alias,
+                                    ),
+                                    type_safe: true,
+                                    is_function: false,
+                                },
+                            },
+                            address: Some(
+                                HardwareAccess {
+                                    direction: Memory,
+                                    access: Template,
+                                    address: [],
+                                    location: SourceLocation {
+                                        span: Range(4:16 - 4:22),
+                                    },
+                                },
+                            ),
+                        },
+                        Variable {
+                            name: "d",
+                            data_type: DataTypeDefinition {
+                                data_type: PointerType {
+                                    name: None,
+                                    referenced_type: DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                    auto_deref: Some(
+                                        Alias,
+                                    ),
+                                    type_safe: true,
+                                    is_function: false,
+                                },
+                            },
+                            address: Some(
+                                HardwareAccess {
+                                    direction: Memory,
+                                    access: Template,
+                                    address: [],
+                                    location: SourceLocation {
+                                        span: Range(4:16 - 4:22),
+                                    },
+                                },
+                            ),
+                        },
+                        Variable {
+                            name: "aa",
+                            data_type: DataTypeDefinition {
+                                data_type: PointerType {
+                                    name: None,
+                                    referenced_type: DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                    auto_deref: Some(
+                                        Alias,
+                                    ),
+                                    type_safe: true,
+                                    is_function: false,
+                                },
+                            },
+                            address: Some(
+                                HardwareAccess {
+                                    direction: Input,
+                                    access: Bit,
+                                    address: [
+                                        LiteralInteger {
+                                            value: 7,
+                                        },
+                                    ],
+                                    location: SourceLocation {
+                                        span: Range(5:15 - 5:22),
+                                    },
+                                },
+                            ),
+                        },
+                        Variable {
+                            name: "bb",
+                            data_type: DataTypeDefinition {
+                                data_type: PointerType {
+                                    name: None,
+                                    referenced_type: DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                    auto_deref: Some(
+                                        Alias,
+                                    ),
+                                    type_safe: true,
+                                    is_function: false,
+                                },
+                            },
+                            address: Some(
+                                HardwareAccess {
+                                    direction: Output,
+                                    access: Byte,
+                                    address: [
+                                        LiteralInteger {
+                                            value: 5,
+                                        },
+                                        LiteralInteger {
+                                            value: 5,
+                                        },
+                                    ],
+                                    location: SourceLocation {
+                                        span: Range(6:15 - 6:24),
+                                    },
+                                },
+                            ),
+                        },
+                        Variable {
+                            name: "cc",
+                            data_type: DataTypeDefinition {
+                                data_type: PointerType {
+                                    name: None,
+                                    referenced_type: DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                    auto_deref: Some(
+                                        Alias,
+                                    ),
+                                    type_safe: true,
+                                    is_function: false,
+                                },
+                            },
+                            address: Some(
+                                HardwareAccess {
+                                    direction: Memory,
+                                    access: DWord,
+                                    address: [
+                                        LiteralInteger {
+                                            value: 3,
+                                        },
+                                        LiteralInteger {
+                                            value: 3,
+                                        },
+                                        LiteralInteger {
+                                            value: 3,
+                                        },
+                                    ],
+                                    location: SourceLocation {
+                                        span: Range(7:15 - 7:26),
+                                    },
+                                },
+                            ),
+                        },
+                        Variable {
+                            name: "dd",
+                            data_type: DataTypeDefinition {
+                                data_type: PointerType {
+                                    name: None,
+                                    referenced_type: DataTypeReference {
+                                        referenced_type: "INT",
+                                    },
+                                    auto_deref: Some(
+                                        Alias,
+                                    ),
+                                    type_safe: true,
+                                    is_function: false,
+                                },
+                            },
+                            address: Some(
+                                HardwareAccess {
+                                    direction: Global,
+                                    access: DWord,
+                                    address: [
+                                        LiteralInteger {
+                                            value: 4,
+                                        },
+                                        LiteralInteger {
+                                            value: 3,
+                                        },
+                                        LiteralInteger {
+                                            value: 3,
+                                        },
+                                    ],
+                                    location: SourceLocation {
+                                        span: Range(8:15 - 8:26),
+                                    },
+                                },
+                            ),
+                        },
+                    ],
+                    variable_block_type: Local,
+                },
+            ],
+            pou_type: Program,
+            return_type: None,
+            interfaces: [],
+            properties: [],
+        },
+    ],
+    implementations: [
+        Implementation {
+            name: "main",
+            type_name: "main",
+            linkage: Internal,
+            pou_type: Program,
+            statements: [],
+            location: SourceLocation {
+                span: Range(10:4 - 9:11),
+            },
+            name_location: SourceLocation {
+                span: Range(0:8 - 0:12),
+            },
+            end_location: SourceLocation {
+                span: Range(10:4 - 10:15),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+    ],
+    interfaces: [],
+    user_types: [],
+    file: File(
+        "test.st",
+    ),
+    linkage: Internal,
+}

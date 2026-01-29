@@ -1,0 +1,128 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+assertion_line: 1730
+expression: result
+---
+CompilationUnit {
+    global_vars: [],
+    var_config: [],
+    pous: [
+        POU {
+            name: "prg",
+            variable_blocks: [],
+            pou_type: Program,
+            return_type: None,
+            interfaces: [],
+            properties: [],
+        },
+    ],
+    implementations: [
+        Implementation {
+            name: "prg",
+            type_name: "prg",
+            linkage: Internal,
+            pou_type: Program,
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: BinaryExpression {
+                        operator: Plus,
+                        left: LiteralInteger {
+                            value: 6,
+                        },
+                        right: HardwareAccess {
+                            direction: Input,
+                            access: Bit,
+                            address: [
+                                LiteralInteger {
+                                    value: 2,
+                                },
+                                LiteralInteger {
+                                    value: 1,
+                                },
+                            ],
+                            location: SourceLocation {
+                                span: Range(2:15 - 2:23),
+                            },
+                        },
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "y",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: HardwareAccess {
+                        direction: Memory,
+                        access: Byte,
+                        address: [
+                            LiteralInteger {
+                                value: 200,
+                            },
+                        ],
+                        location: SourceLocation {
+                            span: Range(3:10 - 3:19),
+                        },
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "z",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: BinaryExpression {
+                        operator: Multiplication,
+                        left: HardwareAccess {
+                            direction: Global,
+                            access: DWord,
+                            address: [
+                                LiteralInteger {
+                                    value: 5,
+                                },
+                            ],
+                            location: SourceLocation {
+                                span: Range(4:10 - 4:17),
+                            },
+                        },
+                        right: LiteralInteger {
+                            value: 2,
+                        },
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(2:8 - 4:22),
+            },
+            name_location: SourceLocation {
+                span: Range(1:12 - 1:15),
+            },
+            end_location: SourceLocation {
+                span: Range(5:4 - 5:15),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+    ],
+    interfaces: [],
+    user_types: [],
+    file: File(
+        "test.st",
+    ),
+    linkage: Internal,
+}

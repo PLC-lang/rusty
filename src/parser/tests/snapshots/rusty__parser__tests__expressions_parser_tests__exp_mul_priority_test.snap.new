@@ -1,0 +1,94 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+assertion_line: 1649
+expression: ast
+---
+CompilationUnit {
+    global_vars: [],
+    var_config: [],
+    pous: [
+        POU {
+            name: "foo",
+            variable_blocks: [],
+            pou_type: Function,
+            return_type: Some(
+                DataTypeReference {
+                    referenced_type: "INT",
+                },
+            ),
+            interfaces: [],
+            properties: [],
+        },
+    ],
+    implementations: [
+        Implementation {
+            name: "foo",
+            type_name: "foo",
+            linkage: Internal,
+            pou_type: Function,
+            statements: [
+                BinaryExpression {
+                    operator: Multiplication,
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: CallStatement {
+                        operator: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "EXPT",
+                                },
+                            ),
+                            base: None,
+                        },
+                        parameters: Some(
+                            ExpressionList {
+                                expressions: [
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "b",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "c",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ],
+                            },
+                        ),
+                    },
+                },
+            ],
+            location: SourceLocation {
+                span: Range(2:8 - 2:19),
+            },
+            name_location: SourceLocation {
+                span: Range(1:13 - 1:16),
+            },
+            end_location: SourceLocation {
+                span: Range(3:4 - 3:16),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        },
+    ],
+    interfaces: [],
+    user_types: [],
+    file: File(
+        "test.st",
+    ),
+    linkage: Internal,
+}

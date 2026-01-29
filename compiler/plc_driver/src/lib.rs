@@ -239,8 +239,9 @@ pub fn parse_and_annotate_with_diagnostics<T: SourceContainer + Clone>(
 
 pub fn parse_and_validate<T: SourceContainer + Clone>(name: &str, src: Vec<T>) -> String {
     match parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered()) {
-        Ok((mut pipeline, project)) => {
-            let _ = project.validate(&pipeline.context, &mut pipeline.diagnostician);
+        Ok((mut pipeline, _project)) => {
+            // Note: parse_and_annotate_with_diagnostics already calls project.validate(),
+            // so we just return the diagnostics here
             pipeline.diagnostician.buffer().unwrap()
         }
         Err(diagnostic) => diagnostic.to_string(),

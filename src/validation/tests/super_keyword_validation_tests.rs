@@ -24,7 +24,37 @@ fn chaining_super_is_invalid() {
     ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:16:20
+       │
+    16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
+       │                    ^^^^^ `SUPER` is not allowed in member-access position.
+
+    warning[E049]: Illegal access to private member greatgrandparent.x
+       ┌─ <internal>:16:27
+       │
+    16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
+       │                           ^ Illegal access to private member greatgrandparent.x
+
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:16:39
+       │
+    16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
+       │                                       ^^^^^ `SUPER` is not allowed in member-access position.
+
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:16:46
+       │
+    16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
+       │                                              ^^^^^ `SUPER` is not allowed in member-access position.
+
+    warning[E049]: Illegal access to private member greatgrandparent.y
+       ┌─ <internal>:16:53
+       │
+    16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
+       │                                                     ^ Illegal access to private member greatgrandparent.y
+
     error[E119]: `SUPER` is not allowed in member-access position.
        ┌─ <internal>:16:20
        │

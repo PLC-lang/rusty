@@ -24,11 +24,11 @@ fn function_block_init_fn_created() {
     let AnnotatedProject { units, index, .. } = annotated_project;
     let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
     // THEN we expect the index to now have a corresponding init function
-    assert!(index.find_pou("__init_foo").is_some());
+    assert!(index.find_pou("foo_ctor").is_some());
     // AND we expect a new function to be created for it
     let init_foo = &units[1];
     let implementation = &init_foo.implementations[1];
-    assert_eq!(implementation.name, "__init_foo");
+    assert_eq!(implementation.name, "foo_ctor");
     assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
@@ -157,11 +157,11 @@ fn program_init_fn_created() {
     let AnnotatedProject { units, index, .. } = annotated_project;
     let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
     // THEN we expect the index to now have a corresponding init function
-    assert!(index.find_pou("__init_foo").is_some());
+    assert!(index.find_pou("foo_ctor").is_some());
     // AND we expect a new function to be created for it
     let init_foo = &units[1];
     let implementation = &init_foo.implementations[0];
-    assert_eq!(implementation.name, "__init_foo");
+    assert_eq!(implementation.name, "foo_ctor");
     assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
@@ -263,12 +263,12 @@ fn init_wrapper_function_created() {
     assert_eq!(units.len(), 3);
 
     // we expect the index to now have an `__init` function for our `TestProject`
-    assert!(index.find_pou("__init___Test").is_some());
+    assert!(index.find_pou("__unit_Test_ctor").is_some());
 
     // we expect a new function to be created for it
     let init = &units[2];
     let implementation = &init.implementations[0];
-    assert_eq!(implementation.name, "__init___Test");
+    assert_eq!(implementation.name, "__unit_Test_ctor");
     assert_eq!(implementation.pou_type, PouType::ProjectInit);
 
     // we expect this function to have no parameters
