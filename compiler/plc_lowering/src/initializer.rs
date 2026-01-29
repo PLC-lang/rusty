@@ -30,7 +30,10 @@ use plc::{
     },
 };
 use plc_ast::{
-    ast::{AstFactory, AstNode, CompilationUnit, LinkageType, PouType, VariableBlockType},
+    ast::{
+        AstFactory, AstNode, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration, LinkageType,
+        PouType, Variable, VariableBlockType,
+    },
     provider::IdProvider,
     visitor::{AstVisitor, Walker},
 };
@@ -212,11 +215,20 @@ impl AstVisitor for Initializer {
             stmts.push(constructor);
         }
         if let Some(initializer) = &variable.initializer {
+            // For alias variables (AT syntax) and REFERENCE TO variables, we need to wrap
+            // the initializer in ADR() because the variable is actually a pointer that
+            // should point to the aliased/referenced location
+            let processed_initializer = if is_alias_or_reference_variable(variable, index) {
+                wrap_in_adr(initializer.clone(), self.id_provider.clone())
+            } else {
+                initializer.clone()
+            };
+
             // Create a call to the type constructor
             let assignment = create_assignment_with_index(
                 variable.get_name(),
                 base,
-                initializer,
+                &processed_initializer,
                 self.id_provider.clone(),
                 self.index.as_ref().map(|idx| idx.as_ref()),
                 self.context.current_pou.as_deref(),
@@ -283,6 +295,33 @@ impl AstVisitor for Initializer {
             self.add_to_current_constructor(constructor);
         }
     }
+}
+
+/// Checks if a variable is an alias or reference variable that needs ADR() wrapping
+/// (declared with AT syntax, e.g., `px AT x : DINT`, or `REFERENCE TO ... REF= ...`)
+fn is_alias_or_reference_variable(variable: &Variable, index: &Index) -> bool {
+    // First try to check the inline definition (before pre-processing)
+    if let DataTypeDeclaration::Definition { data_type, .. } = &variable.data_type_declaration {
+        if let DataType::PointerType { auto_deref: Some(auto_deref), .. } = data_type.as_ref() {
+            return matches!(auto_deref, AutoDerefType::Alias | AutoDerefType::Reference);
+        }
+    }
+
+    // If the type was pre-processed to a reference, look it up in the index
+    if let Some(type_name) = variable.data_type_declaration.get_referenced_type() {
+        if let Some(type_info) = index.find_effective_type_info(type_name) {
+            return type_info.is_alias() || type_info.is_reference_to();
+        }
+    }
+
+    false
+}
+
+/// Wraps an AST node in an ADR() call
+fn wrap_in_adr(node: AstNode, mut id_provider: IdProvider) -> AstNode {
+    let adr_ident = AstFactory::create_identifier("ADR", SourceLocation::internal(), id_provider.next_id());
+    let adr_ref = AstFactory::create_member_reference(adr_ident, None, id_provider.next_id());
+    AstFactory::create_call_statement(adr_ref, Some(node), id_provider.next_id(), SourceLocation::internal())
 }
 
 impl Initializer {
@@ -1049,7 +1088,7 @@ mod tests {
         intern:
         __baseFb___vtable_ctor(self.__vtable)
         __baseFb_y_ctor(self.y)
-        self.y := x
+        self.y := ADR(self.x)
         self.__vtable := ADR(__vtable_baseFb_instance)
         self.FB_INIT()
         ");
@@ -1060,6 +1099,56 @@ mod tests {
         baseFb_ctor(self.__baseFb)
         self.__vtable := ADR(__vtable_child_instance)
         self.FB_INIT()
+        ");
+    }
+
+    /// Test that alias variables (AT syntax) in method local variables are properly initialized
+    /// with ADR() wrapping. This tests the case where a method has `px AT x : DINT` which should
+    /// generate `px := ADR(x)` in the stack constructor.
+    #[test]
+    fn alias_variable_in_method_wrapped_in_adr() {
+        let src = r#"
+            FUNCTION_BLOCK foo
+                METHOD bar
+                    VAR
+                        x : DINT;
+                        px AT x : DINT;
+                    END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+            "#;
+
+        let initializer = parse_and_init(src);
+
+        // The method's stack constructor should initialize px with ADR(x)
+        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("foo.bar").unwrap()), @r"
+        intern:
+        __foo.bar_px_ctor(px)
+        px := ADR(x)
+        ");
+    }
+
+    /// Test that alias variables in function blocks are properly initialized with ADR()
+    #[test]
+    fn alias_variable_in_function_block_wrapped_in_adr() {
+        let src = r#"
+            FUNCTION_BLOCK foo
+            VAR
+                x : DINT;
+                px AT x : DINT;
+            END_VAR
+            END_FUNCTION_BLOCK
+            "#;
+
+        let initializer = parse_and_init(src);
+
+        // The constructor should initialize px with ADR(self.x)
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("foo").unwrap()), @r"
+        intern:
+        __foo___vtable_ctor(self.__vtable)
+        __foo_px_ctor(self.px)
+        self.px := ADR(self.x)
+        self.__vtable := ADR(__vtable_foo_instance)
         ");
     }
 }

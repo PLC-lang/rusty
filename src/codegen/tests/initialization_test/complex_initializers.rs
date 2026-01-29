@@ -2397,13 +2397,11 @@ fn temporary_variable_ref_to_temporary_variable() {
       store ptr %s, ptr %ptr, align [filtered]
       %deref = load ptr, ptr %alias, align [filtered]
       call void @__foo_alias_ctor(ptr %deref)
-      %deref1 = load ptr, ptr %alias, align [filtered]
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref1, ptr align [filtered] %s, i32 80, i1 false)
-      %deref2 = load ptr, ptr %reference_to, align [filtered]
-      call void @__foo_reference_to_ctor(ptr %deref2)
-      %deref3 = load ptr, ptr %reference_to, align [filtered]
-      %deref4 = load ptr, ptr %alias, align [filtered]
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref3, ptr align [filtered] %deref4, i32 80, i1 false)
+      store ptr %s, ptr %alias, align [filtered]
+      %deref1 = load ptr, ptr %reference_to, align [filtered]
+      call void @__foo_reference_to_ctor(ptr %deref1)
+      %deref2 = load ptr, ptr %alias, align [filtered]
+      store ptr %deref2, ptr %reference_to, align [filtered]
       ret void
     }
 
@@ -2431,11 +2429,7 @@ fn temporary_variable_ref_to_temporary_variable() {
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #1
-
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
-    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#)
 }
 

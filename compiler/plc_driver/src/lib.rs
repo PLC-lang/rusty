@@ -238,13 +238,32 @@ pub fn parse_and_annotate_with_diagnostics<T: SourceContainer + Clone>(
 }
 
 pub fn parse_and_validate<T: SourceContainer + Clone>(name: &str, src: Vec<T>) -> String {
-    match parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered()) {
+    let mut diagnostician = Diagnostician::buffered();
+    for source in &src {
+        if let Ok(loaded) = source.load_source(None) {
+            diagnostician.register_file(source.get_location_str().to_string(), loaded.source);
+        }
+    }
+    match parse_and_annotate_with_diagnostics(name, src.clone(), diagnostician) {
         Ok((pipeline, _project)) => {
             // Note: parse_and_annotate_with_diagnostics already calls project.validate(),
             // so we just return the diagnostics here
             pipeline.diagnostician.buffer().unwrap()
         }
-        Err(diagnostic) => diagnostic.to_string(),
+        Err(diagnostic) => {
+            // Handle error diagnostics by reporting sub-diagnostics (the actual errors)
+            // We need to create a new reporter and re-register sources since the original
+            // diagnostician was consumed by parse_and_annotate_with_diagnostics
+            let mut reporter = Diagnostician::buffered();
+            for source in &src {
+                if let Ok(loaded) = source.load_source(None) {
+                    reporter.register_file(source.get_location_str().to_string(), loaded.source);
+                }
+            }
+            // Only report the sub-diagnostics (the actual errors), not the wrapper message
+            reporter.handle(&diagnostic.inner.sub_diagnostics);
+            reporter.buffer().unwrap()
+        }
     }
 }
 
