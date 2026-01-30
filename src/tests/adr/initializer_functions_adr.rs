@@ -537,8 +537,7 @@ fn intializing_temporary_variables() {
       call void @foo_ctor(ptr %fb)
       %deref = load ptr, ptr %s, align [filtered]
       call void @__main_s_ctor(ptr %deref)
-      %deref1 = load ptr, ptr %s, align [filtered]
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref1, ptr align [filtered] @ps, i32 80, i1 false)
+      store ptr @ps, ptr %s, align [filtered]
       call void @__main_s2_ctor(ptr %s2)
       store ptr @ps2, ptr %s2, align [filtered]
       call void @foo(ptr %fb)
@@ -623,11 +622,6 @@ fn intializing_temporary_variables() {
       call void @__vtable_foo_ctor(ptr @__vtable_foo_instance)
       ret void
     }
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
-
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#)
 }
 

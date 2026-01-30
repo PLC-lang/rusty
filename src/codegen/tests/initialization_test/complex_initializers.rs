@@ -2277,12 +2277,10 @@ fn temporary_variable_ref_to_local_member() {
       store ptr %s, ptr %ptr, align [filtered]
       %deref = load ptr, ptr %alias, align [filtered]
       call void @__foo_alias_ctor(ptr %deref)
-      %deref1 = load ptr, ptr %alias, align [filtered]
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref1, ptr align [filtered] %s, i32 80, i1 false)
-      %deref2 = load ptr, ptr %reference_to, align [filtered]
-      call void @__foo_reference_to_ctor(ptr %deref2)
-      %deref3 = load ptr, ptr %reference_to, align [filtered]
-      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref3, ptr align [filtered] %s, i32 80, i1 false)
+      store ptr %s, ptr %alias, align [filtered]
+      %deref1 = load ptr, ptr %reference_to, align [filtered]
+      call void @__foo_reference_to_ctor(ptr %deref1)
+      store ptr %s, ptr %reference_to, align [filtered]
       ret void
     }
 
@@ -2349,11 +2347,6 @@ fn temporary_variable_ref_to_local_member() {
       call void @__vtable_foo_ctor(ptr @__vtable_foo_instance)
       ret void
     }
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
-
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#)
 }
 

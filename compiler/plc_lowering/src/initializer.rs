@@ -26,7 +26,7 @@ use plc::{
     index::{FxIndexMap, Index},
     lowering::helper::{
         create_assignment, create_assignment_with_index, create_call_statement, create_member_reference,
-        get_unit_name, new_constructor, new_unit_constructor,
+        create_ref_assignment_with_index, get_unit_name, new_constructor, new_unit_constructor,
     },
 };
 use plc_ast::{
@@ -214,25 +214,45 @@ impl AstVisitor for Initializer {
         {
             stmts.push(constructor);
         }
-        if let Some(initializer) = &variable.initializer {
-            // For alias variables (AT syntax) and REFERENCE TO variables, we need to wrap
-            // the initializer in ADR() because the variable is actually a pointer that
-            // should point to the aliased/referenced location
-            let processed_initializer = if is_alias_or_reference_variable(variable, index) {
-                wrap_in_adr(initializer.clone(), self.id_provider.clone())
+        // Determine if we need to create an initializer
+        // For alias/reference variables (AT x), if there's no explicit initializer, we use the AT target (address)
+        // BUT only if the address is a simple identifier (not a hardware address like %I* or %QX1.2.1)
+        let initializer_to_use = if variable.initializer.is_some() {
+            variable.initializer.as_ref()
+        } else if is_alias_or_reference_variable(variable, index)
+            && variable.address.is_some()
+            && is_simple_identifier_address(variable.address.as_ref().unwrap()) {
+            // For alias/reference variables with simple identifier AT targets, use the address as implicit initializer
+            variable.address.as_ref()
+        } else {
+            None
+        };
+
+        if let Some(initializer) = initializer_to_use {
+            // For alias variables (AT syntax) and REFERENCE TO variables, we need REF= assignment
+            // to properly set up the reference/alias relationship
+            let assignment = if is_alias_or_reference_variable(variable, index) {
+                // For both Alias (AT) and Reference (REFERENCE TO): use REF= x
+                create_ref_assignment_with_index(
+                    variable.get_name(),
+                    base,
+                    initializer,
+                    self.id_provider.clone(),
+                    self.index.as_ref().map(|idx| idx.as_ref()),
+                    self.context.current_pou.as_deref(),
+                )
             } else {
-                initializer.clone()
+                // For regular variables: use := assignment
+                create_assignment_with_index(
+                    variable.get_name(),
+                    base,
+                    initializer,
+                    self.id_provider.clone(),
+                    self.index.as_ref().map(|idx| idx.as_ref()),
+                    self.context.current_pou.as_deref(),
+                )
             };
 
-            // Create a call to the type constructor
-            let assignment = create_assignment_with_index(
-                variable.get_name(),
-                base,
-                &processed_initializer,
-                self.id_provider.clone(),
-                self.index.as_ref().map(|idx| idx.as_ref()),
-                self.context.current_pou.as_deref(),
-            );
             stmts.push(assignment);
         }
         if variable_block_type.is_temp() || (variable_block_type.is_local() && !is_stateful) {
@@ -315,6 +335,35 @@ fn is_alias_or_reference_variable(variable: &Variable, index: &Index) -> bool {
     }
 
     false
+}
+
+/// Gets the auto-deref type (Alias or Reference) for a variable if it has one
+fn get_auto_deref_type(variable: &Variable, index: &Index) -> Option<AutoDerefType> {
+    // First try to check the inline definition (before pre-processing)
+    if let DataTypeDeclaration::Definition { data_type, .. } = &variable.data_type_declaration {
+        if let DataType::PointerType { auto_deref: Some(auto_deref), .. } = data_type.as_ref() {
+            return Some(auto_deref.clone());
+        }
+    }
+
+    // If the type was pre-processed to a reference, look it up in the index
+    if let Some(type_name) = variable.data_type_declaration.get_referenced_type() {
+        if let Some(type_info) = index.find_effective_type_info(type_name) {
+            if type_info.is_alias() {
+                return Some(AutoDerefType::Alias);
+            }
+            if type_info.is_reference_to() {
+                return Some(AutoDerefType::Reference);
+            }
+        }
+    }
+
+    None
+}
+
+/// Checks if an address node is a simple identifier (not a hardware address like %I* or %QX1.2.1)
+fn is_simple_identifier_address(address: &AstNode) -> bool {
+    matches!(address.get_stmt(), plc_ast::ast::AstStatement::Identifier(_))
 }
 
 /// Wraps an AST node in an ADR() call

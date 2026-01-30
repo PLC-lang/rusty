@@ -137,12 +137,31 @@ pub fn create_ref_assignment(
     rhs: &AstNode,
     mut id_provider: IdProvider,
 ) -> AstNode {
+    create_ref_assignment_with_index(lhs_ident, base_ident, rhs, id_provider, None, None)
+}
+
+pub fn create_ref_assignment_with_index(
+    lhs_ident: &str,
+    base_ident: Option<&str>,
+    rhs: &AstNode,
+    mut id_provider: IdProvider,
+    index: Option<&Index>,
+    current_pou: Option<&str>,
+) -> AstNode {
     let lhs = create_member_reference(
         lhs_ident,
         id_provider.clone(),
         base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
     );
-    AstFactory::create_ref_assignment(lhs, rhs.to_owned(), id_provider.next_id())
+
+    // Process the RHS to qualify local variable references with base_ident
+    let processed_rhs = if let (Some(idx), Some(base), Some(pou)) = (index, base_ident, current_pou) {
+        qualify_local_references(rhs, base, pou, idx, id_provider.clone())
+    } else {
+        rhs.to_owned()
+    };
+
+    AstFactory::create_ref_assignment(lhs, processed_rhs, id_provider.next_id())
 }
 
 pub fn create_assignment(
