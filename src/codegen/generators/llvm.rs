@@ -397,10 +397,15 @@ impl<'a> Llvm<'a> {
                 )?;
             } else if value.is_array_value() || value.is_struct_value() {
                 // After the initializer refactor, aggregate initialization happens through
-                // constructor calls. When we get ArrayValue or StructValue here, it means
-                // the constructor will handle the initialization, so we don't need to do
-                // anything here. Just skip the initialization.
-                // This is a no-op - constructor handles it.
+                // constructor calls. However, constructors only initialize fields with explicit
+                // initializers. We need to zero-initialize the memory first to ensure all fields
+                // start with a known value (0), then the constructor will set the explicit values.
+                self.builder.build_memset(
+                    variable_to_initialize,
+                    std::cmp::max(1, alignment),
+                    self.context.i8_type().const_zero(),
+                    type_size?,
+                )?;
             } else {
                 Err(Diagnostic::codegen_error(
                     "initializing an array should be memcpy-able or memset-able",

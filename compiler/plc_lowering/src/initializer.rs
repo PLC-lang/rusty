@@ -194,6 +194,18 @@ impl AstVisitor for Initializer {
         self.context.exit_variable_block();
     }
 
+    fn visit_config_variable(&mut self, config_variable: &plc_ast::ast::ConfigVariable) {
+        // VAR_CONFIG entries create assignments from the variable reference to its hardware address
+        // For example: prog.instance1.foo := %IX1.2.1
+        // These assignments are added to the global constructor
+        let assignment = AstFactory::create_assignment(
+            config_variable.reference.clone(),
+            config_variable.address.clone(),
+            self.id_provider.next_id(),
+        );
+        self.global_constructor.push(assignment);
+    }
+
     fn visit_variable(&mut self, variable: &plc_ast::ast::Variable) {
         // grab the index
         let index = self.index.as_ref().expect("index is set at this stage");

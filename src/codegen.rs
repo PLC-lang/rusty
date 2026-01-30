@@ -600,6 +600,7 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     pub fn run<T, U>(&self, name: &str, params: &mut T) -> U {
         let engine = self.get_execution_engine();
+        engine.run_static_constructors();
         unsafe {
             let main: JitFunction<MainFunction<T, U>> = engine.get_function(name).unwrap();
             main.call(&mut *params as *mut _)
@@ -612,6 +613,7 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     pub fn run_no_param<U>(&self, name: &str) -> U {
         let engine = self.get_execution_engine();
+        engine.run_static_constructors();
         unsafe {
             let main: JitFunction<MainEmptyFunction<U>> = engine.get_function(name).unwrap();
             main.call()
