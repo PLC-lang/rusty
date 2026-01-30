@@ -1064,8 +1064,17 @@ fn validate_ref_assignment<T: AnnotationMap>(
     }
 
     // If the right side is a reference, validate type mismatches
+    // For REF= semantics: `px REF= x` means "assign the address of x to px"
+    // So if LHS is a pointer type, we need to compare the inner type with the RHS type
     if assignment.right.is_reference() {
-        validate_assignment_mismatch(context, validator, type_lhs, type_rhs, assignment_location);
+        let inner_type_lhs = if let DataTypeInformation::Pointer { inner_type_name, .. } =
+            type_lhs.get_type_information()
+        {
+            context.index.get_type(inner_type_name).unwrap_or(type_lhs)
+        } else {
+            type_lhs
+        };
+        validate_assignment_mismatch(context, validator, inner_type_lhs, type_rhs, assignment_location);
     }
 }
 
@@ -1489,6 +1498,11 @@ fn is_invalid_pointer_assignment(
     location: &SourceLocation,
     validator: &mut Validator,
 ) -> bool {
+    // Skip validation for internal/builtin code (e.g., generated initializers)
+    if location.is_builtin_internal() {
+        return false;
+    }
+
     if left_type.is_pointer() & right_type.is_pointer() {
         return !typesystem::is_same_type_class(left_type, right_type, index);
     }

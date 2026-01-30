@@ -2945,9 +2945,7 @@ fn initializing_method_variables_with_alias() {
       store ptr null, ptr %px, align [filtered]
       %deref = load ptr, ptr %px, align [filtered]
       call void @__foo.bar_px_ctor(ptr %deref)
-      %deref1 = load ptr, ptr %px, align [filtered]
-      %load_x = load i32, ptr %x, align [filtered]
-      store i32 %load_x, ptr %deref1, align [filtered]
+      store ptr %x, ptr %px, align [filtered]
       ret void
     }
 
@@ -3062,9 +3060,7 @@ fn initializing_method_variables_with_reference_to() {
       store ptr null, ptr %px, align [filtered]
       %deref = load ptr, ptr %px, align [filtered]
       call void @__foo.bar_px_ctor(ptr %deref)
-      %deref1 = load ptr, ptr %px, align [filtered]
-      %1 = ptrtoint ptr %x to i32
-      store i32 %1, ptr %deref1, align [filtered]
+      store ptr %x, ptr %px, align [filtered]
       ret void
     }
 

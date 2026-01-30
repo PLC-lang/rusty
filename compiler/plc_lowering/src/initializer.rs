@@ -269,6 +269,13 @@ impl AstVisitor for Initializer {
             self.constructors.insert(name.to_string(), Body::None);
             return;
         }
+        // Skip creating constructors for VLA types - they're parameter types that don't need initialization
+        let index = self.index.as_ref().expect("index is set at this stage");
+        if index.get_type_information_or_void(name).is_vla() {
+            self.constructors.insert(name.to_string(), Body::None);
+            self.context.exit_datatype();
+            return;
+        }
         match user_type.linkage {
             plc_ast::ast::LinkageType::Internal => {
                 self.constructors.insert(name.to_string(), Body::Internal(vec![]));
@@ -1152,8 +1159,8 @@ mod tests {
     }
 
     /// Test that alias variables (AT syntax) in method local variables are properly initialized
-    /// with ADR() wrapping. This tests the case where a method has `px AT x : DINT` which should
-    /// generate `px := ADR(x)` in the stack constructor.
+    /// with REF= assignment. This tests the case where a method has `px AT x : DINT` which should
+    /// generate `px REF= x` in the stack constructor (REF= assigns the address without dereferencing).
     #[test]
     fn alias_variable_in_method_wrapped_in_adr() {
         let src = r#"
@@ -1169,15 +1176,15 @@ mod tests {
 
         let initializer = parse_and_init(src);
 
-        // The method's stack constructor should initialize px with ADR(x)
+        // The method's stack constructor should initialize px with REF= x
         insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("foo.bar").unwrap()), @r"
         intern:
         __foo.bar_px_ctor(px)
-        px := ADR(x)
+        px REF= x
         ");
     }
 
-    /// Test that alias variables in function blocks are properly initialized with ADR()
+    /// Test that alias variables in function blocks are properly initialized with REF=
     #[test]
     fn alias_variable_in_function_block_wrapped_in_adr() {
         let src = r#"
@@ -1191,12 +1198,12 @@ mod tests {
 
         let initializer = parse_and_init(src);
 
-        // The constructor should initialize px with ADR(self.x)
+        // The constructor should initialize px with REF= self.x
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("foo").unwrap()), @r"
         intern:
         __foo___vtable_ctor(self.__vtable)
         __foo_px_ctor(self.px)
-        self.px := ADR(self.x)
+        self.px REF= self.x
         self.__vtable := ADR(__vtable_foo_instance)
         ");
     }
