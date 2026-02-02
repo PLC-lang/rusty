@@ -15,6 +15,8 @@ use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
 
 pub mod calls;
+pub mod itable;
+pub mod itable_calls;
 mod initializers;
 pub mod polymorphism;
 pub mod property;

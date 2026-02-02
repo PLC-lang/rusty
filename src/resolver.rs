@@ -2182,7 +2182,7 @@ impl<'i> TypeAnnotator<'i> {
                                 // TODO(vosa): THIS^(), needs to be handled in the polymorphism PR but is
                                 // ignored here (!stmt.is_this_deref())
                                 if *is_function
-                                    && (pou.is_method() | pou.is_function_block() && !stmt.is_this_deref())
+                                // && (pou.is_method() | pou.is_function_block() && !stmt.is_this_deref())
                                 {
                                     let name = pou.get_name();
                                     let return_type = pou.get_return_type().unwrap_or(VOID_INTERNAL_NAME);

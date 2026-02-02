@@ -25,8 +25,9 @@ use plc::{
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
     lowering::{
-        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, property::PropertyLowerer,
-        vtable::VirtualTableGenerator, InitVisitor,
+        calls::AggregateTypeLowerer, itable::InterfaceTableGenerator, itable_calls::InterfaceCallLowerer,
+        polymorphism::PolymorphicCallLowerer, property::PropertyLowerer, vtable::VirtualTableGenerator,
+        InitVisitor,
     },
     output::FormatOption,
     parser::parse_file,
@@ -259,6 +260,8 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
+            Box::new(InterfaceTableGenerator::new(self.context.provider())),
+            Box::new(InterfaceCallLowerer::new(self.context.provider())),
             Box::new(VirtualTableGenerator::new(self.context.provider())),
             Box::new(PolymorphicCallLowerer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),

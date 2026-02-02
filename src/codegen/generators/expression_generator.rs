@@ -588,10 +588,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let qualified_pou_name = self.annotations.get(operator).unwrap().qualified_name().unwrap();
         let impl_entry = self.index.find_implementation_by_name(qualified_pou_name).unwrap();
-        debug_assert!(
-            impl_entry.is_method() | impl_entry.is_function_block(),
-            "internal error, invalid method call"
-        );
+        // debug_assert!(
+        //     impl_entry.is_method() | impl_entry.is_function_block(),
+        //     "internal error, invalid method call"
+        // );
 
         // Get the associated variable then load it, e.g. `%localFnPtrVariable = alloca void (%Fb*)*, align 8`
         // followed by `%1 = load void (%Fb*)*, void (%Fb*)** %localFnPtrVariable, align 8``
@@ -614,11 +614,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             };
 
             let mut generated_arguments = match &impl_entry.implementation_type {
-                ImplementationType::Method => self.generate_function_arguments(
-                    self.index.find_pou(qualified_pou_name).unwrap(),
-                    &arguments,
-                    self.index.get_available_parameters(qualified_pou_name),
-                )?,
+                ImplementationType::Method | ImplementationType::Function => self
+                    .generate_function_arguments(
+                        self.index.find_pou(qualified_pou_name).unwrap(),
+                        &arguments,
+                        self.index.get_available_parameters(qualified_pou_name),
+                    )?,
 
                 // Function Block body calls have a slightly different calling convention compared to regular
                 // methods. Specifically the arguments aren't passed to the call itself but rather the

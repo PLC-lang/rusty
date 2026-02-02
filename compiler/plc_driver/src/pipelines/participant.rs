@@ -15,7 +15,8 @@ use ast::provider::IdProvider;
 use plc::{
     codegen::GeneratedModule,
     lowering::{
-        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, vtable::VirtualTableGenerator,
+        calls::AggregateTypeLowerer, itable::InterfaceTableGenerator, itable_calls::InterfaceCallLowerer,
+        polymorphism::PolymorphicCallLowerer, vtable::VirtualTableGenerator,
     },
     output::FormatOption,
     ConfigFormat, OnlineChange, Target,
@@ -318,5 +319,32 @@ impl PipelineParticipantMut for PolymorphicCallLowerer {
         };
 
         indexed_project.annotate(self.ids.clone())
+    }
+}
+
+impl PipelineParticipantMut for InterfaceTableGenerator {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { mut project, index, .. } = indexed_project;
+
+        let mut gen = InterfaceTableGenerator::new(self.ids.clone());
+        gen.generate(&index, &mut project.units);
+
+        project.index(self.ids.clone())
+    }
+}
+
+impl PipelineParticipantMut for InterfaceCallLowerer {
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { units, index, annotations } = annotated_project;
+        self.index = Some(index);
+        self.annotations = Some(annotations.annotation_map);
+
+        let mut units: Vec<_> = units.into_iter().map(|it| it.unit).collect();
+        self.lower_units(&mut units);
+
+        // Re-index because visit_variable changed variable types (e.g. interface → __FATPOINTER)
+        // and the old index would still reference the original interface type names.
+        let project = ParsedProject { units };
+        project.index(self.ids.clone()).annotate(self.ids.clone())
     }
 }
