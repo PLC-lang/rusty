@@ -1,0 +1,1 @@
+RUN: %COMPILE %S/main.st %S/bar.st && %RUN | %CHECK %s
