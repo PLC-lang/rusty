@@ -3,7 +3,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
 
-use crate::index::VariableIndexEntry;
+// use crate::index::VariableIndexEntry;
 use crate::{
     index::{symbol::SymbolMap, Index, PouIndexEntry},
     typesystem::{DataTypeInformation, StructSource},
@@ -115,7 +115,7 @@ impl GlobalValidator {
         }
 
         // Report name conflicts between enum variants and any other member variable in the VAR block
-        for pou in index.get_pou_types().values() {
+        /* for pou in index.get_pou_types().values() {
             let mut groups: FxHashMap<&str, Vec<&VariableIndexEntry>> = FxHashMap::default();
             let variants = index.get_enum_variants_in_pou(pou.get_name());
 
@@ -130,7 +130,7 @@ impl GlobalValidator {
                     self.report_name_conflict(member.get_name(), &locations, None);
                 }
             }
-        }
+        } */
     }
 
     ///validates uniqueness of datatypes (types + functionblocks + classes)
@@ -251,7 +251,7 @@ impl GlobalValidator {
     }
 }
 
-mod helper {
+/*mod helper {
     use crate::index::{Index, VariableIndexEntry};
 
     pub fn get_non_enum_pou_members<'a>(index: &'a Index, pou_name: &str) -> Vec<&'a VariableIndexEntry> {
@@ -261,4 +261,4 @@ mod helper {
             .filter(|it| !index.get_effective_type_or_void_by_name(it.get_type_name()).is_enum())
             .collect()
     }
-}
+}*/
