@@ -6,7 +6,7 @@ target triple = "[filtered]"
 
 %foo = type { i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___plc, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
 @foo_instance = global %foo zeroinitializer, !dbg !0
 
 define void @foo(ptr %0) !dbg !11 {
@@ -16,26 +16,26 @@ entry:
   br label %lbl, !dbg !17
 
 lbl:                                              ; preds = %lbl, %entry
-  %load_val = load i32, ptr %val, align 4, !dbg !16
+  %load_val = load i32, ptr %val, align [filtered], !dbg !16
   %tmpVar = icmp eq i32 %load_val, 0, !dbg !16
   br i1 %tmpVar, label %lbl, label %else_block, !dbg !18
 
 else_block:                                       ; preds = %lbl
-  store i32 1, ptr %val, align 4, !dbg !19
+  store i32 1, ptr %val, align [filtered], !dbg !19
   ret void, !dbg !20
 }
 
 define void @__init_foo(ptr %0) {
 entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
 define void @__user_init_foo(ptr %0) {
 entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
@@ -52,9 +52,9 @@ entry:
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "foo", scope: !2, file: !2, line: 1, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "<internal>.cfc", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 1, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "foo")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 1, size: 32, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "foo")
 !4 = !{!5}
-!5 = !DIDerivedType(tag: DW_TAG_member, name: "val", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "val", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align [filtered], flags: DIFlagPublic)
 !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !7 = !{i32 2, !"Dwarf Version", i32 5}
 !8 = !{i32 2, !"Debug Info Version", i32 3}

@@ -1,0 +1,21 @@
+{
+	"name" : "Application",
+	"files" : [
+        "child.st",
+        "main.st",
+        "../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : [
+        {
+            "name": "parent",
+            "path": "../build/",
+            "package": "System",
+            "include_path" : [
+                "../lib1/include/base.pli"
+            ]
+        }
+	]
+}
+

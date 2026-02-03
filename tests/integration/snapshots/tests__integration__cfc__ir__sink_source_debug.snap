@@ -6,28 +6,28 @@ target triple = "[filtered]"
 
 %main = type { i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___plc, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
 @main_instance = global %main zeroinitializer, !dbg !0
 
 define void @main(ptr %0) !dbg !11 {
 entry:
     #dbg_declare(ptr %0, !15, !DIExpression(), !16)
   %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
-  store i32 5, ptr %x, align 4, !dbg !17
+  store i32 5, ptr %x, align [filtered], !dbg !17
   ret void, !dbg !18
 }
 
 define void @__init_main(ptr %0) {
 entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
 define void @__user_init_main(ptr %0) {
 entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
@@ -44,9 +44,9 @@ entry:
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "main", scope: !2, file: !2, line: 1, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "<internal>.cfc", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "main", scope: !2, file: !2, line: 1, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "main")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "main", scope: !2, file: !2, line: 1, size: 32, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "main")
 !4 = !{!5}
-!5 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align [filtered], flags: DIFlagPublic)
 !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !7 = !{i32 2, !"Dwarf Version", i32 5}
 !8 = !{i32 2, !"Debug Info Version", i32 3}

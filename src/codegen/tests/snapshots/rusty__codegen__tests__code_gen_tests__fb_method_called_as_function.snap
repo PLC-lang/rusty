@@ -13,8 +13,8 @@ target triple = "[filtered]"
 
 define void @MyClass(ptr %0) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   %call = call i16 @MyClass__testMethod(ptr %0, i16 1)
@@ -24,33 +24,33 @@ entry:
 
 define i16 @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
-  %MyClass.testMethod = alloca i16, align 2
-  %myMethodArg = alloca i16, align 2
-  store i16 %1, ptr %myMethodArg, align 2
-  %myMethodLocalVar = alloca i16, align 2
-  store i16 0, ptr %myMethodLocalVar, align 2
-  store i16 0, ptr %MyClass.testMethod, align 2
-  %load_myMethodArg = load i16, ptr %myMethodArg, align 2
-  store i16 %load_myMethodArg, ptr %x, align 2
-  %load_x = load i16, ptr %x, align 2
+  %MyClass.testMethod = alloca i16, align [filtered]
+  %myMethodArg = alloca i16, align [filtered]
+  store i16 %1, ptr %myMethodArg, align [filtered]
+  %myMethodLocalVar = alloca i16, align [filtered]
+  store i16 0, ptr %myMethodLocalVar, align [filtered]
+  store i16 0, ptr %MyClass.testMethod, align [filtered]
+  %load_myMethodArg = load i16, ptr %myMethodArg, align [filtered]
+  store i16 %load_myMethodArg, ptr %x, align [filtered]
+  %load_x = load i16, ptr %x, align [filtered]
   %2 = sext i16 %load_x to i32
   %tmpVar = add i32 %2, 1
   %3 = trunc i32 %tmpVar to i16
-  store i16 %3, ptr %y, align 2
-  %load_y = load i16, ptr %y, align 2
+  store i16 %3, ptr %y, align [filtered]
+  %load_y = load i16, ptr %y, align [filtered]
   %4 = sext i16 %load_y to i32
   %tmpVar1 = add i32 %4, 1
   %5 = trunc i32 %tmpVar1 to i16
-  store i16 %5, ptr %myMethodLocalVar, align 2
-  %load_myMethodLocalVar = load i16, ptr %myMethodLocalVar, align 2
+  store i16 %5, ptr %myMethodLocalVar, align [filtered]
+  %load_myMethodLocalVar = load i16, ptr %myMethodLocalVar, align [filtered]
   %6 = sext i16 %load_myMethodLocalVar to i32
   %tmpVar2 = add i32 %6, 1
   %7 = trunc i32 %tmpVar2 to i16
-  store i16 %7, ptr %MyClass.testMethod, align 2
-  %MyClass__testMethod_ret = load i16, ptr %MyClass.testMethod, align 2
+  store i16 %7, ptr %MyClass.testMethod, align [filtered]
+  %MyClass__testMethod_ret = load i16, ptr %MyClass.testMethod, align [filtered]
   ret i16 %MyClass__testMethod_ret
 }

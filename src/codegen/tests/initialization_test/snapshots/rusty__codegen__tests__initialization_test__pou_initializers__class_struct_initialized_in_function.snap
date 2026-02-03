@@ -21,13 +21,13 @@ entry:
 
 define i32 @func(ptr %0) {
 entry:
-  %func = alloca i32, align 4
-  %in = alloca %fb, align 8
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %in, ptr align 1 %0, i64 ptrtoint (ptr getelementptr (%fb, ptr null, i32 1) to i64), i1 false)
-  %x = alloca %fb, align 8
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %x, ptr align 1 @__fb__init, i64 ptrtoint (ptr getelementptr (%fb, ptr null, i32 1) to i64), i1 false)
-  store i32 0, ptr %func, align 4
-  %func_ret = load i32, ptr %func, align 4
+  %func = alloca i32, align [filtered]
+  %in = alloca %fb, align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %in, ptr align [filtered] %0, i64 ptrtoint (ptr getelementptr (%fb, ptr null, i32 1) to i64), i1 false)
+  %x = alloca %fb, align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %x, ptr align [filtered] @__fb__init, i64 ptrtoint (ptr getelementptr (%fb, ptr null, i32 1) to i64), i1 false)
+  store i32 0, ptr %func, align [filtered]
+  %func_ret = load i32, ptr %func, align [filtered]
   ret i32 %func_ret
 }
 

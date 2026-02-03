@@ -9,19 +9,19 @@ target triple = "[filtered]"
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  %i = alloca i32, align 4
-  %j = alloca i16, align 2
-  %arr_ptr = alloca ptr, align 8
-  store i32 0, ptr %i, align 4
-  store i16 0, ptr %j, align 2
-  store ptr null, ptr %arr_ptr, align 8
-  store i32 0, ptr %main, align 4
-  %load_j = load i16, ptr %j, align 2
+  %main = alloca i32, align [filtered]
+  %i = alloca i32, align [filtered]
+  %j = alloca i16, align [filtered]
+  %arr_ptr = alloca ptr, align [filtered]
+  store i32 0, ptr %i, align [filtered]
+  store i16 0, ptr %j, align [filtered]
+  store ptr null, ptr %arr_ptr, align [filtered]
+  store i32 0, ptr %main, align [filtered]
+  %load_j = load i16, ptr %j, align [filtered]
   %0 = zext i16 %load_j to i64
   %tmpVar = sub i64 %0, ptrtoint (ptr getelementptr (ptr, ptr null, i32 1) to i64)
   %1 = trunc i64 %tmpVar to i32
-  store i32 %1, ptr %i, align 4
-  %main_ret = load i32, ptr %main, align 4
+  store i32 %1, ptr %i, align [filtered]
+  %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }

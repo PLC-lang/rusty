@@ -4,27 +4,27 @@ expression: output_file_content_without_headers
 ---
 target triple = "[filtered]"
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___plc, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
 
 define i32 @foo(i32 %0) !dbg !4 {
 entry:
-  %foo = alloca i32, align 4
-  %val = alloca i32, align 4
+  %foo = alloca i32, align [filtered]
+  %val = alloca i32, align [filtered]
     #dbg_declare(ptr %val, !9, !DIExpression(), !10)
-  store i32 %0, ptr %val, align 4
+  store i32 %0, ptr %val, align [filtered]
     #dbg_declare(ptr %foo, !11, !DIExpression(), !12)
-  store i32 0, ptr %foo, align 4
-  %load_val = load i32, ptr %val, align 4, !dbg !13
+  store i32 0, ptr %foo, align [filtered]
+  %load_val = load i32, ptr %val, align [filtered], !dbg !13
   %tmpVar = icmp eq i32 %load_val, 5, !dbg !13
   br i1 %tmpVar, label %then_block, label %else_block, !dbg !13
 
 then_block:                                       ; preds = %entry
-  %foo_ret = load i32, ptr %foo, align 4, !dbg !14
+  %foo_ret = load i32, ptr %foo, align [filtered], !dbg !14
   ret i32 %foo_ret, !dbg !14
 
 else_block:                                       ; preds = %entry
-  store i32 10, ptr %val, align 4, !dbg !15
-  %foo_ret1 = load i32, ptr %foo, align 4, !dbg !16
+  store i32 10, ptr %val, align [filtered], !dbg !15
+  %foo_ret1 = load i32, ptr %foo, align [filtered], !dbg !16
   ret i32 %foo_ret1, !dbg !16
 }
 
@@ -47,7 +47,7 @@ entry:
 !8 = !{}
 !9 = !DILocalVariable(name: "val", scope: !4, file: !3, line: 1, type: !7)
 !10 = !DILocation(line: 1, column: 30, scope: !4)
-!11 = !DILocalVariable(name: "foo", scope: !4, file: !3, line: 1, type: !7, align: 32)
+!11 = !DILocalVariable(name: "foo", scope: !4, file: !3, line: 1, type: !7, align [filtered])
 !12 = !DILocation(line: 1, column: 9, scope: !4)
 !13 = !DILocation(line: 2, scope: !4)
 !14 = !DILocation(line: 3, scope: !4)

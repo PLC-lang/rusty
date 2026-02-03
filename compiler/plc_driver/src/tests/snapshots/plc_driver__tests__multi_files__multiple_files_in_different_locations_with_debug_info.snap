@@ -11,17 +11,17 @@ target triple = "[filtered]"
 
 @mainProg_instance = external global %mainProg
 
-define i16 @main() !dbg !4 {
+define i32 @main() !dbg !4 {
 entry:
-  %main = alloca i16, align 2
+  %main = alloca i32, align [filtered]
     #dbg_declare(ptr %main, !9, !DIExpression(), !11)
-  store i16 0, ptr %main, align 2
+  store i32 0, ptr %main, align [filtered]
   call void @mainProg(ptr @mainProg_instance), !dbg !12
-  %main_ret = load i16, ptr %main, align 2, !dbg !13
-  ret i16 %main_ret, !dbg !13
+  %main_ret = load i32, ptr %main, align [filtered], !dbg !13
+  ret i32 %main_ret, !dbg !13
 }
 
-declare !dbg !14 void @mainProg(ptr)
+declare void @mainProg(ptr)
 
 !llvm.module.flags = !{!0, !1}
 !llvm.dbg.cu = !{!2}
@@ -35,16 +35,11 @@ declare !dbg !14 void @mainProg(ptr)
 !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
 !7 = !{null}
 !8 = !{}
-!9 = !DILocalVariable(name: "main", scope: !4, file: !5, line: 2, type: !10, align: 16)
-!10 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!9 = !DILocalVariable(name: "main", scope: !4, file: !5, line: 2, type: !10, align [filtered])
+!10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !11 = !DILocation(line: 2, column: 13, scope: !4)
 !12 = !DILocation(line: 10, column: 4, scope: !4)
 !13 = !DILocation(line: 11, column: 4, scope: !4)
-!14 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !15, file: !15, line: 2, type: !16, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-!15 = !DIFile(filename: "file2.st", directory: "lib")
-!16 = !DISubroutineType(flags: DIFlagPublic, types: !17)
-!17 = !{null, !18}
-!18 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !15, file: !15, line: 2, align: 64, flags: DIFlagPublic, elements: !8, identifier: "mainProg")
 
 ; ModuleID = 'lib/file2.st'
 source_filename = "lib/file2.st"
@@ -67,7 +62,7 @@ entry:
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "mainProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "file2.st", directory: "lib")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !2, file: !2, line: 2, align: 64, flags: DIFlagPublic, elements: !4, identifier: "mainProg")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !2, file: !2, line: 2, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "mainProg")
 !4 = !{}
 !5 = !{i32 2, !"Dwarf Version", i32 5}
 !6 = !{i32 2, !"Debug Info Version", i32 3}
@@ -91,8 +86,8 @@ target triple = "[filtered]"
 
 define void @__init_mainprog(ptr %0) {
 entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
@@ -100,8 +95,8 @@ declare void @mainProg(ptr)
 
 define void @__user_init_mainProg(ptr %0) {
 entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
@@ -113,7 +108,7 @@ target triple = "[filtered]"
 %mainProg = type {}
 
 @mainProg_instance = external global %mainProg
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___TestProject, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___TestProject, ptr null }]
 
 define void @__init___TestProject() {
 entry:

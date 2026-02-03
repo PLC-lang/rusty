@@ -9,16 +9,16 @@ target triple = "[filtered]"
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  %x1 = alloca i32, align 4
-  %l1 = alloca i64, align 8
-  store i32 0, ptr %x1, align 4
-  store i64 0, ptr %l1, align 8
-  store i32 0, ptr %main, align 4
-  %load_x1 = load i32, ptr %x1, align 4
+  %main = alloca i32, align [filtered]
+  %x1 = alloca i32, align [filtered]
+  %l1 = alloca i64, align [filtered]
+  store i32 0, ptr %x1, align [filtered]
+  store i64 0, ptr %l1, align [filtered]
+  store i32 0, ptr %main, align [filtered]
+  %load_x1 = load i32, ptr %x1, align [filtered]
   %0 = sext i32 %load_x1 to i64
-  %load_l1 = load i64, ptr %l1, align 8
+  %load_l1 = load i64, ptr %l1, align [filtered]
   %tmpVar = sdiv i64 %0, %load_l1
-  %main_ret = load i32, ptr %main, align 4
+  %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }

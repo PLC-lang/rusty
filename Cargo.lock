@@ -2154,6 +2154,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "plc_llvm"
+version = "0.1.0"
+dependencies = [
+ "cc",
+ "inkwell",
+]
+
+[[package]]
 name = "plc_lowering"
 version = "0.1.0"
 dependencies = [
@@ -2624,6 +2632,7 @@ dependencies = [
  "plc_diagnostics",
  "plc_driver",
  "plc_index",
+ "plc_llvm",
  "plc_project",
  "plc_source",
  "plc_util",

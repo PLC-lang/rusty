@@ -14,29 +14,29 @@ target triple = "[filtered]"
 
 define void @fb_with_method(ptr %0) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
-  %ret = alloca [81 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %ret, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-  %__method_with_aggregagte_return0 = alloca [81 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %__method_with_aggregagte_return0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
+  %ret = alloca [81 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %ret, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  %__method_with_aggregagte_return0 = alloca [81 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %__method_with_aggregagte_return0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
   call void @fb_with_method__method_with_aggregagte_return(ptr %0, ptr %__method_with_aggregagte_return0, ptr @utf08_literal_0)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %ret, ptr align 1 %__method_with_aggregagte_return0, i32 80, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %ret, ptr align [filtered] %__method_with_aggregagte_return0, i32 80, i1 false)
   ret void
 }
 
 define void @fb_with_method__method_with_aggregagte_return(ptr %0, ptr %1, ptr %2) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
-  %ret = alloca [81 x i8], align 1
-  %method_with_aggregagte_return = alloca ptr, align 8
-  store ptr %1, ptr %method_with_aggregagte_return, align 8
-  %in = alloca [81 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %in, i8 0, i64 81, i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %in, ptr align 1 %2, i64 80, i1 false)
-  %deref = load ptr, ptr %method_with_aggregagte_return, align 8
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref, ptr align 1 %in, i32 80, i1 false)
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
+  %ret = alloca [81 x i8], align [filtered]
+  %method_with_aggregagte_return = alloca ptr, align [filtered]
+  store ptr %1, ptr %method_with_aggregagte_return, align [filtered]
+  %in = alloca [81 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %in, i8 0, i64 81, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %in, ptr align [filtered] %2, i64 80, i1 false)
+  %deref = load ptr, ptr %method_with_aggregagte_return, align [filtered]
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref, ptr align [filtered] %in, i32 80, i1 false)
   ret void
 }
 

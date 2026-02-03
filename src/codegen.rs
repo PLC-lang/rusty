@@ -45,6 +45,7 @@ use inkwell::{
 };
 use plc_ast::ast::{CompilationUnit, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_llvm::TargetMachineExt;
 use plc_source::source_location::{FileMarker, SourceLocation};
 
 mod debug;
@@ -268,6 +269,7 @@ impl<'ink> CodeGen<'ink> {
             &index,
             &mut self.debug,
             &self.online_change,
+            &self.module_location,
         )?;
         let llvm = Llvm::new(context, context.create_builder());
         index.merge(llvm_impl_index);
@@ -451,7 +453,7 @@ impl<'ink> GeneratedModule<'ink> {
         let triple = target.get_target_triple();
 
         let target = inkwell::targets::Target::from_triple(&triple)?;
-        let machine = target
+        let mut machine = target
             .create_target_machine(
                 &triple,
                 //TODO : Add cpu features as optionals
@@ -461,23 +463,19 @@ impl<'ink> GeneratedModule<'ink> {
                 reloc,
                 CodeModel::Default,
             )
-            .ok_or_else(|| CodegenError::new("Cannot create target machine.", SourceLocation::undefined()));
+            .ok_or_else(|| CodegenError::new("Cannot create target machine.", SourceLocation::undefined()))?;
+
+        machine.use_init_array(true);
 
         //Make sure all parents exist
         if let Some(parent) = output.parent() {
             std::fs::create_dir_all(parent)?;
         }
         ////Run the passes
-        machine
-            .and_then(|it| {
-                self.module
-                    .run_passes(optimization_level.opt_params(), &it, PassBuilderOptions::create())
-                    .map_err(Into::into)
-                    .and_then(|_| {
-                        it.write_to_file(&self.module, FileType::Object, output.as_path()).map_err(Into::into)
-                    })
-            })
-            .map(|_| output)
+        self.module
+            .run_passes(optimization_level.opt_params(), &machine, PassBuilderOptions::create())
+            .and_then(|_| machine.write_to_file(&self.module, FileType::Object, output.as_path()))?;
+        Ok(output)
     }
 
     /// Persists a given LLVM module to a static object and saves the output.
