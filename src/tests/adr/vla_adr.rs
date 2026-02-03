@@ -44,7 +44,7 @@ fn representation() {
                     ),
                     is_constant: false,
                     is_var_external: false,
-                    data_type_name: "__ptr_to___arr_vla_1_dint",
+                    data_type_name: "__ptr_to___foo_arr_vla_1_dint",
                     location_in_parent: 0,
                     linkage: Internal,
                     binding: None,
@@ -62,7 +62,7 @@ fn representation() {
                     ),
                     is_constant: false,
                     is_var_external: false,
-                    data_type_name: "__bounds___arr_vla_1_dint",
+                    data_type_name: "__bounds___foo_arr_vla_1_dint",
                     location_in_parent: 1,
                     linkage: Internal,
                     binding: None,
@@ -89,15 +89,15 @@ fn representation() {
     }
     "#);
 
-    // Pointer to `__arr_vla_1_dint`, which translates to...
-    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___arr_vla_1_dint").unwrap(),
+    // Pointer to `__foo_arr_vla_1_dint`, which translates to...
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___foo_arr_vla_1_dint").unwrap(),
     @r#"
     DataType {
-        name: "__ptr_to___arr_vla_1_dint",
+        name: "__ptr_to___foo_arr_vla_1_dint",
         initial_value: None,
         information: Pointer {
-            name: "__ptr_to___arr_vla_1_dint",
-            inner_type_name: "__arr_vla_1_dint",
+            name: "__ptr_to___foo_arr_vla_1_dint",
+            inner_type_name: "__foo_arr_vla_1_dint",
             auto_deref: None,
             type_safe: true,
             is_function: false,
@@ -113,13 +113,13 @@ fn representation() {
     "#);
 
     // ...an array of type DINT with its dimensions unknown at compile time
-    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__arr_vla_1_dint").unwrap(),
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__foo_arr_vla_1_dint").unwrap(),
     @r#"
     DataType {
-        name: "__arr_vla_1_dint",
+        name: "__foo_arr_vla_1_dint",
         initial_value: None,
         information: Array {
-            name: "__arr_vla_1_dint",
+            name: "__foo_arr_vla_1_dint",
             inner_type_name: "DINT",
             dimensions: [
                 Dimension {
@@ -136,13 +136,13 @@ fn representation() {
     "#);
 
     // Finally the dimensions array, which is being populated at runtime; see [`pass`]
-    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__bounds___arr_vla_1_dint").unwrap(),
+    insta::assert_debug_snapshot!(index.find_effective_type_by_name("__bounds___foo_arr_vla_1_dint").unwrap(),
     @r#"
     DataType {
-        name: "__bounds___arr_vla_1_dint",
+        name: "__bounds___foo_arr_vla_1_dint",
         initial_value: None,
         information: Array {
-            name: "__bounds___arr_vla_1_dint",
+            name: "__bounds___foo_arr_vla_1_dint",
             inner_type_name: "DINT",
             dimensions: [
                 Dimension {
@@ -266,7 +266,7 @@ fn pass() {
                 ),
                 is_constant: false,
                 is_var_external: false,
-                data_type_name: "__ptr_to___arr_vla_1_dint",
+                data_type_name: "__ptr_to___foo_arr_vla_1_dint",
                 location_in_parent: 0,
                 linkage: Internal,
                 binding: None,
@@ -284,7 +284,7 @@ fn pass() {
                 ),
                 is_constant: false,
                 is_var_external: false,
-                data_type_name: "__bounds___arr_vla_1_dint",
+                data_type_name: "__bounds___foo_arr_vla_1_dint",
                 location_in_parent: 1,
                 linkage: Internal,
                 binding: None,
