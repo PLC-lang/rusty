@@ -25,8 +25,8 @@ entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
-  store i8 6, ptr %x, align 1
-  store i16 16, ptr %y, align 2
-  store i32 26, ptr %z, align 4
+  store i8 6, ptr %x, align [filtered]
+  store i16 16, ptr %y, align [filtered]
+  store i32 26, ptr %z, align [filtered]
   ret void
 }

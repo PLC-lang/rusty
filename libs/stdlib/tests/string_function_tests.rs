@@ -3,7 +3,7 @@ mod common;
 use std::string::FromUtf16Error;
 
 use crate::common::compile_and_run_no_params;
-use common::{add_std, compile_and_run};
+use common::{compile_and_run, get_includes};
 
 // helper function to convert null-terminated utf8 byte array to string slice
 fn str_from_u8_utf8(src: &[u8]) -> Result<&str, std::str::Utf8Error> {
@@ -31,8 +31,9 @@ fn len_string() {
         main := LEN(variable);
     END_FUNCTION
         "#;
-    let sources = add_std!(src, "string_functions.st");
-    let res: i32 = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: i32 = compile_and_run_no_params(sources, includes);
     assert_eq!(80, res);
 }
 
@@ -43,8 +44,9 @@ fn len_string_long_string() {
         main := LEN('     this is   a  very   long           sentence   with plenty  of    characters and weird  spacing.');
     END_FUNCTION
         "#;
-    let sources = add_std!(src, "string_functions.st");
-    let res: i32 = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: i32 = compile_and_run_no_params(sources, includes);
     assert_eq!(100, res);
 }
 
@@ -55,8 +57,9 @@ fn len_string_no_variable() {
         main := LEN(STRING#'hello');
     END_FUNCTION
         "#;
-    let sources = add_std!(src, "string_functions.st");
-    let res: i32 = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: i32 = compile_and_run_no_params(sources, includes);
     assert_eq!(5, res);
 }
 
@@ -71,8 +74,9 @@ fn len_string_empty() {
         main := LEN(in);
     END_FUNCTION
         "#;
-    let sources = add_std!(src, "string_functions.st");
-    let res: i32 = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: i32 = compile_and_run_no_params(sources, includes);
     assert_eq!(0, res);
 }
 
@@ -88,9 +92,10 @@ fn left_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 81] = [0u8; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "hel");
     } else {
@@ -110,9 +115,10 @@ fn left_string_long_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 2048] = [0u8; 2048];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(
             res,
@@ -137,9 +143,10 @@ fn left_string_lint() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 81] = [0u8; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "lets see if long int is handled");
     } else {
@@ -163,9 +170,10 @@ fn left_ext_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 128] = [0u8; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "extend");
     } else {
@@ -185,9 +193,10 @@ fn right_string_usint() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 81] = [0u8; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "le text");
     } else {
@@ -210,8 +219,9 @@ fn right_string_substring_too_long() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
-    let _: [u8; 81] = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let _: [u8; 81] = compile_and_run_no_params(sources, includes);
 }
 
 #[test]
@@ -228,9 +238,10 @@ fn right_ext_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 128] = [0u8; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "ded");
     } else {
@@ -252,9 +263,10 @@ fn right_string_long_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 2048] = [0u8; 2048];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(
             res,
@@ -281,9 +293,10 @@ fn right_ext_string_long_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 2048] = [0u8; 2048];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(
             res,
@@ -310,9 +323,10 @@ fn mid_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 128] = [0u8; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "ample t");
     } else {
@@ -338,9 +352,10 @@ fn mid_string_long_literal() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 128] = [0u8; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "this");
     } else {
@@ -366,9 +381,10 @@ fn mid_ext_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 128] = [0u8; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "ample t");
     } else {
@@ -392,9 +408,10 @@ fn mid_string_long_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 2048] = [0u8; 2048];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(
             res,
@@ -422,9 +439,10 @@ fn mid_ext_string_long_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 2048] = [0u8; 2048];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(
             res,
@@ -451,9 +469,10 @@ fn insert_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 128] = [0u8; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "stuck in the middle with you");
     } else {
@@ -480,9 +499,10 @@ fn insert_ext_string_at_start_and_end() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 128] = [0u8; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "123");
     } else {
@@ -506,9 +526,10 @@ fn delete_string_with_escape_sequence() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 81] = [0u8; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     let res = std::str::from_utf8(&res).unwrap().trim_end_matches('\0').as_bytes();
     assert_eq!(format!("{:?}", "the$e '𝄞'".as_bytes()), format!("{res:?}"));
 }
@@ -531,9 +552,10 @@ fn delete_ext_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 128] = [0u8; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "𝄞typo");
     } else {
@@ -559,9 +581,10 @@ fn delete_ext_string_with_escape_sequence() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 81] = [0u8; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     let res = std::str::from_utf8(&res).unwrap().trim_end_matches('\0').as_bytes();
     assert_eq!(format!("{:?}", "the$e '𝄞'".as_bytes()), format!("{res:?}"));
 }
@@ -584,9 +607,10 @@ fn replace_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 128] = [0u8; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "regret𝄞");
     } else {
@@ -614,9 +638,10 @@ fn replace_ext_string() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 128] = [0u8; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = str_from_u8_utf8(&res) {
         assert_eq!(res, "rest𝄞red");
     } else {
@@ -638,8 +663,9 @@ fn find_string() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(src, "string_functions.st");
-    let res: usize = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: usize = compile_and_run_no_params(sources, includes);
     assert_eq!(res, 10);
 }
 
@@ -658,8 +684,9 @@ fn test_double_quotes_on_strings() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(src, "string_functions.st");
-    let _: i32 = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let _: i32 = compile_and_run_no_params(sources, includes);
 }
 
 #[test]
@@ -676,9 +703,10 @@ fn test_concat_string() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 2048] = [0u8; 2048];
-    let _: () = compile_and_run(source, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
 
     if let Ok(result) = str_from_u8_utf8(&res) {
         assert_eq!(result, "Hello, World!");
@@ -701,9 +729,10 @@ fn test_concat_ext_string() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 2048] = [0u8; 2048];
-    let _: () = compile_and_run(source, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(result) = str_from_u8_utf8(&res) {
         assert_eq!(result, "Hello, World!");
     } else {
@@ -724,9 +753,10 @@ fn test_concat_long_strings() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 2048] = [0u8; 2048];
-    let _: () = compile_and_run(source, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
 
     if let Ok(result) = str_from_u8_utf8(&res) {
         assert_eq!(
@@ -747,9 +777,10 @@ fn test_concat_long_string_literals() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u8; 2049] = [0u8; 2049];
-    let _: () = compile_and_run(source, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
 
     if let Ok(result) = str_from_u8_utf8(&res) {
         assert_eq!(
@@ -774,8 +805,9 @@ fn len_wstring() {
         main := LEN(in);
     END_FUNCTION
         "#;
-    let sources = add_std!(src, "string_functions.st");
-    let res: i32 = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: i32 = compile_and_run_no_params(sources, includes);
     assert_eq!(7, res);
 }
 
@@ -786,8 +818,9 @@ fn len_wstring_no_variable() {
         main := LEN(WSTRING#'Hèßlo😀𝄞');
     END_FUNCTION
         "#;
-    let sources = add_std!(src, "string_functions.st");
-    let res: i32 = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: i32 = compile_and_run_no_params(sources, includes);
     assert_eq!(7, res);
 }
 
@@ -802,8 +835,9 @@ fn len_wstring_empty() {
         main := LEN(in);
     END_FUNCTION
         "#;
-    let sources = add_std!(src, "string_functions.st");
-    let res: i32 = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: i32 = compile_and_run_no_params(sources, includes);
     assert_eq!(0, res);
 }
 
@@ -819,9 +853,10 @@ fn left_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "𝄞m");
     } else {
@@ -843,9 +878,10 @@ fn left_wstring_lint() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "lets see 𝄞f long 𝄞nt is handled");
     } else {
@@ -869,9 +905,10 @@ fn left_ext_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "e𝄞tend");
     } else {
@@ -891,9 +928,10 @@ fn right_wstring_usint() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "𝄞e text");
     } else {
@@ -916,8 +954,9 @@ fn right_wstring_substring_too_long() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
-    let _: [u16; 81] = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let _: [u16; 81] = compile_and_run_no_params(sources, includes);
 }
 
 #[test]
@@ -934,9 +973,10 @@ fn right_ext_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 128] = [0u16; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "𝄞ed𝄞");
     } else {
@@ -958,9 +998,10 @@ fn right_string_long_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 128] = [0u16; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "ika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhp𝄞𝄞");
     } else {
@@ -983,9 +1024,10 @@ fn right_ext_string_long_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 128] = [0u16; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "i𝄞𝄞9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQcBFgZhMXGhpBW");
     } else {
@@ -1009,9 +1051,10 @@ fn mid_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "ample 𝄞");
     } else {
@@ -1037,9 +1080,10 @@ fn mid_ext_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "muϗ😀 sa");
     } else {
@@ -1063,9 +1107,10 @@ fn mid_string_long_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 128] = [0u16; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "XqHJ3zZCXnBwika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQc");
     } else {
@@ -1089,9 +1134,10 @@ fn mid_ext_string_long_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 128] = [0u16; 128];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "XqHJ3zZCXnBwika9N8RPXpTAdX4LdwHbLjwv9g3mU3dtpCT2MHVPxwtMw6jMQkip3HDy8Ruw42pVi56fiVhYn8faPLUKRghytQc");
     } else {
@@ -1115,9 +1161,10 @@ fn insert_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "stuck in the middle with you");
     } else {
@@ -1147,9 +1194,10 @@ fn insert_ext_wstring_at_start_and_end() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "123");
     } else {
@@ -1173,9 +1221,10 @@ fn delete_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "deleted");
     } else {
@@ -1201,9 +1250,10 @@ fn delete_ext_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "typo");
     } else {
@@ -1230,9 +1280,10 @@ fn replace_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "regret");
     } else {
@@ -1260,9 +1311,10 @@ fn replace_ext_wstring() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "restored");
     } else {
@@ -1284,8 +1336,9 @@ fn find_wstring() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(src, "string_functions.st");
-    let res: i32 = compile_and_run_no_params(sources);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: i32 = compile_and_run_no_params(sources, includes);
     assert_eq!(res, 10);
 }
 
@@ -1305,9 +1358,10 @@ fn delete_wstring_with_escape_sequence() {
     END_FUNCTION
         "#;
 
-    let sources = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 81] = [0u16; 81];
-    let _: () = compile_and_run(sources, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "the$e \"𝄞\"");
     } else {
@@ -1329,9 +1383,10 @@ fn test_concat_wstring() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 2048] = [0u16; 2048];
-    let _: () = compile_and_run(source, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "Hello, World!");
     } else {
@@ -1353,9 +1408,10 @@ fn test_concat_ext_wstring() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
     let mut res: [u16; 2048] = [0u16; 2048];
-    let _: () = compile_and_run(source, &mut res);
+    let _: () = compile_and_run(sources, includes, &mut res);
     if let Ok(res) = string_from_utf16(&res) {
         assert_eq!(res, "Hello, World!");
     } else {
@@ -1377,8 +1433,9 @@ fn test_gt_string() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1396,8 +1453,9 @@ fn test_ge_string() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1414,8 +1472,9 @@ fn test_eq_string() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1433,8 +1492,9 @@ fn test_lt_string() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(!res);
 }
 
@@ -1452,8 +1512,9 @@ fn test_le_string() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1469,8 +1530,9 @@ fn test_ne_string() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1487,8 +1549,9 @@ fn test_gt_wstring() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1506,8 +1569,9 @@ fn test_ge_wstring() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1524,8 +1588,9 @@ fn test_eq_wstring() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1543,8 +1608,9 @@ fn test_lt_wstring() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(!res);
 }
 
@@ -1562,8 +1628,9 @@ fn test_le_wstring() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1575,8 +1642,9 @@ fn test_ne_wstring() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1594,8 +1662,9 @@ fn test_string_greater_operator_works_if_result_is_true() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1632,8 +1701,9 @@ fn test_string_binary_operator_wrapper_functions_work_if_expressions_evaluate_to
     "#;
 
     let mut maintype = MainType::default();
-    let source = add_std!(src, "string_functions.st");
-    let _: i32 = common::compile_and_run(source, &mut maintype);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let _: i32 = common::compile_and_run(sources, includes, &mut maintype);
     let expected = MainType { lt: true, le: true, eq: true, ge: true, gt: true, ne: true };
     assert!(expected == maintype);
 }
@@ -1661,8 +1731,9 @@ fn test_wstring_binary_operator_wrapper_functions_work() {
     "#;
 
     let mut maintype = MainType::default();
-    let source = add_std!(src, "string_functions.st");
-    let _: i32 = common::compile_and_run(source, &mut maintype);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let _: i32 = common::compile_and_run(sources, includes, &mut maintype);
     let expected = MainType { lt: true, le: true, eq: true, ge: true, gt: true, ne: true };
     assert!(expected == maintype);
 }
@@ -1690,8 +1761,9 @@ fn test_string_binary_operator_wrapper_functions_work_if_expressions_evaluate_to
     "#;
 
     let mut maintype = MainType { lt: true, le: true, eq: true, ge: true, gt: true, ne: true };
-    let source = add_std!(src, "string_functions.st");
-    let _: i32 = common::compile_and_run(source, &mut maintype);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let _: i32 = common::compile_and_run(sources, includes, &mut maintype);
     let expected = MainType::default();
     assert!(expected == maintype);
 }
@@ -1708,8 +1780,9 @@ fn test_string_equality_operator_works_for_long_strings() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1725,8 +1798,9 @@ fn test_string_not_equal_operator_works_for_long_strings() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1738,8 +1812,9 @@ fn test_string_equal_operator_works_for_long_literals() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }
 
@@ -1751,7 +1826,8 @@ fn test_string_not_equal_operator_works_for_long_literals() {
     END_FUNCTION
     "#;
 
-    let source = add_std!(src, "string_functions.st");
-    let res: bool = compile_and_run_no_params(source);
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_functions.st"]);
+    let res: bool = compile_and_run_no_params(sources, includes);
     assert!(res);
 }

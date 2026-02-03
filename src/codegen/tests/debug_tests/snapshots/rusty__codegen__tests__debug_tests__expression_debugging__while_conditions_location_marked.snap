@@ -9,16 +9,16 @@ target triple = "[filtered]"
 
 define i32 @myFunc() !dbg !4 {
 entry:
-  %myFunc = alloca i32, align 4
+  %myFunc = alloca i32, align [filtered]
     #dbg_declare(ptr %myFunc, !9, !DIExpression(), !11)
-  store i32 0, ptr %myFunc, align 4
+  store i32 0, ptr %myFunc, align [filtered]
   br label %condition_check, !dbg !12
 
 condition_check:                                  ; preds = %entry, %continue1
   br i1 true, label %while_body, label %continue, !dbg !13
 
 while_body:                                       ; preds = %condition_check
-  %load_myFunc = load i32, ptr %myFunc, align 4, !dbg !13
+  %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !13
   %tmpVar = icmp sgt i32 %load_myFunc, 1, !dbg !13
   %0 = zext i1 %tmpVar to i8, !dbg !13
   %1 = icmp ne i8 %0, 0, !dbg !13
@@ -26,8 +26,8 @@ while_body:                                       ; preds = %condition_check
   br i1 %tmpVar2, label %condition_body, label %continue1, !dbg !13
 
 continue:                                         ; preds = %condition_body, %condition_check
-  store i32 1, ptr %myFunc, align 4, !dbg !14
-  %myFunc_ret = load i32, ptr %myFunc, align 4, !dbg !15
+  store i32 1, ptr %myFunc, align [filtered], !dbg !14
+  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !15
   ret i32 %myFunc_ret, !dbg !15
 
 condition_body:                                   ; preds = %while_body
@@ -37,7 +37,7 @@ buffer_block:                                     ; No predecessors!
   br label %continue1, !dbg !16
 
 continue1:                                        ; preds = %buffer_block, %while_body
-  store i32 1, ptr %myFunc, align 4, !dbg !17
+  store i32 1, ptr %myFunc, align [filtered], !dbg !17
   br label %condition_check, !dbg !12
 }
 
@@ -53,7 +53,7 @@ continue1:                                        ; preds = %buffer_block, %whil
 !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
 !7 = !{null}
 !8 = !{}
-!9 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !10, align: 32)
+!9 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !10, align [filtered])
 !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !11 = !DILocation(line: 2, column: 17, scope: !4)
 !12 = !DILocation(line: 5, column: 12, scope: !4)

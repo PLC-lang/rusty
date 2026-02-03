@@ -1,18 +1,16 @@
 // This module is mostly copied from `https://github.com/museun/mock_instant`
 // The reason is that the repository has not been updated in a while.
 
-use std::{cell::RefCell, time::Duration};
+use std::{cell::RefCell, sync::LazyLock, time::Duration};
 
-thread_local! {
-    pub static TIME: RefCell<Duration> = RefCell::new(Duration::default());
-}
+pub static mut TIME: LazyLock<Duration> = LazyLock::new(|| Duration::default());
 
 pub fn with_time(d: impl Fn(&mut Duration)) {
-    TIME.with(|t| d(&mut t.borrow_mut()))
+    unsafe { d(&mut *TIME) }
 }
 
 pub fn get_time() -> Duration {
-    TIME.with(|t| *t.borrow())
+    unsafe { *TIME }
 }
 
 /// A Mock clock

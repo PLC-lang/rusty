@@ -12,7 +12,12 @@ on:
 jobs:
   lit-linux-debug:
     name: lit tests (Linux, debug build)
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - { os: "ubuntu-latest" }
+          - { os: "ubuntu-24.04-arm" }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
@@ -25,6 +30,11 @@ jobs:
   lit-linux-release:
     name: lit tests (Linux, release build)
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - { os: "ubuntu-latest" }
+          - { os: "ubuntu-24.04-arm" }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3

@@ -11,7 +11,6 @@ target triple = "[filtered]"
 %fb = type { i32 }
 
 @bar_instance = global %bar zeroinitializer
-@__fb__init = unnamed_addr constant %fb zeroinitializer
 
 define void @bar(ptr %0) {
 entry:
@@ -22,17 +21,17 @@ entry:
 
 define void @fb(ptr %0) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
   ret void
 }
 
 define void @fb__foo(ptr %0) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
-  store i32 2, ptr %x, align 4
+  store i32 2, ptr %x, align [filtered]
   ret void
 }

@@ -16,18 +16,18 @@ declare i32 @printf(ptr, ...)
 
 define void @main(ptr %0) {
 entry:
-  %s = alloca [81 x i8], align 1
-  %float = alloca float, align 4
-  %double = alloca double, align 8
-  %integer = alloca i16, align 2
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %s, ptr align 1 @__main.s__init, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-  store float 3.000000e+00, ptr %float, align 4
-  store double 3.000000e+00, ptr %double, align 8
-  store i16 3, ptr %integer, align 2
-  %load_float = load float, ptr %float, align 4
+  %s = alloca [81 x i8], align [filtered]
+  %float = alloca float, align [filtered]
+  %double = alloca double, align [filtered]
+  %integer = alloca i16, align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %s, ptr align [filtered] @__main.s__init, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  store float 3.000000e+00, ptr %float, align [filtered]
+  store double 3.000000e+00, ptr %double, align [filtered]
+  store i16 3, ptr %integer, align [filtered]
+  %load_float = load float, ptr %float, align [filtered]
   %1 = fpext float %load_float to double
-  %load_double = load double, ptr %double, align 8
-  %load_integer = load i16, ptr %integer, align 2
+  %load_double = load double, ptr %double, align [filtered]
+  %load_integer = load i16, ptr %integer, align [filtered]
   %2 = sext i16 %load_integer to i32
   %call = call i32 (ptr, ...) @printf(ptr %s, double 3.000000e+00, double %1, double %load_double, i32 %2)
   ret void

@@ -13,10 +13,10 @@ target triple = "[filtered]"
 
 define float @foo() {
 entry:
-  %foo = alloca float, align 4
-  store float 0.000000e+00, ptr %foo, align 4
-  store float 1.000000e+00, ptr %foo, align 4
-  %foo_ret = load float, ptr %foo, align 4
+  %foo = alloca float, align [filtered]
+  store float 0.000000e+00, ptr %foo, align [filtered]
+  store float 1.000000e+00, ptr %foo, align [filtered]
+  %foo_ret = load float, ptr %foo, align [filtered]
   ret float %foo_ret
 }
 
@@ -25,6 +25,6 @@ entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %call = call float @foo()
   %1 = fptosi float %call to i32
-  store i32 %1, ptr %x, align 4
+  store i32 %1, ptr %x, align [filtered]
   ret void
 }

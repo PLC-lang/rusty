@@ -20,34 +20,34 @@ entry:
   %b1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 4
   %b2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 5
   %b3 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 6
-  %load_b1 = load i8, ptr %b1, align 1
+  %load_b1 = load i8, ptr %b1, align [filtered]
   %1 = icmp ne i8 %load_b1, 0
   br i1 %1, label %condition_body, label %branch
 
 condition_body:                                   ; preds = %entry
-  %load_x = load i32, ptr %x, align 4
+  %load_x = load i32, ptr %x, align [filtered]
   br label %continue
 
 branch:                                           ; preds = %entry
-  %load_b2 = load i8, ptr %b2, align 1
+  %load_b2 = load i8, ptr %b2, align [filtered]
   %2 = icmp ne i8 %load_b2, 0
   br i1 %2, label %condition_body2, label %branch1
 
 condition_body2:                                  ; preds = %branch
-  %load_y = load i32, ptr %y, align 4
+  %load_y = load i32, ptr %y, align [filtered]
   br label %continue
 
 branch1:                                          ; preds = %branch
-  %load_b3 = load i8, ptr %b3, align 1
+  %load_b3 = load i8, ptr %b3, align [filtered]
   %3 = icmp ne i8 %load_b3, 0
   br i1 %3, label %condition_body3, label %else
 
 condition_body3:                                  ; preds = %branch1
-  %load_z = load i32, ptr %z, align 4
+  %load_z = load i32, ptr %z, align [filtered]
   br label %continue
 
 else:                                             ; preds = %branch1
-  %load_u = load i32, ptr %u, align 4
+  %load_u = load i32, ptr %u, align [filtered]
   br label %continue
 
 continue:                                         ; preds = %else, %condition_body3, %condition_body2, %condition_body

@@ -15,10 +15,10 @@ define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  %load_x = load float, ptr %x, align 4
+  %load_x = load float, ptr %x, align [filtered]
   %1 = fpext float %load_x to double
   %tmpVar = fadd double %1, 7.700000e+00
   %2 = fptrunc double %tmpVar to float
-  store float %2, ptr %z, align 4
+  store float %2, ptr %z, align [filtered]
   ret void
 }

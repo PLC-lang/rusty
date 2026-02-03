@@ -17,8 +17,8 @@ target triple = "[filtered]"
 define void @main(ptr %0) {
 entry:
   %color = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
-  store i32 0, ptr %color, align 4
-  store i32 1, ptr %color, align 4
-  store i32 2, ptr %color, align 4
+  store i32 0, ptr %color, align [filtered]
+  store i32 1, ptr %color, align [filtered]
+  store i32 2, ptr %color, align [filtered]
   ret void
 }

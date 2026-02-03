@@ -23,10 +23,6 @@ fn declaring_a_struct() {
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
-
-    %Person = type { [81 x i8], [81 x i8], i16, i8 }
-
-    @__Person__init = unnamed_addr constant %Person zeroinitializer
     "#);
 }
 
@@ -59,7 +55,6 @@ fn default_values_of_a_struct() {
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
     @p = global %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }
-    @__Person__init = unnamed_addr constant %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }
     "#);
 }
 
@@ -104,8 +99,6 @@ fn initializing_a_struct() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg { %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }, %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } } }
-    @__Rect__init = unnamed_addr constant %Rect zeroinitializer
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
     @__prg.rect1__init = unnamed_addr constant %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }
     @__prg.rect2__init = unnamed_addr constant %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } }
 
@@ -152,13 +145,12 @@ fn assigning_structs() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg zeroinitializer
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
 
     define void @prg(ptr %0) {
     entry:
       %p1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
       %p2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %p1, ptr align 1 %p2, i64 ptrtoint (ptr getelementptr (%Point, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %p1, ptr align [filtered] %p2, i64 ptrtoint (ptr getelementptr (%Point, ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
@@ -209,8 +201,6 @@ fn accessing_struct_members() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg zeroinitializer
-    @__Rect__init = unnamed_addr constant %Rect zeroinitializer
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
 
     define void @prg(ptr %0) {
     entry:
@@ -220,8 +210,8 @@ fn accessing_struct_members() {
       %x = getelementptr inbounds nuw %Point, ptr %topLeft, i32 0, i32 0
       %bottomRight = getelementptr inbounds nuw %Rect, ptr %rect2, i32 0, i32 1
       %x1 = getelementptr inbounds nuw %Point, ptr %bottomRight, i32 0, i32 0
-      %load_x = load i16, ptr %x1, align 2
-      store i16 %load_x, ptr %x, align 2
+      %load_x = load i16, ptr %x1, align [filtered]
+      store i16 %load_x, ptr %x, align [filtered]
       ret void
     }
     "#);

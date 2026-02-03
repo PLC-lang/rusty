@@ -12,7 +12,6 @@ target triple = "[filtered]"
 %main = type {}
 
 @global1 = global %STRUCT_params zeroinitializer
-@__STRUCT_params__init = unnamed_addr constant %STRUCT_params zeroinitializer
 @global2 = global %STRUCT_params zeroinitializer
 @global3 = global %STRUCT_params zeroinitializer
 @global4 = global i32 0
@@ -30,11 +29,11 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  store ptr @global1, ptr @prog_instance, align 8
-  store ptr @global2, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align 8
+  store ptr @global1, ptr @prog_instance, align [filtered]
+  store ptr @global2, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align [filtered]
   call void @prog(ptr @prog_instance)
-  store ptr @global4, ptr @prog_instance, align 8
-  store ptr @global5, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align 8
+  store ptr @global4, ptr @prog_instance, align [filtered]
+  store ptr @global5, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align [filtered]
   call void @prog(ptr @prog_instance)
   ret void
 }

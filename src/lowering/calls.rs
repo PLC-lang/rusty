@@ -62,6 +62,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::Index,
+    lowering::helper::create_member_reference_with_location,
     resolver::{AnnotationMap, StatementAnnotation},
 };
 
@@ -316,7 +317,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
             self.push_statement(alloca);
             let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
             let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
-            let reference = super::create_member_reference_with_location(
+            let reference = create_member_reference_with_location(
                 &name,
                 self.id_provider.clone(),
                 None,
@@ -356,7 +357,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
             if is_generic_function {
                 //For generic functions, we need to replace the generic name with the function name
-                stmt.operator = Box::new(AstFactory::create_member_reference(
+                *stmt.operator = AstFactory::create_member_reference(
                     AstFactory::create_identifier(
                         &qualified_name,
                         stmt.operator.get_location(),
@@ -364,11 +365,11 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     ),
                     None,
                     self.id_provider.next_id(),
-                ))
+                )
             };
             stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
             //steal parameters, add one to the start, return parameters
-            let mut reference = super::create_member_reference_with_location(
+            let mut reference = create_member_reference_with_location(
                 &name,
                 self.id_provider.clone(),
                 None,

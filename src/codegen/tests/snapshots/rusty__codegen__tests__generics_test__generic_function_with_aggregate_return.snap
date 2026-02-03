@@ -13,10 +13,10 @@ declare void @TO_STRING__WSTRING(ptr, ptr)
 
 define void @main() {
 entry:
-  %__TO_STRING0 = alloca [1025 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %__TO_STRING0, i8 0, i64 ptrtoint (ptr getelementptr ([1025 x i8], ptr null, i32 1) to i64), i1 false)
+  %__TO_STRING0 = alloca [1025 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %__TO_STRING0, i8 0, i64 ptrtoint (ptr getelementptr ([1025 x i8], ptr null, i32 1) to i64), i1 false)
   call void @TO_STRING__WSTRING(ptr %__TO_STRING0, ptr @utf16_literal_0)
-  %load___TO_STRING0 = load [1025 x i8], ptr %__TO_STRING0, align 1
+  %load___TO_STRING0 = load [1025 x i8], ptr %__TO_STRING0, align [filtered]
   ret void
 }
 

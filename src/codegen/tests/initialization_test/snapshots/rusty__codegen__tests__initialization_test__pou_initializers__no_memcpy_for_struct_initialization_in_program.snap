@@ -11,7 +11,6 @@ target triple = "[filtered]"
 %__prog_a = type { i16 }
 
 @prog_instance = global %prog zeroinitializer
-@____prog_a__init = unnamed_addr constant %__prog_a zeroinitializer
 
 define void @prog(ptr %0) {
 entry:

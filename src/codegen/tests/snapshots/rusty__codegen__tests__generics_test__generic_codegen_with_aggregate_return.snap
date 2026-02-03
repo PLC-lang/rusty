@@ -11,21 +11,21 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) {
 entry:
-  %main = alloca ptr, align 8
-  store ptr %0, ptr %main, align 8
-  %l = alloca i32, align 4
-  %p = alloca i32, align 4
-  store i32 0, ptr %l, align 4
-  store i32 0, ptr %p, align 4
-  store i32 4, ptr %l, align 4
-  store i32 6, ptr %p, align 4
-  %__MID0 = alloca [81 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %__MID0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-  %load_l = load i32, ptr %l, align 4
-  %load_p = load i32, ptr %p, align 4
+  %main = alloca ptr, align [filtered]
+  store ptr %0, ptr %main, align [filtered]
+  %l = alloca i32, align [filtered]
+  %p = alloca i32, align [filtered]
+  store i32 0, ptr %l, align [filtered]
+  store i32 0, ptr %p, align [filtered]
+  store i32 4, ptr %l, align [filtered]
+  store i32 6, ptr %p, align [filtered]
+  %__MID0 = alloca [81 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %__MID0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  %load_l = load i32, ptr %l, align [filtered]
+  %load_p = load i32, ptr %p, align [filtered]
   call void @MID__STRING(ptr %__MID0, ptr @utf08_literal_0, i32 %load_l, i32 %load_p)
-  %deref = load ptr, ptr %main, align 8
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref, ptr align 1 %__MID0, i32 80, i1 false)
+  %deref = load ptr, ptr %main, align [filtered]
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref, ptr align [filtered] %__MID0, i32 80, i1 false)
   ret void
 }
 
