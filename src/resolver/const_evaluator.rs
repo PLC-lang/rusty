@@ -530,15 +530,24 @@ fn evaluate_with_target_hint(
             evaluate(value, scope, index, lhs)?
         }
         AstStatement::ExpressionList(expressions) => {
-            let inner_elements = expressions
+            match expressions
                 .iter()
                 .map(|e| evaluate(e, scope, index, lhs))
-                .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
-                .into_iter()
-                .collect::<Option<Vec<AstNode>>>();
-
-            //return a new array, or return none if one was not resolvable
-            inner_elements.map(|ie| AstNode::new(AstStatement::ExpressionList(ie), id, location))
+                .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()
+            {
+                Ok(inner_elements) => {
+                    let inner_elements = inner_elements.into_iter().collect::<Option<Vec<AstNode>>>();
+                    //return a new array, or return none if one was not resolvable
+                    inner_elements.map(|ie| AstNode::new(AstStatement::ExpressionList(ie), id, location))
+                }
+                Err(UnresolvableKind::Address(mut init)) => {
+                    // Set the entire expression list as the initializer so all assignments
+                    // can be expanded later by create_assignments_from_initializer
+                    init.initializer.replace(initial.clone());
+                    return Err(UnresolvableKind::Address(init));
+                }
+                Err(why) => return Err(why),
+            }
         }
         AstStatement::MultipliedStatement(MultipliedStatement { element, multiplier }) => {
             let inner_elements = AstNode::get_as_list(element.as_ref())
