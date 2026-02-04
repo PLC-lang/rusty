@@ -1,0 +1,27 @@
+FUNCTION_BLOCK MC_ReadStatus
+VAR_IN_OUT
+END_VAR
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+    Valid               : BOOL;           (**< [out] A valid set of outputs is available at the FB *)
+    Busy                : BOOL;           (**< [out] The FB is not finished and new output values are to be expected *)
+    Error               : BOOL;           (**< [out] Signals that an error has occurred within the Function Block *)
+    ErrorID             : LWORD;          (**< [out] Error identification *)
+    ErrorStop           : BOOL;           (**< [out] See state diagram (From any state: An error in the axis occurred.) *)
+    Disabled            : BOOL;           (**< [out] See state diagram (From any state: MC_Power.Enable = FALSE and there is no error in the axis. or ErrorStop: MC_Reset AND MC_Power.Status = FALSE) *)
+    Stopping            : BOOL;           (**< [out] See state diagram (From state: Standstill, Homing, DiscreteMotion, ContinuousMotion or SynchronizedMotion) *)
+    Homing              : BOOL;           (**< [out] See state diagram (From state: Standstill) *)
+    Standstill          : BOOL;           (**< [out] See state diagram (From state: Disabled, ErrorStop, Stopping or Homing) *)
+    DiscreteMotion      : BOOL;           (**< [out] See state diagram (From state: Standstill, ContinuousMotion or SynchronizedMotion) *)
+    ContinuousMotion    : BOOL;           (**< [out] See state diagram (From state: Standstill, DiscreteMotion or SynchronizedMotion) *)
+    SynchronizedMotion  : BOOL;           (**< [out] See state diagram (From state: Standstill, DiscreteMotion or ContinuousMotion) *)
+    StatusEnumerator    : MC_AXIS_STATUS; (**< [out] The current status of the axis as enumerator *)
+END_VAR
+VAR
+END_VAR
+
+    Homing := TRUE;
+    StatusEnumerator := MC_AXIS_STATUS.Homing;
+
+END_FUNCTION_BLOCK
