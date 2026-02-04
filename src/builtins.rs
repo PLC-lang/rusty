@@ -217,47 +217,46 @@ lazy_static! {
                 END_FUNCTION
                 ",
                 annotation: None,
-                validation: None,
+                validation: Some(|validator, operator, parameters, _, _| {
+                    validate_argument_count(validator, operator, &parameters, 3);
+                }),
                 generic_name_resolver: no_generic_name_resolver,
-                code: |generator, params, location| {
-                    if let &[g,in0,in1] = params {
-                        // Handle named arguments by extracting actual parameters
-                        let [actual_g, actual_in0, actual_in1] = [g, in0, in1].map(extract_actual_parameter);
+                code: |generator, params, _| {
+                    // Handle named arguments by extracting actual parameters
+                    let actual_g = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"G"), 0));
+                    let actual_in0 = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN0"), 1));
+                    let actual_in1 = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN1"), 2));
 
-                        // evaluate the parameters
-                        let cond = expression_generator::to_i1(generator.generate_expression(actual_g)?.into_int_value(), &generator.llvm.builder)?;
-                        // for aggregate types we need a ptr to perform memcpy
-                        // use generate_expression_value(), this will return a gep
-                        // generate_expression() would load the ptr
-                        let in0 = if generator.annotations.get_type(actual_in0,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
-                            generator.generate_expression_value(actual_in0)?.get_basic_value_enum()
-                        } else {
-                            generator.generate_expression(actual_in0)?
-                        };
-                        let in1 = if generator.annotations.get_type(actual_in1,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
-                            generator.generate_expression_value(actual_in1)?.get_basic_value_enum()
-                        } else {
-                            generator.generate_expression(actual_in1)?
-                        };
-                        // generate an llvm select instruction
-                        let sel = generator.llvm.builder.build_select(cond, in1, in0, "")?;
-
-                        if sel.is_pointer_value() {
-                            // The `select` instruction requires the to be selected values to be of the same
-                            // type, hence for the pointee we can choose either one
-                            let pointee = {
-                                let datatype = generator.annotations.get_type(actual_in0, generator.index).unwrap();
-                                generator.llvm_index.get_associated_type(datatype.get_name()).unwrap()
-                            };
-
-                            Ok(ExpressionValue::LValue(sel.into_pointer_value(), pointee))
-                        } else {
-                            Ok(ExpressionValue::RValue(sel))
-                        }
+                    // evaluate the parameters
+                    let cond = expression_generator::to_i1(generator.generate_expression(actual_g)?.into_int_value(), &generator.llvm.builder)?;
+                    // for aggregate types we need a ptr to perform memcpy
+                    // use generate_expression_value(), this will return a gep
+                    // generate_expression() would load the ptr
+                    let in0 = if generator.annotations.get_type(actual_in0,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                        generator.generate_expression_value(actual_in0)?.get_basic_value_enum()
                     } else {
-                        Err(Diagnostic::codegen_error("Invalid signature for SEL", location).into())
-                    }
+                        generator.generate_expression(actual_in0)?
+                    };
+                    let in1 = if generator.annotations.get_type(actual_in1,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                        generator.generate_expression_value(actual_in1)?.get_basic_value_enum()
+                    } else {
+                        generator.generate_expression(actual_in1)?
+                    };
+                    // generate an llvm select instruction
+                    let sel = generator.llvm.builder.build_select(cond, in1, in0, "")?;
 
+                    if sel.is_pointer_value() {
+                        // The `select` instruction requires the to be selected values to be of the same
+                        // type, hence for the pointee we can choose either one
+                        let pointee = {
+                            let datatype = generator.annotations.get_type(actual_in0, generator.index).unwrap();
+                            generator.llvm_index.get_associated_type(datatype.get_name()).unwrap()
+                        };
+
+                        Ok(ExpressionValue::LValue(sel.into_pointer_value(), pointee))
+                    } else {
+                        Ok(ExpressionValue::RValue(sel))
+                    }
                 }
             }
         ),
@@ -379,7 +378,7 @@ lazy_static! {
                         return;
                     };
 
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Plus, None)
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_types(validator, &parameters, annotations, index);
@@ -405,7 +404,7 @@ lazy_static! {
                         return;
                     };
 
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Multiplication, None)
                 }),
                 validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_types(validator, &parameters, annotations, index);
@@ -431,7 +430,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Minus, Some(&["IN1", "IN2"]))
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_types(validator, &parameters, annotations, index);
@@ -457,7 +456,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division)
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division, Some(&["IN1", "IN2"]))
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_types(validator, &parameters, annotations, index);
@@ -483,7 +482,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Greater);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Greater, None);
                 }),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Greater)
@@ -507,7 +506,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::GreaterOrEqual);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::GreaterOrEqual, None);
                 }),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::GreaterOrEqual)
@@ -531,7 +530,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Equal);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Equal, None);
                 }),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Equal)
@@ -555,7 +554,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::LessOrEqual);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::LessOrEqual, None);
                 }),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::LessOrEqual)
@@ -579,7 +578,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Less);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::Less, None);
                 }),
                 validation:Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Less)
@@ -604,7 +603,7 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::NotEqual);
+                    annotate_comparison_function(annotator, statement, operator, params, ctx, Operator::NotEqual, Some(&["IN1", "IN2"]));
                 }),
                 validation: Some(|validator, operator, parameters, _, _| {
                     validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::NotEqual)
@@ -633,8 +632,12 @@ lazy_static! {
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
-                    let left = generator.generate_expression(params[0])?.into_int_value();
-                    let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(params[1], params[0])?.into_int_value();
+                    // Handle named arguments by extracting actual parameters
+                    let actual_in = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN"), 0));
+                    let actual_n = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"n"), 1));
+
+                    let left = generator.generate_expression(actual_in)?.into_int_value();
+                    let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(actual_n, actual_in)?.into_int_value();
 
                     let shl = generator.llvm.builder.build_left_shift(left, right, "")?;
 
@@ -660,8 +663,12 @@ lazy_static! {
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, _| {
-                    let left = generator.generate_expression(params[0])?.into_int_value();
-                    let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(params[1], params[0])?.into_int_value();
+                    // Handle named arguments by extracting actual parameters
+                    let actual_in = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"IN"), 0));
+                    let actual_n = extract_actual_parameter(extract_parameter_by_name_or_position(&params.to_vec(), Some(&"n"), 1));
+
+                    let left = generator.generate_expression(actual_in)?.into_int_value();
+                    let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(actual_n, actual_in)?.into_int_value();
 
                     let shr = generator.llvm.builder.build_right_shift(left, right, left.get_type().is_sized(), "")?;
 
@@ -742,9 +749,24 @@ fn annotate_comparison_function(
     parameters: &AstNode,
     ctx: VisitorContext,
     operation: Operator,
+    option_named_parameters: Option<&[&str]>,
 ) {
     let mut ctx = ctx;
-    let params_flattened = flatten_expression_list(parameters);
+    let params_flattened = if let Some(named_parameters) = option_named_parameters {
+        let params = flatten_expression_list(parameters);
+        let mut ordered_params: Vec<&AstNode> = Vec::new();
+
+        for (index, _) in params.iter().enumerate() {
+            let named_parameter = named_parameters.get(index);
+            let actual_parameter = extract_parameter_by_name_or_position(&params, named_parameter, index);
+            ordered_params.push(actual_parameter);
+        }
+
+        ordered_params
+    } else {
+        flatten_expression_list(parameters)
+    };
+
     if params_flattened.iter().any(|it| {
         !annotator
             .annotation_map
@@ -794,10 +816,30 @@ fn annotate_arithmetic_function(
     parameters: &AstNode,
     ctx: VisitorContext,
     operation: Operator,
+    option_named_parameters: Option<&[&str]>,
 ) {
-    let params = flatten_expression_list(parameters);
-    let params_extracted: Vec<_> =
-        params.iter().map(|param| extract_actual_parameter(param).clone()).collect();
+    let (params, params_extracted) = if let Some(named_parameters) = option_named_parameters {
+        let params = flatten_expression_list(parameters);
+        let mut ordered_params: Vec<&AstNode> = Vec::new();
+
+        for (index, _) in params.iter().enumerate() {
+            let named_parameter = named_parameters.get(index);
+            let actual_parameter = extract_parameter_by_name_or_position(&params, named_parameter, index);
+            ordered_params.push(actual_parameter);
+        }
+
+        let params_extracted: Vec<_> =
+            ordered_params.iter().map(|param| extract_actual_parameter(param).clone()).collect();
+        (ordered_params, params_extracted)
+    } else {
+        (
+            flatten_expression_list(parameters),
+            flatten_expression_list(parameters)
+                .iter()
+                .map(|param| extract_actual_parameter(param).clone())
+                .collect(),
+        )
+    };
 
     // Add type hints (only named arguments)
     params
@@ -961,6 +1003,33 @@ fn validate_argument_count(
     if params.len() != expected {
         validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, params.len(), operator));
     }
+}
+
+/// Extracts a parameter from the list of parameters by either the name or expected position
+///
+/// Returns the extracted parameter
+fn extract_parameter_by_name_or_position<'a>(
+    params: &Vec<&'a AstNode>,
+    option_name: Option<&&'a str>,
+    expected_position: usize,
+) -> &'a AstNode {
+    if let Some(name) = option_name {
+        let param = params.iter().find(|param| {
+            let opt_identifier = param.get_assignment_identifier();
+
+            if let Some(identifier) = opt_identifier {
+                return identifier.to_lowercase() == name.to_lowercase();
+            }
+
+            false
+        });
+
+        if let Some(actual_param) = param {
+            return actual_param;
+        }
+    }
+
+    params[expected_position]
 }
 
 /// Helper function to extract the actual parameter from Assignment nodes when dealing with named arguments
