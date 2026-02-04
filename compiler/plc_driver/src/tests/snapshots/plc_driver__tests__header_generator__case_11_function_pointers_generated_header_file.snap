@@ -1,18 +1,19 @@
 ---
-source: compiler/plc_header_generator/src/tests/header_generator.rs
-expression: "&generated_headers[0].get_contents()"
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
 ---
 // ---------------------------------------------------- //
 // This file is auto-generated                          //
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
-#ifndef FUNCTION_POINTERS
-#define FUNCTION_POINTERS
+#ifndef FUNCTION_POINTERS_H_
+#define FUNCTION_POINTERS_H_
 
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include <time.h>
 #include <dependencies.plc.h>
 
 #ifdef __cplusplus
@@ -60,4 +61,4 @@ void fnThatUsesStructWithComplexTypes(StructWithComplexTypes* fnThatUsesStructWi
 }
 #endif /* __cplusplus */
 
-#endif /* !FUNCTION_POINTERS */
+#endif /* !FUNCTION_POINTERS_H_ */

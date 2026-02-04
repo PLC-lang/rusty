@@ -33,6 +33,14 @@ impl FileHelper for GeneratedHeaderForC {
         self.file_information.name = format_file_name(file_name);
     }
 
+    fn get_formatted_path(&self) -> &str {
+        &self.file_information.formatted_path
+    }
+
+    fn set_formatted_path(&mut self, formatted_path: &str) {
+        self.file_information.formatted_path = format_file_name(formatted_path);
+    }
+
     fn determine_header_file_information(
         &mut self,
         generate_header_options: &GenerateHeaderOptions,

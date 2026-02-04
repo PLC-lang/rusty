@@ -3,12 +3,13 @@
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
-#ifndef NUMBER_PRINTER
-#define NUMBER_PRINTER
+#ifndef _WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_NUMBER_PRINTER_NUMBER_PRINTER_H_
+#define _WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_NUMBER_PRINTER_NUMBER_PRINTER_H_
 
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include <time.h>
 #include <dependencies.plc.h>
 
 #ifdef __cplusplus
@@ -21,4 +22,4 @@ void PrintNumber(int16_t valueToPrint);
 }
 #endif /* __cplusplus */
 
-#endif /* !NUMBER_PRINTER */
+#endif /* !_WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_NUMBER_PRINTER_NUMBER_PRINTER_H_ */

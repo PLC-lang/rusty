@@ -197,5 +197,6 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
   },
   "directory": "",
   "path": "function_pointers.h",
-  "file_name": "FUNCTION_POINTERS"
+  "file_name": "FUNCTION_POINTERS",
+  "formatted_path": "FUNCTION_POINTERS_H_"
 }

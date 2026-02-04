@@ -80,5 +80,6 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
   },
   "directory": "",
   "path": "global_primitives.h",
-  "file_name": "GLOBAL_PRIMITIVES"
+  "file_name": "GLOBAL_PRIMITIVES",
+  "formatted_path": "GLOBAL_PRIMITIVES_H_"
 }

@@ -14,16 +14,16 @@ This is the command whereby the arguments can be supplied inline and extends the
 
 **For example:**
 `plc --header-ouput "tmp\my_dir" -o "my_header" --generate-headers "**\*.pli"`
-> This will injest every `.pli` file in the relative directory and output them into a single header file `my_header.h` in the `tmp\my_dir` directory.
+> This will ingest every `.pli` file in the relative directory and output them into a single header file `my_header.h` in the `tmp\my_dir` directory.
 
 #### Subcommands (special usage)
 - `--header-ouput`: The output folder where generated headers will be placed.
 - `-o` : Write output to `output-file`. (All headers will be combined into this one file).
-- `-i` : Include source files for external functions. These source files can include other external libraries that will be usage by the headers but not generated into separate header files.
+- `-i` : Include source files for external functions. These source files can include other external libraries that will be used by the headers but not generated into separate header files.
 
 ### generate headers
 
-This command uses the [build configuration](build_configuration.md) `plc.json` file to determine the options for injestion of content.
+This command uses the [build configuration](build_configuration.md) `plc.json` file to determine the options for ingestion of content.
 
 #### Subcommands
 
@@ -32,7 +32,7 @@ This command uses the [build configuration](build_configuration.md) `plc.json` f
 - `--header-prefix`: The prefix for the generated header file(s). Will default to the project name if not
             supplied.
 
-**For example:** the following `plc.json` file coupled with the command `plc generate "plc.json" headers` will injest a .pli file name `colour_tracker.pli` and output a file `colour_tracker.h` in the same directory.
+**For example:** the following `plc.json` file coupled with the command `plc generate "plc.json" headers` will ingest a .pli file name `colour_tracker.pli` and output a file `colour_tracker.h` in the same directory.
 ```json
 {
 	"name" : "HeaderGeneratorProject",

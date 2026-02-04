@@ -33,6 +33,12 @@ pub trait FileHelper {
     /// Sets the file name for the header file
     fn set_file_name(&mut self, file_name: &str);
 
+    // Returns the formatted path for the header file
+    fn get_formatted_path(&self) -> &str;
+
+    /// Sets the formatted path for the header file
+    fn set_formatted_path(&mut self, formatted_path: &str);
+
     /// Determines file information for the header file and returns whether or not the determination was successful
     ///
     /// ---
@@ -97,9 +103,15 @@ fn get_header_file_information(
             directory: String::from(output_dir.to_str().expect("Unable to determine the output directory!")),
             path: String::from(output_path.to_str().expect("Unable to determine the output path!")),
             name: file_name.to_string(),
+            formatted_path: format_path(output_path.to_str().expect("Unable to determine the output path!")),
         },
         true,
     )
+}
+
+/// Format the path
+pub fn format_path(output_path: &str) -> String {
+    format!("{}_", format_file_name(&output_path.replace("\\", "_").replace("/", "_").replace(".", "_")))
 }
 
 /// Returns the file name from a path buffer without the extension
@@ -157,6 +169,7 @@ pub struct HeaderFileInformation {
     pub directory: String,
     pub path: String,
     pub name: String,
+    pub formatted_path: String,
 }
 
 impl Default for HeaderFileInformation {
@@ -167,7 +180,12 @@ impl Default for HeaderFileInformation {
 
 impl HeaderFileInformation {
     pub const fn new() -> Self {
-        HeaderFileInformation { directory: String::new(), path: String::new(), name: String::new() }
+        HeaderFileInformation {
+            directory: String::new(),
+            path: String::new(),
+            name: String::new(),
+            formatted_path: String::new(),
+        }
     }
 }
 

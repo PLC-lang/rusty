@@ -3,12 +3,13 @@
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
-#ifndef COLOUR_TRACKER
-#define COLOUR_TRACKER
+#ifndef _WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_COLOUR_TRACKER_COLOUR_TRACKER_H_
+#define _WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_COLOUR_TRACKER_COLOUR_TRACKER_H_
 
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include <time.h>
 #include <dependencies.plc.h>
 
 #ifdef __cplusplus
@@ -38,4 +39,4 @@ void PrintColourInfo(ColourInfo* colourInfo);
 }
 #endif /* __cplusplus */
 
-#endif /* !COLOUR_TRACKER */
+#endif /* !_WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_COLOUR_TRACKER_COLOUR_TRACKER_H_ */

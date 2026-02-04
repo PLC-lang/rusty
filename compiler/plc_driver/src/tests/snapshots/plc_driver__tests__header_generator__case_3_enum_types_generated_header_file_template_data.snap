@@ -89,5 +89,6 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
   },
   "directory": "",
   "path": "enum_types.h",
-  "file_name": "ENUM_TYPES"
+  "file_name": "ENUM_TYPES",
+  "formatted_path": "ENUM_TYPES_H_"
 }

@@ -3,12 +3,13 @@
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
-#ifndef MESSAGE_PRINTER
-#define MESSAGE_PRINTER
+#ifndef _WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_MESSAGE_PRINTER_MESSAGE_PRINTER_H_
+#define _WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_MESSAGE_PRINTER_MESSAGE_PRINTER_H_
 
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include <time.h>
 #include <dependencies.plc.h>
 
 #ifdef __cplusplus
@@ -23,4 +24,4 @@ void PrintMessage(T_Message* message);
 }
 #endif /* __cplusplus */
 
-#endif /* !MESSAGE_PRINTER */
+#endif /* !_WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_MESSAGE_PRINTER_MESSAGE_PRINTER_H_ */

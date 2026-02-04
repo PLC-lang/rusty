@@ -61,5 +61,6 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
   },
   "directory": "",
   "path": "global_complex_types.h",
-  "file_name": "GLOBAL_COMPLEX_TYPES"
+  "file_name": "GLOBAL_COMPLEX_TYPES",
+  "formatted_path": "GLOBAL_COMPLEX_TYPES_H_"
 }

@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include <time.h>
 #include <dependencies.plc.h>
 
 #ifdef __cplusplus

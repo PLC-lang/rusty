@@ -164,5 +164,6 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
   },
   "directory": "",
   "path": "function_blocks_with_inheritance.h",
-  "file_name": "FUNCTION_BLOCKS_WITH_INHERITANCE"
+  "file_name": "FUNCTION_BLOCKS_WITH_INHERITANCE",
+  "formatted_path": "FUNCTION_BLOCKS_WITH_INHERITANCE_H_"
 }

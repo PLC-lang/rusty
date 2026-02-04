@@ -1,18 +1,19 @@
 ---
-source: compiler/plc_header_generator/src/tests/header_generator.rs
-expression: "&generated_headers[0].get_contents()"
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
 ---
 // ---------------------------------------------------- //
 // This file is auto-generated                          //
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
-#ifndef ALIASES
-#define ALIASES
+#ifndef ALIASES_H_
+#define ALIASES_H_
 
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include <time.h>
 #include <dependencies.plc.h>
 
 #ifdef __cplusplus
@@ -33,4 +34,4 @@ void fnThatUsesAliases(T_String* varStringInput, T_DInt varDIntInput, T_Array* v
 }
 #endif /* __cplusplus */
 
-#endif /* !ALIASES */
+#endif /* !ALIASES_H_ */

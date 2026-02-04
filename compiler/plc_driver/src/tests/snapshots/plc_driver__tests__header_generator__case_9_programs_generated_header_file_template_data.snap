@@ -86,5 +86,6 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
   },
   "directory": "",
   "path": "programs.h",
-  "file_name": "PROGRAMS"
+  "file_name": "PROGRAMS",
+  "formatted_path": "PROGRAMS_H_"
 }

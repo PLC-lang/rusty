@@ -74,7 +74,7 @@ impl GeneratedHeader for GeneratedHeaderForC {
         context.insert("global_variables", &self.template_data.global_variables);
         context.insert("user_defined_types", &self.template_data.user_defined_types);
         context.insert("functions", &self.template_data.functions);
-        context.insert("file_name_caps", &self.file_information.name);
+        context.insert("file_name_caps", &self.file_information.formatted_path);
 
         // Set the outputs
         self.contents = tera.render(&template.name, &context).unwrap();

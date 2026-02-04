@@ -108,5 +108,6 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
   },
   "directory": "",
   "path": "structs.h",
-  "file_name": "STRUCTS"
+  "file_name": "STRUCTS",
+  "formatted_path": "STRUCTS_H_"
 }

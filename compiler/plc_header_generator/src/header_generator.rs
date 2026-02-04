@@ -11,7 +11,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{
     header_generator::{
-        file_helper::FileHelper,
+        file_helper::{format_path, FileHelper},
         header_generator_c::GeneratedHeaderForC,
         symbol_helper::SymbolHelper,
         template_helper::{TemplateData, TemplateHelper, Variable, VariableType},
@@ -119,12 +119,10 @@ pub fn combine_generated_headers(
     let non_empty_generated_header = some_generated_header.unwrap();
 
     generated_header.set_directory(non_empty_generated_header.get_directory());
-    generated_header.set_path(
-        PathBuf::from(non_empty_generated_header.get_directory())
-            .join(&output_file)
-            .to_str()
-            .unwrap_or_default(),
-    );
+    let binding = PathBuf::from(non_empty_generated_header.get_directory()).join(&output_file);
+    let path = binding.to_str().unwrap_or_default();
+    generated_header.set_path(path);
+    generated_header.set_formatted_path(&format_path(path));
     generated_header.set_file_name(&output_file);
 
     let mut template_data = TemplateData::new();

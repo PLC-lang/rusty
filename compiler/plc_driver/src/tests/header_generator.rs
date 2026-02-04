@@ -64,6 +64,7 @@ fn case_1_global_primitives_generated_header_file_template_data() {
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -117,6 +118,7 @@ fn case_2_global_complex_types_generated_header_file_template_data() {
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -176,6 +178,7 @@ fn case_3_enum_types_generated_header_file_template_data() {
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -241,6 +244,7 @@ fn case_4_structs_generated_header_file_template_data() {
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -306,6 +310,7 @@ fn case_5_functions_with_primitive_types_generated_header_file_template_data() {
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -431,6 +436,7 @@ fn case_6_functions_with_complex_types_generated_header_file_template_data() {
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -489,6 +495,7 @@ fn case_7_function_blocks_generated_header_file_template_data() {
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -552,6 +559,7 @@ fn case_8_function_blocks_with_inheritance_generated_header_file_template_data()
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -605,6 +613,7 @@ fn case_9_programs_generated_header_file_template_data() {
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -664,6 +673,7 @@ fn case_10_aliases_generated_header_file_template_data() {
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -757,6 +767,7 @@ fn case_11_function_pointers_generated_header_file_template_data() {
         directory: generated_headers[0].get_directory().to_string(),
         path: generated_headers[0].get_path().to_string(),
         file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
     };
 
     assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
@@ -796,6 +807,7 @@ fn get_all_generated_header_contents(test_name: &str) -> Box<dyn GeneratedHeader
     generated_header.set_directory(&prepared_header_data.directory);
     generated_header.set_path(&prepared_header_data.path);
     generated_header.set_file_name(&prepared_header_data.file_name);
+    generated_header.set_formatted_path(&prepared_header_data.formatted_path);
     generated_header.generate_headers().expect("Header generation failed!");
 
     generated_header
@@ -863,6 +875,7 @@ pub struct PreparedHeaderData {
     pub directory: String,
     pub path: String,
     pub file_name: String,
+    pub formatted_path: String,
 }
 
 /// Extracts the object from the path to the snapshot

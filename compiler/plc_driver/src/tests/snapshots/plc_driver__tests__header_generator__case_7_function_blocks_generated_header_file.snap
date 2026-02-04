@@ -7,12 +7,13 @@ expression: "&generated_header.get_contents()"
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
-#ifndef FUNCTION_BLOCKS
-#define FUNCTION_BLOCKS
+#ifndef FUNCTION_BLOCKS_H_
+#define FUNCTION_BLOCKS_H_
 
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include <time.h>
 #include <dependencies.plc.h>
 
 #ifdef __cplusplus
@@ -38,4 +39,4 @@ void fbThatHasSimpleTypes__fbThatHasSimpleTypes_Action(fbThatHasSimpleTypes_type
 }
 #endif /* __cplusplus */
 
-#endif /* !FUNCTION_BLOCKS */
+#endif /* !FUNCTION_BLOCKS_H_ */

@@ -68,5 +68,6 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
   },
   "directory": "",
   "path": "functions_with_primitive_types.h",
-  "file_name": "FUNCTIONS_WITH_PRIMITIVE_TYPES"
+  "file_name": "FUNCTIONS_WITH_PRIMITIVE_TYPES",
+  "formatted_path": "FUNCTIONS_WITH_PRIMITIVE_TYPES_H_"
 }

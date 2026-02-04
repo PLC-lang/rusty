@@ -85,5 +85,6 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
   },
   "directory": "",
   "path": "function_blocks.h",
-  "file_name": "FUNCTION_BLOCKS"
+  "file_name": "FUNCTION_BLOCKS",
+  "formatted_path": "FUNCTION_BLOCKS_H_"
 }

@@ -70,5 +70,6 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
   },
   "directory": "",
   "path": "aliases.h",
-  "file_name": "ALIASES"
+  "file_name": "ALIASES",
+  "formatted_path": "ALIASES_H_"
 }

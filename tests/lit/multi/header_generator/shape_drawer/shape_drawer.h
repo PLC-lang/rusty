@@ -3,12 +3,13 @@
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
-#ifndef SHAPE_DRAWER
-#define SHAPE_DRAWER
+#ifndef _WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_SHAPE_DRAWER_SHAPE_DRAWER_H_
+#define _WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_SHAPE_DRAWER_SHAPE_DRAWER_H_
 
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
+#include <time.h>
 #include <dependencies.plc.h>
 
 #ifdef __cplusplus
@@ -64,4 +65,4 @@ void Square__DrawAction(Square_type* self);
 }
 #endif /* __cplusplus */
 
-#endif /* !SHAPE_DRAWER */
+#endif /* !_WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_SHAPE_DRAWER_SHAPE_DRAWER_H_ */
