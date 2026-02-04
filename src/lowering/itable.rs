@@ -444,19 +444,15 @@ pub(crate) mod helper {
 
 #[cfg(test)]
 mod tests {
-    use plc_ast::ast::DataTypeDeclaration;
-    use plc_ast::provider::IdProvider;
-
-    use crate::{lowering::itable::InterfaceTableGenerator, test_utils::tests::index_with_ids};
+    use crate::lowering::itable::tests::helper::generate_itable_artifacts;
 
     #[test]
-    fn tables_are_generated() {
+    fn diamond_hierarchy() {
         //    A
         //  /   \
         // B     C
         //  \   /
         //    D
-
         let source = r#"
         INTERFACE A
             METHOD foo
@@ -479,866 +475,454 @@ mod tests {
         END_INTERFACE
         "#;
 
-        let ids = IdProvider::default();
-        let (unit, index) = index_with_ids(source, ids.clone());
+        let (itables, instances, fwd_declarations) = generate_itable_artifacts(source);
 
-        let mut units = vec![unit];
-        let mut generator = InterfaceTableGenerator::new(ids);
-        generator.generate(&index, &mut units);
+        assert_eq!(itables.len(), 4, "one itable per interface: A, B, C and D");
+        insta::assert_snapshot!(itables.join("\n\n"), @r#"
+        struct __itable_A {
+            foo: __FPOINTER __fwd_A_foo;
+        }
 
-        let types = &units[0].user_types;
-        insta::assert_debug_snapshot!((
-                types.iter().find(|ty| ty.data_type.get_name() == Some("__itable_A")).unwrap(),
-                types.iter().find(|ty| ty.data_type.get_name() == Some("__itable_B")).unwrap(),
-                types.iter().find(|ty| ty.data_type.get_name() == Some("__itable_C")).unwrap(),
-                types.iter().find(|ty| ty.data_type.get_name() == Some("__itable_DD")).unwrap(),
-            ),
-            @r#"
-            (
-                UserTypeDeclaration {
-                    data_type: StructType {
-                        name: Some(
-                            "__itable_A",
-                        ),
-                        variables: [
-                            Variable {
-                                name: "foo",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__fwd_A_foo",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: true,
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                    initializer: None,
-                    scope: None,
-                },
-                UserTypeDeclaration {
-                    data_type: StructType {
-                        name: Some(
-                            "__itable_B",
-                        ),
-                        variables: [
-                            Variable {
-                                name: "bar",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__fwd_B_bar",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: true,
-                                    },
-                                },
-                            },
-                            Variable {
-                                name: "foo",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__fwd_B_foo",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: true,
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                    initializer: None,
-                    scope: None,
-                },
-                UserTypeDeclaration {
-                    data_type: StructType {
-                        name: Some(
-                            "__itable_C",
-                        ),
-                        variables: [
-                            Variable {
-                                name: "baz",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__fwd_C_baz",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: true,
-                                    },
-                                },
-                            },
-                            Variable {
-                                name: "foo",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__fwd_C_foo",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: true,
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                    initializer: None,
-                    scope: None,
-                },
-                UserTypeDeclaration {
-                    data_type: StructType {
-                        name: Some(
-                            "__itable_DD",
-                        ),
-                        variables: [
-                            Variable {
-                                name: "qux",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__fwd_DD_qux",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: true,
-                                    },
-                                },
-                            },
-                            Variable {
-                                name: "bar",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__fwd_DD_bar",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: true,
-                                    },
-                                },
-                            },
-                            Variable {
-                                name: "foo",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__fwd_DD_foo",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: true,
-                                    },
-                                },
-                            },
-                            Variable {
-                                name: "baz",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__fwd_DD_baz",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: true,
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                    initializer: None,
-                    scope: None,
-                },
-            )
-            "#,
-        );
+        struct __itable_B {
+            bar: __FPOINTER __fwd_B_bar;
+            foo: __FPOINTER __fwd_B_foo;
+        }
 
-        assert_eq!(types.len(), 4); // itables only (fat pointer is generated by itable_calls)
+        struct __itable_C {
+            baz: __FPOINTER __fwd_C_baz;
+            foo: __FPOINTER __fwd_C_foo;
+        }
+
+        struct __itable_DD {
+            qux: __FPOINTER __fwd_DD_qux;
+            bar: __FPOINTER __fwd_DD_bar;
+            foo: __FPOINTER __fwd_DD_foo;
+            baz: __FPOINTER __fwd_DD_baz;
+        }
+        "#);
+
+        assert_eq!(fwd_declarations.len(), 9, "A = foo; B = foo, bar; C = foo, baz; D = foo, bar, baz, qux");
+        insta::assert_debug_snapshot!(fwd_declarations, @r#"
+        [
+            "__fwd_A_foo(self: POINTER TO __VOID)",
+            "__fwd_B_bar(self: POINTER TO __VOID)",
+            "__fwd_B_foo(self: POINTER TO __VOID)",
+            "__fwd_C_baz(self: POINTER TO __VOID)",
+            "__fwd_C_foo(self: POINTER TO __VOID)",
+            "__fwd_DD_bar(self: POINTER TO __VOID)",
+            "__fwd_DD_baz(self: POINTER TO __VOID)",
+            "__fwd_DD_foo(self: POINTER TO __VOID)",
+            "__fwd_DD_qux(self: POINTER TO __VOID)",
+        ]
+        "#);
+
+        assert_eq!(instances.len(), 0, "no POUs implementing the interfaces, hence no instances");
+        insta::assert_debug_snapshot!(instances, @"[]");
     }
 
-    // TODO: Temporary, will be removed at some point
     #[test]
-    fn forward_declarations_are_generated() {
+    fn diamond_hierarchy_with_implementation() {
         //    A
         //  /   \
         // B     C
         //  \   /
         //    D
+        // Each interface has one function block implementing it
 
         let source = r#"
         INTERFACE A
             METHOD foo
-                VAR_INPUT
-                    in: DINT;
-                END_VAR
             END_METHOD
         END_INTERFACE
 
         INTERFACE B EXTENDS A
             METHOD bar
-                VAR_OUTPUT
-                    out: DINT;
-                END_VAR
             END_METHOD
         END_INTERFACE
 
         INTERFACE C EXTENDS A
-            METHOD baz: DINT
+            METHOD baz
             END_METHOD
         END_INTERFACE
 
         INTERFACE DD EXTENDS B, C
-            METHOD qux: STRING
-                VAR_INPUT
-                    in: BOOL;
-                END_VAR
-
-                VAR_OUTPUT
-                    out: INT;
-                END_VAR
-
-                VAR_IN_OUT
-                    inout: DINT;
-                END_VAR
+            METHOD qux
             END_METHOD
         END_INTERFACE
+
+        FUNCTION_BLOCK FbA IMPLEMENTS A
+            METHOD foo
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbB IMPLEMENTS B
+            METHOD foo
+            END_METHOD
+
+            METHOD bar
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbC IMPLEMENTS C
+            METHOD foo
+            END_METHOD
+
+            METHOD baz
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbD IMPLEMENTS DD
+            METHOD foo
+            END_METHOD
+
+            METHOD bar
+            END_METHOD
+
+            METHOD baz
+            END_METHOD
+
+            METHOD qux
+            END_METHOD
+        END_FUNCTION_BLOCK
         "#;
 
-        let ids = IdProvider::default();
-        let (unit, index) = index_with_ids(source, ids.clone());
+        let (itables, instances, fwd_declarations) = generate_itable_artifacts(source);
 
-        let mut units = vec![unit];
-        let mut generator = InterfaceTableGenerator::new(ids);
-        generator.generate(&index, &mut units);
+        assert_eq!(itables.len(), 4, "one itable per interface: A, B, C and D");
+        insta::assert_snapshot!(itables.join("\n\n"), @r#"
+        struct __itable_A {
+            foo: __FPOINTER __fwd_A_foo;
+        }
 
-        let pous = &units[0].pous;
-        let fwd_pous: Vec<_> = pous.iter().filter(|p| p.name.starts_with("__fwd_")).collect();
-        insta::assert_debug_snapshot!((
-                fwd_pous.iter().find(|ty| &ty.name == "__fwd_A_foo").unwrap(),
-                fwd_pous.iter().find(|ty| &ty.name == "__fwd_B_foo").unwrap(),
-                fwd_pous.iter().find(|ty| &ty.name == "__fwd_B_bar").unwrap(),
-                fwd_pous.iter().find(|ty| &ty.name == "__fwd_C_foo").unwrap(),
-                fwd_pous.iter().find(|ty| &ty.name == "__fwd_C_baz").unwrap(),
-                fwd_pous.iter().find(|ty| &ty.name == "__fwd_DD_foo").unwrap(),
-                fwd_pous.iter().find(|ty| &ty.name == "__fwd_DD_bar").unwrap(),
-                fwd_pous.iter().find(|ty| &ty.name == "__fwd_DD_baz").unwrap(),
-                fwd_pous.iter().find(|ty| &ty.name == "__fwd_DD_qux").unwrap(),
-            ),
-            @r#"
-        (
-            POU {
-                name: "__fwd_A_foo",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "self",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "in",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                ],
-                pou_type: Function,
-                return_type: None,
-                interfaces: [],
-                properties: [],
-            },
-            POU {
-                name: "__fwd_B_foo",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "self",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "in",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                ],
-                pou_type: Function,
-                return_type: None,
-                interfaces: [],
-                properties: [],
-            },
-            POU {
-                name: "__fwd_B_bar",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "self",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "out",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Output,
-                    },
-                ],
-                pou_type: Function,
-                return_type: None,
-                interfaces: [],
-                properties: [],
-            },
-            POU {
-                name: "__fwd_C_foo",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "self",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "in",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                ],
-                pou_type: Function,
-                return_type: None,
-                interfaces: [],
-                properties: [],
-            },
-            POU {
-                name: "__fwd_C_baz",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "self",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                ],
-                pou_type: Function,
-                return_type: Some(
-                    DataTypeReference {
-                        referenced_type: "DINT",
-                    },
-                ),
-                interfaces: [],
-                properties: [],
-            },
-            POU {
-                name: "__fwd_DD_foo",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "self",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "in",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                ],
-                pou_type: Function,
-                return_type: None,
-                interfaces: [],
-                properties: [],
-            },
-            POU {
-                name: "__fwd_DD_bar",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "self",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "out",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Output,
-                    },
-                ],
-                pou_type: Function,
-                return_type: None,
-                interfaces: [],
-                properties: [],
-            },
-            POU {
-                name: "__fwd_DD_baz",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "self",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                ],
-                pou_type: Function,
-                return_type: Some(
-                    DataTypeReference {
-                        referenced_type: "DINT",
-                    },
-                ),
-                interfaces: [],
-                properties: [],
-            },
-            POU {
-                name: "__fwd_DD_qux",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "self",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "in",
-                                data_type: DataTypeReference {
-                                    referenced_type: "BOOL",
-                                },
-                            },
-                        ],
-                        variable_block_type: Input(
-                            ByVal,
-                        ),
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "out",
-                                data_type: DataTypeReference {
-                                    referenced_type: "INT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Output,
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "inout",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: InOut,
-                    },
-                ],
-                pou_type: Function,
-                return_type: Some(
-                    DataTypeReference {
-                        referenced_type: "STRING",
-                    },
-                ),
-                interfaces: [],
-                properties: [],
-            },
-        )
-        "#,
-        );
+        struct __itable_B {
+            bar: __FPOINTER __fwd_B_bar;
+            foo: __FPOINTER __fwd_B_foo;
+        }
 
-        assert_eq!(fwd_pous.len(), 9);
-    }
+        struct __itable_C {
+            baz: __FPOINTER __fwd_C_baz;
+            foo: __FPOINTER __fwd_C_foo;
+        }
 
-    #[test]
-    fn instance_variables_are_generated_and_initialized_simple() {
-        let source = r#"
-            INTERFACE A
-                METHOD foo
-                END_METHOD
-            END_INTERFACE
+        struct __itable_DD {
+            qux: __FPOINTER __fwd_DD_qux;
+            bar: __FPOINTER __fwd_DD_bar;
+            foo: __FPOINTER __fwd_DD_foo;
+            baz: __FPOINTER __fwd_DD_baz;
+        }
+        "#);
 
-            INTERFACE B EXTENDS A
-                METHOD bar
-                END_METHOD
-            END_INTERFACE
+        assert_eq!(fwd_declarations.len(), 9, "A = foo; B = foo, bar; C = foo, baz; D = foo, bar, baz, qux");
+        insta::assert_debug_snapshot!(fwd_declarations, @r#"
+        [
+            "__fwd_A_foo(self: POINTER TO __VOID)",
+            "__fwd_B_bar(self: POINTER TO __VOID)",
+            "__fwd_B_foo(self: POINTER TO __VOID)",
+            "__fwd_C_baz(self: POINTER TO __VOID)",
+            "__fwd_C_foo(self: POINTER TO __VOID)",
+            "__fwd_DD_bar(self: POINTER TO __VOID)",
+            "__fwd_DD_baz(self: POINTER TO __VOID)",
+            "__fwd_DD_foo(self: POINTER TO __VOID)",
+            "__fwd_DD_qux(self: POINTER TO __VOID)",
+        ]
+        "#);
 
-            INTERFACE C EXTENDS B
-                METHOD baz
-                END_METHOD
-            END_INTERFACE
-
-            FUNCTION_BLOCK FbA IMPLEMENTS A
-                METHOD foo
-                END_METHOD
-            END_FUNCTION_BLOCK
-
-            FUNCTION_BLOCK FbB IMPLEMENTS B
-                METHOD foo
-                END_METHOD
-
-                METHOD bar
-                END_METHOD
-            END_FUNCTION_BLOCK
-
-            FUNCTION_BLOCK FbC IMPLEMENTS C
-                METHOD foo
-                END_METHOD
-
-                METHOD bar
-                END_METHOD
-
-                METHOD baz
-                END_METHOD
-            END_FUNCTION_BLOCK
-        "#;
-
-        let ids = IdProvider::default();
-        let (unit, index) = index_with_ids(source, ids.clone());
-
-        let mut units = vec![unit];
-        let mut generator = InterfaceTableGenerator::new(ids);
-        generator.generate(&index, &mut units);
-
-        let mut globals: Vec<String> = units[0]
-            .global_vars
-            .iter()
-            .flat_map(|block| &block.variables)
-            .filter(|v| v.name.starts_with("__itable_"))
-            .map(|v| {
-                let init = v.initializer.as_ref().map(|i| i.as_string()).unwrap_or_default();
-                let ty = match &v.data_type_declaration {
-                    DataTypeDeclaration::Reference { referenced_type, .. } => referenced_type.as_str(),
-                    _ => "<unknown>",
-                };
-                format!("{}: {ty} := ({init})", v.name)
-            })
-            .collect();
-        globals.sort();
-
-        insta::assert_debug_snapshot!(globals, @r#"
+        assert_eq!(instances.len(), 9, "one instance per direct or indirect interface implementation");
+        insta::assert_debug_snapshot!(instances, @r#"
         [
             "__itable_A_FbA_instance: __itable_A := (foo := ADR(FbA.foo))",
             "__itable_A_FbB_instance: __itable_A := (foo := ADR(FbB.foo))",
             "__itable_A_FbC_instance: __itable_A := (foo := ADR(FbC.foo))",
+            "__itable_A_FbD_instance: __itable_A := (foo := ADR(FbD.foo))",
             "__itable_B_FbB_instance: __itable_B := (bar := ADR(FbB.bar), foo := ADR(FbB.foo))",
-            "__itable_B_FbC_instance: __itable_B := (bar := ADR(FbC.bar), foo := ADR(FbC.foo))",
-            "__itable_C_FbC_instance: __itable_C := (baz := ADR(FbC.baz), bar := ADR(FbC.bar), foo := ADR(FbC.foo))",
+            "__itable_B_FbD_instance: __itable_B := (bar := ADR(FbD.bar), foo := ADR(FbD.foo))",
+            "__itable_C_FbC_instance: __itable_C := (baz := ADR(FbC.baz), foo := ADR(FbC.foo))",
+            "__itable_C_FbD_instance: __itable_C := (baz := ADR(FbD.baz), foo := ADR(FbD.foo))",
+            "__itable_DD_FbD_instance: __itable_DD := (qux := ADR(FbD.qux), bar := ADR(FbD.bar), foo := ADR(FbD.foo), baz := ADR(FbD.baz))",
         ]
         "#);
     }
 
     #[test]
-    fn instance_variables_are_generated_and_initialized() {
-        // Interface Hierarchy             FB Hierarchy + IMPLEMENTS
-        // ═══════════════════             ═════════════════════════
-        //
-        // A          B        D           FbA ···IMPLEMENTS···> A
-        //    ↑       ↑                    FbB ···IMPLEMENTS···> B
-        //    └───┬───┘
-        //        C                        FbC ──EXTENDS──> FbA
-        //                                    ├···IMPLEMENTS···> B
-        //                                    └···IMPLEMENTS···> D
-        //
-        //                                 FbD ──EXTENDS──> FbC
-        //                                    └···IMPLEMENTS···> C
-        //
-        //                                 FbE ──EXTENDS──> FbC
-        //                                    (no extra IMPLEMENTS — inherits all)
-        //
-        // Expected itable instances (12 total):
-        //  1. (A, FbA) → foo: FbA.foo
-        //  2. (B, FbB) → bar: FbB.bar
-        //  3. (B, FbC) → bar: FbC.bar
-        //  4. (D, FbC) → qux: FbC.qux
-        //  5. (A, FbC) → foo: FbA.foo                              (inherited)
-        //  6. (C, FbD) → baz: FbD.baz, foo: FbD.foo, bar: FbC.bar
-        //  7. (A, FbD) → foo: FbD.foo                              (overridden!)
-        //  8. (B, FbD) → bar: FbC.bar                              (inherited)
-        //  9. (D, FbD) → qux: FbC.qux                              (inherited)
-        // 10. (B, FbE) → bar: FbC.bar                              (inherited)
-        // 11. (D, FbE) → qux: FbC.qux                              (inherited)
-        // 12. (A, FbE) → foo: FbE.foo                              (overridden!)
+    fn pou_with_implicit_interface_implementation() {
+        // Scenario: FbA implements interface A, FbB extends FbA and implicitly inherits interface A. As such
+        // FbB can be assigned to interface A
 
         let source = r#"
-            INTERFACE A
-                METHOD foo
+        INTERFACE A
+            METHOD foo
+            END_METHOD
+        END_INTERFACE
+
+        FUNCTION_BLOCK FbA IMPLEMENTS A
+            METHOD foo
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbB EXTENDS FbA
+        END_FUNCTION_BLOCK
+        "#;
+
+        let (itables, instances, fwd_declarations) = generate_itable_artifacts(source);
+
+        assert_eq!(itables.len(), 1, "one itable per interface: A");
+        insta::assert_snapshot!(itables.join("\n\n"), @r"
+        struct __itable_A {
+            foo: __FPOINTER __fwd_A_foo;
+        }
+        ");
+
+        assert_eq!(fwd_declarations.len(), 1, "A = foo");
+        insta::assert_debug_snapshot!(fwd_declarations, @r#"
+        [
+            "__fwd_A_foo(self: POINTER TO __VOID)",
+        ]
+        "#);
+
+        assert_eq!(instances.len(), 2, "one instance per direct or indirect interface implementation");
+        insta::assert_debug_snapshot!(instances, @r#"
+        [
+            "__itable_A_FbA_instance: __itable_A := (foo := ADR(FbA.foo))",
+            "__itable_A_FbB_instance: __itable_A := (foo := ADR(FbA.foo))",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn pou_with_implicit_interface_implementation_and_overridden_method() {
+        // Scenario: FbA implements interface A, FbB extends FbA and implicitly inherits interface A. As such
+        // FbB can be assigned to interface A. However, FbB overriddes the method from its base class.
+
+        let source = r#"
+        INTERFACE A
+            METHOD foo
+            END_METHOD
+        END_INTERFACE
+
+        FUNCTION_BLOCK FbA IMPLEMENTS A
+            METHOD foo
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbB EXTENDS FbA
+            METHOD foo
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#;
+
+        let (itables, instances, fwd_declarations) = generate_itable_artifacts(source);
+
+        assert_eq!(itables.len(), 1, "one itable per interface: A");
+        insta::assert_snapshot!(itables.join("\n\n"), @r"
+        struct __itable_A {
+            foo: __FPOINTER __fwd_A_foo;
+        }
+        ");
+
+        assert_eq!(fwd_declarations.len(), 1, "A = foo");
+        insta::assert_debug_snapshot!(fwd_declarations, @r#"
+        [
+            "__fwd_A_foo(self: POINTER TO __VOID)",
+        ]
+        "#);
+
+        assert_eq!(instances.len(), 2, "one instance per direct or indirect interface implementation");
+        insta::assert_debug_snapshot!(instances, @r#"
+        [
+            "__itable_A_FbA_instance: __itable_A := (foo := ADR(FbA.foo))",
+            "__itable_A_FbB_instance: __itable_A := (foo := ADR(FbB.foo))",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn itable_generation_with_inheritance_and_method_override() {
+        // Simple inheritance scenario:
+        // - `base` implements `someInterface` with method `foo`
+        // - `extended` extends `base` and overrides `foo`
+        //
+        // Expected itable instances:
+        // - (someInterface, base)     → foo: base.foo
+        // - (someInterface, extended) → foo: extended.foo (override, not inherited)
+
+        let source = r#"
+            INTERFACE someInterface
+                METHOD foo : STRING
                 END_METHOD
             END_INTERFACE
 
-            INTERFACE B
-                METHOD bar
-                END_METHOD
-            END_INTERFACE
+            FUNCTION_BLOCK base IMPLEMENTS someInterface
+                VAR_OUTPUT
+                    calledBody : STRING;
+                END_VAR
 
-            INTERFACE C EXTENDS A, B
-                METHOD baz
+                METHOD foo : STRING
+                    foo := 'base.foo';
                 END_METHOD
-            END_INTERFACE
 
-            INTERFACE D
-                METHOD qux
-                END_METHOD
-            END_INTERFACE
-
-            FUNCTION_BLOCK FbA IMPLEMENTS A
-                METHOD foo
-                END_METHOD
+                // body
+                calledBody := 'base';
             END_FUNCTION_BLOCK
 
-            FUNCTION_BLOCK FbB IMPLEMENTS B
-                METHOD bar
+            FUNCTION_BLOCK extended EXTENDS base
+                METHOD foo : STRING
+                    foo := 'extended.foo';
                 END_METHOD
-            END_FUNCTION_BLOCK
 
-            FUNCTION_BLOCK FbC EXTENDS FbA IMPLEMENTS B, D
-                METHOD bar
-                END_METHOD
-                METHOD qux
-                END_METHOD
-            END_FUNCTION_BLOCK
-
-            FUNCTION_BLOCK FbD EXTENDS FbC IMPLEMENTS C
-                METHOD baz
-                END_METHOD
-                METHOD foo
-                END_METHOD
-            END_FUNCTION_BLOCK
-
-            FUNCTION_BLOCK FbE EXTENDS FbC
-                METHOD foo
-                END_METHOD
+                // body
+                calledBody := 'extended';
             END_FUNCTION_BLOCK
         "#;
 
-        let ids = IdProvider::default();
-        let (unit, index) = index_with_ids(source, ids.clone());
+        let (itable_types, itable_instances, _) = generate_itable_artifacts(source);
 
-        let mut units = vec![unit];
-        let mut generator = InterfaceTableGenerator::new(ids);
-        generator.generate(&index, &mut units);
+        // Verify itable struct definition
+        insta::assert_snapshot!(itable_types.join("\n\n"), @r#"
+        struct __itable_someInterface {
+            foo: __FPOINTER __fwd_someInterface_foo;
+        }
+        "#);
 
-        let mut globals: Vec<String> = units[0]
-            .global_vars
-            .iter()
-            .flat_map(|block| &block.variables)
-            .filter(|v| v.name.starts_with("__itable_"))
-            .map(|v| {
-                let init = v.initializer.as_ref().map(|i| i.as_string()).unwrap_or_default();
-                let ty = match &v.data_type_declaration {
-                    DataTypeDeclaration::Reference { referenced_type, .. } => referenced_type.as_str(),
-                    _ => "<unknown>",
-                };
-                format!("{}: {ty} := ({init})", v.name)
-            })
-            .collect();
-        globals.sort();
-
-        insta::assert_debug_snapshot!(globals, @r#"
+        // Verify global itable instances
+        insta::assert_debug_snapshot!(itable_instances, @r#"
         [
-            "__itable_A_FbA_instance: __itable_A := (foo := ADR(FbA.foo))",
-            "__itable_A_FbC_instance: __itable_A := (foo := ADR(FbA.foo))",
-            "__itable_A_FbD_instance: __itable_A := (foo := ADR(FbD.foo))",
-            "__itable_A_FbE_instance: __itable_A := (foo := ADR(FbE.foo))",
-            "__itable_B_FbB_instance: __itable_B := (bar := ADR(FbB.bar))",
-            "__itable_B_FbC_instance: __itable_B := (bar := ADR(FbC.bar))",
-            "__itable_B_FbD_instance: __itable_B := (bar := ADR(FbC.bar))",
-            "__itable_B_FbE_instance: __itable_B := (bar := ADR(FbC.bar))",
-            "__itable_C_FbD_instance: __itable_C := (baz := ADR(FbD.baz), foo := ADR(FbD.foo), bar := ADR(FbC.bar))",
-            "__itable_D_FbC_instance: __itable_D := (qux := ADR(FbC.qux))",
-            "__itable_D_FbD_instance: __itable_D := (qux := ADR(FbC.qux))",
-            "__itable_D_FbE_instance: __itable_D := (qux := ADR(FbC.qux))",
+            "__itable_someInterface_base_instance: __itable_someInterface := (foo := ADR(base.foo))",
+            "__itable_someInterface_extended_instance: __itable_someInterface := (foo := ADR(extended.foo))",
         ]
         "#);
+    }
+
+    mod helper {
+        use plc_ast::ast::{DataType, DataTypeDeclaration, Pou, UserTypeDeclaration};
+        use plc_ast::provider::IdProvider;
+
+        use crate::{lowering::itable::InterfaceTableGenerator, test_utils::tests::index_with_ids};
+
+        /// Generates itable artifacts from source code and returns them as serialized strings.
+        ///
+        /// Returns a tuple of:
+        /// - itable type definitions (e.g., `struct __itable_A { ... }`)
+        /// - itable global variable instances (e.g., `__itable_A_FbA_instance: __itable_A := (...)`)
+        /// - forward declarations (e.g., `__fwd_A_foo(self: POINTER TO __VOID, in: DINT): DINT`)
+        ///
+        /// TODO: We are testing serialized representations of AST nodes rather than their internal
+        /// structure. This means fields like `is_function`, `auto_deref`, `type_safe`, etc. are not
+        /// explicitly verified here. This is acceptable for now, but we may want to add more granular
+        /// tests for these internal fields in the future.
+        pub fn generate_itable_artifacts(source: &str) -> (Vec<String>, Vec<String>, Vec<String>) {
+            let ids = IdProvider::default();
+            let (unit, index) = index_with_ids(source, ids.clone());
+
+            let mut units = vec![unit];
+            let mut generator = InterfaceTableGenerator::new(ids);
+            generator.generate(&index, &mut units);
+
+            // Extract itable type definitions
+            let itable_types: Vec<String> = units[0]
+                .user_types
+                .iter()
+                .filter(|ty| ty.data_type.get_name().is_some_and(|n| n.starts_with("__itable_")))
+                .map(|ty| serialize_type_declaration(ty))
+                .collect::<Vec<_>>();
+
+            // Extract itable global variable instances
+            let mut itable_instances: Vec<String> = units[0]
+                .global_vars
+                .iter()
+                .flat_map(|block| &block.variables)
+                .filter(|v| v.name.starts_with("__itable_"))
+                .map(|v| {
+                    let init = v.initializer.as_ref().map(|i| i.as_string()).unwrap_or_default();
+                    let ty = match &v.data_type_declaration {
+                        DataTypeDeclaration::Reference { referenced_type, .. } => referenced_type.as_str(),
+                        other => panic!("Expected Reference, got {:?}", other),
+                    };
+                    format!("{}: {ty} := ({init})", v.name)
+                })
+                .collect();
+            itable_instances.sort();
+
+            // Extract and serialize forward declarations
+            let mut forward_decls: Vec<String> = units[0]
+                .pous
+                .iter()
+                .filter(|p| p.name.starts_with("__fwd_"))
+                .map(|p| serialize_forward_declaration(p))
+                .collect();
+            forward_decls.sort();
+
+            (itable_types, itable_instances, forward_decls)
+        }
+
+        /// Serializes a `UserTypeDeclaration` into a compact, human-readable format.
+        ///
+        /// This is a test-specific custom syntax for less verbose output, not valid ST syntax.
+        /// Serializes a DataTypeDeclaration to a string representation.
+        fn serialize_data_type_decl(decl: &DataTypeDeclaration) -> String {
+            match decl {
+                DataTypeDeclaration::Reference { referenced_type, .. } => referenced_type.clone(),
+                DataTypeDeclaration::Definition { data_type, .. } => match data_type.as_ref() {
+                    DataType::PointerType { referenced_type, is_function: true, .. } => {
+                        let inner = serialize_data_type_decl(referenced_type);
+                        format!("__FPOINTER {}", inner)
+                    }
+                    DataType::PointerType { referenced_type, .. } => {
+                        let inner = serialize_data_type_decl(referenced_type);
+                        format!("POINTER TO {}", inner)
+                    }
+                    other => panic!("Unexpected data type: {:?}", other),
+                },
+                other => panic!("Expected Reference or Definition, got {:?}", other),
+            }
+        }
+
+        /// Example output:
+        /// ```text
+        /// struct __itable_A {
+        ///     foo: __FPOINTER __fwd_A_foo;
+        /// }
+        /// ```
+        fn serialize_type_declaration(decl: &UserTypeDeclaration) -> String {
+            match &decl.data_type {
+                DataType::StructType { name, variables } => {
+                    let name = name.as_deref().unwrap_or("<anonymous>");
+                    let fields: Vec<String> = variables
+                        .iter()
+                        .map(|var| {
+                            let type_str = serialize_data_type_decl(&var.data_type_declaration);
+                            format!("    {}: {};", var.name, type_str)
+                        })
+                        .collect();
+                    format!("struct {} {{\n{}\n}}", name, fields.join("\n"))
+                }
+                _ => format!("{:?}", decl.data_type),
+            }
+        }
+
+        /// Serializes a forward declaration POU to a function signature string.
+        ///
+        /// Example output:
+        /// ```text
+        /// __fwd_A_foo(self: POINTER TO __VOID, in: DINT): DINT
+        /// ```
+        fn serialize_forward_declaration(pou: &Pou) -> String {
+            let params: Vec<String> = pou
+                .variable_blocks
+                .iter()
+                .flat_map(|block| &block.variables)
+                .map(|var| {
+                    let type_str = serialize_data_type_decl(&var.data_type_declaration);
+                    format!("{}: {}", var.name, type_str)
+                })
+                .collect();
+
+            let return_type = pou
+                .return_type
+                .as_ref()
+                .map(|rt| format!(": {}", serialize_data_type_decl(rt)))
+                .unwrap_or_default();
+
+            format!("{}({}){}", pou.name, params.join(", "), return_type)
+        }
     }
 }
