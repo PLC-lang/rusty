@@ -478,28 +478,28 @@ mod tests {
         let (itables, instances, fwd_declarations) = generate_itable_artifacts(source);
 
         assert_eq!(itables.len(), 4, "one itable per interface: A, B, C and D");
-        insta::assert_snapshot!(itables.join("\n\n"), @r#"
-        struct __itable_A {
+        insta::assert_snapshot!(itables.join("\n\n"), @r"
+        __itable_A {
             foo: __FPOINTER __fwd_A_foo;
         }
 
-        struct __itable_B {
+        __itable_B {
             bar: __FPOINTER __fwd_B_bar;
             foo: __FPOINTER __fwd_B_foo;
         }
 
-        struct __itable_C {
+        __itable_C {
             baz: __FPOINTER __fwd_C_baz;
             foo: __FPOINTER __fwd_C_foo;
         }
 
-        struct __itable_DD {
+        __itable_DD {
             qux: __FPOINTER __fwd_DD_qux;
             bar: __FPOINTER __fwd_DD_bar;
             foo: __FPOINTER __fwd_DD_foo;
             baz: __FPOINTER __fwd_DD_baz;
         }
-        "#);
+        ");
 
         assert_eq!(fwd_declarations.len(), 9, "A = foo; B = foo, bar; C = foo, baz; D = foo, bar, baz, qux");
         insta::assert_debug_snapshot!(fwd_declarations, @r#"
@@ -589,28 +589,28 @@ mod tests {
         let (itables, instances, fwd_declarations) = generate_itable_artifacts(source);
 
         assert_eq!(itables.len(), 4, "one itable per interface: A, B, C and D");
-        insta::assert_snapshot!(itables.join("\n\n"), @r#"
-        struct __itable_A {
+        insta::assert_snapshot!(itables.join("\n\n"), @r"
+        __itable_A {
             foo: __FPOINTER __fwd_A_foo;
         }
 
-        struct __itable_B {
+        __itable_B {
             bar: __FPOINTER __fwd_B_bar;
             foo: __FPOINTER __fwd_B_foo;
         }
 
-        struct __itable_C {
+        __itable_C {
             baz: __FPOINTER __fwd_C_baz;
             foo: __FPOINTER __fwd_C_foo;
         }
 
-        struct __itable_DD {
+        __itable_DD {
             qux: __FPOINTER __fwd_DD_qux;
             bar: __FPOINTER __fwd_DD_bar;
             foo: __FPOINTER __fwd_DD_foo;
             baz: __FPOINTER __fwd_DD_baz;
         }
-        "#);
+        ");
 
         assert_eq!(fwd_declarations.len(), 9, "A = foo; B = foo, bar; C = foo, baz; D = foo, bar, baz, qux");
         insta::assert_debug_snapshot!(fwd_declarations, @r#"
@@ -667,7 +667,7 @@ mod tests {
 
         assert_eq!(itables.len(), 1, "one itable per interface: A");
         insta::assert_snapshot!(itables.join("\n\n"), @r"
-        struct __itable_A {
+        __itable_A {
             foo: __FPOINTER __fwd_A_foo;
         }
         ");
@@ -714,7 +714,7 @@ mod tests {
 
         assert_eq!(itables.len(), 1, "one itable per interface: A");
         insta::assert_snapshot!(itables.join("\n\n"), @r"
-        struct __itable_A {
+        __itable_A {
             foo: __FPOINTER __fwd_A_foo;
         }
         ");
@@ -777,11 +777,11 @@ mod tests {
         let (itable_types, itable_instances, _) = generate_itable_artifacts(source);
 
         // Verify itable struct definition
-        insta::assert_snapshot!(itable_types.join("\n\n"), @r#"
-        struct __itable_someInterface {
+        insta::assert_snapshot!(itable_types.join("\n\n"), @r"
+        __itable_someInterface {
             foo: __FPOINTER __fwd_someInterface_foo;
         }
-        "#);
+        ");
 
         // Verify global itable instances
         insta::assert_debug_snapshot!(itable_instances, @r#"
@@ -878,7 +878,7 @@ mod tests {
 
         /// Example output:
         /// ```text
-        /// struct __itable_A {
+        /// __itable_A {
         ///     foo: __FPOINTER __fwd_A_foo;
         /// }
         /// ```
@@ -893,7 +893,7 @@ mod tests {
                             format!("    {}: {};", var.name, type_str)
                         })
                         .collect();
-                    format!("struct {} {{\n{}\n}}", name, fields.join("\n"))
+                    format!("{} {{\n{}\n}}", name, fields.join("\n"))
                 }
                 _ => format!("{:?}", decl.data_type),
             }
