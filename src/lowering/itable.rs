@@ -644,7 +644,7 @@ mod tests {
     }
 
     #[test]
-    fn pou_with_implicit_interface_implementation() {
+    fn pou_with_implicit_interface_implementation_by_inheritance() {
         // Scenario: FbA implements interface A, FbB extends FbA and implicitly inherits interface A. As such
         // FbB can be assigned to interface A
 
@@ -689,7 +689,7 @@ mod tests {
     }
 
     #[test]
-    fn pou_with_implicit_interface_implementation_and_overridden_method() {
+    fn pou_with_implicit_interface_implementation_by_inheritance_with_overridden_method() {
         // Scenario: FbA implements interface A, FbB extends FbA and implicitly inherits interface A. As such
         // FbB can be assigned to interface A. However, FbB overriddes the method from its base class.
 
@@ -726,6 +726,7 @@ mod tests {
         ]
         "#);
 
+        // Here we expect `ADR(FbB.foo)` because of the overriden method
         assert_eq!(instances.len(), 2, "one instance per direct or indirect interface implementation");
         insta::assert_debug_snapshot!(instances, @r#"
         [
@@ -798,77 +799,64 @@ mod tests {
 
         use crate::{lowering::itable::InterfaceTableGenerator, test_utils::tests::index_with_ids};
 
-        /// Generates itable artifacts from source code and returns them as serialized strings.
+        /// Lowers source code and extracts serialized itable artifacts for testing.
         ///
-        /// Returns a tuple of:
-        /// - itable type definitions (e.g., `struct __itable_A { ... }`)
-        /// - itable global variable instances (e.g., `__itable_A_FbA_instance: __itable_A := (...)`)
-        /// - forward declarations (e.g., `__fwd_A_foo(self: POINTER TO __VOID, in: DINT): DINT`)
-        ///
-        /// TODO: We are testing serialized representations of AST nodes rather than their internal
-        /// structure. This means fields like `is_function`, `auto_deref`, `type_safe`, etc. are not
-        /// explicitly verified here. This is acceptable for now, but we may want to add more granular
-        /// tests for these internal fields in the future.
+        /// TODO: We test serialized representations of AST nodes rather than their internal
+        /// structure. Fields like `is_function`, `auto_deref`, `type_safe`, etc. are not
+        /// explicitly verified. We may want to add more granular tests for these in the future.
         pub fn generate_itable_artifacts(source: &str) -> (Vec<String>, Vec<String>, Vec<String>) {
             let ids = IdProvider::default();
             let (unit, index) = index_with_ids(source, ids.clone());
 
             let mut units = vec![unit];
-            let mut generator = InterfaceTableGenerator::new(ids);
-            generator.generate(&index, &mut units);
+            InterfaceTableGenerator::new(ids).generate(&index, &mut units);
 
-            // Extract itable type definitions
-            let itable_types: Vec<String> = units[0]
+            let unit = &units[0];
+
+            let itables = unit
                 .user_types
                 .iter()
                 .filter(|ty| ty.data_type.get_name().is_some_and(|n| n.starts_with("__itable_")))
-                .map(|ty| serialize_type_declaration(ty))
-                .collect::<Vec<_>>();
+                .map(serialize_type_declaration)
+                .collect();
 
-            // Extract itable global variable instances
-            let mut itable_instances: Vec<String> = units[0]
+            let mut instances: Vec<_> = unit
                 .global_vars
                 .iter()
                 .flat_map(|block| &block.variables)
                 .filter(|v| v.name.starts_with("__itable_"))
                 .map(|v| {
-                    let init = v.initializer.as_ref().map(|i| i.as_string()).unwrap_or_default();
-                    let ty = match &v.data_type_declaration {
-                        DataTypeDeclaration::Reference { referenced_type, .. } => referenced_type.as_str(),
-                        other => panic!("Expected Reference, got {:?}", other),
+                    let DataTypeDeclaration::Reference { referenced_type, .. } = &v.data_type_declaration
+                    else {
+                        panic!("Expected Reference, got {:?}", v.data_type_declaration)
                     };
-                    format!("{}: {ty} := ({init})", v.name)
+                    let init = v.initializer.as_ref().map(|i| i.as_string()).unwrap_or_default();
+                    format!("{}: {referenced_type} := ({init})", v.name)
                 })
                 .collect();
-            itable_instances.sort();
+            instances.sort();
 
-            // Extract and serialize forward declarations
-            let mut forward_decls: Vec<String> = units[0]
+            let mut forward_decls: Vec<_> = unit
                 .pous
                 .iter()
                 .filter(|p| p.name.starts_with("__fwd_"))
-                .map(|p| serialize_forward_declaration(p))
+                .map(serialize_forward_declaration)
                 .collect();
             forward_decls.sort();
 
-            (itable_types, itable_instances, forward_decls)
+            (itables, instances, forward_decls)
         }
 
-        /// Serializes a `UserTypeDeclaration` into a compact, human-readable format.
-        ///
-        /// This is a test-specific custom syntax for less verbose output, not valid ST syntax.
-        /// Serializes a DataTypeDeclaration to a string representation.
+        /// Serializes a DataTypeDeclaration to a compact string (e.g., `POINTER TO __VOID`).
         fn serialize_data_type_decl(decl: &DataTypeDeclaration) -> String {
             match decl {
                 DataTypeDeclaration::Reference { referenced_type, .. } => referenced_type.clone(),
                 DataTypeDeclaration::Definition { data_type, .. } => match data_type.as_ref() {
                     DataType::PointerType { referenced_type, is_function: true, .. } => {
-                        let inner = serialize_data_type_decl(referenced_type);
-                        format!("__FPOINTER {}", inner)
+                        format!("__FPOINTER {}", serialize_data_type_decl(referenced_type))
                     }
                     DataType::PointerType { referenced_type, .. } => {
-                        let inner = serialize_data_type_decl(referenced_type);
-                        format!("POINTER TO {}", inner)
+                        format!("POINTER TO {}", serialize_data_type_decl(referenced_type))
                     }
                     other => panic!("Unexpected data type: {:?}", other),
                 },
@@ -876,53 +864,39 @@ mod tests {
             }
         }
 
-        /// Example output:
-        /// ```text
-        /// __itable_A {
-        ///     foo: __FPOINTER __fwd_A_foo;
-        /// }
-        /// ```
+        /// Serializes an itable struct (e.g., `__itable_A { foo: __FPOINTER __fwd_A_foo; }`).
         fn serialize_type_declaration(decl: &UserTypeDeclaration) -> String {
-            match &decl.data_type {
-                DataType::StructType { name, variables } => {
-                    let name = name.as_deref().unwrap_or("<anonymous>");
-                    let fields: Vec<String> = variables
-                        .iter()
-                        .map(|var| {
-                            let type_str = serialize_data_type_decl(&var.data_type_declaration);
-                            format!("    {}: {};", var.name, type_str)
-                        })
-                        .collect();
-                    format!("{} {{\n{}\n}}", name, fields.join("\n"))
-                }
-                _ => format!("{:?}", decl.data_type),
-            }
-        }
+            let DataType::StructType { name, variables } = &decl.data_type else {
+                return format!("{:?}", decl.data_type);
+            };
 
-        /// Serializes a forward declaration POU to a function signature string.
-        ///
-        /// Example output:
-        /// ```text
-        /// __fwd_A_foo(self: POINTER TO __VOID, in: DINT): DINT
-        /// ```
-        fn serialize_forward_declaration(pou: &Pou) -> String {
-            let params: Vec<String> = pou
-                .variable_blocks
+            let name = name.as_deref().unwrap_or("<anonymous>");
+            let fields: Vec<_> = variables
                 .iter()
-                .flat_map(|block| &block.variables)
                 .map(|var| {
-                    let type_str = serialize_data_type_decl(&var.data_type_declaration);
-                    format!("{}: {}", var.name, type_str)
+                    format!("    {}: {};", var.name, serialize_data_type_decl(&var.data_type_declaration))
                 })
                 .collect();
 
-            let return_type = pou
+            format!("{name} {{\n{}\n}}", fields.join("\n"))
+        }
+
+        /// Serializes a forward declaration (e.g., `__fwd_A_foo(self: POINTER TO __VOID): DINT`).
+        fn serialize_forward_declaration(pou: &Pou) -> String {
+            let params: Vec<_> = pou
+                .variable_blocks
+                .iter()
+                .flat_map(|block| &block.variables)
+                .map(|var| format!("{}: {}", var.name, serialize_data_type_decl(&var.data_type_declaration)))
+                .collect();
+
+            let ret = pou
                 .return_type
                 .as_ref()
                 .map(|rt| format!(": {}", serialize_data_type_decl(rt)))
                 .unwrap_or_default();
 
-            format!("{}({}){}", pou.name, params.join(", "), return_type)
+            format!("{}({}){ret}", pou.name, params.join(", "))
         }
     }
 }
