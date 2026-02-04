@@ -316,255 +316,289 @@ impl AstVisitorMut for InterfaceCallLowerer {
 
 #[cfg(test)]
 mod tests {
-    use plc_ast::provider::IdProvider;
-
-    use crate::{
-        lowering::itable_calls::InterfaceCallLowerer,
-        test_utils::tests::{annotate_with_ids, index_with_ids},
+    use crate::lowering::itable_calls::tests::helper::{
+        get_fat_pointer, get_impl_statements, get_pou_variables, lower_interface_calls,
     };
 
     #[test]
-    fn fat_pointer_is_generated_when_interface_variable_exists() {
+    fn fat_pointer_is_not_generated_if_no_variable_makes_use_of_interface_type() {
         let source = r#"
-            INTERFACE MyInterface
+            INTERFACE A
             END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS A
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
 
             FUNCTION main
                 VAR
-                    refInterface: MyInterface;
+                    instanceA: FbA;
                 END_VAR
             END_FUNCTION
         "#;
 
-        let ids = IdProvider::default();
-        let (unit, mut index) = index_with_ids(source, ids.clone());
-        let annotations = annotate_with_ids(&unit, &mut index, ids.clone());
+        let units = lower_interface_calls(source);
+        let fat_pointer = get_fat_pointer(&units);
 
-        let mut generator = InterfaceCallLowerer::new(ids);
-        generator.index = Some(index);
-        generator.annotations = Some(annotations);
-        let mut units = vec![unit];
-        generator.lower_units(&mut units);
+        assert!(fat_pointer.is_none(), "__FATPOINTER should NOT be generated");
+    }
 
-        // __FATPOINTER should be generated
-        let fat_pointer =
-            units[0].user_types.iter().find(|ty| ty.data_type.get_name() == Some("__FATPOINTER"));
-        insta::assert_debug_snapshot!(fat_pointer.unwrap(), @r#"
-        UserTypeDeclaration {
-            data_type: StructType {
-                name: Some(
-                    "__FATPOINTER",
-                ),
-                variables: [
-                    Variable {
-                        name: "data",
-                        data_type: DataTypeDefinition {
-                            data_type: PointerType {
-                                name: None,
-                                referenced_type: DataTypeReference {
-                                    referenced_type: "__VOID",
-                                },
-                                auto_deref: None,
-                                type_safe: false,
-                                is_function: false,
-                            },
-                        },
-                    },
-                    Variable {
-                        name: "table",
-                        data_type: DataTypeDefinition {
-                            data_type: PointerType {
-                                name: None,
-                                referenced_type: DataTypeReference {
-                                    referenced_type: "__VOID",
-                                },
-                                auto_deref: None,
-                                type_safe: false,
-                                is_function: false,
-                            },
-                        },
-                    },
-                ],
-            },
-            initializer: None,
-            scope: None,
+    #[test]
+    fn fat_pointer_is_generated_if_variable_makes_use_of_interface_type() {
+        let source = r#"
+            INTERFACE A
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS A
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instanceA: FbA;
+                    referenceA: A; // This should trigger the creation of a __FATPOINTER struct
+                END_VAR
+            END_FUNCTION
+        "#;
+
+        let units = lower_interface_calls(source);
+        let fat_pointer = get_fat_pointer(&units);
+
+        assert!(fat_pointer.is_some(), "__FATPOINTER should be generated");
+        insta::assert_snapshot!(fat_pointer.unwrap(), @r"
+        __FATPOINTER {
+            data: POINTER TO __VOID;
+            table: POINTER TO __VOID;
         }
-        "#);
+        ");
     }
 
     #[test]
-    fn fat_pointer_is_not_generated_when_no_interface_variable_exists() {
+    fn interface_type_is_replaced_by_fat_pointer() {
         let source = r#"
-            INTERFACE MyInterface
+            INTERFACE A
             END_INTERFACE
 
-            FUNCTION main
-                VAR
-                    x: DINT;
-                END_VAR
-            END_FUNCTION
-        "#;
-
-        let ids = IdProvider::default();
-        let (unit, mut index) = index_with_ids(source, ids.clone());
-        let annotations = annotate_with_ids(&unit, &mut index, ids.clone());
-
-        let mut generator = InterfaceCallLowerer::new(ids);
-        generator.index = Some(index);
-        generator.annotations = Some(annotations);
-        let mut units = vec![unit];
-        generator.lower_units(&mut units);
-
-        // __FATPOINTER should NOT be generated
-        let fat_pointer =
-            units[0].user_types.iter().find(|ty| ty.data_type.get_name() == Some("__FATPOINTER"));
-        assert!(fat_pointer.is_none());
-    }
-
-    #[test]
-    fn interface_variable_types_are_replaced_by_fatpointer() {
-        let source = r#"
-            INTERFACE MyInterface
-            END_INTERFACE
-
-            FUNCTION main
-                VAR
-                    refInterface: MyInterface;
-                END_VAR
-            END_FUNCTION
-
-            FUNCTION_BLOCK MyFb
-                VAR_INPUT
-                    refInterface: MyInterface;
-                END_VAR
-            END_FUNCTION_BLOCK
-        "#;
-
-        let ids = IdProvider::default();
-        let (unit, mut index) = index_with_ids(source, ids.clone());
-        let annotations = annotate_with_ids(&unit, &mut index, ids.clone());
-
-        let mut generator = InterfaceCallLowerer::new(ids);
-        generator.index = Some(index);
-        generator.annotations = Some(annotations);
-        let mut units = vec![unit];
-        generator.lower_units(&mut units);
-
-        let pou = units[0].pous.iter().find(|pou| pou.name == "main").unwrap();
-        insta::assert_debug_snapshot!(pou.variable_blocks, @r#"
-        [
-            VariableBlock {
-                variables: [
-                    Variable {
-                        name: "refInterface",
-                        data_type: DataTypeReference {
-                            referenced_type: "__FATPOINTER",
-                        },
-                    },
-                ],
-                variable_block_type: Local,
-            },
-        ]
-        "#);
-
-        let pou = units[0].pous.iter().find(|pou| pou.name == "MyFb").unwrap();
-        insta::assert_debug_snapshot!(pou.variable_blocks, @r#"
-        [
-            VariableBlock {
-                variables: [
-                    Variable {
-                        name: "refInterface",
-                        data_type: DataTypeReference {
-                            referenced_type: "__FATPOINTER",
-                        },
-                    },
-                ],
-                variable_block_type: Input(
-                    ByVal,
-                ),
-            },
-        ]
-        "#);
-    }
-
-    #[test]
-    fn assignments_are_transformed() {
-        let source = r#"
-            INTERFACE MyInterface
+            FUNCTION_BLOCK FbA
                 METHOD foo
                 END_METHOD
-            END_INTERFACE
-
-            FUNCTION_BLOCK MyFb IMPLEMENTS MyInterface
             END_FUNCTION_BLOCK
 
             FUNCTION main
                 VAR
-                    instance: MyFb;
-                    reference: MyInterface;
+                    instanceA: FbA;
+                    referenceA: A; // This should become `referenceA: __FATPOINTER`
                 END_VAR
-
-                reference := instance;
             END_FUNCTION
         "#;
 
-        let ids = IdProvider::default();
-        let (unit, mut index) = index_with_ids(source, ids.clone());
-        let annotations = annotate_with_ids(&unit, &mut index, ids.clone());
+        let units = lower_interface_calls(source);
+        let variables = get_pou_variables(&units, &["main"]);
 
-        let mut generator = InterfaceCallLowerer::new(ids);
-        generator.index = Some(index);
-        generator.annotations = Some(annotations);
-        let mut units = vec![unit];
-        generator.lower_units(&mut units);
-
-        let implementation = units[0].implementations.iter().find(|imp| imp.name == "main").unwrap();
-        let statements = implementation.statements.iter().map(|node| node.as_string()).collect::<Vec<_>>();
-        insta::assert_debug_snapshot!(statements, @r#"
-        [
-            "reference.data := ADR(instance)",
-            "reference.table := ADR(__itable_MyInterface_MyFb_instance)",
-        ]
-        "#);
+        insta::assert_snapshot!(variables, @r"
+        // Variables in main
+        instanceA: FbA
+        referenceA: __FATPOINTER
+        ");
     }
 
     #[test]
-    fn calls_are_transformed() {
+    fn interface_variable_assignment_is_patched() {
         let source = r#"
-            INTERFACE MyInterface
-                METHOD foo
-                END_METHOD
+            INTERFACE A
             END_INTERFACE
 
-            FUNCTION_BLOCK MyFb IMPLEMENTS MyInterface
+            FUNCTION_BLOCK FbA IMPLEMENTS A
+                METHOD foo
+                END_METHOD
             END_FUNCTION_BLOCK
 
             FUNCTION main
                 VAR
-                    instance: MyFb;
-                    reference: MyInterface;
+                    instanceA: FbA;
+                    referenceA: A;
                 END_VAR
 
-                reference.foo();
+                referenceA := instanceA;
             END_FUNCTION
         "#;
 
-        let ids = IdProvider::default();
-        let (unit, mut index) = index_with_ids(source, ids.clone());
-        let annotations = annotate_with_ids(&unit, &mut index, ids.clone());
+        let units = lower_interface_calls(source);
+        let statements = get_impl_statements(&units, &["main"]);
 
-        let mut generator = InterfaceCallLowerer::new(ids);
-        generator.index = Some(index);
-        generator.annotations = Some(annotations);
-        let mut units = vec![unit];
-        generator.lower_units(&mut units);
+        insta::assert_snapshot!(statements, @r"
+        // Statements in main
+        referenceA.data := ADR(instanceA)
+        referenceA.table := ADR(__itable_A_FbA_instance)
+        ");
+    }
 
-        let implementation = units[0].implementations.iter().find(|imp| imp.name == "main").unwrap();
-        let statements = implementation.statements.iter().map(|node| node.as_string()).collect::<Vec<_>>();
-        insta::assert_debug_snapshot!(statements, @r#"
-        [
-            "__itable_MyInterface#(reference.table^).foo^(reference.data)",
-        ]
-        "#);
+    #[test]
+    fn interface_variable_call_is_patched() {
+        let source = r#"
+            INTERFACE A
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS A
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instanceA: FbA;
+                    referenceA: A; // This should become `referenceA: __FATPOINTER`
+                END_VAR
+
+                referenceA := instanceA;
+                referenceA.foo();
+            END_FUNCTION
+        "#;
+
+        let units = lower_interface_calls(source);
+        let statements = get_impl_statements(&units, &["main"]);
+
+        insta::assert_snapshot!(statements, @r"
+        // Statements in main
+        referenceA.data := ADR(instanceA)
+        referenceA.table := ADR(__itable_A_FbA_instance)
+        __itable_A#(referenceA.table^).foo^(referenceA.data)
+        ");
+    }
+
+    mod helper {
+        use plc_ast::ast::{CompilationUnit, DataType, DataTypeDeclaration};
+        use plc_ast::provider::IdProvider;
+
+        use crate::{
+            lowering::itable_calls::InterfaceCallLowerer,
+            test_utils::tests::{annotate_with_ids, index_with_ids},
+        };
+
+        /// Lowers source code through the interface call lowerer, returning the transformed units.
+        pub fn lower_interface_calls(source: &str) -> Vec<CompilationUnit> {
+            let ids = IdProvider::default();
+            let (unit, mut index) = index_with_ids(source, ids.clone());
+            let annotations = annotate_with_ids(&unit, &mut index, ids.clone());
+
+            let mut lowerer = InterfaceCallLowerer::new(ids);
+            lowerer.index = Some(index);
+            lowerer.annotations = Some(annotations);
+
+            let mut units = vec![unit];
+            lowerer.lower_units(&mut units);
+            units
+        }
+
+        /// Returns the serialized __FATPOINTER definition, or None if not generated.
+        pub fn get_fat_pointer(units: &[CompilationUnit]) -> Option<String> {
+            units.iter().find_map(|unit| {
+                unit.user_types
+                    .iter()
+                    .find(|ty| ty.data_type.get_name() == Some("__FATPOINTER"))
+                    .map(|ty| serialize_struct_type(&ty.data_type))
+            })
+        }
+
+        /// Returns serialized variable declarations for the specified POUs.
+        ///
+        /// Format:
+        /// ```text
+        /// // Variables in <POU1>
+        /// var1: Type1
+        /// var2: Type2
+        ///
+        /// // Variables in <POU2>
+        /// var3: Type3
+        /// ```
+        pub fn get_pou_variables(units: &[CompilationUnit], pou_names: &[&str]) -> String {
+            let sections: Vec<String> = pou_names
+                .iter()
+                .map(|pou_name| {
+                    let variables = units
+                        .iter()
+                        .find_map(|unit| unit.pous.iter().find(|pou| &pou.name == pou_name))
+                        .map(|pou| {
+                            pou.variable_blocks
+                                .iter()
+                                .flat_map(|block| &block.variables)
+                                .map(|var| {
+                                    let type_name = serialize_data_type_decl(&var.data_type_declaration);
+                                    format!("{}: {type_name}", var.name)
+                                })
+                                .collect::<Vec<_>>()
+                                .join("\n")
+                        })
+                        .unwrap_or_default();
+
+                    format!("// Variables in {pou_name}\n{variables}")
+                })
+                .collect();
+
+            sections.join("\n\n")
+        }
+
+        /// Returns serialized statements for the specified implementations.
+        ///
+        /// Format:
+        /// ```text
+        /// // Statements in <Impl1>
+        /// statement1
+        /// statement2
+        ///
+        /// // Statements in <Impl2>
+        /// statement3
+        /// ```
+        pub fn get_impl_statements(units: &[CompilationUnit], impl_names: &[&str]) -> String {
+            let sections: Vec<String> = impl_names
+                .iter()
+                .map(|impl_name| {
+                    let statements = units
+                        .iter()
+                        .find_map(|unit| unit.implementations.iter().find(|imp| &imp.name == impl_name))
+                        .map(|imp| {
+                            imp.statements.iter().map(|node| node.as_string()).collect::<Vec<_>>().join("\n")
+                        })
+                        .unwrap_or_default();
+
+                    format!("// Statements in {impl_name}\n{statements}")
+                })
+                .collect();
+
+            sections.join("\n\n")
+        }
+
+        /// Serializes a struct DataType to a readable string.
+        fn serialize_struct_type(data_type: &DataType) -> String {
+            let DataType::StructType { name, variables } = data_type else {
+                return format!("{:?}", data_type);
+            };
+
+            let name = name.as_deref().unwrap_or("<anonymous>");
+            let fields: Vec<_> = variables
+                .iter()
+                .map(|var| {
+                    format!("    {}: {};", var.name, serialize_data_type_decl(&var.data_type_declaration))
+                })
+                .collect();
+
+            format!("{name} {{\n{}\n}}", fields.join("\n"))
+        }
+
+        /// Serializes a DataTypeDeclaration to a compact string.
+        fn serialize_data_type_decl(decl: &DataTypeDeclaration) -> String {
+            match decl {
+                DataTypeDeclaration::Reference { referenced_type, .. } => referenced_type.clone(),
+                DataTypeDeclaration::Definition { data_type, .. } => match data_type.as_ref() {
+                    DataType::PointerType { referenced_type, .. } => {
+                        format!("POINTER TO {}", serialize_data_type_decl(referenced_type))
+                    }
+                    other => format!("{:?}", other),
+                },
+                other => format!("{:?}", other),
+            }
+        }
     }
 }

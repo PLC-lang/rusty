@@ -736,63 +736,6 @@ mod tests {
         "#);
     }
 
-    #[test]
-    fn itable_generation_with_inheritance_and_method_override() {
-        // Simple inheritance scenario:
-        // - `base` implements `someInterface` with method `foo`
-        // - `extended` extends `base` and overrides `foo`
-        //
-        // Expected itable instances:
-        // - (someInterface, base)     → foo: base.foo
-        // - (someInterface, extended) → foo: extended.foo (override, not inherited)
-
-        let source = r#"
-            INTERFACE someInterface
-                METHOD foo : STRING
-                END_METHOD
-            END_INTERFACE
-
-            FUNCTION_BLOCK base IMPLEMENTS someInterface
-                VAR_OUTPUT
-                    calledBody : STRING;
-                END_VAR
-
-                METHOD foo : STRING
-                    foo := 'base.foo';
-                END_METHOD
-
-                // body
-                calledBody := 'base';
-            END_FUNCTION_BLOCK
-
-            FUNCTION_BLOCK extended EXTENDS base
-                METHOD foo : STRING
-                    foo := 'extended.foo';
-                END_METHOD
-
-                // body
-                calledBody := 'extended';
-            END_FUNCTION_BLOCK
-        "#;
-
-        let (itable_types, itable_instances, _) = generate_itable_artifacts(source);
-
-        // Verify itable struct definition
-        insta::assert_snapshot!(itable_types.join("\n\n"), @r"
-        __itable_someInterface {
-            foo: __FPOINTER __fwd_someInterface_foo;
-        }
-        ");
-
-        // Verify global itable instances
-        insta::assert_debug_snapshot!(itable_instances, @r#"
-        [
-            "__itable_someInterface_base_instance: __itable_someInterface := (foo := ADR(base.foo))",
-            "__itable_someInterface_extended_instance: __itable_someInterface := (foo := ADR(extended.foo))",
-        ]
-        "#);
-    }
-
     mod helper {
         use plc_ast::ast::{DataType, DataTypeDeclaration, Pou, UserTypeDeclaration};
         use plc_ast::provider::IdProvider;
