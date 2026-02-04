@@ -20,7 +20,7 @@ expression: "&generated_header.get_contents()"
 extern "C" {
 #endif
 
-typedef char T_String[50];
+typedef char T_String[51];
 
 typedef int32_t T_DInt;
 
@@ -28,6 +28,8 @@ typedef int16_t T_Array[12];
 
 typedef bool T_Bool;
 
+// varStringInput: maximum of 51 T_String(s)
+// varArrayOfIntInput: maximum of 12 T_Array(s)
 void fnThatUsesAliases(T_String* varStringInput, T_DInt varDIntInput, T_Array* varArrayOfIntInput, T_Bool varBoolInput);
 
 #ifdef __cplusplus

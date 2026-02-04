@@ -2330,6 +2330,7 @@ dependencies = [
  "clap 3.2.25",
  "insta",
  "log",
+ "once_cell",
  "plc_ast",
  "plc_diagnostics",
  "plc_source",

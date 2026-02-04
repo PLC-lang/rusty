@@ -9,6 +9,12 @@ use crate::GenerateHeaderOptions;
 
 mod file_helper_c;
 
+use once_cell::sync::Lazy;
+
+static WHITE_SPACE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"\s").unwrap());
+static UNDERSCORE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"\_{2,}").unwrap());
+static CHARACTER_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"[A-Z]*[a-z]*[0-9]*\_*").unwrap());
+
 pub trait FileHelper {
     /// Returns the directory the header should be written to
     ///
@@ -66,8 +72,8 @@ fn get_header_file_information(
     };
 
     let mut output_path = if generate_header_options.output_path.as_os_str().is_empty() {
-        if file_path.parent().is_some() {
-            PathBuf::from(file_path.parent().unwrap())
+        if let Some(parent) = file_path.parent() {
+            PathBuf::from(parent)
         } else {
             PathBuf::from(String::new())
         }
@@ -120,20 +126,17 @@ pub fn format_path(output_path: &str) -> String {
 ///
 /// Will return [None] if no file name is found or if the file name has no extension.
 fn get_file_name_from_path_buf_without_extension(file_path: PathBuf) -> Option<String> {
-    if file_path.file_name().is_some() {
-        let file_name = file_path.file_name().unwrap().to_str();
-        file_name?;
+    if let Some(os_file_name) = file_path.file_name() {
+        if let Some(file_name) = os_file_name.to_str() {
+            let file_name = file_name.split('.').next().unwrap_or("");
 
-        let file_name = file_name.unwrap().split('.').next().unwrap_or("");
-
-        if file_name.is_empty() {
-            return None;
+            if !file_name.is_empty() {
+                return Some(String::from(file_name));
+            }
         }
-
-        Some(String::from(file_name))
-    } else {
-        None
     }
+
+    None
 }
 
 /// Formats and returns a file name that is safe for definition usage
@@ -149,16 +152,11 @@ fn get_file_name_from_path_buf_without_extension(file_path: PathBuf) -> Option<S
 /// "I_AM_A_V3RY_STRANGE_FILE_N4ME_THAT_SHOULD_BE_FIXED"
 /// ```
 fn format_file_name(file_name: &str) -> String {
-    let white_space_regex = Regex::new(r"\s").unwrap();
-    let white_space_formatted = white_space_regex.replace_all(file_name, "_").to_string();
-
-    let underscore_regex = Regex::new(r"\_{2,}").unwrap();
-    let underscore_formatted = underscore_regex.replace_all(&white_space_formatted, "_").to_string();
-
-    let character_regex = Regex::new(r"[A-Z]*[a-z]*[0-9]*\_*").unwrap();
+    let white_space_formatted = WHITE_SPACE_REGEX.replace_all(file_name, "_").to_string();
+    let underscore_formatted = UNDERSCORE_REGEX.replace_all(&white_space_formatted, "_").to_string();
 
     let mut formatted_file_name = String::new();
-    for caps in character_regex.captures_iter(&underscore_formatted) {
+    for caps in CHARACTER_REGEX.captures_iter(&underscore_formatted) {
         formatted_file_name += caps.get(0).unwrap().as_str();
     }
 

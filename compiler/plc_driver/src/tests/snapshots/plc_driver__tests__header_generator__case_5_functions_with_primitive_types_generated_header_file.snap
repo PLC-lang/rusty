@@ -22,7 +22,7 @@ extern "C" {
 
 void fnThatIsVoid(int16_t varIntInput);
 
-int16_t fnThatReturnsInt(float_t varRealInputToFunc, int16_t varIntInputToFunc, time_t varDateAndTimeInputToFunc, float_t* varRealInOutFunc, int16_t* varIntOutputFunc);
+int16_t fnThatReturnsInt(float_t varRealInputToFunc, int16_t varIntInputToFunc, time_t varDateAndTimeInputToFunc, float_t* varRealInOutFunc, int16_t varIntOutputFunc);
 
 time_t fnThatReturnsTimeOfDay(time_t varDateTimeInput);
 

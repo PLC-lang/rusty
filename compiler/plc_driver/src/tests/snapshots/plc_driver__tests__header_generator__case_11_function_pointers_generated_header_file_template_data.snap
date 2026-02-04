@@ -70,14 +70,14 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               "data_type": "char",
               "name": "stringField",
               "variable_type": {
-                "Array": 255
+                "Array": 256
               }
             },
             {
               "data_type": "int16_t",
               "name": "wStringField",
               "variable_type": {
-                "Array": 6000
+                "Array": 6001
               }
             },
             {
@@ -181,7 +181,7 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
             "data_type": "char",
             "name": "varString",
             "variable_type": {
-              "Array": 200
+              "Array": 201
             }
           },
           {

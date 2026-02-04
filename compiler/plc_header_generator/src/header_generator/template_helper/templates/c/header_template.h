@@ -72,6 +72,13 @@ extern {{ format_variable_for_definition(variable=global_variable) }};
 
 {#- Functions -#}
 {% for function in functions -%}
+{%- for parameter in function.parameters -%}
+{%- if is_array_with_size(variable=parameter) -%}
+{{- format_variable_for_function_comment(variable=parameter) -}}
+{% raw %}
+{% endraw %}
+{%- endif -%}
+{%- endfor -%}
 {{ function.return_type }} {{ function.name }}(
     {%- for parameter in function.parameters -%}
         {{- format_variable_for_parameter(variable=parameter) -}}

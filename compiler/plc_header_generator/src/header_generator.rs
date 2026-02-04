@@ -312,8 +312,8 @@ fn extract_string_size(size: &Option<AstNode>) -> i128 {
     let size = size.clone().unwrap();
 
     match size.stmt {
-        // TODO: Verify if the string-termination-marker needs to be accounted for
-        AstStatement::Literal(AstLiteral::Integer(value)) => value,
+        // The string-termination-marker needs to be accounted for
+        AstStatement::Literal(AstLiteral::Integer(value)) => value + 1,
         _ => i128::default(),
     }
 }

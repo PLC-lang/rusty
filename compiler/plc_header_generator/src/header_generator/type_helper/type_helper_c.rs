@@ -19,18 +19,16 @@ impl TypeHelper for GeneratedHeaderForC {
             };
         }
 
-        let builtin_type =
-            builtin_types.iter().find(|builtin_type| builtin_type.name == extended_type_name.type_name);
-
-        if builtin_type.is_none() {
+        let Some(builtin_type) =
+            builtin_types.iter().find(|builtin_type| builtin_type.name == extended_type_name.type_name)
+        else {
             // This is a user-generated type
             return TypeInformation {
                 name: extended_type_name.type_name.to_string(),
                 attribute: determine_type_attribute(extended_type_name.is_variadic, true, None),
             };
-        }
+        };
 
-        let builtin_type = builtin_type.unwrap();
         match &builtin_type.information {
             DataTypeInformation::Integer { signed, size, .. } => {
                 // Booleans have their own type

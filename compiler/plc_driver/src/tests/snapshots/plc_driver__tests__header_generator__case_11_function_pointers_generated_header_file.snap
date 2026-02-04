@@ -38,8 +38,8 @@ typedef struct {
     uint8_t byteField;
     int16_t intField;
     int32_t dIntField;
-    char stringField[255];
-    int16_t wStringField[6000];
+    char stringField[256];
+    int16_t wStringField[6001];
     ComplexEnumType complexEnumTypeField;
     int16_t intArrayField[10];
 } StructWithComplexTypes;
@@ -55,6 +55,8 @@ int32_t fnDIntThatWillBePointedTo(int32_t varDIntInput);
 
 void fnThatUsesStructWithPrimitiveTypes(StructWithPrimitiveTypes* fnThatUsesStructWithPrimitiveTypes, StructWithPrimitiveTypes* varStruct);
 
+// varString: maximum of 201 char(s)
+// varIntArray: maximum of 15 int16_t(s)
 void fnThatUsesStructWithComplexTypes(StructWithComplexTypes* fnThatUsesStructWithComplexTypes, StructWithComplexTypes* varStruct, ComplexEnumType varEnum, char* varString, int16_t* varIntArray);
 
 #ifdef __cplusplus

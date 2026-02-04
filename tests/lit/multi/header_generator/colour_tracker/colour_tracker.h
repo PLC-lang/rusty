@@ -29,6 +29,7 @@ typedef struct {
 
 extern int16_t globalCounter;
 
+// colours: maximum of 3 ColourInfo(s)
 void PrintStatistics(int32_t argumentCount, ColourInfo* colours);
 
 void TestPrinter();

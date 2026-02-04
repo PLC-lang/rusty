@@ -16,8 +16,9 @@
 extern "C" {
 #endif
 
-typedef char T_Message[255];
+typedef char T_Message[256];
 
+// message: maximum of 256 T_Message(s)
 void PrintMessage(T_Message* message);
 
 #ifdef __cplusplus

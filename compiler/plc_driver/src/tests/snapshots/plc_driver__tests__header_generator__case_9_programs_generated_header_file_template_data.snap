@@ -12,12 +12,12 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
           "variables": [
             {
               "data_type": "ComplexEnumType",
-              "name": "inOutVar",
+              "name": "enumVarOne",
               "variable_type": "Default"
             },
             {
               "data_type": "ComplexEnumType",
-              "name": "outVar",
+              "name": "enumVarTwo",
               "variable_type": "Default"
             }
           ]

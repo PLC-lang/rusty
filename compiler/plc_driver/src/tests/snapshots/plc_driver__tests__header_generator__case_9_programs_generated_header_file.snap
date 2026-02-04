@@ -27,8 +27,8 @@ typedef enum eComplexEnumType {
 } ComplexEnumType;
 
 typedef struct {
-    ComplexEnumType inOutVar;
-    ComplexEnumType outVar;
+    ComplexEnumType enumVarOne;
+    ComplexEnumType enumVarTwo;
 } prog_type;
 
 extern prog_type prog_instance;

@@ -20,8 +20,8 @@ expression: "&generated_header.get_contents()"
 extern "C" {
 #endif
 
-extern char gVarString[255];
-extern int16_t gVarWString[6000];
+extern char gVarString[256];
+extern int16_t gVarWString[6001];
 extern int16_t gVarIntArray[12];
 extern int16_t* gVarRefToInt;
 extern int16_t* gVarPointerToInt;

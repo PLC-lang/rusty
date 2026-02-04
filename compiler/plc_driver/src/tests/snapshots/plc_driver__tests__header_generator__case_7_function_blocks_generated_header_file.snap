@@ -23,7 +23,7 @@ extern "C" {
 typedef struct {
     uint64_t* __vtable;
     int16_t varInt;
-    int16_t* outVarInt;
+    int16_t outVarInt;
     int16_t* inOutVarInt;
 } fbThatHasSimpleTypes_type;
 

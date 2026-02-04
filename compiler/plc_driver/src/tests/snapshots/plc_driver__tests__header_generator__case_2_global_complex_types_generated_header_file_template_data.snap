@@ -14,14 +14,14 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
         "data_type": "char",
         "name": "gVarString",
         "variable_type": {
-          "Array": 255
+          "Array": 256
         }
       },
       {
         "data_type": "int16_t",
         "name": "gVarWString",
         "variable_type": {
-          "Array": 6000
+          "Array": 6001
         }
       },
       {

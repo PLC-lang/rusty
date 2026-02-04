@@ -21,7 +21,7 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               "variable_type": "Default"
             },
             {
-              "data_type": "int16_t*",
+              "data_type": "int16_t",
               "name": "outVarInt",
               "variable_type": "Default"
             },

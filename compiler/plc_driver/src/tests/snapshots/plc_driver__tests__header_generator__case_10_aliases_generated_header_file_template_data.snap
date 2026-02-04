@@ -10,7 +10,7 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
           "data_type": "char",
           "name": "T_String",
           "variable_type": {
-            "Array": 50
+            "Array": 51
           }
         },
         {
@@ -44,7 +44,7 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
             "data_type": "T_String",
             "name": "varStringInput",
             "variable_type": {
-              "Array": 50
+              "Array": 51
             }
           },
           {

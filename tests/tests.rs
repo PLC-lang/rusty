@@ -91,18 +91,6 @@ fn get_test_file(name: &str) -> String {
     data_path.display().to_string()
 }
 
-/// Gets the integration data folder for tests
-fn get_test_directory() -> PathBuf {
-    let mut data_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    data_path.push("tests");
-    data_path.push("integration");
-    data_path.push("data");
-
-    assert!(data_path.exists());
-
-    data_path
-}
-
 /// # Safety
 ///
 /// Unsafe by design, it dereferences a pointer

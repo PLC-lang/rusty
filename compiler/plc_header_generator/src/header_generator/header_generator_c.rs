@@ -70,6 +70,11 @@ impl GeneratedHeader for GeneratedHeaderForC {
         );
         tera.register_function("format_variable_for_definition", format_variable_for_definition());
         tera.register_function("format_variable_for_enum_definition", format_variable_for_enum_definition());
+        tera.register_function("is_array_with_size", is_array_with_size());
+        tera.register_function(
+            "format_variable_for_function_comment",
+            format_variable_for_function_comment(),
+        );
 
         context.insert("global_variables", &self.template_data.global_variables);
         context.insert("user_defined_types", &self.template_data.user_defined_types);
@@ -499,8 +504,7 @@ impl GeneratedHeaderForC {
                 && (include_external || variable_block.linkage != LinkageType::External)
             {
                 let is_reference = variable_block.kind == VariableBlockType::Input(ArgumentProperty::ByRef)
-                    || variable_block.kind == VariableBlockType::InOut
-                    || variable_block.kind == VariableBlockType::Output;
+                    || variable_block.kind == VariableBlockType::InOut;
 
                 variables.append(&mut self.get_transformed_variables_from_variables(
                     &variable_block.variables,
@@ -702,14 +706,16 @@ impl GeneratedHeaderForC {
         }
 
         match &user_type.data_type {
-            ast::DataType::StructType { name, .. } => Some(Variable {
+            // TODO: Log the error: "type_name_override expected for struct with name: {} but none supplied!"
+            ast::DataType::StructType { name, .. } => type_name_override.map(|type_name_override| Variable {
                 name: coalesce_field_name_override_with_default(name, field_name_override),
-                data_type: type_name_override.unwrap().to_string(),
+                data_type: type_name_override.to_string(),
                 variable_type: VariableType::Struct,
             }),
-            ast::DataType::EnumType { name, .. } => Some(Variable {
+            // TODO: Log the error: "type_name_override expected for enum with name: {} but none supplied!"
+            ast::DataType::EnumType { name, .. } => type_name_override.map(|type_name_override| Variable {
                 name: coalesce_field_name_override_with_default(name, field_name_override),
-                data_type: type_name_override.unwrap().to_string(),
+                data_type: type_name_override.to_string(),
                 variable_type: VariableType::Default,
             }),
             ast::DataType::StringType { name, size, is_wide } => Some(Variable {
@@ -718,36 +724,44 @@ impl GeneratedHeaderForC {
                 variable_type: VariableType::Array(extract_string_size(size)),
             }),
             ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
-                let type_info = self.get_type_name_for_type(
-                    &ExtendedTypeName {
-                        type_name: referenced_type.get_name().unwrap().to_string(),
-                        is_variadic: false,
-                    },
-                    builtin_types,
-                );
+                // The assumption here is that the referenced type has been given a name already by the parser
+                // As a sanity check we will return "None" and log an error if no name for this referenced type is found
+                if let Some(referenced_type_name) = referenced_type.get_name() {
+                    let type_info = self.get_type_name_for_type(
+                        &ExtendedTypeName { type_name: referenced_type_name.to_string(), is_variadic: false },
+                        builtin_types,
+                    );
 
-                Some(Variable {
-                    name: coalesce_field_name_override_with_default(name, field_name_override),
-                    data_type: type_info.get_type_name(),
-                    variable_type: VariableType::Array(extract_array_size(bounds)),
-                })
+                    Some(Variable {
+                        name: coalesce_field_name_override_with_default(name, field_name_override),
+                        data_type: type_info.get_type_name(),
+                        variable_type: VariableType::Array(extract_array_size(bounds)),
+                    })
+                } else {
+                    // TODO: Log the error: "Referenced type expected for array with name: {} but none found!"
+                    None
+                }
             }
             ast::DataType::PointerType { name, referenced_type, .. } => {
-                let type_info = self.get_type_name_for_type(
-                    &ExtendedTypeName {
-                        type_name: referenced_type.get_name().unwrap().to_string(),
-                        is_variadic: false,
-                    },
-                    builtin_types,
-                );
+                // The assumption here is that the referenced type has been given a name already by the parser
+                // As a sanity check we will return "None" and log an error if no name for this referenced type is found
+                if let Some(referenced_type_name) = referenced_type.get_name() {
+                    let type_info = self.get_type_name_for_type(
+                        &ExtendedTypeName { type_name: referenced_type_name.to_string(), is_variadic: false },
+                        builtin_types,
+                    );
 
-                let data_type = format!("{}{}", type_info.get_type_name(), self.get_reference_symbol());
+                    let data_type = format!("{}{}", type_info.get_type_name(), self.get_reference_symbol());
 
-                Some(Variable {
-                    name: coalesce_field_name_override_with_default(name, field_name_override),
-                    data_type,
-                    variable_type: VariableType::Default,
-                })
+                    Some(Variable {
+                        name: coalesce_field_name_override_with_default(name, field_name_override),
+                        data_type,
+                        variable_type: VariableType::Default,
+                    })
+                } else {
+                    // TODO: Log the error: "Referenced type expected for pointer with name: {} but none found!"
+                    None
+                }
             }
             ast::DataType::SubRangeType { name, referenced_type, .. } => {
                 let type_info = self.get_type_name_for_type(
@@ -845,6 +859,52 @@ fn format_variable_for_parameter(reference_symbol: String, variadic_symbol: Stri
                 Err(_) => Err("Unable to format variable for parameter!".into()),
             },
             None => Err("Unable to format variable for parameter!".into()),
+        }
+    })
+}
+
+/// Returns whether or not this variable is an array that has a non-zero size
+///
+/// ---
+///
+/// This function is used by the templating engine [tera](https://keats.github.io/tera/).
+fn is_array_with_size() -> impl tera::Function {
+    Box::new(move |args: &HashMap<String, serde_json::Value>| -> tera::Result<serde_json::Value> {
+        match args.get("variable") {
+            Some(value) => match from_value::<Variable>(value.clone()) {
+                Ok(variable) => match variable.variable_type {
+                    VariableType::Array(size) => Ok(to_value(size > 0).unwrap()),
+                    _ => Ok(to_value(false).unwrap()),
+                },
+                Err(_) => Err("Unable to determine if this is an array with a size!".into()),
+            },
+            None => Err("Unable to determine if this is an array with a size!".into()),
+        }
+    })
+}
+
+/// Formats a variable as a comment for a function
+///
+/// i.e. // someVar: maximum of 200 entries
+///
+/// ---
+///
+/// This function is used by the templating engine [tera](https://keats.github.io/tera/).
+fn format_variable_for_function_comment() -> impl tera::Function {
+    Box::new(move |args: &HashMap<String, serde_json::Value>| -> tera::Result<serde_json::Value> {
+        match args.get("variable") {
+            Some(value) => match from_value::<Variable>(value.clone()) {
+                Ok(variable) => match variable.variable_type {
+                    VariableType::Array(size) => Ok(to_value(format!(
+                        "// {}: maximum of {} {}(s)",
+                        variable.name, size, variable.data_type
+                    ))
+                    .unwrap()),
+                    _ => Ok(to_value("").unwrap()),
+                },
+                Err(_) => Err("Unable to format variable for function comment!".into()),
+            },
+            None => Err("Unable to format variable for function comment!".into()),
         }
     })
 }

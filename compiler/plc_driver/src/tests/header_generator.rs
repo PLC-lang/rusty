@@ -589,8 +589,8 @@ fn get_source_code_for_case_9_programs() -> SourceCode {
 
     PROGRAM prog
     VAR
-        inOutVar : ComplexEnumType;
-        outVar: ComplexEnumType;
+        enumVarOne : ComplexEnumType;
+        enumVarTwo : ComplexEnumType;
     END_VAR
     END_PROGRAM
     ",
