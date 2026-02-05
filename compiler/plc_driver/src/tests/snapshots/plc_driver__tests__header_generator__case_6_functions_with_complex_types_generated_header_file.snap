@@ -20,6 +20,10 @@ expression: "&generated_header.get_contents()"
 extern "C" {
 #endif
 
+typedef int16_t __StructWithComplexTypes_arrayOfIntArrayField_[10];
+
+typedef int16_t __fnThatUsesStructWithComplexTypes_varArrayOfIntArray_[15];
+
 typedef enum eComplexEnumType {
     orange = 10,
     yellow = 20,
@@ -40,13 +44,15 @@ typedef struct {
     int16_t wStringField[6001];
     ComplexEnumType complexEnumTypeField;
     int16_t intArrayField[10];
+    __StructWithComplexTypes_arrayOfIntArrayField_ arrayOfIntArrayField[4];
 } StructWithComplexTypes;
 
 void fnThatUsesStructWithPrimitiveTypes(StructWithPrimitiveTypes* fnThatUsesStructWithPrimitiveTypes, StructWithPrimitiveTypes* varStruct);
 
 // varString: maximum of 201 char(s)
 // varIntArray: maximum of 15 int16_t(s)
-void fnThatUsesStructWithComplexTypes(StructWithComplexTypes* fnThatUsesStructWithComplexTypes, StructWithComplexTypes* varStruct, ComplexEnumType varEnum, char* varString, int16_t* varIntArray);
+// varArrayOfIntArray: maximum of 3 __fnThatUsesStructWithComplexTypes_varArrayOfIntArray_(s)
+void fnThatUsesStructWithComplexTypes(StructWithComplexTypes* fnThatUsesStructWithComplexTypes, StructWithComplexTypes* varStruct, ComplexEnumType varEnum, char* varString, int16_t* varIntArray, __fnThatUsesStructWithComplexTypes_varArrayOfIntArray_* varArrayOfIntArray);
 
 void fnThatUsesPrimitiveTypesAndReferences(int16_t varInt, int16_t* varRefToInt, int16_t* varPointerToInt, time_t* varRefToDate, time_t* varPointerToDate);
 

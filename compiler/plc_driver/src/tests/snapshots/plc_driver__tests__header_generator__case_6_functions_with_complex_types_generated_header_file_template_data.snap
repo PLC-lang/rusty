@@ -5,7 +5,22 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
 {
   "template_data": {
     "user_defined_types": {
-      "aliases": [],
+      "aliases": [
+        {
+          "data_type": "int16_t",
+          "name": "__StructWithComplexTypes_arrayOfIntArrayField_",
+          "variable_type": {
+            "Array": 10
+          }
+        },
+        {
+          "data_type": "int16_t",
+          "name": "__fnThatUsesStructWithComplexTypes_varArrayOfIntArray_",
+          "variable_type": {
+            "Array": 15
+          }
+        }
+      ],
       "structs": [
         {
           "name": "StructWithPrimitiveTypes",
@@ -69,6 +84,13 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               "name": "intArrayField",
               "variable_type": {
                 "Array": 10
+              }
+            },
+            {
+              "data_type": "__StructWithComplexTypes_arrayOfIntArrayField_",
+              "name": "arrayOfIntArrayField",
+              "variable_type": {
+                "Array": 4
               }
             }
           ]
@@ -152,6 +174,13 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
             "name": "varIntArray",
             "variable_type": {
               "Array": 15
+            }
+          },
+          {
+            "data_type": "__fnThatUsesStructWithComplexTypes_varArrayOfIntArray_",
+            "name": "varArrayOfIntArray",
+            "variable_type": {
+              "Array": 3
             }
           }
         ]

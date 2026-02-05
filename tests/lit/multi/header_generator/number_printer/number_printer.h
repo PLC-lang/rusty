@@ -16,6 +16,10 @@
 extern "C" {
 #endif
 
+typedef int16_t __CoordinateSet[3];
+
+typedef __CoordinateSet CoordinateSet[4];
+
 typedef enum ePartialEnumType {
     A = 2,
     B = 0,
@@ -27,6 +31,9 @@ typedef enum ePartialEnumType {
 void PrintNumber(int16_t valueToPrint);
 
 void PrintAllEnumValues();
+
+// coordinateSet: maximum of 4 CoordinateSet(s)
+void PrintCoordinateSet(CoordinateSet* coordinateSet);
 
 #ifdef __cplusplus
 }

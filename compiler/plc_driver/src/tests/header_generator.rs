@@ -89,6 +89,8 @@ fn get_source_code_for_case_2_global_complex_types() -> SourceCode {
         gVarWString: WSTRING[6000];
 
         gVarIntArray: ARRAY[0..11] OF INT;
+        gVarArrayOfIntArray: ARRAY[0..11] OF ARRAY[0..11] OF INT;
+        gVarArrayOfArrayOfIntArray: ARRAY[0..11] OF ARRAY[0..11] OF ARRAY[0..11] OF INT;
 
         gVarRefToInt: REFERENCE TO INT;
         gVarPointerToInt: REF_TO INT;
@@ -355,6 +357,7 @@ fn get_source_code_for_case_6_functions_with_complex_types() -> SourceCode {
             wStringField : WSTRING[6000];
             complexEnumTypeField : ComplexEnumType;
             intArrayField: ARRAY[0..9] OF INT;
+            arrayOfIntArrayField: ARRAY[0..3] OF ARRAY[0..9] OF INT;
         END_STRUCT
     END_TYPE
 
@@ -370,6 +373,7 @@ fn get_source_code_for_case_6_functions_with_complex_types() -> SourceCode {
         varEnum: ComplexEnumType;
         varString: STRING[200];
         varIntArray: ARRAY[0..14] OF INT;
+        varArrayOfIntArray: ARRAY[0..2] OF ARRAY[0..14] OF INT;
     END_VAR
     END_FUNCTION
 

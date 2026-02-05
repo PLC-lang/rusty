@@ -54,6 +54,8 @@ impl GeneratedHeader for GeneratedHeaderForC {
         self.prepare_global_variables(compilation_unit, &builtin_types);
         self.prepare_user_types(compilation_unit, &builtin_types);
         self.prepare_functions(compilation_unit, &builtin_types);
+        self.cleanup_typedef_declarations_if_not_used();
+        self.resolve_alias_dependencies();
     }
 
     fn generate_headers(&mut self) -> Result<(), Diagnostic> {
@@ -300,11 +302,8 @@ impl GeneratedHeaderForC {
         user_types: &[UserTypeDeclaration],
         pous: &Vec<Pou>,
     ) {
-        // We generally want to skip the declaration of user types that are only internally relevant
-        if let Some(data_type_name) = &user_type.data_type.get_name() {
-            if data_type_name.starts_with("__") {
-                return;
-            }
+        if !self.user_type_can_be_transformed_for_header(user_type, builtin_types) {
+            return;
         }
 
         match &user_type.data_type {
@@ -331,6 +330,7 @@ impl GeneratedHeaderForC {
                     .push(UserType { name: name.clone().unwrap_or_default(), variables: enum_declerations });
             }
             ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
+                // The assumption here is that the referenced type has already been parsed and populated
                 let type_information = self.get_type_name_for_type(
                     &ExtendedTypeName {
                         type_name: referenced_type.get_name().unwrap_or_default().to_string(),
@@ -347,6 +347,7 @@ impl GeneratedHeaderForC {
                 });
             }
             ast::DataType::PointerType { name, referenced_type, .. } => {
+                // The assumption here is that the referenced type has already been parsed and populated
                 let type_information = self.get_type_name_for_type(
                     &ExtendedTypeName {
                         type_name: referenced_type.get_name().unwrap_or_default().to_string(),
@@ -392,6 +393,25 @@ impl GeneratedHeaderForC {
                 // The rest of these are not managed here
             }
         }
+    }
+
+    /// Verifies whether a user type is transformable for declaration in the header
+    fn user_type_can_be_transformed_for_header(
+        &mut self,
+        user_type: &UserTypeDeclaration,
+        _: &[DataType],
+    ) -> bool {
+        if let Some(data_type_name) = &user_type.data_type.get_name() {
+            if data_type_name.starts_with("__") {
+                match &user_type.data_type {
+                    // Support for multi-dimensional arrays
+                    ast::DataType::ArrayType { .. } => return true,
+                    _ => return false,
+                }
+            }
+        }
+
+        true
     }
 
     /// Populates the self scoped [TemplateData] instance with the necessary structs and functions created by a function block implementation
@@ -874,6 +894,94 @@ impl GeneratedHeaderForC {
             }
         }
     }
+
+    /// Cleans up the typedef declarations that are not used
+    ///
+    /// ---
+    ///
+    /// Sometimes additional generated typedefs slip through that are not useful to the implementation of the interface.
+    /// This method will remove those generated typedefs if they are not used by anything in the interface
+    fn cleanup_typedef_declarations_if_not_used(&mut self) {
+        let mut names: Vec<String> = Vec::new();
+
+        for variable in &self.template_data.user_defined_types.aliases {
+            let mut reference_found = false;
+
+            // We only want to evaluate generated types
+            if !variable.name.starts_with("__") {
+                reference_found = true;
+            }
+
+            // Check all aliases
+            if !reference_found
+                && check_for_usage_of_current_variable_in_variable_list(
+                    variable,
+                    &self.template_data.user_defined_types.aliases,
+                )
+            {
+                reference_found = true;
+            }
+
+            // Check all struct variables
+            if !reference_found {
+                for user_struct in &self.template_data.user_defined_types.structs {
+                    if check_for_usage_of_current_variable_in_variable_list(variable, &user_struct.variables)
+                    {
+                        reference_found = true;
+                        break;
+                    }
+                }
+            }
+
+            // Check all global variables
+            if !reference_found
+                && check_for_usage_of_current_variable_in_variable_list(
+                    variable,
+                    &self.template_data.global_variables,
+                )
+            {
+                reference_found = true;
+            }
+
+            // Check all function parameters
+            if !reference_found {
+                for function in &self.template_data.functions {
+                    if check_for_usage_of_current_variable_in_variable_list(variable, &function.parameters) {
+                        reference_found = true;
+                        break;
+                    }
+                }
+            }
+
+            if !reference_found {
+                names.push(variable.name.clone());
+            }
+        }
+
+        for name in names {
+            if let Some(index) =
+                self.template_data.user_defined_types.aliases.iter().position(|alias| alias.name == name)
+            {
+                self.template_data.user_defined_types.aliases.swap_remove(index);
+            }
+        }
+    }
+
+    /// Ensure that aliases are declared in the correct order to ensure that no unknown type error occurs
+    fn resolve_alias_dependencies(&mut self) {
+        let mut aliases = self.template_data.user_defined_types.aliases.clone();
+        let mut indices: Vec<usize> = Vec::new();
+
+        resolve_variable_dependency_order_in_variable_list(&mut indices, &mut aliases);
+
+        // We re-use the now empty aliases here
+        for index in indices.iter().copied().rev() {
+            aliases.push(self.template_data.user_defined_types.aliases[index].clone());
+        }
+
+        // Set aliases to the now correctly ordered aliases
+        self.template_data.user_defined_types.aliases = aliases;
+    }
 }
 
 /// Formats a variable for definition within an enum block.
@@ -995,4 +1103,50 @@ fn format_variable_for_function_comment() -> impl tera::Function {
             None => Err("Unable to format variable for function comment!".into()),
         }
     })
+}
+
+/// Checks for the usage of the current variable in a given variable list
+fn check_for_usage_of_current_variable_in_variable_list(
+    current_variable: &Variable,
+    variables: &Vec<Variable>,
+) -> bool {
+    for variable in variables {
+        if variable.data_type == current_variable.name {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn resolve_variable_dependency_order_in_variable_list(
+    indices: &mut Vec<usize>,
+    variables: &mut Vec<Variable>,
+) {
+    let mut top_level_names: Vec<String> = Vec::new();
+    let checked_count = indices.len();
+
+    for (index, variable) in variables.iter().enumerate() {
+        if !check_for_usage_of_current_variable_in_variable_list(variable, variables) {
+            top_level_names.push(variable.name.clone());
+
+            let full_index = index + checked_count;
+            if !indices.contains(&full_index)
+            {
+                indices.push(full_index);
+            }
+        }
+    }
+
+    for name in top_level_names {
+        if let Some(index) =
+            variables.iter().position(|variable| variable.name == name)
+        {
+            variables.swap_remove(index);
+        }
+    }
+
+    if !variables.is_empty() {
+        resolve_variable_dependency_order_in_variable_list(indices, variables);
+    }
 }

@@ -20,9 +20,17 @@ expression: "&generated_header.get_contents()"
 extern "C" {
 #endif
 
+typedef int16_t __global_gVarArrayOfArrayOfIntArray__[12];
+
+typedef int16_t __global_gVarArrayOfIntArray_[12];
+
+typedef __global_gVarArrayOfArrayOfIntArray__ __global_gVarArrayOfArrayOfIntArray_[12];
+
 extern char gVarString[256];
 extern int16_t gVarWString[6001];
 extern int16_t gVarIntArray[12];
+extern __global_gVarArrayOfIntArray_ gVarArrayOfIntArray[12];
+extern __global_gVarArrayOfArrayOfIntArray_ gVarArrayOfArrayOfIntArray[12];
 extern int16_t* gVarRefToInt;
 extern int16_t* gVarPointerToInt;
 extern time_t* gVarRefToDate;

@@ -11,3 +11,17 @@ void PrintAllEnumValues() {
     printf("Enum value 'D': %d\n", D);
     printf("Enum value 'E': %d\n", E);
 }
+
+void PrintCoordinateSet(CoordinateSet* coordinateSet) {
+    for (int i = 0; i < 4; i++) {
+        printf("[");
+        for (int j = 0; j < 3; j++) {
+            printf("%s", coordinateSet + i + j);
+
+            if (j < (3 - 1)) {
+                printf(", ");
+            }
+        }
+        printf("]\n");
+    }
+}

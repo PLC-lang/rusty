@@ -1,3 +1,6 @@
+TYPE CoordinateSet : ARRAY[0..3] OF ARRAY[0..2] OF INT;
+END_TYPE
+
 TYPE PartialEnumType : (
         A := 2,
         B := 0,
@@ -14,4 +17,10 @@ END_VAR
 END_FUNCTION
 
 FUNCTION PrintAllEnumValues
+END_FUNCTION
+
+FUNCTION PrintCoordinateSet
+VAR_INPUT
+    coordinateSet: CoordinateSet;
+END_VAR
 END_FUNCTION
