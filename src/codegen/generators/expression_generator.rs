@@ -581,17 +581,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         arguments: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         let Some(ReferenceExpr { base: Some(ref base), .. }) = operator.get_deref_expr() else {
-            // XXX: This would fail for auto-deref pointers, but given (for now) function pointers are never
-            // auto-derefed this should be fine.
-            unreachable!("internal error, invalid method call")
+            unreachable!("internal error, invalid function pointer call")
         };
 
         let qualified_pou_name = self.annotations.get(operator).unwrap().qualified_name().unwrap();
         let impl_entry = self.index.find_implementation_by_name(qualified_pou_name).unwrap();
-        // debug_assert!(
-        //     impl_entry.is_method() | impl_entry.is_function_block(),
-        //     "internal error, invalid method call"
-        // );
 
         // Get the associated variable then load it, e.g. `%localFnPtrVariable = alloca void (%Fb*)*, align 8`
         // followed by `%1 = load void (%Fb*)*, void (%Fb*)** %localFnPtrVariable, align 8``
@@ -614,12 +608,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             };
 
             let mut generated_arguments = match &impl_entry.implementation_type {
-                ImplementationType::Method | ImplementationType::Function => self
-                    .generate_function_arguments(
+                ImplementationType::Method => self.generate_function_arguments(
+                    self.index.find_pou(qualified_pou_name).unwrap(),
+                    &arguments,
+                    self.index.get_available_parameters(qualified_pou_name),
+                )?,
+
+                ImplementationType::Function => {
+                    // Forward declarations are prefixed by a `SELF: POINTER TO __VOID` (see itable.rs).
+                    // Methods, on the other hand, are not. That is they are still functions with a self
+                    // pointer parameter but that is done inside the codegen because they are currently not
+                    // lowered to functions with a explicit self parameter. As such, to mimic methods, we have
+                    // to skip the first parameter of the forward declaration.
+                    let declared_parameters =
+                        self.index.get_available_parameters(qualified_pou_name).into_iter().skip(1).collect();
+
+                    self.generate_function_arguments(
                         self.index.find_pou(qualified_pou_name).unwrap(),
                         &arguments,
-                        self.index.get_available_parameters(qualified_pou_name),
-                    )?,
+                        declared_parameters,
+                    )?
+                }
 
                 // Function Block body calls have a slightly different calling convention compared to regular
                 // methods. Specifically the arguments aren't passed to the call itself but rather the
