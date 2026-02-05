@@ -16,7 +16,17 @@
 extern "C" {
 #endif
 
+typedef enum ePartialEnumType {
+    A = 2,
+    B = 0,
+    C,
+    D = 1000,
+    E
+} PartialEnumType;
+
 void PrintNumber(int16_t valueToPrint);
+
+void PrintAllEnumValues();
 
 #ifdef __cplusplus
 }

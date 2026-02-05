@@ -1,5 +1,17 @@
+TYPE PartialEnumType : (
+        A := 2,
+        B := 0,
+        C,
+        D := 1000,
+        E
+    );
+END_TYPE
+
 FUNCTION PrintNumber
 VAR_INPUT
     valueToPrint: INT;
 END_VAR
+END_FUNCTION
+
+FUNCTION PrintAllEnumValues
 END_FUNCTION
