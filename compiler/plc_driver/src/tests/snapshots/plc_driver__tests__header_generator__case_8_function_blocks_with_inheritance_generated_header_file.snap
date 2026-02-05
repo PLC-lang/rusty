@@ -11,8 +11,8 @@ expression: "&generated_header.get_contents()"
 #define FUNCTION_BLOCKS_WITH_INHERITANCE_H_
 
 #include <stdint.h>
-#include <math.h>
 #include <stdbool.h>
+#include <math.h>
 #include <time.h>
 #include <dependencies.plc.h>
 

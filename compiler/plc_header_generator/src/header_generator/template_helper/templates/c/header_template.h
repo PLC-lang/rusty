@@ -7,8 +7,8 @@
 #define {{ file_name_caps }}
 
 #include <stdint.h>
-#include <math.h>
 #include <stdbool.h>
+#include <math.h>
 #include <time.h>
 #include <dependencies.plc.h>
 

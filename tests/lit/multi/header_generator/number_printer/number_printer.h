@@ -7,8 +7,8 @@
 #define _WORKSPACES_RUSTY_TESTS_LIT_MULTI_HEADER_GENERATOR_NUMBER_PRINTER_NUMBER_PRINTER_H_
 
 #include <stdint.h>
-#include <math.h>
 #include <stdbool.h>
+#include <math.h>
 #include <time.h>
 #include <dependencies.plc.h>
 
