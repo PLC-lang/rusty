@@ -36,11 +36,11 @@ FUNCTION main
     reference := instanceFb1;
     reference.printId();
 
-    // CHECK: FB2
+    // CHECK-NEXT: FB2
     reference := instanceFb2;
     reference.printId();
 
-    // CHECK: FB3
+    // CHECK-NEXT: FB3
     reference := instanceFb3;
     reference.printId();
 END_FUNCTION

@@ -1,11 +1,11 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-
 // Diamond inheritance pattern:
 //   A
 //  / \
 // B   C
 //  \ /
 //   DD
+
 INTERFACE A
     METHOD foo
     END_METHOD
@@ -88,36 +88,36 @@ FUNCTION main
     refA.foo(); // CHECK: FbA::foo
 
     refA := instanceB;
-    refA.foo(); // CHECK: FbB::foo
+    refA.foo(); // CHECK-NEXT: FbB::foo
 
     refA := instanceC;
-    refA.foo(); // CHECK: FbC::foo
+    refA.foo(); // CHECK-NEXT: FbC::foo
 
     refA := instanceD;
-    refA.foo(); // CHECK: FbD::foo
+    refA.foo(); // CHECK-NEXT: FbD::foo
 
     // ~~ refB := instance{B,DD} ~~
     refB := instanceB;
-    refB.foo(); // CHECK: FbB::foo
-    refB.bar(); // CHECK: FbB::bar
+    refB.foo(); // CHECK-NEXT: FbB::foo
+    refB.bar(); // CHECK-NEXT: FbB::bar
 
     refB := instanceD;
-    refB.foo(); // CHECK: FbD::foo
-    refB.bar(); // CHECK: FbD::bar
+    refB.foo(); // CHECK-NEXT: FbD::foo
+    refB.bar(); // CHECK-NEXT: FbD::bar
 
     // ~~ refC := instance{C,DD} ~~
     refC := instanceC;
-    refC.foo(); // CHECK: FbC::foo
-    refC.baz(); // CHECK: FbC::baz
+    refC.foo(); // CHECK-NEXT: FbC::foo
+    refC.baz(); // CHECK-NEXT: FbC::baz
 
     refC := instanceD;
-    refC.foo(); // CHECK: FbD::foo
-    refC.baz(); // CHECK: FbD::baz
+    refC.foo(); // CHECK-NEXT: FbD::foo
+    refC.baz(); // CHECK-NEXT: FbD::baz
 
     // ~~ refD := instance{DD} ~~
     refD := instanceD;
-    refD.foo(); // CHECK: FbD::foo
-    refD.bar(); // CHECK: FbD::bar
-    refD.baz(); // CHECK: FbD::baz
-    refD.qux(); // CHECK: FbD::qux
+    refD.foo(); // CHECK-NEXT: FbD::foo
+    refD.bar(); // CHECK-NEXT: FbD::bar
+    refD.baz(); // CHECK-NEXT: FbD::baz
+    refD.qux(); // CHECK-NEXT: FbD::qux
 END_FUNCTION
