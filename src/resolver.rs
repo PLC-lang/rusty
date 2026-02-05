@@ -365,7 +365,16 @@ impl TypeAnnotator<'_> {
             // `DINT`. This then results in an error in the codegen. Somewhat "ugly" I have to admit and a
             // better approach would be to lower method calls from `fbInstance.echo('stringValue', 5)` to
             // `fbInstance.echo(fbInstance, 'stringValue', 5)` but this has to do for now
-            arguments[1..].iter()
+            //
+            // However, for function pointers pointing to plain functions (e.g. interface forward declarations
+            // like `__fwd_A_foo`), the self/instance parameter is explicitly part of the function signature,
+            // so we should NOT skip the first argument.
+            let is_plain_function = self.index.find_pou(pou_name).is_some_and(|pou| pou.is_function());
+            if is_plain_function {
+                arguments.iter()
+            } else {
+                arguments[1..].iter()
+            }
         } else {
             arguments.iter()
         };
