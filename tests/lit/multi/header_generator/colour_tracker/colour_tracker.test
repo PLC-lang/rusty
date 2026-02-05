@@ -1,6 +1,1 @@
-RUN: %COMPILE %S/colour_tracker_prog.st && %RUN | %CHECK %s
-CHECK: Testing...
-CHECK: Red, Times Picked: 5
-CHECK: Green, Times Picked: 4
-CHECK: Blue, Times Picked: 6
-CHECK: Global Count: 3
+RUN: %COMPILE %S/colour_tracker_prog.st && %RUN | %CHECK %S/colour_tracker_prog.st

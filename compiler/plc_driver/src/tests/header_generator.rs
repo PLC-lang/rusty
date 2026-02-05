@@ -392,6 +392,13 @@ fn get_source_code_for_case_6_functions_with_complex_types() -> SourceCode {
     FUNCTION fnThatHasVariadicIntInput
     VAR_INPUT
         varIntInput: INT;
+        varVariadicInt: INT...;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION fnThatHasSizedVariadicIntInput
+    VAR_INPUT
+        varIntInput: INT;
         varVariadicInt: {sized} INT...;
     END_VAR
     END_FUNCTION
@@ -399,11 +406,25 @@ fn get_source_code_for_case_6_functions_with_complex_types() -> SourceCode {
     FUNCTION fnThatHasVariadicStringInput
     VAR_INPUT
         varIntInput: INT;
+        varVariadicString: STRING...;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION fnThatHasSizedVariadicStringInput
+    VAR_INPUT
+        varIntInput: INT;
         varVariadicString: {sized} STRING...;
     END_VAR
     END_FUNCTION
 
     FUNCTION fnThatHasVariadicComplexTypeInput
+    VAR_INPUT
+        varIntInput: INT;
+        varVariadicStruct: StructWithPrimitiveTypes...;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION fnThatHasSizedVariadicComplexTypeInput
     VAR_INPUT
         varIntInput: INT;
         varVariadicStruct: {sized} StructWithPrimitiveTypes...;
@@ -802,7 +823,8 @@ fn get_all_generated_header_contents(test_name: &str) -> Box<dyn GeneratedHeader
             .expect("Failed to deserialize snapshot content into TemplateData!");
 
     let mut generated_header =
-        get_empty_generated_header_from_options(&get_default_generated_header_options());
+        get_empty_generated_header_from_options(&get_default_generated_header_options())
+            .expect("Unable to get empty generated header!");
     generated_header.set_template_data(prepared_header_data.template_data);
     generated_header.set_directory(&prepared_header_data.directory);
     generated_header.set_path(&prepared_header_data.path);

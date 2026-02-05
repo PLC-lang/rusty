@@ -18,7 +18,7 @@ pub enum TypeAttribute {
     /// This type is an unremarkable type
     Default,
     UserGenerated,
-    Variadic,
+    Variadic(bool),
     Array(i128),
 }
 
@@ -55,11 +55,12 @@ pub trait TypeHelper {
 
 fn determine_type_attribute(
     is_variadic: bool,
+    is_sized_variadic: bool,
     is_user_generated: bool,
     array_size_option: Option<i128>,
 ) -> TypeAttribute {
-    if is_variadic {
-        return TypeAttribute::Variadic;
+    if is_variadic || is_sized_variadic {
+        return TypeAttribute::Variadic(is_sized_variadic);
     }
 
     if is_user_generated {

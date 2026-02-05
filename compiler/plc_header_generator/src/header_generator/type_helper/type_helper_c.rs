@@ -15,7 +15,12 @@ impl TypeHelper for GeneratedHeaderForC {
         if extended_type_name.type_name.is_empty() {
             return TypeInformation {
                 name: String::from(C_VOID),
-                attribute: determine_type_attribute(extended_type_name.is_variadic, false, None),
+                attribute: determine_type_attribute(
+                    extended_type_name.is_variadic,
+                    extended_type_name.is_sized_variadic,
+                    false,
+                    None,
+                ),
             };
         }
 
@@ -25,7 +30,12 @@ impl TypeHelper for GeneratedHeaderForC {
             // This is a user-generated type
             return TypeInformation {
                 name: extended_type_name.type_name.to_string(),
-                attribute: determine_type_attribute(extended_type_name.is_variadic, true, None),
+                attribute: determine_type_attribute(
+                    extended_type_name.is_variadic,
+                    extended_type_name.is_sized_variadic,
+                    true,
+                    None,
+                ),
             };
         };
 
@@ -35,7 +45,12 @@ impl TypeHelper for GeneratedHeaderForC {
                 if extended_type_name.type_name == BOOL_TYPE {
                     return TypeInformation {
                         name: String::from(C_BOOL),
-                        attribute: determine_type_attribute(extended_type_name.is_variadic, false, None),
+                        attribute: determine_type_attribute(
+                            extended_type_name.is_variadic,
+                            extended_type_name.is_sized_variadic,
+                            false,
+                            None,
+                        ),
                     };
                 }
 
@@ -43,7 +58,12 @@ impl TypeHelper for GeneratedHeaderForC {
                 if builtin_type.nature == TypeNature::Date || builtin_type.nature == TypeNature::Duration {
                     return TypeInformation {
                         name: String::from(C_TIME),
-                        attribute: determine_type_attribute(extended_type_name.is_variadic, false, None),
+                        attribute: determine_type_attribute(
+                            extended_type_name.is_variadic,
+                            extended_type_name.is_sized_variadic,
+                            false,
+                            None,
+                        ),
                     };
                 }
 
@@ -52,25 +72,43 @@ impl TypeHelper for GeneratedHeaderForC {
 
                 TypeInformation {
                     name: constructed_type_name,
-                    attribute: determine_type_attribute(extended_type_name.is_variadic, false, None),
+                    attribute: determine_type_attribute(
+                        extended_type_name.is_variadic,
+                        extended_type_name.is_sized_variadic,
+                        false,
+                        None,
+                    ),
                 }
             }
             DataTypeInformation::Float { size, .. } => {
                 if *size == REAL_SIZE {
                     TypeInformation {
                         name: String::from(C_FLOAT),
-                        attribute: determine_type_attribute(extended_type_name.is_variadic, false, None),
+                        attribute: determine_type_attribute(
+                            extended_type_name.is_variadic,
+                            extended_type_name.is_sized_variadic,
+                            false,
+                            None,
+                        ),
                     }
                 } else {
                     TypeInformation {
                         name: String::from(C_DOUBLE),
-                        attribute: determine_type_attribute(extended_type_name.is_variadic, false, None),
+                        attribute: determine_type_attribute(
+                            extended_type_name.is_variadic,
+                            extended_type_name.is_sized_variadic,
+                            false,
+                            None,
+                        ),
                     }
                 }
             }
             DataTypeInformation::Alias { referenced_type, .. } => {
-                let referenced_data_type_info =
-                    ExtendedTypeName { type_name: referenced_type.to_string(), is_variadic: false };
+                let referenced_data_type_info = ExtendedTypeName {
+                    type_name: referenced_type.to_string(),
+                    is_variadic: false,
+                    is_sized_variadic: false,
+                };
 
                 self.get_type_name_for_type(&referenced_data_type_info, builtin_types)
             }
@@ -79,6 +117,7 @@ impl TypeHelper for GeneratedHeaderForC {
                     name: self.get_type_name_for_string(&false),
                     attribute: determine_type_attribute(
                         extended_type_name.is_variadic,
+                        extended_type_name.is_sized_variadic,
                         false,
                         Some(extract_string_size(size)),
                     ),
@@ -87,6 +126,7 @@ impl TypeHelper for GeneratedHeaderForC {
                     name: self.get_type_name_for_string(&true),
                     attribute: determine_type_attribute(
                         extended_type_name.is_variadic,
+                        extended_type_name.is_sized_variadic,
                         false,
                         Some(extract_string_size(size)),
                     ),

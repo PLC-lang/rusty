@@ -216,6 +216,29 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
       },
       {
         "return_type": "void",
+        "name": "fnThatHasSizedVariadicIntInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntInput",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int32_t",
+            "name": "varVariadicInt_count",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int16_t",
+            "name": "varVariadicInt",
+            "variable_type": {
+              "Array": 0
+            }
+          }
+        ]
+      },
+      {
+        "return_type": "void",
         "name": "fnThatHasVariadicStringInput",
         "parameters": [
           {
@@ -232,6 +255,29 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
       },
       {
         "return_type": "void",
+        "name": "fnThatHasSizedVariadicStringInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntInput",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int32_t",
+            "name": "varVariadicString_count",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "char*",
+            "name": "varVariadicString",
+            "variable_type": {
+              "Array": 0
+            }
+          }
+        ]
+      },
+      {
+        "return_type": "void",
         "name": "fnThatHasVariadicComplexTypeInput",
         "parameters": [
           {
@@ -243,6 +289,29 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
             "data_type": "StructWithPrimitiveTypes",
             "name": "varVariadicStruct",
             "variable_type": "Variadic"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatHasSizedVariadicComplexTypeInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntInput",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int32_t",
+            "name": "varVariadicStruct_count",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "StructWithPrimitiveTypes",
+            "name": "varVariadicStruct",
+            "variable_type": {
+              "Array": 0
+            }
           }
         ]
       },

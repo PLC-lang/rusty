@@ -54,9 +54,15 @@ void fnThatHasIntWithRange(int16_t varIntWithRange);
 
 void fnThatHasVariadicIntInput(int16_t varIntInput, ...);
 
+void fnThatHasSizedVariadicIntInput(int16_t varIntInput, int32_t varVariadicInt_count, int16_t* varVariadicInt);
+
 void fnThatHasVariadicStringInput(int16_t varIntInput, ...);
 
+void fnThatHasSizedVariadicStringInput(int16_t varIntInput, int32_t varVariadicString_count, char** varVariadicString);
+
 void fnThatHasVariadicComplexTypeInput(int16_t varIntInput, ...);
+
+void fnThatHasSizedVariadicComplexTypeInput(int16_t varIntInput, int32_t varVariadicStruct_count, StructWithPrimitiveTypes* varVariadicStruct);
 
 void fnThatHasVariableLengthArrayInput(int16_t* varVariableLengthArray);
 

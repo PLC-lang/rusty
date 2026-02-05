@@ -88,7 +88,7 @@ pub fn prepare_template_data_for_header_generation(
     generate_header_options: &GenerateHeaderOptions,
     compilation_unit: &CompilationUnit,
 ) -> Result<Box<dyn GeneratedHeader>, Diagnostic> {
-    let mut generated_header = get_empty_generated_header_from_options(generate_header_options);
+    let mut generated_header = get_empty_generated_header_from_options(generate_header_options)?;
 
     // Determine file and directory
     // If the directories could not be configured with an acceptable outcome, then we exit without performing generation for this compilation unit
@@ -108,7 +108,7 @@ pub fn combine_generated_headers(
     generated_headers: Vec<Box<dyn GeneratedHeader>>,
     output_file: String,
 ) -> Result<Box<dyn GeneratedHeader>, Diagnostic> {
-    let mut generated_header = get_empty_generated_header_from_options(generate_header_options);
+    let mut generated_header = get_empty_generated_header_from_options(generate_header_options)?;
 
     // We assume the first generated header in the list's location is the location we would like to place the header
     let some_generated_header = generated_headers.iter().find(|p| !p.is_empty());
@@ -151,13 +151,15 @@ pub fn combine_generated_headers(
 /// Generates an appropriate header for the given header options
 pub fn get_empty_generated_header_from_options(
     generate_header_options: &GenerateHeaderOptions,
-) -> Box<dyn GeneratedHeader> {
-    let generated_header: Box<dyn GeneratedHeader> = match generate_header_options.language {
+) -> Result<Box<dyn GeneratedHeader>, Diagnostic> {
+    let generated_header: Result<Box<dyn GeneratedHeader>, Diagnostic> = match generate_header_options
+        .language
+    {
         GenerateLanguage::C => {
             let generated_header = GeneratedHeaderForC::new();
-            Box::new(generated_header)
+            Ok(Box::new(generated_header))
         }
-        language => panic!("This language '{:?}' is not yet implemented!", language),
+        language => Err(Diagnostic::new(format!("This language '{:?}' is not yet implemented!", language))),
     };
 
     generated_header
@@ -167,6 +169,7 @@ pub fn get_empty_generated_header_from_options(
 pub struct ExtendedTypeName {
     pub type_name: String,
     pub is_variadic: bool,
+    pub is_sized_variadic: bool,
 }
 
 impl Default for ExtendedTypeName {
@@ -177,7 +180,7 @@ impl Default for ExtendedTypeName {
 
 impl ExtendedTypeName {
     pub const fn new() -> Self {
-        ExtendedTypeName { type_name: String::new(), is_variadic: false }
+        ExtendedTypeName { type_name: String::new(), is_variadic: false, is_sized_variadic: false }
     }
 }
 
@@ -204,28 +207,43 @@ fn extract_enum_declaration_from_elements(node: &AstNode) -> Vec<Variable> {
             for exp_node in exp_nodes {
                 match &exp_node.stmt {
                     AstStatement::Assignment(assignment) => {
-                        let left = extract_enum_field_name_from_statement(&assignment.left.stmt);
-                        let right = extract_enum_field_value_from_statement(&assignment.right.stmt);
+                        let option_left = extract_enum_field_name_from_statement(&assignment.left.stmt);
 
-                        if right.is_empty() {
-                            enum_declarations.push(Variable {
-                                data_type: String::new(),
-                                name: left,
-                                variable_type: VariableType::Default,
-                            });
+                        if let Some(left) = option_left {
+                            let option_right =
+                                extract_enum_field_value_from_statement(&assignment.right.stmt);
+
+                            if let Some(right) = option_right {
+                                enum_declarations.push(Variable {
+                                    data_type: String::new(),
+                                    name: left,
+                                    variable_type: VariableType::Declaration(right),
+                                });
+                            } else {
+                                enum_declarations.push(Variable {
+                                    data_type: String::new(),
+                                    name: left,
+                                    variable_type: VariableType::Default,
+                                });
+                            }
                         } else {
-                            enum_declarations.push(Variable {
-                                data_type: String::new(),
-                                name: left,
-                                variable_type: VariableType::Declaration(right),
-                            });
+                            println!(
+                                "Unable to extract the enum field name from the given assignment {:?}!",
+                                assignment
+                            )
                         }
                     }
-                    _ => continue,
+                    _ => println!(
+                        "Given node {:?} is not an Assignment, unable to extract the enum declaration!",
+                        exp_node
+                    ),
                 }
             }
         }
-        _ => todo!(),
+        _ => println!(
+            "Given node {:?} is not an Expression list, unable to extract the enum declaration!",
+            node
+        ),
     }
 
     enum_declarations
@@ -236,29 +254,29 @@ fn extract_enum_declaration_from_elements(node: &AstNode) -> Vec<Variable> {
 /// Will return a new string if the AstStatement type not [ReferenceExpr](plc_ast::ast::AstStatement::ReferenceExpr),
 /// the access of that expression is not type [Member](plc_ast::ast::ReferenceAccess::Member)
 /// and the statement of that member is not type [Identifier](plc_ast::ast::AstStatement::Identifier).
-fn extract_enum_field_name_from_statement(statement: &AstStatement) -> String {
+fn extract_enum_field_name_from_statement(statement: &AstStatement) -> Option<String> {
     match statement {
         AstStatement::ReferenceExpr(reference_expression) => match &reference_expression.access {
             ReferenceAccess::Member(member_node) => {
                 let member_statement = member_node.get_stmt();
                 match member_statement {
-                    AstStatement::Identifier(enum_field) => enum_field.to_string(),
-                    _ => String::new(),
+                    AstStatement::Identifier(enum_field) => Some(enum_field.to_string()),
+                    _ => None,
                 }
             }
-            _ => String::new(),
+            _ => None,
         },
-        _ => String::new(),
+        _ => None,
     }
 }
 
 /// Extracts the value from an AstStatement type [Literal](plc_ast::ast::AstStatement::Literal).
 ///
 /// Will return a new string if the AstStatement type is not [Literal](plc_ast::ast::AstStatement::Literal).
-fn extract_enum_field_value_from_statement(statement: &AstStatement) -> String {
+fn extract_enum_field_value_from_statement(statement: &AstStatement) -> Option<String> {
     match statement {
-        AstStatement::Literal(literal) => literal.get_literal_value(),
-        _ => String::new(),
+        AstStatement::Literal(literal) => Some(literal.get_literal_value()),
+        _ => None,
     }
 }
 
@@ -267,16 +285,32 @@ fn extract_enum_field_value_from_statement(statement: &AstStatement) -> String {
 /// Will return the default for ExtendedTypeName if the data type declaration is not [Reference](plc_ast::ast::DataTypeDeclaration::Reference) or [Definition](plc_ast::ast::DataTypeDeclaration::Definition).
 fn get_type_from_data_type_decleration(
     data_type_declaration: &Option<DataTypeDeclaration>,
+    enforce_no_variadic: bool,
 ) -> ExtendedTypeName {
     match data_type_declaration {
-        Some(DataTypeDeclaration::Reference { referenced_type, .. }) => {
-            ExtendedTypeName { type_name: referenced_type.clone(), is_variadic: false }
-        }
+        Some(DataTypeDeclaration::Reference { referenced_type, .. }) => ExtendedTypeName {
+            type_name: referenced_type.clone(),
+            is_variadic: false,
+            is_sized_variadic: false,
+        },
         Some(DataTypeDeclaration::Definition { data_type, .. }) => {
             let type_name: String = data_type.get_name().unwrap_or("").to_string();
-            let is_variadic = matches!(&**data_type, ast::DataType::VarArgs { .. });
+            let (is_variadic, is_sized_variadic) = if enforce_no_variadic {
+                (false, false)
+            } else {
+                match &**data_type {
+                    ast::DataType::VarArgs { sized, .. } => {
+                        if *sized {
+                            (false, true)
+                        } else {
+                            (true, false)
+                        }
+                    }
+                    _ => (false, false),
+                }
+            };
 
-            ExtendedTypeName { type_name, is_variadic }
+            ExtendedTypeName { type_name, is_variadic, is_sized_variadic }
         }
         _ => ExtendedTypeName::new(),
     }

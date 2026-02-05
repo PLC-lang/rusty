@@ -1,8 +1,1 @@
-RUN: %COMPILE %S/shape_drawer_prog.st && %RUN | %CHECK %s
-CHECK: ******
-CHECK: ******
-CHECK: ******
-CHECK: ****
-CHECK: ****
-CHECK: ****
-CHECK: ****
+RUN: %COMPILE %S/shape_drawer_prog.st && %RUN | %CHECK %S/shape_drawer_prog.st

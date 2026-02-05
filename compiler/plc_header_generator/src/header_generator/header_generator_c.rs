@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use plc::typesystem::{get_builtin_types, DataType, LWORD_TYPE};
+use plc::typesystem::{get_builtin_types, DataType, DINT_TYPE, LWORD_TYPE};
 use plc_ast::ast::{
     self, ArgumentProperty, CompilationUnit, Identifier, Implementation, LinkageType, Pou, PouType,
     UserTypeDeclaration, VariableBlock, VariableBlockType,
@@ -161,7 +161,7 @@ impl GeneratedHeaderForC {
                 }
                 PouType::Method { parent, .. } => {
                     let type_info = &self.get_type_name_for_type(
-                        &get_type_from_data_type_decleration(&pou.return_type),
+                        &get_type_from_data_type_decleration(&pou.return_type, false),
                         builtin_types,
                     );
 
@@ -225,7 +225,7 @@ impl GeneratedHeaderForC {
         match pou.kind {
             PouType::Function => {
                 let type_info = &self.get_type_name_for_type(
-                    &get_type_from_data_type_decleration(&pou.return_type),
+                    &get_type_from_data_type_decleration(&pou.return_type, false),
                     builtin_types,
                 );
 
@@ -263,7 +263,11 @@ impl GeneratedHeaderForC {
             PouType::Action => {
                 // Get void type
                 let void_type = self.get_type_name_for_type(
-                    &ExtendedTypeName { type_name: String::new(), is_variadic: false },
+                    &ExtendedTypeName {
+                        type_name: String::new(),
+                        is_variadic: false,
+                        is_sized_variadic: false,
+                    },
                     builtin_types,
                 );
 
@@ -331,6 +335,7 @@ impl GeneratedHeaderForC {
                     &ExtendedTypeName {
                         type_name: referenced_type.get_name().unwrap_or_default().to_string(),
                         is_variadic: false,
+                        is_sized_variadic: false,
                     },
                     builtin_types,
                 );
@@ -346,6 +351,7 @@ impl GeneratedHeaderForC {
                     &ExtendedTypeName {
                         type_name: referenced_type.get_name().unwrap_or_default().to_string(),
                         is_variadic: false,
+                        is_sized_variadic: false,
                     },
                     builtin_types,
                 );
@@ -368,7 +374,11 @@ impl GeneratedHeaderForC {
             }
             ast::DataType::SubRangeType { name, referenced_type, .. } => {
                 let type_information = self.get_type_name_for_type(
-                    &ExtendedTypeName { type_name: referenced_type.to_string(), is_variadic: false },
+                    &ExtendedTypeName {
+                        type_name: referenced_type.to_string(),
+                        is_variadic: false,
+                        is_sized_variadic: false,
+                    },
                     builtin_types,
                 );
 
@@ -392,8 +402,10 @@ impl GeneratedHeaderForC {
         builtin_types: &[DataType],
         pous: &Vec<Pou>,
     ) {
-        let type_info = &self
-            .get_type_name_for_type(&get_type_from_data_type_decleration(&pou.return_type), builtin_types);
+        let type_info = &self.get_type_name_for_type(
+            &get_type_from_data_type_decleration(&pou.return_type, false),
+            builtin_types,
+        );
 
         let function_name = pou.name.to_string();
         let data_type = format!("{function_name}{TYPE_APPEND}");
@@ -429,7 +441,7 @@ impl GeneratedHeaderForC {
 
         // Get void type
         let void_type = self.get_type_name_for_type(
-            &ExtendedTypeName { type_name: String::new(), is_variadic: false },
+            &ExtendedTypeName { type_name: String::new(), is_variadic: false, is_sized_variadic: false },
             builtin_types,
         );
 
@@ -542,12 +554,19 @@ impl GeneratedHeaderForC {
                 reference_symbol = self.get_reference_symbol();
 
                 self.get_type_name_for_type(
-                    &ExtendedTypeName { type_name: LWORD_TYPE.into(), is_variadic: false },
+                    &ExtendedTypeName {
+                        type_name: LWORD_TYPE.into(),
+                        is_variadic: false,
+                        is_sized_variadic: false,
+                    },
                     builtin_types,
                 )
             } else {
                 self.get_type_name_for_type(
-                    &get_type_from_data_type_decleration(&Some(variable.data_type_declaration.clone())),
+                    &get_type_from_data_type_decleration(
+                        &Some(variable.data_type_declaration.clone()),
+                        false,
+                    ),
                     builtin_types,
                 )
             };
@@ -628,12 +647,57 @@ impl GeneratedHeaderForC {
                         });
                     }
                 }
-                TypeAttribute::Variadic => {
-                    variables.push(Variable {
-                        data_type,
-                        name: variable.get_name().to_string(),
-                        variable_type: VariableType::Variadic,
-                    });
+                TypeAttribute::Variadic(is_sized) => {
+                    if !is_sized {
+                        variables.push(Variable {
+                            data_type,
+                            name: variable.get_name().to_string(),
+                            variable_type: VariableType::Variadic,
+                        });
+                    } else {
+                        // Push an integer for the size of the variadic
+                        let dint_type_info = self.get_type_name_for_type(
+                            &ExtendedTypeName {
+                                type_name: DINT_TYPE.into(),
+                                is_variadic: false,
+                                is_sized_variadic: false,
+                            },
+                            builtin_types,
+                        );
+
+                        let size_variable_name = format!("{}_count", variable.get_name());
+                        variables.push(Variable {
+                            data_type: dint_type_info.get_type_name(),
+                            name: size_variable_name,
+                            variable_type: VariableType::Default,
+                        });
+
+                        // Push a reference for the variadic's type
+                        let underlying_type_info = self.get_type_name_for_type(
+                            &get_type_from_data_type_decleration(
+                                &Some(variable.data_type_declaration.clone()),
+                                true,
+                            ),
+                            builtin_types,
+                        );
+
+                        let reference_to_data_type = match underlying_type_info.attribute {
+                            TypeAttribute::Array(_) => {
+                                format!(
+                                    "{}{}",
+                                    underlying_type_info.get_type_name(),
+                                    self.get_reference_symbol()
+                                )
+                            }
+                            _ => underlying_type_info.get_type_name(),
+                        };
+
+                        variables.push(Variable {
+                            data_type: reference_to_data_type,
+                            name: variable.get_name().to_string(),
+                            variable_type: VariableType::Array(0),
+                        });
+                    }
                 }
                 TypeAttribute::Array(size) => {
                     variables.push(Variable {
@@ -706,18 +770,32 @@ impl GeneratedHeaderForC {
         }
 
         match &user_type.data_type {
-            // TODO: Log the error: "type_name_override expected for struct with name: {} but none supplied!"
-            ast::DataType::StructType { name, .. } => type_name_override.map(|type_name_override| Variable {
-                name: coalesce_field_name_override_with_default(name, field_name_override),
-                data_type: type_name_override.to_string(),
-                variable_type: VariableType::Struct,
-            }),
-            // TODO: Log the error: "type_name_override expected for enum with name: {} but none supplied!"
-            ast::DataType::EnumType { name, .. } => type_name_override.map(|type_name_override| Variable {
-                name: coalesce_field_name_override_with_default(name, field_name_override),
-                data_type: type_name_override.to_string(),
-                variable_type: VariableType::Default,
-            }),
+            ast::DataType::StructType { name, .. } => {
+                let name = coalesce_field_name_override_with_default(name, field_name_override);
+                if let Some(type_name_override) = type_name_override {
+                    Some(Variable {
+                        name,
+                        data_type: type_name_override.to_string(),
+                        variable_type: VariableType::Struct,
+                    })
+                } else {
+                    println!("type_name_override expected for struct with name: {name} but none supplied!");
+                    None
+                }
+            }
+            ast::DataType::EnumType { name, .. } => {
+                let name = coalesce_field_name_override_with_default(name, field_name_override);
+                if let Some(type_name_override) = type_name_override {
+                    Some(Variable {
+                        name,
+                        data_type: type_name_override.to_string(),
+                        variable_type: VariableType::Default,
+                    })
+                } else {
+                    println!("type_name_override expected for enum with name: {name} but none supplied!");
+                    None
+                }
+            }
             ast::DataType::StringType { name, size, is_wide } => Some(Variable {
                 name: coalesce_field_name_override_with_default(name, field_name_override),
                 data_type: self.get_type_name_for_string(is_wide),
@@ -726,46 +804,56 @@ impl GeneratedHeaderForC {
             ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
                 // The assumption here is that the referenced type has been given a name already by the parser
                 // As a sanity check we will return "None" and log an error if no name for this referenced type is found
+                let name = coalesce_field_name_override_with_default(name, field_name_override);
                 if let Some(referenced_type_name) = referenced_type.get_name() {
                     let type_info = self.get_type_name_for_type(
-                        &ExtendedTypeName { type_name: referenced_type_name.to_string(), is_variadic: false },
+                        &ExtendedTypeName {
+                            type_name: referenced_type_name.to_string(),
+                            is_variadic: false,
+                            is_sized_variadic: false,
+                        },
                         builtin_types,
                     );
 
                     Some(Variable {
-                        name: coalesce_field_name_override_with_default(name, field_name_override),
+                        name,
                         data_type: type_info.get_type_name(),
                         variable_type: VariableType::Array(extract_array_size(bounds)),
                     })
                 } else {
-                    // TODO: Log the error: "Referenced type expected for array with name: {} but none found!"
+                    println!("Referenced type expected for array with name: {name} but none found!");
                     None
                 }
             }
             ast::DataType::PointerType { name, referenced_type, .. } => {
                 // The assumption here is that the referenced type has been given a name already by the parser
                 // As a sanity check we will return "None" and log an error if no name for this referenced type is found
+                let name = coalesce_field_name_override_with_default(name, field_name_override);
                 if let Some(referenced_type_name) = referenced_type.get_name() {
                     let type_info = self.get_type_name_for_type(
-                        &ExtendedTypeName { type_name: referenced_type_name.to_string(), is_variadic: false },
+                        &ExtendedTypeName {
+                            type_name: referenced_type_name.to_string(),
+                            is_variadic: false,
+                            is_sized_variadic: false,
+                        },
                         builtin_types,
                     );
 
                     let data_type = format!("{}{}", type_info.get_type_name(), self.get_reference_symbol());
 
-                    Some(Variable {
-                        name: coalesce_field_name_override_with_default(name, field_name_override),
-                        data_type,
-                        variable_type: VariableType::Default,
-                    })
+                    Some(Variable { name, data_type, variable_type: VariableType::Default })
                 } else {
-                    // TODO: Log the error: "Referenced type expected for pointer with name: {} but none found!"
+                    println!("Referenced type expected for pointer with name: {name} but none found!");
                     None
                 }
             }
             ast::DataType::SubRangeType { name, referenced_type, .. } => {
                 let type_info = self.get_type_name_for_type(
-                    &ExtendedTypeName { type_name: referenced_type.to_string(), is_variadic: false },
+                    &ExtendedTypeName {
+                        type_name: referenced_type.to_string(),
+                        is_variadic: false,
+                        is_sized_variadic: false,
+                    },
                     builtin_types,
                 );
 
