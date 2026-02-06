@@ -20,8 +20,8 @@ END_VAR
 
     // Print co-ordinate set
     PrintCoordinateSet(coordinateSet);
-    // CHECK: [0,1,2]
-    // CHECK-NEXT: [10,11,12]
-    // CHECK-NEXT: [20,21,22]
-    // CHECK-NEXT: [30,31,32]
+    // CHECK: [0, 1, 2]
+    // CHECK-NEXT: [10, 11, 12]
+    // CHECK-NEXT: [20, 21, 22]
+    // CHECK-NEXT: [30, 31, 32]
 END_FUNCTION

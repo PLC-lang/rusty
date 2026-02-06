@@ -20,13 +20,13 @@ expression: "&generated_header.get_contents()"
 extern "C" {
 #endif
 
-typedef char T_String[51];
-
-typedef int32_t T_DInt;
+typedef bool T_Bool;
 
 typedef int16_t T_Array[12];
 
-typedef bool T_Bool;
+typedef int32_t T_DInt;
+
+typedef char T_String[51];
 
 // varStringInput: maximum of 51 T_String(s)
 // varArrayOfIntInput: maximum of 12 T_Array(s)

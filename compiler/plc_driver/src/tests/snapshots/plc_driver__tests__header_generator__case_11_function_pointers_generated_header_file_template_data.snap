@@ -18,12 +18,12 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
         },
         {
           "data_type": "void",
-          "name": "(*fnThatUsesStructWithPrimitiveTypes_ptr)(StructWithPrimitiveTypes*, StructWithPrimitiveTypes*)",
+          "name": "(*fnThatUsesStructWithComplexTypes_ptr)(StructWithComplexTypes*, StructWithComplexTypes*, ComplexEnumType, char*, int16_t*)",
           "variable_type": "Default"
         },
         {
           "data_type": "void",
-          "name": "(*fnThatUsesStructWithComplexTypes_ptr)(StructWithComplexTypes*, StructWithComplexTypes*, ComplexEnumType, char*, int16_t*)",
+          "name": "(*fnThatUsesStructWithPrimitiveTypes_ptr)(StructWithPrimitiveTypes*, StructWithPrimitiveTypes*)",
           "variable_type": "Default"
         }
       ],

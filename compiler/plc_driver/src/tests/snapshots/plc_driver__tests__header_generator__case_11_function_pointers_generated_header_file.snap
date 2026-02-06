@@ -24,9 +24,9 @@ typedef void (*fnVoidThatWillBePointedTo_ptr)(int32_t);
 
 typedef int32_t (*fnDIntThatWillBePointedTo_ptr)(int32_t);
 
-typedef void (*fnThatUsesStructWithPrimitiveTypes_ptr)(StructWithPrimitiveTypes*, StructWithPrimitiveTypes*);
-
 typedef void (*fnThatUsesStructWithComplexTypes_ptr)(StructWithComplexTypes*, StructWithComplexTypes*, ComplexEnumType, char*, int16_t*);
+
+typedef void (*fnThatUsesStructWithPrimitiveTypes_ptr)(StructWithPrimitiveTypes*, StructWithPrimitiveTypes*);
 
 typedef struct {
     uint8_t Field1;

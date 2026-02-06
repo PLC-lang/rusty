@@ -20,9 +20,9 @@ expression: "&generated_header.get_contents()"
 extern "C" {
 #endif
 
-typedef int16_t __StructWithComplexTypes_arrayOfIntArrayField_[10];
-
 typedef int16_t __fnThatUsesStructWithComplexTypes_varArrayOfIntArray_[15];
+
+typedef int16_t __StructWithComplexTypes_arrayOfIntArrayField_[10];
 
 typedef enum eComplexEnumType {
     orange = 10,

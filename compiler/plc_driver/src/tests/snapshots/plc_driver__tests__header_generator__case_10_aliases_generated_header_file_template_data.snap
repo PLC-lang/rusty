@@ -7,15 +7,8 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
     "user_defined_types": {
       "aliases": [
         {
-          "data_type": "char",
-          "name": "T_String",
-          "variable_type": {
-            "Array": 51
-          }
-        },
-        {
-          "data_type": "int32_t",
-          "name": "T_DInt",
+          "data_type": "bool",
+          "name": "T_Bool",
           "variable_type": "Default"
         },
         {
@@ -26,9 +19,16 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
           }
         },
         {
-          "data_type": "bool",
-          "name": "T_Bool",
+          "data_type": "int32_t",
+          "name": "T_DInt",
           "variable_type": "Default"
+        },
+        {
+          "data_type": "char",
+          "name": "T_String",
+          "variable_type": {
+            "Array": 51
+          }
         }
       ],
       "structs": [],

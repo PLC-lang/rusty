@@ -54,7 +54,6 @@ impl GeneratedHeader for GeneratedHeaderForC {
         self.prepare_global_variables(compilation_unit, &builtin_types);
         self.prepare_user_types(compilation_unit, &builtin_types);
         self.prepare_functions(compilation_unit, &builtin_types);
-        self.cleanup_typedef_declarations_if_not_used();
         self.resolve_alias_dependencies();
     }
 
@@ -972,7 +971,11 @@ impl GeneratedHeaderForC {
         let mut aliases = self.template_data.user_defined_types.aliases.clone();
         let mut indices: Vec<usize> = Vec::new();
 
-        resolve_variable_dependency_order_in_variable_list(&mut indices, &mut aliases);
+        resolve_variable_dependency_order_in_variable_list(
+            &mut indices,
+            &mut aliases,
+            &self.template_data.user_defined_types.aliases,
+        );
 
         // We re-use the now empty aliases here
         for index in indices.iter().copied().rev() {
@@ -981,6 +984,8 @@ impl GeneratedHeaderForC {
 
         // Set aliases to the now correctly ordered aliases
         self.template_data.user_defined_types.aliases = aliases;
+
+        self.cleanup_typedef_declarations_if_not_used();
     }
 }
 
@@ -1122,31 +1127,31 @@ fn check_for_usage_of_current_variable_in_variable_list(
 fn resolve_variable_dependency_order_in_variable_list(
     indices: &mut Vec<usize>,
     variables: &mut Vec<Variable>,
+    full_variables: &Vec<Variable>,
 ) {
     let mut top_level_names: Vec<String> = Vec::new();
-    let checked_count = indices.len();
 
-    for (index, variable) in variables.iter().enumerate() {
+    for variable in variables.iter() {
         if !check_for_usage_of_current_variable_in_variable_list(variable, variables) {
             top_level_names.push(variable.name.clone());
 
-            let full_index = index + checked_count;
-            if !indices.contains(&full_index)
+            if let Some(full_index) =
+                full_variables.iter().position(|full_variable| full_variable.name == variable.name)
             {
-                indices.push(full_index);
+                if !indices.contains(&full_index) {
+                    indices.push(full_index);
+                }
             }
         }
     }
 
     for name in top_level_names {
-        if let Some(index) =
-            variables.iter().position(|variable| variable.name == name)
-        {
+        if let Some(index) = variables.iter().position(|variable| variable.name == name) {
             variables.swap_remove(index);
         }
     }
 
     if !variables.is_empty() {
-        resolve_variable_dependency_order_in_variable_list(indices, variables);
+        resolve_variable_dependency_order_in_variable_list(indices, variables, full_variables);
     }
 }

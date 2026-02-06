@@ -14,15 +14,15 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
           }
         },
         {
-          "data_type": "int16_t",
-          "name": "__global_gVarArrayOfIntArray_",
+          "data_type": "__global_gVarArrayOfArrayOfIntArray__",
+          "name": "__global_gVarArrayOfArrayOfIntArray_",
           "variable_type": {
             "Array": 12
           }
         },
         {
-          "data_type": "__global_gVarArrayOfArrayOfIntArray__",
-          "name": "__global_gVarArrayOfArrayOfIntArray_",
+          "data_type": "int16_t",
+          "name": "__global_gVarArrayOfIntArray_",
           "variable_type": {
             "Array": 12
           }
