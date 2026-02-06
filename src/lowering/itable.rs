@@ -77,7 +77,13 @@ impl InterfaceTableGenerator {
             for pou in unit.pous.iter().filter(|p| p.kind.is_class() || p.kind.is_function_block()) {
                 instances.extend(self.generate_itable_instances(index, &pou.name, &pou.location));
             }
-            unit.global_vars.push(VariableBlock::global().with_variables(instances));
+
+            // Avoid injecting empty internal global blocks. Multiple internal blocks can confuse
+            // subsequent preprocess/index cycles that update generated globals (e.g. mangled
+            // hardware-access globals like __PI_*).
+            if !instances.is_empty() {
+                unit.global_vars.push(VariableBlock::global().with_variables(instances));
+            }
         }
     }
 
