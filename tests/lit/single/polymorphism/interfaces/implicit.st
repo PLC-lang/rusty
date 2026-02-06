@@ -1,4 +1,7 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// Scenario: FbA is the only POU which directly implements interface A. FbB and FbC indirectly implement the
+// interface by extending from FbA. Implicitly, this means FbB and FbC can be assigned to variables of type
+// interface A.
 
 INTERFACE A
     METHOD id

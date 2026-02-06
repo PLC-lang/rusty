@@ -1,10 +1,11 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Diamond inheritance pattern:
-//   A
-//  / \
-// B   C
-//  \ /
-//   DD
+// Scenario: Classic diamond pattern inheritance hierachy between interfaces. Should assert that even with
+// multi inheritance dynamic dispatch works correctly.
+// A
+// / \
+// B C
+// \ /
+// DD
 
 INTERFACE A
     METHOD foo

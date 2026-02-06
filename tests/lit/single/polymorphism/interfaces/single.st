@@ -1,4 +1,6 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// Scenario: Single interface which multiple function blocks implement and as a result should all be
+// assignable to the interface variable in main.
 
 INTERFACE Identifier
     METHOD printId
