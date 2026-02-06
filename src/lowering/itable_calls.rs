@@ -468,6 +468,11 @@ mod tests {
         ");
     }
 
+    #[test]
+    fn aggregate_return_type() {
+        todo!("make sure alloca works");
+    }
+
     mod helper {
         use plc_ast::ast::{CompilationUnit, DataType, DataTypeDeclaration};
         use plc_ast::provider::IdProvider;

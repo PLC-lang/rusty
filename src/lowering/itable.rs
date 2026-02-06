@@ -56,7 +56,7 @@ impl InterfaceTableGenerator {
         InterfaceTableGenerator { ids }
     }
 
-    pub fn generate(&mut self, index: &Index, units: &mut Vec<CompilationUnit>) {
+    pub fn generate(&mut self, index: &Index, units: &mut [CompilationUnit]) {
         for unit in units.iter_mut() {
             // 2. Generate itable struct definitions per interface, in each unit that declares them
             // 3. Generate forward declarations for interface methods
@@ -397,7 +397,7 @@ pub(crate) mod helper {
     /// Deduplicates methods by call name, keeping the first occurrence.
     /// Since `get_methods` returns declared methods first (from the child interface),
     /// this ensures we prefer the child's version over inherited ones.
-    pub fn dedupe_methods_by_call_name<'a>(methods: Vec<&'a PouIndexEntry>) -> Vec<&'a PouIndexEntry> {
+    pub fn dedupe_methods_by_call_name(methods: Vec<&PouIndexEntry>) -> Vec<&PouIndexEntry> {
         let mut seen = FxHashSet::default();
         methods.into_iter().filter(|m| seen.insert(m.get_call_name())).collect()
     }

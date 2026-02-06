@@ -864,3 +864,13 @@ fn super_is_untouched() {
     }
     "#);
 }
+
+mod interfaces {
+    use plc_util::filtered_assert_snapshot;
+    use test_utils::codegen;
+
+    #[test]
+    fn ir_tests() {
+        todo!()
+    }
+}
