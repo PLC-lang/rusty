@@ -1,6 +1,8 @@
 use std::ops::{Add, AddAssign};
 
-#[derive(Copy, Clone, Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct DataLayout {
     pub i1: Bytes,
     pub i8: Bytes,
@@ -35,7 +37,7 @@ impl Default for DataLayout {
 }
 
 /// An representation of a Byte unit, used to represent sizes, and alignments
-#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Default)]
+#[derive(PartialEq, Eq, Copy, Clone, Debug, PartialOrd, Default, Serialize, Deserialize)]
 pub struct Bytes(u32);
 
 impl Add for Bytes {

@@ -1,0 +1,11 @@
+{
+	"name" : "HeaderGeneratorProject",
+	"files" : [
+		"message_printer.pli"
+	],
+	"compile_type" : "Shared",
+	"output" : "prog.so",
+	"libraries" : [
+	]
+}
+

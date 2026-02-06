@@ -1,0 +1,1 @@
+RUN: %COMPILE %S/shape_drawer_prog.st && %RUN | %CHECK %S/shape_drawer_prog.st

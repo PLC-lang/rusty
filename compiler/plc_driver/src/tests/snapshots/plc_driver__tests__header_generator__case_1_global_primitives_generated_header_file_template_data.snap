@@ -1,0 +1,85 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [],
+      "enums": []
+    },
+    "global_variables": [
+      {
+        "data_type": "bool",
+        "name": "gVarBool",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "int8_t",
+        "name": "gVarSInt",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "int16_t",
+        "name": "gVarInt",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "int32_t",
+        "name": "gVarDInt",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "int64_t",
+        "name": "gVarLInt",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "uint8_t",
+        "name": "gVarByte",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "uint16_t",
+        "name": "gVarWord",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "uint32_t",
+        "name": "gVarDWord",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "uint64_t",
+        "name": "gVarLWord",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "float_t",
+        "name": "gVarReal",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "double_t",
+        "name": "gVarLReal",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "time_t",
+        "name": "gVarDate",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "time_t",
+        "name": "gVarDateAndTime",
+        "variable_type": "Default"
+      }
+    ],
+    "functions": []
+  },
+  "directory": "",
+  "path": "global_primitives.h",
+  "file_name": "GLOBAL_PRIMITIVES",
+  "formatted_path": "GLOBAL_PRIMITIVES_H_"
+}

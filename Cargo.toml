@@ -25,8 +25,8 @@ plc_index = { path = "./compiler/plc_index" }
 section_mangler = { path = "./compiler/section_mangler" }
 logos = "0.12.0"
 clap = { version = "3.0", features = ["derive"] }
-indexmap = "2.0"
-generational-arena = "0.2.8"
+indexmap = { version = "2.0", features = ["serde"] }
+generational-arena = { version = "0.2.8", features = ["serde"] }
 regex = "1"
 shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive" }
@@ -78,6 +78,7 @@ members = [
     "compiler/plc_index",
     "compiler/section_mangler",
     "compiler/plc_lowering",
+    "compiler/plc_header_generator",
     "tests/test_utils",
 ]
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]

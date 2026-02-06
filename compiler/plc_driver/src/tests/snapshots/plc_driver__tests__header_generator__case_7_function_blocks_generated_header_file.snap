@@ -1,0 +1,42 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef FUNCTION_BLOCKS_H_
+#define FUNCTION_BLOCKS_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <time.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct {
+    uint64_t* __vtable;
+    int16_t varInt;
+    int16_t outVarInt;
+    int16_t* inOutVarInt;
+} fbThatHasSimpleTypes_type;
+
+void __fbThatHasSimpleTypes__init(fbThatHasSimpleTypes_type* self);
+
+void fbThatHasSimpleTypes(fbThatHasSimpleTypes_type* self);
+
+void fbThatHasSimpleTypes__FB_INIT(fbThatHasSimpleTypes_type* self);
+
+void fbThatHasSimpleTypes__fbThatHasSimpleTypes_Action(fbThatHasSimpleTypes_type* self);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !FUNCTION_BLOCKS_H_ */

@@ -1,5 +1,8 @@
 {
     "rust-analyzer.runnables.extraTestBinaryArgs": [
         "--nocapture"
-    ]
+    ],
+    "files.associations": {
+        "*.pli": "st"
+    }
 }
