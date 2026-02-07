@@ -37,8 +37,8 @@
 use plc_ast::{
     ast::{
         ArgumentProperty, AstFactory, AstNode, CompilationUnit, DataType, DataTypeDeclaration,
-        Implementation, LinkageType, Pou, PouType, UserTypeDeclaration, Variable, VariableBlock,
-        VariableBlockType,
+        DeclarationKind, Implementation, LinkageType, Pou, PouType, UserTypeDeclaration, Variable,
+        VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -154,13 +154,10 @@ impl InterfaceTableGenerator {
             let call_name = method.get_call_name();
             let fwd_name = helper::get_forward_declaration_name(interface_name, call_name);
 
-            // Build variable blocks: start with `self: POINTER TO __VOID`, then add the
-            // method's own parameters by looking them up in the index.
-            let self_block = VariableBlock::default()
-                .with_block_type(VariableBlockType::Input(ArgumentProperty::ByVal))
-                .with_variables(vec![helper::create_void_pointer_variable("self", &location)]);
-
-            let mut variable_blocks = vec![self_block];
+            // Build variable blocks from the method's own parameters by looking them up in the index.
+            // Note: the self/this pointer is handled implicitly by codegen for methods, so we don't
+            // add an explicit one here.
+            let mut variable_blocks = vec![];
             let members = index.get_pou_members(method.get_name());
             for member in members {
                 let variable_type = member.get_variable_type();
@@ -203,7 +200,11 @@ impl InterfaceTableGenerator {
             pous.push(Pou {
                 name: fwd_name.clone(),
                 id: self.ids.next_id(),
-                kind: PouType::Function,
+                kind: PouType::Method {
+                    parent: interface_name.to_string(),
+                    property: None,
+                    declaration_kind: DeclarationKind::Concrete,
+                },
                 variable_blocks,
                 return_type,
                 location: location.clone(),
@@ -221,7 +222,11 @@ impl InterfaceTableGenerator {
                 name: fwd_name.clone(),
                 type_name: fwd_name,
                 linkage: LinkageType::Internal,
-                pou_type: PouType::Function,
+                pou_type: PouType::Method {
+                    parent: interface_name.to_string(),
+                    property: None,
+                    declaration_kind: DeclarationKind::Concrete,
+                },
                 statements: vec![],
                 location: location.clone(),
                 name_location: location.clone(),
@@ -510,15 +515,15 @@ mod tests {
         assert_eq!(fwd_declarations.len(), 9, "A = foo; B = foo, bar; C = foo, baz; D = foo, bar, baz, qux");
         insta::assert_debug_snapshot!(fwd_declarations, @r#"
         [
-            "__fwd_A_foo(self: POINTER TO __VOID)",
-            "__fwd_B_bar(self: POINTER TO __VOID)",
-            "__fwd_B_foo(self: POINTER TO __VOID)",
-            "__fwd_C_baz(self: POINTER TO __VOID)",
-            "__fwd_C_foo(self: POINTER TO __VOID)",
-            "__fwd_DD_bar(self: POINTER TO __VOID)",
-            "__fwd_DD_baz(self: POINTER TO __VOID)",
-            "__fwd_DD_foo(self: POINTER TO __VOID)",
-            "__fwd_DD_qux(self: POINTER TO __VOID)",
+            "__fwd_A_foo()",
+            "__fwd_B_bar()",
+            "__fwd_B_foo()",
+            "__fwd_C_baz()",
+            "__fwd_C_foo()",
+            "__fwd_DD_bar()",
+            "__fwd_DD_baz()",
+            "__fwd_DD_foo()",
+            "__fwd_DD_qux()",
         ]
         "#);
 
@@ -621,15 +626,15 @@ mod tests {
         assert_eq!(fwd_declarations.len(), 9, "A = foo; B = foo, bar; C = foo, baz; D = foo, bar, baz, qux");
         insta::assert_debug_snapshot!(fwd_declarations, @r#"
         [
-            "__fwd_A_foo(self: POINTER TO __VOID)",
-            "__fwd_B_bar(self: POINTER TO __VOID)",
-            "__fwd_B_foo(self: POINTER TO __VOID)",
-            "__fwd_C_baz(self: POINTER TO __VOID)",
-            "__fwd_C_foo(self: POINTER TO __VOID)",
-            "__fwd_DD_bar(self: POINTER TO __VOID)",
-            "__fwd_DD_baz(self: POINTER TO __VOID)",
-            "__fwd_DD_foo(self: POINTER TO __VOID)",
-            "__fwd_DD_qux(self: POINTER TO __VOID)",
+            "__fwd_A_foo()",
+            "__fwd_B_bar()",
+            "__fwd_B_foo()",
+            "__fwd_C_baz()",
+            "__fwd_C_foo()",
+            "__fwd_DD_bar()",
+            "__fwd_DD_baz()",
+            "__fwd_DD_foo()",
+            "__fwd_DD_qux()",
         ]
         "#);
 
@@ -681,7 +686,7 @@ mod tests {
         assert_eq!(fwd_declarations.len(), 1, "A = foo");
         insta::assert_debug_snapshot!(fwd_declarations, @r#"
         [
-            "__fwd_A_foo(self: POINTER TO __VOID)",
+            "__fwd_A_foo()",
         ]
         "#);
 
@@ -728,7 +733,7 @@ mod tests {
         assert_eq!(fwd_declarations.len(), 1, "A = foo");
         insta::assert_debug_snapshot!(fwd_declarations, @r#"
         [
-            "__fwd_A_foo(self: POINTER TO __VOID)",
+            "__fwd_A_foo()",
         ]
         "#);
 

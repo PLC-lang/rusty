@@ -372,10 +372,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .collect::<Result<Vec<BasicMetadataTypeEnum>, _>>()?;
 
             if implementation.get_implementation_type() == &ImplementationType::Method {
-                let class_name =
-                    implementation.get_associated_class_name().expect("Method needs to have a class-name");
-                let _instance_members_struct_type: StructType =
-                    self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
                 parameters
                     .insert(0, self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
             }
@@ -431,15 +427,20 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             blocks,
         };
 
-        if let PouType::Method { .. } = implementation.pou_type {
+        if let PouType::Method { parent, .. } = &implementation.pou_type {
             let class_name = implementation.type_name.split('.').collect::<Vec<&str>>()[0];
-            self.generate_local_pou_variable_accessors(
-                &mut local_index,
-                class_name,
-                &function_context,
-                &implementation.location,
-                debug,
-            )?;
+            // Only generate POU variable accessors if the parent class has an associated LLVM type.
+            // Interface-based forward declarations (e.g. `__fwd_A_foo`) are methods whose parent is
+            // an interface, which has no LLVM struct representation.
+            if self.llvm_index.get_associated_pou_type(parent).is_ok() {
+                self.generate_local_pou_variable_accessors(
+                    &mut local_index,
+                    class_name,
+                    &function_context,
+                    &implementation.location,
+                    debug,
+                )?;
+            }
         }
 
         // generate local variables

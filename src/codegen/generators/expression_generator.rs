@@ -614,22 +614,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.index.get_available_parameters(qualified_pou_name),
                 )?,
 
-                ImplementationType::Function => {
-                    // Forward declarations are prefixed by a `SELF: POINTER TO __VOID` (see itable.rs).
-                    // Methods, on the other hand, are not. That is they are still functions with a self
-                    // pointer parameter but that is done inside the codegen because they are currently not
-                    // lowered to functions with a explicit self parameter. As such, to mimic methods, we have
-                    // to skip the first parameter of the forward declaration.
-                    let declared_parameters =
-                        self.index.get_available_parameters(qualified_pou_name).into_iter().skip(1).collect();
-
-                    self.generate_function_arguments(
-                        self.index.find_pou(qualified_pou_name).unwrap(),
-                        &arguments,
-                        declared_parameters,
-                    )?
-                }
-
                 // Function Block body calls have a slightly different calling convention compared to regular
                 // methods. Specifically the arguments aren't passed to the call itself but rather the
                 // instance struct is gep'ed and the arguments are stored into the gep'ed pointer value.

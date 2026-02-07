@@ -279,12 +279,14 @@ impl AstVisitorMut for InterfaceCallLowerer {
         // Step 6: __itable_<Iface>#(reference.table^).method^
         let new_operator = AstFactory::create_deref_reference(method_access, self.ids.next_id(), loc.clone());
 
-        // Build the first argument: reference.data (a pointer, not dereferenced)
-        let data_access = AstFactory::create_member_reference(
+        // Build the first argument: reference.data^ (dereference the data pointer to get the
+        // actual instance pointer, which is then passed as the implicit self/this argument)
+        let data_member = AstFactory::create_member_reference(
             AstFactory::create_identifier("data", &loc, self.ids.next_id()),
             Some(base.as_ref().clone()),
             self.ids.next_id(),
         );
+        let data_access = AstFactory::create_deref_reference(data_member, self.ids.next_id(), loc.clone());
 
         // Replace the operator
         let AstStatement::CallStatement(CallStatement { operator, parameters }) = &mut node.stmt else {
@@ -464,7 +466,7 @@ mod tests {
         // Statements in main
         referenceA.data := ADR(instanceA)
         referenceA.table := ADR(__itable_A_FbA_instance)
-        __itable_A#(referenceA.table^).foo^(referenceA.data)
+        __itable_A#(referenceA.table^).foo^(referenceA.data^)
         ");
     }
 
