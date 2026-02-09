@@ -4082,8 +4082,9 @@ fn program_with_var_temp_external_member_access_uses_correct_gep_index() {
     // This test verifies that when a PROGRAM has VAR_TEMP variables,
     // accessing the program's non-temp members from outside (e.g., from main)
     // uses the correct GEP indices. VAR_TEMP variables are not part of the
-    // POU struct, so they should not affect the location_in_parent index
-    // used for struct GEP operations.
+    // POU struct (they're stack-allocated), so they must be excluded when
+    // computing the struct GEP index. The codegen uses `get_struct_member_index`
+    // which filters out temp/external/return variables for POUs.
     let res = codegen(
         "
         PROGRAM mainProg
@@ -4111,7 +4112,9 @@ fn program_with_var_temp_external_member_access_uses_correct_gep_index() {
     );
 
     // The key assertion here is that mainProg.a uses GEP index 0 and mainProg.b uses GEP index 1,
-    // NOT index 2 and 3 (which would be wrong if VAR_TEMP was counted in location_in_parent)
+    // NOT index 2 and 3 (which would be wrong if VAR_TEMP was counted in the struct index).
+    // Note: location_in_parent remains unique (temp1=0, temp2=1, a=2, b=3), but
+    // get_struct_member_index computes the correct struct index by filtering out temps.
     filtered_assert_snapshot!(res);
 }
 

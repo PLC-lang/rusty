@@ -1537,15 +1537,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 }
                 Some(StatementAnnotation::Variable { qualified_name, .. }) => {
-                    let member_location = self
-                        .index
-                        .find_fully_qualified_variable(qualified_name)
-                        .map(VariableIndexEntry::get_location_in_parent)
-                        .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?;
-                    let pointee = {
-                        let datatype = self.annotations.get_type(qualifier_node, self.index).unwrap();
-                        self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                    // Get the container (qualifier) type name for struct member index lookup
+                    let qualifier_type = self.annotations.get_type(qualifier_node, self.index).unwrap();
+                    let container_name = qualifier_type.get_name();
+
+                    // For POUs (programs, function blocks, classes), use get_struct_member_index
+                    // to compute the correct GEP index. This properly handles POUs with
+                    // VAR_TEMP/VAR_EXTERNAL variables which are not part of the struct
+                    // (they're stack-allocated or external).
+                    // For regular structs (including vtables), use location_in_parent directly.
+                    let member_location = if self.index.find_pou(container_name).is_some() {
+                        self.index
+                            .get_struct_member_index(container_name, name)
+                            .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?
+                    } else {
+                        self.index
+                            .find_fully_qualified_variable(qualified_name)
+                            .map(VariableIndexEntry::get_location_in_parent)
+                            .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?
                     };
+
+                    let pointee = self.llvm_index.get_associated_type(container_name).unwrap();
 
                     let gep: PointerValue<'_> = self.llvm.get_member_pointer_from_struct(
                         pointee,

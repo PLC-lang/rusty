@@ -1,7 +1,6 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 // This test verifies that array of struct initialization in the body works correctly.
-// This is a companion test to initial_value_in_array_of_struct_body.st which uses VAR_TEMP
-// and is expected to fail due to a separate GEP indexing bug.
+// This is a companion test to initial_value_in_array_of_struct_body.st which uses VAR_TEMP.
 
 TYPE myStruct : STRUCT
     a, b : DINT;
