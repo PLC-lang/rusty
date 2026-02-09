@@ -1,0 +1,3 @@
+RUN: %COMPILE %S/main.st %S/MC_AXIS_STATUS.dt %S/MC_ReadStatus.pli && %RUN | %CHECK %s
+CHECK: 3
+CHECK: 1

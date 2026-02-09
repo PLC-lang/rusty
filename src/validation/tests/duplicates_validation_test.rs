@@ -575,7 +575,7 @@ fn duplicate_enum_inline_variants() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E004]: a: Duplicate symbol.
       ┌─ <internal>:4:24
       │
@@ -614,75 +614,6 @@ fn multiple_enum_instances_in_var_block_wont_trigger_duplicate_check() {
     );
 
     assert!(diagnostics.is_empty());
-}
-
-#[test]
-fn enum_variants_are_considered_when_checking_for_duplicate_variable_symbols() {
-    let diagnostics = parse_and_validate_buffered(
-        r#"
-        TYPE
-            Position : (x, y);
-        END_TYPE
-        FUNCTION main : DINT
-            VAR
-                x : DINT;
-                pos : Position;
-            END_VAR
-        END_FUNCTION
-        "#,
-    );
-
-    assert_snapshot!(diagnostics, @r"
-    error[E004]: x: Duplicate symbol.
-      ┌─ <internal>:7:17
-      │
-    3 │             Position : (x, y);
-      │                         - see also
-      ·
-    7 │                 x : DINT;
-      │                 ^ x: Duplicate symbol.
-
-    error[E004]: x: Duplicate symbol.
-      ┌─ <internal>:3:25
-      │
-    3 │             Position : (x, y);
-      │                         ^ x: Duplicate symbol.
-      ·
-    7 │                 x : DINT;
-      │                 - see also
-    ");
-}
-
-#[test]
-fn inline_enum_variants_are_considered_when_checking_for_duplicate_variable_symbols() {
-    let diagnostics = parse_and_validate_buffered(
-        r#"
-        FUNCTION main : DINT
-            VAR
-                x : DINT;
-                position : (x, y);
-            END_VAR
-        END_FUNCTION
-        "#,
-    );
-
-    assert_snapshot!(diagnostics, @r"
-    error[E004]: x: Duplicate symbol.
-      ┌─ <internal>:4:17
-      │
-    4 │                 x : DINT;
-      │                 ^ x: Duplicate symbol.
-    5 │                 position : (x, y);
-      │                             - see also
-
-    error[E004]: x: Duplicate symbol.
-      ┌─ <internal>:5:29
-      │
-    4 │                 x : DINT;
-      │                 - see also
-    5 │                 position : (x, y);
-      │                             ^ x: Duplicate symbol.
-    ");
 }
 
 #[test]
