@@ -339,10 +339,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             false,
         );
 
-        // // How does this behave on windows?
-        // curr_f.set_section(Some(".text.startup"));
-        // curr_f.set_linkage(Linkage::Internal);
-
         //Create an entry for the global constructor of the project
         let str_value = ctor_str.const_named_struct(&[
             self.llvm.context.i32_type().const_int(65535, false).as_basic_value_enum(),
@@ -360,12 +356,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         global_ctors.set_initializer(&arr);
         global_ctors.set_linkage(Linkage::Appending);
 
-        // let i8_ptr = self.llvm.context.i8_type().ptr_type(AddressSpace::default());
-        // let used_array =
-        //     i8_ptr.const_array(&[curr_f.as_global_value().as_pointer_value().const_cast(i8_ptr)]);
-        // let used = module.add_global(used_array.get_type(), None, "llvm.used");
-        // used.set_initializer(&used_array);
-        // used.set_linkage(Linkage::Appending);
         Ok(())
     }
     /// creates and returns all parameters for the given implementation
