@@ -1,0 +1,12 @@
+TYPE MC_AXIS_STATUS :
+(
+    ErrorStop          := 0,  (* Errorstop state *)
+    Disabled           := 1,  (* Disabled state *)
+    Stopping           := 2,  (* Stopping state *)
+    Homing             := 3,  (* Homing state *)
+    Standstill         := 4,  (* Standstill state *)
+    DiscreteMotion     := 5,  (* Discrete motion state *)
+    ContinuousMotion   := 6,  (* Continuous motion state *)
+    SynchronizedMotion := 7   (* Synchronized motion state *)
+);
+END_TYPE
