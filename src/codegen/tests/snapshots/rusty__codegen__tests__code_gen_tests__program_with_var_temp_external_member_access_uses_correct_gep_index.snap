@@ -1,0 +1,42 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: res
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%mainProg = type { i32, i32 }
+
+@mainProg_instance = global %mainProg zeroinitializer
+
+define void @mainProg(ptr %0) {
+entry:
+  %temp1 = alloca i32, align 4
+  %temp2 = alloca i32, align 4
+  %a = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 1
+  store i32 0, ptr %temp1, align 4
+  store i32 0, ptr %temp2, align 4
+  store i32 10, ptr %a, align 4
+  store i32 20, ptr %b, align 4
+  ret void
+}
+
+define i32 @main() {
+entry:
+  %main = alloca i32, align 4
+  %x = alloca i32, align 4
+  %y = alloca i32, align 4
+  store i32 0, ptr %x, align 4
+  store i32 0, ptr %y, align 4
+  store i32 0, ptr %main, align 4
+  call void @mainProg(ptr @mainProg_instance)
+  %load_a = load i32, ptr @mainProg_instance, align 4
+  store i32 %load_a, ptr %x, align 4
+  %load_b = load i32, ptr getelementptr inbounds nuw (%mainProg, ptr @mainProg_instance, i32 0, i32 1), align 4
+  store i32 %load_b, ptr %y, align 4
+  %main_ret = load i32, ptr %main, align 4
+  ret i32 %main_ret
+}

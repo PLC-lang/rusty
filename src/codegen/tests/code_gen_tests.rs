@@ -4056,7 +4056,7 @@ fn methods_var_output() {
         "
         FUNCTION_BLOCK foo
         METHOD baz
-        VAR_OUTPUT 
+        VAR_OUTPUT
             out : STRING;
         END_VAR
             out := 'hello';
@@ -4064,7 +4064,7 @@ fn methods_var_output() {
         END_FUNCTION_BLOCK
 
         FUNCTION main
-        VAR 
+        VAR
             s: STRING;
             fb: foo;
         END_VAR
@@ -4074,5 +4074,70 @@ fn methods_var_output() {
         ",
     );
 
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn program_with_var_temp_external_member_access_uses_correct_gep_index() {
+    // This test verifies that when a PROGRAM has VAR_TEMP variables,
+    // accessing the program's non-temp members from outside (e.g., from main)
+    // uses the correct GEP indices. VAR_TEMP variables are not part of the
+    // POU struct, so they should not affect the location_in_parent index
+    // used for struct GEP operations.
+    let res = codegen(
+        "
+        PROGRAM mainProg
+        VAR_TEMP
+            temp1 : DINT;
+            temp2 : DINT;
+        END_VAR
+        VAR
+            a : DINT;
+            b : DINT;
+        END_VAR
+            a := 10;
+            b := 20;
+        END_PROGRAM
+
+        FUNCTION main : DINT
+        VAR
+            x, y : DINT;
+        END_VAR
+            mainProg();
+            x := mainProg.a;
+            y := mainProg.b;
+        END_FUNCTION
+        ",
+    );
+
+    // The key assertion here is that mainProg.a uses GEP index 0 and mainProg.b uses GEP index 1,
+    // NOT index 2 and 3 (which would be wrong if VAR_TEMP was counted in location_in_parent)
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn program_with_var_temp_before_var_generates_correct_struct_layout() {
+    // Verifies that VAR_TEMP variables declared before VAR do not affect
+    // the struct layout - only VAR members should be in the struct
+    let res = codegen(
+        "
+        PROGRAM prg
+        VAR_TEMP
+            t1 : DINT;
+            t2 : DINT;
+            t3 : DINT;
+        END_VAR
+        VAR
+            v1 : DINT;
+            v2 : DINT;
+        END_VAR
+            v1 := t1 + t2;
+            v2 := t3;
+        END_PROGRAM
+        ",
+    );
+
+    // The struct should only contain v1 and v2, not t1, t2, t3
+    // GEP indices for v1 should be 0, v2 should be 1
     filtered_assert_snapshot!(res);
 }

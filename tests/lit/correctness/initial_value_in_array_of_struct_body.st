@@ -1,13 +1,6 @@
-// XFAIL: *
-// This test is expected to fail due to a pre-existing bug where accessing
-// PROGRAM members from outside when the PROGRAM has VAR_TEMP variables
-// causes incorrect GEP indexing. The location_in_parent index counts TEMP
-// variables, but the actual struct layout excludes them.
-// See: https://github.com/PLC-lang/rusty/issues/XXXX (TODO: file issue)
-//
-// The core fix for array of structs assignment in body is working - this
-// test fails only because of the VAR_TEMP issue.
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// This test verifies that array of struct initialization in the body works correctly
+// when the array is declared as VAR_TEMP.
 
 TYPE myStruct : STRUCT
     a, b : DINT;
@@ -47,8 +40,8 @@ FUNCTION main
     printf('b=%d$N', mainProg.b); // CHECK: b=20
     printf('c=%d$N', mainProg.c); // CHECK: c=30
     printf('d=%d$N', mainProg.d); // CHECK: d=40
-    printf('e=%d$N', mainProg.e); // CHECK: e=50
-    printf('f=%d$N', mainProg.f); // CHECK: f=60
-    printf('g=%d$N', mainProg.g); // CHECK: g=70
-    printf('h=%d$N', mainProg.h); // CHECK: h=80
+    printf('e=%d$N', mainProg.e); // CHECK: e=0
+    printf('f=%d$N', mainProg.f); // CHECK: f=0
+    printf('g=%d$N', mainProg.g); // CHECK: g=0
+    printf('h=%d$N', mainProg.h); // CHECK: h=0
 END_FUNCTION

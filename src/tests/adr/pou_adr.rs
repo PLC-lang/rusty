@@ -153,7 +153,7 @@ fn programs_state_is_stored_in_a_struct() {
                         is_constant: false,
                         is_var_external: false,
                         data_type_name: "INT",
-                        location_in_parent: 4,
+                        location_in_parent: 0,
                         linkage: Internal,
                         binding: None,
                         source_location: SourceLocation {

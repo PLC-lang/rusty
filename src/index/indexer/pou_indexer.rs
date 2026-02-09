@@ -244,6 +244,14 @@ impl<'i> PouIndexer<'i> {
                     .as_ref()
                     .and_then(|it| HardwareBinding::from_statement(self.index, it, Some(pou.name.clone())));
 
+                // VAR_TEMP and VAR_EXTERNAL variables are not part of the POU struct:
+                // - VAR_TEMP are stack-allocated locals
+                // - VAR_EXTERNAL reference external storage
+                // So they should not increment location_in_parent which is used for struct GEP indexing
+                let is_temp = matches!(block.kind, VariableBlockType::Temp);
+                let is_external = matches!(block.kind, VariableBlockType::External);
+                let location = if is_temp || is_external { 0 } else { count };
+
                 let entry = self.index.create_member_variable(
                     MemberInfo {
                         container_name: &pou.name,
@@ -251,16 +259,20 @@ impl<'i> PouIndexer<'i> {
                         variable_linkage: block_type,
                         variable_type_name: &type_name,
                         is_constant: block.constant,
-                        is_var_external: matches!(block.kind, VariableBlockType::External),
+                        is_var_external: is_external,
                         binding,
                         varargs,
                     },
                     initial_value,
                     var.location.clone(),
-                    count,
+                    location,
                 );
                 members.push(entry);
-                count += 1;
+
+                // Only increment count for variables that are part of the POU struct
+                if !is_temp && !is_external {
+                    count += 1;
+                }
             }
         }
         (count, members, member_varargs)
