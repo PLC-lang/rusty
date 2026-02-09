@@ -1418,3 +1418,41 @@ fn output_variables_must_be_assignable_within_the_scope_of_inheritance() {
 
     assert_snapshot!(&diagnostics, @"");
 }
+
+#[test]
+fn enum_and_fb_output_must_not_generate_duplicate_symbol_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE MC_AXIS_STATUS :
+        (
+            ErrorStop          := 0  (* Errorstop state *)
+        );
+        END_TYPE
+
+        FUNCTION_BLOCK MC_ReadStatus
+        VAR_IN_OUT
+        END_VAR
+        VAR_INPUT
+        END_VAR
+        VAR_OUTPUT
+            ErrorStop           : BOOL;           (**< [out] See state diagram (From any state: An error in the axis occurred.) *)
+            StatusEnumerator    : MC_AXIS_STATUS; (**< [out] The current status of the axis as enumerator *)
+        END_VAR
+        VAR
+        END_VAR
+            ErrorStop := TRUE;
+            StatusEnumerator := MC_AXIS_STATUS.ErrorStop;
+        END_FUNCTION_BLOCK
+
+        PROGRAM mainProg
+            VAR
+                fb : MC_ReadStatus;
+            END_VAR
+
+            fb();
+        END_PROGRAM
+       ",
+    );
+
+    assert_snapshot!(&diagnostics, @"");
+}

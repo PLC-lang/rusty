@@ -13,6 +13,8 @@
 // - LOWER_BOUND: named (arr := vla, dim := x) arguments
 // - DIV: named (IN1 := dividend, IN2 := divisor) arguments
 // - SUB: named (IN1 := dividend, IN2 := subtrahend) arguments
+// - SHL: named (IN := x, n := y) arguments
+// - SHR: named (IN := x, n := y) arguments
 //
 // For ADR and REF, both calling conventions are tested to verify they produce equivalent results.
 
@@ -31,6 +33,9 @@ VAR
     dividend    : DINT := 20;
     divisor     : DINT := 4;
     subtrahend  : DINT := 7;
+
+    shl_result  : DINT;
+    shr_result  : DINT;
 END_VAR
 
     // MOVE
@@ -39,7 +44,7 @@ END_VAR
     printf('%d$N', y);                      // CHECK: 9
 
     // SEL
-    a := SEL(G := TRUE, IN0 := b, IN1 := c);
+    a := SEL(IN0 := b, IN1 := c, G := TRUE);
     printf('%d$N', a);                      // CHECK: 4
 
     // SIZEOF
@@ -47,12 +52,20 @@ END_VAR
     printf('%d$N', result);                 // CHECK: 10
 
     // DIV
-    result := DIV(IN1 := dividend, IN2 := divisor);
+    result := DIV(IN2 := divisor, IN1 := dividend);
     printf('%d$N', result);                 // CHECK: 5
 
     // SUB
-    result := SUB(IN1 := dividend, IN2 := subtrahend);
+    result := SUB(IN2 := subtrahend, IN1 := dividend);
     printf('%d$N', result);                 // CHECK: 13
+
+    // SHL
+    shl_result := SHL(n := 2, IN := 1);
+    printf('%d$N', shl_result);             // CHECK: 4
+
+    // SHR
+    shr_result := SHR(n := 1, IN := 4);
+    printf('%d$N', shr_result);             // CHECK: 2
 
     test_bounds(myarray);
 
