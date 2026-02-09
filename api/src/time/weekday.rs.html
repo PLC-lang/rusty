@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-0.3.44/src/weekday.rs`."><title>weekday.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/</div>weekday.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Days of the week.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-0.3.47/src/weekday.rs`."><title>weekday.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/</div>weekday.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Days of the week.
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>core::fmt;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>core::str::FromStr;
@@ -101,7 +101,7 @@
 <a href=#101 id=101 data-nosnippet>101</a>    /// ```
 <a href=#102 id=102 data-nosnippet>102</a>    </span><span class="attr">#[inline]
 <a href=#103 id=103 data-nosnippet>103</a>    </span><span class="kw">pub const fn </span>nth_prev(<span class="self">self</span>, n: u8) -&gt; <span class="self">Self </span>{
-<a href=#104 id=104 data-nosnippet>104</a>        <span class="kw">match </span><span class="self">self</span>.number_days_from_monday() <span class="kw">as </span>i8 - (n % <span class="number">7</span>) <span class="kw">as </span>i8 {
+<a href=#104 id=104 data-nosnippet>104</a>        <span class="kw">match </span><span class="self">self</span>.number_days_from_monday().cast_signed() - (n % <span class="number">7</span>).cast_signed() {
 <a href=#105 id=105 data-nosnippet>105</a>            <span class="number">1 </span>| -<span class="number">6 </span>=&gt; Tuesday,
 <a href=#106 id=106 data-nosnippet>106</a>            <span class="number">2 </span>| -<span class="number">5 </span>=&gt; Wednesday,
 <a href=#107 id=107 data-nosnippet>107</a>            <span class="number">3 </span>| -<span class="number">4 </span>=&gt; Thursday,
@@ -170,63 +170,64 @@
 <a href=#170 id=170 data-nosnippet>170</a>}
 <a href=#171 id=171 data-nosnippet>171</a>
 <a href=#172 id=172 data-nosnippet>172</a><span class="kw">mod </span>private {
-<a href=#173 id=173 data-nosnippet>173</a>    <span class="attr">#[non_exhaustive]
-<a href=#174 id=174 data-nosnippet>174</a>    #[derive(Debug, Clone, Copy)]
-<a href=#175 id=175 data-nosnippet>175</a>    </span><span class="kw">pub struct </span>WeekdayMetadata;
-<a href=#176 id=176 data-nosnippet>176</a>}
-<a href=#177 id=177 data-nosnippet>177</a><span class="kw">use </span>private::WeekdayMetadata;
-<a href=#178 id=178 data-nosnippet>178</a>
-<a href=#179 id=179 data-nosnippet>179</a><span class="kw">impl </span>SmartDisplay <span class="kw">for </span>Weekday {
-<a href=#180 id=180 data-nosnippet>180</a>    <span class="kw">type </span>Metadata = WeekdayMetadata;
-<a href=#181 id=181 data-nosnippet>181</a>
-<a href=#182 id=182 data-nosnippet>182</a>    <span class="attr">#[inline]
-<a href=#183 id=183 data-nosnippet>183</a>    </span><span class="kw">fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: FormatterOptions) -&gt; Metadata&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt; {
-<a href=#184 id=184 data-nosnippet>184</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#185 id=185 data-nosnippet>185</a>            Monday =&gt; Metadata::new(<span class="number">6</span>, <span class="self">self</span>, WeekdayMetadata),
-<a href=#186 id=186 data-nosnippet>186</a>            Tuesday =&gt; Metadata::new(<span class="number">7</span>, <span class="self">self</span>, WeekdayMetadata),
-<a href=#187 id=187 data-nosnippet>187</a>            Wednesday =&gt; Metadata::new(<span class="number">9</span>, <span class="self">self</span>, WeekdayMetadata),
-<a href=#188 id=188 data-nosnippet>188</a>            Thursday =&gt; Metadata::new(<span class="number">8</span>, <span class="self">self</span>, WeekdayMetadata),
-<a href=#189 id=189 data-nosnippet>189</a>            Friday =&gt; Metadata::new(<span class="number">6</span>, <span class="self">self</span>, WeekdayMetadata),
-<a href=#190 id=190 data-nosnippet>190</a>            Saturday =&gt; Metadata::new(<span class="number">8</span>, <span class="self">self</span>, WeekdayMetadata),
-<a href=#191 id=191 data-nosnippet>191</a>            Sunday =&gt; Metadata::new(<span class="number">6</span>, <span class="self">self</span>, WeekdayMetadata),
-<a href=#192 id=192 data-nosnippet>192</a>        }
-<a href=#193 id=193 data-nosnippet>193</a>    }
-<a href=#194 id=194 data-nosnippet>194</a>
-<a href=#195 id=195 data-nosnippet>195</a>    <span class="attr">#[inline]
-<a href=#196 id=196 data-nosnippet>196</a>    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#197 id=197 data-nosnippet>197</a>        f.pad(<span class="kw">match </span><span class="self">self </span>{
-<a href=#198 id=198 data-nosnippet>198</a>            Monday =&gt; <span class="string">"Monday"</span>,
-<a href=#199 id=199 data-nosnippet>199</a>            Tuesday =&gt; <span class="string">"Tuesday"</span>,
-<a href=#200 id=200 data-nosnippet>200</a>            Wednesday =&gt; <span class="string">"Wednesday"</span>,
-<a href=#201 id=201 data-nosnippet>201</a>            Thursday =&gt; <span class="string">"Thursday"</span>,
-<a href=#202 id=202 data-nosnippet>202</a>            Friday =&gt; <span class="string">"Friday"</span>,
-<a href=#203 id=203 data-nosnippet>203</a>            Saturday =&gt; <span class="string">"Saturday"</span>,
-<a href=#204 id=204 data-nosnippet>204</a>            Sunday =&gt; <span class="string">"Sunday"</span>,
-<a href=#205 id=205 data-nosnippet>205</a>        })
-<a href=#206 id=206 data-nosnippet>206</a>    }
-<a href=#207 id=207 data-nosnippet>207</a>}
-<a href=#208 id=208 data-nosnippet>208</a>
-<a href=#209 id=209 data-nosnippet>209</a><span class="kw">impl </span>fmt::Display <span class="kw">for </span>Weekday {
-<a href=#210 id=210 data-nosnippet>210</a>    <span class="attr">#[inline]
-<a href=#211 id=211 data-nosnippet>211</a>    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#212 id=212 data-nosnippet>212</a>        SmartDisplay::fmt(<span class="self">self</span>, f)
-<a href=#213 id=213 data-nosnippet>213</a>    }
-<a href=#214 id=214 data-nosnippet>214</a>}
-<a href=#215 id=215 data-nosnippet>215</a>
-<a href=#216 id=216 data-nosnippet>216</a><span class="kw">impl </span>FromStr <span class="kw">for </span>Weekday {
-<a href=#217 id=217 data-nosnippet>217</a>    <span class="kw">type </span><span class="prelude-val">Err </span>= error::InvalidVariant;
-<a href=#218 id=218 data-nosnippet>218</a>
-<a href=#219 id=219 data-nosnippet>219</a>    <span class="attr">#[inline]
-<a href=#220 id=220 data-nosnippet>220</a>    </span><span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
-<a href=#221 id=221 data-nosnippet>221</a>        <span class="kw">match </span>s {
-<a href=#222 id=222 data-nosnippet>222</a>            <span class="string">"Monday" </span>=&gt; <span class="prelude-val">Ok</span>(Monday),
-<a href=#223 id=223 data-nosnippet>223</a>            <span class="string">"Tuesday" </span>=&gt; <span class="prelude-val">Ok</span>(Tuesday),
-<a href=#224 id=224 data-nosnippet>224</a>            <span class="string">"Wednesday" </span>=&gt; <span class="prelude-val">Ok</span>(Wednesday),
-<a href=#225 id=225 data-nosnippet>225</a>            <span class="string">"Thursday" </span>=&gt; <span class="prelude-val">Ok</span>(Thursday),
-<a href=#226 id=226 data-nosnippet>226</a>            <span class="string">"Friday" </span>=&gt; <span class="prelude-val">Ok</span>(Friday),
-<a href=#227 id=227 data-nosnippet>227</a>            <span class="string">"Saturday" </span>=&gt; <span class="prelude-val">Ok</span>(Saturday),
-<a href=#228 id=228 data-nosnippet>228</a>            <span class="string">"Sunday" </span>=&gt; <span class="prelude-val">Ok</span>(Sunday),
-<a href=#229 id=229 data-nosnippet>229</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(error::InvalidVariant),
-<a href=#230 id=230 data-nosnippet>230</a>        }
-<a href=#231 id=231 data-nosnippet>231</a>    }
-<a href=#232 id=232 data-nosnippet>232</a>}</code></pre></div></section></main></body></html>
+<a href=#173 id=173 data-nosnippet>173</a>    <span class="doccomment">/// Metadata for `Weekday`.
+<a href=#174 id=174 data-nosnippet>174</a>    </span><span class="attr">#[non_exhaustive]
+<a href=#175 id=175 data-nosnippet>175</a>    #[derive(Debug, Clone, Copy)]
+<a href=#176 id=176 data-nosnippet>176</a>    </span><span class="kw">pub struct </span>WeekdayMetadata;
+<a href=#177 id=177 data-nosnippet>177</a>}
+<a href=#178 id=178 data-nosnippet>178</a><span class="kw">use </span>private::WeekdayMetadata;
+<a href=#179 id=179 data-nosnippet>179</a>
+<a href=#180 id=180 data-nosnippet>180</a><span class="kw">impl </span>SmartDisplay <span class="kw">for </span>Weekday {
+<a href=#181 id=181 data-nosnippet>181</a>    <span class="kw">type </span>Metadata = WeekdayMetadata;
+<a href=#182 id=182 data-nosnippet>182</a>
+<a href=#183 id=183 data-nosnippet>183</a>    <span class="attr">#[inline]
+<a href=#184 id=184 data-nosnippet>184</a>    </span><span class="kw">fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: FormatterOptions) -&gt; Metadata&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt; {
+<a href=#185 id=185 data-nosnippet>185</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#186 id=186 data-nosnippet>186</a>            Monday =&gt; Metadata::new(<span class="number">6</span>, <span class="self">self</span>, WeekdayMetadata),
+<a href=#187 id=187 data-nosnippet>187</a>            Tuesday =&gt; Metadata::new(<span class="number">7</span>, <span class="self">self</span>, WeekdayMetadata),
+<a href=#188 id=188 data-nosnippet>188</a>            Wednesday =&gt; Metadata::new(<span class="number">9</span>, <span class="self">self</span>, WeekdayMetadata),
+<a href=#189 id=189 data-nosnippet>189</a>            Thursday =&gt; Metadata::new(<span class="number">8</span>, <span class="self">self</span>, WeekdayMetadata),
+<a href=#190 id=190 data-nosnippet>190</a>            Friday =&gt; Metadata::new(<span class="number">6</span>, <span class="self">self</span>, WeekdayMetadata),
+<a href=#191 id=191 data-nosnippet>191</a>            Saturday =&gt; Metadata::new(<span class="number">8</span>, <span class="self">self</span>, WeekdayMetadata),
+<a href=#192 id=192 data-nosnippet>192</a>            Sunday =&gt; Metadata::new(<span class="number">6</span>, <span class="self">self</span>, WeekdayMetadata),
+<a href=#193 id=193 data-nosnippet>193</a>        }
+<a href=#194 id=194 data-nosnippet>194</a>    }
+<a href=#195 id=195 data-nosnippet>195</a>
+<a href=#196 id=196 data-nosnippet>196</a>    <span class="attr">#[inline]
+<a href=#197 id=197 data-nosnippet>197</a>    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#198 id=198 data-nosnippet>198</a>        f.pad(<span class="kw">match </span><span class="self">self </span>{
+<a href=#199 id=199 data-nosnippet>199</a>            Monday =&gt; <span class="string">"Monday"</span>,
+<a href=#200 id=200 data-nosnippet>200</a>            Tuesday =&gt; <span class="string">"Tuesday"</span>,
+<a href=#201 id=201 data-nosnippet>201</a>            Wednesday =&gt; <span class="string">"Wednesday"</span>,
+<a href=#202 id=202 data-nosnippet>202</a>            Thursday =&gt; <span class="string">"Thursday"</span>,
+<a href=#203 id=203 data-nosnippet>203</a>            Friday =&gt; <span class="string">"Friday"</span>,
+<a href=#204 id=204 data-nosnippet>204</a>            Saturday =&gt; <span class="string">"Saturday"</span>,
+<a href=#205 id=205 data-nosnippet>205</a>            Sunday =&gt; <span class="string">"Sunday"</span>,
+<a href=#206 id=206 data-nosnippet>206</a>        })
+<a href=#207 id=207 data-nosnippet>207</a>    }
+<a href=#208 id=208 data-nosnippet>208</a>}
+<a href=#209 id=209 data-nosnippet>209</a>
+<a href=#210 id=210 data-nosnippet>210</a><span class="kw">impl </span>fmt::Display <span class="kw">for </span>Weekday {
+<a href=#211 id=211 data-nosnippet>211</a>    <span class="attr">#[inline]
+<a href=#212 id=212 data-nosnippet>212</a>    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#213 id=213 data-nosnippet>213</a>        SmartDisplay::fmt(<span class="self">self</span>, f)
+<a href=#214 id=214 data-nosnippet>214</a>    }
+<a href=#215 id=215 data-nosnippet>215</a>}
+<a href=#216 id=216 data-nosnippet>216</a>
+<a href=#217 id=217 data-nosnippet>217</a><span class="kw">impl </span>FromStr <span class="kw">for </span>Weekday {
+<a href=#218 id=218 data-nosnippet>218</a>    <span class="kw">type </span><span class="prelude-val">Err </span>= error::InvalidVariant;
+<a href=#219 id=219 data-nosnippet>219</a>
+<a href=#220 id=220 data-nosnippet>220</a>    <span class="attr">#[inline]
+<a href=#221 id=221 data-nosnippet>221</a>    </span><span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+<a href=#222 id=222 data-nosnippet>222</a>        <span class="kw">match </span>s {
+<a href=#223 id=223 data-nosnippet>223</a>            <span class="string">"Monday" </span>=&gt; <span class="prelude-val">Ok</span>(Monday),
+<a href=#224 id=224 data-nosnippet>224</a>            <span class="string">"Tuesday" </span>=&gt; <span class="prelude-val">Ok</span>(Tuesday),
+<a href=#225 id=225 data-nosnippet>225</a>            <span class="string">"Wednesday" </span>=&gt; <span class="prelude-val">Ok</span>(Wednesday),
+<a href=#226 id=226 data-nosnippet>226</a>            <span class="string">"Thursday" </span>=&gt; <span class="prelude-val">Ok</span>(Thursday),
+<a href=#227 id=227 data-nosnippet>227</a>            <span class="string">"Friday" </span>=&gt; <span class="prelude-val">Ok</span>(Friday),
+<a href=#228 id=228 data-nosnippet>228</a>            <span class="string">"Saturday" </span>=&gt; <span class="prelude-val">Ok</span>(Saturday),
+<a href=#229 id=229 data-nosnippet>229</a>            <span class="string">"Sunday" </span>=&gt; <span class="prelude-val">Ok</span>(Sunday),
+<a href=#230 id=230 data-nosnippet>230</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(error::InvalidVariant),
+<a href=#231 id=231 data-nosnippet>231</a>        }
+<a href=#232 id=232 data-nosnippet>232</a>    }
+<a href=#233 id=233 data-nosnippet>233</a>}</code></pre></div></section></main></body></html>

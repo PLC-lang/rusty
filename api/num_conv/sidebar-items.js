@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["prelude"],"trait":["CastSigned","CastUnsigned","Extend","ExtendTarget","Truncate","TruncateTarget"]};
+window.SIDEBAR_ITEMS = {"mod":["prelude"],"trait":["Extend","ExtendTarget","Truncate","TruncateTarget"]};
