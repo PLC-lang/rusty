@@ -1470,8 +1470,29 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             AstStatement::ParenExpression(expr) => {
+                // Check if the paren's current type hint was set explicitly (different from inner's type)
+                // vs inherited from the inner expression (same as inner's type).
+                // If it was set explicitly (e.g., for array of struct initialization), preserve it.
+                // If it was inherited, update it for type promotion.
+                let current_hint = self.annotation_map.get_type_hint(statement, self.index);
+                let inner_type = self.annotation_map.get_type(expr, self.index);
+                let should_update_hint = match (&current_hint, &inner_type) {
+                    // No current hint - should update
+                    (None, _) => true,
+                    // Current hint matches inner type - was inherited, should update for promotion
+                    (Some(hint), Some(inner)) if hint.get_name() == inner.get_name() => true,
+                    // Current hint differs from inner type - was set explicitly, preserve it
+                    _ => false,
+                };
+
                 self.update_expected_types(expected_type, expr);
                 self.inherit_annotations(statement, expr);
+
+                // Only update the type hint if it wasn't explicitly set to something different
+                if should_update_hint {
+                    self.annotation_map
+                        .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()));
+                }
             }
             AstStatement::ExpressionList(expressions, ..) => {
                 //annotate the type to all elements

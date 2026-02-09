@@ -4204,3 +4204,42 @@ fn array_of_struct_initialization_in_body() {
 
     filtered_assert_snapshot!(res);
 }
+
+#[test]
+fn function_block_member_access_is_case_insensitive() {
+    // This test verifies that accessing VAR_OUTPUT members of a function block
+    // works correctly with case-insensitive names (IEC 61131-3 is case-insensitive).
+    // The function block declares `OUT` but we access it as `Out` or `out`.
+    // This was a regression where get_struct_member_index used case-sensitive comparison.
+    let res = codegen(
+        "
+        FUNCTION_BLOCK FB_Test
+        VAR_INPUT
+            IN : REAL;
+        END_VAR
+        VAR_OUTPUT
+            OUT : REAL;
+            LIM : BOOL;
+        END_VAR
+            OUT := IN * 2.0;
+            LIM := OUT > 100.0;
+        END_FUNCTION_BLOCK
+
+        PROGRAM mainProg
+        VAR
+            fb : FB_Test;
+            result : REAL;
+            limited : BOOL;
+        END_VAR
+            fb(IN := 50.0);
+            // Access with different casing than declaration
+            result := fb.Out;   // declared as OUT
+            limited := fb.Lim;  // declared as LIM
+        END_PROGRAM
+        ",
+    );
+
+    // The test passes if codegen succeeds - previously this would fail with
+    // "Could not resolve reference to FB_Test.OUT" due to case-sensitive comparison
+    filtered_assert_snapshot!(res);
+}

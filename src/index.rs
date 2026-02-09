@@ -1763,7 +1763,7 @@ impl Index {
     /// Returns None if the variable is not part of the struct (temp/external/return).
     pub fn get_struct_member_index(&self, container_name: &str, variable_name: &str) -> Option<u32> {
         let members = self.get_pou_members(container_name);
-        let target = members.iter().find(|m| m.get_name() == variable_name)?;
+        let target = members.iter().find(|m| m.get_name().eq_ignore_ascii_case(variable_name))?;
 
         // VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the struct
         if target.is_temp() || target.is_var_external() || target.is_return() {
@@ -1774,7 +1774,7 @@ impl Index {
         let index = members
             .iter()
             .filter(|m| !m.is_temp() && !m.is_var_external() && !m.is_return())
-            .take_while(|m| m.get_name() != variable_name)
+            .take_while(|m| !m.get_name().eq_ignore_ascii_case(variable_name))
             .count();
 
         Some(index as u32)
