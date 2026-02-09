@@ -8,10 +8,6 @@ TYPE myStruct : STRUCT
 END_STRUCT
 END_TYPE
 
-VAR_GLOBAL
-    str : myStruct := (a := 50, b := 60, c := [70, 80]);
-END_VAR
-
 PROGRAM mainProg
 VAR_TEMP
     arr : ARRAY[0..1] OF myStruct;
