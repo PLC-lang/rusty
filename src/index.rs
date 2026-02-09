@@ -1763,21 +1763,24 @@ impl Index {
     /// Returns None if the variable is not part of the struct (temp/external/return).
     pub fn get_struct_member_index(&self, container_name: &str, variable_name: &str) -> Option<u32> {
         let members = self.get_pou_members(container_name);
-        let target = members.iter().find(|m| m.get_name().eq_ignore_ascii_case(variable_name))?;
+        let mut index: u32 = 0;
 
-        // VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the struct
-        if target.is_temp() || target.is_var_external() || target.is_return() {
-            return None;
+        for member in members.iter() {
+            if member.get_name().eq_ignore_ascii_case(variable_name) {
+                // VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the struct
+                if member.is_temp() || member.is_var_external() || member.is_return() {
+                    return None;
+                } else {
+                    return Some(index);
+                }
+            }
+            // Only count members that are part of the struct
+            if !member.is_temp() && !member.is_var_external() && !member.is_return() {
+                index += 1;
+            }
         }
 
-        // Count only members that are part of the struct and come before this one
-        let index = members
-            .iter()
-            .filter(|m| !m.is_temp() && !m.is_var_external() && !m.is_return())
-            .take_while(|m| !m.get_name().eq_ignore_ascii_case(variable_name))
-            .count();
-
-        Some(index as u32)
+        None
     }
 
     /// returns the effective DataType of the type with the given name if it exists
