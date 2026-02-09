@@ -1,7 +1,7 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 // This test verifies that array of struct initialization in the body works correctly.
-// This is a companion test to initial_value_in_array_of_struct_body.st which uses VAR_TEMP.
-// Case: Full initialization - second element uses a constant struct variable
+// This is a companion test to initial_value_in_array_of_struct_body_partial.st which uses VAR_TEMP.
+// Case: Partial initialization - second element uses partial struct initializer
 
 TYPE myStruct : STRUCT
     a, b : DINT;
@@ -9,17 +9,13 @@ TYPE myStruct : STRUCT
 END_STRUCT
 END_TYPE
 
-VAR_GLOBAL CONSTANT
-    str : myStruct := (a := 50, b := 60, c := [70, 80]);
-END_VAR
-
 PROGRAM mainProg
 VAR
     arr : ARRAY[0..1] OF myStruct;
     a, b, c, d : DINT;
     e, f, g, h : DINT;
 END_VAR
-    arr := [(a := 10, b := 20, c := [30, 40]), str];
+    arr := [(a := 10, b := 20, c := [30, 40]), (a := 50, c := [70, 80])];
 
     a := arr[0].a;
     b := arr[0].b;
@@ -40,7 +36,7 @@ FUNCTION main
     printf('c=%d$N', mainProg.c); // CHECK: c=30
     printf('d=%d$N', mainProg.d); // CHECK: d=40
     printf('e=%d$N', mainProg.e); // CHECK: e=50
-    printf('f=%d$N', mainProg.f); // CHECK: f=60
+    printf('f=%d$N', mainProg.f); // CHECK: f=0
     printf('g=%d$N', mainProg.g); // CHECK: g=70
     printf('h=%d$N', mainProg.h); // CHECK: h=80
 END_FUNCTION

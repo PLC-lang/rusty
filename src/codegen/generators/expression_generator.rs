@@ -2177,6 +2177,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
             AstStatement::Assignment { .. } => self.generate_literal_struct(literal_statement),
+            // Reference expressions (e.g., variable references in array literals like `[..., str]`)
+            // should be evaluated as regular expressions
+            AstStatement::ReferenceExpr(_) => {
+                self.generate_expression(literal_statement).map(ExpressionValue::RValue)
+            }
             _ => Err(cannot_generate_literal().into()),
         }
     }

@@ -1,12 +1,17 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 // This test verifies that array of struct initialization in the body works correctly
 // when the array is declared as VAR_TEMP.
+// Case: Full initialization - second element uses a constant struct variable
 
 TYPE myStruct : STRUCT
     a, b : DINT;
     c : ARRAY[0..1] OF DINT;
 END_STRUCT
 END_TYPE
+
+VAR_GLOBAL CONSTANT
+    str : myStruct := (a := 50, b := 60, c := [70, 80]);
+END_VAR
 
 PROGRAM mainProg
 VAR_TEMP
@@ -16,7 +21,7 @@ VAR
     a, b, c, d : DINT;
     e, f, g, h : DINT;
 END_VAR
-    arr := [(a := 10, b := 20, c := [30, 40])];
+    arr := [(a := 10, b := 20, c := [30, 40]), str];
 
     a := arr[0].a;
     b := arr[0].b;
@@ -36,8 +41,8 @@ FUNCTION main
     printf('b=%d$N', mainProg.b); // CHECK: b=20
     printf('c=%d$N', mainProg.c); // CHECK: c=30
     printf('d=%d$N', mainProg.d); // CHECK: d=40
-    printf('e=%d$N', mainProg.e); // CHECK: e=0
-    printf('f=%d$N', mainProg.f); // CHECK: f=0
-    printf('g=%d$N', mainProg.g); // CHECK: g=0
-    printf('h=%d$N', mainProg.h); // CHECK: h=0
+    printf('e=%d$N', mainProg.e); // CHECK: e=50
+    printf('f=%d$N', mainProg.f); // CHECK: f=60
+    printf('g=%d$N', mainProg.g); // CHECK: g=70
+    printf('h=%d$N', mainProg.h); // CHECK: h=80
 END_FUNCTION
