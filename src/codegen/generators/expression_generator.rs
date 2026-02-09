@@ -2409,8 +2409,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let elements =
             if self.index.get_effective_type_or_void_by_name(inner_type.get_name()).information.is_struct() {
                 match elements.get_stmt() {
+                    // ExpressionList of struct initializers: [(a:=1), (b:=2)] or [(a:=1, b:=2), (c:=3, d:=4)]
                     AstStatement::ExpressionList(expressions) => expressions.iter().collect(),
-                    _ => unreachable!("This should always be an expression list"),
+                    // Single struct initializer wrapped in parentheses: [(a := 1, b := 2)]
+                    // The ParenExpression represents ONE struct, not multiple elements
+                    AstStatement::ParenExpression(_) => vec![elements],
+                    // Single struct initializer without parentheses
+                    _ => vec![elements],
                 }
             } else {
                 flatten_expression_list(elements)

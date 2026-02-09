@@ -1392,9 +1392,13 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotation_map.annotate_hidden_function_call(right_side, statement);
                 } else {
                     self.update_right_hand_side(&expected_type, right_side);
+                    // Handle arrays of structs in assignment statements (not just variable initializers)
+                    self.type_hint_for_array_of_structs(&expected_type, right_side, ctx);
                 }
             } else {
                 self.update_right_hand_side(&expected_type, right_side);
+                // Handle arrays of structs in assignment statements (not just variable initializers)
+                self.type_hint_for_array_of_structs(&expected_type, right_side, ctx);
             }
         }
     }
@@ -1418,9 +1422,13 @@ impl<'i> TypeAnnotator<'i> {
                 self.annotation_map
                     .annotate_type_hint(statement, StatementAnnotation::value(expected_type.get_name()));
                 //TODO exprssionList and MultipliedExpressions are a mess!
+                // Also annotate ParenExpression with the array type so that codegen can properly
+                // handle array literals with struct initializers like [(a := 1, b := 2)]
                 if matches!(
                     elements.get_stmt(),
-                    AstStatement::ExpressionList(..) | AstStatement::MultipliedStatement(..)
+                    AstStatement::ExpressionList(..)
+                        | AstStatement::MultipliedStatement(..)
+                        | AstStatement::ParenExpression(..)
                 ) {
                     self.annotation_map
                         .annotate_type_hint(elements, StatementAnnotation::value(expected_type.get_name()));
@@ -1759,8 +1767,15 @@ impl<'i> TypeAnnotator<'i> {
             self.annotate(paren, StatementAnnotation::value(&annotation.name))
         }
 
-        if let Some(annotation) = self.annotation_map.get_type_hint(inner, self.index) {
-            self.annotation_map.annotate_type_hint(paren, StatementAnnotation::value(&annotation.name))
+        // Only inherit type_hint if the parent doesn't already have one.
+        // This is important for cases like array literals containing struct initializers
+        // [(a := 1, b := 2)] where the ParenExpression should keep the array type hint
+        // (from update_expected_types) rather than inheriting the struct type hint
+        // (from type_hint_for_array_of_structs).
+        if self.annotation_map.get_type_hint(paren, self.index).is_none() {
+            if let Some(annotation) = self.annotation_map.get_type_hint(inner, self.index) {
+                self.annotation_map.annotate_type_hint(paren, StatementAnnotation::value(&annotation.name))
+            }
         }
     }
 
