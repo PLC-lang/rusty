@@ -2549,3 +2549,107 @@ fn unresolved_qualified_reference_in_array_access() {
        │                    ^^^ Could not resolve reference to bar
     ");
 }
+
+#[test]
+fn division_by_zero_literal_results_in_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : DINT;
+                divX : DINT;
+            END_VAR
+
+            x := 5;
+            divX := x / 0;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E123]: Division by Zero
+      ┌─ <internal>:9:21
+      │
+    9 │             divX := x / 0;
+      │                     ^^^^^ Division by Zero
+    ");
+}
+
+#[test]
+fn division_by_zero_constant_results_in_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        VAR_GLOBAL CONSTANT
+            ConstantZero: DINT := 0;
+        END_VAR
+
+        FUNCTION main
+            VAR
+                x : DINT;
+                divX : DINT;
+            END_VAR
+
+            x := 5;
+            divX := x / ConstantZero;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E123]: Division by Zero
+       ┌─ <internal>:13:21
+       │
+    13 │             divX := x / ConstantZero;
+       │                     ^^^^^^^^^^^^^^^^ Division by Zero
+    ");
+}
+
+#[test]
+fn division_by_local_zero_constant_results_in_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : DINT;
+                divX : DINT;
+            END_VAR
+            VAR CONSTANT
+                ConstantZero: DINT := 0;
+            END_VAR
+
+            x := 5;
+            divX := x / ConstantZero;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E123]: Division by Zero
+       ┌─ <internal>:12:21
+       │
+    12 │             divX := x / ConstantZero;
+       │                     ^^^^^^^^^^^^^^^^ Division by Zero
+    ");
+}
+
+#[test]
+fn division_by_zero_variable_must_not_result_in_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : DINT;
+                y : DINT;
+                divX : DINT;
+            END_VAR
+
+            x := 5;
+            y := 0;
+
+            divX := x / y;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}

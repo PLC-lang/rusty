@@ -17,7 +17,9 @@ use plc_source::source_location::SourceLocation;
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::index::ImplementationType;
 use crate::typesystem::VOID_TYPE;
-use crate::validation::statement::helper::get_literal_int_or_const_expr_value;
+use crate::validation::statement::helper::{
+    get_literal_int_or_const_expr_value, is_literal_or_const_expr_value_zero,
+};
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -831,6 +833,10 @@ fn visit_binary_expression<T: AnnotationMap>(
             validate_binary_expression(validator, statement, &Operator::Less, left, right, context);
             // check for the = operator
             validate_binary_expression(validator, statement, &Operator::Equal, left, right, context);
+        }
+        Operator::Division => {
+            validate_binary_expression(validator, statement, operator, left, right, context);
+            validate_zero_diviser(context, validator, right, &statement.location);
         }
         _ => validate_binary_expression(validator, statement, operator, left, right, context),
     }
@@ -1974,6 +1980,20 @@ fn validate_argument_count<T: AnnotationMap>(
     }
 }
 
+/// Validates an expression to ensure that the given literal or constant is not 0
+fn validate_zero_diviser<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    statement: &AstNode,
+    location: &SourceLocation,
+) {
+    if is_literal_or_const_expr_value_zero(statement, context) {
+        validator.push_diagnostic(
+            Diagnostic::new("Division by Zero").with_error_code("E123").with_location(location),
+        );
+    }
+}
+
 pub(crate) mod helper {
     use std::ops::Range;
 
@@ -2043,5 +2063,25 @@ pub(crate) mod helper {
         }
 
         variant_const_values
+    }
+
+    pub fn is_literal_or_const_expr_value_zero<T>(right: &AstNode, context: &ValidationContext<T>) -> bool
+    where
+        T: AnnotationMap,
+    {
+        if right.is_zero() {
+            return true;
+        }
+
+        let path = right.get_flat_reference_name().unwrap_or_default();
+        if let Some(element) = context.index.find_variable(context.qualifier, &[path]) {
+            if let Some(constant_statement) =
+                context.index.get_const_expressions().maybe_get_constant_statement(&element.initial_value)
+            {
+                return constant_statement.is_zero();
+            }
+        }
+
+        false
     }
 }
