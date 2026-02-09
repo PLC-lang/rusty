@@ -4141,3 +4141,63 @@ fn program_with_var_temp_before_var_generates_correct_struct_layout() {
     // GEP indices for v1 should be 0, v2 should be 1
     filtered_assert_snapshot!(res);
 }
+
+#[test]
+fn array_of_struct_partial_initialization() {
+    // This test verifies that array of struct initialization works correctly
+    // with different initializer styles:
+    // 1. Single element initialization (only first element, rest defaults to zero)
+    // 2. Full initialization (all elements explicitly initialized)
+    let res = codegen(
+        "
+        TYPE STRUCT2 :
+            STRUCT
+                x1 : BOOL;
+                x2 : DINT;
+                x3 : DINT;
+                x4 : DINT;
+            END_STRUCT
+        END_TYPE
+
+        PROGRAM mainProg
+        VAR
+            // Single element initializer - only arr1[0] is initialized
+            arr1 : ARRAY[0..1] OF STRUCT2 := [(x1 := TRUE, x2 := 128, x3 := 12, x4 := 421)];
+            // Full initializer - both elements explicitly initialized
+            arr2 : ARRAY[0..1] OF STRUCT2 := [(x1 := TRUE, x2 := 100), (x1 := FALSE, x2 := 200)];
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn array_of_struct_initialization_in_body() {
+    // This test verifies that array of struct initialization works correctly
+    // when done in the program body (not just in VAR declaration)
+    // Multiple struct initializers are supported
+    let res = codegen(
+        "
+        TYPE MyStruct :
+            STRUCT
+                a : DINT;
+                b : DINT;
+            END_STRUCT
+        END_TYPE
+
+        PROGRAM mainProg
+        VAR
+            arr : ARRAY[0..1] OF MyStruct;
+            x, y : DINT;
+        END_VAR
+            arr := [(a := 10, b := 20), (a := 30, b := 40)];
+            x := arr[0].a;
+            y := arr[1].b;
+        END_PROGRAM
+        ",
+    );
+
+    filtered_assert_snapshot!(res);
+}

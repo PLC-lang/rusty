@@ -1612,8 +1612,14 @@ impl<'i> TypeAnnotator<'i> {
                             self.type_hint_for_array_of_structs(expected_type, expression, &ctx);
                         }
 
-                        // annotate the expression list as well
-                        self.annotation_map.annotate_type_hint(statement, hint);
+                        // Only annotate the expression list if it doesn't already have a type hint.
+                        // This is important for cases like array literals containing struct initializers
+                        // [(a := 1, b := 2), (c := 3, d := 4)] where the ExpressionList should keep
+                        // the array type hint (from update_expected_types) rather than being overwritten
+                        // with the struct type hint.
+                        if self.annotation_map.get_type_hint(statement, self.index).is_none() {
+                            self.annotation_map.annotate_type_hint(statement, hint);
+                        }
                     }
 
                     AstStatement::Assignment(Assignment { left, right, .. }) if left.is_reference() => {
