@@ -24,20 +24,20 @@ define void @main__newAction(ptr %0) {
 entry:
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  %load_a = load i32, ptr %a, align [filtered], !dbg !21
-  %tmpVar = add i32 %load_a, 1, !dbg !21
-  store i32 %tmpVar, ptr %a, align [filtered], !dbg !21
-  ret void, !dbg !22
+  %load_a = load i32, ptr %a, align [filtered]
+  %tmpVar = add i32 %load_a, 1
+  store i32 %tmpVar, ptr %a, align [filtered]
+  ret void
 }
 
 define void @main__newAction2(ptr %0) {
 entry:
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  %load_b = load i32, ptr %b, align [filtered], !dbg !23
-  %tmpVar = add i32 %load_b, 2, !dbg !23
-  store i32 %tmpVar, ptr %b, align [filtered], !dbg !23
-  ret void, !dbg !22
+  %load_b = load i32, ptr %b, align [filtered]
+  %tmpVar = add i32 %load_b, 2
+  store i32 %tmpVar, ptr %b, align [filtered]
+  ret void
 }
 
 define void @__init_main(ptr %0) {
@@ -85,6 +85,3 @@ entry:
 !18 = !DILocation(line: 3, scope: !12)
 !19 = !DILocation(line: 2, scope: !12)
 !20 = !DILocation(line: 0, scope: !12)
-!21 = !DILocation(line: 1, scope: !2)
-!22 = !DILocation(line: 0, scope: !2)
-!23 = !DILocation(line: 2, scope: !2)
