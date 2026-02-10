@@ -2576,6 +2576,31 @@ fn division_by_zero_literal_results_in_error() {
 }
 
 #[test]
+fn division_by_nested_zero_literal_results_in_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+            VAR
+                x : DINT;
+                divX : DINT;
+            END_VAR
+
+            x := 5;
+            divX := x / (0);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E123]: Division by Zero
+      ┌─ <internal>:9:21
+      │
+    9 │             divX := x / (0);
+      │                     ^^^^^^^ Division by Zero
+    ");
+}
+
+#[test]
 fn division_by_zero_constant_results_in_error() {
     let diagnostics = parse_and_validate_buffered(
         "
@@ -2633,18 +2658,52 @@ fn division_by_local_zero_constant_results_in_error() {
 }
 
 #[test]
+fn division_by_zero_in_struct_constant_results_in_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE Position:
+            STRUCT
+                x: DINT := 0;
+                y: DINT := 5;
+            END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            pos: Position;
+        END_VAR
+
+        FUNCTION main
+            VAR
+                x: DINT := 5;
+            END_VAR
+
+            x / pos.x;
+            x / pos.y;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E123]: Division by Zero
+       ┌─ <internal>:18:13
+       │
+    18 │             x / pos.x;
+       │             ^^^^^^^^^ Division by Zero
+    ");
+}
+
+#[test]
 fn division_by_zero_variable_must_not_result_in_error() {
     let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION main
             VAR
-                x : DINT;
-                y : DINT;
+                x : DINT := 5;
+                y : DINT := 0;
                 divX : DINT;
             END_VAR
 
-            x := 5;
-            y := 0;
+            y := 5;
 
             divX := x / y;
         END_FUNCTION

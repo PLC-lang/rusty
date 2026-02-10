@@ -2069,16 +2069,28 @@ pub(crate) mod helper {
     where
         T: AnnotationMap,
     {
+        let right = right.get_node_peeled();
         if right.is_zero() {
             return true;
         }
 
-        let path = right.get_flat_reference_name().unwrap_or_default();
-        if let Some(element) = context.index.find_variable(context.qualifier, &[path]) {
-            if let Some(constant_statement) =
-                context.index.get_const_expressions().maybe_get_constant_statement(&element.initial_value)
-            {
-                return constant_statement.is_zero();
+        let (option_path, is_constant) = if let Some(statement_annotation) = context.annotations.get(right) {
+            (statement_annotation.qualified_name(), statement_annotation.is_const())
+        } else {
+            (None, false)
+        };
+
+        if let Some(path) = option_path {
+            if let Some(element) = context.index.find_fully_qualified_variable(path) {
+                if is_constant {
+                    if let Some(constant_statement) = context
+                        .index
+                        .get_const_expressions()
+                        .maybe_get_constant_statement(&element.initial_value)
+                    {
+                        return constant_statement.is_zero();
+                    }
+                }
             }
         }
 
