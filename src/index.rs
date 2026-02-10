@@ -72,6 +72,8 @@ pub struct VariableIndexEntry {
     is_constant: bool,
     // true if this variable is in a 'VAR_EXTERNAL' block
     is_var_external: bool,
+    /// Returns true if the variable is in a `RETAIN` block
+    is_retain: bool,
     /// the variable's datatype
     pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
@@ -111,6 +113,7 @@ impl VariableIndexEntry {
             argument_type,
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent,
             linkage: LinkageType::Internal,
@@ -133,6 +136,7 @@ impl VariableIndexEntry {
             argument_type: ArgumentType::ByVal(VariableType::Global),
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
             linkage: LinkageType::Internal,
@@ -169,6 +173,11 @@ impl VariableIndexEntry {
 
     pub fn set_var_external(mut self, var_external: bool) -> Self {
         self.is_var_external = var_external;
+        self
+    }
+
+    pub fn set_retain(mut self, is_retain: bool) -> Self {
+        self.is_retain = is_retain;
         self
     }
 
@@ -340,6 +349,7 @@ pub struct MemberInfo<'b> {
     binding: Option<HardwareBinding>,
     is_constant: bool,
     is_var_external: bool,
+    is_retain: bool,
     varargs: Option<VarArgs>,
 }
 
@@ -2013,6 +2023,7 @@ impl Index {
         .set_hardware_binding(member_info.binding)
         .set_varargs(member_info.varargs)
         .set_var_external(member_info.is_var_external)
+        .set_retain(member_info.is_retain)
     }
 
     pub fn register_enum_variant(

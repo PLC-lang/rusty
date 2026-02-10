@@ -1330,6 +1330,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
                         ),
                         is_constant: false,
                         is_var_external: false,
+                        is_retain: false,
                         data_type_name: "INT",
                         location_in_parent: 0,
                         linkage: Internal,
