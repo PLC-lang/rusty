@@ -1,0 +1,23 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: res
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%mainProg = type { [2 x %STRUCT2], [2 x %STRUCT2] }
+%STRUCT2 = type { i8, i32, i32, i32 }
+
+@mainProg_instance = global %mainProg { [2 x %STRUCT2] [%STRUCT2 { i8 1, i32 128, i32 12, i32 421 }, %STRUCT2 zeroinitializer], [2 x %STRUCT2] [%STRUCT2 { i8 1, i32 100, i32 0, i32 0 }, %STRUCT2 { i8 0, i32 200, i32 0, i32 0 }] }
+@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer
+@__mainProg.arr1__init = unnamed_addr constant [2 x %STRUCT2] [%STRUCT2 { i8 1, i32 128, i32 12, i32 421 }, %STRUCT2 zeroinitializer]
+@__mainProg.arr2__init = unnamed_addr constant [2 x %STRUCT2] [%STRUCT2 { i8 1, i32 100, i32 0, i32 0 }, %STRUCT2 { i8 0, i32 200, i32 0, i32 0 }]
+
+define void @mainProg(ptr %0) {
+entry:
+  %arr1 = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
+  %arr2 = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 1
+  ret void
+}

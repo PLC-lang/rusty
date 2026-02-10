@@ -1,0 +1,48 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: res
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%FB_Test = type { float, float, i8 }
+%mainProg = type { %FB_Test, float, i8 }
+
+@__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
+@mainProg_instance = global %mainProg zeroinitializer
+
+define void @FB_Test(ptr %0) {
+entry:
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %IN = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+  %OUT = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
+  %LIM = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 2
+  %load_IN = load float, ptr %IN, align 4
+  %tmpVar = fmul float %load_IN, 2.000000e+00
+  store float %tmpVar, ptr %OUT, align 4
+  %load_OUT = load float, ptr %OUT, align 4
+  %tmpVar1 = fcmp ogt float %load_OUT, 1.000000e+02
+  %1 = zext i1 %tmpVar1 to i8
+  store i8 %1, ptr %LIM, align 1
+  ret void
+}
+
+define void @mainProg(ptr %0) {
+entry:
+  %fb = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
+  %result = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 1
+  %limited = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 2
+  %1 = getelementptr inbounds %FB_Test, ptr %fb, i32 0, i32 0
+  store float 5.000000e+01, ptr %1, align 4
+  call void @FB_Test(ptr %fb)
+  %Out = getelementptr inbounds nuw %FB_Test, ptr %fb, i32 0, i32 1
+  %load_Out = load float, ptr %Out, align 4
+  store float %load_Out, ptr %result, align 4
+  %Lim = getelementptr inbounds nuw %FB_Test, ptr %fb, i32 0, i32 2
+  %load_Lim = load i8, ptr %Lim, align 1
+  store i8 %load_Lim, ptr %limited, align 1
+  ret void
+}
