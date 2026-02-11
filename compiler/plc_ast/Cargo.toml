@@ -9,6 +9,8 @@ edition = "2021"
 plc_util = { path = "../plc_util" }
 plc_source = { path = "../plc_source" }
 chrono = { version = "0.4", default-features = false }
-serde = { version = "1.0", features = ["derive"] }
+# Enabled the RC feature (for Arc<T>) see: https://serde.rs/feature-flags.html#-features-rc
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_json.workspace = true
 derive_more = { version = "0.99.0", features = ["try_into"] }
 rustc-hash.workspace = true

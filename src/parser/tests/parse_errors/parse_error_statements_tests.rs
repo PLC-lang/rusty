@@ -1135,6 +1135,7 @@ fn pointer_type_without_to_test() {
         location: SourceLocation::internal(),
         initializer: None,
         scope: None,
+        linkage: LinkageType::Internal,
     };
     assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
 
@@ -1164,6 +1165,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
         location: SourceLocation::internal(),
         initializer: None,
         scope: None,
+        linkage: LinkageType::Internal,
     };
     assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
     assert_snapshot!(diagnostics);

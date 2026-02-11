@@ -1,0 +1,33 @@
+VAR_GLOBAL
+    globalCounter: INT;
+END_VAR
+
+TYPE RGB: (
+        red,
+        green,
+        blue
+    );
+END_TYPE
+
+TYPE ColourInfo:
+    STRUCT
+        timesPicked : DINT;
+        primaryColour : RGB;
+    END_STRUCT
+END_TYPE
+
+FUNCTION PrintStatistics
+VAR_INPUT
+    argumentCount: DINT;
+    colours: ARRAY [0..2] OF ColourInfo;
+END_VAR
+END_FUNCTION
+
+FUNCTION TestPrinter
+END_FUNCTION
+
+FUNCTION PrintColourInfo
+VAR_INPUT
+    colourInfo: ColourInfo;
+END_VAR
+END_FUNCTION
