@@ -4056,7 +4056,7 @@ fn methods_var_output() {
         "
         FUNCTION_BLOCK foo
         METHOD baz
-        VAR_OUTPUT 
+        VAR_OUTPUT
             out : STRING;
         END_VAR
             out := 'hello';
@@ -4064,7 +4064,7 @@ fn methods_var_output() {
         END_FUNCTION_BLOCK
 
         FUNCTION main
-        VAR 
+        VAR
             s: STRING;
             fb: foo;
         END_VAR
@@ -4075,4 +4075,96 @@ fn methods_var_output() {
     );
 
     filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn retain_variables_in_global_are_in_retain_linker_section() {
+    let res = codegen(
+        "
+        VAR_GLOBAL RETAIN
+            x : INT;
+            y : STRING;
+        END_VAR
+        ",
+    );
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @x = global i16 0, section ".retain"
+    @y = global [81 x i8] zeroinitializer, section ".retain"
+    "#);
+}
+
+#[test]
+fn retain_variables_in_programs_are_in_retain_linker_section() {
+    let res = codegen(
+        "
+        PROGRAM main
+        VAR RETAIN
+            x : INT;
+            y : STRING;
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %main = type { i16, [81 x i8] }
+
+    @main_instance = global %main zeroinitializer, section ".retain"
+
+    define void @main(ptr %0) {
+    entry:
+      %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      ret void
+    }
+    "#);
+}
+
+#[test]
+fn nested_retain_variables_are_in_the_retain_section() {
+    let res = codegen(
+        "
+        FUNCTION_BLOCK fb
+        VAR RETAIN
+            x : INT;
+            y : STRING;
+        END_VAR
+        END_FUNCTION_BLOCK
+        VAR_GLOBAL
+            fb_instance : fb;
+        END_VAR
+        ",
+    );
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %fb = type { i16, [81 x i8] }
+
+    @fb_instance = global %fb zeroinitializer, section ".retain"
+    @__fb__init = unnamed_addr constant %fb zeroinitializer, section ".retain"
+
+    define void @fb(ptr %0) {
+    entry:
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 1
+      ret void
+    }
+    "#);
 }

@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{
+    collections::BTreeSet,
     hash::Hash,
     mem::size_of,
     ops::{Range, RangeInclusive},
@@ -295,9 +296,9 @@ impl DataType {
         }
     }
 
-    pub fn should_retain(&self, index: &Index) -> bool {
+    pub fn should_retain(&self, index: &Index, already_visited: BTreeSet<String>) -> bool {
         // A datatype should be retained if one of its members is retain or if it is transitively containing a retain variable
-        self.get_type_information().should_retain(index)
+        self.get_type_information().should_retain(index, already_visited)
     }
 }
 
@@ -851,20 +852,25 @@ impl DataTypeInformation {
         }
     }
 
-    fn should_retain(&self, index: &Index) -> bool {
+    fn should_retain(&self, index: &Index, already_visited: BTreeSet<String>) -> bool {
+        if already_visited.contains(self.get_name()) {
+            return false;
+        }
+        let mut already_visited = already_visited;
+        already_visited.insert(self.get_name().to_string());
         // A datatype should be retained if one of its members is retain or if it is transitively containing a retain variable
-        match self {
-            DataTypeInformation::Struct { members, .. } | DataTypeInformation::Enum { variants: members, .. } => {
-                members.iter().any(|member| member.should_retain(index))
+        let res = match self {
+            DataTypeInformation::Struct { members, .. } => {
+                members.iter().any(|member| member.should_retain_recursive(index, already_visited.clone()))
             }
             DataTypeInformation::Array { inner_type_name, .. }
-            | DataTypeInformation::Alias { referenced_type: inner_type_name, .. }
-            | DataTypeInformation::SubRange { referenced_type: inner_type_name, .. } => {
+            | DataTypeInformation::Alias { referenced_type: inner_type_name, .. } => {
                 let inner_type_info = index.get_type_information_or_void(inner_type_name);
-                inner_type_info.should_retain(index)
+                inner_type_info.should_retain(index, already_visited)
             }
             _ => false,
-        }
+        };
+        res
     }
 }
 

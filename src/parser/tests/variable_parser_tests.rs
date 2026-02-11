@@ -571,6 +571,7 @@ fn var_external_constant() {
                             },
                         ],
                         variable_block_type: External,
+                        constant: true,
                     },
                 ],
                 pou_type: Function,
