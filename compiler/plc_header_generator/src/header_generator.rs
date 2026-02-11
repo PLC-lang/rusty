@@ -353,6 +353,27 @@ fn extract_string_size(size: &Option<AstNode>) -> i128 {
     }
 }
 
+/// Determines what type of array this is, standard or multidimensional
+fn determine_array_type(bounds: &AstNode) -> Option<VariableType> {
+    match &bounds.stmt {
+        AstStatement::RangeStatement(..) => {
+            let size = extract_array_size(bounds);
+            Some(VariableType::Array(size))
+        }
+        AstStatement::VlaRangeStatement => Some(VariableType::Array(i128::default())),
+        AstStatement::ExpressionList(nodes) => {
+            let mut sizes: Vec<i128> = Vec::new();
+
+            for node in nodes {
+                sizes.push(extract_array_size(node));
+            }
+
+            Some(VariableType::MultidimensionalArray(sizes))
+        }
+        _ => None,
+    }
+}
+
 /// Given an AstNode containing a [RangeStatement](plc_ast::ast::AstStatement::RangeStatement), this will determine the [i128] size of an array.
 ///
 /// This will return [i128] default in the case the AstNode does not match the expected [RangeStatement](plc_ast::ast::AstStatement::RangeStatement).

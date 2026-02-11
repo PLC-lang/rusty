@@ -31,6 +31,7 @@ extern int16_t gVarWString[6001];
 extern int16_t gVarIntArray[12];
 extern __global_gVarArrayOfIntArray_ gVarArrayOfIntArray[12];
 extern __global_gVarArrayOfArrayOfIntArray_ gVarArrayOfArrayOfIntArray[12];
+extern int16_t gVarAltSyntaxArrayOfIntArray[12][12];
 extern int16_t* gVarRefToInt;
 extern int16_t* gVarPointerToInt;
 extern time_t* gVarRefToDate;

@@ -18,6 +18,8 @@ extern "C" {
 
 typedef int16_t __CoordinateSet[3];
 
+typedef int16_t MultiDemCoordinateSet[4][3];
+
 typedef __CoordinateSet CoordinateSet[4];
 
 typedef int32_t PartialEnumType;
@@ -33,6 +35,9 @@ void PrintAllEnumValues();
 
 // coordinateSet: maximum of 4 CoordinateSet(s)
 void PrintCoordinateSet(CoordinateSet* coordinateSet);
+
+// coordinateSet: maximum of 4 MultiDemCoordinateSet(s)
+void PrintMultiDemCoordinateSet(MultiDemCoordinateSet* coordinateSet);
 
 #ifdef __cplusplus
 }

@@ -6,6 +6,12 @@ VAR
         [20,21,22],
         [30,31,32]
     ];
+    multiDemCoordinateSet: MultiDemCoordinateSet := [
+        40,41,42,
+        50,51,52,
+        60,61,62,
+        70,71,72
+    ];
 END_VAR
     // Print output
     PrintNumber(42);    // CHECK: The number you asked for: 42
@@ -24,4 +30,11 @@ END_VAR
     // CHECK-NEXT: [10, 11, 12]
     // CHECK-NEXT: [20, 21, 22]
     // CHECK-NEXT: [30, 31, 32]
+
+    // Print multi dimensional co-ordinate set
+    PrintMultiDemCoordinateSet(multiDemCoordinateSet);
+    // CHECK: [40, 41, 42]
+    // CHECK-NEXT: [50, 51, 52]
+    // CHECK-NEXT: [60, 61, 62]
+    // CHECK-NEXT: [70, 71, 72]
 END_FUNCTION

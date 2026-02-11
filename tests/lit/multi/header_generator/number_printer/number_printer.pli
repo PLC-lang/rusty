@@ -1,6 +1,9 @@
 TYPE CoordinateSet : ARRAY[0..3] OF ARRAY[0..2] OF INT;
 END_TYPE
 
+TYPE MultiDemCoordinateSet : ARRAY[0..3, 0..2] OF INT;
+END_TYPE
+
 TYPE PartialEnumType : (
         A := 2,
         B := 0,
@@ -22,5 +25,11 @@ END_FUNCTION
 FUNCTION PrintCoordinateSet
 VAR_INPUT
     coordinateSet: CoordinateSet;
+END_VAR
+END_FUNCTION
+
+FUNCTION PrintMultiDemCoordinateSet
+VAR_INPUT
+    coordinateSet: MultiDemCoordinateSet;
 END_VAR
 END_FUNCTION

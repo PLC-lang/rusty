@@ -9,7 +9,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use tera::{from_value, to_value, Context, Tera};
 
 use crate::header_generator::{
-    coalesce_field_name_override_with_default, data_type_is_system_generated, extract_array_size,
+    coalesce_field_name_override_with_default, data_type_is_system_generated, determine_array_type,
     extract_enum_declaration_from_elements, extract_string_size,
     file_helper::HeaderFileInformation,
     get_type_from_data_type_decleration, get_user_generated_type_by_name, sanitize_method_name,
@@ -353,11 +353,18 @@ impl GeneratedHeaderForC {
                     builtin_types,
                 );
 
-                self.template_data.user_defined_types.aliases.push(Variable {
-                    data_type: type_information.get_type_name(),
-                    name: name.clone().unwrap_or_default(),
-                    variable_type: VariableType::Array(extract_array_size(bounds)),
-                });
+                if let Some(variable_type) = determine_array_type(bounds) {
+                    self.template_data.user_defined_types.aliases.push(Variable {
+                        data_type: type_information.get_type_name(),
+                        name: name.clone().unwrap_or_default(),
+                        variable_type,
+                    });
+                } else {
+                    log::warn!(
+                        "Array type cannot be determined for array with name: {} but none found!",
+                        name.clone().unwrap_or_default()
+                    )
+                }
             }
             ast::DataType::PointerType { name, referenced_type, .. } => {
                 // The assumption here is that the referenced type has already been parsed and populated
@@ -850,11 +857,14 @@ impl GeneratedHeaderForC {
                         builtin_types,
                     );
 
-                    Some(Variable {
-                        name,
-                        data_type: type_info.get_type_name(),
-                        variable_type: VariableType::Array(extract_array_size(bounds)),
-                    })
+                    if let Some(variable_type) = determine_array_type(bounds) {
+                        Some(Variable { name, data_type: type_info.get_type_name(), variable_type })
+                    } else {
+                        log::warn!(
+                            "Array type cannot be determined for array with name: {name} but none found!"
+                        );
+                        None
+                    }
                 } else {
                     log::warn!("Referenced type expected for array with name: {name} but none found!");
                     None
@@ -1044,6 +1054,15 @@ fn format_variable_for_definition() -> impl tera::Function {
                     VariableType::Array(size) => {
                         Ok(to_value(format!("{} {}[{}]", variable.data_type, variable.name, size)).unwrap())
                     }
+                    VariableType::MultidimensionalArray(sizes) => {
+                        let mut size_str = String::new();
+
+                        for size in sizes {
+                            size_str += &format!("[{size}]");
+                        }
+
+                        Ok(to_value(format!("{} {}{}", variable.data_type, variable.name, size_str)).unwrap())
+                    }
                     VariableType::Declaration(right) => {
                         Ok(to_value(format!("{} {} = {}", variable.data_type, variable.name, right)).unwrap())
                     }
@@ -1068,7 +1087,9 @@ fn format_variable_for_parameter(reference_symbol: String, variadic_symbol: Stri
         match args.get("variable") {
             Some(value) => match from_value::<Variable>(value.clone()) {
                 Ok(variable) => match variable.variable_type {
-                    VariableType::Array(_) | VariableType::Struct => {
+                    VariableType::Array(_)
+                    | VariableType::MultidimensionalArray(_)
+                    | VariableType::Struct => {
                         Ok(to_value(format!("{}{} {}", variable.data_type, reference_symbol, variable.name))
                             .unwrap())
                     }
@@ -1093,6 +1114,13 @@ fn is_array_with_size() -> impl tera::Function {
             Some(value) => match from_value::<Variable>(value.clone()) {
                 Ok(variable) => match variable.variable_type {
                     VariableType::Array(size) => Ok(to_value(size > 0).unwrap()),
+                    VariableType::MultidimensionalArray(sizes) => {
+                        if !sizes.is_empty() {
+                            return Ok(to_value(sizes[0] > 0).unwrap());
+                        }
+
+                        Ok(to_value(false).unwrap())
+                    }
                     _ => Ok(to_value(false).unwrap()),
                 },
                 Err(_) => Err("Unable to determine if this is an array with a size!".into()),
@@ -1119,6 +1147,17 @@ fn format_variable_for_function_comment() -> impl tera::Function {
                         variable.name, size, variable.data_type
                     ))
                     .unwrap()),
+                    VariableType::MultidimensionalArray(sizes) => {
+                        if !sizes.is_empty() {
+                            return Ok(to_value(format!(
+                                "// {}: maximum of {} {}(s)",
+                                variable.name, sizes[0], variable.data_type
+                            ))
+                            .unwrap());
+                        }
+
+                        Ok(to_value("").unwrap())
+                    }
                     _ => Ok(to_value("").unwrap()),
                 },
                 Err(_) => Err("Unable to format variable for function comment!".into()),

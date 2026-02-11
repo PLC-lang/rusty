@@ -92,6 +92,8 @@ fn get_source_code_for_case_2_global_complex_types() -> SourceCode {
         gVarArrayOfIntArray: ARRAY[0..11] OF ARRAY[0..11] OF INT;
         gVarArrayOfArrayOfIntArray: ARRAY[0..11] OF ARRAY[0..11] OF ARRAY[0..11] OF INT;
 
+        gVarAltSyntaxArrayOfIntArray: ARRAY[0..11, 0..11] OF INT;
+
         gVarRefToInt: REFERENCE TO INT;
         gVarPointerToInt: REF_TO INT;
         gVarRefToDate: REFERENCE TO DATE;

@@ -68,6 +68,16 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
         }
       },
       {
+        "data_type": "int16_t",
+        "name": "gVarAltSyntaxArrayOfIntArray",
+        "variable_type": {
+          "MultidimensionalArray": [
+            12,
+            12
+          ]
+        }
+      },
+      {
         "data_type": "int16_t*",
         "name": "gVarRefToInt",
         "variable_type": "Default"

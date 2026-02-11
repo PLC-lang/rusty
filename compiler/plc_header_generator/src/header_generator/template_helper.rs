@@ -112,6 +112,8 @@ pub enum VariableType {
     Variadic,
     /// A variable that represents a struct
     Struct,
+    /// A variable that represents a multidimensional array with the sizes of each dimension wrapped within
+    MultidimensionalArray(Vec<i128>),
 }
 
 /// A representation of a function used by the template data
