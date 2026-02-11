@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["combine_generated_headers","get_empty_generated_header_from_options","get_generated_header","prepare_template_data_for_header_generation"],"mod":["file_helper","template_helper"],"struct":["ExtendedTypeName"],"trait":["GeneratedHeader"]};

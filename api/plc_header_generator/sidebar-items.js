@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["GenerateLanguage"],"mod":["header_generator"],"struct":["GenerateHeaderOptions"]};

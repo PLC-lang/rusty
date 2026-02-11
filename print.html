@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-88936025.js";
+            window.path_to_searchindex_js = "searchindex-153cd98a.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-90e98495.js"></script>
+        <script src="toc-bd301f2d.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1504,6 +1504,85 @@ END_TYPE
 <p>If no specific size is required, you can omit the type specification (will default to <code>DINT</code>):</p>
 <pre><code class="language-st">TYPE Color (red := 1, green := 2, blue := 3);
 END_TYPE
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
+<p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
+<h2 id="usage-1"><a class="header" href="#usage-1">Usage</a></h2>
+<p>Header generation can be invoked via two possible commands. Both of these commands will short-circuit the code-generation phase of the build and instead output the result of the compilation as a header for the specified language.</p>
+<h3 id="generate-headers"><a class="header" href="#generate-headers">–generate-headers</a></h3>
+<p><strong>Please Note:</strong> At present, the only langauge supported for header generation using this command is <code>c</code>.</p>
+<p>This is the command whereby the arguments can be supplied inline and extends the existing top-level commands.</p>
+<p><strong>For example:</strong>
+<code>plc --header-ouput "tmp\my_dir" -o "my_header" --generate-headers "**\*.pli"</code></p>
+<blockquote>
+<p>This will ingest every <code>.pli</code> file in the relative directory and output them into a single header file <code>my_header.h</code> in the <code>tmp\my_dir</code> directory.</p>
+</blockquote>
+<h4 id="subcommands-special-usage"><a class="header" href="#subcommands-special-usage">Subcommands (special usage)</a></h4>
+<ul>
+<li><code>--header-ouput</code>: The output folder where generated headers will be placed.</li>
+<li><code>-o</code> : Write output to <code>output-file</code>. (All headers will be combined into this one file).</li>
+<li><code>-i</code> : Include source files for external functions. These source files can include other external libraries that will be used by the headers but not generated into separate header files.</li>
+</ul>
+<h3 id="generate-headers-1"><a class="header" href="#generate-headers-1">generate headers</a></h3>
+<p>This command uses the <a href="#build-configuration">build configuration</a> <code>plc.json</code> file to determine the options for ingestion of content.</p>
+<h4 id="subcommands"><a class="header" href="#subcommands">Subcommands</a></h4>
+<ul>
+<li><code>--header-language</code>: The language used to generate the header file. Currently supported language(s) are: C</li>
+<li><code>--header-output</code>: The output folder where generated headers will be placed.</li>
+<li><code>--header-prefix</code>: The prefix for the generated header file(s). Will default to the project name if not
+supplied.</li>
+</ul>
+<p><strong>For example:</strong> the following <code>plc.json</code> file coupled with the command <code>plc generate "plc.json" headers</code> will ingest a .pli file name <code>colour_tracker.pli</code> and output a file <code>colour_tracker.h</code> in the same directory.</p>
+<pre><code class="language-json">{
+	"name" : "HeaderGeneratorProject",
+	"files" : [
+		"colour_tracker.pli"
+	],
+	"compile_type" : "Shared",
+	"output" : "prog.so",
+	"libraries" : [
+	]
+}
+</code></pre>
+<h2 id="a-generated-header-example-in-c"><a class="header" href="#a-generated-header-example-in-c">A generated header example in C</a></h2>
+<p><strong>Input file:</strong> message_printer.pli</p>
+<pre><code class="language-ST">TYPE T_Message : STRING[255];
+END_TYPE
+
+FUNCTION PrintMessage
+VAR_INPUT
+    message: T_Message;
+END_VAR
+END_FUNCTION
+</code></pre>
+<p><strong>Output header:</strong> message_printer.h</p>
+<pre><code class="language-C">// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef MESSAGE_PRINTER
+#define MESSAGE_PRINTER
+
+#include &lt;stdint.h&gt;
+#include &lt;math.h&gt;
+#include &lt;stdbool.h&gt;
+#include &lt;dependencies.plc.h&gt;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef char T_Message[255];
+
+void PrintMessage(T_Message* message);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !MESSAGE_PRINTER */
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="libraries-1"><a class="header" href="#libraries-1">Libraries</a></h1>

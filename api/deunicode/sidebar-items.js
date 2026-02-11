@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["deunicode","deunicode_char","deunicode_with_tofu","deunicode_with_tofu_cow"],"struct":["AsciiCharsIter"],"trait":["AsciiChars"]};

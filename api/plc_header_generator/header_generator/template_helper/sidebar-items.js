@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["TemplateType","VariableType"],"struct":["Function","Template","TemplateData","UserDefinedTypes","UserType","Variable"],"trait":["TemplateHelper"]};
