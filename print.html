@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-153cd98a.js";
+            window.path_to_searchindex_js = "searchindex-c17b38b4.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-bd301f2d.js"></script>
+        <script src="toc-4ba2047e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1504,6 +1504,36 @@ END_TYPE
 <p>If no specific size is required, you can omit the type specification (will default to <code>DINT</code>):</p>
 <pre><code class="language-st">TYPE Color (red := 1, green := 2, blue := 3);
 END_TYPE
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e123-division-by-zero-error"><a class="header" href="#e123-division-by-zero-error">E123: Division by zero error</a></h1>
+<p>This error occurs when a literal or constant on the right side of a division operation is zero.</p>
+<h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<h3 id="literal-is-zero"><a class="header" href="#literal-is-zero">Literal is zero</a></h3>
+<pre><code class="language-st">FUNCTION main
+    VAR
+        x : DINT;
+        divX : DINT;
+    END_VAR
+
+    x := 5;
+    divX := x / 0;
+END_FUNCTION
+</code></pre>
+<h3 id="constant-is-zero"><a class="header" href="#constant-is-zero">Constant is zero</a></h3>
+<pre><code class="language-st">VAR_GLOBAL CONSTANT
+    ConstantZero: DINT := 0;
+END_VAR
+
+FUNCTION main
+    VAR
+        x : DINT;
+        divX : DINT;
+    END_VAR
+
+    x := 5;
+    divX := x / ConstantZero;
+END_FUNCTION
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>

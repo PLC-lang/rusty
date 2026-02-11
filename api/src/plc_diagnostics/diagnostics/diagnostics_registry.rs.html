@@ -224,63 +224,64 @@
 <a href=#224 id=224 data-nosnippet>224</a>        </span>E120,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E120.md"</span>),  <span class="comment">// Invalid use of `THIS` keyword
 <a href=#225 id=225 data-nosnippet>225</a>        </span>E121,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E121.md"</span>),  <span class="comment">// Recursive type alias
 <a href=#226 id=226 data-nosnippet>226</a>        </span>E122,   Error,      <span class="macro">include_str!</span>(<span class="string">"./error_codes/E122.md"</span>),  <span class="comment">// Invalid enum base type
-<a href=#227 id=227 data-nosnippet>227</a>    </span>);
-<a href=#228 id=228 data-nosnippet>228</a>}
-<a href=#229 id=229 data-nosnippet>229</a>
-<a href=#230 id=230 data-nosnippet>230</a><span class="attr">#[cfg(test)]
-<a href=#231 id=231 data-nosnippet>231</a></span><span class="kw">mod </span>tests {
-<a href=#232 id=232 data-nosnippet>232</a>    <span class="kw">use crate</span>::{
-<a href=#233 id=233 data-nosnippet>233</a>        diagnostician::DiagnosticAssessor,
-<a href=#234 id=234 data-nosnippet>234</a>        diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic, Severity},
-<a href=#235 id=235 data-nosnippet>235</a>    };
-<a href=#236 id=236 data-nosnippet>236</a>
-<a href=#237 id=237 data-nosnippet>237</a>    <span class="kw">use </span><span class="kw">super</span>::DiagnosticsRegistry;
-<a href=#238 id=238 data-nosnippet>238</a>
-<a href=#239 id=239 data-nosnippet>239</a>    <span class="attr">#[test]
-<a href=#240 id=240 data-nosnippet>240</a>    </span><span class="kw">fn </span>deserialize_empty_json() {
-<a href=#241 id=241 data-nosnippet>241</a>        <span class="kw">let </span>error_config = <span class="string">"{}"</span>;
-<a href=#242 id=242 data-nosnippet>242</a>
-<a href=#243 id=243 data-nosnippet>243</a>        <span class="kw">let </span>DiagnosticsConfiguration(configuration) = serde_json::de::from_str(error_config).unwrap();
-<a href=#244 id=244 data-nosnippet>244</a>        <span class="macro">assert!</span>(configuration.is_empty());
-<a href=#245 id=245 data-nosnippet>245</a>    }
-<a href=#246 id=246 data-nosnippet>246</a>
-<a href=#247 id=247 data-nosnippet>247</a>    <span class="attr">#[test]
-<a href=#248 id=248 data-nosnippet>248</a>    </span><span class="kw">fn </span>deserialize_json() {
-<a href=#249 id=249 data-nosnippet>249</a>        <span class="kw">let </span>error_config = <span class="string">r#"{
-<a href=#250 id=250 data-nosnippet>250</a>            "error": ["E001", "E002"],
-<a href=#251 id=251 data-nosnippet>251</a>            "warning": ["E003", "E004"],
-<a href=#252 id=252 data-nosnippet>252</a>            "info": ["E005"],
-<a href=#253 id=253 data-nosnippet>253</a>            "ignore": ["E010"]
-<a href=#254 id=254 data-nosnippet>254</a>        }"#</span>;
-<a href=#255 id=255 data-nosnippet>255</a>
-<a href=#256 id=256 data-nosnippet>256</a>        <span class="kw">let </span>DiagnosticsConfiguration(configuration) = serde_json::de::from_str(error_config).unwrap();
-<a href=#257 id=257 data-nosnippet>257</a>        <span class="macro">assert_eq!</span>(configuration.len(), <span class="number">4</span>);
-<a href=#258 id=258 data-nosnippet>258</a>        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Error).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E001"</span>, <span class="string">"E002"</span>]);
-<a href=#259 id=259 data-nosnippet>259</a>        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Warning).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E003"</span>, <span class="string">"E004"</span>]);
-<a href=#260 id=260 data-nosnippet>260</a>        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Info).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E005"</span>]);
-<a href=#261 id=261 data-nosnippet>261</a>        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Ignore).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E010"</span>]);
-<a href=#262 id=262 data-nosnippet>262</a>    }
-<a href=#263 id=263 data-nosnippet>263</a>
-<a href=#264 id=264 data-nosnippet>264</a>    <span class="attr">#[test]
-<a href=#265 id=265 data-nosnippet>265</a>    </span><span class="kw">fn </span>overridden_errors_are_assessed_correctly() {
-<a href=#266 id=266 data-nosnippet>266</a>        <span class="kw">let </span>error_config = <span class="string">r#"{
-<a href=#267 id=267 data-nosnippet>267</a>            "error": ["E090"],
-<a href=#268 id=268 data-nosnippet>268</a>            "warning": ["E001"],
-<a href=#269 id=269 data-nosnippet>269</a>            "info": ["E002"],
-<a href=#270 id=270 data-nosnippet>270</a>            "ignore": ["E003"]
-<a href=#271 id=271 data-nosnippet>271</a>        }"#</span>;
-<a href=#272 id=272 data-nosnippet>272</a>
-<a href=#273 id=273 data-nosnippet>273</a>        <span class="kw">let </span>configuration = serde_json::de::from_str(error_config).unwrap();
-<a href=#274 id=274 data-nosnippet>274</a>        <span class="kw">let </span>diagnostics_registry = DiagnosticsRegistry::default().with_configuration(configuration);
-<a href=#275 id=275 data-nosnippet>275</a>
-<a href=#276 id=276 data-nosnippet>276</a>        <span class="kw">let </span>e090 = Diagnostic::new(<span class="string">"Warning-&gt;Error"</span>).with_error_code(<span class="string">"E090"</span>);
-<a href=#277 id=277 data-nosnippet>277</a>        <span class="kw">let </span>e001 = Diagnostic::new(<span class="string">"Error-&gt;Warning"</span>).with_error_code(<span class="string">"E001"</span>);
-<a href=#278 id=278 data-nosnippet>278</a>        <span class="kw">let </span>e002 = Diagnostic::new(<span class="string">"Error-&gt;Info"</span>).with_error_code(<span class="string">"E002"</span>);
-<a href=#279 id=279 data-nosnippet>279</a>        <span class="kw">let </span>e003 = Diagnostic::new(<span class="string">"Error-&gt;Ignore"</span>).with_error_code(<span class="string">"E003"</span>);
-<a href=#280 id=280 data-nosnippet>280</a>
-<a href=#281 id=281 data-nosnippet>281</a>        <span class="macro">assert_eq!</span>(diagnostics_registry.assess(<span class="kw-2">&amp;</span>e090), Severity::Error);
-<a href=#282 id=282 data-nosnippet>282</a>        <span class="macro">assert_eq!</span>(diagnostics_registry.assess(<span class="kw-2">&amp;</span>e001), Severity::Warning);
-<a href=#283 id=283 data-nosnippet>283</a>        <span class="macro">assert_eq!</span>(diagnostics_registry.assess(<span class="kw-2">&amp;</span>e002), Severity::Info);
-<a href=#284 id=284 data-nosnippet>284</a>        <span class="macro">assert_eq!</span>(diagnostics_registry.assess(<span class="kw-2">&amp;</span>e003), Severity::Ignore);
-<a href=#285 id=285 data-nosnippet>285</a>    }
-<a href=#286 id=286 data-nosnippet>286</a>}</code></pre></div></section></main></body></html>
+<a href=#227 id=227 data-nosnippet>227</a>        </span>E123,   Warning,    <span class="macro">include_str!</span>(<span class="string">"./error_codes/E123.md"</span>),  <span class="comment">// Division by zero
+<a href=#228 id=228 data-nosnippet>228</a>    </span>);
+<a href=#229 id=229 data-nosnippet>229</a>}
+<a href=#230 id=230 data-nosnippet>230</a>
+<a href=#231 id=231 data-nosnippet>231</a><span class="attr">#[cfg(test)]
+<a href=#232 id=232 data-nosnippet>232</a></span><span class="kw">mod </span>tests {
+<a href=#233 id=233 data-nosnippet>233</a>    <span class="kw">use crate</span>::{
+<a href=#234 id=234 data-nosnippet>234</a>        diagnostician::DiagnosticAssessor,
+<a href=#235 id=235 data-nosnippet>235</a>        diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic, Severity},
+<a href=#236 id=236 data-nosnippet>236</a>    };
+<a href=#237 id=237 data-nosnippet>237</a>
+<a href=#238 id=238 data-nosnippet>238</a>    <span class="kw">use </span><span class="kw">super</span>::DiagnosticsRegistry;
+<a href=#239 id=239 data-nosnippet>239</a>
+<a href=#240 id=240 data-nosnippet>240</a>    <span class="attr">#[test]
+<a href=#241 id=241 data-nosnippet>241</a>    </span><span class="kw">fn </span>deserialize_empty_json() {
+<a href=#242 id=242 data-nosnippet>242</a>        <span class="kw">let </span>error_config = <span class="string">"{}"</span>;
+<a href=#243 id=243 data-nosnippet>243</a>
+<a href=#244 id=244 data-nosnippet>244</a>        <span class="kw">let </span>DiagnosticsConfiguration(configuration) = serde_json::de::from_str(error_config).unwrap();
+<a href=#245 id=245 data-nosnippet>245</a>        <span class="macro">assert!</span>(configuration.is_empty());
+<a href=#246 id=246 data-nosnippet>246</a>    }
+<a href=#247 id=247 data-nosnippet>247</a>
+<a href=#248 id=248 data-nosnippet>248</a>    <span class="attr">#[test]
+<a href=#249 id=249 data-nosnippet>249</a>    </span><span class="kw">fn </span>deserialize_json() {
+<a href=#250 id=250 data-nosnippet>250</a>        <span class="kw">let </span>error_config = <span class="string">r#"{
+<a href=#251 id=251 data-nosnippet>251</a>            "error": ["E001", "E002"],
+<a href=#252 id=252 data-nosnippet>252</a>            "warning": ["E003", "E004"],
+<a href=#253 id=253 data-nosnippet>253</a>            "info": ["E005"],
+<a href=#254 id=254 data-nosnippet>254</a>            "ignore": ["E010"]
+<a href=#255 id=255 data-nosnippet>255</a>        }"#</span>;
+<a href=#256 id=256 data-nosnippet>256</a>
+<a href=#257 id=257 data-nosnippet>257</a>        <span class="kw">let </span>DiagnosticsConfiguration(configuration) = serde_json::de::from_str(error_config).unwrap();
+<a href=#258 id=258 data-nosnippet>258</a>        <span class="macro">assert_eq!</span>(configuration.len(), <span class="number">4</span>);
+<a href=#259 id=259 data-nosnippet>259</a>        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Error).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E001"</span>, <span class="string">"E002"</span>]);
+<a href=#260 id=260 data-nosnippet>260</a>        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Warning).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E003"</span>, <span class="string">"E004"</span>]);
+<a href=#261 id=261 data-nosnippet>261</a>        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Info).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E005"</span>]);
+<a href=#262 id=262 data-nosnippet>262</a>        <span class="macro">assert_eq!</span>(configuration.get(<span class="kw-2">&amp;</span>Severity::Ignore).unwrap(), <span class="kw-2">&amp;</span>[<span class="string">"E010"</span>]);
+<a href=#263 id=263 data-nosnippet>263</a>    }
+<a href=#264 id=264 data-nosnippet>264</a>
+<a href=#265 id=265 data-nosnippet>265</a>    <span class="attr">#[test]
+<a href=#266 id=266 data-nosnippet>266</a>    </span><span class="kw">fn </span>overridden_errors_are_assessed_correctly() {
+<a href=#267 id=267 data-nosnippet>267</a>        <span class="kw">let </span>error_config = <span class="string">r#"{
+<a href=#268 id=268 data-nosnippet>268</a>            "error": ["E090"],
+<a href=#269 id=269 data-nosnippet>269</a>            "warning": ["E001"],
+<a href=#270 id=270 data-nosnippet>270</a>            "info": ["E002"],
+<a href=#271 id=271 data-nosnippet>271</a>            "ignore": ["E003"]
+<a href=#272 id=272 data-nosnippet>272</a>        }"#</span>;
+<a href=#273 id=273 data-nosnippet>273</a>
+<a href=#274 id=274 data-nosnippet>274</a>        <span class="kw">let </span>configuration = serde_json::de::from_str(error_config).unwrap();
+<a href=#275 id=275 data-nosnippet>275</a>        <span class="kw">let </span>diagnostics_registry = DiagnosticsRegistry::default().with_configuration(configuration);
+<a href=#276 id=276 data-nosnippet>276</a>
+<a href=#277 id=277 data-nosnippet>277</a>        <span class="kw">let </span>e090 = Diagnostic::new(<span class="string">"Warning-&gt;Error"</span>).with_error_code(<span class="string">"E090"</span>);
+<a href=#278 id=278 data-nosnippet>278</a>        <span class="kw">let </span>e001 = Diagnostic::new(<span class="string">"Error-&gt;Warning"</span>).with_error_code(<span class="string">"E001"</span>);
+<a href=#279 id=279 data-nosnippet>279</a>        <span class="kw">let </span>e002 = Diagnostic::new(<span class="string">"Error-&gt;Info"</span>).with_error_code(<span class="string">"E002"</span>);
+<a href=#280 id=280 data-nosnippet>280</a>        <span class="kw">let </span>e003 = Diagnostic::new(<span class="string">"Error-&gt;Ignore"</span>).with_error_code(<span class="string">"E003"</span>);
+<a href=#281 id=281 data-nosnippet>281</a>
+<a href=#282 id=282 data-nosnippet>282</a>        <span class="macro">assert_eq!</span>(diagnostics_registry.assess(<span class="kw-2">&amp;</span>e090), Severity::Error);
+<a href=#283 id=283 data-nosnippet>283</a>        <span class="macro">assert_eq!</span>(diagnostics_registry.assess(<span class="kw-2">&amp;</span>e001), Severity::Warning);
+<a href=#284 id=284 data-nosnippet>284</a>        <span class="macro">assert_eq!</span>(diagnostics_registry.assess(<span class="kw-2">&amp;</span>e002), Severity::Info);
+<a href=#285 id=285 data-nosnippet>285</a>        <span class="macro">assert_eq!</span>(diagnostics_registry.assess(<span class="kw-2">&amp;</span>e003), Severity::Ignore);
+<a href=#286 id=286 data-nosnippet>286</a>    }
+<a href=#287 id=287 data-nosnippet>287</a>}</code></pre></div></section></main></body></html>

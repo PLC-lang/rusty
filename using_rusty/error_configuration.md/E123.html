@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>E108 - RuSTy User Documentation</title>
+        <title>E123 - RuSTy User Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -174,37 +174,45 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="template-variable-is-configured-multiple-times"><a class="header" href="#template-variable-is-configured-multiple-times">Template variable is configured multiple times</a></h1>
-<p>A template variable is configured more than once, leading to ambiguity.</p>
-<p>Erroneous code example:</p>
-<pre><code class="language-iecst">VAR_CONFIG
-    main.foo.bar AT %IX1.0 : BOOL;
-    main.foo.bar AT %IX1.1 : BOOL;
+                        <h1 id="e123-division-by-zero-error"><a class="header" href="#e123-division-by-zero-error">E123: Division by zero error</a></h1>
+<p>This error occurs when a literal or constant on the right side of a division operation is zero.</p>
+<h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<h3 id="literal-is-zero"><a class="header" href="#literal-is-zero">Literal is zero</a></h3>
+<pre><code class="language-st">FUNCTION main
+    VAR
+        x : DINT;
+        divX : DINT;
+    END_VAR
+
+    x := 5;
+    divX := x / 0;
+END_FUNCTION
+</code></pre>
+<h3 id="constant-is-zero"><a class="header" href="#constant-is-zero">Constant is zero</a></h3>
+<pre><code class="language-st">VAR_GLOBAL CONSTANT
+    ConstantZero: DINT := 0;
 END_VAR
 
-PROGRAM main
+FUNCTION main
     VAR
-        foo : foo_fb;
+        x : DINT;
+        divX : DINT;
     END_VAR
-END_PROGRAM
 
-FUNCTION_BLOCK foo_fb
-    VAR
-        bar AT %I* : BOOL;
-    END_VAR
-END_FUNCTION_BLOCK
+    x := 5;
+    divX := x / ConstantZero;
+END_FUNCTION
 </code></pre>
-<p>In this example a variable named <code>main.foo.bar</code> has multiple configurations in the <code>VAR_CONFIG</code>-block. It is not clear which address this variable should map to - only a single configuration entry per instance-variable is allowed.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../using_rusty/error_configuration.md/E107.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../using_rusty/error_configuration.md/E122.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E109.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../using_rusty/header_generation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -214,11 +222,11 @@ END_FUNCTION_BLOCK
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../using_rusty/error_configuration.md/E107.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../using_rusty/error_configuration.md/E122.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E109.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../using_rusty/header_generation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
