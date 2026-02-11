@@ -5,11 +5,11 @@ void PrintNumber(int16_t valueToPrint) {
 }
 
 void PrintAllEnumValues() {
-    printf("Enum value 'A': %d\n", A);
-    printf("Enum value 'B': %d\n", B);
-    printf("Enum value 'C': %d\n", C);
-    printf("Enum value 'D': %d\n", D);
-    printf("Enum value 'E': %d\n", E);
+    printf("Enum value 'A': %d\n", PartialEnumType_A);
+    printf("Enum value 'B': %d\n", PartialEnumType_B);
+    printf("Enum value 'C': %d\n", PartialEnumType_C);
+    printf("Enum value 'D': %d\n", PartialEnumType_D);
+    printf("Enum value 'E': %d\n", PartialEnumType_E);
 }
 
 void PrintCoordinateSet(CoordinateSet* coordinateSet) {

@@ -16,11 +16,10 @@
 extern "C" {
 #endif
 
-typedef enum eRGB {
-    red = 0,
-    green,
-    blue
-} RGB;
+typedef int32_t RGB;
+#define RGB_red ((RGB)0)
+#define RGB_green ((RGB)1)
+#define RGB_blue ((RGB)2)
 
 typedef struct {
     int32_t timesPicked;

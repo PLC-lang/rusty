@@ -20,7 +20,8 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               "name": "enumVarTwo",
               "variable_type": "Default"
             }
-          ]
+          ],
+          "data_type": null
         }
       ],
       "enums": [
@@ -28,27 +29,28 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
           "name": "ComplexEnumType",
           "variables": [
             {
-              "data_type": "",
-              "name": "orange",
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_orange",
               "variable_type": {
-                "Declaration": "10"
+                "Declaration": 10
               }
             },
             {
-              "data_type": "",
-              "name": "yellow",
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_yellow",
               "variable_type": {
-                "Declaration": "20"
+                "Declaration": 20
               }
             },
             {
-              "data_type": "",
-              "name": "purple",
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_purple",
               "variable_type": {
-                "Declaration": "30"
+                "Declaration": 30
               }
             }
-          ]
+          ],
+          "data_type": "int32_t"
         }
       ]
     },

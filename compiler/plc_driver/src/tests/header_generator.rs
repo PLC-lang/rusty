@@ -160,6 +160,12 @@ fn get_source_code_for_case_3_enum_types() -> SourceCode {
             Topaz := 300
         ) INT := Emerald;
     END_TYPE
+
+    TYPE ComplexCodesysStyleEnumType : (
+            Black := 16#88000000,
+            White := 16#FFFFFF00
+        ) DWORD := Black;
+    END_TYPE
     ",
         "enum_types.pli",
     )

@@ -199,11 +199,12 @@ fn coalesce_field_name_override_with_default(
 /// Given an ast node this will extract the enum declarations an return a Vec<Variable>.
 ///
 /// Will return an empty Vec if the statement of the node is not type [ExpressionList](plc_ast::ast::AstStatement::ExpressionList)
-fn extract_enum_declaration_from_elements(node: &AstNode) -> Vec<Variable> {
+fn extract_enum_declaration_from_elements(enum_name: &str, node: &AstNode) -> Vec<Variable> {
     let mut enum_declarations: Vec<Variable> = Vec::new();
 
     match &node.stmt {
         AstStatement::ExpressionList(exp_nodes) => {
+            let mut declared_value: i128 = 0;
             for exp_node in exp_nodes {
                 match &exp_node.stmt {
                     AstStatement::Assignment(assignment) => {
@@ -213,34 +214,34 @@ fn extract_enum_declaration_from_elements(node: &AstNode) -> Vec<Variable> {
                             let option_right =
                                 extract_enum_field_value_from_statement(&assignment.right.stmt);
 
+                            let name = format!("{enum_name}_{left}");
+
                             if let Some(right) = option_right {
-                                enum_declarations.push(Variable {
-                                    data_type: String::new(),
-                                    name: left,
-                                    variable_type: VariableType::Declaration(right),
-                                });
+                                declared_value = right;
                             } else {
-                                enum_declarations.push(Variable {
-                                    data_type: String::new(),
-                                    name: left,
-                                    variable_type: VariableType::Default,
-                                });
-                            }
+                                declared_value += 1;
+                            };
+
+                            enum_declarations.push(Variable {
+                                data_type: enum_name.to_string(),
+                                name,
+                                variable_type: VariableType::Declaration(declared_value),
+                            });
                         } else {
-                            println!(
+                            log::warn!(
                                 "Unable to extract the enum field name from the given assignment {:?}!",
                                 assignment
                             )
                         }
                     }
-                    _ => println!(
+                    _ => log::warn!(
                         "Given node {:?} is not an Assignment, unable to extract the enum declaration!",
                         exp_node
                     ),
                 }
             }
         }
-        _ => println!(
+        _ => log::warn!(
             "Given node {:?} is not an Expression list, unable to extract the enum declaration!",
             node
         ),
@@ -273,9 +274,9 @@ fn extract_enum_field_name_from_statement(statement: &AstStatement) -> Option<St
 /// Extracts the value from an AstStatement type [Literal](plc_ast::ast::AstStatement::Literal).
 ///
 /// Will return a new string if the AstStatement type is not [Literal](plc_ast::ast::AstStatement::Literal).
-fn extract_enum_field_value_from_statement(statement: &AstStatement) -> Option<String> {
+fn extract_enum_field_value_from_statement(statement: &AstStatement) -> Option<i128> {
     match statement {
-        AstStatement::Literal(literal) => Some(literal.get_literal_value()),
+        AstStatement::Literal(AstLiteral::Integer(value)) => Some(*value),
         _ => None,
     }
 }

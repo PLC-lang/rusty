@@ -27,16 +27,10 @@ typedef {{ format_variable_for_definition(variable=alias) }};
 
 {#- Enums -#}
 {% for enum in user_defined_types.enums -%}
-typedef enum e{{ enum.name }} {
-    {% for variable in enum.variables -%}
-    {{ format_variable_for_enum_definition(variable=variable) }}
-    {%- if loop.last == false -%}
-    {% raw %},
-    {% endraw %}
-    {%- endif -%}
-    {% endfor -%}
-{% raw %}
-}{% endraw %} {{ enum.name }};
+typedef {{ enum.data_type }} {{ enum.name }};
+{% for variable in enum.variables -%}
+#define {{ format_variable_for_enum_definition(variable=variable) }}
+{% endfor -%}
 {% raw %}
 {% endraw %}
 {%- endfor %}

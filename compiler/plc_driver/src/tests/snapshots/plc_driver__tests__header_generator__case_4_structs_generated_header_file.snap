@@ -20,11 +20,10 @@ expression: "&generated_header.get_contents()"
 extern "C" {
 #endif
 
-typedef enum eComplexEnumType {
-    orange = 10,
-    yellow = 20,
-    purple = 30
-} ComplexEnumType;
+typedef int32_t ComplexEnumType;
+#define ComplexEnumType_orange ((ComplexEnumType)10)
+#define ComplexEnumType_yellow ((ComplexEnumType)20)
+#define ComplexEnumType_purple ((ComplexEnumType)30)
 
 typedef struct {
     uint8_t Field1;

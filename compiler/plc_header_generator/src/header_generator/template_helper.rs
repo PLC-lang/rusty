@@ -88,6 +88,7 @@ impl UserDefinedTypes {
 pub struct UserType {
     pub name: String,
     pub variables: Vec<Variable>,
+    pub data_type: Option<String>,
 }
 
 /// A representation of a variable used by the template data
@@ -106,7 +107,7 @@ pub enum VariableType {
     /// A variable that represents an array with the size of the array wrapped within
     Array(i128),
     /// A variable that declares a value with the value as a string wrapped within
-    Declaration(String),
+    Declaration(i128),
     /// A variable that is variadic
     Variadic,
     /// A variable that represents a struct

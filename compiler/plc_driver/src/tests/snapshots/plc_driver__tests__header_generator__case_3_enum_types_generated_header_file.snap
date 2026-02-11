@@ -20,23 +20,24 @@ expression: "&generated_header.get_contents()"
 extern "C" {
 #endif
 
-typedef enum eSimpleEnumType {
-    red = 0,
-    green,
-    blue
-} SimpleEnumType;
+typedef int32_t SimpleEnumType;
+#define SimpleEnumType_red ((SimpleEnumType)0)
+#define SimpleEnumType_green ((SimpleEnumType)1)
+#define SimpleEnumType_blue ((SimpleEnumType)2)
 
-typedef enum eComplexEnumType {
-    orange = 10,
-    yellow = 20,
-    purple = 30
-} ComplexEnumType;
+typedef int32_t ComplexEnumType;
+#define ComplexEnumType_orange ((ComplexEnumType)10)
+#define ComplexEnumType_yellow ((ComplexEnumType)20)
+#define ComplexEnumType_purple ((ComplexEnumType)30)
 
-typedef enum eCodesysStyleEnumType {
-    Crimson = 100,
-    Emerald = 200,
-    Topaz = 300
-} CodesysStyleEnumType;
+typedef int16_t CodesysStyleEnumType;
+#define CodesysStyleEnumType_Crimson ((CodesysStyleEnumType)100)
+#define CodesysStyleEnumType_Emerald ((CodesysStyleEnumType)200)
+#define CodesysStyleEnumType_Topaz ((CodesysStyleEnumType)300)
+
+typedef uint32_t ComplexCodesysStyleEnumType;
+#define ComplexCodesysStyleEnumType_Black ((ComplexCodesysStyleEnumType)2281701376)
+#define ComplexCodesysStyleEnumType_White ((ComplexCodesysStyleEnumType)4294967040)
 
 #ifdef __cplusplus
 }

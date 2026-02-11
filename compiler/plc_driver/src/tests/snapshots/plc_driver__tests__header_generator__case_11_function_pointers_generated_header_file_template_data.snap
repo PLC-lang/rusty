@@ -46,7 +46,8 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               "name": "Field3",
               "variable_type": "Default"
             }
-          ]
+          ],
+          "data_type": null
         },
         {
           "name": "StructWithComplexTypes",
@@ -92,7 +93,8 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
                 "Array": 10
               }
             }
-          ]
+          ],
+          "data_type": null
         }
       ],
       "enums": []

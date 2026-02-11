@@ -318,15 +318,29 @@ impl GeneratedHeaderForC {
                 self.template_data.user_defined_types.structs.push(UserType {
                     name: name.clone().unwrap_or_default(),
                     variables: formatted_variables,
+                    data_type: None,
                 });
             }
-            ast::DataType::EnumType { name, elements, .. } => {
-                let enum_declerations = extract_enum_declaration_from_elements(elements);
+            ast::DataType::EnumType { name, elements, numeric_type } => {
+                // The assumption here is that the name has already been parsed and populated
+                let name = name.clone().unwrap_or_default();
+                let enum_declerations = extract_enum_declaration_from_elements(&name, elements);
 
-                self.template_data
-                    .user_defined_types
-                    .enums
-                    .push(UserType { name: name.clone().unwrap_or_default(), variables: enum_declerations });
+                // The assumption here is that the numeric type has already been parsed and populated
+                let type_information = self.get_type_name_for_type(
+                    &ExtendedTypeName {
+                        type_name: numeric_type.to_string(),
+                        is_variadic: false,
+                        is_sized_variadic: false,
+                    },
+                    builtin_types,
+                );
+
+                self.template_data.user_defined_types.enums.push(UserType {
+                    name,
+                    variables: enum_declerations,
+                    data_type: Some(type_information.get_type_name()),
+                });
             }
             ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
                 // The assumption here is that the referenced type has already been parsed and populated
@@ -450,12 +464,14 @@ impl GeneratedHeaderForC {
                 name: data_type.to_string(),
                 variables: self
                     .modify_function_block_variables_for_inheritance(&input_variables, super_class),
+                data_type: None,
             });
         } else {
-            self.template_data
-                .user_defined_types
-                .structs
-                .push(UserType { name: data_type.to_string(), variables: input_variables });
+            self.template_data.user_defined_types.structs.push(UserType {
+                name: data_type.to_string(),
+                variables: input_variables,
+                data_type: None,
+            });
         }
 
         // Get void type
@@ -798,7 +814,7 @@ impl GeneratedHeaderForC {
                         variable_type: VariableType::Struct,
                     })
                 } else {
-                    println!("type_name_override expected for struct with name: {name} but none supplied!");
+                    log::warn!("type_name_override expected for struct with name: {name} but none supplied!");
                     None
                 }
             }
@@ -811,7 +827,7 @@ impl GeneratedHeaderForC {
                         variable_type: VariableType::Default,
                     })
                 } else {
-                    println!("type_name_override expected for enum with name: {name} but none supplied!");
+                    log::warn!("type_name_override expected for enum with name: {name} but none supplied!");
                     None
                 }
             }
@@ -840,7 +856,7 @@ impl GeneratedHeaderForC {
                         variable_type: VariableType::Array(extract_array_size(bounds)),
                     })
                 } else {
-                    println!("Referenced type expected for array with name: {name} but none found!");
+                    log::warn!("Referenced type expected for array with name: {name} but none found!");
                     None
                 }
             }
@@ -862,7 +878,7 @@ impl GeneratedHeaderForC {
 
                     Some(Variable { name, data_type, variable_type: VariableType::Default })
                 } else {
-                    println!("Referenced type expected for pointer with name: {name} but none found!");
+                    log::warn!("Referenced type expected for pointer with name: {name} but none found!");
                     None
                 }
             }
@@ -1002,13 +1018,15 @@ fn format_variable_for_enum_definition() -> impl tera::Function {
             Some(value) => match from_value::<Variable>(value.clone()) {
                 Ok(variable) => match variable.variable_type {
                     VariableType::Declaration(right) => {
-                        Ok(to_value(format!("{} = {}", variable.name, right)).unwrap())
+                        // Fetch the parent from naming convention
+                        Ok(to_value(format!("{} (({}){})", variable.name, variable.data_type, right))
+                            .unwrap())
                     }
-                    _ => Ok(to_value(format!("{}{}", variable.data_type, variable.name)).unwrap()),
+                    _ => Err("Unable to format enum variable for parameter!".into()),
                 },
-                Err(_) => Err("Unable to format variable for parameter!".into()),
+                Err(_) => Err("Unable to format enum variable for parameter!".into()),
             },
-            None => Err("Unable to format variable for parameter!".into()),
+            None => Err("Unable to format enum variable for parameter!".into()),
         }
     })
 }

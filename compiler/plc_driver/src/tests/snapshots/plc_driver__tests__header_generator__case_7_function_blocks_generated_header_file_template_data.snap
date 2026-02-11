@@ -30,7 +30,8 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               "name": "inOutVarInt",
               "variable_type": "Default"
             }
-          ]
+          ],
+          "data_type": null
         }
       ],
       "enums": []

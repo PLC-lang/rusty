@@ -20,13 +20,12 @@ typedef int16_t __CoordinateSet[3];
 
 typedef __CoordinateSet CoordinateSet[4];
 
-typedef enum ePartialEnumType {
-    A = 2,
-    B = 0,
-    C,
-    D = 1000,
-    E
-} PartialEnumType;
+typedef int32_t PartialEnumType;
+#define PartialEnumType_A ((PartialEnumType)2)
+#define PartialEnumType_B ((PartialEnumType)0)
+#define PartialEnumType_C ((PartialEnumType)1)
+#define PartialEnumType_D ((PartialEnumType)1000)
+#define PartialEnumType_E ((PartialEnumType)1001)
 
 void PrintNumber(int16_t valueToPrint);
 

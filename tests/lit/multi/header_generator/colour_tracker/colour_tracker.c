@@ -20,9 +20,9 @@ void TestPrinter() {
 
 void PrintColourInfo(ColourInfo* colourInfo) {
     switch(colourInfo->primaryColour) {
-        case red: printf("Red, Times Picked: %d\n", colourInfo->timesPicked); break;
-        case green: printf("Green, Times Picked: %d\n", colourInfo->timesPicked); break;
-        case blue: printf("Blue, Times Picked: %d\n", colourInfo->timesPicked); break;
+        case RGB_red: printf("Red, Times Picked: %d\n", colourInfo->timesPicked); break;
+        case RGB_green: printf("Green, Times Picked: %d\n", colourInfo->timesPicked); break;
+        case RGB_blue: printf("Blue, Times Picked: %d\n", colourInfo->timesPicked); break;
         default: break;
     }
 }

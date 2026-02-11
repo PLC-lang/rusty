@@ -24,11 +24,10 @@ typedef int16_t __fnThatUsesStructWithComplexTypes_varArrayOfIntArray_[15];
 
 typedef int16_t __StructWithComplexTypes_arrayOfIntArrayField_[10];
 
-typedef enum eComplexEnumType {
-    orange = 10,
-    yellow = 20,
-    purple = 30
-} ComplexEnumType;
+typedef int32_t ComplexEnumType;
+#define ComplexEnumType_orange ((ComplexEnumType)10)
+#define ComplexEnumType_yellow ((ComplexEnumType)20)
+#define ComplexEnumType_purple ((ComplexEnumType)30)
 
 typedef struct {
     uint8_t Field1;

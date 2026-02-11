@@ -20,7 +20,8 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               "name": "varGreatGrandParentInt",
               "variable_type": "Default"
             }
-          ]
+          ],
+          "data_type": null
         },
         {
           "name": "fbGrandParent_type",
@@ -35,7 +36,8 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               "name": "varGrandParentInt",
               "variable_type": "Default"
             }
-          ]
+          ],
+          "data_type": null
         },
         {
           "name": "fbParent_type",
@@ -50,7 +52,8 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               "name": "varParentInt",
               "variable_type": "Default"
             }
-          ]
+          ],
+          "data_type": null
         },
         {
           "name": "fbChild_type",
@@ -65,7 +68,8 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               "name": "varChildInt",
               "variable_type": "Default"
             }
-          ]
+          ],
+          "data_type": null
         }
       ],
       "enums": []
