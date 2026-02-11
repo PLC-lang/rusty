@@ -1,0 +1,204 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [
+        {
+          "data_type": "void",
+          "name": "(*fnVoidThatWillBePointedTo_ptr)(int32_t)",
+          "variable_type": "Default"
+        },
+        {
+          "data_type": "int32_t",
+          "name": "(*fnDIntThatWillBePointedTo_ptr)(int32_t)",
+          "variable_type": "Default"
+        },
+        {
+          "data_type": "void",
+          "name": "(*fnThatUsesStructWithComplexTypes_ptr)(StructWithComplexTypes*, StructWithComplexTypes*, ComplexEnumType, char*, int16_t*)",
+          "variable_type": "Default"
+        },
+        {
+          "data_type": "void",
+          "name": "(*fnThatUsesStructWithPrimitiveTypes_ptr)(StructWithPrimitiveTypes*, StructWithPrimitiveTypes*)",
+          "variable_type": "Default"
+        }
+      ],
+      "structs": [
+        {
+          "name": "StructWithPrimitiveTypes",
+          "variables": [
+            {
+              "data_type": "uint8_t",
+              "name": "Field1",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "Field2",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int32_t",
+              "name": "Field3",
+              "variable_type": "Default"
+            }
+          ],
+          "data_type": null
+        },
+        {
+          "name": "StructWithComplexTypes",
+          "variables": [
+            {
+              "data_type": "uint8_t",
+              "name": "byteField",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "intField",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int32_t",
+              "name": "dIntField",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "char",
+              "name": "stringField",
+              "variable_type": {
+                "Array": 256
+              }
+            },
+            {
+              "data_type": "int16_t",
+              "name": "wStringField",
+              "variable_type": {
+                "Array": 6001
+              }
+            },
+            {
+              "data_type": "ComplexEnumType",
+              "name": "complexEnumTypeField",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "intArrayField",
+              "variable_type": {
+                "Array": 10
+              }
+            }
+          ],
+          "data_type": null
+        }
+      ],
+      "enums": []
+    },
+    "global_variables": [
+      {
+        "data_type": "fnVoidThatWillBePointedTo_ptr",
+        "name": "fnVoidPointer",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "fnDIntThatWillBePointedTo_ptr",
+        "name": "fnDIntPointer",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "fnThatUsesStructWithPrimitiveTypes_ptr",
+        "name": "fnStructPrimitivePointer",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "fnThatUsesStructWithComplexTypes_ptr",
+        "name": "fnStructComplexPointer",
+        "variable_type": "Default"
+      }
+    ],
+    "functions": [
+      {
+        "return_type": "void",
+        "name": "fnVoidThatWillBePointedTo",
+        "parameters": [
+          {
+            "data_type": "int32_t",
+            "name": "varDIntInput",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "int32_t",
+        "name": "fnDIntThatWillBePointedTo",
+        "parameters": [
+          {
+            "data_type": "int32_t",
+            "name": "varDIntInput",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatUsesStructWithPrimitiveTypes",
+        "parameters": [
+          {
+            "data_type": "StructWithPrimitiveTypes",
+            "name": "fnThatUsesStructWithPrimitiveTypes",
+            "variable_type": "Struct"
+          },
+          {
+            "data_type": "StructWithPrimitiveTypes",
+            "name": "varStruct",
+            "variable_type": "Struct"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatUsesStructWithComplexTypes",
+        "parameters": [
+          {
+            "data_type": "StructWithComplexTypes",
+            "name": "fnThatUsesStructWithComplexTypes",
+            "variable_type": "Struct"
+          },
+          {
+            "data_type": "StructWithComplexTypes",
+            "name": "varStruct",
+            "variable_type": "Struct"
+          },
+          {
+            "data_type": "ComplexEnumType",
+            "name": "varEnum",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "char",
+            "name": "varString",
+            "variable_type": {
+              "Array": 201
+            }
+          },
+          {
+            "data_type": "int16_t",
+            "name": "varIntArray",
+            "variable_type": {
+              "Array": 15
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "directory": "",
+  "path": "function_pointers.h",
+  "file_name": "FUNCTION_POINTERS",
+  "formatted_path": "FUNCTION_POINTERS_H_"
+}

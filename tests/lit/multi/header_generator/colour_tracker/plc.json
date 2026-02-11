@@ -1,0 +1,11 @@
+{
+	"name" : "HeaderGeneratorProject",
+	"files" : [
+		"colour_tracker.pli"
+	],
+	"compile_type" : "Shared",
+	"output" : "prog.so",
+	"libraries" : [
+	]
+}
+

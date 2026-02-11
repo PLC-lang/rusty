@@ -1,0 +1,121 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [],
+      "enums": [
+        {
+          "name": "SimpleEnumType",
+          "variables": [
+            {
+              "data_type": "SimpleEnumType",
+              "name": "SimpleEnumType_red",
+              "variable_type": {
+                "Declaration": 0
+              }
+            },
+            {
+              "data_type": "SimpleEnumType",
+              "name": "SimpleEnumType_green",
+              "variable_type": {
+                "Declaration": 1
+              }
+            },
+            {
+              "data_type": "SimpleEnumType",
+              "name": "SimpleEnumType_blue",
+              "variable_type": {
+                "Declaration": 2
+              }
+            }
+          ],
+          "data_type": "int32_t"
+        },
+        {
+          "name": "ComplexEnumType",
+          "variables": [
+            {
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_orange",
+              "variable_type": {
+                "Declaration": 10
+              }
+            },
+            {
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_yellow",
+              "variable_type": {
+                "Declaration": 20
+              }
+            },
+            {
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_purple",
+              "variable_type": {
+                "Declaration": 30
+              }
+            }
+          ],
+          "data_type": "int32_t"
+        },
+        {
+          "name": "CodesysStyleEnumType",
+          "variables": [
+            {
+              "data_type": "CodesysStyleEnumType",
+              "name": "CodesysStyleEnumType_Crimson",
+              "variable_type": {
+                "Declaration": 100
+              }
+            },
+            {
+              "data_type": "CodesysStyleEnumType",
+              "name": "CodesysStyleEnumType_Emerald",
+              "variable_type": {
+                "Declaration": 200
+              }
+            },
+            {
+              "data_type": "CodesysStyleEnumType",
+              "name": "CodesysStyleEnumType_Topaz",
+              "variable_type": {
+                "Declaration": 300
+              }
+            }
+          ],
+          "data_type": "int16_t"
+        },
+        {
+          "name": "ComplexCodesysStyleEnumType",
+          "variables": [
+            {
+              "data_type": "ComplexCodesysStyleEnumType",
+              "name": "ComplexCodesysStyleEnumType_Black",
+              "variable_type": {
+                "Declaration": 2281701376
+              }
+            },
+            {
+              "data_type": "ComplexCodesysStyleEnumType",
+              "name": "ComplexCodesysStyleEnumType_White",
+              "variable_type": {
+                "Declaration": 4294967040
+              }
+            }
+          ],
+          "data_type": "uint32_t"
+        }
+      ]
+    },
+    "global_variables": [],
+    "functions": []
+  },
+  "directory": "",
+  "path": "enum_types.h",
+  "file_name": "ENUM_TYPES",
+  "formatted_path": "ENUM_TYPES_H_"
+}

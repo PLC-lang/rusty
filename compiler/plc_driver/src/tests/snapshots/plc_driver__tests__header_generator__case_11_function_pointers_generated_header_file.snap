@@ -1,0 +1,66 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef FUNCTION_POINTERS_H_
+#define FUNCTION_POINTERS_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <time.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef void (*fnVoidThatWillBePointedTo_ptr)(int32_t);
+
+typedef int32_t (*fnDIntThatWillBePointedTo_ptr)(int32_t);
+
+typedef void (*fnThatUsesStructWithComplexTypes_ptr)(StructWithComplexTypes*, StructWithComplexTypes*, ComplexEnumType, char*, int16_t*);
+
+typedef void (*fnThatUsesStructWithPrimitiveTypes_ptr)(StructWithPrimitiveTypes*, StructWithPrimitiveTypes*);
+
+typedef struct {
+    uint8_t Field1;
+    int16_t Field2;
+    int32_t Field3;
+} StructWithPrimitiveTypes;
+
+typedef struct {
+    uint8_t byteField;
+    int16_t intField;
+    int32_t dIntField;
+    char stringField[256];
+    int16_t wStringField[6001];
+    ComplexEnumType complexEnumTypeField;
+    int16_t intArrayField[10];
+} StructWithComplexTypes;
+
+extern fnVoidThatWillBePointedTo_ptr fnVoidPointer;
+extern fnDIntThatWillBePointedTo_ptr fnDIntPointer;
+extern fnThatUsesStructWithPrimitiveTypes_ptr fnStructPrimitivePointer;
+extern fnThatUsesStructWithComplexTypes_ptr fnStructComplexPointer;
+
+void fnVoidThatWillBePointedTo(int32_t varDIntInput);
+
+int32_t fnDIntThatWillBePointedTo(int32_t varDIntInput);
+
+void fnThatUsesStructWithPrimitiveTypes(StructWithPrimitiveTypes* fnThatUsesStructWithPrimitiveTypes, StructWithPrimitiveTypes* varStruct);
+
+// varString: maximum of 201 char(s)
+// varIntArray: maximum of 15 int16_t(s)
+void fnThatUsesStructWithComplexTypes(StructWithComplexTypes* fnThatUsesStructWithComplexTypes, StructWithComplexTypes* varStruct, ComplexEnumType varEnum, char* varString, int16_t* varIntArray);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !FUNCTION_POINTERS_H_ */
