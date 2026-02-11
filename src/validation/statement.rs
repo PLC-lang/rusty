@@ -2074,21 +2074,17 @@ pub(crate) mod helper {
             return true;
         }
 
-        let (option_path, is_constant) = if let Some(statement_annotation) = context.annotations.get(right) {
-            (statement_annotation.qualified_name(), statement_annotation.is_const())
-        } else {
-            (None, false)
-        };
-
-        if let Some(path) = option_path {
-            if let Some(element) = context.index.find_fully_qualified_variable(path) {
-                if is_constant {
-                    if let Some(constant_statement) = context
-                        .index
-                        .get_const_expressions()
-                        .maybe_get_constant_statement(&element.initial_value)
-                    {
-                        return constant_statement.is_zero();
+        if let Some(statement_annotation) = context.annotations.get(right) {
+            if let Some(path) = statement_annotation.qualified_name() {
+                if let Some(element) = context.index.find_fully_qualified_variable(path) {
+                    if statement_annotation.is_const() {
+                        if let Some(constant_statement) = context
+                            .index
+                            .get_const_expressions()
+                            .maybe_get_constant_statement(&element.initial_value)
+                        {
+                            return constant_statement.is_zero();
+                        }
                     }
                 }
             }
