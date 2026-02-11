@@ -300,6 +300,12 @@ impl VariableIndexEntry {
     pub fn get_qualifier(&self) -> Option<&str> {
         self.qualified_name.rsplit_once('.').map(|(x, _)| x)
     }
+
+    pub fn should_retain(&self, index: &Index) -> bool {
+        let datatype = index.find_effective_type_by_name(self.get_type_name());
+        // is self retain? otherwise does the datatype contain a retain variable (nested)?
+        self.is_retain || datatype.is_some_and(|dt| dt.should_retain(index))
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]

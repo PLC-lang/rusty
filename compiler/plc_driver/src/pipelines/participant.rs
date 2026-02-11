@@ -21,7 +21,7 @@ use plc::{
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_lowering::inheritance::InheritanceLowerer;
+use plc_lowering::{inheritance::InheritanceLowerer, retain::RetainParticipant};
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
@@ -318,5 +318,14 @@ impl PipelineParticipantMut for PolymorphicCallLowerer {
         };
 
         indexed_project.annotate(self.ids.clone())
+    }
+}
+
+impl PipelineParticipantMut for RetainParticipant {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { mut project, index, .. } = indexed_project;
+        self.lower_retain(&mut project.units, index);
+        //Re-index
+        project.index(self.ids.clone())
     }
 }

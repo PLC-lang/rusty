@@ -294,6 +294,11 @@ impl DataType {
             true
         }
     }
+
+    pub fn should_retain(&self, index: &Index) -> bool {
+        // A datatype should be retained if one of its members is retain or if it is transitively containing a retain variable
+        self.get_type_information().should_retain(index)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -843,6 +848,22 @@ impl DataTypeInformation {
         match self.get_struct_source() {
             Some(StructSource::Pou(PouType::Method { parent, .. })) => Some(parent),
             _ => None,
+        }
+    }
+
+    fn should_retain(&self, index: &Index) -> bool {
+        // A datatype should be retained if one of its members is retain or if it is transitively containing a retain variable
+        match self {
+            DataTypeInformation::Struct { members, .. } | DataTypeInformation::Enum { variants: members, .. } => {
+                members.iter().any(|member| member.should_retain(index))
+            }
+            DataTypeInformation::Array { inner_type_name, .. }
+            | DataTypeInformation::Alias { referenced_type: inner_type_name, .. }
+            | DataTypeInformation::SubRange { referenced_type: inner_type_name, .. } => {
+                let inner_type_info = index.get_type_information_or_void(inner_type_name);
+                inner_type_info.should_retain(index)
+            }
+            _ => false,
         }
     }
 }

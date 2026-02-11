@@ -544,10 +544,16 @@ impl Default for VariableBlock {
 
 impl Debug for VariableBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("VariableBlock")
-            .field("variables", &self.variables)
-            .field("variable_block_type", &self.kind)
-            .finish()
+        let mut result = f.debug_struct("VariableBlock");
+        result.field("variables", &self.variables).field("variable_block_type", &self.kind);
+
+        if self.constant {
+            result.field("constant", &self.constant);
+        }
+        if self.retain {
+            result.field("retain", &self.retain);
+        }
+        result.finish()
     }
 }
 

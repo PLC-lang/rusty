@@ -2692,3 +2692,89 @@ fn var_retain_in_program() {
     let z = index.find_local_member("P", "z").unwrap();
     assert!(z.is_retain);
 }
+
+#[test]
+fn var_nested_retain_in_program() {
+    let (_, index) = index(
+        r#"
+        FUNCTION_BLOCK nested
+            VAR RETAIN
+            a : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        FUNCTION_BLOCK nested2
+            VAR
+            a : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        TYPE deepNested : STRUCT
+            fb: nested;
+        END_STRUCT
+        END_TYPE
+        TYPE aliasForDeepNested : deepNested; END_TYPE
+
+        PROGRAM P
+            VAR
+                fb: nested;
+                fb2: nested2;
+                str: deepNested;
+                str2: aliasForDeepNested;
+                arr: ARRAY[0..10] OF nested;
+            END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    let fb = index.find_local_member("P", "fb").unwrap();
+    assert!(fb.should_retain(&index));
+    let fb2 = index.find_local_member("P", "fb2").unwrap();
+    assert!(!fb2.should_retain(&index));
+    let str = index.find_local_member("P", "str").unwrap();
+    assert!(str.should_retain(&index));
+    let str2 = index.find_local_member("P", "str2").unwrap();
+    assert!(str2.should_retain(&index));
+    let arr = index.find_local_member("P", "arr").unwrap();
+    assert!(arr.should_retain(&index));
+}
+
+#[test]
+fn var_nested_retain_in_global() {
+    let (_, index) = index(
+        r#"
+        FUNCTION_BLOCK nested
+            VAR RETAIN
+            a : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        FUNCTION_BLOCK nested2
+            VAR
+            a : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        TYPE deepNested : STRUCT
+            fb: nested;
+        END_STRUCT
+        END_TYPE
+        TYPE aliasForDeepNested : deepNested; END_TYPE
+
+        VAR_GLOBAL
+            fb: nested;
+            fb2: nested2;
+            str: deepNested;
+            str2: aliasForDeepNested;
+            arr: ARRAY[0..10] OF nested;
+        END_VAR
+        "#,
+    );
+
+    let fb = index.find_global_variable("fb").unwrap();
+    assert!(fb.should_retain(&index));
+    let fb2 = index.find_global_variable("fb2").unwrap();
+    assert!(!fb2.should_retain(&index));
+    let str = index.find_global_variable("str").unwrap();
+    assert!(str.should_retain(&index));
+    let str2 = index.find_global_variable("str2").unwrap();
+    assert!(str2.should_retain(&index));
+    let arr = index.find_global_variable("arr").unwrap();
+    assert!(arr.should_retain(&index));
+}
