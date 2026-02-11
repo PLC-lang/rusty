@@ -97,6 +97,14 @@ fn validate_array<T: AnnotationMap>(
     }
 }
 
+/// Checks if an expression is a valid element in an array of structs.
+/// Valid elements are:
+/// - Parenthesized expressions (struct initializers like `(a := 1, b := 2)`)
+/// - Reference expressions (variable references like `str`)
+fn is_valid_struct_array_element(node: &AstNode) -> bool {
+    matches!(node.get_stmt(), AstStatement::ParenExpression(_) | AstStatement::ReferenceExpr(_))
+}
+
 fn validate_array_of_structs<T: AnnotationMap>(
     validator: &mut Validator,
     context: &ValidationContext<T>,
@@ -114,7 +122,7 @@ fn validate_array_of_structs<T: AnnotationMap>(
 
     match elements {
         AstStatement::ExpressionList(expressions) => {
-            for invalid in expressions.iter().filter(|it| !it.is_paren()) {
+            for invalid in expressions.iter().filter(|it| !is_valid_struct_array_element(it)) {
                 validator.push_diagnostic(
                     Diagnostic::new("Struct initializers within arrays have to be wrapped by `()`")
                         .with_error_code("E043")

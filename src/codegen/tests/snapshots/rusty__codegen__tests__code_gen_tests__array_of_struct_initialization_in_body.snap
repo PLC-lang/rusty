@@ -1,0 +1,31 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: res
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%mainProg = type { [2 x %MyStruct], i32, i32 }
+%MyStruct = type { i32, i32 }
+
+@mainProg_instance = global %mainProg zeroinitializer
+@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
+
+define void @mainProg(ptr %0) {
+entry:
+  %arr = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 1
+  %y = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 2
+  store [2 x %MyStruct] [%MyStruct { i32 10, i32 20 }, %MyStruct { i32 30, i32 40 }], ptr %arr, align 4
+  %tmpVar = getelementptr inbounds [2 x %MyStruct], ptr %arr, i32 0, i32 0
+  %a = getelementptr inbounds nuw %MyStruct, ptr %tmpVar, i32 0, i32 0
+  %load_a = load i32, ptr %a, align 4
+  store i32 %load_a, ptr %x, align 4
+  %tmpVar1 = getelementptr inbounds [2 x %MyStruct], ptr %arr, i32 0, i32 1
+  %b = getelementptr inbounds nuw %MyStruct, ptr %tmpVar1, i32 0, i32 1
+  %load_b = load i32, ptr %b, align 4
+  store i32 %load_b, ptr %y, align 4
+  ret void
+}
