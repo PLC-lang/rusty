@@ -1,0 +1,78 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef FUNCTIONS_WITH_COMPLEX_TYPES_H_
+#define FUNCTIONS_WITH_COMPLEX_TYPES_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <time.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef int16_t __fnThatUsesStructWithComplexTypes_varArrayOfIntArray_[15];
+
+typedef int16_t __StructWithComplexTypes_arrayOfIntArrayField_[10];
+
+typedef int32_t ComplexEnumType;
+#define ComplexEnumType_orange ((ComplexEnumType)10)
+#define ComplexEnumType_yellow ((ComplexEnumType)20)
+#define ComplexEnumType_purple ((ComplexEnumType)30)
+
+typedef struct {
+    uint8_t Field1;
+    int16_t Field2;
+    int32_t Field3;
+} StructWithPrimitiveTypes;
+
+typedef struct {
+    uint8_t byteField;
+    int16_t intField;
+    int32_t dIntField;
+    char stringField[256];
+    int16_t wStringField[6001];
+    ComplexEnumType complexEnumTypeField;
+    int16_t intArrayField[10];
+    __StructWithComplexTypes_arrayOfIntArrayField_ arrayOfIntArrayField[4];
+} StructWithComplexTypes;
+
+void fnThatUsesStructWithPrimitiveTypes(StructWithPrimitiveTypes* fnThatUsesStructWithPrimitiveTypes, StructWithPrimitiveTypes* varStruct);
+
+// varString: maximum of 201 char(s)
+// varIntArray: maximum of 15 int16_t(s)
+// varArrayOfIntArray: maximum of 3 __fnThatUsesStructWithComplexTypes_varArrayOfIntArray_(s)
+void fnThatUsesStructWithComplexTypes(StructWithComplexTypes* fnThatUsesStructWithComplexTypes, StructWithComplexTypes* varStruct, ComplexEnumType varEnum, char* varString, int16_t* varIntArray, __fnThatUsesStructWithComplexTypes_varArrayOfIntArray_* varArrayOfIntArray);
+
+void fnThatUsesPrimitiveTypesAndReferences(int16_t varInt, int16_t* varRefToInt, int16_t* varPointerToInt, time_t* varRefToDate, time_t* varPointerToDate);
+
+void fnThatHasIntWithRange(int16_t varIntWithRange);
+
+void fnThatHasVariadicIntInput(int16_t varIntInput, ...);
+
+void fnThatHasSizedVariadicIntInput(int16_t varIntInput, int32_t varVariadicInt_count, int16_t* varVariadicInt);
+
+void fnThatHasVariadicStringInput(int16_t varIntInput, ...);
+
+void fnThatHasSizedVariadicStringInput(int16_t varIntInput, int32_t varVariadicString_count, char** varVariadicString);
+
+void fnThatHasVariadicComplexTypeInput(int16_t varIntInput, ...);
+
+void fnThatHasSizedVariadicComplexTypeInput(int16_t varIntInput, int32_t varVariadicStruct_count, StructWithPrimitiveTypes* varVariadicStruct);
+
+void fnThatHasVariableLengthArrayInput(int16_t* varVariableLengthArray);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !FUNCTIONS_WITH_COMPLEX_TYPES_H_ */

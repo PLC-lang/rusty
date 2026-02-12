@@ -1,0 +1,48 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef STRUCTS_H_
+#define STRUCTS_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <time.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef int32_t ComplexEnumType;
+#define ComplexEnumType_orange ((ComplexEnumType)10)
+#define ComplexEnumType_yellow ((ComplexEnumType)20)
+#define ComplexEnumType_purple ((ComplexEnumType)30)
+
+typedef struct {
+    uint8_t Field1;
+    int16_t Field2;
+    int32_t Field3;
+} StructWithPrimitiveTypes;
+
+typedef struct {
+    uint8_t byteField;
+    int16_t intField;
+    int32_t dIntField;
+    char stringField[256];
+    int16_t wStringField[6001];
+    ComplexEnumType complexEnumTypeField;
+    int16_t intArrayField[10];
+} StructWithComplexTypes;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !STRUCTS_H_ */

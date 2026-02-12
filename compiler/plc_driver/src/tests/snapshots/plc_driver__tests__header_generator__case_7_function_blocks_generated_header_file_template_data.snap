@@ -1,0 +1,91 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [
+        {
+          "name": "fbThatHasSimpleTypes_type",
+          "variables": [
+            {
+              "data_type": "uint64_t*",
+              "name": "__vtable",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "varInt",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "outVarInt",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t*",
+              "name": "inOutVarInt",
+              "variable_type": "Default"
+            }
+          ],
+          "data_type": null
+        }
+      ],
+      "enums": []
+    },
+    "global_variables": [],
+    "functions": [
+      {
+        "return_type": "void",
+        "name": "__fbThatHasSimpleTypes__init",
+        "parameters": [
+          {
+            "data_type": "fbThatHasSimpleTypes_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fbThatHasSimpleTypes",
+        "parameters": [
+          {
+            "data_type": "fbThatHasSimpleTypes_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fbThatHasSimpleTypes__FB_INIT",
+        "parameters": [
+          {
+            "data_type": "fbThatHasSimpleTypes_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fbThatHasSimpleTypes__fbThatHasSimpleTypes_Action",
+        "parameters": [
+          {
+            "data_type": "fbThatHasSimpleTypes_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      }
+    ]
+  },
+  "directory": "",
+  "path": "function_blocks.h",
+  "file_name": "FUNCTION_BLOCKS",
+  "formatted_path": "FUNCTION_BLOCKS_H_"
+}

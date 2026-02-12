@@ -6,6 +6,7 @@ use std::{
 
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
+use serde::{Deserialize, Serialize};
 
 pub mod source_location;
 /// Represents the type of source a SourceContainer holds
@@ -56,7 +57,7 @@ pub trait SourceContainer: Sync + Send {
 }
 
 /// The SourceCode unit is the smallest unit of compilation that can be passed to the compiler
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SourceCode {
     /// the source code to be compiled
     pub source: String,
