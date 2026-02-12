@@ -1,4 +1,5 @@
 #include "colour_tracker.h"
+#include <stdio.h>
 
 int16_t globalCounter = 0;
 

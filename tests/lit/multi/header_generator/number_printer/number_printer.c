@@ -1,4 +1,5 @@
 #include "number_printer.h"
+#include <stdio.h>
 
 void PrintNumber(int16_t valueToPrint) {
     printf("The number you asked for: %d\n", valueToPrint);

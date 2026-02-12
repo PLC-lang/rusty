@@ -1,4 +1,5 @@
 #include "shape_drawer.h"
+#include <stdio.h>
 
 void __Shape__init(Shape_type* self) {}
 
