@@ -1106,8 +1106,6 @@ fn validate_assignment<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
-    let right_type = context.annotations.get_type(right, context.index);
-
     if let Some(left) = left {
         // Check if we are assigning to a...
         if let Some(StatementAnnotation::Variable {
@@ -1196,6 +1194,7 @@ fn validate_assignment<T: AnnotationMap>(
         }
     }
 
+    let right_type = context.annotations.get_type(right, context.index);
     let left_type = context.annotations.get_type_hint(right, context.index);
 
     if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
