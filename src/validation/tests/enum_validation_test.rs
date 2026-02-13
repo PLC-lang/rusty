@@ -349,7 +349,7 @@ fn enum_variants_initialized_with_other_enum_values() {
 
         PROGRAM main
             myMain := MainEnum.x;  // Should be ok
-            myMain := SubEnum.a; 
+            myMain := SubEnum.a;
             mySub := MainEnum.x;
         END_PROGRAM
         ",
@@ -362,7 +362,7 @@ fn enum_variants_initialized_with_other_enum_values() {
      4 │         TYPE MainEnum : INT (
        │              -------- see also
        ·
-    17 │             myMain := SubEnum.a; 
+    17 │             myMain := SubEnum.a;
        │                       ^^^^^^^^^ Replace `SubEnum.a` with `x`
 
     note[E092]: Replace `MainEnum.x` with `a`
@@ -394,7 +394,7 @@ fn enum_type_assigned_without_qualifier() {
         ",
     );
 
-    assert!(diagnostics.len() > 0);
+    assert!(!diagnostics.is_empty());
     assert_snapshot!(diagnostics, @r#""#);
 }
 
@@ -422,6 +422,6 @@ fn type_name_used_as_value() {
         ",
     );
 
-    assert!(diagnostics.len() > 0);
+    assert!(!diagnostics.is_empty());
     assert_snapshot!(diagnostics, @r#""#);
 }

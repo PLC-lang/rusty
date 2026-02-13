@@ -1106,10 +1106,17 @@ fn validate_assignment<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    let right_type = context.annotations.get_type(right, context.index);
+
     if let Some(left) = left {
         // Check if we are assigning to a...
-        if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
-            context.annotations.get(left)
+        if let Some(StatementAnnotation::Variable {
+            constant,
+            qualified_name,
+            argument_type,
+            auto_deref,
+            ..
+        }) = context.annotations.get(left)
         {
             // ...constant variable
             if *constant {
@@ -1154,6 +1161,17 @@ fn validate_assignment<T: AnnotationMap>(
                         .with_location(location),
                 );
             }
+
+            // Auto deref in assignment on the left implies that this variable was specified as "REFERENCE TO"
+            // If the right side of the assignment is using the builtin "ADR" we should return an invalid assignment error
+            if auto_deref.is_some() && node_is_builtin_adr(right) {
+                validator.push_diagnostic(
+                    Diagnostic::new(
+                        "ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?")
+                        .with_error_code("E037")
+                        .with_location(location),
+                );
+            }
         }
 
         // ...or if whatever we got is not assignable, output an error
@@ -1178,7 +1196,6 @@ fn validate_assignment<T: AnnotationMap>(
         }
     }
 
-    let right_type = context.annotations.get_type(right, context.index);
     let left_type = context.annotations.get_type_hint(right, context.index);
 
     if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
@@ -1219,6 +1236,22 @@ fn validate_assignment<T: AnnotationMap>(
         } else {
             validate_assignment_type_sizes(validator, left_type, right, context)
         }
+    }
+}
+
+fn node_is_builtin_adr(node: &AstNode) -> bool {
+    match node.get_stmt_peeled() {
+        AstStatement::CallStatement(call_stmt) => {
+            if let Some(identifier) = call_stmt.operator.get_identifier() {
+                match identifier.get_stmt() {
+                    AstStatement::Identifier(id) => id.to_lowercase() == "adr",
+                    _ => false,
+                }
+            } else {
+                false
+            }
+        }
+        _ => false,
     }
 }
 
