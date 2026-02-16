@@ -176,7 +176,11 @@ jobs:
           echo IMAGE_NAME=$IMAGE_NAME
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
+          # Remove old manifests (both the combined and arch-specific ones)
           docker manifest rm $IMAGE_ID:$VERSION 2> /dev/null || true
+          docker manifest rm $IMAGE_ID:$VERSION-x86_64 2> /dev/null || true
+          docker manifest rm $IMAGE_ID:$VERSION-aarch64 2> /dev/null || true
+
           docker manifest create $IMAGE_ID:$VERSION \
             $IMAGE_ID:$VERSION-x86_64 \
             $IMAGE_ID:$VERSION-aarch64
