@@ -561,6 +561,150 @@ mod tests {
         "#)
     }
 
+    // TODO: Expand with a named-argument variant once named arg lowering is implemented.
+    #[test]
+    fn call_args_single_interface_param() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    ref: IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                END_VAR
+                consumer(instance);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "consumer(instance)",
+        ]
+        "#)
+    }
+
+    // TODO: Expand with a named-argument variant once named arg lowering is implemented.
+    #[test]
+    fn call_args_mixed_non_interface_and_interface() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    value: DINT;
+                    ref: IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                END_VAR
+                consumer(5, instance);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "consumer(5, instance)",
+        ]
+        "#)
+    }
+
+    // TODO: Expand with a named-argument variant once named arg lowering is implemented.
+    #[test]
+    fn call_args_interface_passed_directly() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    ref: IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                    reference: IA;
+                END_VAR
+                reference := instance;
+                consumer(reference);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
+            "consumer(reference)",
+        ]
+        "#)
+    }
+
+    // TODO: Expand with a named-argument variant once named arg lowering is implemented.
+    #[test]
+    fn call_args_multiple_interface_params() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer2
+                VAR_INPUT
+                    a: IA;
+                    b: IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    i1: FbA;
+                    i2: FbA;
+                END_VAR
+                consumer2(i1, i2);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(i1)",
+            "__init_fba(i2)",
+            "__user_init_FbA(i1)",
+            "__user_init_FbA(i2)",
+            "consumer2(i1, i2)",
+        ]
+        "#)
+    }
+
     mod helper {
         use driver::{parse_and_annotate, pipelines::AnnotatedProject, pipelines::AnnotatedUnit};
         use plc_source::SourceCode;
