@@ -468,6 +468,11 @@ pub enum DataTypeInformation {
         generic_symbol: String,
         nature: TypeNature,
     },
+    // An interface type, e.g. `myVariable: MyInterface`.
+    Interface {
+        /// The name of the interface
+        name: TypeId,
+    },
     Void,
 }
 
@@ -482,7 +487,8 @@ impl DataTypeInformation {
             | DataTypeInformation::SubRange { name, .. }
             | DataTypeInformation::Alias { name, .. }
             | DataTypeInformation::Enum { name, .. }
-            | DataTypeInformation::Generic { name, .. } => name,
+            | DataTypeInformation::Generic { name, .. }
+            | DataTypeInformation::Interface { name, .. } => name,
             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. } => "STRING",
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } => "WSTRING",
             DataTypeInformation::Void => "VOID",
@@ -682,6 +688,10 @@ impl DataTypeInformation {
         matches!(self, DataTypeInformation::Pointer { is_function: true, .. })
     }
 
+    pub fn is_interface(&self) -> bool {
+        matches!(self, DataTypeInformation::Interface { .. })
+    }
+
     /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
     pub fn get_semantic_size(&self, index: &Index) -> u32 {
         if let DataTypeInformation::Integer { semantic_size: Some(s), .. } = self {
@@ -737,7 +747,9 @@ impl DataTypeInformation {
                 .find_effective_type_info(referenced_type)
                 .map(|it| it.get_size(index))
                 .unwrap_or_else(|| Ok(Bytes::from_bits(DINT_SIZE))),
-            DataTypeInformation::Generic { .. } | DataTypeInformation::Void => Ok(Bytes::from_bits(0)),
+            DataTypeInformation::Generic { .. }
+            | DataTypeInformation::Interface { .. }
+            | DataTypeInformation::Void => Ok(Bytes::from_bits(0)),
         };
         seen.remove(self.get_name());
         res

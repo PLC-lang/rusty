@@ -7,7 +7,10 @@ use plc_ast::{
 use pou_indexer::PouIndexer;
 use user_type_indexer::UserTypeIndexer;
 
+use plc_ast::ast::TypeNature;
+
 use super::{Index, InterfaceIndexEntry};
+use crate::typesystem::{DataType, DataTypeInformation};
 
 mod global_var_indexer;
 mod implementation_indexer;
@@ -83,6 +86,14 @@ impl AstVisitor for SymbolIndexer {
         }
 
         self.index.interfaces.insert(interface.ident.name.to_owned(), InterfaceIndexEntry::from(interface));
+
+        self.index.register_type(DataType {
+            name: interface.ident.name.clone(),
+            initial_value: None,
+            information: DataTypeInformation::Interface { name: interface.ident.name.clone() },
+            nature: TypeNature::Any,
+            location: interface.ident.location.clone(),
+        });
     }
 
     fn visit_property(&mut self, property: &PropertyBlock) {

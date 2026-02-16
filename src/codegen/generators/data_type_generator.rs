@@ -3,7 +3,9 @@ use crate::codegen::debug::Debug;
 use crate::codegen::CodegenError;
 use crate::index::{FxIndexSet, Index, VariableIndexEntry, VariableType};
 use crate::resolver::{AstAnnotations, Dependency};
-use crate::typesystem::{self, DataTypeInformation, Dimension, StringEncoding, StructSource};
+use crate::typesystem::{
+    self, DataTypeInformation, DataTypeInformationProvider, Dimension, StringEncoding, StructSource,
+};
 use crate::{
     codegen::{
         debug::DebugBuilderEnum,
@@ -97,7 +99,12 @@ pub fn generate_data_types<'ink>(
     }
 
     // now create all other types (enum's, arrays, etc.)
-    for (name, user_type) in &types {
+    for (name, user_type) in types.iter() {
+        if user_type.get_type_information().is_interface() {
+            // Interface types are replaced by `__FATPOINTERS` by the `polymorphism/` lowering module.
+            continue;
+        }
+
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_type(name, gen_type)?
         //Get and associate debug type
@@ -279,6 +286,9 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             }
             DataTypeInformation::Generic { .. } => {
                 unreachable!("Generic types should not be generated")
+            }
+            DataTypeInformation::Interface { .. } => {
+                unreachable!("Interface types should not be generated")
             }
         }
     }
