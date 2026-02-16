@@ -1,13 +1,14 @@
+pub mod interface;
 pub mod pou;
 
 use plc_ast::{ast::CompilationUnit, provider::IdProvider};
 
 use crate::{index::Index, resolver::AnnotationMapImpl};
 
-use self::pou::PolymorphicCallLowerer;
+use self::{interface::InterfaceDispatchLowerer, pou::PolymorphicCallLowerer};
 
-/// Lowers all polymorphism-related calls (POU method dispatch and, in the future, interface
-/// dispatch) by delegating to specialized lowerers.
+/// Lowers all polymorphism-related calls (POU method dispatch and interface dispatch) by
+/// delegating to specialized lowerers.
 pub struct DispatchLowerer;
 
 impl DispatchLowerer {
@@ -17,6 +18,11 @@ impl DispatchLowerer {
         annotations: AnnotationMapImpl,
         units: &mut [CompilationUnit],
     ) -> Index {
+        // 1. Lower interface type declarations to __FATPOINTER
+        let mut lowerer = InterfaceDispatchLowerer::new(ids.clone(), &index);
+        lowerer.lower(units);
+
+        // 2. Lower POU polymorphic calls (vtable dispatch)
         let mut lowerer = PolymorphicCallLowerer::new(ids);
         lowerer.index = Some(index);
         lowerer.annotations = Some(annotations);

@@ -206,6 +206,10 @@ impl DataType {
         self.get_type_information().is_string()
     }
 
+    pub fn is_interface(&self) -> bool {
+        self.get_type_information().is_interface()
+    }
+
     pub fn get_nature(&self) -> TypeNature {
         self.nature
     }

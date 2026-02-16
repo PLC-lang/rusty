@@ -294,7 +294,9 @@ mod tests {
     use itertools::Itertools;
     use plc_ast::{ast::DataType, provider::IdProvider};
 
-    use crate::{lowering::polymorphism::table::pou::VirtualTableGenerator, test_utils::tests::index_with_ids};
+    use crate::{
+        lowering::polymorphism::table::pou::VirtualTableGenerator, test_utils::tests::index_with_ids,
+    };
 
     #[test]
     fn root_pou_has_vtable_member_field() {
