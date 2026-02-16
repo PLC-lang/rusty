@@ -146,7 +146,6 @@ jobs:
           VERSION=$VERSION-${{ matrix.config.arch }}
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
-          docker manifest rm $IMAGE_ID:$VERSION 2> /dev/null|| true
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
 
@@ -179,8 +178,8 @@ jobs:
           echo VERSION=$VERSION
           docker manifest rm $IMAGE_ID:$VERSION 2> /dev/null || true
           docker manifest create $IMAGE_ID:$VERSION \
-            --amend $IMAGE_ID:$VERSION-x86_64 \
-            --amend $IMAGE_ID:$VERSION-aarch64
+            $IMAGE_ID:$VERSION-x86_64 \
+            $IMAGE_ID:$VERSION-aarch64
           docker manifest push $IMAGE_ID:$VERSION
 
   style:
