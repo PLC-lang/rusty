@@ -58,52 +58,16 @@ jobs:
             ghcr.io/plc-lang/rust-llvm:latest \
             -c "df -h && ./scripts/build.sh --build --test"
 
-  package-linux:
-    name: Package Linux
-    runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Release Build
-        shell: bash
-        run: |
-          # required by aarch64 build
-          apt update && apt install -y gcc-aarch64-linux-gnu
-
-          # Clean up apt cache to free disk space
-          apt-get clean
-          rm -rf /var/lib/apt/lists/*
-
-          echo "Build command : ./scripts/build.sh --build --release"
-          ./scripts/build.sh --build --release --package \
-          --target x86_64-linux-gnu,aarch64-linux-gnu, \
-          x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
-
-      - uses: actions/upload-artifact@master
-        with:
-          name: plc
-          path: target/release/plc
-
-      - uses: actions/upload-artifact@master
-        with:
-          name: schema
-          path: compiler/plc_project/schema
-
-      - uses: actions/upload-artifact@master
-        with:
-          name: stdlib
-          path: output
-  # Push image to GitHub Packages.
-  # See also https://docs.docker.com/docker-hub/builds/
-  build-image:
+  # Combined package and build-image job
+  package-and-build-image:
+    name: Package & Build Image (${{ matrix.config.arch }})
     runs-on: ${{ matrix.config.os }}
-    needs: package-linux
     strategy:
       matrix:
         config:
-          - { os: "ubuntu-latest", version: "linux", arch: "x86_64" }
-          - { os: "ubuntu-24.04-arm", version: "linux", arch: "aarch64" }
+          - { os: "ubuntu-latest", arch: "x86_64", docker_arch: "amd64" }
+          - { os: "ubuntu-24.04-arm", arch: "aarch64", docker_arch: "arm64" }
+    container: ghcr.io/plc-lang/rust-llvm:latest
     permissions:
       packages: write
       contents: read
@@ -111,80 +75,220 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Download plc artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-
-      - name: Build image
+      - name: Release Build (native ${{ matrix.config.arch }})
         shell: bash
-        run: docker buildx build . --platform ${{matrix.config.version}}/${{matrix.config.arch}}  --file Dockerfile --tag $IMAGE_NAME
+        run: |
+          echo "Building native binary for ${{ matrix.config.arch }}"
+
+          # Build the main binary for native architecture
+          ./scripts/build.sh --build --release
+
+          # Build stdlib for all architectures (cross-compilation works for libs)
+          ./scripts/build.sh --package \
+            --target x86_64-linux-gnu,aarch64-linux-gnu,x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
+
+      # Upload architecture-specific binary
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plc-${{ matrix.config.arch }}
+          path: target/release/plc
+          if-no-files-found: error
+
+      # Upload stdlib (only once from x86_64 runner)
+      - uses: actions/upload-artifact@v4
+        if: matrix.config.arch == 'x86_64'
+        with:
+          name: stdlib
+          path: output/
+
+      # Upload schema (only once from x86_64 runner)
+      - uses: actions/upload-artifact@v4
+        if: matrix.config.arch == 'x86_64'
+        with:
+          name: schema
+          path: compiler/plc_project/schema/
+
+      # Prepare artifacts directory for Docker build
+      - name: Prepare Docker build context
+        shell: bash
+        run: |
+          mkdir -p artifacts/plc
+          mkdir -p artifacts/stdlib
+          mkdir -p artifacts/schema
+
+          # Copy the native binary we just built
+          cp target/release/plc artifacts/plc/plc
+          chmod +x artifacts/plc/plc
+
+          # Copy stdlib and schema
+          cp -r output/* artifacts/stdlib/ 2>/dev/null || true
+          cp -r compiler/plc_project/schema/* artifacts/schema/ 2>/dev/null || true
+
+          echo "Verifying binary architecture:"
+          file artifacts/plc/plc
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        shell: bash
+        run: |
+          docker buildx build . \
+            --platform linux/${{ matrix.config.docker_arch }} \
+            --file Dockerfile \
+            --tag $IMAGE_NAME \
+            --load
 
       - name: Log in to registry
-        if: ${{ github.event_name != 'pull_request' }}
-        # This is where you will update the PAT to GITHUB_TOKEN
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Push image
+      - name: Push image and capture digest
+        id: push
         shell: bash
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: |
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-
-          # Extract branch name
-          BRANCH_NAME=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-          # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          echo "IMAGE_ID=$IMAGE_ID"
 
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "main" ] && VERSION=latest
-          #Add the platform to the version
-          VERSION=$VERSION-${{ matrix.config.arch }}
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+          # Use run ID for unique temp tag
+          TEMP_TAG="build-${{ github.run_id }}-${{ matrix.config.arch }}"
+
+          # Tag the image before pushing
+          docker tag $IMAGE_NAME $IMAGE_ID:$TEMP_TAG
+
+          # Push and capture digest with error handling
+          if ! docker push $IMAGE_ID:$TEMP_TAG | tee push.log; then
+            echo "Error: Failed to push image" >&2
+            exit 1
+          fi
+
+          # Extract digest with validation
+          DIGEST=$(grep "digest:" push.log | tail -n1 | awk '{print $3}')
+          if [ -z "$DIGEST" ]; then
+            echo "Error: Failed to extract digest from push output" >&2
+            cat push.log >&2
+            exit 1
+          fi
+
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "temp_tag=$TEMP_TAG" >> $GITHUB_OUTPUT
+          echo "Pushed ${{ matrix.config.arch }} with digest: $DIGEST"
+
+      - name: Simulate push (PR only)
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+
+          echo "=========================================="
+          echo "SIMULATION MODE (Pull Request)"
+          echo "=========================================="
+          echo ""
+          echo "Would execute on master:"
+          echo "  docker push $IMAGE_ID:build-<run_id>-${{ matrix.config.arch }}"
+          echo ""
+          echo "Architecture: ${{ matrix.config.arch }}"
+          echo "Runner: ${{ matrix.config.os }}"
+          echo "Platform: linux/${{ matrix.config.docker_arch }}"
+          echo ""
+          echo "Note: Image built locally but not pushed to registry"
+          echo "=========================================="
+
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+      temp_tag: ${{ steps.push.outputs.temp_tag }}
 
   push-multiplatform:
     name: Push multi platform
-    needs: build-image
+    needs: package-and-build-image
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' }}
+    # Only run on master, never on PRs
+    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
     steps:
       - name: Log in to registry
-        if: ${{ github.event_name != 'pull_request' }}
-        # This is where you will update the PAT to GITHUB_TOKEN
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Get images
+      - name: Debug outputs
+        run: |
+          echo "Build outputs:"
+          echo '${{ toJSON(needs.package-and-build-image.outputs) }}'
+
+      - name: Create and push manifest
         shell: bash
         run: |
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-
-          # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "main" ] && VERSION=latest
-          echo IMAGE_NAME=$IMAGE_NAME
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          # Remove old manifests (both the combined and arch-specific ones)
-          docker manifest rm $IMAGE_ID:$VERSION 2> /dev/null || true
-          docker manifest rm $IMAGE_ID:$VERSION-x86_64 2> /dev/null || true
-          docker manifest rm $IMAGE_ID:$VERSION-aarch64 2> /dev/null || true
 
-          docker manifest create $IMAGE_ID:$VERSION \
-            $IMAGE_ID:$VERSION-x86_64 \
-            $IMAGE_ID:$VERSION-aarch64
+          # Extract version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          [ "$VERSION" == "master" ] && VERSION=latest
+
+          echo "IMAGE_ID=$IMAGE_ID"
+          echo "VERSION=$VERSION"
+
+          # Handle digest array/string robustly
+          DIGESTS=$(echo '${{ toJSON(needs.package-and-build-image.outputs) }}' | \
+            jq -r '.digest | if type=="array" then .[] elif type=="string" then . else empty end')
+
+          if [ -z "$DIGESTS" ]; then
+            echo "Error: No digests found from build outputs" >&2
+            echo "Outputs were: ${{ toJSON(needs.package-and-build-image.outputs) }}" >&2
+            exit 1
+          fi
+
+          # Build manifest args from digests
+          MANIFEST_ARGS=""
+          DIGEST_COUNT=0
+          for DIGEST in $DIGESTS; do
+            if [ -n "$DIGEST" ]; then
+              MANIFEST_ARGS="$MANIFEST_ARGS $IMAGE_ID@$DIGEST"
+              DIGEST_COUNT=$((DIGEST_COUNT + 1))
+              echo "  Adding digest: $DIGEST"
+            fi
+          done
+
+          if [ -z "$MANIFEST_ARGS" ] || [ $DIGEST_COUNT -eq 0 ]; then
+            echo "Error: No valid digests to create manifest" >&2
+            exit 1
+          fi
+
+          echo "Creating manifest with $DIGEST_COUNT image(s)"
+          echo "Manifest args: $MANIFEST_ARGS"
+
+          # Create and push manifest
+          docker manifest create $IMAGE_ID:$VERSION $MANIFEST_ARGS
           docker manifest push $IMAGE_ID:$VERSION
+
+          echo "Successfully pushed multi-platform manifest: $IMAGE_ID:$VERSION"
+
+      - name: Cleanup temp tags
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "Cleaning up temporary build tags..."
+          TEMP_PATTERN="build-${{ github.run_id }}-"
+
+          # Delete temp tags using gh CLI
+          gh api \
+            -H "Accept: application/vnd.github+json" \
+            /orgs/${{ github.repository_owner }}/packages/container/${{ env.IMAGE_NAME }}/versions \
+            | jq -r --arg pattern "$TEMP_PATTERN" \
+              '.[] | select(.metadata.container.tags[]? | startswith($pattern)) | .id' \
+            | while read version_id; do
+                if [ -n "$version_id" ]; then
+                  echo "Deleting temp version $version_id"
+                  gh api --method DELETE \
+                    -H "Accept: application/vnd.github+json" \
+                    /orgs/${{ github.repository_owner }}/packages/container/${{ env.IMAGE_NAME }}/versions/$version_id || true
+                fi
+              done || echo "Cleanup failed, but continuing..."
+
+          echo "Cleanup complete"
 
   style:
     name: Check Style
