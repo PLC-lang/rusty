@@ -1,8 +1,9 @@
-pub mod pou;
+mod interface;
+mod pou;
 
 use plc_ast::{ast::CompilationUnit, provider::IdProvider};
 
-use crate::index::Index;
+use crate::{index::Index, lowering::polymorphism::table::interface::InterfaceTableGenerator};
 
 use self::pou::VirtualTableGenerator;
 
@@ -12,7 +13,10 @@ pub struct TableGenerator;
 
 impl TableGenerator {
     pub fn generate(ids: IdProvider, index: &Index, units: &mut Vec<CompilationUnit>) {
-        let mut vtable_gen = VirtualTableGenerator::new(ids);
+        let mut vtable_gen = VirtualTableGenerator::new(ids.clone());
         vtable_gen.generate(index, units);
+
+        let mut itable_gen = InterfaceTableGenerator::new(ids);
+        itable_gen.generate(index, units);
     }
 }
