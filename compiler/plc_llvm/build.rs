@@ -48,6 +48,8 @@ fn main() {
 
     build.compile("llvm_wrapper");
     println!("cargo:rerun-if-changed=src/cpp/llvm_wrapper.cpp");
+    println!("cargo:rerun-if-env-changed=LLVM_CONFIG");
+    println!("cargo:rerun-if-env-changed=PATH");
 }
 
 fn is_os(os: &str) -> bool {

@@ -22,7 +22,7 @@ macro_rules! filtered_assert_snapshot {
 }
 
 #[macro_export]
-macro_rules! filtered_assert_snapshot_with_alginments {
+macro_rules! filtered_assert_snapshot_with_alignments {
     // Case for normal snapshot (no inline expected output)
     ($value:expr) => {{
         let mut settings = insta::Settings::clone_current();

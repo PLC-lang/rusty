@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-use plc_util::filtered_assert_snapshot_with_alginments;
+use plc_util::filtered_assert_snapshot_with_alignments;
 
 // Tests for aligment of datatypes on x86_64 and aarch64
 #[test]
@@ -24,7 +24,7 @@ END_FUNCTION
 
     // Arm assertion
     #[cfg(target_arch = "aarch64")]
-    filtered_assert_snapshot_with_alginments!(result, @r#"
+    filtered_assert_snapshot_with_alignments!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -58,7 +58,7 @@ END_FUNCTION
 
     // x86_64 assertion
     #[cfg(target_arch = "x86_64")]
-    filtered_assert_snapshot_with_alginments!(result, @r#"
+    filtered_assert_snapshot_with_alignments!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -120,7 +120,7 @@ fn test_struct_alignment() {
 
     // Arm assertion
     #[cfg(target_arch = "aarch64")]
-    filtered_assert_snapshot_with_alginments!(result, @r#"
+    filtered_assert_snapshot_with_alignments!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -149,7 +149,7 @@ fn test_struct_alignment() {
 
     // x86_64 assertion
     #[cfg(target_arch = "x86_64")]
-    filtered_assert_snapshot_with_alginments!(result, @r#"
+    filtered_assert_snapshot_with_alignments!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
