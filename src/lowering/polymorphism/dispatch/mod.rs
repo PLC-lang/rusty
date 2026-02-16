@@ -17,20 +17,16 @@ impl DispatchLowerer {
         index: Index,
         annotations: AnnotationMapImpl,
         units: &mut [CompilationUnit],
-    ) -> Index {
+    ) {
         // 1. Lower interface type declarations to __FATPOINTER
-        let mut lowerer = InterfaceDispatchLowerer::new(ids.clone(), &index);
+        let mut lowerer = InterfaceDispatchLowerer::new(ids.clone(), &index, &annotations);
         lowerer.lower(units);
 
         // 2. Lower POU polymorphic calls (vtable dispatch)
-        let mut lowerer = PolymorphicCallLowerer::new(ids);
-        lowerer.index = Some(index);
-        lowerer.annotations = Some(annotations);
+        let mut lowerer = PolymorphicCallLowerer::new(ids, &index, &annotations);
 
         for unit in units.iter_mut() {
             lowerer.lower_unit(unit);
         }
-
-        lowerer.index.take().expect("Index")
     }
 }

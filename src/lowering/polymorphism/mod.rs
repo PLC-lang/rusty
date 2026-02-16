@@ -24,12 +24,7 @@ impl PolymorphismLowerer {
         TableGenerator::generate(self.ids.clone(), index, units);
     }
 
-    pub fn dispatch(
-        &self,
-        index: Index,
-        annotations: AnnotationMapImpl,
-        units: &mut [CompilationUnit],
-    ) -> Index {
+    pub fn dispatch(&self, index: Index, annotations: AnnotationMapImpl, units: &mut [CompilationUnit]) {
         DispatchLowerer::lower(self.ids.clone(), index, annotations, units)
     }
 }

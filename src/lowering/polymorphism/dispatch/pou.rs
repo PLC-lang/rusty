@@ -122,15 +122,16 @@ use crate::{
     typesystem::{DataType, DataTypeInformation},
 };
 
-pub struct PolymorphicCallLowerer {
+// TODO: Rename to something more specific
+pub struct PolymorphicCallLowerer<'a> {
     pub ids: IdProvider,
-    pub index: Option<Index>,
-    pub annotations: Option<AnnotationMapImpl>,
+    pub index: &'a Index,
+    pub annotations: &'a AnnotationMapImpl,
 
     pub in_method_or_function_block: Option<String>,
 }
 
-impl AstVisitorMut for PolymorphicCallLowerer {
+impl<'a> AstVisitorMut for PolymorphicCallLowerer<'a> {
     fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
         if implementation.location.is_internal() {
             return;
@@ -177,21 +178,18 @@ impl AstVisitorMut for PolymorphicCallLowerer {
             return;
         };
 
-        let index = self.index.as_ref().unwrap();
-        let annotations = self.annotations.as_ref().unwrap();
-
         let unit_name = match self.in_method_or_function_block {
             Some(ref name) => name.clone(),
             None => match operator.get_base_ref_expr() {
                 Some(base) => {
                     // When dealing with e.g. __main_myVariable
-                    let ty = annotations.get_type(base, index).unwrap();
-                    index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
+                    let ty = self.annotations.get_type(base, self.index).unwrap();
+                    self.index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
                 }
 
                 None => {
-                    let ty = annotations.get_type(operator, index).unwrap();
-                    index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
+                    let ty = self.annotations.get_type(operator, self.index).unwrap();
+                    self.index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
                 }
             },
         };
@@ -226,9 +224,9 @@ impl AstVisitorMut for PolymorphicCallLowerer {
     }
 }
 
-impl PolymorphicCallLowerer {
-    pub fn new(ids: IdProvider) -> PolymorphicCallLowerer {
-        PolymorphicCallLowerer { ids, index: None, annotations: None, in_method_or_function_block: None }
+impl<'a> PolymorphicCallLowerer<'a> {
+    pub fn new(ids: IdProvider, index: &'a Index, annotations: &'a AnnotationMapImpl) -> Self {
+        PolymorphicCallLowerer { ids, index, annotations, in_method_or_function_block: None }
     }
 
     pub fn lower_unit(&mut self, unit: &mut CompilationUnit) {
@@ -237,9 +235,6 @@ impl PolymorphicCallLowerer {
 
     /// Returns true if the given AST node is a candidate that needs to be lowered into a polymorphic call.
     fn is_polymorphic_call_candidate(&self, operator: &AstNode) -> bool {
-        let index = self.index.as_ref().expect("index must be set before lowering");
-        let annotations = self.annotations.as_ref().expect("annotations must be set before lowering");
-
         // We do not want to lower THIS and SUPER access, e.g. {THIS,SUPER}^() or {THIS,SUPER}^.foo()
         if operator.is_super_or_super_deref()
             || operator.get_base_ref_expr().is_some_and(AstNode::is_super_or_super_deref)
@@ -249,13 +244,13 @@ impl PolymorphicCallLowerer {
             return false;
         }
 
-        if annotations.get(operator).is_some_and(|opt| opt.is_fnptr()) {
+        if self.annotations.get(operator).is_some_and(|opt| opt.is_fnptr()) {
             return false;
         }
 
         // Case 1 (Method call within methods or function block bodies)
         if self.in_method_or_function_block.is_some()
-            && annotations.get_type(operator, index).is_some_and(DataType::is_method)
+            && self.annotations.get_type(operator, self.index).is_some_and(DataType::is_method)
             // Only lower something alike `THIS^.foo()` or `foo()` as opposed to `SUPER^.foo()` or `instanceFb.foo()`
             && (operator.get_base_ref_expr().is_none() || operator.get_base_ref_expr().is_some_and(|opt| opt.is_this()))
         {
@@ -273,22 +268,22 @@ impl PolymorphicCallLowerer {
 
             // Dealing with `MyFbRef^()`
             (ReferenceAccess::Deref, Some(base)) => {
-                if annotations.get(operator).is_some_and(StatementAnnotation::is_fnptr) {
+                if self.annotations.get(operator).is_some_and(StatementAnnotation::is_fnptr) {
                     return false;
                 };
 
-                let info = annotations.get_type_or_void(base, index).get_type_information();
+                let info = self.annotations.get_type_or_void(base, self.index).get_type_information();
                 let DataTypeInformation::Pointer { inner_type_name, .. } = info else {
                     return false;
                 };
 
-                let inner_pointer_type = index.get_type_information_or_void(inner_type_name);
+                let inner_pointer_type = self.index.get_type_information_or_void(inner_type_name);
                 inner_pointer_type.is_class() || inner_pointer_type.is_function_block()
             }
 
             // Auto-deref, e.g. `refInstance: REFERENCE TO ...`
             (ReferenceAccess::Member(member), None) => {
-                annotations.get(member).is_some_and(StatementAnnotation::is_reference_to)
+                self.annotations.get(member).is_some_and(StatementAnnotation::is_reference_to)
             }
 
             _ => false,
@@ -296,10 +291,11 @@ impl PolymorphicCallLowerer {
     }
 
     fn maybe_patch_body_operator(&mut self, operator: &mut AstNode) {
-        let index = self.index.as_ref().unwrap();
-        let annotations = self.annotations.as_ref().unwrap();
-
-        if !annotations.get_type(operator, index).is_some_and(|opt| opt.information.is_function_block()) {
+        if !self
+            .annotations
+            .get_type(operator, self.index)
+            .is_some_and(|opt| opt.information.is_function_block())
+        {
             return;
         }
 
@@ -433,11 +429,9 @@ impl PolymorphicCallLowerer {
     /// END_FUNCTION_BLOCK
     /// ```
     fn maybe_cast_instance(&mut self, operator: &AstNode) -> AstNode {
-        let index = self.index.as_ref().unwrap();
-        let annotations = self.annotations.as_ref().unwrap();
-
-        let Some(method_owner) = annotations
-            .get_type(operator, index)
+        let Some(method_owner) = self
+            .annotations
+            .get_type(operator, self.index)
             .map(DataType::get_type_information)
             .and_then(DataTypeInformation::get_method_owner)
         else {
@@ -712,7 +706,7 @@ mod tests {
             FUNCTION_BLOCK A
                 METHOD alpha
                 END_METHOD
-                
+
                 alpha();
             END_FUNCTION_BLOCK
 
@@ -720,7 +714,7 @@ mod tests {
                 METHOD bravo
                     alpha();
                 END_METHOD
-                
+
                 alpha();
                 bravo();
             END_FUNCTION_BLOCK

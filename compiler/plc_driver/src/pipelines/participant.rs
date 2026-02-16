@@ -297,7 +297,7 @@ impl PipelineParticipantMut for PolymorphismLowerer {
         let AnnotatedProject { units, index, annotations } = annotated_project;
         let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
 
-        let _ = self.dispatch(index, annotations.annotation_map, &mut units);
+        self.dispatch(index, annotations.annotation_map, &mut units);
         let project = ParsedProject { units };
 
         // Dispatch lowering may inject new types (e.g. `__FATPOINTER` for interface dispatch)
