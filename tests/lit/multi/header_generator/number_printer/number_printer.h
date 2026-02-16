@@ -29,6 +29,13 @@ typedef int32_t PartialEnumType;
 #define PartialEnumType_D ((PartialEnumType)1000)
 #define PartialEnumType_E ((PartialEnumType)1001)
 
+typedef struct {
+    uint64_t* __vtable;
+    int16_t a;
+    int16_t b;
+    int16_t result;
+} AddInt_FB_type;
+
 void PrintNumber(int16_t valueToPrint);
 
 void PrintAllEnumValues();
@@ -38,6 +45,14 @@ void PrintCoordinateSet(CoordinateSet* coordinateSet);
 
 // coordinateSet: maximum of 4 MultiDemCoordinateSet(s)
 void PrintMultiDemCoordinateSet(MultiDemCoordinateSet* coordinateSet);
+
+int16_t AddInt(int16_t a, int16_t b, int16_t* result);
+
+void __AddInt_FB__init(AddInt_FB_type* self);
+
+void AddInt_FB(AddInt_FB_type* self);
+
+void AddInt_FB__FB_INIT(AddInt_FB_type* self);
 
 #ifdef __cplusplus
 }
