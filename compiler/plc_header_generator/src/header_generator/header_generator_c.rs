@@ -557,16 +557,13 @@ impl GeneratedHeaderForC {
             if variable_block_types.contains(&variable_block.kind)
                 && (include_external || variable_block.linkage != LinkageType::External)
             {
-                let is_reference = match pou_type {
-                    Some(PouType::Function) => {
-                        variable_block.kind == VariableBlockType::Input(ArgumentProperty::ByRef)
-                            || variable_block.kind == VariableBlockType::InOut
-                            || variable_block.kind == VariableBlockType::Output
-                    }
-                    _ => {
-                        variable_block.kind == VariableBlockType::Input(ArgumentProperty::ByRef)
-                            || variable_block.kind == VariableBlockType::InOut
-                    }
+                let is_reference = if let Some(pou_type) = pou_type {
+                    variable_block.kind == VariableBlockType::Input(ArgumentProperty::ByRef)
+                        || variable_block.kind == VariableBlockType::InOut
+                        || (variable_block.kind == VariableBlockType::Output && !pou_type.is_stateful())
+                } else {
+                    variable_block.kind == VariableBlockType::Input(ArgumentProperty::ByRef)
+                        || variable_block.kind == VariableBlockType::InOut
                 };
 
                 variables.append(&mut self.get_transformed_variables_from_variables(
