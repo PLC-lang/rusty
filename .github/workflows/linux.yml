@@ -102,6 +102,11 @@ jobs:
             version: "linux",
             arch: "x86_64"
           }
+          - {
+            os: "ubuntu-latest",
+            version: "linux",
+            arch: "aarch64"
+          }
     permissions:
       packages: write
       contents: read
@@ -114,69 +119,146 @@ jobs:
         with:
           path: artifacts/
 
-
       - name: Build image
         shell: bash
-        run: docker buildx build . --platform ${{matrix.config.version}}/${{matrix.config.arch}}  --file Dockerfile --tag $IMAGE_NAME
+        run: |
+          docker buildx build . \
+            --platform ${{matrix.config.version}}/${{matrix.config.arch}} \
+            --file Dockerfile \
+            --tag $IMAGE_NAME \
+            --load
 
       - name: Log in to registry
-        if: ${{ github.event_name != 'pull_request' }}
-        # This is where you will update the PAT to GITHUB_TOKEN
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Push image
+      - name: Push image and capture digest
+        id: push
         shell: bash
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: |
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-
-          # Extract branch name
-          BRANCH_NAME=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "main" ] && VERSION=latest
-          #Add the platform to the version
-          VERSION=$VERSION-${{ matrix.config.arch }}
           echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+
+          # Push image and capture digest
+          docker push $IMAGE_ID:${{ matrix.config.arch }}-temp | tee push.log
+          DIGEST=$(grep "digest:" push.log | awk '{print $3}')
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+          echo "arch=${{ matrix.config.arch }}" >> $GITHUB_OUTPUT
+          echo "Pushed ${{ matrix.config.arch }} digest: $DIGEST"
+
+      - name: Simulate push (PR only)
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+
+          echo "=========================================="
+          echo "SIMULATION MODE (Pull Request)"
+          echo "=========================================="
+          echo ""
+          echo "Would execute on master:"
+          echo "  docker push $IMAGE_ID:${{ matrix.config.arch }}-temp"
+          echo ""
+          echo "Image: $IMAGE_ID"
+          echo "Architecture: ${{ matrix.config.arch }}"
+          echo "Platform: ${{matrix.config.version}}/${{matrix.config.arch}}"
+          echo ""
+          echo "Note: Image built locally but not pushed to registry"
+          echo "=========================================="
+
+    outputs:
+      digest: ${{ steps.push.outputs.digest }}
+      arch: ${{ steps.push.outputs.arch }}
 
   push-multiplatform:
     name: Push multi platform
     needs: build-image
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' }}
+    if: ${{ github.event_name != 'pull_request' || github.ref == 'refs/heads/master' }}
     steps:
       - name: Log in to registry
-        if: ${{ github.event_name != 'pull_request' }}
-        # This is where you will update the PAT to GITHUB_TOKEN
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Get images
+      - name: Create and push manifest
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         shell: bash
         run: |
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+
           # Use Docker `latest` tag convention
-          [ "$VERSION" == "main" ] && VERSION=latest
-          echo IMAGE_NAME=$IMAGE_NAME
+          [ "$VERSION" == "master" ] && VERSION=latest
+
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
-          docker manifest create $IMAGE_ID:$VERSION $IMAGE_ID:$VERSION-x86_64
+
+          # Get digests from all matrix builds
+          DIGESTS=$(echo '${{ toJSON(needs.build-image.outputs) }}' | jq -r '.digest[]')
+
+          # Build manifest create command with all digests
+          MANIFEST_ARGS=""
+          for DIGEST in $DIGESTS; do
+            MANIFEST_ARGS="$MANIFEST_ARGS $IMAGE_ID@$DIGEST"
+          done
+
+          echo "Creating manifest with: $MANIFEST_ARGS"
+
+          # Create and push manifest
+          docker manifest create $IMAGE_ID:$VERSION $MANIFEST_ARGS
           docker manifest push $IMAGE_ID:$VERSION
+
+      - name: Simulate manifest push (PR only)
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+
+          # Strip git ref prefix from version
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+
+          # Use Docker `latest` tag convention
+          [ "$VERSION" == "master" ] && VERSION=latest
+
+          echo "=========================================="
+          echo "SIMULATION MODE (Pull Request)"
+          echo "Multi-Platform Manifest Creation"
+          echo "=========================================="
+          echo ""
+          echo "Would execute on master:"
+          echo "  docker login ghcr.io -u ${{ github.actor }}"
+          echo ""
+          echo "Target image: $IMAGE_ID:$VERSION"
+          echo ""
+          echo "Would create manifest with architectures:"
+          echo "  - x86_64"
+          echo "  - aarch64"
+          echo ""
+          echo "Commands that would run:"
+          echo "  docker manifest create $IMAGE_ID:$VERSION \\"
+          echo "    $IMAGE_ID@<x86_64-digest> \\"
+          echo "    $IMAGE_ID@<aarch64-digest>"
+          echo ""
+          echo "  docker manifest push $IMAGE_ID:$VERSION"
+          echo ""
+          echo "Note: Manifest not created or pushed in PR mode"
+          echo "=========================================="
 
   style:
     name: Check Style
