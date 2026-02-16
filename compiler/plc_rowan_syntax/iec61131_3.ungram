@@ -1,0 +1,80 @@
+// IEC 61131-3 Structured Text Grammar
+// Written in ungrammar format for documentation and potential code generation
+// Reference: IEC 61131-3:2013
+
+Name =
+  '#ident'
+
+NameRef =
+  '#ident'
+
+CompilationUnit =
+  Pou*
+
+Pou  =
+  PouType name:Name ':'? typeRef:NameRef 
+  VarDeclarationBlocks
+  Body  
+  PouEndKeyword ';'?
+
+PouType =
+  '___PouType'  // unused, lexer will take care
+
+PouEndKeyword =
+  '___PouEnd'  // unused, lexer will take care
+
+VarDeclarationBlocks =
+  VarDeclarationBlock*
+
+VarDeclarationBlock =
+  VarDeclarationType VarDeclaration* 'END_VAR'
+
+VarDeclarationType =
+  'XXX_VarDeclarationType'
+
+VarDeclaration =
+  IdentifierList Location? ':' typeRef:NameRef';'
+
+Body =
+ Expression*
+
+ Expression =
+  IfStatement 
+  // CaseStatement |
+  // ForStatement |
+  | WhileStatement
+  Assignment
+  // todo: call,
+
+Assignment =
+  target:Expression '=' value:Expression ';'
+
+IfStatement =
+  'IF' condition:ConditionThenBlock 
+  ElseIfArm*
+  ElseArm? 'END_IF'
+
+ElseIfArm =
+  'ELSIF' condition:ConditionThenBlock
+
+ElseArm =
+  'ELSE' Expression
+
+WhileStatement =
+  'WHILE' condition:Expression 'DO' body:Expression 'END_WHILE'
+
+ConditionThenBlock =
+  condition:Expression 'THEN' thenBranch:Expression
+  
+
+IdentifierList =
+  '#ident'
+
+Location =
+  'AT' '#ident' //TODO - this is a simplification, the actual syntax for location can be more complex
+
+Literal =
+  value:('@int_number'
+| '@real_number'
+| '@string_literal'
+| '@bool_literal')

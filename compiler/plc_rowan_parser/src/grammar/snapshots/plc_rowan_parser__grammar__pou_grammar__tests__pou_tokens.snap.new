@@ -1,0 +1,42 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/pou_grammar.rs
+assertion_line: 100
+expression: "format_tree(&output, &input)"
+---
+COMPILATION_UNIT
+  POU
+    POU_TYPE "PROGRAM"
+    NAME
+      IDENT "MyProgram"
+    VAR_DECLARATION_BLOCKS
+      VAR_DECLARATION_BLOCK
+        VAR_DECLARATION_TYPE "VAR"
+        VAR_DECLARATION
+          NAME
+            IDENT "x"
+          COLON ":"
+          NAME_REF
+            IDENT "INT"
+          SEMICOLON ";"
+        END_VAR_KW "END_VAR"
+      VAR_DECLARATION_BLOCK
+        VAR_DECLARATION_TYPE "VAR_INPUT"
+        VAR_DECLARATION
+          NAME
+            IDENT "y"
+          COLON ":"
+          NAME_REF
+            IDENT "INT"
+          SEMICOLON ";"
+        END_VAR_KW "END_VAR"
+      VAR_DECLARATION_BLOCK
+        VAR_DECLARATION_TYPE "VAR_OUTPUT"
+        VAR_DECLARATION
+          NAME
+            IDENT "z"
+          COLON ":"
+          NAME_REF
+            IDENT "INT"
+          SEMICOLON ";"
+        END_VAR_KW "END_VAR"
+    POU_END_KEYWORD "END_PROGRAM"

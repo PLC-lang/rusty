@@ -9,6 +9,7 @@ use self::{compile::Compile, run::Run};
 pub(crate) mod compile;
 pub(crate) mod lexer;
 pub(crate) mod run;
+pub(crate) mod grammar;
 
 pub(crate) trait Task {
     /// Returns the name of the task being benchmarked

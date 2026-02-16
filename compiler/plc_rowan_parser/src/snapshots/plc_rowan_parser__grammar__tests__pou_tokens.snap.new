@@ -1,0 +1,24 @@
+---
+source: compiler/plc_rowan_parser/src/grammar.rs
+assertion_line: 158
+expression: format_tree(&output)
+---
+COMPILATION_UNIT
+  POU
+    POU_TYPE [1]
+    IDENT [1]
+    VAR_DECLARATION_BLOCKS
+      VAR_DECLARATION_BLOCK
+        VAR_DECLARATION_TYPE [1]
+        VAR_DECLARATION
+          IDENT [1]
+          COLON [1]
+          IDENT [1]
+          SEMICOLON [1]
+        VAR_DECLARATION
+          IDENT [1]
+          COLON [1]
+          IDENT [1]
+          SEMICOLON [1]
+        END_VAR_KW [1]
+    POU_END_KEYWORD [1]

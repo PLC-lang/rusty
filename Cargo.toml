@@ -69,6 +69,7 @@ members = [
     "libs/stdlib",
     "compiler/plc_driver",
     "compiler/plc_ast",
+    "compiler/plc_rowan_syntax",
     "compiler/plc_diagnostics",
     "compiler/plc_project",
     "compiler/plc_source",
@@ -79,7 +80,7 @@ members = [
     "compiler/section_mangler",
     "compiler/plc_lowering",
     "compiler/plc_header_generator",
-    "tests/test_utils",
+    "tests/test_utils", "compiler/plc_rowan_parser", 
 ]
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 

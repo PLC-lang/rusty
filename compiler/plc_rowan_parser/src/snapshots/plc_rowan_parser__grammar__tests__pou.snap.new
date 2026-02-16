@@ -1,0 +1,10 @@
+---
+source: compiler/plc_rowan_parser/src/grammar.rs
+assertion_line: 156
+expression: tree
+---
+POU
+  Error: expected POU_TYPE
+  Error: expected IDENT
+  VAR_DECLARATION_BLOCKS
+  Error: expected POU_END_KEYWORD

@@ -25,6 +25,11 @@ enum Command {
         #[arg(value_enum, long, global = true, default_value_t = ReporterType::Sysout)]
         reporter: ReporterType,
     },
+    /// Generate code artifacts (optional target)
+    Codegen {
+        /// Optional codegen target (e.g. `grammar`)
+        target: Option<String>,
+    },
     Lit,
 }
 
@@ -43,6 +48,7 @@ fn main() -> anyhow::Result<()> {
     let params = Parameters::parse();
     match params.command {
         Command::Metrics { action, reporter } => run_metrics(action, reporter)?,
+        Command::Codegen { target } => run_codegen(target)?,
         Command::Lit => run_lit()?,
     };
 
@@ -54,6 +60,11 @@ fn run_lit() -> Result<()> {
 
     // Run compile
     sh.cmd("scripts/build.sh").args(&["--lit"]).run()?;
+    Ok(())
+}
+
+fn run_codegen(_target: Option<String>) -> Result<()> {
+    task::grammar::generate();
     Ok(())
 }
 
@@ -134,6 +145,13 @@ fn prepare() -> Result<(TempDir, PathBuf)> {
         anyhow::bail!("Could not find stdlib, did you run the standard function compile script?")
     }
 
-    std::env::set_var("STDLIBLOC", &lib_loc);
+    unsafe { std::env::set_var("STDLIBLOC", &lib_loc) };
     Ok((temp, plc))
+}
+
+/// Get the project root directory
+fn project_root() -> PathBuf {
+    let dir =
+       std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| env!("CARGO_MANIFEST_DIR").to_owned());
+    PathBuf::from(dir).parent().unwrap().to_owned()
 }

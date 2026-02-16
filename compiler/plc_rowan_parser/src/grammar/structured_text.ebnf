@@ -1,0 +1,477 @@
+(* ============================================================================ *)
+(* IEC 61131-3 Structured Text Grammar (EBNF) - Simplified/Permissive          *)
+(* Based on IEC 61131-3:2013 Edition 3.0                                        *)
+(* ============================================================================ *)
+(* This is a PERMISSIVE grammar designed for error-tolerant parsing.            *)
+(* Semantic validation is deferred to a later phase.                            *)
+(* See: syntax_validations.md for required post-parse validations.              *)
+(* ============================================================================ *)
+
+(* ============================================================================ *)
+(* COMPILATION UNIT - Entry Points                                              *)
+(* ============================================================================ *)
+
+compilation_unit = 
+    { pou_declaration 
+    | global_var_declaration 
+    | data_type_declaration 
+    } ;
+
+(* ============================================================================ *)
+(* PROGRAM ORGANIZATION UNITS (POUs)                                            *)
+(* ============================================================================ *)
+
+pou_declaration = 
+      program_declaration
+    | function_declaration
+    | function_block_declaration
+    | class_declaration
+    | interface_declaration
+    | action_declaration
+    ;
+
+(* --- PROGRAM --- *)
+program_declaration = 
+    'PROGRAM' identifier
+    { var_block }
+    [ statement_list ]
+    'END_PROGRAM' ;
+
+(* --- FUNCTION --- *)
+function_declaration = 
+    'FUNCTION' identifier [ ':' type_reference ]
+    { var_block }
+    [ statement_list ]
+    'END_FUNCTION' ;
+
+(* --- FUNCTION_BLOCK --- *)
+function_block_declaration = 
+    'FUNCTION_BLOCK' { pou_modifier } identifier [ extends_clause ] [ implements_clause ]
+    { var_block }
+    { method_declaration | property_declaration }
+    [ statement_list ]
+    'END_FUNCTION_BLOCK' ;
+
+(* --- CLASS --- *)
+class_declaration = 
+    'CLASS' { pou_modifier } identifier [ extends_clause ] [ implements_clause ]
+    { var_block }
+    { method_declaration | property_declaration }
+    'END_CLASS' ;
+
+(* --- INTERFACE --- *)
+interface_declaration = 
+    'INTERFACE' identifier [ 'EXTENDS' identifier_list ]
+    { method_prototype | property_prototype }
+    'END_INTERFACE' ;
+
+(* --- METHOD --- *)
+method_declaration = 
+    'METHOD' { method_modifier } identifier [ ':' type_reference ]
+    { var_block }
+    [ statement_list ]
+    'END_METHOD' ;
+
+method_prototype = 
+    'METHOD' identifier [ ':' type_reference ]
+    { var_block }
+    'END_METHOD' ;
+
+(* --- PROPERTY --- *)
+property_declaration =
+    'PROPERTY' { method_modifier } identifier ':' type_reference
+    { property_accessor }
+    'END_PROPERTY' ;
+
+property_prototype =
+    'PROPERTY' identifier ':' type_reference
+    'END_PROPERTY' ;
+
+property_accessor =
+      'GET' { var_block } [ statement_list ] 'END_GET'
+    | 'SET' { var_block } [ statement_list ] 'END_SET'
+    ;
+
+(* --- ACTION --- *)
+action_declaration = 
+    'ACTION' identifier
+    [ statement_list ]
+    'END_ACTION' ;
+
+(* --- Modifiers and Clauses --- *)
+pou_modifier =
+      access_specifier
+    | 'ABSTRACT'
+    | 'FINAL'
+    ;
+
+method_modifier =
+      access_specifier
+    | 'ABSTRACT'
+    | 'FINAL'
+    | 'OVERRIDE'
+    ;
+
+access_specifier = 
+    'PUBLIC' | 'PRIVATE' | 'PROTECTED' | 'INTERNAL' ;
+
+extends_clause = 
+    'EXTENDS' identifier ;
+
+implements_clause = 
+    'IMPLEMENTS' identifier_list ;
+
+identifier_list = 
+    identifier { ',' identifier } ;
+
+(* ============================================================================ *)
+(* VARIABLE DECLARATIONS - Unified                                              *)
+(* ============================================================================ *)
+
+var_block = 
+    var_block_type { var_block_modifier }
+    { var_declaration }
+    'END_VAR' ;
+
+var_block_type =
+      'VAR'
+    | 'VAR_INPUT'
+    | 'VAR_OUTPUT'
+    | 'VAR_IN_OUT'
+    | 'VAR_TEMP'
+    | 'VAR_EXTERNAL'
+    | 'VAR_GLOBAL'
+    ;
+
+var_block_modifier =
+      'CONSTANT'
+    | 'RETAIN'
+    | 'NON_RETAIN'
+    | 'PERSISTENT'
+    ;
+
+(* --- VAR_GLOBAL as standalone --- *)
+global_var_declaration = 
+    'VAR_GLOBAL' { var_block_modifier }
+    { var_declaration }
+    'END_VAR' ;
+
+(* --- Variable Declaration --- *)
+var_declaration = 
+    identifier_list [ location ] ':' type_specification [ ':=' expression ] ';' ;
+
+location = 
+    'AT' direct_variable ;
+
+direct_variable = 
+    '%' location_prefix [ size_prefix ] integer { '.' integer } ;
+
+location_prefix = 
+    'I' | 'Q' | 'M' | 'G' ;
+
+size_prefix = 
+    'X' | 'B' | 'W' | 'D' | 'L' ;
+
+(* ============================================================================ *)
+(* DATA TYPE DECLARATIONS                                                       *)
+(* ============================================================================ *)
+
+data_type_declaration = 
+    'TYPE' 
+    { type_definition }
+    'END_TYPE' ;
+
+type_definition = 
+    identifier ':' type_specification ';' ;
+
+type_specification = 
+      type_reference [ ':=' expression ]
+    | enumeration_specification
+    | subrange_specification
+    | array_specification
+    | struct_specification
+    | string_specification
+    | pointer_specification
+    ;
+
+type_reference = 
+    identifier ;
+
+(* --- Enumeration --- *)
+enumeration_specification = 
+    [ type_reference ':' ] '(' enum_value_list ')' [ ':=' expression ] ;
+
+enum_value_list = 
+    enum_value { ',' enum_value } ;
+
+enum_value = 
+    identifier [ ':=' expression ] ;
+
+(* --- Subrange --- *)
+subrange_specification = 
+    type_reference '(' subrange ')' [ ':=' expression ] ;
+
+subrange = 
+    expression '..' expression ;
+
+(* --- Array --- *)
+array_specification = 
+    'ARRAY' '[' array_range_list ']' 'OF' type_specification ;
+
+array_range_list = 
+    array_range { ',' array_range } ;
+
+array_range = 
+      subrange 
+    | '*'
+    ;
+
+(* --- Struct --- *)
+struct_specification = 
+    'STRUCT' [ 'OVERLAP' ]
+    { struct_element }
+    'END_STRUCT' ;
+
+struct_element = 
+    identifier [ location ] ':' type_specification [ ':=' expression ] ';' ;
+
+(* --- String --- *)
+string_specification = 
+    ( 'STRING' | 'WSTRING' ) [ '[' expression ']' ] [ ':=' expression ] ;
+
+(* --- Pointer/Reference --- *)
+pointer_specification = 
+      'REF_TO' type_reference
+    | 'POINTER' 'TO' type_reference
+    ;
+
+(* ============================================================================ *)
+(* STATEMENTS                                                                   *)
+(* ============================================================================ *)
+
+statement_list = 
+    { statement } ;
+
+statement = 
+      ';'  (* Empty statement *)
+    | assignment_statement
+    | call_statement
+    | if_statement
+    | case_statement
+    | for_statement
+    | while_statement
+    | repeat_statement
+    | 'RETURN' ';'
+    | 'EXIT' ';'
+    | 'CONTINUE' ';'
+    ;
+
+(* --- Assignment --- *)
+assignment_statement = 
+    variable ( ':=' | '=>' | 'REF=' ) expression ';' ;
+
+(* --- Call Statement --- *)
+call_statement = 
+    call_expression ';' ;
+
+(* --- IF Statement --- *)
+if_statement = 
+    'IF' expression 'THEN' statement_list
+    { 'ELSIF' expression 'THEN' statement_list }
+    [ 'ELSE' statement_list ]
+    'END_IF' ;
+
+(* --- CASE Statement --- *)
+case_statement = 
+    'CASE' expression 'OF'
+    { case_element }
+    [ 'ELSE' statement_list ]
+    'END_CASE' ;
+
+case_element = 
+    case_list ':' statement_list ;
+
+case_list = 
+    case_item { ',' case_item } ;
+
+case_item = 
+      expression
+    | subrange
+    ;
+
+(* --- FOR Statement --- *)
+for_statement = 
+    'FOR' identifier ':=' expression 'TO' expression [ 'BY' expression ] 
+    'DO' statement_list 
+    'END_FOR' ;
+
+(* --- WHILE Statement --- *)
+while_statement = 
+    'WHILE' expression 'DO' statement_list 'END_WHILE' ;
+
+(* --- REPEAT Statement --- *)
+repeat_statement = 
+    'REPEAT' statement_list 'UNTIL' expression 'END_REPEAT' ;
+
+(* ============================================================================ *)
+(* EXPRESSIONS                                                                  *)
+(* ============================================================================ *)
+
+expression = 
+    or_expression ;
+
+or_expression = 
+    xor_expression { 'OR' xor_expression } ;
+
+xor_expression = 
+    and_expression { 'XOR' and_expression } ;
+
+and_expression = 
+    equality_expression { ( '&' | 'AND' ) equality_expression } ;
+
+equality_expression = 
+    comparison_expression { ( '=' | '<>' ) comparison_expression } ;
+
+comparison_expression = 
+    additive_expression { ( '<' | '>' | '<=' | '>=' ) additive_expression } ;
+
+additive_expression = 
+    multiplicative_expression { ( '+' | '-' ) multiplicative_expression } ;
+
+multiplicative_expression = 
+    power_expression { ( '*' | '/' | 'MOD' ) power_expression } ;
+
+power_expression = 
+    unary_expression { '**' unary_expression } ;
+
+unary_expression = 
+    { '-' | '+' | 'NOT' } primary_expression ;
+
+primary_expression = 
+      literal
+    | variable
+    | call_expression
+    | '(' expression ')'
+    | 'REF' '(' expression ')'
+    ;
+
+(* --- Call Expression --- *)
+call_expression = 
+    qualified_identifier '(' [ argument_list ] ')' ;
+
+argument_list = 
+    argument { ',' argument } ;
+
+argument = 
+    [ identifier ( ':=' | '=>' ) ] expression
+    | 'NOT' identifier ':=' expression
+    ;
+
+(* --- Variable Access --- *)
+variable = 
+    [ 'THIS' '.' | 'SUPER' '.' ] qualified_identifier { variable_suffix } ;
+
+qualified_identifier = 
+    identifier { '.' identifier } ;
+
+variable_suffix = 
+      '[' expression_list ']'   (* Array subscript *)
+    | '.' identifier            (* Field access *)
+    | '^'                       (* Dereference *)
+    ;
+
+expression_list = 
+    expression { ',' expression } ;
+
+(* ============================================================================ *)
+(* LITERALS                                                                     *)
+(* ============================================================================ *)
+
+literal = 
+      numeric_literal
+    | string_literal
+    | time_literal
+    | 'TRUE' | 'FALSE'
+    | 'NULL'
+    ;
+
+numeric_literal = 
+    [ type_prefix ] ( integer | real_number ) ;
+
+type_prefix = 
+    identifier '#' ;
+
+integer = 
+      decimal_integer
+    | binary_integer
+    | octal_integer
+    | hex_integer
+    ;
+
+decimal_integer = 
+    digit { [ '_' ] digit } ;
+
+binary_integer = 
+    '2#' ( '0' | '1' ) { [ '_' ] ( '0' | '1' ) } ;
+
+octal_integer = 
+    '8#' octal_digit { [ '_' ] octal_digit } ;
+
+hex_integer = 
+    '16#' hex_digit { [ '_' ] hex_digit } ;
+
+real_number = 
+    decimal_integer '.' decimal_integer [ exponent ] ;
+
+exponent = 
+    ( 'E' | 'e' ) [ '+' | '-' ] decimal_integer ;
+
+string_literal = 
+      single_string
+    | double_string
+    ;
+
+single_string = 
+    "'" { string_char } "'" ;
+
+double_string = 
+    '"' { string_char } '"' ;
+
+string_char = 
+    (* Any character, with $ as escape character *) ;
+
+time_literal = 
+    time_type_name '#' time_value ;
+
+time_type_name = 
+    'TIME' | 'LTIME' | 'T' | 'LT' 
+    | 'DATE' | 'LDATE' | 'D' | 'LD'
+    | 'TIME_OF_DAY' | 'TOD' | 'LTOD'
+    | 'DATE_AND_TIME' | 'DT' | 'LDT' 
+    ;
+
+time_value = 
+    (* Time/date value - lexer handles format *) ;
+
+(* ============================================================================ *)
+(* LEXICAL ELEMENTS                                                             *)
+(* ============================================================================ *)
+
+identifier = 
+    ( letter | '_' ) { letter | digit | '_' } ;
+
+letter = 
+    'A'..'Z' | 'a'..'z' ;
+
+digit = 
+    '0'..'9' ;
+
+octal_digit = 
+    '0'..'7' ;
+
+hex_digit = 
+    digit | 'A'..'F' | 'a'..'f' ;
+
+(* ============================================================================ *)
+(* END OF GRAMMAR                                                               *)
+(* ============================================================================ *)
