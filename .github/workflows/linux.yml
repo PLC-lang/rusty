@@ -4,7 +4,7 @@ on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -102,11 +102,8 @@ jobs:
     strategy:
       matrix:
         config:
-          - {
-            os: "ubuntu-latest",
-            version: "linux",
-            arch: "x86_64"
-          }
+          - { os: "ubuntu-latest", version: "linux", arch: "x86_64" }
+          - { os: "ubuntu-24.04-arm", version: "linux", arch: "aarch64" }
     permissions:
       packages: write
       contents: read
@@ -118,7 +115,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
-
 
       - name: Build image
         shell: bash
@@ -180,7 +176,9 @@ jobs:
           echo IMAGE_NAME=$IMAGE_NAME
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
-          docker manifest create $IMAGE_ID:$VERSION $IMAGE_ID:$VERSION-x86_64
+          docker manifest create $IMAGE_ID:$VERSION \
+            --amend $IMAGE_ID:$VERSION-x86_64 \
+            --amend $IMAGE_ID:$VERSION-aarch64
           docker manifest push $IMAGE_ID:$VERSION
 
   style:
