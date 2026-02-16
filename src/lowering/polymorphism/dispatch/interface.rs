@@ -1,10 +1,15 @@
 use plc_ast::{
-    ast::{CompilationUnit, DataTypeDeclaration},
+    ast::{Assignment, AstFactory, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
+use plc_source::source_location::SourceLocation;
 
-use crate::{index::Index, typesystem::DataType};
+use crate::{
+    index::Index,
+    resolver::{AnnotationMap, AnnotationMapImpl},
+    typesystem::DataType,
+};
 
 const FATPOINTER_TYPE_NAME: &str = "__FATPOINTER";
 const FATPOINTER_DATA_FIELD_NAME: &str = "data";
@@ -13,14 +18,18 @@ const FATPOINTER_TABLE_FIELD_NAME: &str = "table";
 pub struct InterfaceDispatchLowerer<'a> {
     ids: IdProvider,
     index: &'a Index,
+    annotations: &'a AnnotationMapImpl,
 
     /// Do we need to generate the `__FATPOINTER` struct definition?
     needs_fatpointer_definition: bool,
+
+    /// Are we in a call statement?
+    call_guard: bool,
 }
 
 impl<'a> InterfaceDispatchLowerer<'a> {
-    pub fn new(ids: IdProvider, index: &'a Index) -> Self {
-        Self { ids, index, needs_fatpointer_definition: false }
+    pub fn new(ids: IdProvider, index: &'a Index, annotations: &'a AnnotationMapImpl) -> Self {
+        Self { ids, index, annotations, needs_fatpointer_definition: false, call_guard: false }
     }
 
     pub fn lower(&mut self, units: &mut [CompilationUnit]) {
@@ -46,10 +55,98 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 
         data_type_declaration.walk(self);
     }
+
+    /// Lowers concrete POU → interface assignments into fat pointer field assignments.
+    ///
+    /// `reference := instance` becomes:
+    /// - `reference.data  := ADR(instance)`
+    /// - `reference.table := ADR(__itable_<interface>_<POU>_instance)`
+    ///
+    /// Both are packed into a single `ExpressionList` node so we can expand one statement into
+    /// two without needing access to the surrounding statement list.
+    fn visit_assignment(&mut self, node: &mut plc_ast::ast::AstNode) {
+        // Named call arguments are also represented as assignments — skip them here,
+        // they are handled separately in call argument lowering.
+        if self.call_guard {
+            return;
+        }
+
+        let AstStatement::Assignment(Assignment { left, right }) = &node.stmt else { unreachable!() };
+
+        // Only transform when the LHS is an interface type (per pre-lowering annotations)
+        let Some(lhs_type) = self.annotations.get_type(left, self.index) else { return };
+        if !lhs_type.is_interface() {
+            return;
+        }
+
+        // Interface → interface assignment is out of scope
+        let Some(rhs_type) = self.annotations.get_type(right, self.index) else { return };
+        if rhs_type.is_interface() {
+            return;
+        }
+
+        let interface_name = lhs_type.get_name();
+        let pou_name = rhs_type.get_name();
+        let itable_instance_name = format!("__itable_{interface_name}_{pou_name}_instance");
+
+        // Clone left/right before replacing the node
+        let left = left.as_ref().clone();
+        let right = right.as_ref().clone();
+
+        // reference.data := ADR(instance)
+        let assign_data = helper::create_fat_pointer_field_assignment(
+            &mut self.ids,
+            &left,
+            FATPOINTER_DATA_FIELD_NAME,
+            &right,
+        );
+
+        // reference.table := ADR(__itable_<interface>_<POU>_instance)
+        let itable_ref = AstFactory::create_member_reference(
+            AstFactory::create_identifier(
+                itable_instance_name,
+                SourceLocation::internal(),
+                self.ids.next_id(),
+            ),
+            None,
+            self.ids.next_id(),
+        );
+        let assign_table = helper::create_fat_pointer_field_assignment(
+            &mut self.ids,
+            &left,
+            FATPOINTER_TABLE_FIELD_NAME,
+            &itable_ref,
+        );
+
+        // TODO(vosa): Mention why an expression list
+        node.stmt = AstStatement::ExpressionList(vec![assign_data, assign_table]);
+    }
+
+    fn visit_call_statement(&mut self, node: &mut plc_ast::ast::AstNode) {
+        self.call_guard = true;
+
+        let AstStatement::CallStatement(CallStatement { ref mut operator, ref mut parameters }) =
+            &mut node.stmt
+        else {
+            unreachable!();
+        };
+
+        operator.walk(self);
+        if let Some(ref mut parameters) = parameters {
+            parameters.walk(self);
+        }
+
+        self.call_guard = false;
+    }
 }
 
 mod helper {
-    use plc_ast::ast::{DataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable};
+    use plc_ast::{
+        ast::{
+            AstFactory, AstNode, DataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable,
+        },
+        provider::IdProvider,
+    };
     use plc_source::source_location::SourceLocation;
 
     use crate::{
@@ -64,6 +161,37 @@ mod helper {
             referenced_type: String::from(FATPOINTER_TYPE_NAME),
             location: type_decl.get_location(),
         };
+    }
+
+    /// Creates `<base>.<field> := ADR(<target>)`.
+    pub fn create_fat_pointer_field_assignment(
+        ids: &mut IdProvider,
+        base: &AstNode,
+        field: &str,
+        target: &AstNode,
+    ) -> AstNode {
+        let location = SourceLocation::internal();
+
+        // LHS: <base>.<field>
+        let lhs = AstFactory::create_member_reference(
+            AstFactory::create_identifier(field, &location, ids.next_id()),
+            Some(base.clone()),
+            ids.next_id(),
+        );
+
+        // RHS: ADR(<target>)
+        let rhs = AstFactory::create_call_statement(
+            AstFactory::create_member_reference(
+                AstFactory::create_identifier("ADR", &location, ids.next_id()),
+                None,
+                ids.next_id(),
+            ),
+            Some(target.clone()),
+            ids.next_id(),
+            &location,
+        );
+
+        AstFactory::create_assignment(lhs, rhs, ids.next_id())
     }
 
     pub fn create_fat_pointer_struct() -> UserTypeDeclaration {
@@ -111,7 +239,9 @@ mod helper {
 
 #[cfg(test)]
 mod tests {
-    use crate::lowering::polymorphism::dispatch::interface::FATPOINTER_TYPE_NAME;
+    use crate::lowering::polymorphism::dispatch::interface::{
+        tests::helper::lower_and_serialize_statements, FATPOINTER_TYPE_NAME,
+    };
 
     #[test]
     fn fatpointer_is_generated_on_demand() {
@@ -394,6 +524,43 @@ mod tests {
         "#);
     }
 
+    #[test]
+    fn assignments_expand() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                VAR_INPUT
+                    in: IA;
+                    instance: FbA;
+                END_VAR
+
+                in := instance;
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                    reference: IA;
+                END_VAR
+
+                reference := instance;
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main", "FbA"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
+            "// Statements in FbA",
+            "in.data := ADR(instance), in.table := ADR(__itable_IA_FbA_instance)",
+        ]
+        "#)
+    }
+
     mod helper {
         use driver::{parse_and_annotate, pipelines::AnnotatedProject, pipelines::AnnotatedUnit};
         use plc_source::SourceCode;
@@ -406,7 +573,7 @@ mod tests {
             project.units.remove(0)
         }
 
-        fn lower_and_serialize_statements(source: impl Into<SourceCode>, pous: &[&str]) -> Vec<String> {
+        pub fn lower_and_serialize_statements(source: impl Into<SourceCode>, pous: &[&str]) -> Vec<String> {
             let (_, project) = parse_and_annotate("unit-test", vec![source.into()]).unwrap();
             let unit = project.units[0].get_unit();
 
