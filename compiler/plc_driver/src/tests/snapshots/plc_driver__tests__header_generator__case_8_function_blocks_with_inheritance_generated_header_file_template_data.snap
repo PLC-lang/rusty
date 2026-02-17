@@ -1,0 +1,173 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [
+        {
+          "name": "fbGreatGrandParent_type",
+          "variables": [
+            {
+              "data_type": "uint64_t*",
+              "name": "__vtable",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "varGreatGrandParentInt",
+              "variable_type": "Default"
+            }
+          ],
+          "data_type": null
+        },
+        {
+          "name": "fbGrandParent_type",
+          "variables": [
+            {
+              "data_type": "fbGreatGrandParent_type",
+              "name": "__fbGreatGrandParent",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "varGrandParentInt",
+              "variable_type": "Default"
+            }
+          ],
+          "data_type": null
+        },
+        {
+          "name": "fbParent_type",
+          "variables": [
+            {
+              "data_type": "fbGrandParent_type",
+              "name": "__fbGrandParent",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "varParentInt",
+              "variable_type": "Default"
+            }
+          ],
+          "data_type": null
+        },
+        {
+          "name": "fbChild_type",
+          "variables": [
+            {
+              "data_type": "fbParent_type",
+              "name": "__fbParent",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "varChildInt",
+              "variable_type": "Default"
+            }
+          ],
+          "data_type": null
+        }
+      ],
+      "enums": []
+    },
+    "global_variables": [],
+    "functions": [
+      {
+        "return_type": "void",
+        "name": "__fbGreatGrandParent__init",
+        "parameters": [
+          {
+            "data_type": "fbGreatGrandParent_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fbGreatGrandParent",
+        "parameters": [
+          {
+            "data_type": "fbGreatGrandParent_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "__fbGrandParent__init",
+        "parameters": [
+          {
+            "data_type": "fbGrandParent_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fbGrandParent",
+        "parameters": [
+          {
+            "data_type": "fbGrandParent_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "__fbParent__init",
+        "parameters": [
+          {
+            "data_type": "fbParent_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fbParent",
+        "parameters": [
+          {
+            "data_type": "fbParent_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "__fbChild__init",
+        "parameters": [
+          {
+            "data_type": "fbChild_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fbChild",
+        "parameters": [
+          {
+            "data_type": "fbChild_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      }
+    ]
+  },
+  "directory": "",
+  "path": "function_blocks_with_inheritance.h",
+  "file_name": "FUNCTION_BLOCKS_WITH_INHERITANCE",
+  "formatted_path": "FUNCTION_BLOCKS_WITH_INHERITANCE_H_"
+}

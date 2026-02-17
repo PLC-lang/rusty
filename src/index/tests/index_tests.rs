@@ -862,6 +862,7 @@ fn pre_processing_generates_generic_types() {
         initializer: None,
         location: SourceLocation::internal(),
         scope: Some("myFunc".into()),
+        linkage: LinkageType::Internal,
     };
 
     assert_eq!(format!("{expected:?}"), format!("{:?}", ast.user_types[0]));
@@ -896,6 +897,7 @@ fn pre_processing_generates_nested_generic_types() {
         initializer: None,
         location: SourceLocation::internal(),
         scope: Some("myFunc".into()),
+        linkage: LinkageType::Internal,
     };
 
     assert_eq!(format!("{expected:?}"), format!("{:?}", ast.user_types[0]));

@@ -559,6 +559,58 @@ fn parenthesized_expression_assignment() {
 }
 
 #[test]
+fn binary_expression_with_parenthesized_different_types() {
+    // Regression test: Multiplying REAL by parenthesized INT expression should work
+    // The parenthesized (b - c) expression should get proper type promotion to REAL
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "PROGRAM main
+            VAR
+                a : REAL;
+                b : INT;
+                c : INT;
+                result : REAL;
+            END_VAR
+
+            result := (a) * (b - c);
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    // The assignment should resolve correctly
+    let stmt = &unit.implementations[0].statements[0];
+    let AstStatement::Assignment(Assignment { right, .. }) = &stmt.stmt else { panic!() };
+
+    // The outer binary expression (a) * (b - c) should be REAL
+    assert_eq!(annotations.get_type_or_void(right, &index).get_name(), "REAL");
+
+    // Extract the binary expression
+    let AstStatement::BinaryExpression(BinaryExpression { left, right: rhs, .. }) = right.get_stmt() else {
+        panic!()
+    };
+
+    // left = (a), should be REAL
+    assert!(left.is_paren());
+    assert_eq!(annotations.get_type_or_void(left, &index).get_name(), "REAL");
+
+    // right = (b - c), should have type DINT (result of INT - INT) but hint REAL for promotion
+    assert!(rhs.is_paren());
+    let rhs_type = annotations.get_type_or_void(rhs, &index);
+    // The inner expression b - c is DINT, but it should be promotable to REAL
+    assert!(rhs_type.get_name() == "DINT" || rhs_type.get_name() == "REAL");
+
+    // Check that the right-hand side (b - c) has a type hint for promotion to REAL
+    let rhs_hint = annotations.get_type_hint(rhs, &index);
+    assert!(rhs_hint.is_some(), "Parenthesized expression (b - c) should have a type hint for promotion");
+    assert_eq!(
+        rhs_hint.unwrap().get_name(),
+        "REAL",
+        "Type hint should be REAL for promotion in REAL * (INT - INT)"
+    );
+}
+
+#[test]
 fn unary_expressions_resolves_types() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
