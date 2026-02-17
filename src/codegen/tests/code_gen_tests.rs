@@ -4057,7 +4057,6 @@ fn methods_var_output() {
         FUNCTION_BLOCK foo
         METHOD baz
         VAR_OUTPUT
-        VAR_OUTPUT
             out : STRING;
         END_VAR
             out := 'hello';
