@@ -107,9 +107,13 @@ impl AstVisitorMut for RetainLowerer {
                             location: variable.data_type_declaration.get_location(),
                             scope: self.context.container_name.clone(),
                         };
-                        variable.initializer = Some(AstFactory::create_identifier(
-                            new_name,
-                            variable.location.clone(),
+                        variable.initializer = Some(AstFactory::create_member_reference(
+                            AstFactory::create_identifier(
+                                new_name,
+                                variable.location.clone(),
+                                self.ids.next_id(),
+                            ),
+                            None,
                             self.ids.next_id(),
                         ));
                         block.variables.push(variable);
@@ -194,8 +198,13 @@ mod tests {
                                             referenced_type: "__Test_x",
                                         },
                                         initializer: Some(
-                                            Identifier {
-                                                name: "__Test_x__retain",
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__Test_x__retain",
+                                                    },
+                                                ),
+                                                base: None,
                                             },
                                         ),
                                     },
@@ -394,8 +403,13 @@ mod tests {
                                             referenced_type: "__Test_x",
                                         },
                                         initializer: Some(
-                                            Identifier {
-                                                name: "__Test_x__retain",
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__Test_x__retain",
+                                                    },
+                                                ),
+                                                base: None,
                                             },
                                         ),
                                     },
