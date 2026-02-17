@@ -2,7 +2,9 @@
 //! It also moves retain variables that are declared in non retain blocks into retain blocks.
 
 use plc_ast::{
-    ast::{AccessModifier, AstFactory, CompilationUnit, Variable},
+    ast::{
+        AccessModifier, AstFactory, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration, Variable,
+    },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
@@ -80,7 +82,7 @@ impl AstVisitorMut for RetainLowerer {
                 if variable_index.should_retain(&self.index) {
                     if self.context.in_program {
                         let new_name = format!(
-                            "__{}_{}",
+                            "__{}_{}__retain",
                             self.context.container_name.as_deref().unwrap_or_default(),
                             variable.get_name()
                         );
@@ -94,7 +96,18 @@ impl AstVisitorMut for RetainLowerer {
                         };
                         // Move the variable to a global retain variable and replace the original variable with an auto reference to the global variable
                         self.context.retain_variables.push(new_var);
-                        variable.address = Some(AstFactory::create_identifier(
+                        variable.data_type_declaration = DataTypeDeclaration::Definition {
+                            data_type: Box::new(DataType::PointerType {
+                                name: None,
+                                referenced_type: Box::new(variable.data_type_declaration.clone()),
+                                auto_deref: Some(AutoDerefType::Alias),
+                                type_safe: true,
+                                is_function: false,
+                            }),
+                            location: variable.data_type_declaration.get_location(),
+                            scope: self.context.container_name.clone(),
+                        };
+                        variable.initializer = Some(AstFactory::create_identifier(
                             new_name,
                             variable.location.clone(),
                             self.ids.next_id(),
@@ -153,7 +166,7 @@ mod tests {
                     VariableBlock {
                         variables: [
                             Variable {
-                                name: "__Test_x",
+                                name: "__Test_x__retain",
                                 data_type: DataTypeReference {
                                     referenced_type: "INT",
                                 },
@@ -178,11 +191,11 @@ mod tests {
                                     Variable {
                                         name: "x",
                                         data_type: DataTypeReference {
-                                            referenced_type: "INT",
+                                            referenced_type: "__Test_x",
                                         },
-                                        address: Some(
+                                        initializer: Some(
                                             Identifier {
-                                                name: "__Test_x",
+                                                name: "__Test_x__retain",
                                             },
                                         ),
                                     },
@@ -228,14 +241,34 @@ mod tests {
                     },
                 ],
                 interfaces: [],
-                user_types: [],
+                user_types: [
+                    UserTypeDeclaration {
+                        data_type: PointerType {
+                            name: Some(
+                                "__Test_x",
+                            ),
+                            referenced_type: DataTypeReference {
+                                referenced_type: "INT",
+                            },
+                            auto_deref: Some(
+                                Alias,
+                            ),
+                            type_safe: true,
+                            is_function: false,
+                        },
+                        initializer: None,
+                        scope: Some(
+                            "Test",
+                        ),
+                    },
+                ],
                 file: File(
                     "<internal>",
                 ),
             },
             dependencies: {
                 Variable(
-                    "__Test_x",
+                    "__Test_x__retain",
                 ),
                 Datatype(
                     "INT",
@@ -245,6 +278,9 @@ mod tests {
                 ),
                 Datatype(
                     "Test",
+                ),
+                Datatype(
+                    "__Test_x",
                 ),
             },
             literals: StringLiterals {
@@ -298,7 +334,7 @@ mod tests {
                     VariableBlock {
                         variables: [
                             Variable {
-                                name: "__Test_x",
+                                name: "__Test_x__retain",
                                 data_type: DataTypeReference {
                                     referenced_type: "FB",
                                 },
@@ -355,11 +391,11 @@ mod tests {
                                     Variable {
                                         name: "x",
                                         data_type: DataTypeReference {
-                                            referenced_type: "FB",
+                                            referenced_type: "__Test_x",
                                         },
-                                        address: Some(
+                                        initializer: Some(
                                             Identifier {
-                                                name: "__Test_x",
+                                                name: "__Test_x__retain",
                                             },
                                         ),
                                     },
@@ -480,6 +516,25 @@ mod tests {
                         initializer: None,
                         scope: None,
                     },
+                    UserTypeDeclaration {
+                        data_type: PointerType {
+                            name: Some(
+                                "__Test_x",
+                            ),
+                            referenced_type: DataTypeReference {
+                                referenced_type: "FB",
+                            },
+                            auto_deref: Some(
+                                Alias,
+                            ),
+                            type_safe: true,
+                            is_function: false,
+                        },
+                        initializer: None,
+                        scope: Some(
+                            "Test",
+                        ),
+                    },
                 ],
                 file: File(
                     "<internal>",
@@ -508,13 +563,16 @@ mod tests {
                     "INT",
                 ),
                 Variable(
-                    "__Test_x",
+                    "__Test_x__retain",
                 ),
                 Datatype(
                     "DINT",
                 ),
                 Datatype(
                     "Test",
+                ),
+                Datatype(
+                    "__Test_x",
                 ),
             },
             literals: StringLiterals {

@@ -298,7 +298,7 @@ impl DataType {
         }
     }
 
-    pub fn should_retain(&self, index: &Index, already_visited: BTreeSet<String>) -> bool {
+    pub(crate) fn should_retain(&self, index: &Index, already_visited: BTreeSet<String>) -> bool {
         // A datatype should be retained if one of its members is retain or if it is transitively containing a retain variable
         self.get_type_information().should_retain(index, already_visited)
     }
