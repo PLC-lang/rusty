@@ -1,0 +1,11 @@
+{
+	"name" : "HeaderGeneratorProject",
+	"files" : [
+		"shape_drawer.pli"
+	],
+	"compile_type" : "Shared",
+	"output" : "prog.so",
+	"libraries" : [
+	]
+}
+

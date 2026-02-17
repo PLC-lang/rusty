@@ -1,6 +1,6 @@
 use crate::test_utils::tests::{parse, parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_ast::ast::{DataType, DataTypeDeclaration, UserTypeDeclaration, Variable};
+use plc_ast::ast::{DataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable};
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
@@ -78,6 +78,7 @@ fn simple_struct_type_can_be_parsed() {
             initializer: None,
             location: SourceLocation::internal(),
             scope: None,
+            linkage: LinkageType::Internal,
         }
     );
     assert_eq!(ast_string, expected_ast);
@@ -199,6 +200,7 @@ fn type_alias_can_be_parsed() {
             initializer: None,
             location: SourceLocation::internal(),
             scope: None,
+            linkage: LinkageType::Internal,
         }
     );
 

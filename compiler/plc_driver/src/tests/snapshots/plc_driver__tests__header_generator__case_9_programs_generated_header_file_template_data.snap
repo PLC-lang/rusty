@@ -1,0 +1,93 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [
+        {
+          "name": "prog_type",
+          "variables": [
+            {
+              "data_type": "ComplexEnumType",
+              "name": "enumVarOne",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "ComplexEnumType",
+              "name": "enumVarTwo",
+              "variable_type": "Default"
+            }
+          ],
+          "data_type": null
+        }
+      ],
+      "enums": [
+        {
+          "name": "ComplexEnumType",
+          "variables": [
+            {
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_orange",
+              "variable_type": {
+                "Declaration": 10
+              }
+            },
+            {
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_yellow",
+              "variable_type": {
+                "Declaration": 20
+              }
+            },
+            {
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_purple",
+              "variable_type": {
+                "Declaration": 30
+              }
+            }
+          ],
+          "data_type": "int32_t"
+        }
+      ]
+    },
+    "global_variables": [
+      {
+        "data_type": "prog_type",
+        "name": "prog_instance",
+        "variable_type": "Default"
+      }
+    ],
+    "functions": [
+      {
+        "return_type": "void",
+        "name": "__prog__init",
+        "parameters": [
+          {
+            "data_type": "prog_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "prog",
+        "parameters": [
+          {
+            "data_type": "prog_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      }
+    ]
+  },
+  "directory": "",
+  "path": "programs.h",
+  "file_name": "PROGRAMS",
+  "formatted_path": "PROGRAMS_H_"
+}

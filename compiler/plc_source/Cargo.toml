@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 encoding_rs.workspace = true
 encoding_rs_io.workspace = true
+serde_json.workspace = true
+serde.workspace = true
 
 [dev-dependencies]
 insta = "1.31.0"

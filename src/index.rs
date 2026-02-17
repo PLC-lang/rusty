@@ -12,6 +12,7 @@ use plc_ast::ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     builtins::{self, BuiltIn},
@@ -41,7 +42,8 @@ pub type FxIndexSet<K> = indexmap::IndexSet<K, BuildHasherDefault<FxHasher>>;
 
 /// A label represents a possible jump point in the source.
 /// It can be referenced by jump elements in the same unit
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct Label {
     pub id: AstId,
     pub name: String,
@@ -58,7 +60,8 @@ impl From<&AstNode> for Label {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct VariableIndexEntry {
     /// the name of this variable (e.g. 'x' for 'PLC_PRG.x')
     name: String,
@@ -293,7 +296,8 @@ impl VariableIndexEntry {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct HardwareBinding {
     /// Specifies if the binding is an In/Out or Memory binding
     pub direction: HardwareAccessType,
@@ -343,7 +347,7 @@ pub struct MemberInfo<'b> {
     varargs: Option<VarArgs>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ArgumentType {
     ByVal(VariableType),
     ByRef(VariableType),
@@ -370,7 +374,7 @@ impl ArgumentType {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum VariableType {
     Local, // functions have no locals; others: VAR-block
     Temp,  // for functions: VAR & VAR_TEMP; others: VAR_TEMP
@@ -405,7 +409,7 @@ impl std::fmt::Display for VariableType {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum ImplementationType {
     Program,
     Function,
@@ -417,7 +421,8 @@ pub enum ImplementationType {
     ProjectInit,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct ImplementationIndexEntry {
     pub(crate) call_name: String,
     pub(crate) type_name: String,
@@ -516,7 +521,8 @@ impl ImplementationType {
     }
 }
 
-#[derive(Eq, PartialEq, Hash)]
+#[derive(Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct InterfaceIndexEntry {
     /// The interface identifier, consisting of its name and name-location
     pub ident: Identifier,
@@ -650,7 +656,8 @@ impl From<&Interface> for InterfaceIndexEntry {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub enum PouIndexEntry {
     Program {
         name: String,
@@ -1146,7 +1153,8 @@ impl PouIndexEntry {
 /// the TypeIndex carries all types.
 /// it is extracted into its seaprate struct so it can be
 /// internally borrowed individually from the other maps
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct TypeIndex {
     /// all types (structs, enums, type, POUs, etc.)
     types: SymbolMap<String, DataType>,
@@ -1228,7 +1236,8 @@ impl TypeIndex {
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct Index {
     /// All global variables
     global_variables: SymbolMap<String, VariableIndexEntry>,
@@ -1754,6 +1763,33 @@ impl Index {
 
     pub fn find_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
         self.get_pou_members(pou_name).iter().find(|item| item.location_in_parent == index)
+    }
+
+    /// Computes the struct GEP index for a member variable.
+    /// VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the POU struct
+    /// (they are stack-allocated or reference external storage), so they are excluded
+    /// when computing the index.
+    /// Returns None if the variable is not part of the struct (temp/external/return).
+    pub fn get_struct_member_index(&self, container_name: &str, variable_name: &str) -> Option<u32> {
+        let members = self.get_pou_members(container_name);
+        let mut index: u32 = 0;
+
+        for member in members.iter() {
+            if member.get_name().eq_ignore_ascii_case(variable_name) {
+                // VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the struct
+                if member.is_temp() || member.is_var_external() || member.is_return() {
+                    return None;
+                } else {
+                    return Some(index);
+                }
+            }
+            // Only count members that are part of the struct
+            if !member.is_temp() && !member.is_var_external() && !member.is_return() {
+                index += 1;
+            }
+        }
+
+        None
     }
 
     /// returns the effective DataType of the type with the given name if it exists

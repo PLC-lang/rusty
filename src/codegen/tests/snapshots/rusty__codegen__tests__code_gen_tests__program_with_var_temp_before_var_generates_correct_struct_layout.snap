@@ -1,0 +1,31 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+expression: res
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%prg = type { i32, i32 }
+
+@prg_instance = global %prg zeroinitializer
+
+define void @prg(ptr %0) {
+entry:
+  %t1 = alloca i32, align 4
+  %t2 = alloca i32, align 4
+  %t3 = alloca i32, align 4
+  %v1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %v2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  store i32 0, ptr %t1, align 4
+  store i32 0, ptr %t2, align 4
+  store i32 0, ptr %t3, align 4
+  %load_t1 = load i32, ptr %t1, align 4
+  %load_t2 = load i32, ptr %t2, align 4
+  %tmpVar = add i32 %load_t1, %load_t2
+  store i32 %tmpVar, ptr %v1, align 4
+  %load_t3 = load i32, ptr %t3, align 4
+  store i32 %load_t3, ptr %v2, align 4
+  ret void
+}

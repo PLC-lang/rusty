@@ -1,0 +1,59 @@
+TYPE CoordinateSet : ARRAY[0..3] OF ARRAY[0..2] OF INT;
+END_TYPE
+
+TYPE MultiDemCoordinateSet : ARRAY[0..3, 0..2] OF INT;
+END_TYPE
+
+TYPE PartialEnumType : (
+        A := 2,
+        B := 0,
+        C,
+        D := 1000,
+        E
+    );
+END_TYPE
+
+FUNCTION PrintNumber
+VAR_INPUT
+    valueToPrint: INT;
+END_VAR
+END_FUNCTION
+
+FUNCTION PrintAllEnumValues
+END_FUNCTION
+
+FUNCTION PrintCoordinateSet
+VAR_INPUT
+    coordinateSet: CoordinateSet;
+END_VAR
+END_FUNCTION
+
+FUNCTION PrintMultiDemCoordinateSet
+VAR_INPUT
+    coordinateSet: MultiDemCoordinateSet;
+END_VAR
+END_FUNCTION
+
+FUNCTION AddInt : INT
+VAR_INPUT
+    a : INT;
+    b : INT;
+END_VAR
+VAR_OUTPUT
+    result : INT;
+END_VAR
+END_FUNCTION
+
+FUNCTION_BLOCK AddInt_FB
+VAR_INPUT
+    a : INT;
+    b : INT;
+END_VAR
+VAR_OUTPUT
+    result : INT;
+END_VAR
+
+    METHOD FB_INIT
+    END_METHOD
+
+END_FUNCTION_BLOCK
