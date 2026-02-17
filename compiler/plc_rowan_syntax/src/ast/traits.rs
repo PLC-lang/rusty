@@ -4,10 +4,7 @@
 use either::Either;
 
 use crate::{
-    SyntaxElement, SyntaxNode, SyntaxToken, T,
-    ast::{self, AstChildren, AstNode, AstToken, support},
-    match_ast,
-    syntax_node::SyntaxElementChildren,
+    ast::{self, AstNode, support},
 };
 
 pub trait HasName: AstNode {
@@ -23,7 +20,7 @@ pub trait HasName: AstNode {
 // }
 
 pub trait HasBody: AstNode {
-    fn body(&self) -> Option<ast::BlockExpr> {
+    fn body(&self) -> Option<ast::Body> {
         support::child(self.syntax())
     }
 
@@ -32,11 +29,11 @@ pub trait HasBody: AstNode {
     // }
 }
 
-pub trait HasArgList: AstNode {
-    fn arg_list(&self) -> Option<ast::ArgList> {
-        support::child(self.syntax())
-    }
-}
+// pub trait HasArgList: AstNode {
+//     fn arg_list(&self) -> Option<ast::ArgList> {
+//         support::child(self.syntax())
+//     }
+// }
 
 // pub trait HasModuleItem: AstNode {
 //     fn items(&self) -> AstChildren<ast::Item> {

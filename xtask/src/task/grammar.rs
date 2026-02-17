@@ -840,7 +840,8 @@ fn clean_token_name(name: &str) -> String {
 fn lower(grammar: &Grammar) -> AstSrc {
     let mut res = AstSrc {
         tokens:
-            "Whitespace Comment String ByteString CString IntNumber FloatNumber Char Byte Ident"
+            // "Whitespace Comment String ByteString CString IntNumber FloatNumber Char Byte Ident"
+            "WString String IntNumber FloatNumber Char Ident"
                 .split_ascii_whitespace()
                 .map(|it| it.to_owned())
                 .collect::<Vec<_>>(),

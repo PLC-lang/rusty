@@ -189,7 +189,7 @@ impl Builder<'_, '_> {
     }
 
     fn do_token(&mut self, kind: SyntaxKind, n_tokens: usize) {
-        let text = &self.lexed.range_text(self.pos..self.pos + n_tokens);
+        let text = &self.lexed.range_text(self.pos..self.pos);
         self.pos += n_tokens;
         (self.sink)(StrStep::Token { kind, text });
     }

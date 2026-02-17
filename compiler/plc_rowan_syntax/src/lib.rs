@@ -138,3 +138,57 @@ impl CompilationUnit {
         Parse::new(green, errors)
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+
+fn print(indent: usize, element: &SyntaxNode) {
+    let mut indent = 0;
+    for event in element.preorder_with_tokens() {
+        match event {
+            WalkEvent::Enter(node) => {
+                let text = match &node {
+                    NodeOrToken::Node(it) => it.text().to_string(),
+                    NodeOrToken::Token(it) => it.text().to_owned(),
+                };
+                println!("{:indent$}{:?} {:?}", " ", text, node.kind(), indent = indent);
+                indent += 2;
+            }
+            WalkEvent::Leave(_) => indent -= 2,
+        }
+    }
+}
+
+    use super::*;
+    pub use crate::ast::traits::*;
+
+    #[test]
+    fn parse_roundtrip() {
+
+        let text = "PROGRAM PRG
+            VAR 
+                x : INT; 
+                xx : BOOL;
+            END_VAR
+            VAR_INPUT y : BOOL; END_VAR
+        
+        END_PROGRAM";
+        let cu = CompilationUnit::parse(text).ok().unwrap();
+        print(0, cu.syntax());
+
+        let pou = cu.pous().next().unwrap();
+        assert_eq!(pou.name().unwrap().ident_token().unwrap().text(), "PRG");
+
+        let blocks = pou.var_declaration_blocks().unwrap().var_declaration_blocks().collect::<Vec<_>>();
+        let vb1 = &blocks[0];
+        let declarations = vb1.var_declarations().collect::<Vec<_>>(); 
+       
+        let x_node = declarations[0].identifier_list().unwrap().names().nth(0).unwrap().ident_token().unwrap();
+        let x = x_node.text();
+        assert_eq!(x, "x");
+        let xx_node = declarations[1].identifier_list().unwrap().names().nth(1).unwrap().ident_token().unwrap();
+        let xx = xx_node.text();
+        assert_eq!(xx, "xx");
+    }
+}

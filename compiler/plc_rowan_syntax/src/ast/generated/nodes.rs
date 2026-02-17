@@ -37,7 +37,7 @@ pub struct ConditionThenBlock {
 }
 impl ConditionThenBlock {
     #[inline]
-    pub fn thenBranch(&self) -> Option<Expression> { support::child(&self.syntax) }
+    pub fn thenBranch(&self) -> Option<Body> { support::child(&self.syntax) }
     #[inline]
     pub fn THEN_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![THEN]) }
 }
@@ -73,7 +73,7 @@ pub struct IdentifierList {
 }
 impl IdentifierList {
     #[inline]
-    pub fn ident_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![ident]) }
+    pub fn names(&self) -> AstChildren<Name> { support::children(&self.syntax) }
 }
 pub struct IfStatement {
     pub(crate) syntax: SyntaxNode,

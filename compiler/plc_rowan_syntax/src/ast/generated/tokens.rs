@@ -6,108 +6,6 @@ use crate::{
     SyntaxToken,
 };
 use std::{fmt, hash};
-pub struct Byte {
-    pub(crate) syntax: SyntaxToken,
-}
-impl std::fmt::Display for Byte {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.syntax, f)
-    }
-}
-impl AstToken for Byte {
-    fn can_cast(kind: SyntaxKind) -> bool { kind == BYTE }
-    fn cast(syntax: SyntaxToken) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxToken { &self.syntax }
-}
-impl fmt::Debug for Byte {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Byte").field("syntax", &self.syntax).finish()
-    }
-}
-impl Clone for Byte {
-    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
-}
-impl hash::Hash for Byte {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
-}
-impl Eq for Byte {}
-impl PartialEq for Byte {
-    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
-}
-pub struct ByteString {
-    pub(crate) syntax: SyntaxToken,
-}
-impl std::fmt::Display for ByteString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.syntax, f)
-    }
-}
-impl AstToken for ByteString {
-    fn can_cast(kind: SyntaxKind) -> bool { kind == BYTE_STRING }
-    fn cast(syntax: SyntaxToken) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxToken { &self.syntax }
-}
-impl fmt::Debug for ByteString {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ByteString").field("syntax", &self.syntax).finish()
-    }
-}
-impl Clone for ByteString {
-    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
-}
-impl hash::Hash for ByteString {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
-}
-impl Eq for ByteString {}
-impl PartialEq for ByteString {
-    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
-}
-pub struct CString {
-    pub(crate) syntax: SyntaxToken,
-}
-impl std::fmt::Display for CString {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.syntax, f)
-    }
-}
-impl AstToken for CString {
-    fn can_cast(kind: SyntaxKind) -> bool { kind == C_STRING }
-    fn cast(syntax: SyntaxToken) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxToken { &self.syntax }
-}
-impl fmt::Debug for CString {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("CString").field("syntax", &self.syntax).finish()
-    }
-}
-impl Clone for CString {
-    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
-}
-impl hash::Hash for CString {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
-}
-impl Eq for CString {}
-impl PartialEq for CString {
-    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
-}
 pub struct Char {
     pub(crate) syntax: SyntaxToken,
 }
@@ -140,40 +38,6 @@ impl hash::Hash for Char {
 }
 impl Eq for Char {}
 impl PartialEq for Char {
-    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
-}
-pub struct Comment {
-    pub(crate) syntax: SyntaxToken,
-}
-impl std::fmt::Display for Comment {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.syntax, f)
-    }
-}
-impl AstToken for Comment {
-    fn can_cast(kind: SyntaxKind) -> bool { kind == COMMENT }
-    fn cast(syntax: SyntaxToken) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    fn syntax(&self) -> &SyntaxToken { &self.syntax }
-}
-impl fmt::Debug for Comment {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Comment").field("syntax", &self.syntax).finish()
-    }
-}
-impl Clone for Comment {
-    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
-}
-impl hash::Hash for Comment {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
-}
-impl Eq for Comment {}
-impl PartialEq for Comment {
     fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
 }
 pub struct FloatNumber {
@@ -312,16 +176,16 @@ impl Eq for String {}
 impl PartialEq for String {
     fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
 }
-pub struct Whitespace {
+pub struct WString {
     pub(crate) syntax: SyntaxToken,
 }
-impl std::fmt::Display for Whitespace {
+impl std::fmt::Display for WString {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(&self.syntax, f)
     }
 }
-impl AstToken for Whitespace {
-    fn can_cast(kind: SyntaxKind) -> bool { kind == WHITESPACE }
+impl AstToken for WString {
+    fn can_cast(kind: SyntaxKind) -> bool { kind == W_STRING }
     fn cast(syntax: SyntaxToken) -> Option<Self> {
         if Self::can_cast(syntax.kind()) {
             Some(Self { syntax })
@@ -331,18 +195,18 @@ impl AstToken for Whitespace {
     }
     fn syntax(&self) -> &SyntaxToken { &self.syntax }
 }
-impl fmt::Debug for Whitespace {
+impl fmt::Debug for WString {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Whitespace").field("syntax", &self.syntax).finish()
+        f.debug_struct("WString").field("syntax", &self.syntax).finish()
     }
 }
-impl Clone for Whitespace {
+impl Clone for WString {
     fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
 }
-impl hash::Hash for Whitespace {
+impl hash::Hash for WString {
     fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
 }
-impl Eq for Whitespace {}
-impl PartialEq for Whitespace {
+impl Eq for WString {}
+impl PartialEq for WString {
     fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
 }

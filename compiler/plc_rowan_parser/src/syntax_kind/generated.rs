@@ -78,9 +78,12 @@ pub enum SyntaxKind {
     NON_RETAIN_KW,
     RETAIN_KW,
     BOOL_LITERAL,
+    CHAR,
+    FLOAT_NUMBER,
     INT_NUMBER,
-    REAL_NUMBER,
+    STRING,
     STRING_LITERAL,
+    W_STRING,
     COMMENT,
     ERROR,
     IDENT,
@@ -119,9 +122,12 @@ impl SyntaxKind {
             | EOF
             | __LAST
             | BOOL_LITERAL
+            | CHAR
+            | FLOAT_NUMBER
             | INT_NUMBER
-            | REAL_NUMBER
+            | STRING
             | STRING_LITERAL
+            | W_STRING
             | ASSIGNMENT
             | BODY
             | COMPILATION_UNIT
@@ -334,7 +340,7 @@ impl SyntaxKind {
         )
     }
     pub fn is_literal(self) -> bool {
-        matches!(self, BOOL_LITERAL | INT_NUMBER | REAL_NUMBER | STRING_LITERAL)
+        matches!(self, BOOL_LITERAL | CHAR | FLOAT_NUMBER | INT_NUMBER | STRING | STRING_LITERAL | W_STRING)
     }
     pub fn from_keyword(ident: &str) -> Option<SyntaxKind> {
         let kw = match ident {
