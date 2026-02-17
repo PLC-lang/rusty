@@ -1,5 +1,5 @@
 use plc_ast::{
-    ast::{Assignment, AstFactory, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration},
+    ast::{Allocation, AstFactory, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
@@ -23,13 +23,36 @@ pub struct InterfaceDispatchLowerer<'a> {
     /// Do we need to generate the `__FATPOINTER` struct definition?
     needs_fatpointer_definition: bool,
 
-    /// Are we in a call statement?
-    call_guard: bool,
+    /// Are we in a call statement and if so in how many depths?
+    call_depth: usize,
+
+    /// Are we in an assignment and if so what is its left side?
+    assignment_ctx: Option<Box<AstNode>>,
+
+    /// Replacement statements for the current assignment (filled by `visit_reference_expr`).
+    assignment_preamble: Vec<AstNode>,
+
+    /// Preamble statements for the enclosing call (filled by `visit_reference_expr`,
+    /// drained by `visit_call_statement`).
+    call_preamble: Vec<AstNode>,
+
+    /// Monotonic counter for generating unique alloca names.
+    alloca_counter: u32,
 }
 
 impl<'a> InterfaceDispatchLowerer<'a> {
     pub fn new(ids: IdProvider, index: &'a Index, annotations: &'a AnnotationMapImpl) -> Self {
-        Self { ids, index, annotations, needs_fatpointer_definition: false, call_guard: false }
+        Self {
+            ids,
+            index,
+            annotations,
+            needs_fatpointer_definition: false,
+            call_depth: 0,
+            assignment_ctx: None,
+            assignment_preamble: Vec::new(),
+            call_preamble: Vec::new(),
+            alloca_counter: 0,
+        }
     }
 
     pub fn lower(&mut self, units: &mut [CompilationUnit]) {
@@ -40,6 +63,13 @@ impl<'a> InterfaceDispatchLowerer<'a> {
         if self.needs_fatpointer_definition {
             units[0].user_types.push(helper::create_fat_pointer_struct());
         }
+    }
+
+    /// Returns a unique name for a temporary fat pointer alloca (e.g. `__fatpointer_0`).
+    fn next_fatpointer_alloca_name(&mut self) -> String {
+        let n = self.alloca_counter;
+        self.alloca_counter += 1;
+        format!("__fatpointer_{n}")
     }
 }
 
@@ -56,87 +86,151 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         data_type_declaration.walk(self);
     }
 
-    /// Lowers concrete POU → interface assignments into fat pointer field assignments.
-    ///
-    /// `reference := instance` becomes:
-    /// - `reference.data  := ADR(instance)`
-    /// - `reference.table := ADR(__itable_<interface>_<POU>_instance)`
-    ///
-    /// Both are packed into a single `ExpressionList` node so we can expand one statement into
-    /// two without needing access to the surrounding statement list.
-    fn visit_assignment(&mut self, node: &mut plc_ast::ast::AstNode) {
-        // Named call arguments are also represented as assignments — skip them here,
-        // they are handled separately in call argument lowering.
-        if self.call_guard {
+    fn visit_reference_expr(&mut self, node: &mut plc_ast::ast::AstNode) {
+        let Some(ty) = self.annotations.get_type(node, self.index) else { return };
+        let Some(ty_hint) = self.annotations.get_type_hint(node, self.index) else { return };
+
+        if ty.is_interface() || !ty_hint.is_interface() {
             return;
         }
 
-        let AstStatement::Assignment(Assignment { left, right }) = &node.stmt else { unreachable!() };
+        // Call argument: `consumer(instance)` where `instance` is a concrete POU
+        // and the parameter expects an interface type.
+        if self.call_depth > 0 {
+            let interface_name = ty_hint.get_name();
+            let pou_name = ty.get_name();
+            let tmp_name = self.next_fatpointer_alloca_name();
 
-        // Only transform when the LHS is an interface type (per pre-lowering annotations)
-        let Some(lhs_type) = self.annotations.get_type(left, self.index) else { return };
-        if !lhs_type.is_interface() {
-            return;
-        }
-
-        // Interface → interface assignment is out of scope
-        let Some(rhs_type) = self.annotations.get_type(right, self.index) else { return };
-        if rhs_type.is_interface() {
-            return;
-        }
-
-        let interface_name = lhs_type.get_name();
-        let pou_name = rhs_type.get_name();
-        let itable_instance_name = format!("__itable_{interface_name}_{pou_name}_instance");
-
-        // Clone left/right before replacing the node
-        let left = left.as_ref().clone();
-        let right = right.as_ref().clone();
-
-        // reference.data := ADR(instance)
-        let assign_data = helper::create_fat_pointer_field_assignment(
-            &mut self.ids,
-            &left,
-            FATPOINTER_DATA_FIELD_NAME,
-            &right,
-        );
-
-        // reference.table := ADR(__itable_<interface>_<POU>_instance)
-        let itable_ref = AstFactory::create_member_reference(
-            AstFactory::create_identifier(
-                itable_instance_name,
-                SourceLocation::internal(),
+            // Reference node for the temporary fat pointer
+            let tmp_ref = AstFactory::create_member_reference(
+                AstFactory::create_identifier(&tmp_name, SourceLocation::internal(), self.ids.next_id()),
+                None,
                 self.ids.next_id(),
-            ),
-            None,
-            self.ids.next_id(),
-        );
-        let assign_table = helper::create_fat_pointer_field_assignment(
-            &mut self.ids,
-            &left,
-            FATPOINTER_TABLE_FIELD_NAME,
-            &itable_ref,
-        );
+            );
 
-        // TODO(vosa): Mention why an expression list
-        node.stmt = AstStatement::ExpressionList(vec![assign_data, assign_table]);
+            // alloca __fatpointer_N : __FATPOINTER
+            let alloca = AstNode {
+                stmt: AstStatement::AllocationStatement(Allocation {
+                    name: tmp_name.clone(),
+                    reference_type: FATPOINTER_TYPE_NAME.to_string(),
+                }),
+                id: self.ids.next_id(),
+                location: SourceLocation::internal(),
+                metadata: None,
+            };
+            self.call_preamble.push(alloca);
+
+            // __fatpointer_N.data := ADR(node)
+            let assign_data = helper::create_fat_pointer_field_assignment(
+                &mut self.ids,
+                &tmp_ref,
+                FATPOINTER_DATA_FIELD_NAME,
+                node,
+            );
+            self.call_preamble.push(assign_data);
+
+            // __fatpointer_N.table := ADR(__itable_<interface>_<pou>_instance)
+            let itable_ref = AstFactory::create_member_reference(
+                AstFactory::create_identifier(
+                    &format!("__itable_{interface_name}_{pou_name}_instance"),
+                    SourceLocation::internal(),
+                    self.ids.next_id(),
+                ),
+                None,
+                self.ids.next_id(),
+            );
+            let assign_table = helper::create_fat_pointer_field_assignment(
+                &mut self.ids,
+                &tmp_ref,
+                FATPOINTER_TABLE_FIELD_NAME,
+                &itable_ref,
+            );
+            self.call_preamble.push(assign_table);
+
+            // Replace the argument with a reference to __fatpointer_N
+            *node = AstFactory::create_member_reference(
+                AstFactory::create_identifier(&tmp_name, SourceLocation::internal(), self.ids.next_id()),
+                None,
+                self.ids.next_id(),
+            );
+
+            return;
+        }
+
+        // Boring assignment, something like `left := right`
+        if self.call_depth == 0 {
+            if let Some(left) = self.assignment_ctx.take() {
+                let interface_name = ty_hint.get_name();
+                let pou_name = ty.get_name();
+
+                // left.data := ADR(right)
+                let assign_data = helper::create_fat_pointer_field_assignment(
+                    &mut self.ids,
+                    &left,
+                    FATPOINTER_DATA_FIELD_NAME,
+                    node,
+                );
+
+                // left.table := ADR(__itable_<interface>_<pou>_instance)
+                let itable_ref = AstFactory::create_member_reference(
+                    AstFactory::create_identifier(
+                        &format!("__itable_{interface_name}_{pou_name}_instance"),
+                        SourceLocation::internal(),
+                        self.ids.next_id(),
+                    ),
+                    None,
+                    self.ids.next_id(),
+                );
+                let assign_table = helper::create_fat_pointer_field_assignment(
+                    &mut self.ids,
+                    &left,
+                    FATPOINTER_TABLE_FIELD_NAME,
+                    &itable_ref,
+                );
+
+                self.assignment_preamble = vec![assign_data, assign_table];
+
+                return;
+            }
+        }
     }
 
-    fn visit_call_statement(&mut self, node: &mut plc_ast::ast::AstNode) {
-        self.call_guard = true;
+    fn visit_assignment(&mut self, node: &mut plc_ast::ast::AstNode) {
+        let AstStatement::Assignment(assignment) = &mut node.stmt else { unreachable!() };
 
-        let AstStatement::CallStatement(CallStatement { ref mut operator, ref mut parameters }) =
-            &mut node.stmt
-        else {
-            unreachable!();
-        };
+        assignment.left.walk(self);
 
-        operator.walk(self);
-        if let Some(ref mut parameters) = parameters {
-            parameters.walk(self);
+        // TODO: This is pretty expensive, given we clone for each
+        self.assignment_ctx = Some(assignment.left.clone());
+        assignment.right.walk(self);
+
+        if !self.assignment_preamble.is_empty() {
+            node.stmt = AstStatement::ExpressionList(std::mem::take(&mut self.assignment_preamble));
         }
+    }
 
-        self.call_guard = false;
+    fn visit_call_statement(&mut self, node: &mut AstNode) {
+        let AstStatement::CallStatement(call) = &mut node.stmt else { unreachable!() };
+
+        self.call_depth += 1;
+        call.walk(self);
+        self.call_depth -= 1; // XXX: saturating_sub might be safer, in theory we should not need it 🤞
+
+        // Wrap preamble + original call into an ExpressionList
+        if self.call_depth == 0 && !self.call_preamble.is_empty() {
+            let mut statements = std::mem::take(&mut self.call_preamble);
+            let original_call = std::mem::replace(
+                node,
+                AstNode {
+                    stmt: AstStatement::EmptyStatement(plc_ast::ast::EmptyStatement {}),
+                    id: self.ids.next_id(),
+                    location: SourceLocation::internal(),
+                    metadata: None,
+                },
+            );
+            statements.push(original_call);
+            node.stmt = AstStatement::ExpressionList(statements);
+        }
     }
 }
 
@@ -161,37 +255,6 @@ mod helper {
             referenced_type: String::from(FATPOINTER_TYPE_NAME),
             location: type_decl.get_location(),
         };
-    }
-
-    /// Creates `<base>.<field> := ADR(<target>)`.
-    pub fn create_fat_pointer_field_assignment(
-        ids: &mut IdProvider,
-        base: &AstNode,
-        field: &str,
-        target: &AstNode,
-    ) -> AstNode {
-        let location = SourceLocation::internal();
-
-        // LHS: <base>.<field>
-        let lhs = AstFactory::create_member_reference(
-            AstFactory::create_identifier(field, &location, ids.next_id()),
-            Some(base.clone()),
-            ids.next_id(),
-        );
-
-        // RHS: ADR(<target>)
-        let rhs = AstFactory::create_call_statement(
-            AstFactory::create_member_reference(
-                AstFactory::create_identifier("ADR", &location, ids.next_id()),
-                None,
-                ids.next_id(),
-            ),
-            Some(target.clone()),
-            ids.next_id(),
-            &location,
-        );
-
-        AstFactory::create_assignment(lhs, rhs, ids.next_id())
     }
 
     pub fn create_fat_pointer_struct() -> UserTypeDeclaration {
@@ -234,6 +297,37 @@ mod helper {
             scope: None,
             linkage: LinkageType::Internal,
         }
+    }
+
+    /// Creates `<base>.<field> := ADR(<target>)`.
+    pub fn create_fat_pointer_field_assignment(
+        ids: &mut IdProvider,
+        base: &AstNode,
+        field: &str,
+        target: &AstNode,
+    ) -> AstNode {
+        let location = SourceLocation::internal();
+
+        // LHS: <base>.<field>
+        let lhs = AstFactory::create_member_reference(
+            AstFactory::create_identifier(field, &location, ids.next_id()),
+            Some(base.clone()),
+            ids.next_id(),
+        );
+
+        // RHS: ADR(<target>)
+        let rhs = AstFactory::create_call_statement(
+            AstFactory::create_member_reference(
+                AstFactory::create_identifier("ADR", &location, ids.next_id()),
+                None,
+                ids.next_id(),
+            ),
+            Some(target.clone()),
+            ids.next_id(),
+            &location,
+        );
+
+        AstFactory::create_assignment(lhs, rhs, ids.next_id())
     }
 }
 
@@ -531,6 +625,11 @@ mod tests {
             END_INTERFACE
 
             FUNCTION_BLOCK FbA IMPLEMENTS IA
+                VAR
+                    localInstance: FbA;
+                    localReference: IA;
+                END_VAR
+
                 VAR_INPUT
                     in: IA;
                     instance: FbA;
@@ -546,6 +645,7 @@ mod tests {
                 END_VAR
 
                 reference := instance;
+                instance.localReference := instance.localInstance;
             END_FUNCTION
         "#;
 
@@ -555,15 +655,52 @@ mod tests {
             "__init_fba(instance)",
             "__user_init_FbA(instance)",
             "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
+            "instance.localReference.data := ADR(instance.localInstance), instance.localReference.table := ADR(__itable_IA_FbA_instance)",
             "// Statements in FbA",
             "in.data := ADR(instance), in.table := ADR(__itable_IA_FbA_instance)",
         ]
         "#)
     }
 
-    // TODO: Expand with a named-argument variant once named arg lowering is implemented.
     #[test]
-    fn call_args_single_interface_param() {
+    fn array_assignments_expand() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instanceA: FbA;
+                    instanceB: FbB;
+                    references: ARRAY[1..2] OF IA;
+                END_VAR
+
+                references[1] := instanceA;
+                references[2] := instanceB;
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instanceA)",
+            "__init_fbb(instanceB)",
+            "__user_init_FbA(instanceA)",
+            "__user_init_FbB(instanceB)",
+            "references[1].data := ADR(instanceA), references[1].table := ADR(__itable_IA_FbA_instance)",
+            "references[2].data := ADR(instanceB), references[2].table := ADR(__itable_IA_FbB_instance)",
+        ]
+        "#)
+    }
+
+    #[test]
+    fn call_argument_is_expanded() {
         let source = r#"
             INTERFACE IA
             END_INTERFACE
@@ -573,7 +710,7 @@ mod tests {
 
             FUNCTION consumer
                 VAR_INPUT
-                    ref: IA;
+                    in: IA;
                 END_VAR
             END_FUNCTION
 
@@ -581,7 +718,9 @@ mod tests {
                 VAR
                     instance: FbA;
                 END_VAR
+
                 consumer(instance);
+                consumer(in := instance);
             END_FUNCTION
         "#;
 
@@ -590,25 +729,78 @@ mod tests {
             "// Statements in main",
             "__init_fba(instance)",
             "__user_init_FbA(instance)",
-            "consumer(instance)",
+            "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(instance), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), consumer(__fatpointer_0)",
+            "alloca __fatpointer_1: __FATPOINTER, __fatpointer_1.data := ADR(instance), __fatpointer_1.table := ADR(__itable_IA_FbA_instance), consumer(in := __fatpointer_1)",
         ]
-        "#)
+        "#);
     }
 
-    // TODO: Expand with a named-argument variant once named arg lowering is implemented.
     #[test]
-    fn call_args_mixed_non_interface_and_interface() {
+    fn call_arguments_are_expanded() {
         let source = r#"
             INTERFACE IA
             END_INTERFACE
 
             FUNCTION_BLOCK FbA IMPLEMENTS IA
             END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbC IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    inOne, inTwo, inThree: IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instanceA: FbA;
+                    instanceB: FbB;
+                    instanceC: FbC;
+                END_VAR
+
+                consumer(instanceA, instanceB, instanceC);
+                consumer(inOne := instanceA, inTwo := instanceB, inThree := instanceC);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instanceA)",
+            "__init_fbb(instanceB)",
+            "__init_fbc(instanceC)",
+            "__user_init_FbA(instanceA)",
+            "__user_init_FbB(instanceB)",
+            "__user_init_FbC(instanceC)",
+            "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(instanceA), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), alloca __fatpointer_1: __FATPOINTER, __fatpointer_1.data := ADR(instanceB), __fatpointer_1.table := ADR(__itable_IA_FbB_instance), alloca __fatpointer_2: __FATPOINTER, __fatpointer_2.data := ADR(instanceC), __fatpointer_2.table := ADR(__itable_IA_FbC_instance), consumer(__fatpointer_0, __fatpointer_1, __fatpointer_2)",
+            "alloca __fatpointer_3: __FATPOINTER, __fatpointer_3.data := ADR(instanceA), __fatpointer_3.table := ADR(__itable_IA_FbA_instance), alloca __fatpointer_4: __FATPOINTER, __fatpointer_4.data := ADR(instanceB), __fatpointer_4.table := ADR(__itable_IA_FbB_instance), alloca __fatpointer_5: __FATPOINTER, __fatpointer_5.data := ADR(instanceC), __fatpointer_5.table := ADR(__itable_IA_FbC_instance), consumer(inOne := __fatpointer_3, inTwo := __fatpointer_4, inThree := __fatpointer_5)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn nesting_single_depth_wrapping() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION producer : DINT
+                VAR_INPUT
+                    ref: IA;
+                END_VAR
+            END_FUNCTION
 
             FUNCTION consumer
                 VAR_INPUT
                     value: DINT;
-                    ref: IA;
                 END_VAR
             END_FUNCTION
 
@@ -616,7 +808,8 @@ mod tests {
                 VAR
                     instance: FbA;
                 END_VAR
-                consumer(5, instance);
+
+                consumer(producer(instance));
             END_FUNCTION
         "#;
 
@@ -625,14 +818,13 @@ mod tests {
             "// Statements in main",
             "__init_fba(instance)",
             "__user_init_FbA(instance)",
-            "consumer(5, instance)",
+            "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(instance), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), consumer(producer(__fatpointer_0))",
         ]
-        "#)
+        "#);
     }
 
-    // TODO: Expand with a named-argument variant once named arg lowering is implemented.
     #[test]
-    fn call_args_interface_passed_directly() {
+    fn nesting_multi_depth_wrapping_with_mixed_args() {
         let source = r#"
             INTERFACE IA
             END_INTERFACE
@@ -640,44 +832,79 @@ mod tests {
             FUNCTION_BLOCK FbA IMPLEMENTS IA
             END_FUNCTION_BLOCK
 
-            FUNCTION consumer
+            FUNCTION inner : DINT
                 VAR_INPUT
                     ref: IA;
                 END_VAR
             END_FUNCTION
 
+            FUNCTION middle : DINT
+                VAR_INPUT
+                    a: DINT;
+                    b: IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION outer
+                VAR_INPUT
+                    a: DINT;
+                    b: IA;
+                    c: DINT;
+                END_VAR
+            END_FUNCTION
+
             FUNCTION main
                 VAR
-                    instance: FbA;
-                    reference: IA;
+                    x: FbA;
+                    y: FbA;
+                    z: FbA;
                 END_VAR
-                reference := instance;
-                consumer(reference);
+
+                outer(middle(inner(x), y), z, 42);
             END_FUNCTION
         "#;
 
         insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
-            "__init_fba(instance)",
-            "__user_init_FbA(instance)",
-            "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
-            "consumer(reference)",
+            "__init_fba(x)",
+            "__init_fba(y)",
+            "__init_fba(z)",
+            "__user_init_FbA(x)",
+            "__user_init_FbA(y)",
+            "__user_init_FbA(z)",
+            "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(x), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), alloca __fatpointer_1: __FATPOINTER, __fatpointer_1.data := ADR(y), __fatpointer_1.table := ADR(__itable_IA_FbA_instance), alloca __fatpointer_2: __FATPOINTER, __fatpointer_2.data := ADR(z), __fatpointer_2.table := ADR(__itable_IA_FbA_instance), outer(middle(inner(__fatpointer_0), __fatpointer_1), __fatpointer_2, 42)",
         ]
-        "#)
+        "#);
     }
 
-    // TODO: Expand with a named-argument variant once named arg lowering is implemented.
     #[test]
-    fn call_args_multiple_interface_params() {
+    #[ignore = "TODO: Parse is unable to call result of another function"]
+    fn nesting_chained_method_calls_with_wrapping() {
         let source = r#"
             INTERFACE IA
+                METHOD transform : IA
+                    VAR_INPUT
+                        ref: IA;
+                    END_VAR
+                END_METHOD
             END_INTERFACE
 
             FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD transform : IA
+                    VAR_INPUT
+                        ref: IA;
+                    END_VAR
+                END_METHOD
             END_FUNCTION_BLOCK
 
-            FUNCTION consumer2
+            FUNCTION producer : IA
+                VAR_INPUT
+                    ref: IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION consumer
                 VAR_INPUT
                     a: IA;
                     b: IA;
@@ -686,23 +913,16 @@ mod tests {
 
             FUNCTION main
                 VAR
-                    i1: FbA;
-                    i2: FbA;
+                    x: FbA;
+                    y: FbA;
+                    z: FbA;
                 END_VAR
-                consumer2(i1, i2);
+
+                consumer(a := producer(x).transform(producer(y)), b := z);
             END_FUNCTION
         "#;
 
-        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
-        [
-            "// Statements in main",
-            "__init_fba(i1)",
-            "__init_fba(i2)",
-            "__user_init_FbA(i1)",
-            "__user_init_FbA(i2)",
-            "consumer2(i1, i2)",
-        ]
-        "#)
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#""#);
     }
 
     mod helper {

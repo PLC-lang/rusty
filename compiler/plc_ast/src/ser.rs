@@ -233,7 +233,9 @@ impl AstVisitor for AstSerializer {
 
     fn visit_label_statement(&mut self, _stmt: &LabelStatement, _node: &AstNode) {}
 
-    fn visit_allocation(&mut self, _stmt: &Allocation, _node: &AstNode) {}
+    fn visit_allocation(&mut self, stmt: &Allocation, _node: &AstNode) {
+        self.result.push_str(&format!("alloca {}: {}", stmt.name, stmt.reference_type));
+    }
 
     fn visit_super(&mut self, _stmt: &AstStatement, _node: &AstNode) {
         self.result.push_str("SUPER");
