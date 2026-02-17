@@ -110,24 +110,24 @@ jobs:
         shell: bash
         run: |
           docker buildx build . \
-            --platform linux/x86_64 \
+            --platform linux/amd64 \
             --file Dockerfile \
             --tag $IMAGE_NAME \
             --load
 
       - name: Log in to registry
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref_name == 'master' }}
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Push image
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref_name == 'master' }}
         shell: bash
         run: |
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
           # Extract version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          VERSION=$(echo "${{ github.ref_name }}"
           [ "$VERSION" == "master" ] && VERSION=latest
 
           echo IMAGE_ID=$IMAGE_ID
