@@ -31,7 +31,7 @@ Follow the Ubuntu 24.04 instructions, but omit `software-properties-common` whic
 Install the [Xcode Command Line Tools](https://developer.apple.com/downloads/) and the LLVM toolchain using [Homebrew](https://brew.sh):
 
 ```bash
-brew install llvm@21 gnu-getopt lit
+brew install llvm@21 lld gnu-getopt lit
 ```
 
 After installation, ensure the Homebrew binaries are in your PATH:
