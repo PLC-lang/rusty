@@ -280,9 +280,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(|v| self.index.get_effective_type_or_void_by_name(v.get_type_name()))
             .collect::<Vec<&DataType>>();
 
-        // If the implementation is a method, the first parameter is the instance
+        // If the implementation is a method, the first parameter is the instance.
+        // Interface methods are excluded because interfaces don't have struct types;
+        // their "self" parameter is a void pointer passed through the fat pointer.
         if let Some(class_name) = implementation.get_associated_class_name() {
-            if let Some(class_type) = self.index.find_type(class_name) {
+            if let Some(class_type) =
+                self.index.find_type(class_name).filter(|ty| !ty.is_interface())
+            {
                 parameter_types.insert(0, class_type);
             }
         } else if !implementation.get_implementation_type().is_function_method_or_init() {
@@ -374,8 +378,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             if implementation.get_implementation_type() == &ImplementationType::Method {
                 let class_name =
                     implementation.get_associated_class_name().expect("Method needs to have a class-name");
-                let _instance_members_struct_type: StructType =
-                    self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
+
+                // Interface methods don't have a corresponding struct type (interfaces are
+                // abstract), but we still need to generate a function stub with the correct
+                // signature so that indirect calls through function pointers can resolve the
+                // type.  For non-interface methods the struct lookup acts as a sanity check.
+                if self.llvm_index.get_associated_type(class_name).is_ok() {
+                    let _instance_members_struct_type: StructType =
+                        self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
+                }
+
                 parameters
                     .insert(0, self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
             }
