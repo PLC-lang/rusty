@@ -1,5 +1,7 @@
 use plc_ast::{
-    ast::{Allocation, AstFactory, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration},
+    ast::{
+        Allocation, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration,
+    },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
@@ -209,12 +211,136 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         }
     }
 
+    /// Lowers interface method calls and wraps fat-pointer preambles around call statements.
+    ///
+    /// For interface method calls (`ref.foo(args)` where `ref` is interface-typed), the call
+    /// is transformed into an indirect call through the itable:
+    ///   `ref.foo(args)` → `__itable_IA#(ref.table^).foo^(ref.data, args)`
+    ///
+    /// The transformation is applied after walking children so that nested interface calls
+    /// (e.g. `ref.foo(x := ref.bar())`) are lowered bottom-up.
     fn visit_call_statement(&mut self, node: &mut AstNode) {
-        let AstStatement::CallStatement(call) = &mut node.stmt else { unreachable!() };
+        {
+            let AstStatement::CallStatement(call) = &mut node.stmt else { unreachable!() };
 
-        self.call_depth += 1;
-        call.walk(self);
-        self.call_depth -= 1; // XXX: saturating_sub might be safer, in theory we should not need it 🤞
+            self.call_depth += 1;
+            call.walk(self);
+            self.call_depth -= 1; // XXX: saturating_sub might be safer, in theory we should not need it 🤞
+        }
+
+        // Check if this is a method call on an interface-typed variable (e.g. `ref.foo(...)`)
+        // by inspecting the operator's base annotation (`ref` in `ref.foo(...)`)
+        let interface_name = node
+            .get_call_operator()
+            .and_then(|op| op.get_base_ref_expr())
+            .and_then(|base| self.annotations.get_type(base, self.index))
+            .filter(|ty| ty.is_interface())
+            .map(|ty| ty.get_name().to_string());
+
+        // Lower: ref.foo(args) → __itable_IA#(ref.table^).foo^(ref.data, args)
+        if let Some(interface_name) = interface_name {
+            let AstStatement::CallStatement(CallStatement { operator, parameters }) = &mut node.stmt else {
+                unreachable!()
+            };
+
+            // Step 1: Prepend `base.data` as the implicit first argument
+            // ref.foo(args)  →  ref.foo(ref.data, args)
+            {
+                let base = operator.get_base_ref_expr().expect("interface call must have a base");
+                let data_ref = AstFactory::create_member_reference(
+                    AstFactory::create_identifier(
+                        FATPOINTER_DATA_FIELD_NAME,
+                        SourceLocation::internal(),
+                        self.ids.next_id(),
+                    ),
+                    Some(base.clone()),
+                    self.ids.next_id(),
+                );
+
+                match parameters {
+                    None => {
+                        parameters.replace(Box::new(data_ref));
+                    }
+
+                    Some(ref mut expr) => match &mut expr.stmt {
+                        AstStatement::ExpressionList(expressions) => {
+                            expressions.insert(0, data_ref);
+                        }
+
+                        _ => {
+                            let mut expressions = Box::new(AstFactory::create_expression_list(
+                                vec![data_ref, std::mem::take(expr)],
+                                SourceLocation::internal(),
+                                self.ids.next_id(),
+                            ));
+
+                            std::mem::swap(expr, &mut expressions);
+                        }
+                    },
+                }
+            }
+
+            // Step 2: Replace the operator base with a dereferenced `.table` access
+            // ref.foo  →  ref.table^.foo
+            {
+                let old_base = operator.get_base_ref_expr_mut().expect("interface call must have a base");
+                let mut new_base = AstFactory::create_deref_reference(
+                    AstFactory::create_member_reference(
+                        AstFactory::create_identifier(
+                            FATPOINTER_TABLE_FIELD_NAME,
+                            SourceLocation::internal(),
+                            self.ids.next_id(),
+                        ),
+                        Some(std::mem::take(old_base)),
+                        self.ids.next_id(),
+                    ),
+                    self.ids.next_id(),
+                    SourceLocation::internal(),
+                );
+
+                std::mem::swap(old_base, &mut new_base);
+            }
+
+            // Step 3: Cast the itable access to the concrete itable type
+            // ref.table^.foo  →  __itable_IA#(ref.table^).foo
+            {
+                let old_base = operator.get_base_ref_expr_mut().expect("interface call must have a base");
+                let old_base_paren = AstFactory::create_paren_expression(
+                    std::mem::take(old_base),
+                    SourceLocation::internal(),
+                    self.ids.next_id(),
+                );
+
+                let mut new_base = AstFactory::create_cast_statement(
+                    AstFactory::create_member_reference(
+                        AstFactory::create_identifier(
+                            format!("__itable_{interface_name}"),
+                            SourceLocation::internal(),
+                            self.ids.next_id(),
+                        ),
+                        None,
+                        self.ids.next_id(),
+                    ),
+                    old_base_paren,
+                    &SourceLocation::internal(),
+                    self.ids.next_id(),
+                );
+
+                std::mem::swap(old_base, &mut new_base);
+            }
+
+            // Step 4: Dereference the function pointer
+            // __itable_IA#(ref.table^).foo  →  __itable_IA#(ref.table^).foo^
+            {
+                let mut deref = AstFactory::create_deref_reference(
+                    std::mem::take(operator.as_mut()),
+                    self.ids.next_id(),
+                    SourceLocation::internal(),
+                );
+
+                std::mem::swap(operator.as_mut(), &mut deref);
+            }
+        }
 
         // Wrap preamble + original call into an ExpressionList
         if self.call_depth == 0 && !self.call_preamble.is_empty() {
@@ -874,6 +1000,216 @@ mod tests {
             "__user_init_FbA(y)",
             "__user_init_FbA(z)",
             "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(x), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), alloca __fatpointer_1: __FATPOINTER, __fatpointer_1.data := ADR(y), __fatpointer_1.table := ADR(__itable_IA_FbA_instance), alloca __fatpointer_2: __FATPOINTER, __fatpointer_2.data := ADR(z), __fatpointer_2.table := ADR(__itable_IA_FbA_instance), outer(middle(inner(__fatpointer_0), __fatpointer_1), __fatpointer_2, 42)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn interface_method_call_simple() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                    reference: IA;
+                END_VAR
+
+                reference := instance;
+                reference.foo();
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
+            "__itable_IA#(reference.table^).foo^(reference.data)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn interface_method_call_with_arguments() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                    VAR_INPUT
+                        a: DINT;
+                        b: DINT;
+                    END_VAR
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                    VAR_INPUT
+                        a: DINT;
+                        b: DINT;
+                    END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                    reference: IA;
+                END_VAR
+
+                reference := instance;
+                reference.foo(1, 2);
+                reference.foo(a := 10, b := 20);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
+            "__itable_IA#(reference.table^).foo^(reference.data, 1, 2)",
+            "__itable_IA#(reference.table^).foo^(reference.data, a := 10, b := 20)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn interface_method_call_nested() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo : DINT
+                    VAR_INPUT
+                        x: DINT;
+                    END_VAR
+                END_METHOD
+
+                METHOD bar : DINT
+                END_METHOD
+
+                METHOD baz
+                    VAR_INPUT
+                        a: DINT;
+                        b: DINT;
+                    END_VAR
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo : DINT
+                    VAR_INPUT
+                        x: DINT;
+                    END_VAR
+                END_METHOD
+
+                METHOD bar : DINT
+                END_METHOD
+
+                METHOD baz
+                    VAR_INPUT
+                        a: DINT;
+                        b: DINT;
+                    END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                    reference: IA;
+                END_VAR
+
+                reference := instance;
+                reference.baz(reference.foo(reference.bar()), 42);
+                reference.baz(a := reference.foo(x := reference.bar()), b := 42);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
+            "__itable_IA#(reference.table^).baz^(reference.data, __itable_IA#(reference.table^).foo^(reference.data, __itable_IA#(reference.table^).bar^(reference.data)), 42)",
+            "__itable_IA#(reference.table^).baz^(reference.data, a := __itable_IA#(reference.table^).foo^(reference.data, x := __itable_IA#(reference.table^).bar^(reference.data)), b := 42)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn interface_method_call_with_aggregate_return() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo : STRING
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo : STRING
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                    reference: IA;
+                    result: STRING;
+                END_VAR
+
+                reference := instance;
+                result := reference.foo();
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
+            "alloca __0: STRING, __itable_IA#(reference.table^).foo^(reference.data, __0), result := __0",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn interface_method_call_with_aggregate_return_and_interface_argument() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer : STRING
+                VAR_INPUT
+                    reference: IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                    result: STRING;
+                END_VAR
+
+                result := consumer(instance);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
         ]
         "#);
     }
