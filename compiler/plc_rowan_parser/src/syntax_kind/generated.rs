@@ -95,7 +95,6 @@ pub enum SyntaxKind {
     CONDITION_THEN_BLOCK,
     ELSE_ARM,
     ELSE_IF_ARM,
-    EXPRESSION,
     IDENTIFIER_LIST,
     IF_STATEMENT,
     LITERAL,
@@ -134,7 +133,6 @@ impl SyntaxKind {
             | CONDITION_THEN_BLOCK
             | ELSE_ARM
             | ELSE_IF_ARM
-            | EXPRESSION
             | IDENTIFIER_LIST
             | IF_STATEMENT
             | LITERAL

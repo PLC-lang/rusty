@@ -1,3 +1,4 @@
+use crate::grammar::var_decl_grammar::var_declaration;
 use crate::grammar::{name, name_ref};
 use crate::parser::Parser;
 use crate::SyntaxKind::{self, *};
@@ -68,17 +69,7 @@ fn var_declaration_block(p: &mut Parser) {
     m.complete(p, VAR_DECLARATION_BLOCK);
 }
 
-// VarDeclaration = variable:Name ':' datatype:NameRef ';'
-fn var_declaration(p: &mut Parser) {
-    let m = p.start();
-    
-    name(p);
-    p.expect(T![:]);
-    name_ref(p);
-    p.expect(T![;]);
-    
-    m.complete(p, VAR_DECLARATION);
-}
+
 
 
 

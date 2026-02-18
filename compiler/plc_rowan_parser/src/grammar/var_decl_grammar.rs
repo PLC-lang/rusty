@@ -70,11 +70,11 @@ fn expression(p: &mut Parser) {
     
     if p.at(IDENT) || p.at(INT_NUMBER) || p.at(BOOL_LITERAL) || p.at(STRING_LITERAL) {
         p.bump_any();
+        m.complete(p, LITERAL);
     } else {
         p.error("expected expression");
+        m.complete(p, ERROR);
     }
-    
-    m.complete(p, EXPRESSION);
 }
 
 #[cfg(test)]

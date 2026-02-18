@@ -12,7 +12,7 @@ CompilationUnit =
   Pou*
 
 Pou  =
-  PouType name:Name ':'? typeRef:NameRef 
+  PouType name:Name ':'? type_ref:NameRef 
   VarDeclarationBlocks
   Body  
   PouEndKeyword ';'?
@@ -33,7 +33,7 @@ VarDeclarationType =
   'XXX_VarDeclarationType'
 
 VarDeclaration =
-  IdentifierList Location? ':' typeRef:NameRef';'
+  IdentifierList Location? ':' type_ref:NameRef '=' init_value: Expression ';'
 
 Body =
  Expression*
@@ -43,7 +43,8 @@ Body =
   // CaseStatement |
   // ForStatement |
   | WhileStatement
-  Assignment
+  | Assignment
+  | Literal
   // todo: call,
 
 Assignment =
@@ -64,7 +65,7 @@ WhileStatement =
   'WHILE' condition:Expression 'DO' body:Expression 'END_WHILE'
 
 ConditionThenBlock =
-  condition:Expression 'THEN' thenBranch:Body
+  condition:Expression 'THEN' then_branch:Body
   
 
 IdentifierList =

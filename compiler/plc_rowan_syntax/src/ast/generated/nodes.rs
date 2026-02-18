@@ -37,8 +37,6 @@ pub struct ConditionThenBlock {
 }
 impl ConditionThenBlock {
     #[inline]
-    pub fn thenBranch(&self) -> Option<Body> { support::child(&self.syntax) }
-    #[inline]
     pub fn THEN_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![THEN]) }
 }
 pub struct ElseArm {
@@ -56,17 +54,6 @@ pub struct ElseIfArm {
 impl ElseIfArm {
     #[inline]
     pub fn ELSIF_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![ELSIF]) }
-}
-pub struct Expression {
-    pub(crate) syntax: SyntaxNode,
-}
-impl Expression {
-    #[inline]
-    pub fn assignment(&self) -> Option<Assignment> { support::child(&self.syntax) }
-    #[inline]
-    pub fn if_statement(&self) -> Option<IfStatement> { support::child(&self.syntax) }
-    #[inline]
-    pub fn while_statement(&self) -> Option<WhileStatement> { support::child(&self.syntax) }
 }
 pub struct IdentifierList {
     pub(crate) syntax: SyntaxNode,
@@ -127,7 +114,7 @@ impl Pou {
     #[inline]
     pub fn pou_type(&self) -> Option<PouType> { support::child(&self.syntax) }
     #[inline]
-    pub fn typeRef(&self) -> Option<NameRef> { support::child(&self.syntax) }
+    pub fn type_ref(&self) -> Option<NameRef> { support::child(&self.syntax) }
     #[inline]
     pub fn var_declaration_blocks(&self) -> Option<VarDeclarationBlocks> { support::child(&self.syntax) }
     #[inline]
@@ -156,13 +143,17 @@ impl VarDeclaration {
     #[inline]
     pub fn identifier_list(&self) -> Option<IdentifierList> { support::child(&self.syntax) }
     #[inline]
+    pub fn init_value(&self) -> Option<Expression> { support::child(&self.syntax) }
+    #[inline]
     pub fn location(&self) -> Option<Location> { support::child(&self.syntax) }
     #[inline]
-    pub fn typeRef(&self) -> Option<NameRef> { support::child(&self.syntax) }
+    pub fn type_ref(&self) -> Option<NameRef> { support::child(&self.syntax) }
     #[inline]
     pub fn colon_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![:]) }
     #[inline]
     pub fn semicolon_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![;]) }
+    #[inline]
+    pub fn eq_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![=]) }
 }
 pub struct VarDeclarationBlock {
     pub(crate) syntax: SyntaxNode,
@@ -203,6 +194,14 @@ impl WhileStatement {
     pub fn END_WHILE_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![END_WHILE]) }
     #[inline]
     pub fn WHILE_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![WHILE]) }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Expression {
+    Assignment(Assignment),
+    IfStatement(IfStatement),
+    Literal(Literal),
+    WhileStatement(WhileStatement),
 }
 pub struct AnyHasName {
     pub(crate) syntax: SyntaxNode,
@@ -425,42 +424,6 @@ impl Clone for ElseIfArm {
 impl fmt::Debug for ElseIfArm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ElseIfArm").field("syntax", &self.syntax).finish()
-    }
-}
-impl AstNode for Expression {
-    #[inline]
-    fn kind() -> SyntaxKind
-    where
-        Self: Sized,
-    {
-        EXPRESSION
-    }
-    #[inline]
-    fn can_cast(kind: SyntaxKind) -> bool { kind == EXPRESSION }
-    #[inline]
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    #[inline]
-    fn syntax(&self) -> &SyntaxNode { &self.syntax }
-}
-impl hash::Hash for Expression {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
-}
-impl Eq for Expression {}
-impl PartialEq for Expression {
-    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
-}
-impl Clone for Expression {
-    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
-}
-impl fmt::Debug for Expression {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Expression").field("syntax", &self.syntax).finish()
     }
 }
 impl AstNode for IdentifierList {
@@ -967,6 +930,48 @@ impl fmt::Debug for WhileStatement {
         f.debug_struct("WhileStatement").field("syntax", &self.syntax).finish()
     }
 }
+impl From<Assignment> for Expression {
+    #[inline]
+    fn from(node: Assignment) -> Expression { Expression::Assignment(node) }
+}
+impl From<IfStatement> for Expression {
+    #[inline]
+    fn from(node: IfStatement) -> Expression { Expression::IfStatement(node) }
+}
+impl From<Literal> for Expression {
+    #[inline]
+    fn from(node: Literal) -> Expression { Expression::Literal(node) }
+}
+impl From<WhileStatement> for Expression {
+    #[inline]
+    fn from(node: WhileStatement) -> Expression { Expression::WhileStatement(node) }
+}
+impl AstNode for Expression {
+    #[inline]
+    fn can_cast(kind: SyntaxKind) -> bool {
+        matches!(kind, ASSIGNMENT | IF_STATEMENT | LITERAL | WHILE_STATEMENT)
+    }
+    #[inline]
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        let res = match syntax.kind() {
+            ASSIGNMENT => Expression::Assignment(Assignment { syntax }),
+            IF_STATEMENT => Expression::IfStatement(IfStatement { syntax }),
+            LITERAL => Expression::Literal(Literal { syntax }),
+            WHILE_STATEMENT => Expression::WhileStatement(WhileStatement { syntax }),
+            _ => return None,
+        };
+        Some(res)
+    }
+    #[inline]
+    fn syntax(&self) -> &SyntaxNode {
+        match self {
+            Expression::Assignment(it) => &it.syntax,
+            Expression::IfStatement(it) => &it.syntax,
+            Expression::Literal(it) => &it.syntax,
+            Expression::WhileStatement(it) => &it.syntax,
+        }
+    }
+}
 impl ast::HasName for AnyHasName {}
 impl AstNode for AnyHasName {
     #[inline]
@@ -997,6 +1002,11 @@ impl From<Pou> for AnyHasName {
     #[inline]
     fn from(node: Pou) -> AnyHasName { AnyHasName { syntax: node.syntax } }
 }
+impl std::fmt::Display for Expression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for Assignment {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -1023,11 +1033,6 @@ impl std::fmt::Display for ElseArm {
     }
 }
 impl std::fmt::Display for ElseIfArm {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self.syntax(), f)
-    }
-}
-impl std::fmt::Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
