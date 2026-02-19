@@ -102,13 +102,20 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 
         assignment.left.walk(self);
 
-        // TODO: This is pretty expensive, given we clone for each
+        // Save and restore `assignment_ctx` around the walk so that nested assignments
+        // don't clobber the outer context. For example in `result := consumer(in := instance)`,
+        // the inner named-parameter assignment `in := instance` would otherwise overwrite the
+        // outer `result` context, causing `visit_call_statement` to misidentify which
+        // assignment the preamble belongs to.
+        let prev_ctx = self.assignment_ctx.take();
         self.assignment_ctx = Some(assignment.left.clone());
         assignment.right.walk(self);
 
         if !self.assignment_preamble.is_empty() {
             node.stmt = AstStatement::ExpressionList(std::mem::take(&mut self.assignment_preamble));
         }
+
+        self.assignment_ctx = prev_ctx;
     }
 
     /// Lowers interface method calls and wraps fat-pointer preambles around call statements.
@@ -251,7 +258,21 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             }
         }
 
-        // Wrap preamble + original call into an ExpressionList
+        // Wrap preamble + original call into an ExpressionList.
+        //
+        // When the call is the RHS of an assignment (e.g. `result := ref.foo(instance)`),
+        // the preamble must be hoisted *above* the assignment so the result becomes:
+        //   `alloca ..., tmp.data := ..., tmp.table := ..., result := ref.foo(tmp)`
+        // rather than incorrectly nesting everything under the assignment:
+        //   `result := alloca ..., tmp.data := ..., tmp.table := ..., ref.foo(tmp)`
+        //
+        // We detect this case via `assignment_ctx`: if set, the enclosing `visit_assignment`
+        // is waiting for us. We consume the context, build `[preamble..., left := call]`,
+        // and route it through `assignment_preamble` so `visit_assignment` can replace
+        // the assignment node with the complete expression list.
+        //
+        // When there is no enclosing assignment (e.g. a bare `ref.foo(instance)` call),
+        // we wrap the call node directly.
         if self.call_depth == 0 && !self.call_preamble.is_empty() {
             let mut statements = std::mem::take(&mut self.call_preamble);
             let original_call = std::mem::replace(
@@ -263,8 +284,13 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
                     metadata: None,
                 },
             );
-            statements.push(original_call);
-            node.stmt = AstStatement::ExpressionList(statements);
+            if let Some(left) = self.assignment_ctx.take() {
+                statements.push(AstFactory::create_assignment(*left, original_call, self.ids.next_id()));
+                self.assignment_preamble = statements;
+            } else {
+                statements.push(original_call);
+                node.stmt = AstStatement::ExpressionList(statements);
+            }
         }
     }
 
@@ -1280,6 +1306,90 @@ mod tests {
         "#;
 
         insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#""#);
+    }
+
+    #[test]
+    fn assignment_on_call_with_interface_argument() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo : DINT
+                    VAR_INPUT
+                        ref: IA;
+                    END_VAR
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo : DINT
+                    VAR_INPUT
+                        ref: IA;
+                    END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                    reference: IA;
+                    result: DINT;
+                END_VAR
+
+                reference := instance;
+                result := reference.foo(instance);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
+            "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(instance), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), result := __itable_IA#(reference.table^).foo^(reference.data^, __fatpointer_0)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn assignment_on_call_with_named_interface_argument() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo : DINT
+                    VAR_INPUT
+                        ref: IA;
+                    END_VAR
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo : DINT
+                    VAR_INPUT
+                        ref: IA;
+                    END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                    reference: IA;
+                    result: DINT;
+                END_VAR
+
+                reference := instance;
+                result := reference.foo(ref := instance);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
+            "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(instance), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), result := __itable_IA#(reference.table^).foo^(reference.data^, ref := __fatpointer_0)",
+        ]
+        "#);
     }
 
     mod helper {
