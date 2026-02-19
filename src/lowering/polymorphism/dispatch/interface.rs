@@ -22,6 +22,7 @@ pub struct InterfaceDispatchLowerer<'a> {
     index: &'a Index,
     annotations: &'a AnnotationMapImpl,
 
+    // TODO: This might be obsolote if we decide to make the `__FATPOINTER` struct a builtin
     /// Do we need to generate the `__FATPOINTER` struct definition?
     needs_fatpointer_definition: bool,
 
@@ -76,14 +77,6 @@ impl<'a> InterfaceDispatchLowerer<'a> {
 }
 
 impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
-    /// Walk into interface declarations so that interface method parameters with
-    /// interface types also get rewritten to `__FATPOINTER` (matching the implementing POUs).
-    fn visit_interface(&mut self, interface: &mut plc_ast::ast::Interface) {
-        for method in &mut interface.methods {
-            self.visit_pou(method);
-        }
-    }
-
     /// Replace any datatype declaration that resolves to an interface type with a `__FATPOINTER`
     fn visit_data_type_declaration(&mut self, data_type_declaration: &mut DataTypeDeclaration) {
         if let DataTypeDeclaration::Reference { referenced_type, .. } = data_type_declaration {
@@ -96,112 +89,11 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         data_type_declaration.walk(self);
     }
 
-    fn visit_reference_expr(&mut self, node: &mut plc_ast::ast::AstNode) {
-        let Some(ty) = self.annotations.get_type(node, self.index) else { return };
-        let Some(ty_hint) = self.annotations.get_type_hint(node, self.index) else { return };
-
-        if ty.is_interface() || !ty_hint.is_interface() {
-            return;
-        }
-
-        // Call argument: `consumer(instance)` where `instance` is a concrete POU
-        // and the parameter expects an interface type.
-        if self.call_depth > 0 {
-            let interface_name = ty_hint.get_name();
-            let pou_name = ty.get_name();
-            let tmp_name = self.next_fatpointer_alloca_name();
-
-            // Reference node for the temporary fat pointer
-            let tmp_ref = AstFactory::create_member_reference(
-                AstFactory::create_identifier(&tmp_name, SourceLocation::internal(), self.ids.next_id()),
-                None,
-                self.ids.next_id(),
-            );
-
-            // alloca __fatpointer_N : __FATPOINTER
-            let alloca = AstNode {
-                stmt: AstStatement::AllocationStatement(Allocation {
-                    name: tmp_name.clone(),
-                    reference_type: FATPOINTER_TYPE_NAME.to_string(),
-                }),
-                id: self.ids.next_id(),
-                location: SourceLocation::internal(),
-                metadata: None,
-            };
-            self.call_preamble.push(alloca);
-
-            // __fatpointer_N.data := ADR(node)
-            let assign_data = helper::create_fat_pointer_field_assignment(
-                &mut self.ids,
-                &tmp_ref,
-                FATPOINTER_DATA_FIELD_NAME,
-                node,
-            );
-            self.call_preamble.push(assign_data);
-
-            // __fatpointer_N.table := ADR(__itable_<interface>_<pou>_instance)
-            let itable_ref = AstFactory::create_member_reference(
-                AstFactory::create_identifier(
-                    &format!("__itable_{interface_name}_{pou_name}_instance"),
-                    SourceLocation::internal(),
-                    self.ids.next_id(),
-                ),
-                None,
-                self.ids.next_id(),
-            );
-            let assign_table = helper::create_fat_pointer_field_assignment(
-                &mut self.ids,
-                &tmp_ref,
-                FATPOINTER_TABLE_FIELD_NAME,
-                &itable_ref,
-            );
-            self.call_preamble.push(assign_table);
-
-            // Replace the argument with a reference to __fatpointer_N
-            *node = AstFactory::create_member_reference(
-                AstFactory::create_identifier(&tmp_name, SourceLocation::internal(), self.ids.next_id()),
-                None,
-                self.ids.next_id(),
-            );
-
-            return;
-        }
-
-        // Boring assignment, something like `left := right`
-        if self.call_depth == 0 {
-            if let Some(left) = self.assignment_ctx.take() {
-                let interface_name = ty_hint.get_name();
-                let pou_name = ty.get_name();
-
-                // left.data := ADR(right)
-                let assign_data = helper::create_fat_pointer_field_assignment(
-                    &mut self.ids,
-                    &left,
-                    FATPOINTER_DATA_FIELD_NAME,
-                    node,
-                );
-
-                // left.table := ADR(__itable_<interface>_<pou>_instance)
-                let itable_ref = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(
-                        &format!("__itable_{interface_name}_{pou_name}_instance"),
-                        SourceLocation::internal(),
-                        self.ids.next_id(),
-                    ),
-                    None,
-                    self.ids.next_id(),
-                );
-                let assign_table = helper::create_fat_pointer_field_assignment(
-                    &mut self.ids,
-                    &left,
-                    FATPOINTER_TABLE_FIELD_NAME,
-                    &itable_ref,
-                );
-
-                self.assignment_preamble = vec![assign_data, assign_table];
-
-                return;
-            }
+    /// Walk into interface declarations so that interface method parameters with
+    /// interface types also get rewritten to `__FATPOINTER` (matching the implementing POUs).
+    fn visit_interface(&mut self, interface: &mut plc_ast::ast::Interface) {
+        for method in &mut interface.methods {
+            self.visit_pou(method);
         }
     }
 
@@ -373,6 +265,115 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             );
             statements.push(original_call);
             node.stmt = AstStatement::ExpressionList(statements);
+        }
+    }
+
+    fn visit_reference_expr(&mut self, node: &mut plc_ast::ast::AstNode) {
+        let Some(ty) = self.annotations.get_type(node, self.index) else { return };
+        let Some(ty_hint) = self.annotations.get_type_hint(node, self.index) else { return };
+
+        if ty.is_interface() || !ty_hint.is_interface() {
+            return;
+        }
+
+        // Call argument: `consumer(instance)` where `instance` is (potentially) a concrete POU
+        // and the parameter expects an interface type.
+        if self.call_depth > 0 {
+            let interface_name = ty_hint.get_name();
+            let pou_name = ty.get_name();
+            let tmp_name = self.next_fatpointer_alloca_name();
+
+            // Reference node for the temporary fat pointer
+            let tmp_ref = AstFactory::create_member_reference(
+                AstFactory::create_identifier(&tmp_name, SourceLocation::internal(), self.ids.next_id()),
+                None,
+                self.ids.next_id(),
+            );
+
+            // alloca __fatpointer_N : __FATPOINTER
+            let alloca = AstNode {
+                stmt: AstStatement::AllocationStatement(Allocation {
+                    name: tmp_name.clone(),
+                    reference_type: FATPOINTER_TYPE_NAME.to_string(),
+                }),
+                id: self.ids.next_id(),
+                location: SourceLocation::internal(),
+                metadata: None,
+            };
+            self.call_preamble.push(alloca);
+
+            // __fatpointer_N.data := ADR(node)
+            let assign_data = helper::create_fat_pointer_field_assignment(
+                &mut self.ids,
+                &tmp_ref,
+                FATPOINTER_DATA_FIELD_NAME,
+                node,
+            );
+            self.call_preamble.push(assign_data);
+
+            // __fatpointer_N.table := ADR(__itable_<interface>_<pou>_instance)
+            let itable_ref = AstFactory::create_member_reference(
+                AstFactory::create_identifier(
+                    &format!("__itable_{interface_name}_{pou_name}_instance"),
+                    SourceLocation::internal(),
+                    self.ids.next_id(),
+                ),
+                None,
+                self.ids.next_id(),
+            );
+            let assign_table = helper::create_fat_pointer_field_assignment(
+                &mut self.ids,
+                &tmp_ref,
+                FATPOINTER_TABLE_FIELD_NAME,
+                &itable_ref,
+            );
+            self.call_preamble.push(assign_table);
+
+            // Replace the argument with a reference to __fatpointer_N
+            *node = AstFactory::create_member_reference(
+                AstFactory::create_identifier(&tmp_name, SourceLocation::internal(), self.ids.next_id()),
+                None,
+                self.ids.next_id(),
+            );
+
+            return;
+        }
+
+        // Boring assignment, something like `left := right`
+        if self.call_depth == 0 {
+            if let Some(left) = self.assignment_ctx.take() {
+                let interface_name = ty_hint.get_name();
+                let pou_name = ty.get_name();
+
+                // left.data := ADR(right)
+                let assign_data = helper::create_fat_pointer_field_assignment(
+                    &mut self.ids,
+                    &left,
+                    FATPOINTER_DATA_FIELD_NAME,
+                    node,
+                );
+
+                // left.table := ADR(__itable_<interface>_<pou>_instance)
+                let itable_ref = AstFactory::create_member_reference(
+                    AstFactory::create_identifier(
+                        &format!("__itable_{interface_name}_{pou_name}_instance"),
+                        SourceLocation::internal(),
+                        self.ids.next_id(),
+                    ),
+                    None,
+                    self.ids.next_id(),
+                );
+                let assign_table = helper::create_fat_pointer_field_assignment(
+                    &mut self.ids,
+                    &left,
+                    FATPOINTER_TABLE_FIELD_NAME,
+                    &itable_ref,
+                );
+
+                self.assignment_preamble = vec![assign_data, assign_table];
+
+                return;
+            }
         }
     }
 }
