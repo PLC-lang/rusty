@@ -259,7 +259,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
         // This is a bit of a hack, but maybe we can tackle this in the rewrite ;)
         if matches!(&node.stmt, AstStatement::ExpressionList(_)) {
             let AstStatement::ExpressionList(expressions) = &mut node.stmt else { unreachable!() };
-            let elements: Vec<_> = expressions.drain(..).collect();
+            let elements = std::mem::take(expressions);
             let mut result = Vec::with_capacity(elements.len());
             for expr in elements {
                 let mapped = self.map(expr);
