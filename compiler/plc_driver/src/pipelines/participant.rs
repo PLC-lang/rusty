@@ -253,16 +253,6 @@ impl PipelineParticipantMut for InheritanceLowerer {
 }
 
 impl PipelineParticipantMut for AggregateTypeLowerer {
-    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, index, .. } = indexed_project;
-        self.index = Some(index);
-        self.visit(&mut project.units);
-
-        //Re-index
-        //TODO: it would be nice if we could unimport
-        project.index(self.id_provider.clone())
-    }
-
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         let AnnotatedProject { units, index, annotations } = annotated_project;
         self.index = Some(index);
@@ -275,12 +265,11 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
                 unit
             })
             .collect();
-        let indexed_project = IndexedProject {
-            project: ParsedProject { units },
-            index: self.index.take().expect("Index"),
-            unresolvables: vec![],
-        };
-        indexed_project.annotate(self.id_provider.clone())
+
+        // Re-index from modified units so the index reflects POU signature
+        // changes (e.g. aggregate returns converted to VAR_IN_OUT parameters).
+        let project = ParsedProject { units };
+        project.index(self.id_provider.clone()).annotate(self.id_provider.clone())
     }
 }
 
