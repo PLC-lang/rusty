@@ -1226,7 +1226,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "TODO: currently incorrect, instance is not lowered to temporary alloca because of string return type"]
     fn interface_method_call_with_aggregate_return_and_interface_argument() {
         let source = r#"
             INTERFACE IA
@@ -1256,7 +1255,110 @@ mod tests {
             "// Statements in main",
             "__init_fba(instance)",
             "__user_init_FbA(instance)",
-            "alloca __consumer0: STRING, consumer(__consumer0, instance), result := __consumer0",
+            "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(instance), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), alloca __consumer0: STRING, consumer(__consumer0, __fatpointer_0), result := __consumer0",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn interface_dispatch_with_aggregate_return_and_interface_argument() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo : STRING
+                    VAR_INPUT
+                        ref: IA;
+                    END_VAR
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo : STRING
+                    VAR_INPUT
+                        ref: IA;
+                    END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance: FbA;
+                    reference: IA;
+                    result: STRING;
+                END_VAR
+
+                reference := instance;
+                result := reference.foo(instance);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(instance)",
+            "__user_init_FbA(instance)",
+            "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
+            "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(instance), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), alloca __0: STRING, __itable_IA#(reference.table^).foo^(reference.data^, __0, __fatpointer_0), result := __0",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn interface_dispatch_aggregate_return_mixed_args_unnamed_and_named() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo : STRING
+                    VAR_INPUT
+                        x: DINT;
+                        a: IA;
+                        y: REAL;
+                        b: IB;
+                    END_VAR
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo : STRING
+                    VAR_INPUT
+                        x: DINT;
+                        a: IA;
+                        y: REAL;
+                        b: IB;
+                    END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB IMPLEMENTS IB
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    inst_a: FbA;
+                    inst_b: FbB;
+                    reference: IA;
+                    result: STRING;
+                END_VAR
+
+                reference := inst_a;
+                // Unnamed (positional) arguments
+                result := reference.foo(42, inst_a, 3.14, inst_b);
+                // Named arguments in completely different order
+                result := reference.foo(b := inst_b, y := 3.14, a := inst_a, x := 42);
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__init_fba(inst_a)",
+            "__init_fbb(inst_b)",
+            "__user_init_FbA(inst_a)",
+            "__user_init_FbB(inst_b)",
+            "reference.data := ADR(inst_a), reference.table := ADR(__itable_IA_FbA_instance)",
+            "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(inst_a), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), alloca __fatpointer_1: __FATPOINTER, __fatpointer_1.data := ADR(inst_b), __fatpointer_1.table := ADR(__itable_IB_FbB_instance), alloca __0: STRING, __itable_IA#(reference.table^).foo^(reference.data^, __0, 42, __fatpointer_0, 3.14, __fatpointer_1), result := __0",
+            "alloca __fatpointer_2: __FATPOINTER, __fatpointer_2.data := ADR(inst_b), __fatpointer_2.table := ADR(__itable_IB_FbB_instance), alloca __fatpointer_3: __FATPOINTER, __fatpointer_3.data := ADR(inst_a), __fatpointer_3.table := ADR(__itable_IA_FbA_instance), alloca __1: STRING, __itable_IA#(reference.table^).foo^(reference.data^, foo := __1, b := __fatpointer_2, y := 3.14, a := __fatpointer_3, x := 42), result := __1",
         ]
         "#);
     }

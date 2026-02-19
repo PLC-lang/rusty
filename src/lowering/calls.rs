@@ -250,6 +250,31 @@ impl AstVisitorMut for AggregateTypeLowerer {
     }
 
     fn map(&mut self, mut node: AstNode) -> AstNode {
+        // When the node is an ExpressionList (e.g. produced by a previous lowering pass such
+        // as InterfaceDispatchLowerer), process each element individually so that any generated
+        // preamble statements (alloca + extracted call) are placed directly before the element
+        // that produced them.  Without this, a single shared scope would collect all preamble
+        // and prepend it before the entire list, breaking the ordering established by the
+        // earlier pass — for example placing the call before the fat-pointer setup it depends on.
+        // This is a bit of a hack, but maybe we can tackle this in the rewrite ;)
+        if matches!(&node.stmt, AstStatement::ExpressionList(_)) {
+            let AstStatement::ExpressionList(expressions) = &mut node.stmt else { unreachable!() };
+            let elements: Vec<_> = expressions.drain(..).collect();
+            let mut result = Vec::with_capacity(elements.len());
+            for expr in elements {
+                let mapped = self.map(expr);
+                // Flatten: if map produced an ExpressionList wrapper, splice its elements
+                // directly into the result to avoid unnecessary nesting.
+                if let AstStatement::ExpressionList(inner) = mapped.stmt {
+                    result.extend(inner);
+                } else {
+                    result.push(mapped);
+                }
+            }
+            node.stmt = AstStatement::ExpressionList(result);
+            return node;
+        }
+
         self.enter_scope();
         node.borrow_mut().walk(self);
         let mut new_stmts = self.exit_scope().unwrap_or_default();
