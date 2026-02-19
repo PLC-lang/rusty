@@ -4,7 +4,7 @@ on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -126,33 +126,14 @@ jobs:
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
-          # Extract version
-          VERSION=$(echo "${{ github.ref_name }}"
-          [ "$VERSION" == "master" ] && VERSION=latest
+          # Always pushing latest for now.
+          VERSION=latest
 
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
 
           docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-
-      - name: Simulate push (PR only)
-        if: ${{ github.event_name == 'pull_request' }}
-        shell: bash
-        run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-
-          echo "=========================================="
-          echo "SIMULATION MODE (Pull Request)"
-          echo "=========================================="
-          echo ""
-          echo "Would execute on master:"
-          echo "  docker push $IMAGE_ID:latest"
-          echo ""
-          echo "Platform: linux/x86_64"
-          echo "Note: Image built locally but not pushed to registry"
-          echo "=========================================="
   style:
     name: Check Style
     runs-on: ubuntu-latest
