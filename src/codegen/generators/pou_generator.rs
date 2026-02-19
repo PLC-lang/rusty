@@ -284,9 +284,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         // Interface methods are excluded because interfaces don't have struct types;
         // their "self" parameter is a void pointer passed through the fat pointer.
         if let Some(class_name) = implementation.get_associated_class_name() {
-            if let Some(class_type) =
-                self.index.find_type(class_name).filter(|ty| !ty.is_interface())
-            {
+            if let Some(class_type) = self.index.find_type(class_name).filter(|ty| !ty.is_interface()) {
                 parameter_types.insert(0, class_type);
             }
         } else if !implementation.get_implementation_type().is_function_method_or_init() {

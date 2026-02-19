@@ -716,6 +716,7 @@ impl<'ink> DebugBuilder<'ink> {
         self.debug_info.create_subroutine_type(file, return_type, &parameter_types, DIFlagsConstants::PUBLIC)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn create_function(
         &mut self,
         scope: DIScope<'ink>,
@@ -851,7 +852,15 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         } else {
             file.as_debug_info_scope()
         };
-        let subprogram = self.create_function(scope, pou, return_type, parameter_types, implementation_start, index, types_index);
+        let subprogram = self.create_function(
+            scope,
+            pou,
+            return_type,
+            parameter_types,
+            implementation_start,
+            index,
+            types_index,
+        );
         func.function.set_subprogram(subprogram);
         //Create function parameters
         self.create_function_variables(pou, func, index, types_index);

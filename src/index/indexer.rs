@@ -9,7 +9,7 @@ use user_type_indexer::UserTypeIndexer;
 
 use plc_ast::ast::TypeNature;
 
-use super::{Index, ImplementationType, InterfaceIndexEntry};
+use super::{ImplementationType, Index, InterfaceIndexEntry};
 use crate::typesystem::{DataType, DataTypeInformation};
 
 mod global_var_indexer;

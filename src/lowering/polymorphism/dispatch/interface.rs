@@ -314,7 +314,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             // __fatpointer_N.table := ADR(__itable_<interface>_<pou>_instance)
             let itable_ref = AstFactory::create_member_reference(
                 AstFactory::create_identifier(
-                    &format!("__itable_{interface_name}_{pou_name}_instance"),
+                    format!("__itable_{interface_name}_{pou_name}_instance"),
                     SourceLocation::internal(),
                     self.ids.next_id(),
                 ),
@@ -356,7 +356,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
                 // left.table := ADR(__itable_<interface>_<pou>_instance)
                 let itable_ref = AstFactory::create_member_reference(
                     AstFactory::create_identifier(
-                        &format!("__itable_{interface_name}_{pou_name}_instance"),
+                        format!("__itable_{interface_name}_{pou_name}_instance"),
                         SourceLocation::internal(),
                         self.ids.next_id(),
                     ),
@@ -371,8 +371,6 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
                 );
 
                 self.assignment_preamble = vec![assign_data, assign_table];
-
-                return;
             }
         }
     }

@@ -964,8 +964,7 @@ mod tests {
                     }
 
                     let type_name = var.data_type_declaration.get_referenced_type().unwrap_or_default();
-                    let init_str =
-                        var.initializer.as_ref().map(|init| format_initializer(init)).unwrap_or_default();
+                    let init_str = var.initializer.as_ref().map(format_initializer).unwrap_or_default();
 
                     writeln!(&mut globals_buf, "{}: {type_name} := {init_str}", var.name).unwrap();
                 }
