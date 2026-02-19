@@ -74,7 +74,13 @@ jobs:
         shell: bash
         run: |
           echo "Building native binary for ${{ matrix.config.arch }}"
-          ./scripts/build.sh --build --release --package \
+          ./scripts/build.sh --build --release --package
+
+      - name: Build and package the std lib
+        if: matrix.config.arch == 'x86_64'
+        shell: bash
+        run: |
+            ./scripts/build.sh --build --release --package \
             --target x86_64-linux-gnu,aarch64-linux-gnu,x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
       - uses: actions/upload-artifact@v4
