@@ -10,4 +10,3 @@ target triple = "[filtered]"
 %MyPoint = type { i32 }
 
 @a = global %MyPoint { i32 7 }
-@__MyPoint__init = unnamed_addr constant %MyPoint zeroinitializer

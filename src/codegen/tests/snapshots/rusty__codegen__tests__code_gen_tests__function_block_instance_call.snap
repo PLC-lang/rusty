@@ -7,10 +7,9 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%foo = type { i16, i16 }
 %prg = type { %foo }
+%foo = type { i16, i16 }
 
-@__foo__init = unnamed_addr constant %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
 define void @foo(ptr %0) {

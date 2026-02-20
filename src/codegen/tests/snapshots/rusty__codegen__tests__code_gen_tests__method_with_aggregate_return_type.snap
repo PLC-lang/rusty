@@ -7,9 +7,6 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%fb_with_method = type {}
-
-@__fb_with_method__init = unnamed_addr constant %fb_with_method zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
 
 define void @fb_with_method(ptr %0) {
