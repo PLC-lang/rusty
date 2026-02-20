@@ -359,7 +359,7 @@
 <a href=#359 id=359 data-nosnippet>359</a>                    inner_range: inner_range
 <a href=#360 id=360 data-nosnippet>360</a>                        .as_ref()
 <a href=#361 id=361 data-nosnippet>361</a>                        .map(|it| it.start..range.end.offset)
-<a href=#362 id=362 data-nosnippet>362</a>                        .or_else(|| <span class="prelude-val">Some</span>(range.start.offset..range.end.offset)),
+<a href=#362 id=362 data-nosnippet>362</a>                        .or(<span class="prelude-val">Some</span>(range.start.offset..range.end.offset)),
 <a href=#363 id=363 data-nosnippet>363</a>                }
 <a href=#364 id=364 data-nosnippet>364</a>            }
 <a href=#365 id=365 data-nosnippet>365</a>            <span class="comment">//None any -&gt; None (unsupported)

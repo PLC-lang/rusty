@@ -356,7 +356,7 @@
 <a href=#356 id=356 data-nosnippet>356</a>
 <a href=#357 id=357 data-nosnippet>357</a>            <span class="kw">if </span>is_generic_function {
 <a href=#358 id=358 data-nosnippet>358</a>                <span class="comment">//For generic functions, we need to replace the generic name with the function name
-<a href=#359 id=359 data-nosnippet>359</a>                </span>stmt.operator = Box::new(AstFactory::create_member_reference(
+<a href=#359 id=359 data-nosnippet>359</a>                </span><span class="kw-2">*</span>stmt.operator = AstFactory::create_member_reference(
 <a href=#360 id=360 data-nosnippet>360</a>                    AstFactory::create_identifier(
 <a href=#361 id=361 data-nosnippet>361</a>                        <span class="kw-2">&amp;</span>qualified_name,
 <a href=#362 id=362 data-nosnippet>362</a>                        stmt.operator.get_location(),
@@ -364,7 +364,7 @@
 <a href=#364 id=364 data-nosnippet>364</a>                    ),
 <a href=#365 id=365 data-nosnippet>365</a>                    <span class="prelude-val">None</span>,
 <a href=#366 id=366 data-nosnippet>366</a>                    <span class="self">self</span>.id_provider.next_id(),
-<a href=#367 id=367 data-nosnippet>367</a>                ))
+<a href=#367 id=367 data-nosnippet>367</a>                )
 <a href=#368 id=368 data-nosnippet>368</a>            };
 <a href=#369 id=369 data-nosnippet>369</a>            stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
 <a href=#370 id=370 data-nosnippet>370</a>            <span class="comment">//steal parameters, add one to the start, return parameters
