@@ -960,13 +960,10 @@ fn handle_special_chars(string: &str, is_wide: bool) -> (String, Vec<EscapeError
                     if i + 1 + hex_digits_per_unit > len {
                         break;
                     }
-                    let hex_str: String =
-                        chars[i + 1..i + 1 + hex_digits_per_unit].iter().collect();
-                    if hex_str.len() == hex_digits_per_unit
-                        && hex_str.chars().all(|c| c.is_ascii_hexdigit())
+                    let hex_str: String = chars[i + 1..i + 1 + hex_digits_per_unit].iter().collect();
+                    if hex_str.len() == hex_digits_per_unit && hex_str.chars().all(|c| c.is_ascii_hexdigit())
                     {
-                        hex_units
-                            .push(u16::from_str_radix(&hex_str, 16).unwrap_or_default());
+                        hex_units.push(u16::from_str_radix(&hex_str, 16).unwrap_or_default());
                         i += 1 + hex_digits_per_unit;
                     } else {
                         break;
@@ -982,13 +979,10 @@ fn handle_special_chars(string: &str, is_wide: bool) -> (String, Vec<EscapeError
                     if i + 1 + hex_digits_per_unit > len {
                         break;
                     }
-                    let hex_str: String =
-                        chars[i + 1..i + 1 + hex_digits_per_unit].iter().collect();
-                    if hex_str.len() == hex_digits_per_unit
-                        && hex_str.chars().all(|c| c.is_ascii_hexdigit())
+                    let hex_str: String = chars[i + 1..i + 1 + hex_digits_per_unit].iter().collect();
+                    if hex_str.len() == hex_digits_per_unit && hex_str.chars().all(|c| c.is_ascii_hexdigit())
                     {
-                        hex_bytes
-                            .push(u8::from_str_radix(&hex_str, 16).unwrap_or_default());
+                        hex_bytes.push(u8::from_str_radix(&hex_str, 16).unwrap_or_default());
                         i += 1 + hex_digits_per_unit;
                     } else {
                         break;
@@ -1024,13 +1018,10 @@ fn parse_literal_string(lexer: &mut ParseSession, is_wide: bool) -> Option<AstNo
     for error in &errors {
         let message = match error {
             EscapeError::TrailingDollar => {
-                "Invalid escape sequence in string literal: trailing '$' has nothing to escape"
-                    .to_string()
+                "Invalid escape sequence in string literal: trailing '$' has nothing to escape".to_string()
             }
             EscapeError::UnrecognizedEscape(c) => {
-                format!(
-                    "Invalid escape sequence in string literal: '${c}' is not a valid escape sequence"
-                )
+                format!("Invalid escape sequence in string literal: '${c}' is not a valid escape sequence")
             }
             EscapeError::IncompleteHexEscape => {
                 let n = if is_wide { 4 } else { 2 };
@@ -1044,11 +1035,8 @@ fn parse_literal_string(lexer: &mut ParseSession, is_wide: bool) -> Option<AstNo
         );
     }
 
-    let string_literal = Some(AstNode::new_literal(
-        AstLiteral::new_string(processed, is_wide),
-        lexer.next_id(),
-        location,
-    ));
+    let string_literal =
+        Some(AstNode::new_literal(AstLiteral::new_string(processed, is_wide), lexer.next_id(), location));
     lexer.advance();
     string_literal
 }
@@ -1241,10 +1229,7 @@ mod tests {
     fn multiple_errors_all_reported() {
         // Two invalid escapes in one string — both must appear in the error list
         let errors = errs("$Q hello $", false);
-        assert_eq!(
-            errors,
-            vec![EscapeError::UnrecognizedEscape('Q'), EscapeError::TrailingDollar]
-        );
+        assert_eq!(errors, vec![EscapeError::UnrecognizedEscape('Q'), EscapeError::TrailingDollar]);
     }
 
     #[test]
