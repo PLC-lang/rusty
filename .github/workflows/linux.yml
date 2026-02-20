@@ -120,6 +120,7 @@ jobs:
           - { os: "ubuntu-latest", arch: "x86_64", docker_arch: "amd64" }
           - { os: "ubuntu-24.04-arm", arch: "aarch64", docker_arch: "arm64" }
     permissions:
+      actions: read
       packages: write
       contents: read
     steps:
