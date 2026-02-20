@@ -162,6 +162,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
         if cast_data.llvm.builder.get_insert_block().is_none() {
             log::debug!("The builder is not set, attempting a constant cast");
             if let Ok(const_val) = self.cast_constant(cast_data) {
+                log::debug!("Constant cast successful");
                 return Ok(const_val);
             }
             log::debug!("Constant cast failed, returning original value");

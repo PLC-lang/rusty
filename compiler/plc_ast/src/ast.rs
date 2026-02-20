@@ -301,6 +301,26 @@ impl Pou {
     pub fn is_generic(&self) -> bool {
         !self.generics.is_empty()
     }
+
+    pub fn is_stateful(&self) -> bool {
+        matches!(self.kind, PouType::Program | PouType::FunctionBlock | PouType::Action | PouType::Class)
+    }
+
+    pub fn is_built_in(&self) -> bool {
+        self.linkage.is_built_in()
+    }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(self.kind, PouType::FunctionBlock)
+    }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self.kind, PouType::Class)
+    }
+
+    pub fn is_program(&self) -> bool {
+        matches!(self.kind, PouType::Program)
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -321,9 +341,36 @@ pub struct Implementation {
 
 #[derive(Debug, Copy, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum LinkageType {
+    /// The element is declared in the project currently being complied
     Internal,
+    /// The element is declared externally and being used by the project
     External,
+    /// This indicates an element has been included as part of the library.
+    /// This is equivalant to external in almost all cases. The only difference is when code is
+    /// in constructor functions where an external function can get a constructor, while an
+    /// included function will not. See compile flat ´generate-external-constructors´
+    Include,
+    /// This indicates an element that should not have any declarations within the compiled project
+    /// For example a built in function is implied to exist but not declared
     BuiltIn,
+}
+
+impl LinkageType {
+    pub fn is_external_or_included(&self) -> bool {
+        matches!(self, LinkageType::External | LinkageType::Include)
+    }
+
+    pub fn is_external(&self) -> bool {
+        matches!(self, LinkageType::External)
+    }
+
+    pub fn is_included(&self) -> bool {
+        matches!(self, LinkageType::Include)
+    }
+
+    pub fn is_built_in(&self) -> bool {
+        matches!(self, LinkageType::BuiltIn)
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
@@ -444,6 +491,7 @@ pub struct CompilationUnit {
     pub interfaces: Vec<Interface>,
     pub user_types: Vec<UserTypeDeclaration>,
     pub file: FileMarker,
+    pub linkage: LinkageType,
 }
 
 impl CompilationUnit {
@@ -456,11 +504,17 @@ impl CompilationUnit {
             interfaces: Vec::new(),
             user_types: Vec::new(),
             file: FileMarker::File(file_name),
+            linkage: LinkageType::Internal,
         }
     }
 
     pub fn with_implementations(mut self, implementations: Vec<Implementation>) -> Self {
         self.implementations = implementations;
+        self
+    }
+
+    pub fn with_linkage(mut self, linkage: LinkageType) -> Self {
+        self.linkage = linkage;
         self
     }
 
@@ -487,6 +541,23 @@ pub enum VariableBlockType {
     Global,
     InOut,
     External,
+}
+impl VariableBlockType {
+    pub fn is_temp(&self) -> bool {
+        matches!(self, VariableBlockType::Temp)
+    }
+
+    pub fn is_local(&self) -> bool {
+        matches!(self, VariableBlockType::Local)
+    }
+
+    pub fn is_global(&self) -> bool {
+        matches!(self, VariableBlockType::Global)
+    }
+
+    pub fn is_inout(&self) -> bool {
+        matches!(self, VariableBlockType::InOut)
+    }
 }
 
 impl Display for VariableBlockType {
@@ -526,6 +597,11 @@ impl VariableBlock {
         VariableBlock::default().with_block_type(VariableBlockType::Global)
     }
 
+    pub fn with_linkage(mut self, linkage: LinkageType) -> Self {
+        self.linkage = linkage;
+        self
+    }
+
     pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
         self.kind = block_type;
         self
@@ -534,6 +610,14 @@ impl VariableBlock {
     pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
         self.variables = variables;
         self
+    }
+
+    pub fn is_local(&self) -> bool {
+        matches!(self.kind, VariableBlockType::Local)
+    }
+
+    pub fn is_temp(&self) -> bool {
+        matches!(self.kind, VariableBlockType::Temp)
     }
 }
 
@@ -651,9 +735,9 @@ impl DataTypeDeclaration {
         }
     }
 
-    pub fn get_referenced_type(&self) -> Option<String> {
+    pub fn get_referenced_type(&self) -> Option<&str> {
         let DataTypeDeclaration::Reference { referenced_type, .. } = self else { return None };
-        Some(referenced_type.to_owned())
+        Some(referenced_type.as_str())
     }
 
     pub fn get_inner_pointer_ty(&self) -> Option<DataTypeDeclaration> {
@@ -817,6 +901,10 @@ impl DataType {
 
     pub fn is_type_safe_pointer(&self) -> bool {
         matches!(self, DataType::PointerType { type_safe: true, .. })
+    }
+
+    pub fn is_generic(&self) -> bool {
+        matches!(self, DataType::GenericType { .. })
     }
 }
 
@@ -1146,6 +1234,13 @@ impl AstNode {
             AstStatement::ParenExpression(expr) => expr.get_stmt_peeled(),
             _ => &self.stmt,
         }
+    }
+
+    /// Returns true if this node represents a struct literal initializer,
+    /// i.e. a (possibly parenthesized) expression list or named assignment
+    /// like `(a := 1, b := 2)` or `(field := value)`.
+    pub fn is_struct_literal_initializer(&self) -> bool {
+        matches!(self.get_stmt_peeled(), AstStatement::ExpressionList(_) | AstStatement::Assignment(_))
     }
 
     pub fn get_node_peeled(&self) -> &AstNode {

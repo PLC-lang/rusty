@@ -23,10 +23,6 @@ fn declaring_a_struct() {
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
-
-    %Person = type { [81 x i8], [81 x i8], i16, i8 }
-
-    @__Person__init = unnamed_addr constant %Person zeroinitializer
     "#);
 }
 
@@ -59,7 +55,6 @@ fn default_values_of_a_struct() {
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
     @p = global %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }
-    @__Person__init = unnamed_addr constant %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }
     "#);
 }
 
@@ -104,8 +99,6 @@ fn initializing_a_struct() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg { %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }, %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } } }
-    @__Rect__init = unnamed_addr constant %Rect zeroinitializer
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
     @__prg.rect1__init = unnamed_addr constant %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }
     @__prg.rect2__init = unnamed_addr constant %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } }
 
@@ -152,7 +145,6 @@ fn assigning_structs() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg zeroinitializer
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
 
     define void @prg(ptr %0) {
     entry:
@@ -209,8 +201,6 @@ fn accessing_struct_members() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg zeroinitializer
-    @__Rect__init = unnamed_addr constant %Rect zeroinitializer
-    @__Point__init = unnamed_addr constant %Point zeroinitializer
 
     define void @prg(ptr %0) {
     entry:

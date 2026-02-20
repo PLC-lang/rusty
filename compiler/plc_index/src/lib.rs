@@ -26,6 +26,7 @@ pub struct GlobalContext {
     /// [`IdProvider`] used during the parsing session
     provider: IdProvider,
     error_fmt: ErrorFormat,
+    generate_external_constructors: bool,
 }
 
 // XXX: Temporary
@@ -77,6 +78,15 @@ impl GlobalContext {
         }
 
         Ok(self)
+    }
+
+    pub fn generate_external_constructors(mut self) -> Self {
+        self.generate_external_constructors = true;
+        self
+    }
+
+    pub fn should_generate_external_constructors(&self) -> bool {
+        self.generate_external_constructors
     }
 
     /// Returns some [`SourceCode`] based on the given key

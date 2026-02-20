@@ -78,7 +78,7 @@ fn simple_struct_type_can_be_parsed() {
             initializer: None,
             location: SourceLocation::internal(),
             scope: None,
-            linkage: LinkageType::Internal,
+            linkage: plc_ast::ast::LinkageType::Internal,
         }
     );
     assert_eq!(ast_string, expected_ast);
@@ -200,7 +200,7 @@ fn type_alias_can_be_parsed() {
             initializer: None,
             location: SourceLocation::internal(),
             scope: None,
-            linkage: LinkageType::Internal,
+            linkage: plc_ast::ast::LinkageType::Internal,
         }
     );
 

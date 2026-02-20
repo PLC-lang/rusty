@@ -116,9 +116,9 @@ lazy_static! {
                         true,
                     );
 
-                    if input.first().is_some_and(|opt| opt.is_assignment()){
-                        annotator.annotation_map.annotate_type_hint(actual_input, StatementAnnotation::value(input_type));
-                    }
+                    annotator
+                        .annotation_map
+                        .annotate_type_hint(actual_input, StatementAnnotation::value(input_type));
                     annotator.annotate(
                         operator, resolver::StatementAnnotation::Function {
                             return_type: ptr_type, qualified_name: "REF".to_string(), generic_name: None, call_name: None

@@ -126,7 +126,7 @@ pub fn visit_variable_block<T: AnnotationMap>(
         visit_variable(validator, variable, context);
 
         if let Some(referenced_type) = variable.data_type_declaration.get_referenced_type() {
-            if context.index.get_type_information_or_void(&referenced_type).is_vla() {
+            if context.index.get_type_information_or_void(referenced_type).is_vla() {
                 validate_vla(validator, pou, block, variable);
             }
         }
@@ -261,6 +261,18 @@ fn validate_variable<T: AnnotationMap>(
     if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {
         validate_reference_to_declaration(validator, context, variable, v_entry);
 
+        let is_struct_type = context
+            .index
+            .get_effective_type_or_void_by_name(variable.data_type_declaration.get_name().unwrap_or_default())
+            .get_type_information()
+            .is_struct();
+
+        let is_struct_literal = is_struct_type
+            && variable
+                .initializer
+                .as_ref()
+                .is_some_and(|initializer| initializer.is_struct_literal_initializer());
+
         if let Some(initializer) = &variable.initializer {
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
             // assignment as a whole whereas the second function call (`visit_statement`) validates the
@@ -269,72 +281,82 @@ fn validate_variable<T: AnnotationMap>(
             visit_statement(validator, initializer, context);
         }
 
-        match v_entry
-            .initial_value
-            .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(&initial_id))
-        {
-            Some(ConstExpression::Unresolvable { reason, statement }) => {
-                match reason.as_ref() {
-                    UnresolvableKind::Misc(reason) => validator.push_diagnostic(
-                        Diagnostic::new(format!(
-                            "Unresolved constant `{}` variable: {}",
-                            variable.name.as_str(),
-                            reason
-                        ))
+        if !is_struct_literal {
+            match v_entry.initial_value.and_then(|initial_id| {
+                context.index.get_const_expressions().find_const_expression(&initial_id)
+            }) {
+                Some(ConstExpression::Unresolvable { reason, statement }) => {
+                    match reason.as_ref() {
+                        UnresolvableKind::Misc(reason) => validator.push_diagnostic(
+                            Diagnostic::new(format!(
+                                "Unresolved constant `{}` variable: {}",
+                                variable.name.as_str(),
+                                reason
+                            ))
+                            .with_error_code("E033")
+                            .with_location(statement.get_location()),
+                        ),
+                        UnresolvableKind::Overflow(..) => (),
+                        UnresolvableKind::Address(init) => {
+                            let Some(node) = init.initializer.as_ref() else {
+                                return;
+                            };
+
+                            let Some(rhs_ty) = context.annotations.get_type(node, context.index) else {
+                                return;
+                            };
+
+                            if context
+                                .index
+                                .find_elementary_pointer_type(rhs_ty.get_type_information())
+                                .is_void()
+                            {
+                                // we could not find the type in the index, a validation for this exists elsewhere
+                                return;
+                            }
+
+                            report_temporary_address_in_pointer_initializer(
+                                validator, context, v_entry, node,
+                            );
+
+                            validate_assignment_mismatch(
+                                context,
+                                validator,
+                                context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
+                                rhs_ty,
+                                &node.get_location(),
+                            );
+                        }
+                    };
+                }
+                Some(ConstExpression::Unresolved { statement, .. }) => {
+                    validator.push_diagnostic(
+                        Diagnostic::new(
+                            format!("Unresolved constant `{}` variable", variable.name.as_str(),),
+                        )
                         .with_error_code("E033")
                         .with_location(statement.get_location()),
-                    ),
-                    UnresolvableKind::Overflow(..) => (),
-                    UnresolvableKind::Address(init) => {
-                        let Some(node) = init.initializer.as_ref() else {
-                            return;
-                        };
-
-                        let Some(rhs_ty) = context.annotations.get_type(node, context.index) else {
-                            return;
-                        };
-
-                        if context.index.find_elementary_pointer_type(rhs_ty.get_type_information()).is_void()
-                        {
-                            // we could not find the type in the index, a validation for this exists elsewhere
-                            return;
-                        };
-
-                        report_temporary_address_in_pointer_initializer(validator, context, v_entry, node);
-
-                        validate_assignment_mismatch(
-                            context,
-                            validator,
-                            context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
-                            rhs_ty,
-                            &node.get_location(),
-                        );
-                    }
-                };
-            }
-            Some(ConstExpression::Unresolved { statement, .. }) => {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
-                        .with_error_code("E033")
-                        .with_location(statement.get_location()),
-                );
-            }
-            None if v_entry.is_constant() && !v_entry.is_var_external() => {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
+                    );
+                }
+                None if v_entry.is_constant() && !v_entry.is_var_external() => {
+                    validator.push_diagnostic(
+                        Diagnostic::new(
+                            format!("Unresolved constant `{}` variable", variable.name.as_str(),),
+                        )
                         .with_error_code("E033")
                         .with_location(&variable.location),
-                );
-            }
-            _ => {
-                if let Some(rhs) = variable.initializer.as_ref() {
-                    validate_enum_variant_assignment(
-                        context,
-                        validator,
-                        v_entry.get_qualified_name(),
-                        context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
-                        rhs,
-                    )
+                    );
+                }
+                _ => {
+                    if let Some(rhs) = variable.initializer.as_ref() {
+                        validate_enum_variant_assignment(
+                            context,
+                            validator,
+                            v_entry.get_qualified_name(),
+                            context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
+                            rhs,
+                        )
+                    }
                 }
             }
         }

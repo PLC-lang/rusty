@@ -3,7 +3,7 @@
 /// offers operations to generate global variables
 use crate::{
     codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
-    index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
+    index::{Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
     OnlineChange,
 };
@@ -71,12 +71,6 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             } {
                 globals.push(dep);
             }
-
-            if let Some(init) =
-                self.global_index.find_global_initializer(&get_initializer_name(dep.get_name()))
-            {
-                globals.push((init.get_name(), init));
-            }
         });
 
         for (name, variable) in &globals {
@@ -95,15 +89,12 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             })?;
             index.associate_global(name, global_variable)?;
 
-            if !matches!(linkage, LinkageType::External) {
-                // generate debug info for non-external variables
-                self.debug.create_global_variable(
-                    variable.get_qualified_name(),
-                    &variable.data_type_name,
-                    global_variable,
-                    &variable.source_location,
-                );
-            }
+            self.debug.create_global_variable(
+                variable.get_qualified_name(),
+                &variable.data_type_name,
+                global_variable,
+                &variable.source_location,
+            );
         }
 
         Ok(index)
@@ -130,7 +121,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         };
 
         let mut global_ir_variable = self.llvm.create_global_variable(self.module, name, variable_type);
-        if linkage == LinkageType::External {
+        if linkage.is_external_or_included() {
             global_ir_variable = global_ir_variable.make_external();
         } else {
             let initial_value = if global_variable

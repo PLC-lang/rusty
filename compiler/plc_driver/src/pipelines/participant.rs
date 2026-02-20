@@ -8,6 +8,7 @@ use std::{
     collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
+    rc::Rc,
     sync::{Arc, Mutex, RwLock},
 };
 
@@ -21,7 +22,7 @@ use plc::{
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_lowering::inheritance::InheritanceLowerer;
+use plc_lowering::{inheritance::InheritanceLowerer, initializer::Initializer};
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
@@ -213,19 +214,30 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
 }
 
 pub struct InitParticipant {
-    symbol_name: &'static str,
     id_provider: IdProvider,
+    generate_externals: bool,
 }
 
 impl InitParticipant {
-    pub fn new(symbol_name: &'static str, id_provider: IdProvider) -> Self {
-        Self { symbol_name, id_provider }
+    pub fn new(id_provider: IdProvider, generate_externals: bool) -> Self {
+        Self { id_provider, generate_externals }
     }
 }
 
 impl PipelineParticipantMut for InitParticipant {
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        indexed_project.extend_with_init_units(self.symbol_name, self.id_provider.clone())
+        // Create a new init lowerer
+        let IndexedProject { project: ParsedProject { units }, index, .. } = indexed_project;
+        let mut resulting_units = vec![];
+        let index = Rc::new(index);
+        for unit in units {
+            let initializer = Initializer::new(self.id_provider.clone(), self.generate_externals);
+            let unit = initializer.apply_initialization(unit, index.clone());
+            resulting_units.push(unit);
+        }
+        // Append new units and constructor to the ast and re-index
+        let project = ParsedProject { units: resulting_units };
+        project.index(self.id_provider.clone())
     }
 }
 
@@ -248,7 +260,7 @@ impl PipelineParticipantMut for InheritanceLowerer {
                 units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
             },
             index,
-            unresolvables: vec![],
+            _unresolvables: vec![],
         }
         .annotate(self.provider())
     }
@@ -280,7 +292,7 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
         let indexed_project = IndexedProject {
             project: ParsedProject { units },
             index: self.index.take().expect("Index"),
-            unresolvables: vec![],
+            _unresolvables: vec![],
         };
         indexed_project.annotate(self.id_provider.clone())
     }
@@ -290,7 +302,7 @@ impl PipelineParticipantMut for VirtualTableGenerator {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         let IndexedProject { mut project, index, .. } = indexed_project;
 
-        let mut gen = VirtualTableGenerator::new(self.ids.clone());
+        let mut gen = VirtualTableGenerator::new(self.ids.clone(), self.generate_external_constructors);
         gen.generate(&index, &mut project.units);
 
         project.index(self.ids.clone())
@@ -314,7 +326,7 @@ impl PipelineParticipantMut for PolymorphicCallLowerer {
         let indexed_project = IndexedProject {
             project: ParsedProject { units },
             index: self.index.take().expect("Index"),
-            unresolvables: vec![],
+            _unresolvables: vec![],
         };
 
         indexed_project.annotate(self.ids.clone())

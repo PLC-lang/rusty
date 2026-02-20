@@ -96,6 +96,32 @@ fn pointer_to_ignores_type_checks_in_initializer() {
 }
 
 #[test]
+fn ref_in_struct_field_initializer_is_valid() {
+    let source = r#"
+    VAR_GLOBAL
+        global_bar : DINT;
+    END_VAR
+
+    TYPE Foo:
+        STRUCT
+            bar : REF_TO DINT := REF(global_bar);
+        END_STRUCT
+    END_TYPE
+
+    FUNCTION main
+        VAR
+            foo : Foo;
+        END_VAR
+    END_FUNCTION
+    "#;
+
+    let diagnostics = parse_and_validate(source);
+    let filtered_diagnostics =
+        diagnostics.into_iter().filter(|diagnostic| diagnostic.error_code != "E015").collect::<Vec<_>>();
+    assert_eq!(filtered_diagnostics, Vec::new());
+}
+
+#[test]
 fn pointer_to_ignores_type_checks_in_body() {
     let source = r#"
     TYPE Position1D:

@@ -229,7 +229,7 @@ impl AstVisitor for Initializer {
         let initializer_to_use = if variable.initializer.is_some() {
             variable.initializer.as_ref()
         } else if is_alias_or_reference_variable(variable, index)
-            && variable.address.as_ref().is_some_and(|addr| is_simple_identifier_address(addr))
+            && variable.address.as_ref().is_some_and(is_simple_identifier_address)
         {
             // For alias/reference variables with simple identifier AT targets, use the address as implicit initializer
             variable.address.as_ref()
@@ -421,7 +421,7 @@ impl AstVisitor for Initializer {
 /// - DirectAssign: emit a standard `:=` assignment without decomposition.
 #[derive(Debug, Clone)]
 enum InitLoweringPolicy {
-    RefAssign(AstNode),
+    RefAssign(Box<AstNode>),
     StructDecompose,
     DirectAssign,
 }
@@ -447,7 +447,7 @@ impl InitLoweringPolicy {
                 initializer.clone()
             };
 
-            return InitLoweringPolicy::RefAssign(ref_rhs);
+            return InitLoweringPolicy::RefAssign(Box::new(ref_rhs));
         }
 
         if is_struct_type(variable, index) && initializer.is_struct_literal_initializer() {
@@ -468,7 +468,7 @@ impl InitLoweringPolicy {
             InitLoweringPolicy::StructDecompose
         } else if is_reference_type(variable, index) {
             let ref_rhs = extract_ref_call_argument(initializer).unwrap_or(initializer).clone();
-            InitLoweringPolicy::RefAssign(ref_rhs)
+            InitLoweringPolicy::RefAssign(Box::new(ref_rhs))
         } else {
             InitLoweringPolicy::DirectAssign
         }

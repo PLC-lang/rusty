@@ -1458,7 +1458,7 @@ fn invalid_reference_to_declaration() {
         ",
     );
 
-    insta::assert_snapshot!(diagnostics, @r"
+    insta::assert_snapshot!(diagnostics, @"
     error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
       ┌─ <internal>:4:38
       │
