@@ -5,6 +5,7 @@ use plc::{
 use plc_ast::{ast::AstNode, provider::IdProvider};
 
 pub mod inheritance;
+pub mod initializer;
 #[cfg(test)]
 mod tests;
 
