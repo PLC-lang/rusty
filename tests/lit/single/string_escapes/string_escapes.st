@@ -36,10 +36,7 @@ END_VAR
     printf('%s$N', REF(s_valid_utf8));
 
     // --- Named escapes ---
-    // Known bug: '$$' followed by 2 hex digits is double-processed in the
-    // committed parser (two-pass). '$$10' → '$10' (pass 1) → 0x10 DLE (pass 2).
-    // Remove XCHECK and restore CHECK once the single-pass fix lands.
-    // XCHECK: Price: $100
+    // CHECK: Price: $100
     printf('%s$N', REF(s_dollar));
     // CHECK: Line1
     // CHECK: Line2
