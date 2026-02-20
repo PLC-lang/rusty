@@ -44,8 +44,8 @@ fn test_external_function_called() {
     let context = CodegenContext::create();
     let module = compile(&context, source);
 
-    module.add_global_function_mapping("times_two__INT", times_two_int as usize);
-    module.add_global_function_mapping("times_two__REAL", times_two_real as usize);
+    module.add_global_function_mapping("times_two__INT", times_two_int as *const () as usize);
+    module.add_global_function_mapping("times_two__REAL", times_two_real as *const () as usize);
 
     let mut main_type = MainType { a: 0, b: 0.0f32 };
     let _: i32 = module.run("main", &mut main_type);
@@ -154,7 +154,7 @@ fn test_generic_function_with_param_by_ref_called() {
     let context = CodegenContext::create();
     let module = compile(&context, source);
 
-    module.add_global_function_mapping("LEFT_EXT__STRING", left_ext__string as usize);
+    module.add_global_function_mapping("LEFT_EXT__STRING", left_ext__string as *const () as usize);
 
     let mut main_type = MainType2 { s: *b"hello\0" };
     let _: i32 = module.run("main", &mut main_type);
