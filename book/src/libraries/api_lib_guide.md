@@ -366,16 +366,7 @@ typedef struct {
 } myFunctionBlock;
 ```
 
-2. ruSTy expects a default-initializer to be present to initialize instances on the stack
-(`VAR_TEMP` blocks or `VAR` blocks in functions or methods)
-
-This global instance follows the naming scheme of `__<FunctionBlockName>__init`, below is an example of a zero-initializer:
-
-```c
-myFunctionBlock __myFunctionBlock__init = { 0 };
-```
-
-3. Optionally create an initialization function following the naming pattern `<FunctionBlockName>__FB_INIT`:
+2. Optionally create an initialization function following the naming pattern `<FunctionBlockName>__FB_INIT`:
 
 ```c
 void myFunctionBlock__FB_INIT(myFunctionBlock* fb_instance) {
@@ -387,7 +378,7 @@ void myFunctionBlock__FB_INIT(myFunctionBlock* fb_instance) {
 }
 ```
 
-4. In your IEC61131-3 declaration (e.g., in a header file [`*.pli`]), ensure your `FUNCTION_BLOCK` includes the `FB_INIT` method (if present):
+3. In your IEC61131-3 declaration (e.g., in a header file [`*.pli`]), ensure your `FUNCTION_BLOCK` includes the `FB_INIT` method (if present):
 
 ```
 {external}
@@ -403,9 +394,47 @@ END_FUNCTION_BLOCK
 
 Note that the `FB_INIT` method doesn't need implementation details in the IEC61131-3 declaration when using an external implementation - the declaration just signals that initialization is available.
 
+#### Constructor flags for external libraries
+
+ruSTy now generates constructor functions for initialization. This replaces the older `__<FunctionBlockName>__init` global pattern.
+
+Use these flags depending on how you build and link external code:
+
+- `--constructors-only`
+  - Use this when building an external library and you only want the compiler-generated constructors.
+  - This emits ctor symbols without emitting user-defined bodies. Link the resulting object into your C/C++ shared library.
+  - This flag implies `--generate-external-constructors`.
+
+- `--generate-external-constructors`
+  - Use this when compiling the final PLC application and you want constructors for `{external}` units to be emitted alongside normal code generation.
+  - This is the typical mode when your project includes external declarations (`.pli`) and you link a shared library that provides the implementations.
+
+Example workflow:
+
+```bash
+# 1) Build constructor object for the external library
+plc --constructors-only -c -o libext_ctor.o -i "stdlib/include/*.st" my_lib.pli
+
+# 2) Build and ship your shared library
+gcc -shared -fPIC -o libext.so my_lib.c libext_ctor.o
+
+# 3) Build the PLC application, generating constructors for externals
+plc -L. -lext -i my_lib.pli --generate-external-constructors app.st
+```
+
+Mixed Rust + ST example (stdlib build):
+
+```bash
+# Compile the ST sources into a single object with constructors
+plc iec61131-st/*.st -c --generate-external-constructors -o st.o
+
+# Archive for static linking
+ar crs libst.a st.o
+```
+
+This mirrors `libs/stdlib/build.rs` and is the recommended approach when your library includes ST implementations (not just external declarations).
+
 #### Project-wide initialization
 
 See [Project-wide initialization](../using_rusty.md#project-wide-initialization)
-
-
 

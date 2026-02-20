@@ -62,37 +62,12 @@ END_PROGRAM
 
 A pointer variable can be initialized with the address of a global reference or an IEC-address using the `AT` or `REFERENCE TO` syntax. `REF_TO` pointers can be initialized using the built-in `REF` function in its initializer.
 
-This initialization, however, does not take place during compile time. Instead, each pointer initialized with an address will be zero-initialized to a null pointer by default. The compiler collects all pointer initializations during compilation and creates internal initializer functions for each POU. These functions are then called in a single overarching project-initialization function, which can be called either manually in your main function or by a runtime. Additionally, global variables — whether they are initialized pointers or POU instances containing pointer initializers — are also assigned within this overarching function.
+This initialization, however, does not take place during compile time. Instead, each pointer initialized with an address will be zero-initialized to a null pointer by default. The compiler collects all pointer initializations during compilation and emits constructor functions that run before the program starts:
 
-This function follows a naming scheme (`__init___<project name>`) that varies slightly depending on whether a build config (`plc.json`) was used.
+- **Type/POU constructors** (`<TypeName>__ctor`) set up initialized fields and `FB_INIT` calls
+- **Global constructor** (`__unit_<name>__ctor`) initializes all globals and invokes the relevant constructors
 
-- **When using a build config (`plc.json`)**, the project name is used:
-
-    _Build config snippet:_
-    ```json
-    {
-        "name": "myProject",
-        "files": []
-    }
-    ```
-    _Resulting symbol:_
-    ```iecst
-        __init___myProject()
-    ```
-
-- **When compiling without a build config**, the name of the first file passed via CLI is used as the base for the name.
-
-    _CLI command:_
-    ```bash
-        # build command
-        plc myFile1.st myFile2.st
-    ```
-    _Resulting symbol:_
-    ```iecst
-        __init___myFile1_st()
-    ```
-
-It is important to note that if there are pointer initializations present in your project, failing to call the initialization function in your runtime or in `main` will result in **null pointer dereferences** at runtime.
+These constructors are registered in the global constructor list and run automatically at load time. No manual calls are required.
 
 ### Example
 _myProject.st_:
@@ -112,6 +87,5 @@ END_VAR
 END_PROGRAM
 
 FUNCTION main: DINT
-    __init___myProject_st();
     prog();
 END_FUNCTION
