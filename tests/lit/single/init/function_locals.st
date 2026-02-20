@@ -33,12 +33,12 @@ VAR_TEMP
     temp_alias AT y :DINT;
     temp_reference_to : REFERENCE TO DINT REF= y;
 END_VAR
-    printf('%d$N', shadowed_global^); // CHECK 69
-    printf('%d$N', temp_ref_to_temp^); // CHECK 420
-    printf('%d$N', alias_to_local); // CHECK 69
-    printf('%d$N', reference_to_local); // CHECK 69
-    printf('%d$N', temp_alias); // CHECK 420
-    printf('%d$N', temp_reference_to); // CHECK 420
+    printf('%d$N', shadowed_global^); // CHECK: 69
+    printf('%d$N', temp_ref_to_temp^); // CHECK: 420
+    printf('%d$N', alias_to_local); // CHECK: 69
+    printf('%d$N', reference_to_local); // CHECK: 69
+    printf('%d$N', temp_alias); // CHECK: 420
+    printf('%d$N', temp_reference_to); // CHECK: 420
 END_FUNCTION_BLOCK
 
 FUNCTION main: DINT
@@ -53,11 +53,12 @@ VAR
 END_VAR
     fb();
     bb();
-    baz();
 
-    printf('%d$N', temp_ref_to_temp^); // CHECK 42
-    printf('%d$N', temp_alias); // CHECK 42
-    printf('%d$N', temp_reference_to); // CHECK 42
+    printf('%d$N', temp_ref_to_temp^); // CHECK: 42
+    printf('%d$N', temp_alias); // CHECK: 42
+    printf('%d$N', temp_reference_to); // CHECK: 42
+
+    baz();
 END_FUNCTION
 
 FUNCTION baz
@@ -75,13 +76,13 @@ FUNCTION baz
         t3 AT s2 : LINT;               
         t4 : REFERENCE TO LINT REF= s4;
     END_VAR
-        printf('%#010x$N', s1^);    // CHECK 0xdeadbeef
-        printf('%#010x$N', s2);     // CHECK 0xdeadbeef
-        printf('%#010x$N', s3);     // CHECK 0xdeadbeef
-        printf('%#010x$N', s4);     // CHECK 0xdeadbeef
-        printf('%#010x$N', s5^);    // CHECK 0xdeadbeef
-        printf('%#010x$N', s6);     // CHECK 0xdeadbeef
-        printf('%#010x$N', t2^);    // CHECK 0xdeadbeef
-        printf('%#010x$N', t3);     // CHECK 0xdeadbeef
-        printf('%#010x$N', t4);     // CHECK 0xdeadbeef
+        printf('%#010x$N', s1^);    // CHECK: 0xdeadbeef
+        printf('%#010x$N', s2);     // CHECK: 0xdeadbeef
+        printf('%#010x$N', s3);     // CHECK: 0xdeadbeef
+        printf('%#010x$N', s4);     // CHECK: 0xdeadbeef
+        printf('%#010x$N', s5^);    // CHECK: 0xdeadbeef
+        printf('%#010x$N', s6);     // CHECK: 0xdeadbeef
+        printf('%#010x$N', t2^);    // CHECK: 0xdeadbeef
+        printf('%#010x$N', t3);     // CHECK: 0xdeadbeef
+        printf('%#010x$N', t4);     // CHECK: 0xdeadbeef
 END_FUNCTION
