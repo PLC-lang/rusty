@@ -114,7 +114,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
                 let last_pou = unit
                     .pous
                     .iter()
-                    .filter(|it| {
+                    .rfind(|it| {
                         // Only consider the last POU that is a program, function, function block
                         // or class
                         matches!(
@@ -122,7 +122,6 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
                             PouType::Program | PouType::Function | PouType::FunctionBlock | PouType::Class
                         )
                     })
-                    .next_back()
                     .map(|it| it.name.as_str())
                     .unwrap_or("__unknown__");
                 let mut actions = parse_actions(&mut lexer, linkage, last_pou);
