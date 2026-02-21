@@ -1,0 +1,13 @@
+RUN: %COMPILE %S/main.st %S/ia.st %S/ib.st %S/ic.st %S/fb_a.st %S/fb_b.st %S/fb_c.st && %RUN | %CHECK %s
+CHECK: FbA::describeA
+CHECK-NEXT: arrA[1].describeA()=1
+CHECK-NEXT: FbB::describeA
+CHECK-NEXT: arrA[2].describeA()=2
+CHECK-NEXT: FbC::describeA
+CHECK-NEXT: arrA[3].describeA()=3
+CHECK-NEXT: FbB::describeB
+CHECK-NEXT: arrB[1].describeB()=20
+CHECK-NEXT: FbC::describeB
+CHECK-NEXT: arrB[2].describeB()=30
+CHECK-NEXT: FbC::describeC
+CHECK-NEXT: arrC[1].describeC()=300
