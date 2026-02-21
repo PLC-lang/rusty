@@ -1,3 +1,99 @@
+//! Lowering of interface method calls and assignments into fat-pointer based dispatch
+//!
+//! This module transforms interface-typed variables and method calls into a fat-pointer representation that
+//! enables dynamic dispatch at runtime. While the sibling module [`super::pou`] handles dispatch through
+//! virtual tables (vtables) for inheritance hierarchies, this module handles the distinct case of *interface
+//! dispatch* using interface tables (itables, see [`crate::lowering::polymorphism::table::interface`]).
+//!
+//! # Fat pointers
+//!
+//! An interface-typed variable cannot hold a concrete instance directly, because different implementors may
+//! have different sizes and layouts. Instead, each interface variable is replaced with a `__FATPOINTER`
+//! struct containing two void pointers. For example, assuming an interface `IA`:
+//!
+//! ```text
+//! // Before:
+//! VAR
+//!     reference : IA;
+//! END_VAR
+//!
+//! // After:
+//! VAR
+//!     reference : __FATPOINTER;
+//! END_VAR
+//! ```
+//!
+//! Where `__FATPOINTER` is defined as:
+//!
+//! ```text
+//! TYPE __FATPOINTER:
+//!     STRUCT
+//!         data:  POINTER TO __VOID;  // address of the concrete instance
+//!         table: POINTER TO __VOID;  // address of the itable for this (interface, POU) pair
+//!     END_STRUCT
+//! END_TYPE
+//! ```
+//!
+//! # Assignments
+//!
+//! When a concrete POU instance is assigned to an interface variable, the assignment is expanded into two
+//! field assignments that populate the fat pointer. For example, given an `instance` of type `FbA` which
+//! implements `IA`:
+//!
+//! ```text
+//! // Before:
+//! reference := instance;
+//!
+//! // After:
+//! reference.data  := ADR(instance);
+//! reference.table := ADR(__itable_IA_FbA_instance);
+//! ```
+//!
+//! # Interface method calls
+//!
+//! Calling a method through an interface variable is transformed into an indirect call through the itable.
+//! The transformation has four steps:
+//!
+//! ```text
+//! // Before:
+//! reference.foo(args)
+//!
+//! // After:
+//! // Step 1: prepend the data pointer as implicit first argument:
+//! reference.foo(reference.data^, args)
+//!
+//! // Step 2: replace the base with a dereferenced table access:
+//! reference.table^.foo(reference.data^, args)
+//!
+//! // Step 3: cast to the concrete itable type:
+//! __itable_IA#(reference.table^).foo(reference.data^, args)
+//!
+//! // Step 4 (final): dereference the function pointer:
+//! __itable_IA#(reference.table^).foo^(reference.data^, args)
+//! ```
+//!
+//! # Call arguments
+//!
+//! When a concrete POU instance is passed as an argument where an interface type is expected, a temporary fat
+//! pointer is allocated and populated before the call. The alloca is necessary because the callee expects a
+//! `__FATPOINTER` value, but the caller only has the concrete instance — there is no pre-existing fat pointer
+//! to pass.
+//!
+//! ```text
+//! // Before:
+//! consumer(instance);
+//!
+//! // After:
+//! alloca __fatpointer_0 : __FATPOINTER;
+//! __fatpointer_0.data  := ADR(instance);
+//! __fatpointer_0.table := ADR(__itable_IA_FbA_instance);
+//! consumer(__fatpointer_0);
+//! ```
+//!
+// TODO: Consider switching from `log` to the `tracing` crate for structured, span-based logging. This would
+// give us automatic indentation and hierarchical span nesting, making the visitor call flow much easier to
+// follow.
+
 use plc_ast::{
     ast::{
         Allocation, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration,
@@ -24,73 +120,42 @@ pub struct InterfaceDispatchLowerer<'a> {
 
     // TODO: This might be obsolote if we decide to make the `__FATPOINTER` struct a builtin
     /// Do we need to generate the `__FATPOINTER` struct definition?
-    needs_fatpointer_definition: bool,
+    generate_fatpointer: bool,
 
     /// Are we in a call statement and if so in how many depths?
     call_depth: usize,
 
-    /// Are we in an assignment and if so what is its left side?
-    assignment_ctx: Option<Box<AstNode>>,
+    /// Stack of assignment LHS targets, needed because assignments can nest (e.g. named call
+    /// parameters). See `visit_assignment` for details.
+    assignment_ctx: Vec<AstNode>,
 
     /// Replacement statements for the current assignment (filled by `visit_reference_expr`).
     assignment_preamble: Vec<AstNode>,
 
-    /// Preamble statements for the enclosing call (filled by `visit_reference_expr`,
-    /// drained by `visit_call_statement`).
+    /// Preamble statements for the enclosing call (filled by `visit_reference_expr`, drained by
+    /// `visit_call_statement`).
     call_preamble: Vec<AstNode>,
 
     /// Monotonic counter for generating unique alloca names.
     alloca_counter: u32,
 }
 
-impl<'a> InterfaceDispatchLowerer<'a> {
-    pub fn new(ids: IdProvider, index: &'a Index, annotations: &'a AnnotationMapImpl) -> Self {
-        Self {
-            ids,
-            index,
-            annotations,
-            needs_fatpointer_definition: false,
-            call_depth: 0,
-            assignment_ctx: None,
-            assignment_preamble: Vec::new(),
-            call_preamble: Vec::new(),
-            alloca_counter: 0,
-        }
-    }
-
-    pub fn lower(&mut self, units: &mut [CompilationUnit]) {
-        for unit in &mut *units {
-            self.visit_compilation_unit(unit);
-        }
-
-        if self.needs_fatpointer_definition {
-            units[0].user_types.push(helper::create_fat_pointer_struct());
-        }
-    }
-
-    /// Returns a unique name for a temporary fat pointer alloca (e.g. `__fatpointer_0`).
-    fn next_fatpointer_alloca_name(&mut self) -> String {
-        let n = self.alloca_counter;
-        self.alloca_counter += 1;
-        format!("__fatpointer_{n}")
-    }
-}
-
 impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
-    /// Replace any datatype declaration that resolves to an interface type with a `__FATPOINTER`
+    /// Visits each data type declaration, replacing interface types with `__FATPOINTER`.
     fn visit_data_type_declaration(&mut self, data_type_declaration: &mut DataTypeDeclaration) {
         if let DataTypeDeclaration::Reference { referenced_type, .. } = data_type_declaration {
             if self.index.find_effective_type_by_name(referenced_type).is_some_and(DataType::is_interface) {
                 helper::replace_datatype_with_fatpointer(data_type_declaration);
-                self.needs_fatpointer_definition = true;
+                self.generate_fatpointer = true;
             }
         }
 
         data_type_declaration.walk(self);
     }
 
-    /// Walk into interface declarations so that interface method parameters with
-    /// interface types also get rewritten to `__FATPOINTER` (matching the implementing POUs).
+    /// Walks into interface method declarations so that their data type declarations are also visited. This
+    /// is needed when a method has an interface type as a return type or parameter, which must be replaced
+    /// with `__FATPOINTER`.
     fn visit_interface(&mut self, interface: &mut plc_ast::ast::Interface) {
         for method in &mut interface.methods {
             self.visit_pou(method);
@@ -102,41 +167,38 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 
         assignment.left.walk(self);
 
-        // Save and restore `assignment_ctx` around the walk so that nested assignments
-        // don't clobber the outer context. For example in `result := consumer(in := instance)`,
-        // the inner named-parameter assignment `in := instance` would otherwise overwrite the
-        // outer `result` context, causing `visit_call_statement` to misidentify which
-        // assignment the preamble belongs to.
-        let prev_ctx = self.assignment_ctx.take();
-        self.assignment_ctx = Some(assignment.left.clone());
+        // Push the LHS onto the assignment context stack so that downstream visitors know
+        // the current assignment target. For example, given `result := consumer(in := instance)`:
+        //   - Outer visit_assignment pushes `result`  → stack: [result]
+        //   - Inner visit_assignment pushes `in`      → stack: [result, in]
+        //   - Inner visit_assignment pops `in`        → stack: [result]
+        //   - unwrap_call_preamble pops `result`      → stack: []
+        // The stack ensures that when a nested assignment cleans up after itself, the outer
+        // assignment's context is preserved.
+        self.assignment_ctx.push((*assignment.left).clone());
         assignment.right.walk(self);
 
+        // Imagine `reference := instance`, which needs to be lowered to `reference.data := ADR(...)` and
+        // `reference.table := ADR(...)` In that case the `assignment_preamble` will contain these two
+        // statements, which need to be replaced by the current `reference := instance` statement. Since we
+        // are traversing the tree, we are unable to just expand its statements. Thus we do something "hacky"
+        // (but quite elegant tbh), namely we replace the original node with an expression list containing >1
+        // nodes.
         if !self.assignment_preamble.is_empty() {
             node.stmt = AstStatement::ExpressionList(std::mem::take(&mut self.assignment_preamble));
         }
 
-        self.assignment_ctx = prev_ctx;
+        // Pop our LHS off the stack, restoring the outer assignment's context (if any).
+        self.assignment_ctx.pop();
     }
 
-    /// Lowers interface method calls and wraps fat-pointer preambles around call statements.
-    ///
-    /// For interface method calls (`ref.foo(args)` where `ref` is interface-typed), the call
-    /// is transformed into an indirect call through the itable:
-    ///   `ref.foo(args)` → `__itable_IA#(ref.table^).foo^(ref.data, args)`
-    ///
-    /// The transformation is applied after walking children so that nested interface calls
-    /// (e.g. `ref.foo(x := ref.bar())`) are lowered bottom-up.
     fn visit_call_statement(&mut self, node: &mut AstNode) {
-        {
-            let AstStatement::CallStatement(call) = &mut node.stmt else { unreachable!() };
+        let AstStatement::CallStatement(call) = &mut node.stmt else { unreachable!() };
 
-            self.call_depth += 1;
-            call.walk(self);
-            self.call_depth -= 1; // XXX: saturating_sub might be safer, in theory we should not need it 🤞
-        }
+        self.call_depth += 1;
+        call.walk(self);
+        self.call_depth -= 1;
 
-        // Check if this is a method call on an interface-typed variable (e.g. `ref.foo(...)`)
-        // by inspecting the operator's base annotation (`ref` in `ref.foo(...)`)
         let interface_name = node
             .get_call_operator()
             .and_then(|op| op.get_base_ref_expr())
@@ -144,261 +206,324 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             .filter(|ty| ty.is_interface())
             .map(|ty| ty.get_name().to_string());
 
-        // Lower: ref.foo(args) → __itable_IA#(ref.table^).foo^(ref.data, args)
+        // Some interface method call, e.g. `reference.foo()`, which needs to be transformed into
+        //  `__itable_IA#(reference.table^).foo^(reference.data^)`
         if let Some(interface_name) = interface_name {
             let AstStatement::CallStatement(CallStatement { operator, parameters }) = &mut node.stmt else {
                 unreachable!()
             };
 
-            // Step 1: Prepend `base.data` as the implicit first argument
-            // ref.foo(args)  →  ref.foo(ref.data^, args)
-            // NOTE: The deref (`^`) is required because `data` is a void-pointer field
-            // containing the address of the concrete instance; we need to load that
-            // pointer so the callee receives a `ptr` to the instance, not a `ptr*` to
-            // the fat-pointer's data slot.
-            {
-                let base = operator.get_base_ref_expr().expect("interface call must have a base");
-                let data_member = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(
-                        FATPOINTER_DATA_FIELD_NAME,
-                        SourceLocation::internal(),
-                        self.ids.next_id(),
-                    ),
-                    Some(base.clone()),
-                    self.ids.next_id(),
-                );
-                let data_ref = AstFactory::create_deref_reference(
-                    data_member,
-                    self.ids.next_id(),
-                    SourceLocation::internal(),
-                );
-
-                match parameters {
-                    None => {
-                        parameters.replace(Box::new(data_ref));
-                    }
-
-                    Some(ref mut expr) => match &mut expr.stmt {
-                        AstStatement::ExpressionList(expressions) => {
-                            expressions.insert(0, data_ref);
-                        }
-
-                        _ => {
-                            let mut expressions = Box::new(AstFactory::create_expression_list(
-                                vec![data_ref, std::mem::take(expr)],
-                                SourceLocation::internal(),
-                                self.ids.next_id(),
-                            ));
-
-                            std::mem::swap(expr, &mut expressions);
-                        }
-                    },
-                }
-            }
-
-            // Step 2: Replace the operator base with a dereferenced `.table` access
-            // ref.foo  →  ref.table^.foo
-            {
-                let old_base = operator.get_base_ref_expr_mut().expect("interface call must have a base");
-                let mut new_base = AstFactory::create_deref_reference(
-                    AstFactory::create_member_reference(
-                        AstFactory::create_identifier(
-                            FATPOINTER_TABLE_FIELD_NAME,
-                            SourceLocation::internal(),
-                            self.ids.next_id(),
-                        ),
-                        Some(std::mem::take(old_base)),
-                        self.ids.next_id(),
-                    ),
-                    self.ids.next_id(),
-                    SourceLocation::internal(),
-                );
-
-                std::mem::swap(old_base, &mut new_base);
-            }
-
-            // Step 3: Cast the itable access to the concrete itable type
-            // ref.table^.foo  →  __itable_IA#(ref.table^).foo
-            {
-                let old_base = operator.get_base_ref_expr_mut().expect("interface call must have a base");
-                let old_base_paren = AstFactory::create_paren_expression(
-                    std::mem::take(old_base),
-                    SourceLocation::internal(),
-                    self.ids.next_id(),
-                );
-
-                let mut new_base = AstFactory::create_cast_statement(
-                    AstFactory::create_member_reference(
-                        AstFactory::create_identifier(
-                            format!("__itable_{interface_name}"),
-                            SourceLocation::internal(),
-                            self.ids.next_id(),
-                        ),
-                        None,
-                        self.ids.next_id(),
-                    ),
-                    old_base_paren,
-                    &SourceLocation::internal(),
-                    self.ids.next_id(),
-                );
-
-                std::mem::swap(old_base, &mut new_base);
-            }
-
-            // Step 4: Dereference the function pointer
-            // __itable_IA#(ref.table^).foo  →  __itable_IA#(ref.table^).foo^
-            {
-                let mut deref = AstFactory::create_deref_reference(
-                    std::mem::take(operator.as_mut()),
-                    self.ids.next_id(),
-                    SourceLocation::internal(),
-                );
-
-                std::mem::swap(operator.as_mut(), &mut deref);
-            }
+            self.patch_data_argument(operator, parameters);
+            self.patch_table_access(operator);
+            self.patch_itable_cast(operator, &interface_name);
+            self.patch_method_call_deref(operator);
         }
 
-        // Wrap preamble + original call into an ExpressionList.
-        //
-        // When the call is the RHS of an assignment (e.g. `result := ref.foo(instance)`),
-        // the preamble must be hoisted *above* the assignment so the result becomes:
-        //   `alloca ..., tmp.data := ..., tmp.table := ..., result := ref.foo(tmp)`
-        // rather than incorrectly nesting everything under the assignment:
-        //   `result := alloca ..., tmp.data := ..., tmp.table := ..., ref.foo(tmp)`
-        //
-        // We detect this case via `assignment_ctx`: if set, the enclosing `visit_assignment`
-        // is waiting for us. We consume the context, build `[preamble..., left := call]`,
-        // and route it through `assignment_preamble` so `visit_assignment` can replace
-        // the assignment node with the complete expression list.
-        //
-        // When there is no enclosing assignment (e.g. a bare `ref.foo(instance)` call),
-        // we wrap the call node directly.
-        if self.call_depth == 0 && !self.call_preamble.is_empty() {
-            let mut statements = std::mem::take(&mut self.call_preamble);
-            let original_call = std::mem::replace(
-                node,
-                AstNode {
-                    stmt: AstStatement::EmptyStatement(plc_ast::ast::EmptyStatement {}),
-                    id: self.ids.next_id(),
-                    location: SourceLocation::internal(),
-                    metadata: None,
-                },
-            );
-            if let Some(left) = self.assignment_ctx.take() {
-                statements.push(AstFactory::create_assignment(*left, original_call, self.ids.next_id()));
-                self.assignment_preamble = statements;
-            } else {
-                statements.push(original_call);
-                node.stmt = AstStatement::ExpressionList(statements);
-            }
-        }
+        // Unwrap any call preambles, e.g. `consumer(instance)` will have produced a preamble of an alloca and
+        // two assignments
+        self.unwrap_call_preamble(node);
     }
 
     fn visit_reference_expr(&mut self, node: &mut plc_ast::ast::AstNode) {
         let Some(ty) = self.annotations.get_type(node, self.index) else { return };
         let Some(ty_hint) = self.annotations.get_type_hint(node, self.index) else { return };
 
+        // TODO: We need to be able to handle `referenceA := referenceB`
         if ty.is_interface() || !ty_hint.is_interface() {
             return;
         }
 
-        // Call argument: `consumer(instance)` where `instance` is (potentially) a concrete POU
-        // and the parameter expects an interface type.
+        let interface_name = ty_hint.get_name();
+        let pou_name = ty.get_name();
+
         if self.call_depth > 0 {
-            let interface_name = ty_hint.get_name();
-            let pou_name = ty.get_name();
-            let tmp_name = self.next_fatpointer_alloca_name();
+            // Something like `consumer(instance)` which needs a temporary fat pointer because the call
+            // expects a `__FATPOINTER` but we only have an instance So `consumer(instance)` is replaced by
+            // `consumer(__fatpointer_0)` and the call preamble contains: `[alloca __fatpointer_0 :
+            // __FATPOINTER, __fatpointer_0.data := ADR(instance), __fatpointer_0.table :=
+            // ADR(__itable_..._instance)]`.
+            //
+            // Same deal with `consumer(in := instance)` which will be transofrmed into
+            // `consumer(in := __fatpointer_0)`
+            self.create_fat_pointer_alloca_assignment_and_replace_node(node, interface_name, pou_name);
+        } else if let Some(left) = self.assignment_ctx.last() {
+            // Something like `reference := instance` which needs to be lowered to `reference.data :=
+            // ADR(...)` and `reference.table := ADR(...)`
+            let left = left.clone();
+            self.create_fat_pointer_assignment(&left, node, interface_name, pou_name);
+        }
+    }
+}
 
-            // Reference node for the temporary fat pointer
-            let tmp_ref = AstFactory::create_member_reference(
-                AstFactory::create_identifier(&tmp_name, SourceLocation::internal(), self.ids.next_id()),
-                None,
-                self.ids.next_id(),
-            );
+impl<'a> InterfaceDispatchLowerer<'a> {
+    pub fn new(ids: IdProvider, index: &'a Index, annotations: &'a AnnotationMapImpl) -> Self {
+        Self {
+            ids,
+            index,
+            annotations,
+            generate_fatpointer: false,
+            call_depth: 0,
+            assignment_ctx: Vec::new(),
+            assignment_preamble: Vec::new(),
+            call_preamble: Vec::new(),
+            alloca_counter: 0,
+        }
+    }
 
-            // alloca __fatpointer_N : __FATPOINTER
-            let alloca = AstNode {
-                stmt: AstStatement::AllocationStatement(Allocation {
-                    name: tmp_name.clone(),
-                    reference_type: FATPOINTER_TYPE_NAME.to_string(),
-                }),
-                id: self.ids.next_id(),
-                location: SourceLocation::internal(),
-                metadata: None,
-            };
-            self.call_preamble.push(alloca);
+    pub fn lower(&mut self, units: &mut [CompilationUnit]) {
+        for unit in &mut *units {
+            self.visit_compilation_unit(unit);
+        }
 
-            // __fatpointer_N.data := ADR(node)
-            let assign_data = helper::create_fat_pointer_field_assignment(
-                &mut self.ids,
-                &tmp_ref,
+        if self.generate_fatpointer {
+            units[0].user_types.push(helper::create_fat_pointer_struct());
+        }
+    }
+
+    fn create_fat_pointer_alloca_assignment_and_replace_node(
+        &mut self,
+        node: &mut AstNode,
+        interface_name: &str,
+        pou_name: &str,
+    ) {
+        let tmp_name = self.next_fatpointer_alloca_name();
+
+        // Reference node for the temporary fat pointer
+        let tmp_ref = AstFactory::create_member_reference(
+            AstFactory::create_identifier(&tmp_name, SourceLocation::internal(), self.ids.next_id()),
+            None,
+            self.ids.next_id(),
+        );
+
+        // alloca __fatpointer_N : __FATPOINTER
+        let alloca = AstNode {
+            stmt: AstStatement::AllocationStatement(Allocation {
+                name: tmp_name.clone(),
+                reference_type: FATPOINTER_TYPE_NAME.to_string(),
+            }),
+            id: self.ids.next_id(),
+            location: SourceLocation::internal(),
+            metadata: None,
+        };
+        self.call_preamble.push(alloca);
+
+        // __fatpointer_N.data := ADR(node)
+        let assign_data = helper::create_fat_pointer_field_assignment(
+            &mut self.ids,
+            &tmp_ref,
+            FATPOINTER_DATA_FIELD_NAME,
+            node,
+        );
+        self.call_preamble.push(assign_data);
+
+        // __fatpointer_N.table := ADR(__itable_<interface>_<pou>_instance)
+        let itable_name = format!("__itable_{interface_name}_{pou_name}_instance");
+        let itable_ref = AstFactory::create_member_reference(
+            AstFactory::create_identifier(itable_name, SourceLocation::internal(), self.ids.next_id()),
+            None,
+            self.ids.next_id(),
+        );
+        let assign_table = helper::create_fat_pointer_field_assignment(
+            &mut self.ids,
+            &tmp_ref,
+            FATPOINTER_TABLE_FIELD_NAME,
+            &itable_ref,
+        );
+        self.call_preamble.push(assign_table);
+
+        // Replace the argument with a reference to __fatpointer_N
+        *node = AstFactory::create_member_reference(
+            AstFactory::create_identifier(&tmp_name, SourceLocation::internal(), self.ids.next_id()),
+            None,
+            self.ids.next_id(),
+        );
+    }
+
+    fn create_fat_pointer_assignment(
+        &mut self,
+        left: &AstNode,
+        node: &AstNode,
+        interface_name: &str,
+        pou_name: &str,
+    ) {
+        // left.data := ADR(right)
+        let assign_data = helper::create_fat_pointer_field_assignment(
+            &mut self.ids,
+            left,
+            FATPOINTER_DATA_FIELD_NAME,
+            node,
+        );
+
+        // left.table := ADR(__itable_<interface>_<pou>_instance)
+        let itable_name = format!("__itable_{interface_name}_{pou_name}_instance");
+        let itable_ref = AstFactory::create_member_reference(
+            AstFactory::create_identifier(itable_name, SourceLocation::internal(), self.ids.next_id()),
+            None,
+            self.ids.next_id(),
+        );
+        let assign_table = helper::create_fat_pointer_field_assignment(
+            &mut self.ids,
+            left,
+            FATPOINTER_TABLE_FIELD_NAME,
+            &itable_ref,
+        );
+
+        self.assignment_preamble = vec![assign_data, assign_table];
+    }
+
+    fn patch_data_argument(&mut self, operator: &mut AstNode, parameters: &mut Option<Box<AstNode>>) {
+        let base = operator.get_base_ref_expr().expect("interface call must have a base");
+        let data_member = AstFactory::create_member_reference(
+            AstFactory::create_identifier(
                 FATPOINTER_DATA_FIELD_NAME,
-                node,
-            );
-            self.call_preamble.push(assign_data);
+                SourceLocation::internal(),
+                self.ids.next_id(),
+            ),
+            Some(base.clone()),
+            self.ids.next_id(),
+        );
+        let data_ref =
+            AstFactory::create_deref_reference(data_member, self.ids.next_id(), SourceLocation::internal());
 
-            // __fatpointer_N.table := ADR(__itable_<interface>_<pou>_instance)
-            let itable_ref = AstFactory::create_member_reference(
+        match parameters {
+            None => {
+                parameters.replace(Box::new(data_ref));
+            }
+
+            Some(ref mut expr) => match &mut expr.stmt {
+                AstStatement::ExpressionList(expressions) => {
+                    expressions.insert(0, data_ref);
+                }
+
+                _ => {
+                    let mut expressions = Box::new(AstFactory::create_expression_list(
+                        vec![data_ref, std::mem::take(expr)],
+                        SourceLocation::internal(),
+                        self.ids.next_id(),
+                    ));
+
+                    std::mem::swap(expr, &mut expressions);
+                }
+            },
+        }
+    }
+
+    fn patch_table_access(&mut self, operator: &mut AstNode) {
+        let old_base = operator.get_base_ref_expr_mut().expect("interface call must have a base");
+        let mut new_base = AstFactory::create_deref_reference(
+            AstFactory::create_member_reference(
                 AstFactory::create_identifier(
-                    format!("__itable_{interface_name}_{pou_name}_instance"),
+                    FATPOINTER_TABLE_FIELD_NAME,
+                    SourceLocation::internal(),
+                    self.ids.next_id(),
+                ),
+                Some(std::mem::take(old_base)),
+                self.ids.next_id(),
+            ),
+            self.ids.next_id(),
+            SourceLocation::internal(),
+        );
+
+        std::mem::swap(old_base, &mut new_base);
+    }
+
+    fn patch_itable_cast(&mut self, operator: &mut AstNode, interface_name: &str) {
+        let old_base = operator.get_base_ref_expr_mut().expect("interface call must have a base");
+        let old_base_paren = AstFactory::create_paren_expression(
+            std::mem::take(old_base),
+            SourceLocation::internal(),
+            self.ids.next_id(),
+        );
+
+        let mut new_base = AstFactory::create_cast_statement(
+            AstFactory::create_member_reference(
+                AstFactory::create_identifier(
+                    format!("__itable_{interface_name}"),
                     SourceLocation::internal(),
                     self.ids.next_id(),
                 ),
                 None,
                 self.ids.next_id(),
-            );
-            let assign_table = helper::create_fat_pointer_field_assignment(
-                &mut self.ids,
-                &tmp_ref,
-                FATPOINTER_TABLE_FIELD_NAME,
-                &itable_ref,
-            );
-            self.call_preamble.push(assign_table);
+            ),
+            old_base_paren,
+            &SourceLocation::internal(),
+            self.ids.next_id(),
+        );
 
-            // Replace the argument with a reference to __fatpointer_N
-            *node = AstFactory::create_member_reference(
-                AstFactory::create_identifier(&tmp_name, SourceLocation::internal(), self.ids.next_id()),
-                None,
-                self.ids.next_id(),
-            );
+        std::mem::swap(old_base, &mut new_base);
+    }
 
+    fn patch_method_call_deref(&mut self, operator: &mut AstNode) {
+        let mut deref = AstFactory::create_deref_reference(
+            std::mem::take(operator),
+            self.ids.next_id(),
+            SourceLocation::internal(),
+        );
+
+        std::mem::swap(operator, &mut deref);
+    }
+
+    fn unwrap_call_preamble(&mut self, node: &mut AstNode) {
+        // We only want to unwrap the preamble at the top-level call, everything else would be invalid. TODO:
+        // Give an example why it would be invalid
+        if self.call_depth != 0 || self.call_preamble.is_empty() {
             return;
         }
 
-        // Boring assignment, something like `left := right`
-        if self.call_depth == 0 {
-            if let Some(left) = self.assignment_ctx.take() {
-                let interface_name = ty_hint.get_name();
-                let pou_name = ty.get_name();
+        let mut statements = std::mem::take(&mut self.call_preamble);
+        let original_call = std::mem::replace(
+            node,
+            AstFactory::create_empty_statement(SourceLocation::internal(), self.ids.next_id()),
+        );
 
-                // left.data := ADR(right)
-                let assign_data = helper::create_fat_pointer_field_assignment(
-                    &mut self.ids,
-                    &left,
-                    FATPOINTER_DATA_FIELD_NAME,
-                    node,
-                );
-
-                // left.table := ADR(__itable_<interface>_<pou>_instance)
-                let itable_ref = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(
-                        format!("__itable_{interface_name}_{pou_name}_instance"),
-                        SourceLocation::internal(),
-                        self.ids.next_id(),
-                    ),
-                    None,
-                    self.ids.next_id(),
-                );
-                let assign_table = helper::create_fat_pointer_field_assignment(
-                    &mut self.ids,
-                    &left,
-                    FATPOINTER_TABLE_FIELD_NAME,
-                    &itable_ref,
-                );
-
-                self.assignment_preamble = vec![assign_data, assign_table];
-            }
+        if let Some(left) = self.assignment_ctx.pop() {
+            // Something like `result := consumer(instance)`, in which case we need to ensure the
+            // assignment statement among the preamble is the last statement. For that example the
+            // preamble will have the form:
+            // ```
+            // alloca __fatpointer_0: __FATPOINTER,
+            // __fatpointer_0.data := ADR(instance),
+            // __fatpointer_0.table := ADR(__itable_..._instance),
+            // ```
+            // The alloca needs to happen before the call, so we push the assignment into the
+            // preamble such that it becomes:
+            // ```
+            // alloca __fatpointer_0: __FATPOINTER,
+            // __fatpointer_0.data := ADR(instance),
+            // __fatpointer_0.table := ADR(__itable_..._instance),
+            // result := consumer(__fatpointer_0)
+            // ```
+            // We can't replace the node directly here because `visit_assignment` owns the
+            // assignment node. Instead we route through `assignment_preamble`, which
+            // `visit_assignment` picks up and uses to replace the node.
+            statements.push(AstFactory::create_assignment(left, original_call, self.ids.next_id()));
+            self.assignment_preamble = statements;
+        } else {
+            // Bare call without an enclosing assignment, e.g. `consumer(instance)`. The preamble
+            // will have the form:
+            // ```
+            // alloca __fatpointer_0: __FATPOINTER,
+            // __fatpointer_0.data := ADR(instance),
+            // __fatpointer_0.table := ADR(__itable_..._instance),
+            // ```
+            // We append the original call and replace the node directly with an ExpressionList:
+            // ```
+            // alloca __fatpointer_0: __FATPOINTER,
+            // __fatpointer_0.data := ADR(instance),
+            // __fatpointer_0.table := ADR(__itable_..._instance),
+            // consumer(__fatpointer_0)
+            // ```
+            // Unlike the assignment case above, there is no enclosing visitor waiting to do the
+            // replacement, so we do it here.
+            statements.push(original_call);
+            node.stmt = AstStatement::ExpressionList(statements);
         }
+    }
+
+    fn next_fatpointer_alloca_name(&mut self) -> String {
+        let n = self.alloca_counter;
+        self.alloca_counter += 1;
+        format!("__fatpointer_{n}")
     }
 }
 
@@ -754,8 +879,8 @@ mod tests {
             END_FUNCTION
         "#;
 
-        // TODO: snapshot needs to resolve to inner-most type, I want to see __FATPOINTER here
-        // Put differently, the replacement of these datatypes works, but the snapshot doesn't reflect that
+        // TODO: snapshot needs to resolve to inner-most type, I want to see __FATPOINTER here Put
+        // differently, the replacement of these datatypes works, but the snapshot doesn't reflect that
         // because it does currently not resolve these internal `__main_...` types.
         insta::assert_debug_snapshot!(helper::lower(source).get_unit().pous[0].variable_blocks, @r#"
         [

@@ -1,33 +1,52 @@
-//! Interface table (itable) generation for multi-inheritance polymorphism.
+//! Interface table (itable) generation for polymorphic interface dispatch.
 //!
-//! While virtual tables handle single-inheritance dispatch for classes and function blocks,
-//! interfaces introduce multi-inheritance which requires a separate mechanism — itables.
-//! A POU implementing an interface (directly or via inheritance) gets a per-interface global
-//! itable instance whose function pointers point to the POU's actual method implementations.
-//!
-//! The generation process is split into two steps:
+//! This module generates the data structures needed to dispatch method calls through interfaces at
+//! runtime. While virtual tables (vtables, see [`super::pou`]) handle dispatch within a POU's own
+//! inheritance chain, interface tables handle the case where a POU implements one or more
+//! interfaces. The generation can be broken down into two parts:
 //!
 //! # 1. Itable Struct Definitions
-//! One struct per interface containing a function pointer for each method (declared + inherited).
-//! Function pointer types reference the original interface method POU directly (e.g. `IA.foo`),
-//! which already exists in the index and avoids the need for separate forward declaration stubs.
+//! For every interface declaration, a struct type named `__itable_<Interface>` is generated whose
+//! fields are function pointers — one per method declared or inherited by the interface. For
+//! example, given:
+//! ```text
+//! INTERFACE IA
+//!     METHOD foo END_METHOD
+//! END_INTERFACE
+//!
+//! INTERFACE IB EXTENDS IA
+//!     METHOD bar END_METHOD
+//! END_INTERFACE
+//! ```
+//! the following struct types are generated:
+//! ```text
+//! __itable_IA { foo: __FPOINTER IA.foo }
+//! __itable_IB { foo: __FPOINTER IA.foo, bar: __FPOINTER IB.bar }
+//! ```
+//! Note that inherited methods (from parent interfaces) appear first, followed by the interface's
+//! own declarations, and duplicate method names are deduplicated (first occurrence wins).
+//!
+//! # 2. Itable Global Instances
+//! For every (interface, POU) pair where the POU transitively implements the interface — either
+//! directly via `IMPLEMENTS` or indirectly through its `EXTENDS` chain — a global variable is
+//! generated. Each instance is named `__itable_<Interface>_<POU>_instance` and its initializer
+//! fills every function-pointer slot with `ADR(<ConcreteMethod>)`, where the concrete method is
+//! resolved by walking the POU's inheritance chain to find the most-derived implementation.
+//!
 //! For example:
 //! ```text
-//! TYPE __itable_IA:
-//!     STRUCT
-//!         foo: __FPOINTER TO IA.foo;
-//!     END_STRUCT
-//! END_TYPE
-//! ```
+//! FUNCTION_BLOCK FbA IMPLEMENTS IA
+//!     METHOD foo END_METHOD
+//! END_FUNCTION_BLOCK
 //!
-//! # 2. Global Itable Instances
-//! One instance per (interface, POU) pair where the POU implements the interface directly or
-//! via its inheritance chain. Each instance carries an initializer that points function pointers
-//! to the POU's concrete method implementations:
+//! FUNCTION_BLOCK FbB EXTENDS FbA
+//!     METHOD foo END_METHOD  (* override *)
+//! END_FUNCTION_BLOCK
+//! ```
+//! produces:
 //! ```text
-//! VAR_GLOBAL
-//!     __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo));
-//! END_VAR
+//! __itable_IA_FbA_instance : __itable_IA := (foo := ADR(FbA.foo))
+//! __itable_IA_FbB_instance : __itable_IA := (foo := ADR(FbB.foo))
 //! ```
 
 use plc_ast::{
@@ -41,7 +60,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::index::{Index, InterfaceIndexEntry, PouIndexEntry};
 
-/// Generates interface tables (itables) for all interfaces and their implementing POUs.
+/// Generates interface-dispatch tables (itables) for all interfaces and their implementing POUs.
 pub struct InterfaceTableGenerator {
     ids: IdProvider,
 }
@@ -51,11 +70,7 @@ impl InterfaceTableGenerator {
         Self { ids }
     }
 
-    /// Generates all itable-related AST artifacts and appends them to the compilation units.
-    ///
-    /// Itable struct definitions are placed in the compilation unit where the interface is
-    /// defined, and global instances are placed in the unit where the implementing POU is
-    /// defined. This ensures codegen treats each artifact as local to its respective unit.
+    /// Generates itable definitions and instances for every compilation unit.
     pub fn generate(&mut self, index: &Index, units: &mut [CompilationUnit]) {
         for unit in units.iter_mut() {
             let definitions = self.generate_itable_definitions(index, unit);
@@ -68,12 +83,7 @@ impl InterfaceTableGenerator {
         }
     }
 
-    /// Creates one itable struct definition per interface defined in the given compilation unit.
-    ///
-    /// Each struct contains a function pointer member for every method in the interface
-    /// (including inherited methods). The function pointer type references the original
-    /// interface method POU directly (e.g. `IA.foo`), avoiding the need for separate forward
-    /// declaration stubs. No initializers are set on the struct members.
+    /// Creates `__itable_<interface>` struct definitions for every interface declared in this unit
     fn generate_itable_definitions(
         &mut self,
         index: &Index,
@@ -86,7 +96,7 @@ impl InterfaceTableGenerator {
             let location = SourceLocation::internal_in_unit(unit.file.get_name());
             let mut members = Vec::new();
 
-            for method in helper::get_deduplicated_methods(interface, index) {
+            for method in interface.get_deduplicated_methods(index) {
                 let member = Variable {
                     name: method.get_call_name().to_string(),
                     data_type_declaration: DataTypeDeclaration::Definition {
@@ -122,12 +132,7 @@ impl InterfaceTableGenerator {
         definitions
     }
 
-    /// Creates global itable instances for every (interface, POU) pair where the POU is
-    /// defined in the given compilation unit.
-    ///
-    /// To find which interfaces a POU must provide itables for, we walk the POU's inheritance
-    /// chain and collect all directly declared `IMPLEMENTS` interfaces plus their transitive
-    /// ancestors via `get_derived_interfaces_recursive`.
+    /// Creates `__itable_<interface>_<pou>_instance := (...)` variables for each (interface, POU) pair
     fn generate_itable_instances(&mut self, index: &Index, unit: &CompilationUnit) -> Vec<Variable> {
         let mut instances = Vec::new();
         let unit_file = unit.file.get_name();
@@ -148,8 +153,7 @@ impl InterfaceTableGenerator {
         instances
     }
 
-    /// Creates a single global variable for an (interface, POU) pair with an initializer
-    /// that maps each interface method to the POU's concrete implementation.
+    /// Creates a single `__itable_<interface>_<pou>_instance := (...)` variable
     fn generate_single_itable_instance(
         &mut self,
         index: &Index,
@@ -161,7 +165,7 @@ impl InterfaceTableGenerator {
         let pou_name = pou.get_name();
 
         let mut assignments = Vec::new();
-        for method in helper::get_deduplicated_methods(interface, index) {
+        for method in interface.get_deduplicated_methods(index) {
             let method_call_name = method.get_call_name();
 
             // Find the concrete implementation by walking the POU's inheritance chain.
@@ -207,7 +211,7 @@ impl InterfaceTableGenerator {
         }
     }
 
-    /// Creates a call statement of form `ADR(<qualified_name>)`, e.g. `ADR(FbA.foo)`.
+    /// Creates an AST node of form `ADR(<qualified_name>)`.
     fn generate_adr_call(&mut self, qualified_name: &str) -> AstNode {
         let operator = AstFactory::create_member_reference(
             AstFactory::create_identifier("ADR", SourceLocation::internal(), self.ids.next_id()),
@@ -247,49 +251,23 @@ impl InterfaceTableGenerator {
     }
 }
 
+/// Internal helper functions for itable name generation, method deduplication, and interface
+/// obligation collection.
 mod helper {
     use plc_ast::ast::{DataType, DataTypeDeclaration};
     use plc_source::source_location::SourceLocation;
-    use std::hash::BuildHasherDefault;
+    use rustc_hash::FxHashSet;
 
-    use indexmap::IndexMap;
-    use rustc_hash::{FxHashSet, FxHasher};
+    use crate::index::{Index, PouIndexEntry};
 
-    use crate::index::{Index, InterfaceIndexEntry, PouIndexEntry};
-
-    /// Returns the methods of an interface deduplicated by call name in DFS order.
-    ///
-    /// Inherited methods (via `EXTENDS`) are visited depth-first before the interface's own
-    /// declared methods, so parent methods appear first in the resulting itable layout.
-    /// When an interface re-declares a method already present in a parent, the first
-    /// occurrence (the ancestor's) wins to avoid duplicate struct members.
-    pub fn get_deduplicated_methods<'idx>(
-        interface: &'idx InterfaceIndexEntry,
-        index: &'idx Index,
-    ) -> Vec<&'idx PouIndexEntry> {
-        let mut seen = IndexMap::<_, _, BuildHasherDefault<FxHasher>>::default();
-        // DFS: inherited methods first, then own declarations
-        for method in interface.get_derived_methods(index) {
-            seen.entry(method.get_call_name()).or_insert(method);
-        }
-        for method in interface.get_declared_methods(index) {
-            seen.entry(method.get_call_name()).or_insert(method);
-        }
-        seen.into_values().collect()
-    }
-
-    /// Returns the itable struct name for an interface, e.g. `__itable_IA`.
     pub fn get_itable_name(interface_name: &str) -> String {
         format!("__itable_{interface_name}")
     }
 
-    /// Returns the itable instance name for an (interface, POU) pair, e.g.
-    /// `__itable_IA_FbA_instance`.
     pub fn get_itable_instance_name(interface_name: &str, pou_name: &str) -> String {
         format!("__itable_{interface_name}_{pou_name}_instance")
     }
 
-    /// Creates a function pointer data type referencing the given type name.
     pub fn create_function_pointer(referenced_type: String, location: SourceLocation) -> DataType {
         DataType::PointerType {
             name: None,
@@ -300,9 +278,6 @@ mod helper {
         }
     }
 
-    /// Collects all interfaces a POU must implement, accounting for both its own `IMPLEMENTS`
-    /// declarations and those inherited from parent POUs, transitively expanding interface
-    /// hierarchies.
     pub fn collect_interfaces_for_pou<'idx>(
         index: &'idx Index,
         pou: &'idx PouIndexEntry,
@@ -311,16 +286,13 @@ mod helper {
         let mut visited = FxHashSet::default();
         let mut current = Some(pou);
 
-        // Walk the POU inheritance chain (the POU itself, its parent, grandparent, etc.)
-        // The visited set guards against inheritance cycles (e.g. A EXTENDS B, B EXTENDS A)
-        // which are caught by validation but must not cause infinite loops here.
-        while let Some(p) = current {
-            if !visited.insert(p.get_name()) {
+        while let Some(pou) = current {
+            if !visited.insert(pou.get_name()) {
                 break;
             }
 
             // Collect directly declared IMPLEMENTS interfaces at this level
-            for iface_name in p.get_interfaces() {
+            for iface_name in pou.get_interfaces() {
                 if let Some(iface) = index.find_interface(iface_name) {
                     // Expand to include all ancestor interfaces
                     for ancestor in iface.get_derived_interfaces_recursive(index) {
@@ -329,7 +301,7 @@ mod helper {
                 }
             }
 
-            current = p.get_super_class().and_then(|sc| index.find_pou(sc));
+            current = pou.get_super_class().and_then(|sc| index.find_pou(sc));
         }
 
         result
@@ -782,8 +754,8 @@ mod tests {
             baz: __FPOINTER IC.baz;
         }
         __itable_ID {
-            bar: __FPOINTER IB.bar;
             foo: __FPOINTER IA.foo;
+            bar: __FPOINTER IB.bar;
             baz: __FPOINTER IC.baz;
             qux: __FPOINTER ID.qux;
         }
@@ -796,7 +768,7 @@ mod tests {
         __itable_IB_FbD_instance: __itable_IB := (foo := ADR(FbD.foo), bar := ADR(FbD.bar))
         __itable_IC_FbC_instance: __itable_IC := (foo := ADR(FbC.foo), baz := ADR(FbC.baz))
         __itable_IC_FbD_instance: __itable_IC := (foo := ADR(FbD.foo), baz := ADR(FbD.baz))
-        __itable_ID_FbD_instance: __itable_ID := (bar := ADR(FbD.bar), foo := ADR(FbD.foo), baz := ADR(FbD.baz), qux := ADR(FbD.qux))
+        __itable_ID_FbD_instance: __itable_ID := (foo := ADR(FbD.foo), bar := ADR(FbD.bar), baz := ADR(FbD.baz), qux := ADR(FbD.qux))
         ");
     }
 
@@ -840,87 +812,60 @@ mod tests {
 
         use driver::parse_and_annotate;
         use plc_ast::{
-            ast::{AstStatement, CallStatement, CompilationUnit, DataType, ReferenceAccess, ReferenceExpr},
+            ast::{CompilationUnit, DataType},
             provider::IdProvider,
+            ser::AstSerializer,
         };
         use plc_source::SourceCode;
 
         use crate::{index::Index, test_utils::tests::index_unit_with_id, typesystem::DataTypeInformation};
 
-        // TODO: We should probably move this to `lowering/mod.rs` such that every lowering module can make use of
-        // it. This is essentially a integration test because it runs all lowering steps, but that's important in
-        // the lowering context given they run sequentially and we want to observe that behavior.
-        pub fn lower_with_index(source: impl Into<SourceCode>) -> (CompilationUnit, Index) {
-            let (_, mut project) = parse_and_annotate("unit-test", vec![source.into()]).unwrap();
-            let unit: CompilationUnit = project.units.remove(0).into();
-            // Re-index the lowered unit to get a crate-local Index with all generated types
-            let index = index_unit_with_id(&unit, IdProvider::default());
-            (unit, index)
+        pub fn lower_and_serialize(source: impl Into<SourceCode>) -> String {
+            pub fn lower_with_index(source: impl Into<SourceCode>) -> (CompilationUnit, Index) {
+                let (_, mut project) = parse_and_annotate("unit-test", vec![source.into()]).unwrap();
+                let unit: CompilationUnit = project.units.remove(0).into();
+                // Re-index the lowered unit to get a crate-local Index with all generated types
+                let index = index_unit_with_id(&unit, IdProvider::default());
+                (unit, index)
+            }
+
+            let (unit, index) = lower_with_index(source);
+            serialize_unit(&unit, &index)
         }
 
-        /// Lowers multiple source files and returns all compilation units along with a
-        /// combined index. Each source should be a distinct [`SourceCode`] with its own path
-        /// so that each produces a separate compilation unit.
-        pub fn lower_multi_with_index(sources: Vec<SourceCode>) -> (Vec<CompilationUnit>, Index) {
-            let (_, project) = parse_and_annotate("unit-test", sources).unwrap();
-            let units: Vec<_> = project.units.into_iter().map(CompilationUnit::from).collect();
-            // Build a combined index over all units so type lookups work across files
-            let mut index = Index::default();
-            let builtins = crate::builtins::parse_built_ins(IdProvider::default());
-            index.import(crate::index::indexer::index(&builtins));
-            for data_type in crate::typesystem::get_builtin_types() {
-                index.register_type(data_type);
+        pub fn lower_and_serialize_multi(sources: Vec<SourceCode>) -> String {
+            pub fn lower_multi_with_index(sources: Vec<SourceCode>) -> (Vec<CompilationUnit>, Index) {
+                let (_, project) = parse_and_annotate("unit-test", sources).unwrap();
+                let units: Vec<_> = project.units.into_iter().map(CompilationUnit::from).collect();
+                // Build a combined index over all units so type lookups work across files
+                let mut index = Index::default();
+                let builtins = crate::builtins::parse_built_ins(IdProvider::default());
+                index.import(crate::index::indexer::index(&builtins));
+                for data_type in crate::typesystem::get_builtin_types() {
+                    index.register_type(data_type);
+                }
+                for unit in &units {
+                    index.import(crate::index::indexer::index(unit));
+                }
+                (units, index)
             }
+
+            let (units, index) = lower_multi_with_index(sources);
+            let mut out = String::new();
+
             for unit in &units {
-                index.import(crate::index::indexer::index(unit));
+                let file_name = unit.file.get_name().unwrap_or("<unknown>");
+                // Skip internal units generated by the pipeline (e.g. __initializers, __init_*)
+                if file_name.starts_with("__") {
+                    continue;
+                }
+                writeln!(&mut out, "// --- unit: {file_name} ---").unwrap();
+                out.push_str(&serialize_unit(unit, &index));
             }
-            (units, index)
+
+            out
         }
 
-        /// Formats an itable initializer node: `(foo := ADR(FbA.foo), bar := ADR(FbA.bar))`
-        fn format_initializer(node: &plc_ast::ast::AstNode) -> String {
-            // ParenExpression → ExpressionList → [Assignment]
-            let AstStatement::ParenExpression(inner) = &node.stmt else { return "???".into() };
-            let AstStatement::ExpressionList(exprs) = &inner.stmt else { return "???".into() };
-
-            let parts: Vec<String> = exprs
-                .iter()
-                .map(|expr| {
-                    let AstStatement::Assignment(assign) = &expr.stmt else { return "???".into() };
-                    let left = assign.left.get_flat_reference_name().unwrap_or("???");
-
-                    // Right side: CallStatement { operator: ADR, parameters: member-chain }
-                    let AstStatement::CallStatement(CallStatement { parameters: Some(param), .. }) =
-                        &assign.right.stmt
-                    else {
-                        return format!("{left} := ???");
-                    };
-
-                    let qualified = format_member_chain(param);
-                    format!("{left} := ADR({qualified})")
-                })
-                .collect();
-
-            format!("({})", parts.join(", "))
-        }
-
-        /// Formats a `ReferenceExpr { Member(Identifier), base }` chain as `"Base.Member"`.
-        fn format_member_chain(node: &plc_ast::ast::AstNode) -> String {
-            let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) =
-                &node.stmt
-            else {
-                return "???".into();
-            };
-
-            let name = member.get_flat_reference_name().unwrap_or("???");
-            match base {
-                Some(base_node) => format!("{}.{name}", format_member_chain(base_node)),
-                None => name.to_string(),
-            }
-        }
-
-        /// Serializes the `__itable_`-prefixed artifacts from a single compilation unit.
-        /// Sections (`// Structs`, `// Globals`) are only emitted when they contain entries.
         fn serialize_unit(unit: &CompilationUnit, index: &Index) -> String {
             let mut out = String::new();
 
@@ -964,7 +909,7 @@ mod tests {
                     }
 
                     let type_name = var.data_type_declaration.get_referenced_type().unwrap_or_default();
-                    let init_str = var.initializer.as_ref().map(format_initializer).unwrap_or_default();
+                    let init_str = var.initializer.as_ref().map(AstSerializer::format).unwrap_or_default();
 
                     writeln!(&mut globals_buf, "{}: {type_name} := {init_str}", var.name).unwrap();
                 }
@@ -973,58 +918,6 @@ mod tests {
             if !globals_buf.is_empty() {
                 writeln!(&mut out, "// Globals").unwrap();
                 out.push_str(&globals_buf);
-            }
-
-            out
-        }
-
-        /// Produces a concise summary of all `__itable_`-prefixed artifacts in a single
-        /// compilation unit.
-        ///
-        /// Uses the index to resolve indirect type references (e.g. `____itable_IA_foo` → `IA.foo`).
-        /// Sections are only emitted when they contain entries. Output format:
-        /// ```text
-        /// // Structs
-        /// __itable_IA {
-        ///     foo: __FPOINTER IA.foo;
-        /// }
-        /// // Globals
-        /// __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
-        /// ```
-        pub fn lower_and_serialize(source: impl Into<SourceCode>) -> String {
-            let (unit, index) = lower_with_index(source);
-            serialize_unit(&unit, &index)
-        }
-
-        /// Produces a per-unit summary of all `__itable_`-prefixed artifacts across multiple
-        /// compilation units. Each unit section is prefixed with its file name.
-        ///
-        /// Output format:
-        /// ```text
-        /// // --- unit: iface.st ---
-        /// // Structs
-        /// ...
-        /// // Globals
-        /// ...
-        ///
-        /// // --- unit: pou.st ---
-        /// // Structs
-        /// ...
-        /// // Globals
-        /// ...
-        /// ```
-        pub fn lower_and_serialize_multi(sources: Vec<SourceCode>) -> String {
-            let (units, index) = lower_multi_with_index(sources);
-            let mut out = String::new();
-
-            for unit in &units {
-                let file_name = unit.file.get_name().unwrap_or("<unknown>");
-                // Skip internal units generated by the pipeline (e.g. __initializers, __init_*)
-                if file_name.starts_with("__") {
-                    continue;
-                }
-                writeln!(&mut out, "// --- unit: {file_name} ---").unwrap();
-                out.push_str(&serialize_unit(unit, &index));
             }
 
             out

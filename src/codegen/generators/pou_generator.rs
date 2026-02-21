@@ -374,18 +374,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .collect::<Result<Vec<BasicMetadataTypeEnum>, _>>()?;
 
             if implementation.get_implementation_type() == &ImplementationType::Method {
-                let class_name =
-                    implementation.get_associated_class_name().expect("Method needs to have a class-name");
-
-                // Interface methods don't have a corresponding struct type (interfaces are
-                // abstract), but we still need to generate a function stub with the correct
-                // signature so that indirect calls through function pointers can resolve the
-                // type.  For non-interface methods the struct lookup acts as a sanity check.
-                if self.llvm_index.get_associated_type(class_name).is_ok() {
-                    let _instance_members_struct_type: StructType =
-                        self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
-                }
-
                 parameters
                     .insert(0, self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
             }

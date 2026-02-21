@@ -651,7 +651,6 @@ impl DataTypeDeclaration {
         }
     }
 
-    // TODO: Why is this an owned string?
     pub fn get_referenced_type(&self) -> Option<String> {
         let DataTypeDeclaration::Reference { referenced_type, .. } = self else { return None };
         Some(referenced_type.to_owned())

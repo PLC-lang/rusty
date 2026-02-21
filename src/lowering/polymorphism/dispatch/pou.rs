@@ -229,8 +229,10 @@ impl<'a> PolymorphicCallLowerer<'a> {
         PolymorphicCallLowerer { ids, index, annotations, in_method_or_function_block: None }
     }
 
-    pub fn lower_unit(&mut self, unit: &mut CompilationUnit) {
-        self.visit_compilation_unit(unit);
+    pub fn lower(&mut self, units: &mut [CompilationUnit]) {
+        for unit in units {
+            self.visit_compilation_unit(unit);
+        }
     }
 
     /// Returns true if the given AST node is a candidate that needs to be lowered into a polymorphic call.

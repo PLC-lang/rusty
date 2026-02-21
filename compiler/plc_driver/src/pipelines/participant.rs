@@ -289,9 +289,9 @@ impl PipelineParticipantMut for PolymorphismLowerer {
         self.dispatch(index, annotations.annotation_map, &mut units);
         let project = ParsedProject { units };
 
-        // Dispatch lowering may inject new types (e.g. `__FATPOINTER` for interface dispatch)
-        // into the compilation units' `user_types`. Re-indexing from the units ensures these
-        // types are present in the index for the subsequent re-annotation.
+        // Dispatch lowering may inject new types (e.g. `__FATPOINTER` and itables for interface
+        // dispatch) into the compilation units' `user_types`. Re-indexing from the units ensures
+        // these types are present in the index for the subsequent re-annotation.
         project.index(self.ids.clone()).annotate(self.ids.clone())
     }
 }

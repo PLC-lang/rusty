@@ -1,3 +1,15 @@
+//! Rewrites call sites and declarations to route through generated vtable and itable structures.
+//!
+//! This is the second phase of the polymorphism lowering pipeline (the first being
+//! [table generation][`super::table`]). It runs two sub-passes in order:
+//!
+//! 1. [`interface`] – rewrites interface-typed variables to fat pointers, expands assignments,
+//!    and lowers method calls through itables.
+//! 2. [`pou`] – rewrites method calls on classes/function blocks into indirect calls through
+//!    vtables.
+//!
+//! Interface dispatch must run first; see the sub-module docs for details.
+
 pub mod interface;
 pub mod pou;
 
@@ -7,26 +19,22 @@ use crate::{index::Index, resolver::AnnotationMapImpl};
 
 use self::{interface::InterfaceDispatchLowerer, pou::PolymorphicCallLowerer};
 
-/// Lowers all polymorphism-related calls (POU method dispatch and interface dispatch) by
-/// delegating to specialized lowerers.
+/// Entry point for dispatch lowering, called by [`super::PolymorphismLowerer::dispatch`]
+/// during the `post_annotate` pipeline stage.
 pub struct DispatchLowerer;
 
 impl DispatchLowerer {
+    /// Lowers direct calls to indirect calls for polymorphic variables.
     pub fn lower(
         ids: IdProvider,
         index: Index,
         annotations: AnnotationMapImpl,
         units: &mut [CompilationUnit],
     ) {
-        // 1. Lower interface type declarations to __FATPOINTER
         let mut lowerer = InterfaceDispatchLowerer::new(ids.clone(), &index, &annotations);
         lowerer.lower(units);
 
-        // 2. Lower POU polymorphic calls (vtable dispatch)
         let mut lowerer = PolymorphicCallLowerer::new(ids, &index, &annotations);
-
-        for unit in units.iter_mut() {
-            lowerer.lower_unit(unit);
-        }
+        lowerer.lower(units);
     }
 }
