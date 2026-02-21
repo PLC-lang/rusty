@@ -117,7 +117,16 @@ fn get_header_file_information(
 
 /// Format the path
 pub fn format_path(output_path: &str) -> String {
-    format!("{}_", format_file_name(&output_path.replace("\\", "_").replace("/", "_").replace(".", "_")))
+    let path = PathBuf::from(output_path);
+    let relative_path = std::env::current_dir()
+        .ok()
+        .and_then(|cwd| path.strip_prefix(cwd).ok())
+        .map(|p| p.to_path_buf())
+        .unwrap_or(path);
+
+    let relative_path = relative_path.to_str().unwrap_or(output_path);
+
+    format!("{}_", format_file_name(&relative_path.replace("\\", "_").replace("/", "_").replace(".", "_")))
 }
 
 /// Returns the file name from a path buffer without the extension
