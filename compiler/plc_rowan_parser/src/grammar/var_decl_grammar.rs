@@ -1,80 +1,58 @@
-use crate::grammar::{name, name_ref};
-use crate::parser::Parser;
 use crate::SyntaxKind::{self, *};
 use crate::T;
+use crate::grammar::{name, name_ref, statement_grammar::expression_stmt};
+use crate::parser::Parser;
 
-// var_declaration = 
+// var_declaration =
 //     identifier_list [ location ] ':' type_specification [ ':=' expression ] ';'
 
-pub(crate) fn var_declaration(p: &mut Parser) {
+pub fn var_declaration(p: &mut Parser) {
     let m = p.start();
-    
+
     // Parse identifier_list (one or more identifiers separated by commas)
     identifier_list(p);
-    
+
     // Optional location (AT %...)
     if p.at(T![AT]) {
         location(p);
     }
-    
+
     // Expect colon
     p.expect(T![:]);
-    
+
     // Parse type_specification (for now, just use name_ref)
     name_ref(p); //for now type reference
     // type_specification(p);
-    
-    // Optional initializer
+
+    // Optional initializer — emit as ExpressionStmt.
+    // expression_stmt() will consume the trailing ';' as part of the ExpressionStmt node.
+    // When there's no initializer, we consume ';' here directly.
     if p.eat(T![:=]) {
-        expression(p);
+        expression_stmt(p, false);
     }
-    
-    // Expect semicolon
     p.expect(T![;]);
-    
+
     m.complete(p, VAR_DECLARATION);
 }
 
 // identifier_list = identifier { ',' identifier }
 fn identifier_list(p: &mut Parser) {
     let m = p.start();
-    
+
     // First identifier
     name(p);
-    
+
     // Additional identifiers
     while p.eat(T![,]) {
         name(p);
     }
-    
+
     m.complete(p, IDENTIFIER_LIST);
 }
 
 // location = 'AT' direct_variable
 fn location(p: &mut Parser) {
     unimplemented!();
-}
-
-// type_specification - simplified for now, just use name_ref
-fn type_specification(p: &mut Parser) {
-    unimplemented!();
-}
-
-// expression - stub implementation
-fn expression(p: &mut Parser) {
-    let m = p.start();
-    
-    // TODO: Implement full expression parsing
-    // For now, just consume any tokens until we hit a semicolon or other delimiter
-    // This is a placeholder that allows the parser to make progress
-    
-    if p.at(IDENT) || p.at(INT_NUMBER) || p.at(BOOL_LITERAL) || p.at(STRING_LITERAL) {
-        p.bump_any();
-        m.complete(p, LITERAL);
-    } else {
-        p.error("expected expression");
-        m.complete(p, ERROR);
-    }
 }
 
 #[cfg(test)]
@@ -125,5 +103,4 @@ mod tests {
         let output = parse_with(&input, var_declaration);
         insta::assert_snapshot!(format_tree(&output, &input));
     }
-    
 }

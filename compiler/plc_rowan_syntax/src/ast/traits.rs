@@ -4,13 +4,18 @@
 use either::Either;
 
 use crate::{
-    ast::{self, AstNode, support},
+    SyntaxToken, ast::{self, AstNode, support}
 };
 
 pub trait HasName: AstNode {
     fn name(&self) -> Option<ast::Name> {
         support::child(self.syntax())
     }
+
+    fn ident_token(&self) -> Option<SyntaxToken> {
+        self.name().and_then(|name| name.ident_token())
+    }
+
 }
 
 // pub trait HasVisibility: AstNode {

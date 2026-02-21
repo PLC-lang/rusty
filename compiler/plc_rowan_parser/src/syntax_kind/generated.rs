@@ -61,18 +61,22 @@ pub enum SyntaxKind {
     SHR,
     SHLEQ,
     SHREQ,
+    BY_KW,
     DO_KW,
     ELSE_KW,
     ELSIF_KW,
+    END_FOR_KW,
     END_IF_KW,
     END_VAR_KW,
     END_WHILE_KW,
+    FOR_KW,
     IF_KW,
+    POU_END_KEYWORD_KW,
+    POU_START_KEYWORD_KW,
     THEN_KW,
+    TO_KW,
+    VAR_DECLARATION_TYPE_KW,
     WHILE_KW,
-    X_X_X__VAR_DECLARATION_TYPE_KW,
-    ____POU_END_KW,
-    ____POU_TYPE_KW,
     AT_KW,
     CONSTANT_KW,
     NON_RETAIN_KW,
@@ -95,6 +99,8 @@ pub enum SyntaxKind {
     CONDITION_THEN_BLOCK,
     ELSE_ARM,
     ELSE_IF_ARM,
+    EXPRESSION_STMT,
+    FOR_STATEMENT,
     IDENTIFIER_LIST,
     IF_STATEMENT,
     LITERAL,
@@ -102,12 +108,9 @@ pub enum SyntaxKind {
     NAME,
     NAME_REF,
     POU,
-    POU_END_KEYWORD,
-    POU_TYPE,
     VAR_DECLARATION,
     VAR_DECLARATION_BLOCK,
     VAR_DECLARATION_BLOCKS,
-    VAR_DECLARATION_TYPE,
     WHILE_STATEMENT,
     #[doc(hidden)]
     __LAST,
@@ -133,6 +136,8 @@ impl SyntaxKind {
             | CONDITION_THEN_BLOCK
             | ELSE_ARM
             | ELSE_IF_ARM
+            | EXPRESSION_STMT
+            | FOR_STATEMENT
             | IDENTIFIER_LIST
             | IF_STATEMENT
             | LITERAL
@@ -140,12 +145,9 @@ impl SyntaxKind {
             | NAME
             | NAME_REF
             | POU
-            | POU_END_KEYWORD
-            | POU_TYPE
             | VAR_DECLARATION
             | VAR_DECLARATION_BLOCK
             | VAR_DECLARATION_BLOCKS
-            | VAR_DECLARATION_TYPE
             | WHILE_STATEMENT
             | COMMENT
             | ERROR
@@ -205,18 +207,22 @@ impl SyntaxKind {
             SHR => ">>",
             SHLEQ => "<<=",
             SHREQ => ">>=",
+            BY_KW => "BY",
             DO_KW => "DO",
             ELSE_KW => "ELSE",
             ELSIF_KW => "ELSIF",
+            END_FOR_KW => "END_FOR",
             END_IF_KW => "END_IF",
             END_VAR_KW => "END_VAR",
             END_WHILE_KW => "END_WHILE",
+            FOR_KW => "FOR",
             IF_KW => "IF",
+            POU_END_KEYWORD_KW => "PouEndKeyword",
+            POU_START_KEYWORD_KW => "PouStartKeyword",
             THEN_KW => "THEN",
+            TO_KW => "TO",
+            VAR_DECLARATION_TYPE_KW => "VarDeclarationType",
             WHILE_KW => "WHILE",
-            X_X_X__VAR_DECLARATION_TYPE_KW => "XXX_VarDeclarationType",
-            ____POU_END_KW => "___PouEnd",
-            ____POU_TYPE_KW => "___PouType",
             AT_KW => "AT",
             CONSTANT_KW => "CONSTANT",
             NON_RETAIN_KW => "NON_RETAIN",
@@ -228,18 +234,22 @@ impl SyntaxKind {
     pub fn is_strict_keyword(self) -> bool {
         matches!(
             self,
-            DO_KW
+            BY_KW
+                | DO_KW
                 | ELSE_KW
                 | ELSIF_KW
+                | END_FOR_KW
                 | END_IF_KW
                 | END_VAR_KW
                 | END_WHILE_KW
+                | FOR_KW
                 | IF_KW
+                | POU_END_KEYWORD_KW
+                | POU_START_KEYWORD_KW
                 | THEN_KW
+                | TO_KW
+                | VAR_DECLARATION_TYPE_KW
                 | WHILE_KW
-                | X_X_X__VAR_DECLARATION_TYPE_KW
-                | ____POU_END_KW
-                | ____POU_TYPE_KW
         ) || match self {
             _ => false,
         }
@@ -259,18 +269,22 @@ impl SyntaxKind {
     pub fn is_keyword(self) -> bool {
         matches!(
             self,
-            DO_KW
+            BY_KW
+                | DO_KW
                 | ELSE_KW
                 | ELSIF_KW
+                | END_FOR_KW
                 | END_IF_KW
                 | END_VAR_KW
                 | END_WHILE_KW
+                | FOR_KW
                 | IF_KW
+                | POU_END_KEYWORD_KW
+                | POU_START_KEYWORD_KW
                 | THEN_KW
+                | TO_KW
+                | VAR_DECLARATION_TYPE_KW
                 | WHILE_KW
-                | X_X_X__VAR_DECLARATION_TYPE_KW
-                | ____POU_END_KW
-                | ____POU_TYPE_KW
         ) || match self {
             AT_KW => true,
             CONSTANT_KW => true,
@@ -342,18 +356,22 @@ impl SyntaxKind {
     }
     pub fn from_keyword(ident: &str) -> Option<SyntaxKind> {
         let kw = match ident {
+            "BY" => BY_KW,
             "DO" => DO_KW,
             "ELSE" => ELSE_KW,
             "ELSIF" => ELSIF_KW,
+            "END_FOR" => END_FOR_KW,
             "END_IF" => END_IF_KW,
             "END_VAR" => END_VAR_KW,
             "END_WHILE" => END_WHILE_KW,
+            "FOR" => FOR_KW,
             "IF" => IF_KW,
+            "PouEndKeyword" => POU_END_KEYWORD_KW,
+            "PouStartKeyword" => POU_START_KEYWORD_KW,
             "THEN" => THEN_KW,
+            "TO" => TO_KW,
+            "VarDeclarationType" => VAR_DECLARATION_TYPE_KW,
             "WHILE" => WHILE_KW,
-            "XXX_VarDeclarationType" => X_X_X__VAR_DECLARATION_TYPE_KW,
-            "___PouEnd" => ____POU_END_KW,
-            "___PouType" => ____POU_TYPE_KW,
             _ => return None,
         };
         Some(kw)
@@ -459,18 +477,22 @@ macro_rules ! T_ {
     [>>] => { $ crate :: SyntaxKind :: SHR };
     [<<=] => { $ crate :: SyntaxKind :: SHLEQ };
     [>>=] => { $ crate :: SyntaxKind :: SHREQ };
+    [BY] => { $ crate :: SyntaxKind :: BY_KW };
     [DO] => { $ crate :: SyntaxKind :: DO_KW };
     [ELSE] => { $ crate :: SyntaxKind :: ELSE_KW };
     [ELSIF] => { $ crate :: SyntaxKind :: ELSIF_KW };
+    [END_FOR] => { $ crate :: SyntaxKind :: END_FOR_KW };
     [END_IF] => { $ crate :: SyntaxKind :: END_IF_KW };
     [END_VAR] => { $ crate :: SyntaxKind :: END_VAR_KW };
     [END_WHILE] => { $ crate :: SyntaxKind :: END_WHILE_KW };
+    [FOR] => { $ crate :: SyntaxKind :: FOR_KW };
     [IF] => { $ crate :: SyntaxKind :: IF_KW };
+    [PouEndKeyword] => { $ crate :: SyntaxKind :: POU_END_KEYWORD_KW };
+    [PouStartKeyword] => { $ crate :: SyntaxKind :: POU_START_KEYWORD_KW };
     [THEN] => { $ crate :: SyntaxKind :: THEN_KW };
+    [TO] => { $ crate :: SyntaxKind :: TO_KW };
+    [VarDeclarationType] => { $ crate :: SyntaxKind :: VAR_DECLARATION_TYPE_KW };
     [WHILE] => { $ crate :: SyntaxKind :: WHILE_KW };
-    [XXX_VarDeclarationType] => { $ crate :: SyntaxKind :: X_X_X__VAR_DECLARATION_TYPE_KW };
-    [___PouEnd] => { $ crate :: SyntaxKind :: ____POU_END_KW };
-    [___PouType] => { $ crate :: SyntaxKind :: ____POU_TYPE_KW };
     [AT] => { $ crate :: SyntaxKind :: AT_KW };
     [CONSTANT] => { $ crate :: SyntaxKind :: CONSTANT_KW };
     [NON_RETAIN] => { $ crate :: SyntaxKind :: NON_RETAIN_KW };

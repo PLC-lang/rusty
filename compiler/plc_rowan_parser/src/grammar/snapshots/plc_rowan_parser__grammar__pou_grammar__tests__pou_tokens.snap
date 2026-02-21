@@ -1,21 +1,18 @@
 ---
 source: compiler/plc_rowan_parser/src/grammar/pou_grammar.rs
-assertion_line: 102
 expression: "format_tree(&output, &input)"
 ---
 COMPILATION_UNIT
   POU
-    POU_TYPE
-      ____POU_TYPE_KW "PROGRAM"
+    POU_TYPE "PROGRAM"
     NAME
       IDENT "MyProgram"
     VAR_DECLARATION_BLOCKS
       VAR_DECLARATION_BLOCK
         VAR_DECLARATION_TYPE "VAR"
         VAR_DECLARATION
-          IDENTIFIER_LIST
-            NAME
-              IDENT "x"
+          NAME
+            IDENT "x"
           COLON ":"
           NAME_REF
             IDENT "INT"
@@ -24,14 +21,21 @@ COMPILATION_UNIT
       VAR_DECLARATION_BLOCK
         VAR_DECLARATION_TYPE "VAR_INPUT"
         VAR_DECLARATION
-          IDENTIFIER_LIST
-            NAME
-              IDENT "y"
+          NAME
+            IDENT "y"
           COLON ":"
           NAME_REF
             IDENT "INT"
           SEMICOLON ";"
         END_VAR_KW "END_VAR"
-    BODY
-    POU_END_KEYWORD
-      ____POU_END_KW "END_PROGRAM"
+      VAR_DECLARATION_BLOCK
+        VAR_DECLARATION_TYPE "VAR_OUTPUT"
+        VAR_DECLARATION
+          NAME
+            IDENT "z"
+          COLON ":"
+          NAME_REF
+            IDENT "INT"
+          SEMICOLON ";"
+        END_VAR_KW "END_VAR"
+    POU_END_KEYWORD "END_PROGRAM"

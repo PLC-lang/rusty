@@ -1,0 +1,9 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
+expression: "parse_body(\"42;\")"
+---
+BODY
+  EXPRESSION_STMT
+    LITERAL
+      INT_NUMBER "42"
+    SEMICOLON ";"

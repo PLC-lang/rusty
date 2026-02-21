@@ -1,0 +1,24 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
+expression: "parse_body(\"IF x THEN\\n  y := 1;\\nEND_IF\")"
+---
+BODY
+  EXPRESSION_STMT
+    IF_STATEMENT
+      IF_KW "IF"
+      CONDITION_THEN_BLOCK
+        EXPRESSION_STMT
+          LITERAL
+            IDENT "x"
+        THEN_KW "THEN"
+        BODY
+          EXPRESSION_STMT
+            ASSIGNMENT
+              NAME
+                IDENT "y"
+              ASSIGN ":="
+              EXPRESSION_STMT
+                LITERAL
+                  INT_NUMBER "1"
+            SEMICOLON ";"
+      END_IF_KW "END_IF"

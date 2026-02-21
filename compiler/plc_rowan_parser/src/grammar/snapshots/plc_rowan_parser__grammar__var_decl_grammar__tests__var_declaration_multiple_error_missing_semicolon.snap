@@ -1,19 +1,14 @@
 ---
 source: compiler/plc_rowan_parser/src/grammar/var_decl_grammar.rs
-assertion_line: 110
 expression: "format_tree(&output, &input)"
 ---
 VAR_DECLARATION
   IDENTIFIER_LIST
     NAME
       IDENT "x"
-    COMMA ","
-    NAME
-      IDENT "y"
-    COMMA ","
-    NAME
-      IDENT "z"
   COLON ":"
   NAME_REF
     IDENT "INT"
-  SEMICOLON ";"
+
+Errors:
+  error 33-34: expected SEMICOLON: near y

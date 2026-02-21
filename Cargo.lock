@@ -1526,6 +1526,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "indoc"
+version = "2.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79cf5c93f93228cf8efb3ba362535fb11199ac548a09ce117c9b1adc3030d706"
+dependencies = [
+ "rustversion",
+]
+
+[[package]]
 name = "inkwell"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2427,6 +2436,9 @@ name = "plc_rowan_syntax"
 version = "0.1.0"
 dependencies = [
  "either",
+ "indoc",
+ "insta",
+ "itertools",
  "logos",
  "plc_rowan_parser",
  "rowan",

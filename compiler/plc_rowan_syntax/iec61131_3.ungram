@@ -2,56 +2,61 @@
 // Written in ungrammar format for documentation and potential code generation
 // Reference: IEC 61131-3:2013
 
-Name =
-  '#ident'
-
-NameRef =
-  '#ident'
+//////////////////////////
+/// POUs
+//////////////////////////
 
 CompilationUnit =
   Pou*
 
 Pou  =
-  PouType name:Name ':'? type_ref:NameRef 
+  'PouStartKeyword' name:Name ':'? type_ref:NameRef 
   VarDeclarationBlocks
   Body  
-  PouEndKeyword ';'?
+  'PouEndKeyword'
 
-PouType =
-  '___PouType'  // unused, lexer will take care
+Body =
+ ExpressionStmt*
 
-PouEndKeyword =
-  '___PouEnd'  // unused, lexer will take care
+//////////////////////////
+/// VARIABLE DECLARATIONS
+//////////////////////////
 
 VarDeclarationBlocks =
   VarDeclarationBlock*
 
 VarDeclarationBlock =
-  VarDeclarationType VarDeclaration* 'END_VAR'
-
-VarDeclarationType =
-  'XXX_VarDeclarationType'
+  'VarDeclarationType' VarDeclaration* 'END_VAR'
 
 VarDeclaration =
-  IdentifierList Location? ':' type_ref:NameRef '=' init_value: Expression ';'
+  IdentifierList Location? ':' type_ref:NameRef '=' init_value: ExpressionStmt ';'
 
-Body =
- Expression*
+//////////////////////////
+/// EXPRESSIONS / STATEMENTS
+//////////////////////////
+
+ ExpressionStmt =
+  Expression ';'?
 
  Expression =
   IfStatement 
   // CaseStatement |
-  // ForStatement |
+  | ForStatement
   | WhileStatement
   | Assignment
   | Literal
+  | NameRef
   // todo: call,
 
 Assignment =
-  target:Expression '=' value:Expression ';'
+  target:Name '=' value:ExpressionStmt ';'
 
+//////////////////////////
+/// CONTROL STATEMENTS
+//////////////////////////
 IfStatement =
-  'IF' condition:ConditionThenBlock 
+  'IF' 
+  if_condition:ConditionThenBlock 
   ElseIfArm*
   ElseArm? 'END_IF'
 
@@ -59,14 +64,25 @@ ElseIfArm =
   'ELSIF' condition:ConditionThenBlock
 
 ElseArm =
-  'ELSE' Expression
+  'ELSE' ExpressionStmt
 
 WhileStatement =
-  'WHILE' condition:Expression 'DO' body:Expression 'END_WHILE'
+  'WHILE' condition:ExpressionStmt 'DO' body:ExpressionStmt 'END_WHILE'
+
+ForStatement =
+  'FOR' counter:Assignment 'TO' end:ExpressionStmt ('BY' step:ExpressionStmt)? 'DO' body:Body 'END_FOR'
 
 ConditionThenBlock =
-  condition:Expression 'THEN' then_branch:Body
+  condition_expr:ExpressionStmt 'THEN' Body
   
+//////////////////////////
+/// TERMINALs, KEYWORDS, LITERALS
+//////////////////////////
+Name =
+  '#ident'
+
+NameRef =
+  '#ident'
 
 IdentifierList =
   Name (',' Name)*

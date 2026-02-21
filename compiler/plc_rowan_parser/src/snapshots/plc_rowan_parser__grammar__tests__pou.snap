@@ -1,6 +1,5 @@
 ---
 source: compiler/plc_rowan_parser/src/grammar.rs
-assertion_line: 156
 expression: tree
 ---
 POU

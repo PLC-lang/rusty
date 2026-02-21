@@ -17,7 +17,7 @@ use crate::{
 /// tree, but rather a flat stream of events of the form
 /// "start expression, consume number literal,
 /// finish expression". See `Event` docs for more.
-pub(crate) struct Parser<'t> {
+pub struct Parser<'t> {
     inp: &'t Input,
     pos: usize,
     events: Vec<Event>,

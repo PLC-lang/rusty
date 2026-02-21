@@ -1,0 +1,30 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
+expression: "parse_body(\"FOR i := 0 TO 10 DO\\n  x := i;\\nEND_FOR\")"
+---
+BODY
+  EXPRESSION_STMT
+    FOR_STATEMENT
+      FOR_KW "FOR"
+      ASSIGNMENT
+        NAME
+          IDENT "i"
+        ASSIGN ":="
+        LITERAL
+          INT_NUMBER "0"
+      TO_KW "TO"
+      EXPRESSION_STMT
+        LITERAL
+          INT_NUMBER "10"
+      DO_KW "DO"
+      BODY
+        EXPRESSION_STMT
+          ASSIGNMENT
+            NAME
+              IDENT "x"
+            ASSIGN ":="
+            EXPRESSION_STMT
+              LITERAL
+                IDENT "i"
+          SEMICOLON ";"
+      END_FOR_KW "END_FOR"

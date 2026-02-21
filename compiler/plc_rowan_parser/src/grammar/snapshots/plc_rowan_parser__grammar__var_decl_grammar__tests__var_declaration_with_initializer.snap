@@ -1,6 +1,5 @@
 ---
 source: compiler/plc_rowan_parser/src/grammar/var_decl_grammar.rs
-assertion_line: 94
 expression: "format_tree(&output, &input)"
 ---
 VAR_DECLARATION
@@ -10,4 +9,8 @@ VAR_DECLARATION
   COLON ":"
   NAME_REF
     IDENT "INT"
-  SEMICOLON ";"
+  ASSIGN ":="
+  EXPRESSION_STMT
+    LITERAL
+      INT_NUMBER "42"
+    SEMICOLON ";"

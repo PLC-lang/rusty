@@ -1,0 +1,53 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
+assertion_line: 247
+expression: "parse_body(\"IF a THEN\\n  x := 1;\\nELSIF b THEN\\n  x := 2;\\nELSE\\n  x := 3;\\nEND_IF\")"
+---
+BODY
+  EXPRESSION_STMT
+    IF_STATEMENT
+      IF_KW "IF"
+      CONDITION_THEN_BLOCK
+        EXPRESSION_STMT
+          NAME_REF
+            IDENT "a"
+        THEN_KW "THEN"
+        BODY
+          EXPRESSION_STMT
+            ASSIGNMENT
+              NAME
+                IDENT "x"
+              ASSIGN ":="
+              EXPRESSION_STMT
+                LITERAL
+                  INT_NUMBER "1"
+            SEMICOLON ";"
+      ELSE_IF_ARM
+        ELSIF_KW "ELSIF"
+        CONDITION_THEN_BLOCK
+          EXPRESSION_STMT
+            NAME_REF
+              IDENT "b"
+          THEN_KW "THEN"
+          BODY
+            EXPRESSION_STMT
+              ASSIGNMENT
+                NAME
+                  IDENT "x"
+                ASSIGN ":="
+                EXPRESSION_STMT
+                  LITERAL
+                    INT_NUMBER "2"
+              SEMICOLON ";"
+      ELSE_ARM
+        ELSE_KW "ELSE"
+        EXPRESSION_STMT
+          ASSIGNMENT
+            NAME
+              IDENT "x"
+            ASSIGN ":="
+            EXPRESSION_STMT
+              LITERAL
+                INT_NUMBER "3"
+          SEMICOLON ";"
+      END_IF_KW "END_IF"

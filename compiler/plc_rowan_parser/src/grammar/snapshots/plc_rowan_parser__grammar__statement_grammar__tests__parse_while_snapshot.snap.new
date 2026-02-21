@@ -1,0 +1,24 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
+assertion_line: 233
+expression: "parse_body(\"WHILE x DO\\n  y := 1;\\nEND_WHILE\")"
+---
+BODY
+  EXPRESSION_STMT
+    WHILE_STATEMENT
+      WHILE_KW "WHILE"
+      EXPRESSION_STMT
+        NAME_REF
+          IDENT "x"
+      DO_KW "DO"
+      BODY
+        EXPRESSION_STMT
+          ASSIGNMENT
+            NAME
+              IDENT "y"
+            ASSIGN ":="
+            EXPRESSION_STMT
+              LITERAL
+                INT_NUMBER "1"
+          SEMICOLON ";"
+      END_WHILE_KW "END_WHILE"

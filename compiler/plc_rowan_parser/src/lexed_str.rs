@@ -62,12 +62,12 @@ fn token_to_syntax_kind(token: Token) -> SyntaxKind {
         Token::PropertySized => todo!("PropertySized mapping"),
 
         // POU keywords
-        Token::KeywordProgram => SyntaxKind::POU_TYPE,
-        Token::KeywordFunction => SyntaxKind::POU_TYPE,
-        Token::KeywordEndFunction => SyntaxKind::POU_END_KEYWORD,
-        Token::KeywordFunctionBlock => SyntaxKind::POU_TYPE,
-        Token::KeywordEndFunctionBlock => SyntaxKind::POU_END_KEYWORD,
-        Token::KeywordEndProgram => SyntaxKind::POU_END_KEYWORD,
+        Token::KeywordProgram => SyntaxKind::POU_START_KEYWORD_KW,
+        Token::KeywordFunction => SyntaxKind::POU_START_KEYWORD_KW,
+        Token::KeywordEndFunction => SyntaxKind::POU_END_KEYWORD_KW,
+        Token::KeywordFunctionBlock => SyntaxKind::POU_START_KEYWORD_KW,
+        Token::KeywordEndFunctionBlock => SyntaxKind::POU_END_KEYWORD_KW,
+        Token::KeywordEndProgram => SyntaxKind::POU_END_KEYWORD_KW,
 
         // Class/OOP keywords - no direct mapping in generated.rs
         Token::KeywordClass => todo!("KeywordClass mapping"),
@@ -91,12 +91,12 @@ fn token_to_syntax_kind(token: Token) -> SyntaxKind {
         Token::KeywordOverride => todo!("KeywordOverride mapping"),
 
         // Variable block keywords
-        Token::KeywordVar => SyntaxKind::VAR_DECLARATION_TYPE,
-        Token::KeywordVarInput => SyntaxKind::VAR_DECLARATION_TYPE,
-        Token::KeywordVarOutput => SyntaxKind::VAR_DECLARATION_TYPE,
-        Token::KeywordVarInOut => SyntaxKind::VAR_DECLARATION_TYPE,
-        Token::KeywordVarTemp => SyntaxKind::VAR_DECLARATION_TYPE,
-        Token::KeywordVarGlobal => SyntaxKind::VAR_DECLARATION_TYPE,
+        Token::KeywordVar => SyntaxKind::VAR_DECLARATION_TYPE_KW,
+        Token::KeywordVarInput => SyntaxKind::VAR_DECLARATION_TYPE_KW,
+        Token::KeywordVarOutput => SyntaxKind::VAR_DECLARATION_TYPE_KW,
+        Token::KeywordVarInOut => SyntaxKind::VAR_DECLARATION_TYPE_KW,
+        Token::KeywordVarTemp => SyntaxKind::VAR_DECLARATION_TYPE_KW,
+        Token::KeywordVarGlobal => SyntaxKind::VAR_DECLARATION_TYPE_KW,
         Token::KeywordEndVar => SyntaxKind::END_VAR_KW,
 
         // Variable qualifiers
@@ -106,8 +106,8 @@ fn token_to_syntax_kind(token: Token) -> SyntaxKind {
         Token::KeywordAt => SyntaxKind::AT_KW,
 
         // Other variable keywords
-        Token::KeywordVarConfig => todo!("KeywordVarConfig mapping"),
-        Token::KeywordVarExternal => todo!("KeywordVarExternal mapping"),
+        Token::KeywordVarConfig => SyntaxKind::VAR_DECLARATION_TYPE_KW,
+        Token::KeywordVarExternal => SyntaxKind::VAR_DECLARATION_TYPE_KW,
 
         // Access modifiers - no direct mapping
         Token::KeywordAccessPublic => todo!("KeywordAccessPublic mapping"),
@@ -143,18 +143,18 @@ fn token_to_syntax_kind(token: Token) -> SyntaxKind {
         Token::KeywordDot => SyntaxKind::DOT,
 
         // Control flow keywords - no direct mapping for most
-        Token::KeywordIf => todo!("KeywordIf mapping"),
-        Token::KeywordThen => todo!("KeywordThen mapping"),
-        Token::KeywordElseIf => todo!("KeywordElseIf mapping"),
-        Token::KeywordElse => todo!("KeywordElse mapping"),
-        Token::KeywordEndIf => todo!("KeywordEndIf mapping"),
-        Token::KeywordFor => todo!("KeywordFor mapping"),
-        Token::KeywordTo => todo!("KeywordTo mapping"),
-        Token::KeywordBy => todo!("KeywordBy mapping"),
-        Token::KeywordDo => todo!("KeywordDo mapping"),
-        Token::KeywordEndFor => todo!("KeywordEndFor mapping"),
-        Token::KeywordWhile => todo!("KeywordWhile mapping"),
-        Token::KeywordEndWhile => todo!("KeywordEndWhile mapping"),
+        Token::KeywordIf => SyntaxKind::IF_KW,
+        Token::KeywordThen => SyntaxKind::THEN_KW,
+        Token::KeywordElseIf => SyntaxKind::ELSIF_KW,
+        Token::KeywordElse => SyntaxKind::ELSE_KW,
+        Token::KeywordEndIf => SyntaxKind::END_IF_KW,
+        Token::KeywordFor => SyntaxKind::FOR_KW,
+        Token::KeywordTo => SyntaxKind::TO_KW,
+        Token::KeywordBy => SyntaxKind::BY_KW,
+        Token::KeywordDo => SyntaxKind::DO_KW,
+        Token::KeywordEndFor => SyntaxKind::END_FOR_KW,
+        Token::KeywordWhile => SyntaxKind::WHILE_KW,
+        Token::KeywordEndWhile => SyntaxKind::END_WHILE_KW,
         Token::KeywordRepeat => todo!("KeywordRepeat mapping"),
         Token::KeywordUntil => todo!("KeywordUntil mapping"),
         Token::KeywordEndRepeat => todo!("KeywordEndRepeat mapping"),
@@ -328,12 +328,12 @@ mod tests {
         let source = "PROGRAM END_PROGRAM FUNCTION END_FUNCTION FUNCTION_BLOCK END_FUNCTION_BLOCK";
         let mut lexer = Lexer::new(source);
         
-        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_TYPE));
-        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_END_KEYWORD));
-        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_TYPE));
-        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_END_KEYWORD));
-        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_TYPE));
-        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_END_KEYWORD));
+        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_START_KEYWORD_KW));
+        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_END_KEYWORD_KW));
+        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_START_KEYWORD_KW));
+        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_END_KEYWORD_KW));
+        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_START_KEYWORD_KW));
+        assert_eq!(lexer.next_token(), Some(SyntaxKind::POU_END_KEYWORD_KW));
         assert_eq!(lexer.next_token(), None);
     }
 
@@ -385,9 +385,9 @@ mod tests {
         let source = "VAR VAR_INPUT VAR_OUTPUT END_VAR";
         let mut lexer = Lexer::new(source);
         
-        assert_eq!(lexer.next_token(), Some(SyntaxKind::VAR_DECLARATION_TYPE));
-        assert_eq!(lexer.next_token(), Some(SyntaxKind::VAR_DECLARATION_TYPE));
-        assert_eq!(lexer.next_token(), Some(SyntaxKind::VAR_DECLARATION_TYPE));
+        assert_eq!(lexer.next_token(), Some(SyntaxKind::VAR_DECLARATION_TYPE_KW));
+        assert_eq!(lexer.next_token(), Some(SyntaxKind::VAR_DECLARATION_TYPE_KW));
+        assert_eq!(lexer.next_token(), Some(SyntaxKind::VAR_DECLARATION_TYPE_KW));
         assert_eq!(lexer.next_token(), Some(SyntaxKind::END_VAR_KW));
         assert_eq!(lexer.next_token(), None);
     }

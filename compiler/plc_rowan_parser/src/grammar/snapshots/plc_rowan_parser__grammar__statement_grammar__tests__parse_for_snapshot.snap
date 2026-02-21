@@ -1,0 +1,34 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
+expression: "parse_body(\"FOR nCounter := 1 TO 5 BY 1 DO\\n  nVar1 := nVar1;\\nEND_FOR\")"
+---
+BODY
+  EXPRESSION_STMT
+    FOR_STATEMENT
+      FOR_KW "FOR"
+      ASSIGNMENT
+        NAME
+          IDENT "nCounter"
+        ASSIGN ":="
+        LITERAL
+          INT_NUMBER "1"
+      TO_KW "TO"
+      EXPRESSION_STMT
+        LITERAL
+          INT_NUMBER "5"
+      BY_KW "BY"
+      EXPRESSION_STMT
+        LITERAL
+          INT_NUMBER "1"
+      DO_KW "DO"
+      BODY
+        EXPRESSION_STMT
+          ASSIGNMENT
+            NAME
+              IDENT "nVar1"
+            ASSIGN ":="
+            EXPRESSION_STMT
+              LITERAL
+                IDENT "nVar1"
+          SEMICOLON ";"
+      END_FOR_KW "END_FOR"

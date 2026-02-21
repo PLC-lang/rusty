@@ -12,7 +12,7 @@ pub struct Assignment {
 }
 impl Assignment {
     #[inline]
-    pub fn target(&self) -> Option<Expression> { support::child(&self.syntax) }
+    pub fn target(&self) -> Option<Name> { support::child(&self.syntax) }
     #[inline]
     pub fn semicolon_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![;]) }
     #[inline]
@@ -23,7 +23,7 @@ pub struct Body {
 }
 impl Body {
     #[inline]
-    pub fn expressions(&self) -> AstChildren<Expression> { support::children(&self.syntax) }
+    pub fn expression_stmts(&self) -> AstChildren<ExpressionStmt> { support::children(&self.syntax) }
 }
 pub struct CompilationUnit {
     pub(crate) syntax: SyntaxNode,
@@ -37,6 +37,10 @@ pub struct ConditionThenBlock {
 }
 impl ConditionThenBlock {
     #[inline]
+    pub fn body(&self) -> Option<Body> { support::child(&self.syntax) }
+    #[inline]
+    pub fn condition_expr(&self) -> Option<ExpressionStmt> { support::child(&self.syntax) }
+    #[inline]
     pub fn THEN_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![THEN]) }
 }
 pub struct ElseArm {
@@ -44,7 +48,7 @@ pub struct ElseArm {
 }
 impl ElseArm {
     #[inline]
-    pub fn expression(&self) -> Option<Expression> { support::child(&self.syntax) }
+    pub fn expression_stmt(&self) -> Option<ExpressionStmt> { support::child(&self.syntax) }
     #[inline]
     pub fn ELSE_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![ELSE]) }
 }
@@ -54,6 +58,34 @@ pub struct ElseIfArm {
 impl ElseIfArm {
     #[inline]
     pub fn ELSIF_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![ELSIF]) }
+}
+pub struct ExpressionStmt {
+    pub(crate) syntax: SyntaxNode,
+}
+impl ExpressionStmt {
+    #[inline]
+    pub fn expression(&self) -> Option<Expression> { support::child(&self.syntax) }
+    #[inline]
+    pub fn semicolon_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![;]) }
+}
+pub struct ForStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl ForStatement {
+    #[inline]
+    pub fn counter(&self) -> Option<Assignment> { support::child(&self.syntax) }
+    #[inline]
+    pub fn step(&self) -> Option<ExpressionStmt> { support::child(&self.syntax) }
+    #[inline]
+    pub fn BY_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![BY]) }
+    #[inline]
+    pub fn DO_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![DO]) }
+    #[inline]
+    pub fn END_FOR_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![END_FOR]) }
+    #[inline]
+    pub fn FOR_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![FOR]) }
+    #[inline]
+    pub fn TO_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![TO]) }
 }
 pub struct IdentifierList {
     pub(crate) syntax: SyntaxNode,
@@ -70,6 +102,8 @@ impl IfStatement {
     pub fn else_arm(&self) -> Option<ElseArm> { support::child(&self.syntax) }
     #[inline]
     pub fn else_if_arms(&self) -> AstChildren<ElseIfArm> { support::children(&self.syntax) }
+    #[inline]
+    pub fn if_condition(&self) -> Option<ConditionThenBlock> { support::child(&self.syntax) }
     #[inline]
     pub fn END_IF_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![END_IF]) }
     #[inline]
@@ -110,31 +144,19 @@ impl Pou {
     #[inline]
     pub fn body(&self) -> Option<Body> { support::child(&self.syntax) }
     #[inline]
-    pub fn pou_end_keyword(&self) -> Option<PouEndKeyword> { support::child(&self.syntax) }
-    #[inline]
-    pub fn pou_type(&self) -> Option<PouType> { support::child(&self.syntax) }
-    #[inline]
     pub fn type_ref(&self) -> Option<NameRef> { support::child(&self.syntax) }
     #[inline]
     pub fn var_declaration_blocks(&self) -> Option<VarDeclarationBlocks> { support::child(&self.syntax) }
     #[inline]
     pub fn colon_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![:]) }
     #[inline]
-    pub fn semicolon_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![;]) }
-}
-pub struct PouEndKeyword {
-    pub(crate) syntax: SyntaxNode,
-}
-impl PouEndKeyword {
+    pub fn PouEndKeyword_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, T![PouEndKeyword])
+    }
     #[inline]
-    pub fn ___PouEnd_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![___PouEnd]) }
-}
-pub struct PouType {
-    pub(crate) syntax: SyntaxNode,
-}
-impl PouType {
-    #[inline]
-    pub fn ___PouType_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![___PouType]) }
+    pub fn PouStartKeyword_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, T![PouStartKeyword])
+    }
 }
 pub struct VarDeclaration {
     pub(crate) syntax: SyntaxNode,
@@ -143,7 +165,7 @@ impl VarDeclaration {
     #[inline]
     pub fn identifier_list(&self) -> Option<IdentifierList> { support::child(&self.syntax) }
     #[inline]
-    pub fn init_value(&self) -> Option<Expression> { support::child(&self.syntax) }
+    pub fn init_value(&self) -> Option<ExpressionStmt> { support::child(&self.syntax) }
     #[inline]
     pub fn location(&self) -> Option<Location> { support::child(&self.syntax) }
     #[inline]
@@ -160,11 +182,13 @@ pub struct VarDeclarationBlock {
 }
 impl VarDeclarationBlock {
     #[inline]
-    pub fn var_declaration_type(&self) -> Option<VarDeclarationType> { support::child(&self.syntax) }
-    #[inline]
     pub fn var_declarations(&self) -> AstChildren<VarDeclaration> { support::children(&self.syntax) }
     #[inline]
     pub fn END_VAR_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![END_VAR]) }
+    #[inline]
+    pub fn VarDeclarationType_token(&self) -> Option<SyntaxToken> {
+        support::token(&self.syntax, T![VarDeclarationType])
+    }
 }
 pub struct VarDeclarationBlocks {
     pub(crate) syntax: SyntaxNode,
@@ -173,15 +197,6 @@ impl VarDeclarationBlocks {
     #[inline]
     pub fn var_declaration_blocks(&self) -> AstChildren<VarDeclarationBlock> {
         support::children(&self.syntax)
-    }
-}
-pub struct VarDeclarationType {
-    pub(crate) syntax: SyntaxNode,
-}
-impl VarDeclarationType {
-    #[inline]
-    pub fn XXX_VarDeclarationType_token(&self) -> Option<SyntaxToken> {
-        support::token(&self.syntax, T![XXX_VarDeclarationType])
     }
 }
 pub struct WhileStatement {
@@ -199,8 +214,10 @@ impl WhileStatement {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Expression {
     Assignment(Assignment),
+    ForStatement(ForStatement),
     IfStatement(IfStatement),
     Literal(Literal),
+    NameRef(NameRef),
     WhileStatement(WhileStatement),
 }
 pub struct AnyHasName {
@@ -424,6 +441,78 @@ impl Clone for ElseIfArm {
 impl fmt::Debug for ElseIfArm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ElseIfArm").field("syntax", &self.syntax).finish()
+    }
+}
+impl AstNode for ExpressionStmt {
+    #[inline]
+    fn kind() -> SyntaxKind
+    where
+        Self: Sized,
+    {
+        EXPRESSION_STMT
+    }
+    #[inline]
+    fn can_cast(kind: SyntaxKind) -> bool { kind == EXPRESSION_STMT }
+    #[inline]
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    #[inline]
+    fn syntax(&self) -> &SyntaxNode { &self.syntax }
+}
+impl hash::Hash for ExpressionStmt {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
+}
+impl Eq for ExpressionStmt {}
+impl PartialEq for ExpressionStmt {
+    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
+}
+impl Clone for ExpressionStmt {
+    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
+}
+impl fmt::Debug for ExpressionStmt {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ExpressionStmt").field("syntax", &self.syntax).finish()
+    }
+}
+impl AstNode for ForStatement {
+    #[inline]
+    fn kind() -> SyntaxKind
+    where
+        Self: Sized,
+    {
+        FOR_STATEMENT
+    }
+    #[inline]
+    fn can_cast(kind: SyntaxKind) -> bool { kind == FOR_STATEMENT }
+    #[inline]
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    #[inline]
+    fn syntax(&self) -> &SyntaxNode { &self.syntax }
+}
+impl hash::Hash for ForStatement {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
+}
+impl Eq for ForStatement {}
+impl PartialEq for ForStatement {
+    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
+}
+impl Clone for ForStatement {
+    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
+}
+impl fmt::Debug for ForStatement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ForStatement").field("syntax", &self.syntax).finish()
     }
 }
 impl AstNode for IdentifierList {
@@ -678,78 +767,6 @@ impl fmt::Debug for Pou {
         f.debug_struct("Pou").field("syntax", &self.syntax).finish()
     }
 }
-impl AstNode for PouEndKeyword {
-    #[inline]
-    fn kind() -> SyntaxKind
-    where
-        Self: Sized,
-    {
-        POU_END_KEYWORD
-    }
-    #[inline]
-    fn can_cast(kind: SyntaxKind) -> bool { kind == POU_END_KEYWORD }
-    #[inline]
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    #[inline]
-    fn syntax(&self) -> &SyntaxNode { &self.syntax }
-}
-impl hash::Hash for PouEndKeyword {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
-}
-impl Eq for PouEndKeyword {}
-impl PartialEq for PouEndKeyword {
-    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
-}
-impl Clone for PouEndKeyword {
-    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
-}
-impl fmt::Debug for PouEndKeyword {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PouEndKeyword").field("syntax", &self.syntax).finish()
-    }
-}
-impl AstNode for PouType {
-    #[inline]
-    fn kind() -> SyntaxKind
-    where
-        Self: Sized,
-    {
-        POU_TYPE
-    }
-    #[inline]
-    fn can_cast(kind: SyntaxKind) -> bool { kind == POU_TYPE }
-    #[inline]
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    #[inline]
-    fn syntax(&self) -> &SyntaxNode { &self.syntax }
-}
-impl hash::Hash for PouType {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
-}
-impl Eq for PouType {}
-impl PartialEq for PouType {
-    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
-}
-impl Clone for PouType {
-    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
-}
-impl fmt::Debug for PouType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("PouType").field("syntax", &self.syntax).finish()
-    }
-}
 impl AstNode for VarDeclaration {
     #[inline]
     fn kind() -> SyntaxKind
@@ -858,42 +875,6 @@ impl fmt::Debug for VarDeclarationBlocks {
         f.debug_struct("VarDeclarationBlocks").field("syntax", &self.syntax).finish()
     }
 }
-impl AstNode for VarDeclarationType {
-    #[inline]
-    fn kind() -> SyntaxKind
-    where
-        Self: Sized,
-    {
-        VAR_DECLARATION_TYPE
-    }
-    #[inline]
-    fn can_cast(kind: SyntaxKind) -> bool { kind == VAR_DECLARATION_TYPE }
-    #[inline]
-    fn cast(syntax: SyntaxNode) -> Option<Self> {
-        if Self::can_cast(syntax.kind()) {
-            Some(Self { syntax })
-        } else {
-            None
-        }
-    }
-    #[inline]
-    fn syntax(&self) -> &SyntaxNode { &self.syntax }
-}
-impl hash::Hash for VarDeclarationType {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
-}
-impl Eq for VarDeclarationType {}
-impl PartialEq for VarDeclarationType {
-    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
-}
-impl Clone for VarDeclarationType {
-    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
-}
-impl fmt::Debug for VarDeclarationType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("VarDeclarationType").field("syntax", &self.syntax).finish()
-    }
-}
 impl AstNode for WhileStatement {
     #[inline]
     fn kind() -> SyntaxKind
@@ -934,6 +915,10 @@ impl From<Assignment> for Expression {
     #[inline]
     fn from(node: Assignment) -> Expression { Expression::Assignment(node) }
 }
+impl From<ForStatement> for Expression {
+    #[inline]
+    fn from(node: ForStatement) -> Expression { Expression::ForStatement(node) }
+}
 impl From<IfStatement> for Expression {
     #[inline]
     fn from(node: IfStatement) -> Expression { Expression::IfStatement(node) }
@@ -942,6 +927,10 @@ impl From<Literal> for Expression {
     #[inline]
     fn from(node: Literal) -> Expression { Expression::Literal(node) }
 }
+impl From<NameRef> for Expression {
+    #[inline]
+    fn from(node: NameRef) -> Expression { Expression::NameRef(node) }
+}
 impl From<WhileStatement> for Expression {
     #[inline]
     fn from(node: WhileStatement) -> Expression { Expression::WhileStatement(node) }
@@ -949,14 +938,16 @@ impl From<WhileStatement> for Expression {
 impl AstNode for Expression {
     #[inline]
     fn can_cast(kind: SyntaxKind) -> bool {
-        matches!(kind, ASSIGNMENT | IF_STATEMENT | LITERAL | WHILE_STATEMENT)
+        matches!(kind, ASSIGNMENT | FOR_STATEMENT | IF_STATEMENT | LITERAL | NAME_REF | WHILE_STATEMENT)
     }
     #[inline]
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             ASSIGNMENT => Expression::Assignment(Assignment { syntax }),
+            FOR_STATEMENT => Expression::ForStatement(ForStatement { syntax }),
             IF_STATEMENT => Expression::IfStatement(IfStatement { syntax }),
             LITERAL => Expression::Literal(Literal { syntax }),
+            NAME_REF => Expression::NameRef(NameRef { syntax }),
             WHILE_STATEMENT => Expression::WhileStatement(WhileStatement { syntax }),
             _ => return None,
         };
@@ -966,8 +957,10 @@ impl AstNode for Expression {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             Expression::Assignment(it) => &it.syntax,
+            Expression::ForStatement(it) => &it.syntax,
             Expression::IfStatement(it) => &it.syntax,
             Expression::Literal(it) => &it.syntax,
+            Expression::NameRef(it) => &it.syntax,
             Expression::WhileStatement(it) => &it.syntax,
         }
     }
@@ -1037,6 +1030,16 @@ impl std::fmt::Display for ElseIfArm {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
+impl std::fmt::Display for ExpressionStmt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for ForStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
 impl std::fmt::Display for IdentifierList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -1072,16 +1075,6 @@ impl std::fmt::Display for Pou {
         std::fmt::Display::fmt(self.syntax(), f)
     }
 }
-impl std::fmt::Display for PouEndKeyword {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self.syntax(), f)
-    }
-}
-impl std::fmt::Display for PouType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self.syntax(), f)
-    }
-}
 impl std::fmt::Display for VarDeclaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
@@ -1093,11 +1086,6 @@ impl std::fmt::Display for VarDeclarationBlock {
     }
 }
 impl std::fmt::Display for VarDeclarationBlocks {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(self.syntax(), f)
-    }
-}
-impl std::fmt::Display for VarDeclarationType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

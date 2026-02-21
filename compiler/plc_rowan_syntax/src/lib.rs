@@ -143,7 +143,13 @@ impl CompilationUnit {
 }
 
 #[cfg(test)]
-mod tests {
+mod test {
+
+    mod test_util;
+    mod pou_parsing_tests;
+    mod variable_declaration_tests;
+    mod control_statements_tests;
+
 
     fn print(element: &SyntaxNode) {
         let mut indent = 0;
@@ -164,41 +170,40 @@ mod tests {
 
     use super::*;
     pub use crate::ast::traits::*;
-    use crate::ast::Expression;
+    use crate::ast::{Body, Expression, ExpressionStmt, NameRef, Pou};
+    use indoc::indoc;
+
+   
+
+    // -----------------------------------------------------------------------
+    // Assignment accessors
+    // -----------------------------------------------------------------------
 
     #[test]
-    fn parse_roundtrip() {
-        let text = "PROGRAM PRG
-            VAR 
-                x, y  : INT; 
-                xx    : BOOL := TRUE;
-            END_VAR
-            VAR_INPUT y : BOOL; END_VAR
-        
-        END_PROGRAM";
-        let cu = CompilationUnit::parse(text).ok().unwrap();
-
+    fn assignment_accessors() {
+        let src = indoc! {"
+            PROGRAM Test
+                x := 100;
+            END_PROGRAM
+        "};
+        let cu = CompilationUnit::parse(src).ok().unwrap();
         let pou = cu.pous().next().unwrap();
-        assert_eq!(pou.name().unwrap().ident_token().unwrap().text(), "PRG");
-
-        let blocks = pou.var_declaration_blocks().unwrap().var_declaration_blocks().collect::<Vec<_>>();
-        let vb1 = &blocks[0];
-        let declarations = vb1.var_declarations().collect::<Vec<_>>();
-        {
-            let names = declarations[0].identifier_list().unwrap().names().collect::<Vec<_>>();
-            assert_eq!(names[0].ident_token().unwrap().text(), "x");
-            assert_eq!(names[1].ident_token().unwrap().text(), "y");
-        }
-        {
-            let xx_node =
-                declarations[1].identifier_list().unwrap().names().nth(0).unwrap().ident_token().unwrap();
-            let xx = xx_node.text();
-            assert_eq!(xx, "xx");
-
-            let Expression::Literal(value) = declarations[1].init_value().unwrap() else {
-                panic!("Expected a literal");
-            };
-            assert_eq!(value.syntax().text(), "TRUE");
-        }
+        let body = pou.body().unwrap();
+        let stmt = body.expression_stmts().next().unwrap();
+        let Expression::Assignment(assign) = stmt.expression().unwrap() else {
+            panic!("expected Assignment");
+        };
+        // target Name token text is "x"
+        assert_eq!(assign.target().unwrap().ident_token().unwrap().text(), "x");
+        // The full assignment text contains ':='
+        assert!(assign.syntax().text().to_string().contains(":="));
+        // ';' token present on the outer ExpressionStmt
+        assert!(stmt.semicolon_token().is_some());
     }
+
+    // -----------------------------------------------------------------------
+    // WhileStatement accessors
+    // -----------------------------------------------------------------------
+
+    
 }

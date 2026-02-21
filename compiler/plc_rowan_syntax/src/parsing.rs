@@ -13,7 +13,7 @@ pub(crate) fn parse_text(text: &str) -> (GreenNode, Vec<SyntaxError>) {
     (node, errors)
 }
 
-pub(crate) fn build_tree(
+pub fn build_tree(
     lexed: plc_rowan_parser::LexedStr<'_>,
     parser_output: plc_rowan_parser::Output,
 ) -> (GreenNode, Vec<SyntaxError>, bool) {

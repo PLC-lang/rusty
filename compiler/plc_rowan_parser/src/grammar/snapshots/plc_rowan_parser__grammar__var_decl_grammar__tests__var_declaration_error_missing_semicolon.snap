@@ -1,6 +1,5 @@
 ---
 source: compiler/plc_rowan_parser/src/grammar/var_decl_grammar.rs
-assertion_line: 126
 expression: "format_tree(&output, &input)"
 ---
 VAR_DECLARATION

@@ -1,0 +1,14 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
+expression: "parse_body(\"x := 42;\")"
+---
+BODY
+  EXPRESSION_STMT
+    ASSIGNMENT
+      NAME
+        IDENT "x"
+      ASSIGN ":="
+      EXPRESSION_STMT
+        LITERAL
+          INT_NUMBER "42"
+    SEMICOLON ";"

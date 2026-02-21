@@ -4,8 +4,9 @@
 /// it also contains the entry-point for the grammar, which is the `compilation_unit` function
 ///
 /// the more specific parsing for the grammar is in the `grammar` sub-module, which contains functions for each rule in the grammar
-mod pou_grammar;
-mod var_decl_grammar;
+pub mod pou_grammar;
+pub mod var_decl_grammar;
+pub mod statement_grammar;
 
 use crate::SyntaxKind::{self, *};
 use crate::T;
@@ -14,7 +15,7 @@ use crate::parser::Parser;
 pub fn compilation_unit(p: &mut Parser) {
     let m = p.start();
 
-    while (p.at(POU_TYPE)) {
+    while (p.at(POU_START_KEYWORD_KW)) {
         pou_grammar::pou(p);
     }
 
