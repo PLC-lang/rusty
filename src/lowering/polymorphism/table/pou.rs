@@ -57,8 +57,8 @@
 //! example we would generate the following two variables
 //! ```text
 //! VAR_GLOBAL
-//!     __vtable_instance_A: __vtable_A;
-//!     __vtable_instance_B: __vtable_B;
+//!     __vtable_A_instance: __vtable_A;
+//!     __vtable_B_instance: __vtable_B;
 //! END_VAR
 //! ```
 //! These global variables will later be assigned in the [`crate::lowering::initializers`] module.
