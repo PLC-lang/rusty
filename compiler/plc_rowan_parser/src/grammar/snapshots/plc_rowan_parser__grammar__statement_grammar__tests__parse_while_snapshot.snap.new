@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
-assertion_line: 233
+assertion_line: 348
 expression: "parse_body(\"WHILE x DO\\n  y := 1;\\nEND_WHILE\")"
 ---
 BODY

@@ -1,0 +1,22 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
+expression: "parse_body(\"foo(4, 5);\")"
+---
+BODY
+  EXPRESSION_STMT
+    CALL_STATEMENT
+      NAME_REF
+        IDENT "foo"
+      L_PAREN "("
+      ARGUMENT_LIST
+        ARGUMENT
+          EXPRESSION_STMT
+            LITERAL
+              INT_NUMBER "4"
+        COMMA ","
+        ARGUMENT
+          EXPRESSION_STMT
+            LITERAL
+              INT_NUMBER "5"
+      R_PAREN ")"
+    SEMICOLON ";"

@@ -10,6 +10,7 @@ fn at_expression_start(p: &Parser) -> bool {
         IF_KW
             | FOR_KW
             | WHILE_KW
+            | CASE_KW
             | INT_NUMBER
             | FLOAT_NUMBER
             | BOOL_LITERAL
@@ -47,7 +48,10 @@ pub fn expression(p: &mut Parser) {
         IF_KW => if_statement(p),
         FOR_KW => for_statement(p),
         WHILE_KW => while_statement(p),
-        // IDENT followed by ':=' is an assignment; otherwise it's a name reference (literal).
+        CASE_KW => case_statement(p),
+        // IDENT followed by '(' is a call statement.
+        IDENT if p.nth(1) == L_PAREN => call_statement(p),
+        // IDENT followed by ':=' is an assignment.
         IDENT if p.nth(1) == ASSIGN => assignment(p),
         _ if p.current().is_literal() => literal(p),
         _ if p.current() == IDENT => name_ref(p),
@@ -94,13 +98,7 @@ fn else_if_arm(p: &mut Parser) {
 fn else_arm(p: &mut Parser) {
     let m = p.start();
     p.bump(ELSE_KW);
-    // The ELSE body is a sequence of statements, represented as a Body in the
-    // grammar — but the ungram models it as a single ExpressionStmt. We parse
-    // all available statements here by looping.
-    
-    while !p.at(END_IF_KW){
-        expression_stmt(p, true);
-    }
+    body(p);
     m.complete(p, ELSE_ARM);
 }
 
@@ -173,9 +171,166 @@ fn value_expression(p: &mut Parser) {
         IF_KW => if_statement(p),
         FOR_KW => for_statement(p),
         WHILE_KW => while_statement(p),
+        CASE_KW => case_statement(p),
+        IDENT if p.nth(1) == L_PAREN => call_statement(p),
         _ if p.current().is_literal() || p.at(IDENT) => literal(p),
         _ => {
             p.error("expected expression");
+        }
+    }
+}
+
+// CallStatement = callee:NameRef '(' ArgumentList? ')'
+pub fn call_statement(p: &mut Parser) {
+    let m = p.start();
+    name_ref(p); // callee
+    p.expect(T!['(']);
+    if !p.at(T![')']) {
+        argument_list(p);
+    }
+    p.expect(T![')']);
+    m.complete(p, CALL_STATEMENT);
+}
+
+// ArgumentList = Argument (',' Argument)*
+fn argument_list(p: &mut Parser) {
+    let m = p.start();
+    argument(p);
+    while p.eat(T![,]) {
+        argument(p);
+    }
+    m.complete(p, ARGUMENT_LIST);
+}
+
+// Argument = (name:Name ':=' )? value:ExpressionStmt
+fn argument(p: &mut Parser) {
+    let m = p.start();
+    // Named argument: IDENT ':=' value
+    if p.at(IDENT) && p.nth(1) == ASSIGN {
+        let name_m = p.start();
+        p.bump(IDENT);
+        name_m.complete(p, NAME);
+        p.bump(ASSIGN);
+    }
+    // value expression (no semicolon inside argument list)
+    expression_stmt(p, false);
+    m.complete(p, ARGUMENT);
+}
+
+// CaseStatement =
+//   'CASE' case_expr:ExpressionStmt 'OF' CaseArm* 'END_CASE'
+pub fn case_statement(p: &mut Parser) {
+    let m = p.start();
+    p.bump(CASE_KW);
+    expression_stmt(p, false); // case case_expr
+    p.expect(OF_KW);
+    // Parse case arms: each starts with a value (literal or identifier)
+    while !p.at(ELSE_KW) && !p.at(END_CASE_KW) && !p.at(EOF) {
+        case_arm(p);
+    }
+    // Optional ELSE clause
+    if p.at(ELSE_KW) {
+        let else_m = p.start();
+        p.bump(ELSE_KW);
+        while !p.at(END_CASE_KW) && !p.at(EOF) {
+            expression_stmt(p, true);
+        }
+        else_m.complete(p, ELSE_ARM);
+    }
+    p.expect(END_CASE_KW);
+    m.complete(p, CASE_STATEMENT);
+}
+
+// CaseArm = case_values:ExpressionList ':' Body
+fn case_arm(p: &mut Parser) {
+    let m = p.start();
+    expression_list(p);
+    p.expect(T![:]);
+    case_body(p);
+    m.complete(p, CASE_ARM);
+}
+
+/// Parse the body of a case arm. This is similar to `body()`, but it must stop
+/// when it encounters the start of a new case arm (a literal/identifier that is
+/// NOT followed by `:=`), an `ELSE`, or `END_CASE`.
+fn case_body(p: &mut Parser) {
+    let m = p.start();
+    while at_expression_start(p) && !at_case_arm_start(p) {
+        expression_stmt(p, true);
+    }
+    m.complete(p, BODY);
+}
+
+/// Returns true when the parser is positioned at the start of a new case arm
+/// value list (e.g. `1, 5:` or `c_ONE:` or `10..20:`).
+/// This is: a literal or identifier that is NOT followed by `:=` (which would
+/// indicate an assignment).
+fn at_case_arm_start(p: &Parser) -> bool {
+    let cur = p.current();
+    if cur.is_literal() || cur == IDENT {
+        // An assignment target is IDENT ':=', so exclude that.
+        if cur == IDENT && p.nth(1) == ASSIGN {
+            return false;
+        }
+        // Peek forward to see if there is a ':' (not ':=') somewhere after
+        // a potential expression list (values separated by ',' and possibly '..').
+        // Simple heuristic: if the next non-value token is ':', it's a case arm.
+        let mut lookahead = 1;
+        loop {
+            let k = p.nth(lookahead);
+            match k {
+                // Separator within a case value list
+                COMMA | DOT2 => {
+                    lookahead += 1;
+                }
+                // Value tokens within the list
+                _ if k.is_literal() || k == IDENT => {
+                    lookahead += 1;
+                }
+                // Found a colon → this is a case arm start
+                COLON => return true,
+                // Anything else → not a case arm start
+                _ => return false,
+            }
+        }
+    }
+    false
+}
+
+// ExpressionList = Expression (',' Expression)*
+fn expression_list(p: &mut Parser) {
+    let m = p.start();
+    // Parse the first value expression (literal, name ref, or range)
+    case_value(p);
+    while p.eat(T![,]) {
+        case_value(p);
+    }
+    m.complete(p, EXPRESSION_LIST);
+}
+
+/// Parse a single case value. This can be a literal, a name reference,
+/// or a range expression like `10..20`.
+fn case_value(p: &mut Parser) {
+    // First, parse a simple expression (literal or name ref)
+    if p.current().is_literal() {
+        literal(p);
+    } else if p.at(IDENT) {
+        name_ref(p);
+    } else {
+        p.error("expected case value");
+        return;
+    }
+    // Check for range: `..` followed by another value
+    if p.at(DOT2) {
+        // For now we just consume the `..` and the end value as tokens;
+        // a proper range node could be added later.
+        p.bump(DOT2);
+        if p.current().is_literal() {
+            literal(p);
+        } else if p.at(IDENT) {
+            name_ref(p);
+        } else {
+            p.error("expected end of range");
         }
     }
 }
@@ -259,6 +414,63 @@ mod tests {
         insta::assert_snapshot!(parse_body(
             "FOR i := 0 TO 10 DO\n  x := i;\nEND_FOR"
         ));
+    }
+
+    // -----------------------------------------------------------------------
+    // CaseStatement
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn parse_case_snapshot() {
+        insta::assert_snapshot!(parse_body(
+            "CASE iCondition OF\n\
+             1, 5:\n\
+             \tbVar1 := 1;\n\
+             2:\n\
+             \tbVar2 := 0;\n\
+             END_CASE"
+        ));
+    }
+
+    #[test]
+    fn parse_case_with_else_snapshot() {
+        insta::assert_snapshot!(parse_body(
+            "CASE x OF\n\
+             1:\n\
+             \ta := 1;\n\
+             ELSE\n\
+             \ta := 0;\n\
+             END_CASE"
+        ));
+    }
+
+    #[test]
+    fn parse_case_with_range_snapshot() {
+        insta::assert_snapshot!(parse_body(
+            "CASE x OF\n\
+             10 .. 20:\n\
+             \ty := 1;\n\
+             END_CASE"
+        ));
+    }
+
+    // -----------------------------------------------------------------------
+    // CallStatement
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn parse_call_positional_args() {
+        insta::assert_snapshot!(parse_body("foo(4, 5);"));
+    }
+
+    #[test]
+    fn parse_call_named_args() {
+        insta::assert_snapshot!(parse_body("TMR(IN := 5, PT := x);"));
+    }
+
+    #[test]
+    fn parse_call_no_args() {
+        insta::assert_snapshot!(parse_body("reset();"));
     }
 }
 

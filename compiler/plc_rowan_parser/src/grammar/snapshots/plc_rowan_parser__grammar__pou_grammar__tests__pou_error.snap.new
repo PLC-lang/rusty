@@ -1,17 +1,16 @@
 ---
 source: compiler/plc_rowan_parser/src/grammar/pou_grammar.rs
-assertion_line: 115
+assertion_line: 108
 expression: "format_tree(&output, &input)"
 ---
 COMPILATION_UNIT
   POU
-    POU_TYPE
-      ____POU_TYPE_KW "PROGRAM"
+    POU_START_KEYWORD_KW "PROGRAM"
     NAME
       IDENT "MyProgram"
     VAR_DECLARATION_BLOCKS
       VAR_DECLARATION_BLOCK
-        VAR_DECLARATION_TYPE "VAR"
+        VAR_DECLARATION_TYPE_KW "VAR"
         VAR_DECLARATION
           IDENTIFIER_LIST
             NAME
@@ -21,8 +20,7 @@ COMPILATION_UNIT
             IDENT "INT"
         END_VAR_KW "END_VAR"
     BODY
-    POU_END_KEYWORD
-      ____POU_END_KW "END_PROGRAM"
+    POU_END_KEYWORD_KW "END_PROGRAM"
 
 Errors:
   error 162-169: expected SEMICOLON: near END_VAR

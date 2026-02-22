@@ -7,6 +7,21 @@ use crate::{
     SyntaxNode, SyntaxToken, T,
 };
 use std::{fmt, hash};
+pub struct Argument {
+    pub(crate) syntax: SyntaxNode,
+}
+impl ast::HasName for Argument {}
+impl Argument {
+    #[inline]
+    pub fn eq_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![=]) }
+}
+pub struct ArgumentList {
+    pub(crate) syntax: SyntaxNode,
+}
+impl ArgumentList {
+    #[inline]
+    pub fn arguments(&self) -> AstChildren<Argument> { support::children(&self.syntax) }
+}
 pub struct Assignment {
     pub(crate) syntax: SyntaxNode,
 }
@@ -24,6 +39,45 @@ pub struct Body {
 impl Body {
     #[inline]
     pub fn expression_stmts(&self) -> AstChildren<ExpressionStmt> { support::children(&self.syntax) }
+}
+pub struct CallStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl CallStatement {
+    #[inline]
+    pub fn argument_list(&self) -> Option<ArgumentList> { support::child(&self.syntax) }
+    #[inline]
+    pub fn callee(&self) -> Option<NameRef> { support::child(&self.syntax) }
+    #[inline]
+    pub fn l_paren_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T!['(']) }
+    #[inline]
+    pub fn r_paren_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![')']) }
+}
+pub struct CaseArm {
+    pub(crate) syntax: SyntaxNode,
+}
+impl CaseArm {
+    #[inline]
+    pub fn body(&self) -> Option<Body> { support::child(&self.syntax) }
+    #[inline]
+    pub fn case_values(&self) -> Option<ExpressionList> { support::child(&self.syntax) }
+    #[inline]
+    pub fn colon_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![:]) }
+}
+pub struct CaseStatement {
+    pub(crate) syntax: SyntaxNode,
+}
+impl CaseStatement {
+    #[inline]
+    pub fn case_arms(&self) -> AstChildren<CaseArm> { support::children(&self.syntax) }
+    #[inline]
+    pub fn case_expr(&self) -> Option<ExpressionStmt> { support::child(&self.syntax) }
+    #[inline]
+    pub fn CASE_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![CASE]) }
+    #[inline]
+    pub fn END_CASE_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![END_CASE]) }
+    #[inline]
+    pub fn OF_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![OF]) }
 }
 pub struct CompilationUnit {
     pub(crate) syntax: SyntaxNode,
@@ -48,7 +102,7 @@ pub struct ElseArm {
 }
 impl ElseArm {
     #[inline]
-    pub fn expression_stmt(&self) -> Option<ExpressionStmt> { support::child(&self.syntax) }
+    pub fn body(&self) -> Option<Body> { support::child(&self.syntax) }
     #[inline]
     pub fn ELSE_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![ELSE]) }
 }
@@ -58,6 +112,13 @@ pub struct ElseIfArm {
 impl ElseIfArm {
     #[inline]
     pub fn ELSIF_token(&self) -> Option<SyntaxToken> { support::token(&self.syntax, T![ELSIF]) }
+}
+pub struct ExpressionList {
+    pub(crate) syntax: SyntaxNode,
+}
+impl ExpressionList {
+    #[inline]
+    pub fn expressions(&self) -> AstChildren<Expression> { support::children(&self.syntax) }
 }
 pub struct ExpressionStmt {
     pub(crate) syntax: SyntaxNode,
@@ -214,6 +275,8 @@ impl WhileStatement {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Expression {
     Assignment(Assignment),
+    CallStatement(CallStatement),
+    CaseStatement(CaseStatement),
     ForStatement(ForStatement),
     IfStatement(IfStatement),
     Literal(Literal),
@@ -226,6 +289,78 @@ pub struct AnyHasName {
 impl AnyHasName {
     #[inline]
     pub fn new<T: ast::HasName>(node: T) -> AnyHasName { AnyHasName { syntax: node.syntax().clone() } }
+}
+impl AstNode for Argument {
+    #[inline]
+    fn kind() -> SyntaxKind
+    where
+        Self: Sized,
+    {
+        ARGUMENT
+    }
+    #[inline]
+    fn can_cast(kind: SyntaxKind) -> bool { kind == ARGUMENT }
+    #[inline]
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    #[inline]
+    fn syntax(&self) -> &SyntaxNode { &self.syntax }
+}
+impl hash::Hash for Argument {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
+}
+impl Eq for Argument {}
+impl PartialEq for Argument {
+    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
+}
+impl Clone for Argument {
+    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
+}
+impl fmt::Debug for Argument {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Argument").field("syntax", &self.syntax).finish()
+    }
+}
+impl AstNode for ArgumentList {
+    #[inline]
+    fn kind() -> SyntaxKind
+    where
+        Self: Sized,
+    {
+        ARGUMENT_LIST
+    }
+    #[inline]
+    fn can_cast(kind: SyntaxKind) -> bool { kind == ARGUMENT_LIST }
+    #[inline]
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    #[inline]
+    fn syntax(&self) -> &SyntaxNode { &self.syntax }
+}
+impl hash::Hash for ArgumentList {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
+}
+impl Eq for ArgumentList {}
+impl PartialEq for ArgumentList {
+    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
+}
+impl Clone for ArgumentList {
+    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
+}
+impl fmt::Debug for ArgumentList {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ArgumentList").field("syntax", &self.syntax).finish()
+    }
 }
 impl AstNode for Assignment {
     #[inline]
@@ -297,6 +432,114 @@ impl Clone for Body {
 impl fmt::Debug for Body {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Body").field("syntax", &self.syntax).finish()
+    }
+}
+impl AstNode for CallStatement {
+    #[inline]
+    fn kind() -> SyntaxKind
+    where
+        Self: Sized,
+    {
+        CALL_STATEMENT
+    }
+    #[inline]
+    fn can_cast(kind: SyntaxKind) -> bool { kind == CALL_STATEMENT }
+    #[inline]
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    #[inline]
+    fn syntax(&self) -> &SyntaxNode { &self.syntax }
+}
+impl hash::Hash for CallStatement {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
+}
+impl Eq for CallStatement {}
+impl PartialEq for CallStatement {
+    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
+}
+impl Clone for CallStatement {
+    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
+}
+impl fmt::Debug for CallStatement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CallStatement").field("syntax", &self.syntax).finish()
+    }
+}
+impl AstNode for CaseArm {
+    #[inline]
+    fn kind() -> SyntaxKind
+    where
+        Self: Sized,
+    {
+        CASE_ARM
+    }
+    #[inline]
+    fn can_cast(kind: SyntaxKind) -> bool { kind == CASE_ARM }
+    #[inline]
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    #[inline]
+    fn syntax(&self) -> &SyntaxNode { &self.syntax }
+}
+impl hash::Hash for CaseArm {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
+}
+impl Eq for CaseArm {}
+impl PartialEq for CaseArm {
+    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
+}
+impl Clone for CaseArm {
+    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
+}
+impl fmt::Debug for CaseArm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CaseArm").field("syntax", &self.syntax).finish()
+    }
+}
+impl AstNode for CaseStatement {
+    #[inline]
+    fn kind() -> SyntaxKind
+    where
+        Self: Sized,
+    {
+        CASE_STATEMENT
+    }
+    #[inline]
+    fn can_cast(kind: SyntaxKind) -> bool { kind == CASE_STATEMENT }
+    #[inline]
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    #[inline]
+    fn syntax(&self) -> &SyntaxNode { &self.syntax }
+}
+impl hash::Hash for CaseStatement {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
+}
+impl Eq for CaseStatement {}
+impl PartialEq for CaseStatement {
+    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
+}
+impl Clone for CaseStatement {
+    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
+}
+impl fmt::Debug for CaseStatement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CaseStatement").field("syntax", &self.syntax).finish()
     }
 }
 impl AstNode for CompilationUnit {
@@ -441,6 +684,42 @@ impl Clone for ElseIfArm {
 impl fmt::Debug for ElseIfArm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ElseIfArm").field("syntax", &self.syntax).finish()
+    }
+}
+impl AstNode for ExpressionList {
+    #[inline]
+    fn kind() -> SyntaxKind
+    where
+        Self: Sized,
+    {
+        EXPRESSION_LIST
+    }
+    #[inline]
+    fn can_cast(kind: SyntaxKind) -> bool { kind == EXPRESSION_LIST }
+    #[inline]
+    fn cast(syntax: SyntaxNode) -> Option<Self> {
+        if Self::can_cast(syntax.kind()) {
+            Some(Self { syntax })
+        } else {
+            None
+        }
+    }
+    #[inline]
+    fn syntax(&self) -> &SyntaxNode { &self.syntax }
+}
+impl hash::Hash for ExpressionList {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) { self.syntax.hash(state); }
+}
+impl Eq for ExpressionList {}
+impl PartialEq for ExpressionList {
+    fn eq(&self, other: &Self) -> bool { self.syntax == other.syntax }
+}
+impl Clone for ExpressionList {
+    fn clone(&self) -> Self { Self { syntax: self.syntax.clone() } }
+}
+impl fmt::Debug for ExpressionList {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ExpressionList").field("syntax", &self.syntax).finish()
     }
 }
 impl AstNode for ExpressionStmt {
@@ -915,6 +1194,14 @@ impl From<Assignment> for Expression {
     #[inline]
     fn from(node: Assignment) -> Expression { Expression::Assignment(node) }
 }
+impl From<CallStatement> for Expression {
+    #[inline]
+    fn from(node: CallStatement) -> Expression { Expression::CallStatement(node) }
+}
+impl From<CaseStatement> for Expression {
+    #[inline]
+    fn from(node: CaseStatement) -> Expression { Expression::CaseStatement(node) }
+}
 impl From<ForStatement> for Expression {
     #[inline]
     fn from(node: ForStatement) -> Expression { Expression::ForStatement(node) }
@@ -938,12 +1225,24 @@ impl From<WhileStatement> for Expression {
 impl AstNode for Expression {
     #[inline]
     fn can_cast(kind: SyntaxKind) -> bool {
-        matches!(kind, ASSIGNMENT | FOR_STATEMENT | IF_STATEMENT | LITERAL | NAME_REF | WHILE_STATEMENT)
+        matches!(
+            kind,
+            ASSIGNMENT
+                | CALL_STATEMENT
+                | CASE_STATEMENT
+                | FOR_STATEMENT
+                | IF_STATEMENT
+                | LITERAL
+                | NAME_REF
+                | WHILE_STATEMENT
+        )
     }
     #[inline]
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         let res = match syntax.kind() {
             ASSIGNMENT => Expression::Assignment(Assignment { syntax }),
+            CALL_STATEMENT => Expression::CallStatement(CallStatement { syntax }),
+            CASE_STATEMENT => Expression::CaseStatement(CaseStatement { syntax }),
             FOR_STATEMENT => Expression::ForStatement(ForStatement { syntax }),
             IF_STATEMENT => Expression::IfStatement(IfStatement { syntax }),
             LITERAL => Expression::Literal(Literal { syntax }),
@@ -957,6 +1256,8 @@ impl AstNode for Expression {
     fn syntax(&self) -> &SyntaxNode {
         match self {
             Expression::Assignment(it) => &it.syntax,
+            Expression::CallStatement(it) => &it.syntax,
+            Expression::CaseStatement(it) => &it.syntax,
             Expression::ForStatement(it) => &it.syntax,
             Expression::IfStatement(it) => &it.syntax,
             Expression::Literal(it) => &it.syntax,
@@ -968,7 +1269,7 @@ impl AstNode for Expression {
 impl ast::HasName for AnyHasName {}
 impl AstNode for AnyHasName {
     #[inline]
-    fn can_cast(kind: SyntaxKind) -> bool { matches!(kind, POU) }
+    fn can_cast(kind: SyntaxKind) -> bool { matches!(kind, ARGUMENT | POU) }
     #[inline]
     fn cast(syntax: SyntaxNode) -> Option<Self> {
         Self::can_cast(syntax.kind()).then_some(AnyHasName { syntax })
@@ -991,11 +1292,25 @@ impl fmt::Debug for AnyHasName {
         f.debug_struct("AnyHasName").field("syntax", &self.syntax).finish()
     }
 }
+impl From<Argument> for AnyHasName {
+    #[inline]
+    fn from(node: Argument) -> AnyHasName { AnyHasName { syntax: node.syntax } }
+}
 impl From<Pou> for AnyHasName {
     #[inline]
     fn from(node: Pou) -> AnyHasName { AnyHasName { syntax: node.syntax } }
 }
 impl std::fmt::Display for Expression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for Argument {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for ArgumentList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -1006,6 +1321,21 @@ impl std::fmt::Display for Assignment {
     }
 }
 impl std::fmt::Display for Body {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for CallStatement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for CaseArm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for CaseStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }
@@ -1026,6 +1356,11 @@ impl std::fmt::Display for ElseArm {
     }
 }
 impl std::fmt::Display for ElseIfArm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self.syntax(), f)
+    }
+}
+impl std::fmt::Display for ExpressionList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         std::fmt::Display::fmt(self.syntax(), f)
     }

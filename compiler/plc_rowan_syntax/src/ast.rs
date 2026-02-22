@@ -17,6 +17,8 @@ pub use crate::ast::traits::*;
 pub use crate::ast::generated::nodes::*;
 pub use crate::ast::generated::tokens::*;
 
+use std::string::String as StringType;
+
 
 
 /// The main trait to go from untyped `SyntaxNode`  to a typed ast. The
@@ -52,6 +54,10 @@ pub trait AstNode {
         Self: Sized,
     {
         Self::cast(self.syntax().clone_subtree()).unwrap()
+    }
+
+    fn text(&self) -> StringType {
+        self.syntax().text().to_string()
     }
 }
 

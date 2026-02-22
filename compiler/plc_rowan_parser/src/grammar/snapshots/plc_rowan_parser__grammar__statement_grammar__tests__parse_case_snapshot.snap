@@ -1,0 +1,46 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
+expression: "parse_body(\"CASE iCondition OF\\n\\\n             1, 5:\\n\\\n             \\tbVar1 := 1;\\n\\\n             2:\\n\\\n             \\tbVar2 := 0;\\n\\\n             END_CASE\")"
+---
+BODY
+  EXPRESSION_STMT
+    CASE_STATEMENT
+      CASE_KW "CASE"
+      EXPRESSION_STMT
+        NAME_REF
+          IDENT "iCondition"
+      OF_KW "OF"
+      CASE_ARM
+        EXPRESSION_LIST
+          LITERAL
+            INT_NUMBER "1"
+          COMMA ","
+          LITERAL
+            INT_NUMBER "5"
+        COLON ":"
+        BODY
+          EXPRESSION_STMT
+            ASSIGNMENT
+              NAME
+                IDENT "bVar1"
+              ASSIGN ":="
+              EXPRESSION_STMT
+                LITERAL
+                  INT_NUMBER "1"
+            SEMICOLON ";"
+      CASE_ARM
+        EXPRESSION_LIST
+          LITERAL
+            INT_NUMBER "2"
+        COLON ":"
+        BODY
+          EXPRESSION_STMT
+            ASSIGNMENT
+              NAME
+                IDENT "bVar2"
+              ASSIGN ":="
+              EXPRESSION_STMT
+                LITERAL
+                  INT_NUMBER "0"
+            SEMICOLON ";"
+      END_CASE_KW "END_CASE"

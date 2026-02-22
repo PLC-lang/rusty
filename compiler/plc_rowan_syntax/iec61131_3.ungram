@@ -40,13 +40,13 @@ VarDeclaration =
 
  Expression =
   IfStatement 
-  // CaseStatement |
+  | CaseStatement
   | ForStatement
   | WhileStatement
   | Assignment
+  | CallStatement
   | Literal
   | NameRef
-  // todo: call,
 
 Assignment =
   target:Name '=' value:ExpressionStmt ';'
@@ -64,7 +64,7 @@ ElseIfArm =
   'ELSIF' condition:ConditionThenBlock
 
 ElseArm =
-  'ELSE' ExpressionStmt
+  'ELSE' Body
 
 WhileStatement =
   'WHILE' condition:ExpressionStmt 'DO' body:ExpressionStmt 'END_WHILE'
@@ -74,7 +74,28 @@ ForStatement =
 
 ConditionThenBlock =
   condition_expr:ExpressionStmt 'THEN' Body
+
+CaseStatement =
+  'CASE' case_expr:ExpressionStmt 'OF' CaseArm* 'END_CASE'
+
+CaseArm =
+  case_values:ExpressionList ':' Body
   
+ExpressionList =
+  Expression (',' Expression)*
+
+//////////////////////////
+/// CALL STATEMENTS
+//////////////////////////
+CallStatement =
+  callee:NameRef '(' ArgumentList? ')' 
+
+ArgumentList =
+  Argument (',' Argument)*
+
+Argument =
+  (name:Name '=' )? value:ExpressionStmt
+
 //////////////////////////
 /// TERMINALs, KEYWORDS, LITERALS
 //////////////////////////

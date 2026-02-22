@@ -62,15 +62,18 @@ pub enum SyntaxKind {
     SHLEQ,
     SHREQ,
     BY_KW,
+    CASE_KW,
     DO_KW,
     ELSE_KW,
     ELSIF_KW,
+    END_CASE_KW,
     END_FOR_KW,
     END_IF_KW,
     END_VAR_KW,
     END_WHILE_KW,
     FOR_KW,
     IF_KW,
+    OF_KW,
     POU_END_KEYWORD_KW,
     POU_START_KEYWORD_KW,
     THEN_KW,
@@ -93,12 +96,18 @@ pub enum SyntaxKind {
     IDENT,
     NEWLINE,
     WHITESPACE,
+    ARGUMENT,
+    ARGUMENT_LIST,
     ASSIGNMENT,
     BODY,
+    CALL_STATEMENT,
+    CASE_ARM,
+    CASE_STATEMENT,
     COMPILATION_UNIT,
     CONDITION_THEN_BLOCK,
     ELSE_ARM,
     ELSE_IF_ARM,
+    EXPRESSION_LIST,
     EXPRESSION_STMT,
     FOR_STATEMENT,
     IDENTIFIER_LIST,
@@ -130,12 +139,18 @@ impl SyntaxKind {
             | STRING
             | STRING_LITERAL
             | W_STRING
+            | ARGUMENT
+            | ARGUMENT_LIST
             | ASSIGNMENT
             | BODY
+            | CALL_STATEMENT
+            | CASE_ARM
+            | CASE_STATEMENT
             | COMPILATION_UNIT
             | CONDITION_THEN_BLOCK
             | ELSE_ARM
             | ELSE_IF_ARM
+            | EXPRESSION_LIST
             | EXPRESSION_STMT
             | FOR_STATEMENT
             | IDENTIFIER_LIST
@@ -208,15 +223,18 @@ impl SyntaxKind {
             SHLEQ => "<<=",
             SHREQ => ">>=",
             BY_KW => "BY",
+            CASE_KW => "CASE",
             DO_KW => "DO",
             ELSE_KW => "ELSE",
             ELSIF_KW => "ELSIF",
+            END_CASE_KW => "END_CASE",
             END_FOR_KW => "END_FOR",
             END_IF_KW => "END_IF",
             END_VAR_KW => "END_VAR",
             END_WHILE_KW => "END_WHILE",
             FOR_KW => "FOR",
             IF_KW => "IF",
+            OF_KW => "OF",
             POU_END_KEYWORD_KW => "PouEndKeyword",
             POU_START_KEYWORD_KW => "PouStartKeyword",
             THEN_KW => "THEN",
@@ -235,15 +253,18 @@ impl SyntaxKind {
         matches!(
             self,
             BY_KW
+                | CASE_KW
                 | DO_KW
                 | ELSE_KW
                 | ELSIF_KW
+                | END_CASE_KW
                 | END_FOR_KW
                 | END_IF_KW
                 | END_VAR_KW
                 | END_WHILE_KW
                 | FOR_KW
                 | IF_KW
+                | OF_KW
                 | POU_END_KEYWORD_KW
                 | POU_START_KEYWORD_KW
                 | THEN_KW
@@ -270,15 +291,18 @@ impl SyntaxKind {
         matches!(
             self,
             BY_KW
+                | CASE_KW
                 | DO_KW
                 | ELSE_KW
                 | ELSIF_KW
+                | END_CASE_KW
                 | END_FOR_KW
                 | END_IF_KW
                 | END_VAR_KW
                 | END_WHILE_KW
                 | FOR_KW
                 | IF_KW
+                | OF_KW
                 | POU_END_KEYWORD_KW
                 | POU_START_KEYWORD_KW
                 | THEN_KW
@@ -357,15 +381,18 @@ impl SyntaxKind {
     pub fn from_keyword(ident: &str) -> Option<SyntaxKind> {
         let kw = match ident {
             "BY" => BY_KW,
+            "CASE" => CASE_KW,
             "DO" => DO_KW,
             "ELSE" => ELSE_KW,
             "ELSIF" => ELSIF_KW,
+            "END_CASE" => END_CASE_KW,
             "END_FOR" => END_FOR_KW,
             "END_IF" => END_IF_KW,
             "END_VAR" => END_VAR_KW,
             "END_WHILE" => END_WHILE_KW,
             "FOR" => FOR_KW,
             "IF" => IF_KW,
+            "OF" => OF_KW,
             "PouEndKeyword" => POU_END_KEYWORD_KW,
             "PouStartKeyword" => POU_START_KEYWORD_KW,
             "THEN" => THEN_KW,
@@ -478,15 +505,18 @@ macro_rules ! T_ {
     [<<=] => { $ crate :: SyntaxKind :: SHLEQ };
     [>>=] => { $ crate :: SyntaxKind :: SHREQ };
     [BY] => { $ crate :: SyntaxKind :: BY_KW };
+    [CASE] => { $ crate :: SyntaxKind :: CASE_KW };
     [DO] => { $ crate :: SyntaxKind :: DO_KW };
     [ELSE] => { $ crate :: SyntaxKind :: ELSE_KW };
     [ELSIF] => { $ crate :: SyntaxKind :: ELSIF_KW };
+    [END_CASE] => { $ crate :: SyntaxKind :: END_CASE_KW };
     [END_FOR] => { $ crate :: SyntaxKind :: END_FOR_KW };
     [END_IF] => { $ crate :: SyntaxKind :: END_IF_KW };
     [END_VAR] => { $ crate :: SyntaxKind :: END_VAR_KW };
     [END_WHILE] => { $ crate :: SyntaxKind :: END_WHILE_KW };
     [FOR] => { $ crate :: SyntaxKind :: FOR_KW };
     [IF] => { $ crate :: SyntaxKind :: IF_KW };
+    [OF] => { $ crate :: SyntaxKind :: OF_KW };
     [PouEndKeyword] => { $ crate :: SyntaxKind :: POU_END_KEYWORD_KW };
     [PouStartKeyword] => { $ crate :: SyntaxKind :: POU_START_KEYWORD_KW };
     [THEN] => { $ crate :: SyntaxKind :: THEN_KW };

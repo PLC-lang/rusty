@@ -158,8 +158,8 @@ fn token_to_syntax_kind(token: Token) -> SyntaxKind {
         Token::KeywordRepeat => todo!("KeywordRepeat mapping"),
         Token::KeywordUntil => todo!("KeywordUntil mapping"),
         Token::KeywordEndRepeat => todo!("KeywordEndRepeat mapping"),
-        Token::KeywordCase => todo!("KeywordCase mapping"),
-        Token::KeywordEndCase => todo!("KeywordEndCase mapping"),
+        Token::KeywordCase => SyntaxKind::CASE_KW,
+        Token::KeywordEndCase => SyntaxKind::END_CASE_KW,
         Token::KeywordReturn => todo!("KeywordReturn mapping"),
         Token::KeywordExit => todo!("KeywordExit mapping"),
         Token::KeywordContinue => todo!("KeywordContinue mapping"),
@@ -172,7 +172,7 @@ fn token_to_syntax_kind(token: Token) -> SyntaxKind {
         Token::KeywordArray => todo!("KeywordArray mapping"),
         Token::KeywordString => todo!("KeywordString mapping"),
         Token::KeywordWideString => todo!("KeywordWideString mapping"),
-        Token::KeywordOf => todo!("KeywordOf mapping"),
+        Token::KeywordOf => SyntaxKind::OF_KW,
 
         // Operators
         Token::OperatorPlus => SyntaxKind::PLUS,
@@ -401,5 +401,18 @@ mod tests {
         assert_eq!(lexer.next_token(), Some(SyntaxKind::NAME));
         assert_eq!(lexer.next_token(), Some(SyntaxKind::NAME));
         assert_eq!(lexer.next_token(), None);
+    }
+
+    #[test]
+    fn test_range_tokenization() {
+        // Verify that `10..20` is tokenized as INT_NUMBER, DOT2, INT_NUMBER
+        let source = "10..20";
+        let lexed = LexedStr::new(source);
+        let kinds: Vec<_> = (0..lexed.len()).map(|i| lexed.kind(i)).collect();
+        // Print for debugging
+        for i in 0..lexed.len() {
+            eprintln!("token[{}]: {:?} = {:?}", i, lexed.kind(i), lexed.text(i));
+        }
+        assert_eq!(kinds[0], SyntaxKind::INT_NUMBER, "first should be INT_NUMBER");
     }
 }

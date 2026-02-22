@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
-assertion_line: 242
+assertion_line: 357
 expression: "parse_body(\"IF x THEN\\n  y := 1;\\nEND_IF\")"
 ---
 BODY

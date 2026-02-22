@@ -1,0 +1,12 @@
+---
+source: compiler/plc_rowan_parser/src/grammar/statement_grammar.rs
+expression: "parse_body(\"reset();\")"
+---
+BODY
+  EXPRESSION_STMT
+    CALL_STATEMENT
+      NAME_REF
+        IDENT "reset"
+      L_PAREN "("
+      R_PAREN ")"
+    SEMICOLON ";"
