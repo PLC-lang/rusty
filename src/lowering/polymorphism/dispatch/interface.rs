@@ -464,8 +464,12 @@ impl<'a> InterfaceDispatchLowerer<'a> {
     }
 
     fn unwrap_call_preamble(&mut self, node: &mut AstNode) {
-        // We only want to unwrap the preamble at the top-level call, everything else would be invalid. TODO:
-        // Give an example why it would be invalid
+        // Only unwrap the preamble at the outermost call (`call_depth == 0`). For nested calls
+        // like `consumer(producer(instance))`, when we finish `producer(instance)` at depth 1,
+        // the preamble must NOT be unwrapped yet — it needs to stay in `call_preamble` so the
+        // outermost `consumer(...)` at depth 0 can collect it. If we unwrapped early, we'd
+        // inject the alloca statements *inside* the `consumer(...)` call arguments rather than
+        // *before* the entire call chain.
         if self.call_depth != 0 || self.call_preamble.is_empty() {
             return;
         }
@@ -879,10 +883,13 @@ mod tests {
             END_FUNCTION
         "#;
 
-        // TODO: snapshot needs to resolve to inner-most type, I want to see __FATPOINTER here Put
-        // differently, the replacement of these datatypes works, but the snapshot doesn't reflect that
-        // because it does currently not resolve these internal `__main_...` types.
-        insta::assert_debug_snapshot!(helper::lower(source).get_unit().pous[0].variable_blocks, @r#"
+        // The variables reference compiler-generated array type names (e.g. `__main_localVariable`)
+        // because the pre-processor extracts inline array definitions into `user_types`. The actual
+        // IA → __FATPOINTER replacement is visible in the user_types snapshot below.
+        let unit = helper::lower(source);
+        let compilation_unit = unit.get_unit();
+
+        insta::assert_debug_snapshot!(compilation_unit.pous[0].variable_blocks, @r#"
         [
             VariableBlock {
                 variables: [
@@ -907,6 +914,47 @@ mod tests {
                 ],
                 variable_block_type: Local,
             },
+        ]
+        "#);
+
+        // Verify the inner element type was replaced with __FATPOINTER in the generated array
+        // types. We extract just the (name, inner_type) pairs to keep the snapshot focused.
+        let array_inner_types: Vec<_> = compilation_unit
+            .user_types
+            .iter()
+            .filter_map(|ut| match &ut.data_type {
+                plc_ast::ast::DataType::ArrayType { name, referenced_type, .. } => {
+                    Some((name.as_deref().unwrap_or("?"), format!("{referenced_type:?}")))
+                }
+                _ => None,
+            })
+            .collect();
+        insta::assert_debug_snapshot!(array_inner_types, @r#"
+        [
+            (
+                "__main_localVariable",
+                "DataTypeReference { referenced_type: \"__FATPOINTER\" }",
+            ),
+            (
+                "__main_localVariableNested_",
+                "DataTypeReference { referenced_type: \"__FATPOINTER\" }",
+            ),
+            (
+                "__main_localVariableNested",
+                "DataTypeReference { referenced_type: \"__main_localVariableNested_\" }",
+            ),
+            (
+                "__main_localVariableNestedNested__",
+                "DataTypeReference { referenced_type: \"__FATPOINTER\" }",
+            ),
+            (
+                "__main_localVariableNestedNested_",
+                "DataTypeReference { referenced_type: \"__main_localVariableNestedNested__\" }",
+            ),
+            (
+                "__main_localVariableNestedNested",
+                "DataTypeReference { referenced_type: \"__main_localVariableNestedNested_\" }",
+            ),
         ]
         "#);
     }
