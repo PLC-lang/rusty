@@ -9,13 +9,16 @@ FROM $BASE_IMAGE
 COPY artifacts/deb/*.deb /tmp/deb/
 
 RUN native_arch=$(dpkg --print-architecture) && \
-    for deb in /tmp/deb/*.deb; do \
-        deb_arch=$(dpkg-deb --field "$deb" Architecture) ; \
-        if [ "$deb_arch" != "$native_arch" ] && [ "$deb_arch" != "all" ]; then \
-            dpkg --add-architecture "$deb_arch" 2>/dev/null || true ; \
-        fi ; \
-    done && \
-    dpkg --force-architecture -i /tmp/deb/*.deb && \
+    # Determine the foreign architecture and add it
+    if [ "$native_arch" = "amd64" ]; then foreign_arch="arm64"; \
+    else foreign_arch="amd64"; fi && \
+    dpkg --add-architecture "$foreign_arch" && \
+    # Install the foreign libc6 to satisfy cross-arch dependencies
+    apt-get update && \
+    apt-get install -y --no-install-recommends "libc6:${foreign_arch}" && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    # Install all .deb packages
+    dpkg -i /tmp/deb/*.deb && \
     rm -rf /tmp/deb && \
     ldconfig
 
