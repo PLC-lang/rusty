@@ -26,7 +26,12 @@ jobs:
 
   test-linux:
     name: Test Linux
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - { os: "ubuntu-latest" }
+          - { os: "ubuntu-24.04-arm" }
     steps:
       - name: Free up disk space on runner
         uses: jlumbroso/free-disk-space@main
@@ -54,13 +59,25 @@ jobs:
             -c "df -h && ./scripts/build.sh --build --test"
 
   package-linux:
-    name: Package Linux
-    runs-on: ubuntu-latest
+    name: Package Linux (${{ matrix.config.arch }})
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - { os: "ubuntu-latest", arch: "x86_64" }
+          - { os: "ubuntu-24.04-arm", arch: "aarch64" }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Release Build
+      - name: Release Build (native ${{ matrix.config.arch }})
+        shell: bash
+        run: |
+          echo "Building native binary for ${{ matrix.config.arch }}"
+          ./scripts/build.sh --build --release --package
+
+      - name: Build and package the std lib
+        if: matrix.config.arch == 'x86_64'
         shell: bash
         run: |
           # required by aarch64 build
@@ -75,65 +92,150 @@ jobs:
           --target x86_64-linux-gnu,aarch64-linux-gnu, \
           x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
         with:
-          name: plc
+          name: plc-${{ matrix.config.arch }}
           path: target/release/plc
+          if-no-files-found: error
 
-      - uses: actions/upload-artifact@master
-        with:
-          name: schema
-          path: compiler/plc_project/schema
-
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
+        if: matrix.config.arch == 'x86_64'
         with:
           name: stdlib
-          path: output
-  # Push image to GitHub Packages.
-  # See also https://docs.docker.com/docker-hub/builds/
-  build-image:
-    runs-on: ubuntu-latest
+          path: output/
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.config.arch == 'x86_64'
+        with:
+          name: schema
+          path: compiler/plc_project/schema/
+
+  build-and-push-image:
+    name: Build Image (${{ matrix.config.arch }})
+    runs-on: ${{ matrix.config.os }}
     needs: package-linux
+    strategy:
+      matrix:
+        config:
+          - { os: "ubuntu-latest", arch: "x86_64", docker_arch: "amd64" }
+          - { os: "ubuntu-24.04-arm", arch: "aarch64", docker_arch: "arm64" }
     permissions:
+      actions: read
       packages: write
       contents: read
-
     steps:
       - uses: actions/checkout@v3
 
-      - name: Download plc artifacts
+      - name: Download binary artifact
         uses: actions/download-artifact@v4
         with:
-          path: artifacts/
+          name: plc-${{ matrix.config.arch }}
+          path: artifacts/plc/
 
-      - name: Build image
-        shell: bash
+      - name: Download stdlib
+        uses: actions/download-artifact@v4
+        with:
+          name: stdlib
+          path: artifacts/stdlib/
+
+      - name: Prepare artifacts
+        run: |
+          chmod +x artifacts/plc/plc
+          echo "Binary architecture:"
+          file artifacts/plc/plc
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
         run: |
           docker buildx build . \
-            --platform linux/amd64 \
+            --platform linux/${{ matrix.config.docker_arch }} \
             --file Dockerfile \
-            --tag $IMAGE_NAME \
+            --tag ${{ env.IMAGE_NAME }}:local \
             --load
 
       - name: Log in to registry
-        if: ${{ github.event_name != 'pull_request' && github.ref_name == 'master' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Push image
-        if: ${{ github.event_name != 'pull_request' && github.ref_name == 'master' }}
-        shell: bash
+      - name: Push image with temp tag
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          TEMP_TAG="build-${{ github.run_id }}-${{ matrix.config.arch }}"
+
+          docker tag ${{ env.IMAGE_NAME }}:local $IMAGE_ID:$TEMP_TAG
+          docker push $IMAGE_ID:$TEMP_TAG
+          echo "Pushed: $IMAGE_ID:$TEMP_TAG"
+
+      - name: Simulate push (PR only)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          echo "=========================================="
+          echo "SIMULATION MODE (Pull Request)"
+          echo "Would push: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:build-${{ github.run_id }}-${{ matrix.config.arch }}"
+          echo "Platform: linux/${{ matrix.config.docker_arch }}"
+          echo "=========================================="
+
+  push-multiplatform:
+    name: Push Multiplatform Manifest
+    needs: build-and-push-image
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
+    permissions:
+      packages: write
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Create and push manifest
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
-          # Always pushing latest for now.
-          VERSION=latest
+          echo "Creating multiplatform manifest..."
+          docker buildx imagetools create \
+            -t $IMAGE_ID:latest \
+            $IMAGE_ID:build-${{ github.run_id }}-x86_64 \
+            $IMAGE_ID:build-${{ github.run_id }}-aarch64
 
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
+          echo "Pushed: $IMAGE_ID:latest"
 
-          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+      - name: Cleanup temp tags
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+
+          # Delete temp images by tag
+          for ARCH in x86_64 aarch64; do
+            TEMP_TAG="build-${{ github.run_id }}-$ARCH"
+            echo "Deleting $TEMP_TAG..."
+
+            # Get version ID for this tag
+            VERSION_ID=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              "/orgs/${{ github.repository_owner }}/packages/container/${{ env.IMAGE_NAME }}/versions" \
+              --jq ".[] | select(.metadata.container.tags[] == \"$TEMP_TAG\") | .id")
+
+            if [ -n "$VERSION_ID" ]; then
+              gh api --method DELETE \
+                -H "Accept: application/vnd.github+json" \
+                "/orgs/${{ github.repository_owner }}/packages/container/${{ env.IMAGE_NAME }}/versions/$VERSION_ID" || true
+              echo "Deleted version $VERSION_ID"
+            fi
+          done
+
+          echo "Cleanup complete"
+
   style:
     name: Check Style
     runs-on: ubuntu-latest

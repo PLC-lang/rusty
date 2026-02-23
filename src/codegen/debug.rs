@@ -226,7 +226,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
 
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or("")).to_path_buf();
                 let root = root.unwrap_or_else(|| Path::new(""));
-                let filename = &path.strip_prefix(root).unwrap_or(&path).to_str().unwrap_or_default();
+                let filename = path.strip_prefix(root).unwrap_or(&path).to_str().unwrap_or_default();
                 let (debug_info, compile_unit) = module.create_debug_info_builder(
                     true,
                     inkwell::debug_info::DWARFSourceLanguage::C, //TODO: Own lang
@@ -527,16 +527,18 @@ impl<'ink> DebugBuilder<'ink> {
             return Ok(self.create_forward_declaration(dt_name));
         }
 
-        // Register the type (this will add it to self.types)
-        self.register_debug_type(dt_name, dt, index, types_index)?;
+        // Try to register the type. If it fails or doesn't get added to the types map,
+        // return a forward declaration instead of erroring. This makes the debug info
+        // resilient to synthetic/compiler-generated types that may not have full debug info.
+        let _ = self.register_debug_type(dt_name, dt, index, types_index);
 
-        self.types
-            .get(&key)
-            .ok_or_else(|| {
-                Diagnostic::new(format!("Cannot find debug information for type {dt_name}"))
-                    .with_error_code("E076")
-            })
-            .copied()
+        // If the type was registered, return it; otherwise return a forward declaration
+        if let Some(debug_type) = self.types.get(&key) {
+            Ok(*debug_type)
+        } else {
+            log::trace!("Type {dt_name} not found in debug types, using forward declaration");
+            Ok(self.create_forward_declaration(dt_name))
+        }
     }
 
     /// Creates debug information for string types using an array + typedef approach.
@@ -794,6 +796,15 @@ impl<'ink> DebugBuilder<'ink> {
 
 impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     fn set_debug_location(&self, llvm: &Llvm, scope: &FunctionContext, line: usize, column: usize) {
+        // Skip setting debug locations for functions without a subprogram
+        // This can happen for compiler-generated functions that weren't registered with debug info
+        if scope.function.get_subprogram().is_none() {
+            log::trace!(
+                "Skipping debug location for function {} (no subprogram)",
+                scope.linking_context.get_call_name()
+            );
+            return;
+        }
         let file = scope
             .linking_context
             .get_location()
@@ -825,9 +836,24 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     ) {
         let (index, types_index) = indices;
         let pou = index.find_pou(func.linking_context.get_call_name()).expect("POU is available");
-        if matches!(pou.get_linkage(), LinkageType::External) || pou.get_location().is_internal() {
+        if matches!(pou.get_linkage(), LinkageType::External)
+            || pou.get_location().is_internal()
+            || func.linking_context.is_init()
+        {
+            log::debug!(
+                "Skipping pou {}, linkage: {:?}, location: {:?}",
+                pou.get_name(),
+                pou.get_linkage(),
+                pou.get_location()
+            );
             return;
         }
+        log::debug!(
+            "Registering pou {}, linkage: {:?}, location: {:?}",
+            pou.get_name(),
+            pou.get_linkage(),
+            pou.get_location()
+        );
         let file = pou
             .get_location()
             .get_file_name()

@@ -15,11 +15,11 @@ define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %tmpVar = getelementptr inbounds [6 x i32], ptr %x, i32 0, i32 1
-  store i32 3, ptr %tmpVar, align 4
+  store i32 3, ptr %tmpVar, align [filtered]
   %tmpVar1 = getelementptr inbounds [6 x i32], ptr %x, i32 0, i32 4
   %tmpVar2 = getelementptr inbounds [6 x i32], ptr %x, i32 0, i32 5
-  %load_tmpVar = load i32, ptr %tmpVar2, align 4
+  %load_tmpVar = load i32, ptr %tmpVar2, align [filtered]
   %tmpVar3 = add i32 %load_tmpVar, 3
-  store i32 %tmpVar3, ptr %tmpVar1, align 4
+  store i32 %tmpVar3, ptr %tmpVar1, align [filtered]
   ret void
 }

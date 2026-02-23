@@ -13,17 +13,17 @@ target triple = "[filtered]"
 
 define i32 @foo(i32 %0, ptr %1, ptr %2, ptr %3) {
 entry:
-  %foo = alloca i32, align 4
-  %input1 = alloca i32, align 4
-  store i32 %0, ptr %input1, align 4
-  %output1 = alloca ptr, align 8
-  store ptr %1, ptr %output1, align 8
-  %output2 = alloca ptr, align 8
-  store ptr %2, ptr %output2, align 8
-  %inout1 = alloca ptr, align 8
-  store ptr %3, ptr %inout1, align 8
-  store i32 0, ptr %foo, align 4
-  %foo_ret = load i32, ptr %foo, align 4
+  %foo = alloca i32, align [filtered]
+  %input1 = alloca i32, align [filtered]
+  store i32 %0, ptr %input1, align [filtered]
+  %output1 = alloca ptr, align [filtered]
+  store ptr %1, ptr %output1, align [filtered]
+  %output2 = alloca ptr, align [filtered]
+  store ptr %2, ptr %output2, align [filtered]
+  %inout1 = alloca ptr, align [filtered]
+  store ptr %3, ptr %inout1, align [filtered]
+  store i32 0, ptr %foo, align [filtered]
+  %foo_ret = load i32, ptr %foo, align [filtered]
   ret i32 %foo_ret
 }
 
@@ -32,10 +32,10 @@ entry:
   %var1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %var2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %var3 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
-  %1 = alloca i32, align 4
-  store i32 20, ptr %1, align 4
-  %2 = alloca i32, align 4
-  store i32 20, ptr %2, align 4
+  %1 = alloca i32, align [filtered]
+  store i32 20, ptr %1, align [filtered]
+  %2 = alloca i32, align [filtered]
+  store i32 20, ptr %2, align [filtered]
   %call = call i32 @foo(i32 20, ptr %2, ptr %1, ptr %var3)
   ret void
 }

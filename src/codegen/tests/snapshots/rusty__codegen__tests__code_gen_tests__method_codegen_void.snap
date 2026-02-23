@@ -18,10 +18,10 @@ entry:
 
 define void @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
-  %myMethodArg = alloca i16, align 2
-  store i16 %1, ptr %myMethodArg, align 2
-  %myMethodLocalVar = alloca i16, align 2
-  store i16 0, ptr %myMethodLocalVar, align 2
-  store i16 1, ptr %myMethodLocalVar, align 2
+  %myMethodArg = alloca i16, align [filtered]
+  store i16 %1, ptr %myMethodArg, align [filtered]
+  %myMethodLocalVar = alloca i16, align [filtered]
+  store i16 0, ptr %myMethodLocalVar, align [filtered]
+  store i16 1, ptr %myMethodLocalVar, align [filtered]
   ret void
 }

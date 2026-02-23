@@ -9,15 +9,15 @@ target triple = "[filtered]"
 
 define i16 @baz() {
 entry:
-  %baz = alloca i16, align 2
-  %ptr_x = alloca ptr, align 8
-  %y = alloca i64, align 8
-  store ptr null, ptr %ptr_x, align 8
-  store i64 0, ptr %y, align 8
-  store i16 0, ptr %baz, align 2
-  %load_y = load i64, ptr %y, align 8
+  %baz = alloca i16, align [filtered]
+  %ptr_x = alloca ptr, align [filtered]
+  %y = alloca i64, align [filtered]
+  store ptr null, ptr %ptr_x, align [filtered]
+  store i64 0, ptr %y, align [filtered]
+  store i16 0, ptr %baz, align [filtered]
+  %load_y = load i64, ptr %y, align [filtered]
   %0 = inttoptr i64 %load_y to ptr
-  store ptr %0, ptr %ptr_x, align 8
-  %baz_ret = load i16, ptr %baz, align 2
+  store ptr %0, ptr %ptr_x, align [filtered]
+  %baz_ret = load i16, ptr %baz, align [filtered]
   ret i16 %baz_ret
 }
