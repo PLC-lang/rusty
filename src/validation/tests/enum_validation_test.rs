@@ -394,7 +394,7 @@ fn enum_type_assigned_without_qualifier() {
         ",
     );
 
-    assert!(diagnostics.len() > 0);
+    assert!(!diagnostics.is_empty());
     assert_snapshot!(diagnostics, @r#""#);
 }
 
@@ -422,6 +422,6 @@ fn type_name_used_as_value() {
         ",
     );
 
-    assert!(diagnostics.len() > 0);
+    assert!(!diagnostics.is_empty());
     assert_snapshot!(diagnostics, @r#""#);
 }
