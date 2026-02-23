@@ -2479,6 +2479,33 @@ impl<'i> TypeAnnotator<'i> {
             };
 
             self.annotation_map.annotate_type_hint(argument, annotation);
+
+            // For aggregate literal arguments (arrays, structs), propagate type hints into
+            // inner elements so codegen can resolve their types. We do this manually rather
+            // than calling update_expected_types on the argument itself, because that would
+            // overwrite the Argument annotation we just set above.
+            if let AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) }), ..) =
+                argument.get_stmt()
+            {
+                // Annotate the inner ExpressionList/MultipliedStatement/ParenExpression with the array type
+                if matches!(
+                    elements.get_stmt(),
+                    AstStatement::ExpressionList(..)
+                        | AstStatement::MultipliedStatement(..)
+                        | AstStatement::ParenExpression(..)
+                ) {
+                    self.annotation_map
+                        .annotate_type_hint(elements, StatementAnnotation::value(resulting_type.get_name()));
+                }
+                // Propagate the array's inner type to each element
+                if let DataTypeInformation::Array { inner_type_name, .. } =
+                    resulting_type.get_type_information()
+                {
+                    if let Some(inner_type) = self.index.find_effective_type_by_name(inner_type_name) {
+                        self.update_expected_types(inner_type, elements);
+                    }
+                }
+            }
         }
     }
 
