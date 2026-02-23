@@ -2849,7 +2849,6 @@ dependencies = [
  "plc_util",
  "plc_xml",
  "pretty_assertions",
- "regex",
  "rustc-hash",
  "section_mangler",
  "serde",
