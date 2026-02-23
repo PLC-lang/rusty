@@ -324,7 +324,7 @@
 <a href=#324 id=324 data-nosnippet>324</a>
 <a href=#325 id=325 data-nosnippet>325</a>        <span class="kw">for </span>p <span class="kw">in </span>paths {
 <a href=#326 id=326 data-nosnippet>326</a>            <span class="kw">let </span>path = p.context(<span class="string">"Illegal Path"</span>)<span class="question-mark">?</span>;
-<a href=#327 id=327 data-nosnippet>327</a>            sources.push(path);
+<a href=#327 id=327 data-nosnippet>327</a>            sources.push(path.canonicalize().context(<span class="string">"Illegal Path"</span>)<span class="question-mark">?</span>);
 <a href=#328 id=328 data-nosnippet>328</a>        }
 <a href=#329 id=329 data-nosnippet>329</a>    }
 <a href=#330 id=330 data-nosnippet>330</a>    <span class="prelude-val">Ok</span>(sources)
