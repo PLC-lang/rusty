@@ -28,7 +28,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     %__vtable_bar = type { ptr }
     %bar = type { %foo }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !0
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
@@ -39,8 +39,8 @@ fn members_from_base_class_are_available_in_subclasses() {
     define void @foo(ptr %0) !dbg !32 {
     entry:
         #dbg_declare(ptr %0, !36, !DIExpression(), !37)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %a = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
       %b = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 2
@@ -51,68 +51,68 @@ fn members_from_base_class_are_available_in_subclasses() {
     define void @bar(ptr %0) !dbg !38 {
     entry:
         #dbg_declare(ptr %0, !41, !DIExpression(), !42)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__foo = getelementptr inbounds nuw %bar, ptr %0, i32 0, i32 0
       ret void, !dbg !42
     }
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @foo, ptr %__body, align 8
+      store ptr @foo, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @bar, ptr %__body, align 8
+      store ptr @bar, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_foo_instance, ptr %__vtable, align 8
+      store ptr @__vtable_foo_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__init_foo(ptr %__foo)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
-      store ptr @__vtable_bar_instance, ptr %__vtable, align 8
+      store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__user_init_foo(ptr %__foo)
       ret void
@@ -120,15 +120,15 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     define void @__user_init_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -148,30 +148,30 @@ fn members_from_base_class_are_available_in_subclasses() {
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 7872, align: 64, flags: DIFlagPublic, elements: !5, identifier: "foo")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 7872, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "foo")
     !5 = !{!6, !10, !12, !18}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____foo___vtable", scope: !2, file: !2, baseType: !8, align: 64)
-    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align [filtered], flags: DIFlagPublic)
+    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____foo___vtable", scope: !2, file: !2, baseType: !8, align [filtered])
+    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
     !9 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
-    !10 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !11, size: 16, align: 16, offset: 64, flags: DIFlagPublic)
+    !10 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !11, size: 16, align [filtered], offset: 64, flags: DIFlagPublic)
     !11 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !12 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 5, baseType: !13, size: 648, align: 8, offset: 80, flags: DIFlagPublic)
-    !13 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !14, align: 8)
-    !14 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: 648, align: 8, elements: !16)
+    !12 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 5, baseType: !13, size: 648, align [filtered], offset: 80, flags: DIFlagPublic)
+    !13 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !14, align [filtered])
+    !14 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: 648, align [filtered], elements: !16)
     !15 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !16 = !{!17}
     !17 = !DISubrange(count: 81, lowerBound: 0)
-    !18 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 6, baseType: !19, size: 7128, align: 8, offset: 728, flags: DIFlagPublic)
-    !19 = !DICompositeType(tag: DW_TAG_array_type, baseType: !13, size: 7128, align: 8, elements: !20)
+    !18 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 6, baseType: !19, size: 7128, align [filtered], offset: 728, flags: DIFlagPublic)
+    !19 = !DICompositeType(tag: DW_TAG_array_type, baseType: !13, size: 7128, align [filtered], elements: !20)
     !20 = !{!21}
     !21 = !DISubrange(count: 11, lowerBound: 0)
     !22 = !DIGlobalVariableExpression(var: !23, expr: !DIExpression())
     !23 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 10, type: !24, isLocal: false, isDefinition: true)
     !24 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !25)
-    !25 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 10, size: 7872, align: 64, flags: DIFlagPublic, elements: !26, identifier: "bar")
+    !25 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 10, size: 7872, align [filtered], flags: DIFlagPublic, elements: !26, identifier: "bar")
     !26 = !{!27}
-    !27 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 7872, align: 64, flags: DIFlagPublic)
+    !27 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 7872, align [filtered], flags: DIFlagPublic)
     !28 = !{i32 2, !"Dwarf Version", i32 5}
     !29 = !{i32 2, !"Debug Info Version", i32 3}
     !30 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !31, splitDebugInlining: false)
@@ -226,7 +226,7 @@ fn write_to_parent_variable_qualified_access() {
     %__vtable_foo = type { ptr }
     %foo = type { ptr, %fb2 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
     @__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !0
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
@@ -240,8 +240,8 @@ fn write_to_parent_variable_qualified_access() {
     define void @fb(ptr %0) !dbg !32 {
     entry:
         #dbg_declare(ptr %0, !36, !DIExpression(), !37)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 1
       %y = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 2
@@ -251,8 +251,8 @@ fn write_to_parent_variable_qualified_access() {
     define void @fb2(ptr %0) !dbg !38 {
     entry:
         #dbg_declare(ptr %0, !41, !DIExpression(), !42)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__fb = getelementptr inbounds nuw %fb2, ptr %0, i32 0, i32 0
       ret void, !dbg !42
     }
@@ -260,95 +260,95 @@ fn write_to_parent_variable_qualified_access() {
     define void @foo(ptr %0) !dbg !43 {
     entry:
         #dbg_declare(ptr %0, !46, !DIExpression(), !47)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %myFb = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
       %__fb = getelementptr inbounds nuw %fb2, ptr %myFb, i32 0, i32 0, !dbg !47
       %x = getelementptr inbounds nuw %fb, ptr %__fb, i32 0, i32 1, !dbg !47
-      store i16 1, ptr %x, align 2, !dbg !47
+      store i16 1, ptr %x, align [filtered], !dbg !47
       ret void, !dbg !48
     }
 
     define void @__init___vtable_fb(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @fb, ptr %__body, align 8
+      store ptr @fb, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_fb2(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @fb2, ptr %__body, align 8
+      store ptr @fb2, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @foo, ptr %__body, align 8
+      store ptr @foo, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init_fb2(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__fb = getelementptr inbounds nuw %fb2, ptr %deref, i32 0, i32 0
       call void @__init_fb(ptr %__fb)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__fb2 = getelementptr inbounds nuw %fb2, ptr %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %fb, ptr %__fb2, i32 0, i32 0
-      store ptr @__vtable_fb2_instance, ptr %__vtable, align 8
+      store ptr @__vtable_fb2_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_fb(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_fb_instance, ptr %__vtable, align 8
+      store ptr @__vtable_fb_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %myFb = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 1
       call void @__init_fb2(ptr %myFb)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %deref1, i32 0, i32 0
-      store ptr @__vtable_foo_instance, ptr %__vtable, align 8
+      store ptr @__vtable_foo_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init_fb(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_fb2(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__fb = getelementptr inbounds nuw %fb2, ptr %deref, i32 0, i32 0
       call void @__user_init_fb(ptr %__fb)
       ret void
@@ -356,30 +356,30 @@ fn write_to_parent_variable_qualified_access() {
 
     define void @__user_init___vtable_fb(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_fb2(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %myFb = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 1
       call void @__user_init_fb2(ptr %myFb)
       ret void
@@ -403,30 +403,30 @@ fn write_to_parent_variable_qualified_access() {
     !1 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 128, align: 64, flags: DIFlagPublic, elements: !5, identifier: "fb")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 128, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "fb")
     !5 = !{!6, !10, !12}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____fb___vtable", scope: !2, file: !2, baseType: !8, align: 64)
-    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__fb___vtable", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align [filtered], flags: DIFlagPublic)
+    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____fb___vtable", scope: !2, file: !2, baseType: !8, align [filtered])
+    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__fb___vtable", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
     !9 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
-    !10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !11, size: 16, align: 16, offset: 64, flags: DIFlagPublic)
+    !10 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !11, size: 16, align [filtered], offset: 64, flags: DIFlagPublic)
     !11 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 5, baseType: !11, size: 16, align: 16, offset: 80, flags: DIFlagPublic)
+    !12 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 5, baseType: !11, size: 16, align [filtered], offset: 80, flags: DIFlagPublic)
     !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
     !14 = distinct !DIGlobalVariable(name: "__fb2__init", scope: !2, file: !2, line: 9, type: !15, isLocal: false, isDefinition: true)
     !15 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !16)
-    !16 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb2", scope: !2, file: !2, line: 9, size: 128, align: 64, flags: DIFlagPublic, elements: !17, identifier: "fb2")
+    !16 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb2", scope: !2, file: !2, line: 9, size: 128, align [filtered], flags: DIFlagPublic, elements: !17, identifier: "fb2")
     !17 = !{!18}
-    !18 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 128, align: 64, flags: DIFlagPublic)
+    !18 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 128, align [filtered], flags: DIFlagPublic)
     !19 = !DIGlobalVariableExpression(var: !20, expr: !DIExpression())
     !20 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 12, type: !21, isLocal: false, isDefinition: true)
     !21 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !22)
-    !22 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 12, size: 192, align: 64, flags: DIFlagPublic, elements: !23, identifier: "foo")
+    !22 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 12, size: 192, align [filtered], flags: DIFlagPublic, elements: !23, identifier: "foo")
     !23 = !{!24, !27}
-    !24 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !25, size: 64, align: 64, flags: DIFlagPublic)
-    !25 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____foo___vtable", scope: !2, file: !2, baseType: !26, align: 64)
-    !26 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
-    !27 = !DIDerivedType(tag: DW_TAG_member, name: "myFb", scope: !2, file: !2, line: 14, baseType: !16, size: 128, align: 64, offset: 64, flags: DIFlagPublic)
+    !24 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !25, size: 64, align [filtered], flags: DIFlagPublic)
+    !25 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____foo___vtable", scope: !2, file: !2, baseType: !26, align [filtered])
+    !26 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !27 = !DIDerivedType(tag: DW_TAG_member, name: "myFb", scope: !2, file: !2, line: 14, baseType: !16, size: 128, align [filtered], offset: 64, flags: DIFlagPublic)
     !28 = !{i32 2, !"Dwarf Version", i32 5}
     !29 = !{i32 2, !"Debug Info Version", i32 3}
     !30 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !31, splitDebugInlining: false)
@@ -491,7 +491,7 @@ fn write_to_parent_variable_in_instance() {
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !0
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
@@ -502,8 +502,8 @@ fn write_to_parent_variable_in_instance() {
     define void @foo(ptr %0) !dbg !26 {
     entry:
         #dbg_declare(ptr %0, !30, !DIExpression(), !31)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %s = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
       ret void, !dbg !31
@@ -512,33 +512,33 @@ fn write_to_parent_variable_in_instance() {
     define void @foo__baz(ptr %0) !dbg !32 {
     entry:
         #dbg_declare(ptr %0, !33, !DIExpression(), !34)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %s = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false), !dbg !34
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] @utf08_literal_0, i32 6, i1 false), !dbg !34
       ret void, !dbg !35
     }
 
     define void @bar(ptr %0) !dbg !36 {
     entry:
         #dbg_declare(ptr %0, !39, !DIExpression(), !40)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__foo = getelementptr inbounds nuw %bar, ptr %0, i32 0, i32 0
       %s = getelementptr inbounds nuw %foo, ptr %__foo, i32 0, i32 1, !dbg !40
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_1, i32 6, i1 false), !dbg !40
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] @utf08_literal_1, i32 6, i1 false), !dbg !40
       ret void, !dbg !41
     }
 
     define void @main() !dbg !42 {
     entry:
-      %s = alloca [81 x i8], align 1
-      %fb = alloca %bar, align 8
+      %s = alloca [81 x i8], align [filtered]
+      %fb = alloca %bar, align [filtered]
         #dbg_declare(ptr %s, !45, !DIExpression(), !46)
-      call void @llvm.memset.p0.i64(ptr align 1 %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
         #dbg_declare(ptr %fb, !47, !DIExpression(), !48)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__bar__init, i64 ptrtoint (ptr getelementptr (%bar, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__bar__init, i64 ptrtoint (ptr getelementptr (%bar, ptr null, i32 1) to i64), i1 false)
       call void @__init_bar(ptr %fb), !dbg !49
       call void @__user_init_bar(ptr %fb), !dbg !49
       %__foo = getelementptr inbounds nuw %bar, ptr %fb, i32 0, i32 0, !dbg !49
@@ -558,66 +558,66 @@ fn write_to_parent_variable_in_instance() {
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @foo, ptr %__body, align 8
-      %deref1 = load ptr, ptr %self, align 8
+      store ptr @foo, ptr %__body, align [filtered]
+      %deref1 = load ptr, ptr %self, align [filtered]
       %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
-      store ptr @foo__baz, ptr %baz, align 8
+      store ptr @foo__baz, ptr %baz, align [filtered]
       ret void
     }
 
     define void @__init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @bar, ptr %__body, align 8
-      %deref1 = load ptr, ptr %self, align 8
+      store ptr @bar, ptr %__body, align [filtered]
+      %deref1 = load ptr, ptr %self, align [filtered]
       %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
-      store ptr @foo__baz, ptr %baz, align 8
+      store ptr @foo__baz, ptr %baz, align [filtered]
       ret void
     }
 
     define void @__init_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__init_foo(ptr %__foo)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
-      store ptr @__vtable_bar_instance, ptr %__vtable, align 8
+      store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_foo_instance, ptr %__vtable, align 8
+      store ptr @__vtable_foo_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__user_init_foo(ptr %__foo)
       ret void
@@ -625,15 +625,15 @@ fn write_to_parent_variable_in_instance() {
 
     define void @__user_init_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -656,24 +656,24 @@ fn write_to_parent_variable_in_instance() {
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 768, align: 64, flags: DIFlagPublic, elements: !5, identifier: "foo")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 768, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "foo")
     !5 = !{!6, !10}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____foo___vtable", scope: !2, file: !2, baseType: !8, align: 64)
-    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align [filtered], flags: DIFlagPublic)
+    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____foo___vtable", scope: !2, file: !2, baseType: !8, align [filtered])
+    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
     !9 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
-    !10 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 4, baseType: !11, size: 648, align: 8, offset: 64, flags: DIFlagPublic)
-    !11 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !12, align: 8)
-    !12 = !DICompositeType(tag: DW_TAG_array_type, baseType: !13, size: 648, align: 8, elements: !14)
+    !10 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 4, baseType: !11, size: 648, align [filtered], offset: 64, flags: DIFlagPublic)
+    !11 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !12, align [filtered])
+    !12 = !DICompositeType(tag: DW_TAG_array_type, baseType: !13, size: 648, align [filtered], elements: !14)
     !13 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !14 = !{!15}
     !15 = !DISubrange(count: 81, lowerBound: 0)
     !16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
     !17 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 11, type: !18, isLocal: false, isDefinition: true)
     !18 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
-    !19 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 11, size: 768, align: 64, flags: DIFlagPublic, elements: !20, identifier: "bar")
+    !19 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 11, size: 768, align [filtered], flags: DIFlagPublic, elements: !20, identifier: "bar")
     !20 = !{!21}
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 768, align: 64, flags: DIFlagPublic)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 768, align [filtered], flags: DIFlagPublic)
     !22 = !{i32 2, !"Dwarf Version", i32 5}
     !23 = !{i32 2, !"Debug Info Version", i32 3}
     !24 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !25, splitDebugInlining: false)
@@ -697,9 +697,9 @@ fn write_to_parent_variable_in_instance() {
     !42 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !43, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !24, retainedNodes: !29)
     !43 = !DISubroutineType(flags: DIFlagPublic, types: !44)
     !44 = !{null}
-    !45 = !DILocalVariable(name: "s", scope: !42, file: !2, line: 17, type: !11, align: 8)
+    !45 = !DILocalVariable(name: "s", scope: !42, file: !2, line: 17, type: !11, align [filtered])
     !46 = !DILocation(line: 17, column: 12, scope: !42)
-    !47 = !DILocalVariable(name: "fb", scope: !42, file: !2, line: 18, type: !19, align: 64)
+    !47 = !DILocalVariable(name: "fb", scope: !42, file: !2, line: 18, type: !19, align [filtered])
     !48 = !DILocation(line: 18, column: 12, scope: !42)
     !49 = !DILocation(line: 0, scope: !42)
     !50 = !DILocation(line: 20, column: 12, scope: !42)
@@ -757,7 +757,7 @@ fn array_in_parent_generated() {
     %__vtable_child = type { ptr }
     %child = type { %parent, [11 x i16] }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
     @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer, !dbg !0
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
@@ -771,8 +771,8 @@ fn array_in_parent_generated() {
     define void @grandparent(ptr %0) !dbg !38 {
     entry:
         #dbg_declare(ptr %0, !42, !DIExpression(), !43)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 0
       %y = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 1
       %a = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 2
@@ -782,8 +782,8 @@ fn array_in_parent_generated() {
     define void @parent(ptr %0) !dbg !44 {
     entry:
         #dbg_declare(ptr %0, !47, !DIExpression(), !48)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__grandparent = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 0
       %x = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 1
       %b = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 2
@@ -793,8 +793,8 @@ fn array_in_parent_generated() {
     define void @child(ptr %0) !dbg !49 {
     entry:
         #dbg_declare(ptr %0, !52, !DIExpression(), !53)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
       %z = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 1
       ret void, !dbg !53
@@ -802,33 +802,33 @@ fn array_in_parent_generated() {
 
     define void @main() !dbg !54 {
     entry:
-      %arr = alloca [11 x %child], align 8
+      %arr = alloca [11 x %child], align [filtered]
         #dbg_declare(ptr %arr, !57, !DIExpression(), !59)
-      call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([11 x %child], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %arr, i8 0, i64 ptrtoint (ptr getelementptr ([11 x %child], ptr null, i32 1) to i64), i1 false)
       %tmpVar = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 0, !dbg !60
       %__parent = getelementptr inbounds nuw %child, ptr %tmpVar, i32 0, i32 0, !dbg !60
       %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0, !dbg !60
       %a = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 2, !dbg !60
-      store i16 10, ptr %a, align 2, !dbg !60
+      store i16 10, ptr %a, align [filtered], !dbg !60
       %tmpVar1 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 0, !dbg !61
       %__parent2 = getelementptr inbounds nuw %child, ptr %tmpVar1, i32 0, i32 0, !dbg !61
       %__grandparent3 = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0, !dbg !61
       %y = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 1, !dbg !61
       %tmpVar4 = getelementptr inbounds [6 x i16], ptr %y, i32 0, i32 0, !dbg !61
-      store i16 20, ptr %tmpVar4, align 2, !dbg !61
+      store i16 20, ptr %tmpVar4, align [filtered], !dbg !61
       %tmpVar5 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 1, !dbg !62
       %__parent6 = getelementptr inbounds nuw %child, ptr %tmpVar5, i32 0, i32 0, !dbg !62
       %b = getelementptr inbounds nuw %parent, ptr %__parent6, i32 0, i32 2, !dbg !62
-      store i16 30, ptr %b, align 2, !dbg !62
+      store i16 30, ptr %b, align [filtered], !dbg !62
       %tmpVar7 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 1, !dbg !63
       %__parent8 = getelementptr inbounds nuw %child, ptr %tmpVar7, i32 0, i32 0, !dbg !63
       %x = getelementptr inbounds nuw %parent, ptr %__parent8, i32 0, i32 1, !dbg !63
       %tmpVar9 = getelementptr inbounds [11 x i16], ptr %x, i32 0, i32 1, !dbg !63
-      store i16 40, ptr %tmpVar9, align 2, !dbg !63
+      store i16 40, ptr %tmpVar9, align [filtered], !dbg !63
       %tmpVar10 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 2, !dbg !64
       %z = getelementptr inbounds nuw %child, ptr %tmpVar10, i32 0, i32 1, !dbg !64
       %tmpVar11 = getelementptr inbounds [11 x i16], ptr %z, i32 0, i32 2, !dbg !64
-      store i16 50, ptr %tmpVar11, align 2, !dbg !64
+      store i16 50, ptr %tmpVar11, align [filtered], !dbg !64
       ret void, !dbg !65
     }
 
@@ -837,106 +837,106 @@ fn array_in_parent_generated() {
 
     define void @__init___vtable_grandparent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @grandparent, ptr %__body, align 8
+      store ptr @grandparent, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @parent, ptr %__body, align 8
+      store ptr @parent, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @child, ptr %__body, align 8
+      store ptr @child, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__init_parent(ptr %__parent)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
       %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
-      store ptr @__vtable_child_instance, ptr %__vtable, align 8
+      store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__init_grandparent(ptr %__grandparent)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent2, i32 0, i32 0
-      store ptr @__vtable_parent_instance, ptr %__vtable, align 8
+      store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_grandparent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_grandparent_instance, ptr %__vtable, align 8
+      store ptr @__vtable_grandparent_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_grandparent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_grandparent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__user_init_parent(ptr %__parent)
       ret void
@@ -944,9 +944,9 @@ fn array_in_parent_generated() {
 
     define void @__user_init_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__user_init_grandparent(ptr %__grandparent)
       ret void
@@ -972,36 +972,36 @@ fn array_in_parent_generated() {
     !1 = distinct !DIGlobalVariable(name: "__grandparent__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 192, align: 64, flags: DIFlagPublic, elements: !5, identifier: "grandparent")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 192, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "grandparent")
     !5 = !{!6, !10, !15}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____grandparent___vtable", scope: !2, file: !2, baseType: !8, align: 64)
-    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__grandparent___vtable", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align [filtered], flags: DIFlagPublic)
+    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____grandparent___vtable", scope: !2, file: !2, baseType: !8, align [filtered])
+    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__grandparent___vtable", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
     !9 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
-    !10 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !11, size: 96, align: 16, offset: 64, flags: DIFlagPublic)
-    !11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 96, align: 16, elements: !13)
+    !10 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !11, size: 96, align [filtered], offset: 64, flags: DIFlagPublic)
+    !11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 96, align [filtered], elements: !13)
     !12 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !13 = !{!14}
     !14 = !DISubrange(count: 6, lowerBound: 0)
-    !15 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 5, baseType: !12, size: 16, align: 16, offset: 160, flags: DIFlagPublic)
+    !15 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 5, baseType: !12, size: 16, align [filtered], offset: 160, flags: DIFlagPublic)
     !16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
     !17 = distinct !DIGlobalVariable(name: "__parent__init", scope: !2, file: !2, line: 9, type: !18, isLocal: false, isDefinition: true)
     !18 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
-    !19 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 384, align: 64, flags: DIFlagPublic, elements: !20, identifier: "parent")
+    !19 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 384, align [filtered], flags: DIFlagPublic, elements: !20, identifier: "parent")
     !20 = !{!21, !22, !26}
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 192, align: 64, flags: DIFlagPublic)
-    !22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !23, size: 176, align: 16, offset: 192, flags: DIFlagPublic)
-    !23 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 176, align: 16, elements: !24)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 192, align [filtered], flags: DIFlagPublic)
+    !22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !23, size: 176, align [filtered], offset: 192, flags: DIFlagPublic)
+    !23 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 176, align [filtered], elements: !24)
     !24 = !{!25}
     !25 = !DISubrange(count: 11, lowerBound: 0)
-    !26 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 12, baseType: !12, size: 16, align: 16, offset: 368, flags: DIFlagPublic)
+    !26 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 12, baseType: !12, size: 16, align [filtered], offset: 368, flags: DIFlagPublic)
     !27 = !DIGlobalVariableExpression(var: !28, expr: !DIExpression())
     !28 = distinct !DIGlobalVariable(name: "__child__init", scope: !2, file: !2, line: 16, type: !29, isLocal: false, isDefinition: true)
     !29 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !30)
-    !30 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 576, align: 64, flags: DIFlagPublic, elements: !31, identifier: "child")
+    !30 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 576, align [filtered], flags: DIFlagPublic, elements: !31, identifier: "child")
     !31 = !{!32, !33}
-    !32 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !19, size: 384, align: 64, flags: DIFlagPublic)
-    !33 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !23, size: 176, align: 16, offset: 384, flags: DIFlagPublic)
+    !32 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !19, size: 384, align [filtered], flags: DIFlagPublic)
+    !33 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !23, size: 176, align [filtered], offset: 384, flags: DIFlagPublic)
     !34 = !{i32 2, !"Dwarf Version", i32 5}
     !35 = !{i32 2, !"Debug Info Version", i32 3}
     !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false)
@@ -1025,8 +1025,8 @@ fn array_in_parent_generated() {
     !54 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 22, type: !55, scopeLine: 26, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41)
     !55 = !DISubroutineType(flags: DIFlagPublic, types: !56)
     !56 = !{null}
-    !57 = !DILocalVariable(name: "arr", scope: !54, file: !2, line: 24, type: !58, align: 64)
-    !58 = !DICompositeType(tag: DW_TAG_array_type, baseType: !30, size: 6336, align: 64, elements: !24)
+    !57 = !DILocalVariable(name: "arr", scope: !54, file: !2, line: 24, type: !58, align [filtered])
+    !58 = !DICompositeType(tag: DW_TAG_array_type, baseType: !30, size: 6336, align [filtered], elements: !24)
     !59 = !DILocation(line: 24, column: 12, scope: !54)
     !60 = !DILocation(line: 26, column: 12, scope: !54)
     !61 = !DILocation(line: 27, column: 12, scope: !54)
@@ -1077,7 +1077,7 @@ fn complex_array_access_generated() {
     %__vtable_child = type { ptr }
     %child = type { %parent, [11 x i16] }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
     @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer, !dbg !0
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
@@ -1091,8 +1091,8 @@ fn complex_array_access_generated() {
     define void @grandparent(ptr %0) !dbg !38 {
     entry:
         #dbg_declare(ptr %0, !42, !DIExpression(), !43)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 0
       %y = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 1
       %a = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 2
@@ -1102,8 +1102,8 @@ fn complex_array_access_generated() {
     define void @parent(ptr %0) !dbg !44 {
     entry:
         #dbg_declare(ptr %0, !47, !DIExpression(), !48)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__grandparent = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 0
       %x = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 1
       %b = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 2
@@ -1113,139 +1113,139 @@ fn complex_array_access_generated() {
     define void @child(ptr %0) !dbg !49 {
     entry:
         #dbg_declare(ptr %0, !52, !DIExpression(), !53)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
       %z = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 1
       %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0, !dbg !53
       %y = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 1, !dbg !53
       %b = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 2, !dbg !53
-      %load_b = load i16, ptr %b, align 2, !dbg !53
+      %load_b = load i16, ptr %b, align [filtered], !dbg !53
       %1 = sext i16 %load_b to i32, !dbg !53
       %b1 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 2, !dbg !53
-      %load_b2 = load i16, ptr %b1, align 2, !dbg !53
+      %load_b2 = load i16, ptr %b1, align [filtered], !dbg !53
       %2 = sext i16 %load_b2 to i32, !dbg !53
       %tmpVar = mul i32 %2, 2, !dbg !53
       %tmpVar3 = mul i32 1, %tmpVar, !dbg !53
       %tmpVar4 = add i32 %tmpVar3, 0, !dbg !53
       %tmpVar5 = getelementptr inbounds [11 x i16], ptr %z, i32 0, i32 %tmpVar4, !dbg !53
-      %load_tmpVar = load i16, ptr %tmpVar5, align 2, !dbg !53
+      %load_tmpVar = load i16, ptr %tmpVar5, align [filtered], !dbg !53
       %3 = sext i16 %load_tmpVar to i32, !dbg !53
       %tmpVar6 = add i32 %1, %3, !dbg !53
       %__grandparent7 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0, !dbg !53
       %a = getelementptr inbounds nuw %grandparent, ptr %__grandparent7, i32 0, i32 2, !dbg !53
-      %load_a = load i16, ptr %a, align 2, !dbg !53
+      %load_a = load i16, ptr %a, align [filtered], !dbg !53
       %4 = sext i16 %load_a to i32, !dbg !53
       %tmpVar8 = sub i32 %tmpVar6, %4, !dbg !53
       %tmpVar9 = mul i32 1, %tmpVar8, !dbg !53
       %tmpVar10 = add i32 %tmpVar9, 0, !dbg !53
       %tmpVar11 = getelementptr inbounds [6 x i16], ptr %y, i32 0, i32 %tmpVar10, !dbg !53
-      store i16 20, ptr %tmpVar11, align 2, !dbg !53
+      store i16 20, ptr %tmpVar11, align [filtered], !dbg !53
       ret void, !dbg !54
     }
 
     define void @__init___vtable_grandparent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @grandparent, ptr %__body, align 8
+      store ptr @grandparent, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @parent, ptr %__body, align 8
+      store ptr @parent, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @child, ptr %__body, align 8
+      store ptr @child, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__init_grandparent(ptr %__grandparent)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent2, i32 0, i32 0
-      store ptr @__vtable_parent_instance, ptr %__vtable, align 8
+      store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_grandparent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_grandparent_instance, ptr %__vtable, align 8
+      store ptr @__vtable_grandparent_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__init_parent(ptr %__parent)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
       %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
-      store ptr @__vtable_child_instance, ptr %__vtable, align 8
+      store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_grandparent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_grandparent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__user_init_parent(ptr %__parent)
       ret void
@@ -1253,9 +1253,9 @@ fn complex_array_access_generated() {
 
     define void @__user_init_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__user_init_grandparent(ptr %__grandparent)
       ret void
@@ -1279,36 +1279,36 @@ fn complex_array_access_generated() {
     !1 = distinct !DIGlobalVariable(name: "__grandparent__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 192, align: 64, flags: DIFlagPublic, elements: !5, identifier: "grandparent")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 192, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "grandparent")
     !5 = !{!6, !10, !15}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____grandparent___vtable", scope: !2, file: !2, baseType: !8, align: 64)
-    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__grandparent___vtable", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align [filtered], flags: DIFlagPublic)
+    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____grandparent___vtable", scope: !2, file: !2, baseType: !8, align [filtered])
+    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__grandparent___vtable", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
     !9 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
-    !10 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !11, size: 96, align: 16, offset: 64, flags: DIFlagPublic)
-    !11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 96, align: 16, elements: !13)
+    !10 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !11, size: 96, align [filtered], offset: 64, flags: DIFlagPublic)
+    !11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 96, align [filtered], elements: !13)
     !12 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !13 = !{!14}
     !14 = !DISubrange(count: 6, lowerBound: 0)
-    !15 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 5, baseType: !12, size: 16, align: 16, offset: 160, flags: DIFlagPublic)
+    !15 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 5, baseType: !12, size: 16, align [filtered], offset: 160, flags: DIFlagPublic)
     !16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
     !17 = distinct !DIGlobalVariable(name: "__parent__init", scope: !2, file: !2, line: 9, type: !18, isLocal: false, isDefinition: true)
     !18 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
-    !19 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 384, align: 64, flags: DIFlagPublic, elements: !20, identifier: "parent")
+    !19 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 384, align [filtered], flags: DIFlagPublic, elements: !20, identifier: "parent")
     !20 = !{!21, !22, !26}
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 192, align: 64, flags: DIFlagPublic)
-    !22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !23, size: 176, align: 16, offset: 192, flags: DIFlagPublic)
-    !23 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 176, align: 16, elements: !24)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 192, align [filtered], flags: DIFlagPublic)
+    !22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !23, size: 176, align [filtered], offset: 192, flags: DIFlagPublic)
+    !23 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 176, align [filtered], elements: !24)
     !24 = !{!25}
     !25 = !DISubrange(count: 11, lowerBound: 0)
-    !26 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 12, baseType: !12, size: 16, align: 16, offset: 368, flags: DIFlagPublic)
+    !26 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 12, baseType: !12, size: 16, align [filtered], offset: 368, flags: DIFlagPublic)
     !27 = !DIGlobalVariableExpression(var: !28, expr: !DIExpression())
     !28 = distinct !DIGlobalVariable(name: "__child__init", scope: !2, file: !2, line: 16, type: !29, isLocal: false, isDefinition: true)
     !29 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !30)
-    !30 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 576, align: 64, flags: DIFlagPublic, elements: !31, identifier: "child")
+    !30 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 576, align [filtered], flags: DIFlagPublic, elements: !31, identifier: "child")
     !31 = !{!32, !33}
-    !32 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !19, size: 384, align: 64, flags: DIFlagPublic)
-    !33 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !23, size: 176, align: 16, offset: 384, flags: DIFlagPublic)
+    !32 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !19, size: 384, align [filtered], flags: DIFlagPublic)
+    !33 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !23, size: 176, align [filtered], offset: 384, flags: DIFlagPublic)
     !34 = !{i32 2, !"Dwarf Version", i32 5}
     !35 = !{i32 2, !"Debug Info Version", i32 3}
     !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false)
@@ -1357,7 +1357,7 @@ fn function_block_method_debug_info() {
     %__vtable_bar = type { ptr, ptr }
     %bar = type { %foo }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !0
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
@@ -1368,8 +1368,8 @@ fn function_block_method_debug_info() {
     define void @foo(ptr %0) !dbg !20 {
     entry:
         #dbg_declare(ptr %0, !24, !DIExpression(), !25)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       ret void, !dbg !25
     }
@@ -1377,8 +1377,8 @@ fn function_block_method_debug_info() {
     define void @foo__baz(ptr %0) !dbg !26 {
     entry:
         #dbg_declare(ptr %0, !27, !DIExpression(), !28)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       ret void, !dbg !28
     }
@@ -1386,74 +1386,74 @@ fn function_block_method_debug_info() {
     define void @bar(ptr %0) !dbg !29 {
     entry:
         #dbg_declare(ptr %0, !32, !DIExpression(), !33)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__foo = getelementptr inbounds nuw %bar, ptr %0, i32 0, i32 0
       ret void, !dbg !33
     }
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @foo, ptr %__body, align 8
-      %deref1 = load ptr, ptr %self, align 8
+      store ptr @foo, ptr %__body, align [filtered]
+      %deref1 = load ptr, ptr %self, align [filtered]
       %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
-      store ptr @foo__baz, ptr %baz, align 8
+      store ptr @foo__baz, ptr %baz, align [filtered]
       ret void
     }
 
     define void @__init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @bar, ptr %__body, align 8
-      %deref1 = load ptr, ptr %self, align 8
+      store ptr @bar, ptr %__body, align [filtered]
+      %deref1 = load ptr, ptr %self, align [filtered]
       %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
-      store ptr @foo__baz, ptr %baz, align 8
+      store ptr @foo__baz, ptr %baz, align [filtered]
       ret void
     }
 
     define void @__init_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_foo_instance, ptr %__vtable, align 8
+      store ptr @__vtable_foo_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__init_foo(ptr %__foo)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
-      store ptr @__vtable_bar_instance, ptr %__vtable, align 8
+      store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_bar(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__user_init_foo(ptr %__foo)
       ret void
@@ -1461,15 +1461,15 @@ fn function_block_method_debug_info() {
 
     define void @__user_init_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -1489,18 +1489,18 @@ fn function_block_method_debug_info() {
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !5, identifier: "foo")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 64, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "foo")
     !5 = !{!6}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____foo___vtable", scope: !2, file: !2, baseType: !8, align: 64)
-    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align [filtered], flags: DIFlagPublic)
+    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____foo___vtable", scope: !2, file: !2, baseType: !8, align [filtered])
+    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
     !9 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !10 = !DIGlobalVariableExpression(var: !11, expr: !DIExpression())
     !11 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 7, type: !12, isLocal: false, isDefinition: true)
     !12 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !13)
-    !13 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 7, size: 64, align: 64, flags: DIFlagPublic, elements: !14, identifier: "bar")
+    !13 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 7, size: 64, align [filtered], flags: DIFlagPublic, elements: !14, identifier: "bar")
     !14 = !{!15}
-    !15 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 64, align: 64, flags: DIFlagPublic)
+    !15 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 64, align [filtered], flags: DIFlagPublic)
     !16 = !{i32 2, !"Dwarf Version", i32 5}
     !17 = !{i32 2, !"Debug Info Version", i32 3}
     !18 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !19, splitDebugInlining: false)
@@ -1597,7 +1597,7 @@ END_FUNCTION
     %__vtable_grandchild = type { ptr }
     %grandchild = type { %child, i32 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent zeroinitializer, !dbg !0
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -1611,8 +1611,8 @@ END_FUNCTION
     define void @parent(ptr %0) !dbg !30 {
     entry:
         #dbg_declare(ptr %0, !34, !DIExpression(), !35)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 0
       %a = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 1
       ret void, !dbg !35
@@ -1621,8 +1621,8 @@ END_FUNCTION
     define void @child(ptr %0) !dbg !36 {
     entry:
         #dbg_declare(ptr %0, !39, !DIExpression(), !40)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
       %b = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 1
       ret void, !dbg !40
@@ -1631,8 +1631,8 @@ END_FUNCTION
     define void @grandchild(ptr %0) !dbg !41 {
     entry:
         #dbg_declare(ptr %0, !44, !DIExpression(), !45)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__child = getelementptr inbounds nuw %grandchild, ptr %0, i32 0, i32 0
       %c = getelementptr inbounds nuw %grandchild, ptr %0, i32 0, i32 1
       ret void, !dbg !45
@@ -1640,27 +1640,27 @@ END_FUNCTION
 
     define i32 @main() !dbg !46 {
     entry:
-      %main = alloca i32, align 4
-      %array_of_parent = alloca [3 x %parent], align 8
-      %array_of_child = alloca [3 x %child], align 8
-      %array_of_grandchild = alloca [3 x %grandchild], align 8
-      %parent1 = alloca %parent, align 8
-      %child1 = alloca %child, align 8
-      %grandchild1 = alloca %grandchild, align 8
+      %main = alloca i32, align [filtered]
+      %array_of_parent = alloca [3 x %parent], align [filtered]
+      %array_of_child = alloca [3 x %child], align [filtered]
+      %array_of_grandchild = alloca [3 x %grandchild], align [filtered]
+      %parent1 = alloca %parent, align [filtered]
+      %child1 = alloca %child, align [filtered]
+      %grandchild1 = alloca %grandchild, align [filtered]
         #dbg_declare(ptr %array_of_parent, !49, !DIExpression(), !53)
-      call void @llvm.memset.p0.i64(ptr align 1 %array_of_parent, i8 0, i64 ptrtoint (ptr getelementptr ([3 x %parent], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %array_of_parent, i8 0, i64 ptrtoint (ptr getelementptr ([3 x %parent], ptr null, i32 1) to i64), i1 false)
         #dbg_declare(ptr %array_of_child, !54, !DIExpression(), !56)
-      call void @llvm.memset.p0.i64(ptr align 1 %array_of_child, i8 0, i64 ptrtoint (ptr getelementptr ([3 x %child], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %array_of_child, i8 0, i64 ptrtoint (ptr getelementptr ([3 x %child], ptr null, i32 1) to i64), i1 false)
         #dbg_declare(ptr %array_of_grandchild, !57, !DIExpression(), !59)
-      call void @llvm.memset.p0.i64(ptr align 1 %array_of_grandchild, i8 0, i64 ptrtoint (ptr getelementptr ([3 x %grandchild], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %array_of_grandchild, i8 0, i64 ptrtoint (ptr getelementptr ([3 x %grandchild], ptr null, i32 1) to i64), i1 false)
         #dbg_declare(ptr %parent1, !60, !DIExpression(), !61)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %parent1, ptr align 1 @__parent__init, i64 ptrtoint (ptr getelementptr (%parent, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %parent1, ptr align [filtered] @__parent__init, i64 ptrtoint (ptr getelementptr (%parent, ptr null, i32 1) to i64), i1 false)
         #dbg_declare(ptr %child1, !62, !DIExpression(), !63)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %child1, ptr align 1 @__child__init, i64 ptrtoint (ptr getelementptr (%child, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %child1, ptr align [filtered] @__child__init, i64 ptrtoint (ptr getelementptr (%child, ptr null, i32 1) to i64), i1 false)
         #dbg_declare(ptr %grandchild1, !64, !DIExpression(), !65)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %grandchild1, ptr align 1 @__grandchild__init, i64 ptrtoint (ptr getelementptr (%grandchild, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %grandchild1, ptr align [filtered] @__grandchild__init, i64 ptrtoint (ptr getelementptr (%grandchild, ptr null, i32 1) to i64), i1 false)
         #dbg_declare(ptr %main, !66, !DIExpression(), !67)
-      store i32 0, ptr %main, align 4
+      store i32 0, ptr %main, align [filtered]
       call void @__init_parent(ptr %parent1), !dbg !68
       call void @__init_child(ptr %child1), !dbg !68
       call void @__init_grandchild(ptr %grandchild1), !dbg !68
@@ -1668,88 +1668,88 @@ END_FUNCTION
       call void @__user_init_child(ptr %child1), !dbg !68
       call void @__user_init_grandchild(ptr %grandchild1), !dbg !68
       %a = getelementptr inbounds nuw %parent, ptr %parent1, i32 0, i32 1, !dbg !69
-      store i32 1, ptr %a, align 4, !dbg !69
+      store i32 1, ptr %a, align [filtered], !dbg !69
       %__parent = getelementptr inbounds nuw %child, ptr %child1, i32 0, i32 0, !dbg !70
       %a1 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1, !dbg !70
-      store i32 2, ptr %a1, align 4, !dbg !70
+      store i32 2, ptr %a1, align [filtered], !dbg !70
       %b = getelementptr inbounds nuw %child, ptr %child1, i32 0, i32 1, !dbg !71
-      store i32 3, ptr %b, align 4, !dbg !71
+      store i32 3, ptr %b, align [filtered], !dbg !71
       %__child = getelementptr inbounds nuw %grandchild, ptr %grandchild1, i32 0, i32 0, !dbg !72
       %__parent2 = getelementptr inbounds nuw %child, ptr %__child, i32 0, i32 0, !dbg !72
       %a3 = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 1, !dbg !72
-      store i32 4, ptr %a3, align 4, !dbg !72
+      store i32 4, ptr %a3, align [filtered], !dbg !72
       %__child4 = getelementptr inbounds nuw %grandchild, ptr %grandchild1, i32 0, i32 0, !dbg !73
       %b5 = getelementptr inbounds nuw %child, ptr %__child4, i32 0, i32 1, !dbg !73
-      store i32 5, ptr %b5, align 4, !dbg !73
+      store i32 5, ptr %b5, align [filtered], !dbg !73
       %c = getelementptr inbounds nuw %grandchild, ptr %grandchild1, i32 0, i32 1, !dbg !74
-      store i32 6, ptr %c, align 4, !dbg !74
+      store i32 6, ptr %c, align [filtered], !dbg !74
       %tmpVar = getelementptr inbounds [3 x %parent], ptr %array_of_parent, i32 0, i32 0, !dbg !75
       %a6 = getelementptr inbounds nuw %parent, ptr %tmpVar, i32 0, i32 1, !dbg !75
-      store i32 7, ptr %a6, align 4, !dbg !75
+      store i32 7, ptr %a6, align [filtered], !dbg !75
       %tmpVar7 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 0, !dbg !76
       %__parent8 = getelementptr inbounds nuw %child, ptr %tmpVar7, i32 0, i32 0, !dbg !76
       %a9 = getelementptr inbounds nuw %parent, ptr %__parent8, i32 0, i32 1, !dbg !76
-      store i32 8, ptr %a9, align 4, !dbg !76
+      store i32 8, ptr %a9, align [filtered], !dbg !76
       %tmpVar10 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 0, !dbg !77
       %b11 = getelementptr inbounds nuw %child, ptr %tmpVar10, i32 0, i32 1, !dbg !77
-      store i32 9, ptr %b11, align 4, !dbg !77
+      store i32 9, ptr %b11, align [filtered], !dbg !77
       %tmpVar12 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 0, !dbg !78
       %__child13 = getelementptr inbounds nuw %grandchild, ptr %tmpVar12, i32 0, i32 0, !dbg !78
       %__parent14 = getelementptr inbounds nuw %child, ptr %__child13, i32 0, i32 0, !dbg !78
       %a15 = getelementptr inbounds nuw %parent, ptr %__parent14, i32 0, i32 1, !dbg !78
-      store i32 10, ptr %a15, align 4, !dbg !78
+      store i32 10, ptr %a15, align [filtered], !dbg !78
       %tmpVar16 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 0, !dbg !79
       %__child17 = getelementptr inbounds nuw %grandchild, ptr %tmpVar16, i32 0, i32 0, !dbg !79
       %b18 = getelementptr inbounds nuw %child, ptr %__child17, i32 0, i32 1, !dbg !79
-      store i32 11, ptr %b18, align 4, !dbg !79
+      store i32 11, ptr %b18, align [filtered], !dbg !79
       %tmpVar19 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 0, !dbg !80
       %c20 = getelementptr inbounds nuw %grandchild, ptr %tmpVar19, i32 0, i32 1, !dbg !80
-      store i32 12, ptr %c20, align 4, !dbg !80
+      store i32 12, ptr %c20, align [filtered], !dbg !80
       %tmpVar21 = getelementptr inbounds [3 x %parent], ptr %array_of_parent, i32 0, i32 1, !dbg !81
       %a22 = getelementptr inbounds nuw %parent, ptr %tmpVar21, i32 0, i32 1, !dbg !81
-      store i32 13, ptr %a22, align 4, !dbg !81
+      store i32 13, ptr %a22, align [filtered], !dbg !81
       %tmpVar23 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 1, !dbg !82
       %__parent24 = getelementptr inbounds nuw %child, ptr %tmpVar23, i32 0, i32 0, !dbg !82
       %a25 = getelementptr inbounds nuw %parent, ptr %__parent24, i32 0, i32 1, !dbg !82
-      store i32 14, ptr %a25, align 4, !dbg !82
+      store i32 14, ptr %a25, align [filtered], !dbg !82
       %tmpVar26 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 1, !dbg !83
       %b27 = getelementptr inbounds nuw %child, ptr %tmpVar26, i32 0, i32 1, !dbg !83
-      store i32 15, ptr %b27, align 4, !dbg !83
+      store i32 15, ptr %b27, align [filtered], !dbg !83
       %tmpVar28 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 1, !dbg !84
       %__child29 = getelementptr inbounds nuw %grandchild, ptr %tmpVar28, i32 0, i32 0, !dbg !84
       %__parent30 = getelementptr inbounds nuw %child, ptr %__child29, i32 0, i32 0, !dbg !84
       %a31 = getelementptr inbounds nuw %parent, ptr %__parent30, i32 0, i32 1, !dbg !84
-      store i32 16, ptr %a31, align 4, !dbg !84
+      store i32 16, ptr %a31, align [filtered], !dbg !84
       %tmpVar32 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 1, !dbg !85
       %__child33 = getelementptr inbounds nuw %grandchild, ptr %tmpVar32, i32 0, i32 0, !dbg !85
       %b34 = getelementptr inbounds nuw %child, ptr %__child33, i32 0, i32 1, !dbg !85
-      store i32 17, ptr %b34, align 4, !dbg !85
+      store i32 17, ptr %b34, align [filtered], !dbg !85
       %tmpVar35 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 1, !dbg !86
       %c36 = getelementptr inbounds nuw %grandchild, ptr %tmpVar35, i32 0, i32 1, !dbg !86
-      store i32 18, ptr %c36, align 4, !dbg !86
+      store i32 18, ptr %c36, align [filtered], !dbg !86
       %tmpVar37 = getelementptr inbounds [3 x %parent], ptr %array_of_parent, i32 0, i32 2, !dbg !87
       %a38 = getelementptr inbounds nuw %parent, ptr %tmpVar37, i32 0, i32 1, !dbg !87
-      store i32 19, ptr %a38, align 4, !dbg !87
+      store i32 19, ptr %a38, align [filtered], !dbg !87
       %tmpVar39 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 2, !dbg !88
       %__parent40 = getelementptr inbounds nuw %child, ptr %tmpVar39, i32 0, i32 0, !dbg !88
       %a41 = getelementptr inbounds nuw %parent, ptr %__parent40, i32 0, i32 1, !dbg !88
-      store i32 20, ptr %a41, align 4, !dbg !88
+      store i32 20, ptr %a41, align [filtered], !dbg !88
       %tmpVar42 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 2, !dbg !89
       %b43 = getelementptr inbounds nuw %child, ptr %tmpVar42, i32 0, i32 1, !dbg !89
-      store i32 21, ptr %b43, align 4, !dbg !89
+      store i32 21, ptr %b43, align [filtered], !dbg !89
       %tmpVar44 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 2, !dbg !90
       %__child45 = getelementptr inbounds nuw %grandchild, ptr %tmpVar44, i32 0, i32 0, !dbg !90
       %__parent46 = getelementptr inbounds nuw %child, ptr %__child45, i32 0, i32 0, !dbg !90
       %a47 = getelementptr inbounds nuw %parent, ptr %__parent46, i32 0, i32 1, !dbg !90
-      store i32 22, ptr %a47, align 4, !dbg !90
+      store i32 22, ptr %a47, align [filtered], !dbg !90
       %tmpVar48 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 2, !dbg !91
       %__child49 = getelementptr inbounds nuw %grandchild, ptr %tmpVar48, i32 0, i32 0, !dbg !91
       %b50 = getelementptr inbounds nuw %child, ptr %__child49, i32 0, i32 1, !dbg !91
-      store i32 23, ptr %b50, align 4, !dbg !91
+      store i32 23, ptr %b50, align [filtered], !dbg !91
       %tmpVar51 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 2, !dbg !92
       %c52 = getelementptr inbounds nuw %grandchild, ptr %tmpVar51, i32 0, i32 1, !dbg !92
-      store i32 24, ptr %c52, align 4, !dbg !92
-      %main_ret = load i32, ptr %main, align 4, !dbg !93
+      store i32 24, ptr %c52, align [filtered], !dbg !92
+      %main_ret = load i32, ptr %main, align [filtered], !dbg !93
       ret i32 %main_ret, !dbg !93
     }
 
@@ -1761,106 +1761,106 @@ END_FUNCTION
 
     define void @__init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_parent, ptr %deref, i32 0, i32 0
-      store ptr @parent, ptr %__body, align 8
+      store ptr @parent, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_parent, ptr %deref, i32 0, i32 0
-      store ptr @child, ptr %__body, align 8
+      store ptr @child, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_grandchild(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_parent, ptr %deref, i32 0, i32 0
-      store ptr @grandchild, ptr %__body, align 8
+      store ptr @grandchild, ptr %__body, align [filtered]
       ret void
     }
 
     define void @__init_grandchild(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__child = getelementptr inbounds nuw %grandchild, ptr %deref, i32 0, i32 0
       call void @__init_child(ptr %__child)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__child2 = getelementptr inbounds nuw %grandchild, ptr %deref1, i32 0, i32 0
       %__parent = getelementptr inbounds nuw %child, ptr %__child2, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0
-      store ptr @__vtable_grandchild_instance, ptr %__vtable, align 8
+      store ptr @__vtable_grandchild_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__init_parent(ptr %__parent)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
-      store ptr @__vtable_child_instance, ptr %__vtable, align 8
+      store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_parent_instance, ptr %__vtable, align 8
+      store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_grandchild(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_child(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__user_init_parent(ptr %__parent)
       ret void
@@ -1868,9 +1868,9 @@ END_FUNCTION
 
     define void @__user_init_grandchild(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__child = getelementptr inbounds nuw %grandchild, ptr %deref, i32 0, i32 0
       call void @__user_init_child(ptr %__child)
       ret void
@@ -1897,28 +1897,28 @@ END_FUNCTION
     !1 = distinct !DIGlobalVariable(name: "__parent__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 2, size: 128, align: 64, flags: DIFlagPublic, elements: !5, identifier: "parent")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 2, size: 128, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "parent")
     !5 = !{!6, !10}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____parent___vtable", scope: !2, file: !2, baseType: !8, align: 64)
-    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__parent___vtable", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align [filtered], flags: DIFlagPublic)
+    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____parent___vtable", scope: !2, file: !2, baseType: !8, align [filtered])
+    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__parent___vtable", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
     !9 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
-    !10 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !11, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+    !10 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !11, size: 32, align [filtered], offset: 64, flags: DIFlagPublic)
     !11 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !12 = !DIGlobalVariableExpression(var: !13, expr: !DIExpression())
     !13 = distinct !DIGlobalVariable(name: "__child__init", scope: !2, file: !2, line: 8, type: !14, isLocal: false, isDefinition: true)
     !14 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !15)
-    !15 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 8, size: 192, align: 64, flags: DIFlagPublic, elements: !16, identifier: "child")
+    !15 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 8, size: 192, align [filtered], flags: DIFlagPublic, elements: !16, identifier: "child")
     !16 = !{!17, !18}
-    !17 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 128, align: 64, flags: DIFlagPublic)
-    !18 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !11, size: 32, align: 32, offset: 128, flags: DIFlagPublic)
+    !17 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 128, align [filtered], flags: DIFlagPublic)
+    !18 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !11, size: 32, align [filtered], offset: 128, flags: DIFlagPublic)
     !19 = !DIGlobalVariableExpression(var: !20, expr: !DIExpression())
     !20 = distinct !DIGlobalVariable(name: "__grandchild__init", scope: !2, file: !2, line: 14, type: !21, isLocal: false, isDefinition: true)
     !21 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !22)
-    !22 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandchild", scope: !2, file: !2, line: 14, size: 256, align: 64, flags: DIFlagPublic, elements: !23, identifier: "grandchild")
+    !22 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandchild", scope: !2, file: !2, line: 14, size: 256, align [filtered], flags: DIFlagPublic, elements: !23, identifier: "grandchild")
     !23 = !{!24, !25}
-    !24 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !15, size: 192, align: 64, flags: DIFlagPublic)
-    !25 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 16, baseType: !11, size: 32, align: 32, offset: 192, flags: DIFlagPublic)
+    !24 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !15, size: 192, align [filtered], flags: DIFlagPublic)
+    !25 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 16, baseType: !11, size: 32, align [filtered], offset: 192, flags: DIFlagPublic)
     !26 = !{i32 2, !"Dwarf Version", i32 5}
     !27 = !{i32 2, !"Debug Info Version", i32 3}
     !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !29, splitDebugInlining: false)
@@ -1942,24 +1942,24 @@ END_FUNCTION
     !46 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 20, type: !47, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33)
     !47 = !DISubroutineType(flags: DIFlagPublic, types: !48)
     !48 = !{null}
-    !49 = !DILocalVariable(name: "array_of_parent", scope: !46, file: !2, line: 22, type: !50, align: 64)
-    !50 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 384, align: 64, elements: !51)
+    !49 = !DILocalVariable(name: "array_of_parent", scope: !46, file: !2, line: 22, type: !50, align [filtered])
+    !50 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 384, align [filtered], elements: !51)
     !51 = !{!52}
     !52 = !DISubrange(count: 3, lowerBound: 0)
     !53 = !DILocation(line: 22, column: 4, scope: !46)
-    !54 = !DILocalVariable(name: "array_of_child", scope: !46, file: !2, line: 23, type: !55, align: 64)
-    !55 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: 576, align: 64, elements: !51)
+    !54 = !DILocalVariable(name: "array_of_child", scope: !46, file: !2, line: 23, type: !55, align [filtered])
+    !55 = !DICompositeType(tag: DW_TAG_array_type, baseType: !15, size: 576, align [filtered], elements: !51)
     !56 = !DILocation(line: 23, column: 4, scope: !46)
-    !57 = !DILocalVariable(name: "array_of_grandchild", scope: !46, file: !2, line: 24, type: !58, align: 64)
-    !58 = !DICompositeType(tag: DW_TAG_array_type, baseType: !22, size: 768, align: 64, elements: !51)
+    !57 = !DILocalVariable(name: "array_of_grandchild", scope: !46, file: !2, line: 24, type: !58, align [filtered])
+    !58 = !DICompositeType(tag: DW_TAG_array_type, baseType: !22, size: 768, align [filtered], elements: !51)
     !59 = !DILocation(line: 24, column: 4, scope: !46)
-    !60 = !DILocalVariable(name: "parent1", scope: !46, file: !2, line: 25, type: !4, align: 64)
+    !60 = !DILocalVariable(name: "parent1", scope: !46, file: !2, line: 25, type: !4, align [filtered])
     !61 = !DILocation(line: 25, column: 4, scope: !46)
-    !62 = !DILocalVariable(name: "child1", scope: !46, file: !2, line: 26, type: !15, align: 64)
+    !62 = !DILocalVariable(name: "child1", scope: !46, file: !2, line: 26, type: !15, align [filtered])
     !63 = !DILocation(line: 26, column: 4, scope: !46)
-    !64 = !DILocalVariable(name: "grandchild1", scope: !46, file: !2, line: 27, type: !22, align: 64)
+    !64 = !DILocalVariable(name: "grandchild1", scope: !46, file: !2, line: 27, type: !22, align [filtered])
     !65 = !DILocation(line: 27, column: 4, scope: !46)
-    !66 = !DILocalVariable(name: "main", scope: !46, file: !2, line: 20, type: !11, align: 32)
+    !66 = !DILocalVariable(name: "main", scope: !46, file: !2, line: 20, type: !11, align [filtered])
     !67 = !DILocation(line: 20, column: 9, scope: !46)
     !68 = !DILocation(line: 0, scope: !46)
     !69 = !DILocation(line: 30, column: 4, scope: !46)

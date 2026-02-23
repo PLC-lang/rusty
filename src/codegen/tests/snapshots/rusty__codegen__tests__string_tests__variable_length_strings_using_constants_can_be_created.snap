@@ -23,8 +23,8 @@ entry:
   %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %wy = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   %wz = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %y, ptr align 1 @utf08_literal_0, i32 12, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %wy, ptr align 2 @utf16_literal_0, i32 24, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %y, ptr align [filtered] @utf08_literal_0, i32 12, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %wy, ptr align [filtered] @utf16_literal_0, i32 24, i1 false)
   ret void
 }
 

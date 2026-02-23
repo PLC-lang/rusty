@@ -9,13 +9,13 @@ target triple = "[filtered]"
 
 define i32 @bump(ptr %0) {
 entry:
-  %bump = alloca i32, align 4
-  %v = alloca ptr, align 8
-  store ptr %0, ptr %v, align 8
-  store i32 0, ptr %bump, align 4
-  store i32 1, ptr %bump, align 4
-  %deref = load ptr, ptr %v, align 8
-  store i8 2, ptr %deref, align 1
-  %bump_ret = load i32, ptr %bump, align 4
+  %bump = alloca i32, align [filtered]
+  %v = alloca ptr, align [filtered]
+  store ptr %0, ptr %v, align [filtered]
+  store i32 0, ptr %bump, align [filtered]
+  store i32 1, ptr %bump, align [filtered]
+  %deref = load ptr, ptr %v, align [filtered]
+  store i8 2, ptr %deref, align [filtered]
+  %bump_ret = load i32, ptr %bump, align [filtered]
   ret i32 %bump_ret
 }

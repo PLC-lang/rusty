@@ -22,7 +22,7 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  store i32 1, ptr @prog_instance, align 4
+  store i32 1, ptr @prog_instance, align [filtered]
   call void @prog(ptr @prog_instance)
   ret void
 }

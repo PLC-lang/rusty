@@ -320,32 +320,32 @@ fn pass() {
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %local = alloca [6 x i32], align 4
-      call void @llvm.memset.p0.i64(ptr align 1 %local, i8 0, i64 ptrtoint (ptr getelementptr ([6 x i32], ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %main, align 4
-      %auto_deref = load [6 x i32], ptr %local, align 4
+      %main = alloca i32, align [filtered]
+      %local = alloca [6 x i32], align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %local, i8 0, i64 ptrtoint (ptr getelementptr ([6 x i32], ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
+      %auto_deref = load [6 x i32], ptr %local, align [filtered]
       %outer_arr_gep = getelementptr inbounds [6 x i32], ptr %local, i32 0, i32 0
-      %vla_struct = alloca %__foo_arr, align 8
+      %vla_struct = alloca %__foo_arr, align [filtered]
       %vla_array_gep = getelementptr inbounds nuw %__foo_arr, ptr %vla_struct, i32 0, i32 0
       %vla_dimensions_gep = getelementptr inbounds nuw %__foo_arr, ptr %vla_struct, i32 0, i32 1
-      store [2 x i32] [i32 0, i32 5], ptr %vla_dimensions_gep, align 4
-      store ptr %outer_arr_gep, ptr %vla_array_gep, align 8
-      %0 = load %__foo_arr, ptr %vla_struct, align 8
-      %vla_struct_ptr = alloca %__foo_arr, align 8
-      store %__foo_arr %0, ptr %vla_struct_ptr, align 8
+      store [2 x i32] [i32 0, i32 5], ptr %vla_dimensions_gep, align [filtered]
+      store ptr %outer_arr_gep, ptr %vla_array_gep, align [filtered]
+      %0 = load %__foo_arr, ptr %vla_struct, align [filtered]
+      %vla_struct_ptr = alloca %__foo_arr, align [filtered]
+      store %__foo_arr %0, ptr %vla_struct_ptr, align [filtered]
       %call = call i32 @foo(ptr %vla_struct_ptr)
-      %main_ret = load i32, ptr %main, align 4
+      %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
 
     define i32 @foo(ptr %0) {
     entry:
-      %foo = alloca i32, align 4
-      %arr = alloca ptr, align 8
-      store ptr %0, ptr %arr, align 8
-      store i32 0, ptr %foo, align 4
-      %foo_ret = load i32, ptr %foo, align 4
+      %foo = alloca i32, align [filtered]
+      %arr = alloca ptr, align [filtered]
+      store ptr %0, ptr %arr, align [filtered]
+      store i32 0, ptr %foo, align [filtered]
+      %foo_ret = load i32, ptr %foo, align [filtered]
       ret i32 %foo_ret
     }
 
@@ -387,22 +387,22 @@ fn access() {
 
     define i32 @foo(ptr %0) {
     entry:
-      %foo = alloca i32, align 4
-      %arr = alloca ptr, align 8
-      store ptr %0, ptr %arr, align 8
-      store i32 0, ptr %foo, align 4
-      %deref = load ptr, ptr %arr, align 8
+      %foo = alloca i32, align [filtered]
+      %arr = alloca ptr, align [filtered]
+      store ptr %0, ptr %arr, align [filtered]
+      store i32 0, ptr %foo, align [filtered]
+      %deref = load ptr, ptr %arr, align [filtered]
       %vla_arr_gep = getelementptr inbounds nuw %__foo_arr, ptr %deref, i32 0, i32 0
-      %vla_arr_ptr = load ptr, ptr %vla_arr_gep, align 8
+      %vla_arr_ptr = load ptr, ptr %vla_arr_gep, align [filtered]
       %dim_arr = getelementptr inbounds nuw %__foo_arr, ptr %deref, i32 0, i32 1
       %start_idx_ptr0 = getelementptr inbounds [2 x i32], ptr %dim_arr, i32 0, i32 0
       %end_idx_ptr0 = getelementptr inbounds [2 x i32], ptr %dim_arr, i32 0, i32 1
-      %start_idx_value0 = load i32, ptr %start_idx_ptr0, align 4
-      %end_idx_value0 = load i32, ptr %end_idx_ptr0, align 4
+      %start_idx_value0 = load i32, ptr %start_idx_ptr0, align [filtered]
+      %end_idx_value0 = load i32, ptr %end_idx_ptr0, align [filtered]
       %tmpVar = sub i32 0, %start_idx_value0
       %arr_val = getelementptr inbounds i32, ptr %vla_arr_ptr, i32 %tmpVar
-      store i32 12345, ptr %arr_val, align 4
-      %foo_ret = load i32, ptr %foo, align 4
+      store i32 12345, ptr %arr_val, align [filtered]
+      %foo_ret = load i32, ptr %foo, align [filtered]
       ret i32 %foo_ret
     }
     "#);
@@ -447,48 +447,48 @@ fn multi_dimensional() {
 
     define i32 @foo(ptr %0) {
     entry:
-      %foo = alloca i32, align 4
-      %arr = alloca ptr, align 8
-      store ptr %0, ptr %arr, align 8
-      store i32 0, ptr %foo, align 4
-      %deref = load ptr, ptr %arr, align 8
+      %foo = alloca i32, align [filtered]
+      %arr = alloca ptr, align [filtered]
+      store ptr %0, ptr %arr, align [filtered]
+      store i32 0, ptr %foo, align [filtered]
+      %deref = load ptr, ptr %arr, align [filtered]
       %vla_arr_gep = getelementptr inbounds nuw %__foo_arr, ptr %deref, i32 0, i32 0
-      %vla_arr_ptr = load ptr, ptr %vla_arr_gep, align 8
+      %vla_arr_ptr = load ptr, ptr %vla_arr_gep, align [filtered]
       %dim_arr = getelementptr inbounds nuw %__foo_arr, ptr %deref, i32 0, i32 1
       %start_idx_ptr0 = getelementptr inbounds [4 x i32], ptr %dim_arr, i32 0, i32 0
       %end_idx_ptr0 = getelementptr inbounds [4 x i32], ptr %dim_arr, i32 0, i32 1
-      %start_idx_value0 = load i32, ptr %start_idx_ptr0, align 4
-      %end_idx_value0 = load i32, ptr %end_idx_ptr0, align 4
+      %start_idx_value0 = load i32, ptr %start_idx_ptr0, align [filtered]
+      %end_idx_value0 = load i32, ptr %end_idx_ptr0, align [filtered]
       %start_idx_ptr1 = getelementptr inbounds [4 x i32], ptr %dim_arr, i32 0, i32 2
       %end_idx_ptr1 = getelementptr inbounds [4 x i32], ptr %dim_arr, i32 0, i32 3
-      %start_idx_value1 = load i32, ptr %start_idx_ptr1, align 4
-      %end_idx_value1 = load i32, ptr %end_idx_ptr1, align 4
+      %start_idx_value1 = load i32, ptr %start_idx_ptr1, align [filtered]
+      %end_idx_value1 = load i32, ptr %end_idx_ptr1, align [filtered]
       %1 = sub i32 %end_idx_value0, %start_idx_value0
       %len_dim0 = add i32 1, %1
       %2 = sub i32 %end_idx_value1, %start_idx_value1
       %len_dim1 = add i32 1, %2
-      %accum = alloca i32, align 4
-      store i32 1, ptr %accum, align 4
-      %load_accum = load i32, ptr %accum, align 4
+      %accum = alloca i32, align [filtered]
+      store i32 1, ptr %accum, align [filtered]
+      %load_accum = load i32, ptr %accum, align [filtered]
       %product = mul i32 %load_accum, %len_dim1
-      store i32 %product, ptr %accum, align 4
-      %accessor_factor = load i32, ptr %accum, align 4
+      store i32 %product, ptr %accum, align [filtered]
+      %accessor_factor = load i32, ptr %accum, align [filtered]
       %adj_access0 = sub i32 0, %start_idx_value0
       %adj_access1 = sub i32 1, %start_idx_value1
-      %accum1 = alloca i32, align 4
-      store i32 0, ptr %accum1, align 4
+      %accum1 = alloca i32, align [filtered]
+      store i32 0, ptr %accum1, align [filtered]
       %multiply = mul i32 %adj_access0, %accessor_factor
-      %load_accum2 = load i32, ptr %accum1, align 4
+      %load_accum2 = load i32, ptr %accum1, align [filtered]
       %accumulate = add i32 %load_accum2, %multiply
-      store i32 %accumulate, ptr %accum1, align 4
+      store i32 %accumulate, ptr %accum1, align [filtered]
       %multiply3 = mul i32 %adj_access1, 1
-      %load_accum4 = load i32, ptr %accum1, align 4
+      %load_accum4 = load i32, ptr %accum1, align [filtered]
       %accumulate5 = add i32 %load_accum4, %multiply3
-      store i32 %accumulate5, ptr %accum1, align 4
-      %accessor = load i32, ptr %accum1, align 4
+      store i32 %accumulate5, ptr %accum1, align [filtered]
+      %accessor = load i32, ptr %accum1, align [filtered]
       %arr_val = getelementptr inbounds i32, ptr %vla_arr_ptr, i32 %accessor
-      store i32 12345, ptr %arr_val, align 4
-      %foo_ret = load i32, ptr %foo, align 4
+      store i32 12345, ptr %arr_val, align [filtered]
+      %foo_ret = load i32, ptr %foo, align [filtered]
       ret i32 %foo_ret
     }
     "#);

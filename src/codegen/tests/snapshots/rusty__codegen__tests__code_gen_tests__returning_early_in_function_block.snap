@@ -13,10 +13,10 @@ target triple = "[filtered]"
 
 define void @abcdef(ptr %0) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   %n = getelementptr inbounds nuw %abcdef, ptr %0, i32 0, i32 0
-  %load_n = load i8, ptr %n, align 1
+  %load_n = load i8, ptr %n, align [filtered]
   %1 = sext i8 %load_n to i32
   %tmpVar = icmp slt i32 %1, 10
   %2 = zext i1 %tmpVar to i8

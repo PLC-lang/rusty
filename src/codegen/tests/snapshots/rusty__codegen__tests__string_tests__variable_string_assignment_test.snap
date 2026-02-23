@@ -16,8 +16,8 @@ define void @prg(ptr %0) {
 entry:
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %y, ptr align 1 %z, i32 15, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %z, ptr align 1 %y, i32 16, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %y, ptr align [filtered] %z, i32 15, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %z, ptr align [filtered] %y, i32 16, i1 false)
   ret void
 }
 
