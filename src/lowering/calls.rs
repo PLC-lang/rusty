@@ -356,7 +356,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
             if is_generic_function {
                 //For generic functions, we need to replace the generic name with the function name
-                stmt.operator = Box::new(AstFactory::create_member_reference(
+                *stmt.operator = AstFactory::create_member_reference(
                     AstFactory::create_identifier(
                         &qualified_name,
                         stmt.operator.get_location(),
@@ -364,7 +364,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     ),
                     None,
                     self.id_provider.next_id(),
-                ))
+                )
             };
             stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
             //steal parameters, add one to the start, return parameters

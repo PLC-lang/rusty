@@ -359,7 +359,7 @@ impl SourceLocation {
                     inner_range: inner_range
                         .as_ref()
                         .map(|it| it.start..range.end.offset)
-                        .or_else(|| Some(range.start.offset..range.end.offset)),
+                        .or(Some(range.start.offset..range.end.offset)),
                 }
             }
             //None any -> None (unsupported)
