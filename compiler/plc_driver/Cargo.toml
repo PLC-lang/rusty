@@ -49,7 +49,6 @@ path = "./src/main.rs"
 name = "plc"
 maintainer = "PLC-lang Project"
 copyright = "2020-2026, PLC-lang contributors"
-license-file = ["../../COPYING.LESSER", "0"]
 extended-description = """\
 PLC is an IEC 61131-3 Structured Text compiler targeting LLVM. \
 It compiles ST programs to native machine code for multiple platforms."""
@@ -59,6 +58,5 @@ depends = "libc6"
 assets = [
     ["target/release/plc", "usr/bin/", "755"],
     ["../../compiler/plc_project/schema/plc-json.schema", "usr/share/plc/schema/", "644"],
-    ["../../COPYING", "usr/share/doc/plc/", "644"],
-    ["../../COPYING.LESSER", "usr/share/doc/plc/", "644"],
+    ["../../scripts/debian/plc/copyright", "usr/share/doc/plc/", "644"],
 ]

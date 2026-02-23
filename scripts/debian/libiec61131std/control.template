@@ -1,0 +1,14 @@
+Package: libiec61131std
+Version: __PKG_VERSION__
+Architecture: __DEB_ARCH__
+Multi-Arch: same
+Maintainer: PLC-lang Project
+Section: libs
+Priority: optional
+Depends: libc6
+Installed-Size: __INSTALLED_SIZE__
+Homepage: https://github.com/PLC-lang/rusty
+Description: IEC 61131-3 standard library for PLC
+ Shared and static libraries implementing the IEC 61131-3 standard
+ functions and function blocks for use with the PLC compiler.
+ Includes standard library source (.st) files.

@@ -391,69 +391,22 @@ function build_lib_deb() {
     # Copy .st include files
     cp "$project_location"/output/include/*.st "$stage_dir/usr/share/plc/include/"
 
-    # Create copyright file with all license texts
-    {
-        echo "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/"
-        echo "Upstream-Name: RuSTy"
-        echo "Upstream-Contact: https://github.com/PLC-lang/rusty"
-        echo "Source: https://github.com/PLC-lang/rusty"
-        echo ""
-        echo "Files: *"
-        echo "Copyright: 2020-2026, PLC-lang contributors"
-        echo "License: LGPL-3.0-or-later"
-        echo ""
-        echo "License: LGPL-3.0-or-later"
-    } > "$stage_dir/usr/share/doc/$pkg_name/copyright"
-    cat "$project_location/COPYING.LESSER" >> "$stage_dir/usr/share/doc/$pkg_name/copyright"
-    {
-        echo ""
-        echo "License: GPL-3.0"
-    } >> "$stage_dir/usr/share/doc/$pkg_name/copyright"
-    cat "$project_location/COPYING" >> "$stage_dir/usr/share/doc/$pkg_name/copyright"
-    {
-        echo ""
-        echo "Files: libs/stdlib/*"
-        echo "Copyright: 2020-2026, PLC-lang contributors"
-        echo "License: LGPL-2.1"
-        echo ""
-        echo "License: LGPL-2.1"
-    } >> "$stage_dir/usr/share/doc/$pkg_name/copyright"
-    cat "$project_location/libs/stdlib/LICENSE" >> "$stage_dir/usr/share/doc/$pkg_name/copyright"
+    # Copy static debian packaging files
+    local debian_dir="$project_location/scripts/debian/libiec61131std"
+
+    cp "$debian_dir/copyright" "$stage_dir/usr/share/doc/$pkg_name/copyright"
+    cp "$debian_dir/postinst"  "$stage_dir/DEBIAN/postinst"
+    cp "$debian_dir/postrm"    "$stage_dir/DEBIAN/postrm"
 
     # Calculate installed size in KiB
     local installed_size
     installed_size=$(du -sk "$stage_dir" | cut -f1)
 
-    # Write DEBIAN/control
-    cat > "$stage_dir/DEBIAN/control" <<EOF
-Package: ${pkg_name}
-Version: ${pkg_version}
-Architecture: ${deb_arch}
-Multi-Arch: same
-Maintainer: PLC-lang Project
-Section: libs
-Priority: optional
-Depends: libc6
-Installed-Size: ${installed_size}
-Homepage: https://github.com/PLC-lang/rusty
-Description: IEC 61131-3 standard library for PLC
- Shared and static libraries implementing the IEC 61131-3 standard
- functions and function blocks for use with the PLC compiler.
- Includes standard library source (.st) files.
-EOF
-
-    # Write ldconfig triggers
-    cat > "$stage_dir/DEBIAN/postinst" <<'SCRIPT'
-#!/bin/sh
-set -e
-ldconfig
-SCRIPT
-
-    cat > "$stage_dir/DEBIAN/postrm" <<'SCRIPT'
-#!/bin/sh
-set -e
-ldconfig
-SCRIPT
+    # Generate control file from template
+    sed -e "s/__PKG_VERSION__/${pkg_version}/" \
+        -e "s/__DEB_ARCH__/${deb_arch}/" \
+        -e "s/__INSTALLED_SIZE__/${installed_size}/" \
+        "$debian_dir/control.template" > "$stage_dir/DEBIAN/control"
 
     # Set permissions
     find "$stage_dir" -type d -exec chmod 0755 {} \;
