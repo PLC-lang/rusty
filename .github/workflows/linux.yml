@@ -70,11 +70,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
       - name: Release Build (native ${{ matrix.config.arch }})
         shell: bash
         run: |
           echo "Building native binary for ${{ matrix.config.arch }}"
-          ./scripts/build.sh --build --release --package
+          ./scripts/build.sh --build --release --package --deb
 
       - name: Build and package the std lib
         if: matrix.config.arch == 'x86_64'
@@ -88,7 +91,7 @@ jobs:
           rm -rf /var/lib/apt/lists/*
 
           echo "Build command : ./scripts/build.sh --build --release"
-          ./scripts/build.sh --build --release --package \
+          ./scripts/build.sh --build --release --package --deb \
           --target x86_64-linux-gnu,aarch64-linux-gnu, \
           x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
@@ -109,6 +112,12 @@ jobs:
         with:
           name: schema
           path: compiler/plc_project/schema/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-${{ matrix.config.arch }}
+          path: target/debian/*.deb
+          if-no-files-found: warn
 
   build-and-push-image:
     name: Build Image (${{ matrix.config.arch }})
@@ -286,3 +295,47 @@ jobs:
         with:
           name: code-coverage-report
           path: lcov.info
+
+  update-latest:
+    name: Update Latest Pre-release
+    needs: [package-linux]
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Prepare assets
+        run: |
+          cp artifacts/plc-x86_64/plc plc-x86_64
+          chmod +x plc-x86_64
+          cp artifacts/plc-aarch64/plc plc-aarch64
+          chmod +x plc-aarch64
+
+      - name: Update latest pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Delete existing latest release if present
+          gh release delete latest --yes --repo ${{ github.repository }} 2>/dev/null || true
+          git tag -f latest
+          git push -f origin latest
+
+          # Collect all deb files
+          mkdir -p debs
+          cp artifacts/deb-x86_64/*.deb debs/ 2>/dev/null || true
+          cp artifacts/deb-aarch64/*.deb debs/ 2>/dev/null || true
+
+          gh release create latest \
+            --repo ${{ github.repository }} \
+            --title "Latest Build" \
+            --notes "Rolling build from master (${{ github.sha }})" \
+            --prerelease \
+            plc-x86_64 \
+            plc-aarch64 \
+            debs/*.deb

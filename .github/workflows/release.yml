@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-release:
+    name: Build Release (${{ matrix.config.arch }})
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - { os: "ubuntu-latest", arch: "x86_64" }
+          - { os: "ubuntu-24.04-arm", arch: "aarch64" }
+    container: ghcr.io/plc-lang/rust-llvm:latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
+      - name: Build and package (native ${{ matrix.config.arch }})
+        shell: bash
+        run: |
+          echo "Building release from tag ${{ github.event.release.tag_name }}"
+          ./scripts/build.sh --build --release --package --deb
+
+      - name: Cross-build stdlib
+        if: matrix.config.arch == 'x86_64'
+        shell: bash
+        run: |
+          apt update && apt install -y gcc-aarch64-linux-gnu
+          apt-get clean && rm -rf /var/lib/apt/lists/*
+          ./scripts/build.sh --build --release --package --deb \
+            --target x86_64-linux-gnu,aarch64-linux-gnu
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.config.arch }}
+          path: |
+            target/release/plc
+            target/debian/*.deb
+            output/
+
+  upload-assets:
+    name: Upload Release Assets
+    needs: build-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Prepare and upload assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Rename binaries to include arch
+          cp artifacts/release-x86_64/target/release/plc plc-x86_64
+          cp artifacts/release-aarch64/target/release/plc plc-aarch64
+          chmod +x plc-x86_64 plc-aarch64
+
+          # Collect all .deb files
+          mkdir -p debs
+          cp artifacts/release-x86_64/target/debian/*.deb debs/ 2>/dev/null || true
+          cp artifacts/release-aarch64/target/debian/*.deb debs/ 2>/dev/null || true
+
+          # Upload everything to the release
+          gh release upload ${{ github.event.release.tag_name }} \
+            --repo ${{ github.repository }} \
+            plc-x86_64 \
+            plc-aarch64 \
+            debs/*.deb
