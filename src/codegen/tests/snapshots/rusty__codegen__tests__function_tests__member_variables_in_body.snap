@@ -9,37 +9,37 @@ target triple = "[filtered]"
 
 define i32 @func(i16 %0, ptr %1, ptr %2) {
 entry:
-  %func = alloca i32, align 4
-  %i = alloca i16, align 2
-  store i16 %0, ptr %i, align 2
-  %io = alloca ptr, align 8
-  store ptr %1, ptr %io, align 8
-  %o = alloca ptr, align 8
-  store ptr %2, ptr %o, align 8
-  %v = alloca i16, align 2
-  %vt = alloca i16, align 2
-  store i16 1, ptr %v, align 2
-  store i16 2, ptr %vt, align 2
-  store i32 0, ptr %func, align 4
-  %load_i = load i16, ptr %i, align 2
+  %func = alloca i32, align [filtered]
+  %i = alloca i16, align [filtered]
+  store i16 %0, ptr %i, align [filtered]
+  %io = alloca ptr, align [filtered]
+  store ptr %1, ptr %io, align [filtered]
+  %o = alloca ptr, align [filtered]
+  store ptr %2, ptr %o, align [filtered]
+  %v = alloca i16, align [filtered]
+  %vt = alloca i16, align [filtered]
+  store i16 1, ptr %v, align [filtered]
+  store i16 2, ptr %vt, align [filtered]
+  store i32 0, ptr %func, align [filtered]
+  %load_i = load i16, ptr %i, align [filtered]
   %3 = sext i16 %load_i to i32
-  %deref = load ptr, ptr %io, align 8
-  %load_io = load i8, ptr %deref, align 1
+  %deref = load ptr, ptr %io, align [filtered]
+  %load_io = load i8, ptr %deref, align [filtered]
   %4 = sext i8 %load_io to i32
   %tmpVar = mul i32 %3, %4
   %5 = sext i32 %tmpVar to i64
-  %deref1 = load ptr, ptr %o, align 8
-  %load_o = load i64, ptr %deref1, align 8
+  %deref1 = load ptr, ptr %o, align [filtered]
+  %load_o = load i64, ptr %deref1, align [filtered]
   %tmpVar2 = sub i64 %5, %load_o
-  %load_v = load i16, ptr %v, align 2
+  %load_v = load i16, ptr %v, align [filtered]
   %6 = sext i16 %load_v to i32
-  %load_vt = load i16, ptr %vt, align 2
+  %load_vt = load i16, ptr %vt, align [filtered]
   %7 = sext i16 %load_vt to i32
   %tmpVar3 = mul i32 %6, %7
   %8 = sext i32 %tmpVar3 to i64
   %tmpVar4 = add i64 %tmpVar2, %8
   %9 = trunc i64 %tmpVar4 to i32
-  store i32 %9, ptr %func, align 4
-  %func_ret = load i32, ptr %func, align 4
+  store i32 %9, ptr %func, align [filtered]
+  %func_ret = load i32, ptr %func, align [filtered]
   ret i32 %func_ret
 }

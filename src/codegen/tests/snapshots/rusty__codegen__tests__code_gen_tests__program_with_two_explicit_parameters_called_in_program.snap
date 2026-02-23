@@ -22,8 +22,8 @@ entry:
 
 define void @prg(ptr %0) {
 entry:
-  store i8 1, ptr getelementptr inbounds (%foo, ptr @foo_instance, i32 0, i32 1), align 1
-  store i32 2, ptr @foo_instance, align 4
+  store i8 1, ptr getelementptr inbounds (%foo, ptr @foo_instance, i32 0, i32 1), align [filtered]
+  store i32 2, ptr @foo_instance, align [filtered]
   call void @foo(ptr @foo_instance)
   ret void
 }

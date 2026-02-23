@@ -153,8 +153,8 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     define void @FOO(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %X = getelementptr inbounds nuw %FOO, ptr %0, i32 0, i32 0
       %Y = getelementptr inbounds nuw %FOO, ptr %0, i32 0, i32 1
       ret void
@@ -162,58 +162,58 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %error_bits = alloca i8, align 1
-      %f = alloca %FOO, align 8
-      store i8 0, ptr %error_bits, align 1
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %main, align 4
+      %main = alloca i32, align [filtered]
+      %error_bits = alloca i8, align [filtered]
+      %f = alloca %FOO, align [filtered]
+      store i8 0, ptr %error_bits, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %f, ptr align [filtered] @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
       %0 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
-      %load_error_bits = load i8, ptr %error_bits, align 1
+      %load_error_bits = load i8, ptr %error_bits, align [filtered]
       %shift = lshr i8 %load_error_bits, 0
       %1 = and i8 %shift, 1
-      store i8 %1, ptr %0, align 1
+      store i8 %1, ptr %0, align [filtered]
       call void @FOO(ptr %f)
       %2 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 1
-      %3 = load i8, ptr %error_bits, align 1
-      %4 = load i8, ptr %2, align 1
+      %3 = load i8, ptr %error_bits, align [filtered]
+      %4 = load i8, ptr %2, align [filtered]
       %erase = and i8 %3, -2
       %value = shl i8 %4, 0
       %or = or i8 %erase, %value
-      store i8 %or, ptr %error_bits, align 1
+      store i8 %or, ptr %error_bits, align [filtered]
       %5 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
-      %load_error_bits1 = load i8, ptr %error_bits, align 1
+      %load_error_bits1 = load i8, ptr %error_bits, align [filtered]
       %shift2 = lshr i8 %load_error_bits1, 0
       %6 = and i8 %shift2, 1
-      store i8 %6, ptr %5, align 1
+      store i8 %6, ptr %5, align [filtered]
       call void @FOO(ptr %f)
       %7 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 1
-      %8 = load i8, ptr %error_bits, align 1
-      %9 = load i8, ptr %7, align 1
+      %8 = load i8, ptr %error_bits, align [filtered]
+      %9 = load i8, ptr %7, align [filtered]
       %erase3 = and i8 %8, -2
       %value4 = shl i8 %9, 0
       %or5 = or i8 %erase3, %value4
-      store i8 %or5, ptr %error_bits, align 1
+      store i8 %or5, ptr %error_bits, align [filtered]
       %10 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
-      %load_error_bits6 = load i8, ptr %error_bits, align 1
+      %load_error_bits6 = load i8, ptr %error_bits, align [filtered]
       %shift7 = lshr i8 %load_error_bits6, 0
       %11 = and i8 %shift7, 1
-      store i8 %11, ptr %10, align 1
+      store i8 %11, ptr %10, align [filtered]
       call void @FOO(ptr %f)
       %12 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 1
-      %13 = load i8, ptr %error_bits, align 1
-      %14 = load i8, ptr %12, align 1
+      %13 = load i8, ptr %error_bits, align [filtered]
+      %14 = load i8, ptr %12, align [filtered]
       %erase8 = and i8 %13, -2
       %value9 = shl i8 %14, 0
       %or10 = or i8 %erase8, %value9
-      store i8 %or10, ptr %error_bits, align 1
+      store i8 %or10, ptr %error_bits, align [filtered]
       %15 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
-      %load_error_bits11 = load i8, ptr %error_bits, align 1
+      %load_error_bits11 = load i8, ptr %error_bits, align [filtered]
       %shift12 = lshr i8 %load_error_bits11, 0
       %16 = and i8 %shift12, 1
-      store i8 %16, ptr %15, align 1
+      store i8 %16, ptr %15, align [filtered]
       call void @FOO(ptr %f)
-      %main_ret = load i32, ptr %main, align 4
+      %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
 
@@ -257,29 +257,29 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     define void @FOO(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %Q = getelementptr inbounds nuw %FOO, ptr %0, i32 0, i32 0
       ret void
     }
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %error_bits = alloca i8, align 1
-      %f = alloca %FOO, align 8
-      store i8 -17, ptr %error_bits, align 1
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %main, align 4
+      %main = alloca i32, align [filtered]
+      %error_bits = alloca i8, align [filtered]
+      %f = alloca %FOO, align [filtered]
+      store i8 -17, ptr %error_bits, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %f, ptr align [filtered] @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
       call void @FOO(ptr %f)
       %0 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 0
-      %1 = load i8, ptr %error_bits, align 1
-      %2 = load i8, ptr %0, align 1
+      %1 = load i8, ptr %error_bits, align [filtered]
+      %2 = load i8, ptr %0, align [filtered]
       %erase = and i8 %1, -17
       %value = shl i8 %2, 4
       %or = or i8 %erase, %value
-      store i8 %or, ptr %error_bits, align 1
-      %main_ret = load i32, ptr %main, align 4
+      store i8 %or, ptr %error_bits, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
 
@@ -323,29 +323,29 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     define void @FOO(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %Q = getelementptr inbounds nuw %FOO, ptr %0, i32 0, i32 0
       ret void
     }
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %error_bits = alloca i8, align 1
-      %f = alloca %FOO, align 8
-      store i8 -17, ptr %error_bits, align 1
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %main, align 4
+      %main = alloca i32, align [filtered]
+      %error_bits = alloca i8, align [filtered]
+      %f = alloca %FOO, align [filtered]
+      store i8 -17, ptr %error_bits, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %f, ptr align [filtered] @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
       call void @FOO(ptr %f)
       %0 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 0
-      %1 = load i8, ptr %error_bits, align 1
-      %2 = load i8, ptr %0, align 1
+      %1 = load i8, ptr %error_bits, align [filtered]
+      %2 = load i8, ptr %0, align [filtered]
       %erase = and i8 %1, -17
       %value = shl i8 %2, 4
       %or = or i8 %erase, %value
-      store i8 %or, ptr %error_bits, align 1
-      %main_ret = load i32, ptr %main, align 4
+      store i8 %or, ptr %error_bits, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
 
@@ -402,43 +402,43 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
 
     define void @QUUX(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %Q = getelementptr inbounds nuw %QUUX, ptr %0, i32 0, i32 0
       ret void
     }
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %foo = alloca %foo_struct, align 8
-      %f = alloca %QUUX, align 8
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %foo, ptr align 1 @__foo_struct__init, i64 ptrtoint (ptr getelementptr (%foo_struct, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__QUUX__init, i64 ptrtoint (ptr getelementptr (%QUUX, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %main, align 4
+      %main = alloca i32, align [filtered]
+      %foo = alloca %foo_struct, align [filtered]
+      %f = alloca %QUUX, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %foo, ptr align [filtered] @__foo_struct__init, i64 ptrtoint (ptr getelementptr (%foo_struct, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %f, ptr align [filtered] @__QUUX__init, i64 ptrtoint (ptr getelementptr (%QUUX, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
       call void @QUUX(ptr %f)
       %bar = getelementptr inbounds nuw %foo_struct, ptr %foo, i32 0, i32 0
       %baz = getelementptr inbounds nuw %bar_struct, ptr %bar, i32 0, i32 0
       %0 = getelementptr inbounds nuw %QUUX, ptr %f, i32 0, i32 0
-      %1 = load i64, ptr %baz, align 8
-      %2 = load i8, ptr %0, align 1
+      %1 = load i64, ptr %baz, align [filtered]
+      %2 = load i8, ptr %0, align [filtered]
       %erase = and i64 %1, -281474976710657
       %3 = zext i8 %2 to i64
       %value = shl i64 %3, 48
       %or = or i64 %erase, %value
-      store i64 %or, ptr %baz, align 8
+      store i64 %or, ptr %baz, align [filtered]
       call void @QUUX(ptr %f)
       %bar1 = getelementptr inbounds nuw %foo_struct, ptr %foo, i32 0, i32 0
       %baz2 = getelementptr inbounds nuw %bar_struct, ptr %bar1, i32 0, i32 0
       %4 = getelementptr inbounds nuw %QUUX, ptr %f, i32 0, i32 0
-      %5 = load i64, ptr %baz2, align 8
-      %6 = load i8, ptr %4, align 1
+      %5 = load i64, ptr %baz2, align [filtered]
+      %6 = load i8, ptr %4, align [filtered]
       %erase3 = and i64 %5, -1125899906842625
       %7 = zext i8 %6 to i64
       %value4 = shl i64 %7, 50
       %or5 = or i64 %erase3, %value4
-      store i64 %or5, ptr %baz2, align 8
-      %main_ret = load i32, ptr %main, align 4
+      store i64 %or5, ptr %baz2, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
 

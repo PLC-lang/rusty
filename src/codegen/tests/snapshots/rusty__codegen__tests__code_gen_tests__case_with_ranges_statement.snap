@@ -15,21 +15,21 @@ define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  %load_x = load i32, ptr %x, align 4
+  %load_x = load i32, ptr %x, align [filtered]
   switch i32 %load_x, label %else [
   ]
 
 case:                                             ; preds = %range_then
-  store i32 2, ptr %y, align 4
+  store i32 2, ptr %y, align [filtered]
   br label %continue
 
 else:                                             ; preds = %entry
-  %load_x1 = load i32, ptr %x, align 4
+  %load_x1 = load i32, ptr %x, align [filtered]
   %tmpVar = icmp sge i32 %load_x1, 2
   br i1 %tmpVar, label %range_then, label %range_else
 
 range_then:                                       ; preds = %else
-  %load_x2 = load i32, ptr %x, align 4
+  %load_x2 = load i32, ptr %x, align [filtered]
   %tmpVar3 = icmp sle i32 %load_x2, 3
   br i1 %tmpVar3, label %case, label %range_else
 

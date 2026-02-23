@@ -13,61 +13,61 @@ target triple = "[filtered]"
 
 define i32 @CheckRangeSigned(i32 %0, i32 %1, i32 %2) {
 entry:
-  %CheckRangeSigned = alloca i32, align 4
-  %v = alloca i32, align 4
-  store i32 %0, ptr %v, align 4
-  %low = alloca i32, align 4
-  store i32 %1, ptr %low, align 4
-  %up = alloca i32, align 4
-  store i32 %2, ptr %up, align 4
-  store i32 0, ptr %CheckRangeSigned, align 4
-  store i32 -7, ptr %CheckRangeSigned, align 4
-  %CheckRangeSigned_ret = load i32, ptr %CheckRangeSigned, align 4
+  %CheckRangeSigned = alloca i32, align [filtered]
+  %v = alloca i32, align [filtered]
+  store i32 %0, ptr %v, align [filtered]
+  %low = alloca i32, align [filtered]
+  store i32 %1, ptr %low, align [filtered]
+  %up = alloca i32, align [filtered]
+  store i32 %2, ptr %up, align [filtered]
+  store i32 0, ptr %CheckRangeSigned, align [filtered]
+  store i32 -7, ptr %CheckRangeSigned, align [filtered]
+  %CheckRangeSigned_ret = load i32, ptr %CheckRangeSigned, align [filtered]
   ret i32 %CheckRangeSigned_ret
 }
 
 define i32 @CheckRangeUnsigned(i32 %0, i32 %1, i32 %2) {
 entry:
-  %CheckRangeUnsigned = alloca i32, align 4
-  %v = alloca i32, align 4
-  store i32 %0, ptr %v, align 4
-  %low = alloca i32, align 4
-  store i32 %1, ptr %low, align 4
-  %up = alloca i32, align 4
-  store i32 %2, ptr %up, align 4
-  store i32 0, ptr %CheckRangeUnsigned, align 4
-  store i32 7, ptr %CheckRangeUnsigned, align 4
-  %CheckRangeUnsigned_ret = load i32, ptr %CheckRangeUnsigned, align 4
+  %CheckRangeUnsigned = alloca i32, align [filtered]
+  %v = alloca i32, align [filtered]
+  store i32 %0, ptr %v, align [filtered]
+  %low = alloca i32, align [filtered]
+  store i32 %1, ptr %low, align [filtered]
+  %up = alloca i32, align [filtered]
+  store i32 %2, ptr %up, align [filtered]
+  store i32 0, ptr %CheckRangeUnsigned, align [filtered]
+  store i32 7, ptr %CheckRangeUnsigned, align [filtered]
+  %CheckRangeUnsigned_ret = load i32, ptr %CheckRangeUnsigned, align [filtered]
   ret i32 %CheckRangeUnsigned_ret
 }
 
 define i64 @CheckLRangeSigned(i64 %0, i64 %1, i64 %2) {
 entry:
-  %CheckLRangeSigned = alloca i64, align 8
-  %v = alloca i64, align 8
-  store i64 %0, ptr %v, align 8
-  %low = alloca i64, align 8
-  store i64 %1, ptr %low, align 8
-  %up = alloca i64, align 8
-  store i64 %2, ptr %up, align 8
-  store i64 0, ptr %CheckLRangeSigned, align 8
-  store i64 -77, ptr %CheckLRangeSigned, align 8
-  %CheckLRangeSigned_ret = load i64, ptr %CheckLRangeSigned, align 8
+  %CheckLRangeSigned = alloca i64, align [filtered]
+  %v = alloca i64, align [filtered]
+  store i64 %0, ptr %v, align [filtered]
+  %low = alloca i64, align [filtered]
+  store i64 %1, ptr %low, align [filtered]
+  %up = alloca i64, align [filtered]
+  store i64 %2, ptr %up, align [filtered]
+  store i64 0, ptr %CheckLRangeSigned, align [filtered]
+  store i64 -77, ptr %CheckLRangeSigned, align [filtered]
+  %CheckLRangeSigned_ret = load i64, ptr %CheckLRangeSigned, align [filtered]
   ret i64 %CheckLRangeSigned_ret
 }
 
 define i64 @CheckLRangeUnsigned(i64 %0, i64 %1, i64 %2) {
 entry:
-  %CheckLRangeUnsigned = alloca i64, align 8
-  %v = alloca i64, align 8
-  store i64 %0, ptr %v, align 8
-  %low = alloca i64, align 8
-  store i64 %1, ptr %low, align 8
-  %up = alloca i64, align 8
-  store i64 %2, ptr %up, align 8
-  store i64 0, ptr %CheckLRangeUnsigned, align 8
-  store i64 77, ptr %CheckLRangeUnsigned, align 8
-  %CheckLRangeUnsigned_ret = load i64, ptr %CheckLRangeUnsigned, align 8
+  %CheckLRangeUnsigned = alloca i64, align [filtered]
+  %v = alloca i64, align [filtered]
+  store i64 %0, ptr %v, align [filtered]
+  %low = alloca i64, align [filtered]
+  store i64 %1, ptr %low, align [filtered]
+  %up = alloca i64, align [filtered]
+  store i64 %2, ptr %up, align [filtered]
+  store i64 0, ptr %CheckLRangeUnsigned, align [filtered]
+  store i64 77, ptr %CheckLRangeUnsigned, align [filtered]
+  %CheckLRangeUnsigned_ret = load i64, ptr %CheckLRangeUnsigned, align [filtered]
   ret i64 %CheckLRangeUnsigned_ret
 }
 
@@ -85,29 +85,29 @@ entry:
   %j = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 9
   %call = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
   %1 = trunc i32 %call to i8
-  store i8 %1, ptr %a, align 1
+  store i8 %1, ptr %a, align [filtered]
   %call1 = call i32 @CheckRangeSigned(i32 1, i32 -100, i32 100)
   %2 = trunc i32 %call1 to i8
-  store i8 %2, ptr %b, align 1
+  store i8 %2, ptr %b, align [filtered]
   %call2 = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
   %3 = trunc i32 %call2 to i8
-  store i8 %3, ptr %c, align 1
+  store i8 %3, ptr %c, align [filtered]
   %call3 = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
   %4 = trunc i32 %call3 to i16
-  store i16 %4, ptr %d, align 2
+  store i16 %4, ptr %d, align [filtered]
   %call4 = call i32 @CheckRangeSigned(i32 1, i32 -100, i32 100)
   %5 = trunc i32 %call4 to i16
-  store i16 %5, ptr %e, align 2
+  store i16 %5, ptr %e, align [filtered]
   %call5 = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
   %6 = trunc i32 %call5 to i16
-  store i16 %6, ptr %f, align 2
+  store i16 %6, ptr %f, align [filtered]
   %call6 = call i32 @CheckRangeSigned(i32 1, i32 -100, i32 100)
-  store i32 %call6, ptr %g, align 4
+  store i32 %call6, ptr %g, align [filtered]
   %call7 = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
-  store i32 %call7, ptr %h, align 4
+  store i32 %call7, ptr %h, align [filtered]
   %call8 = call i64 @CheckLRangeSigned(i64 1, i64 -100, i64 100)
-  store i64 %call8, ptr %i, align 8
+  store i64 %call8, ptr %i, align [filtered]
   %call9 = call i64 @CheckLRangeUnsigned(i64 1, i64 0, i64 100)
-  store i64 %call9, ptr %j, align 8
+  store i64 %call9, ptr %j, align [filtered]
   ret void
 }

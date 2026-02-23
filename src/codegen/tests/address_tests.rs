@@ -77,10 +77,10 @@ fn address_variable_used_with_symbolic_name() {
 
     define void @mainProg(ptr %0) {
     entry:
-      %deref = load ptr, ptr @foo, align 8
-      store i8 0, ptr %deref, align 1
-      %deref1 = load ptr, ptr @baz, align 8
-      store i8 1, ptr %deref1, align 1
+      %deref = load ptr, ptr @foo, align [filtered]
+      store i8 0, ptr %deref, align [filtered]
+      %deref1 = load ptr, ptr @baz, align [filtered]
+      store i8 1, ptr %deref1, align [filtered]
       ret void
     }
     "#);
@@ -120,9 +120,9 @@ fn address_used_in_body() {
 
     define void @mainProg(ptr %0) {
     entry:
-      store i8 1, ptr @__PI_1_2_3_4, align 1
-      %1 = load i8, ptr @__PI_1_2_3_5, align 1
-      store i8 %1, ptr @x, align 1
+      store i8 1, ptr @__PI_1_2_3_4, align [filtered]
+      %1 = load i8, ptr @__PI_1_2_3_5, align [filtered]
+      store i8 %1, ptr @x, align [filtered]
       ret void
     }
     "#);

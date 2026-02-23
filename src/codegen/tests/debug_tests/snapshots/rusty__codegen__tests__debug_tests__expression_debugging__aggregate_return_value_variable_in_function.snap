@@ -11,11 +11,11 @@ target triple = "[filtered]"
 
 define void @myFunc(ptr %0) !dbg !4 {
 entry:
-  %myFunc = alloca ptr, align 8
+  %myFunc = alloca ptr, align [filtered]
     #dbg_declare(ptr %myFunc, !16, !DIExpression(), !17)
-  store ptr %0, ptr %myFunc, align 8
-  %deref = load ptr, ptr %myFunc, align 8, !dbg !18
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref, ptr align 1 @utf08_literal_0, i32 6, i1 false), !dbg !18
+  store ptr %0, ptr %myFunc, align [filtered]
+  %deref = load ptr, ptr %myFunc, align [filtered], !dbg !18
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref, ptr align [filtered] @utf08_literal_0, i32 6, i1 false), !dbg !18
   ret void, !dbg !19
 }
 
@@ -35,10 +35,10 @@ attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite
 !5 = !DIFile(filename: "<internal>", directory: "")
 !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
 !7 = !{null, !8}
-!8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_STRING", scope: !3, file: !3, baseType: !9, align: 64)
-!9 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_STRING", baseType: !10, size: 64, align: 64, dwarfAddressSpace: 1)
-!10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !3, file: !3, baseType: !11, align: 8)
-!11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 648, align: 8, elements: !13)
+!8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_STRING", scope: !3, file: !3, baseType: !9, align [filtered])
+!9 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_STRING", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
+!10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !3, file: !3, baseType: !11, align [filtered])
+!11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 648, align [filtered], elements: !13)
 !12 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
 !13 = !{!14}
 !14 = !DISubrange(count: 81, lowerBound: 0)

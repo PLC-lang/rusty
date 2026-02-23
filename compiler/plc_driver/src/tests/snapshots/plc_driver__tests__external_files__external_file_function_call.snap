@@ -7,30 +7,30 @@ source_filename = "main.st"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-define i16 @main() {
+define i32 @main() {
 entry:
-  %main = alloca i16, align 2
-  store i16 0, ptr %main, align 2
-  %call = call i16 @external()
-  %main_ret = load i16, ptr %main, align 2
-  ret i16 %main_ret
+  %main = alloca i32, align [filtered]
+  store i32 0, ptr %main, align [filtered]
+  %call = call i32 @external()
+  %main_ret = load i32, ptr %main, align [filtered]
+  ret i32 %main_ret
 }
 
-declare i16 @external()
+declare i32 @external()
 
 ; ModuleID = 'external.st'
 source_filename = "external.st"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-declare i16 @external()
+declare i32 @external()
 
 ; ModuleID = '__init___TestProject'
 source_filename = "__init___TestProject"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___TestProject, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___TestProject, ptr null }]
 
 define void @__init___TestProject() {
 entry:

@@ -16,49 +16,49 @@ entry:
   %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %pt = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
-  store ptr %x, ptr %pt, align 8
-  %load_pt = load ptr, ptr %pt, align 8
+  store ptr %x, ptr %pt, align [filtered]
+  %load_pt = load ptr, ptr %pt, align [filtered]
   %access___main_pt = getelementptr inbounds i16, ptr %load_pt, i32 1
-  store ptr %access___main_pt, ptr %pt, align 8
-  %load_pt1 = load ptr, ptr %pt, align 8
+  store ptr %access___main_pt, ptr %pt, align [filtered]
+  %load_pt1 = load ptr, ptr %pt, align [filtered]
   %access___main_pt2 = getelementptr inbounds i16, ptr %load_pt1, i32 1
   %access___main_pt3 = getelementptr inbounds i16, ptr %access___main_pt2, i32 1
-  store ptr %access___main_pt3, ptr %pt, align 8
-  %load_pt4 = load ptr, ptr %pt, align 8
+  store ptr %access___main_pt3, ptr %pt, align [filtered]
+  %load_pt4 = load ptr, ptr %pt, align [filtered]
   %access___main_pt5 = getelementptr inbounds i16, ptr %load_pt4, i32 1
-  store ptr %access___main_pt5, ptr %pt, align 8
-  %load_pt6 = load ptr, ptr %pt, align 8
-  %load_y = load i16, ptr %y, align 2
+  store ptr %access___main_pt5, ptr %pt, align [filtered]
+  %load_pt6 = load ptr, ptr %pt, align [filtered]
+  %load_y = load i16, ptr %y, align [filtered]
   %1 = sub i16 0, %load_y
   %access___main_pt7 = getelementptr inbounds i16, ptr %load_pt6, i16 %1
-  store ptr %access___main_pt7, ptr %pt, align 8
-  %load_pt8 = load ptr, ptr %pt, align 8
+  store ptr %access___main_pt7, ptr %pt, align [filtered]
+  %load_pt8 = load ptr, ptr %pt, align [filtered]
   %access___main_pt9 = getelementptr inbounds i16, ptr %load_pt8, i32 1
   %access___main_pt10 = getelementptr inbounds i16, ptr %access___main_pt9, i32 1
-  store ptr %access___main_pt10, ptr %pt, align 8
-  %load_pt11 = load ptr, ptr %pt, align 8
-  %load_y12 = load i16, ptr %y, align 2
+  store ptr %access___main_pt10, ptr %pt, align [filtered]
+  %load_pt11 = load ptr, ptr %pt, align [filtered]
+  %load_y12 = load i16, ptr %y, align [filtered]
   %2 = sub i16 0, %load_y12
   %access___main_pt13 = getelementptr inbounds i16, ptr %load_pt11, i16 %2
   %access___main_pt14 = getelementptr inbounds i16, ptr %access___main_pt13, i32 -1
-  store ptr %access___main_pt14, ptr %pt, align 8
-  %load_pt15 = load ptr, ptr %pt, align 8
+  store ptr %access___main_pt14, ptr %pt, align [filtered]
+  %load_pt15 = load ptr, ptr %pt, align [filtered]
   %access___main_pt16 = getelementptr inbounds i16, ptr %load_pt15, i32 2
-  store ptr %access___main_pt16, ptr %pt, align 8
-  %load_y17 = load i16, ptr %y, align 2
-  %load_pt18 = load ptr, ptr %pt, align 8
+  store ptr %access___main_pt16, ptr %pt, align [filtered]
+  %load_y17 = load i16, ptr %y, align [filtered]
+  %load_pt18 = load ptr, ptr %pt, align [filtered]
   %access___main_pt19 = getelementptr inbounds i16, ptr %load_pt18, i16 %load_y17
-  %load_y20 = load i16, ptr %y, align 2
+  %load_y20 = load i16, ptr %y, align [filtered]
   %3 = sub i16 0, %load_y20
   %access___main_pt21 = getelementptr inbounds i16, ptr %access___main_pt19, i16 %3
-  store ptr %access___main_pt21, ptr %pt, align 8
-  %load_y22 = load i16, ptr %y, align 2
+  store ptr %access___main_pt21, ptr %pt, align [filtered]
+  %load_y22 = load i16, ptr %y, align [filtered]
   %4 = sext i16 %load_y22 to i32
-  %load_y23 = load i16, ptr %y, align 2
+  %load_y23 = load i16, ptr %y, align [filtered]
   %5 = sext i16 %load_y23 to i32
   %tmpVar = add i32 %4, %5
-  %load_pt24 = load ptr, ptr %pt, align 8
+  %load_pt24 = load ptr, ptr %pt, align [filtered]
   %access___main_pt25 = getelementptr inbounds i16, ptr %load_pt24, i32 %tmpVar
-  store ptr %access___main_pt25, ptr %pt, align 8
+  store ptr %access___main_pt25, ptr %pt, align [filtered]
   ret void
 }

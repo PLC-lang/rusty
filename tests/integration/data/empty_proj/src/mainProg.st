@@ -1,7 +1,7 @@
 PROGRAM mainProg
 VAR
-
+x : DINT;
 END_VAR
 
-;
+x := 1;
 END_PROGRAM
