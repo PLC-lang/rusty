@@ -698,9 +698,7 @@ impl<'ink> DebugBuilder<'ink> {
 
         let parameter_types = parameter_types
             .iter()
-            .filter_map(|dt| {
-                self.types.get(dt.get_name().to_lowercase().as_str()).copied().map(Into::into)
-            })
+            .filter_map(|dt| self.types.get(dt.get_name().to_lowercase().as_str()).copied().map(Into::into))
             .collect::<Vec<DIType>>();
 
         self.debug_info.create_subroutine_type(file, return_type, &parameter_types, DIFlagsConstants::PUBLIC)
@@ -863,8 +861,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         } else {
             file.as_debug_info_scope()
         };
-        let subprogram =
-            self.create_function(scope, pou, return_type, parameter_types, implementation_start);
+        let subprogram = self.create_function(scope, pou, return_type, parameter_types, implementation_start);
         func.function.set_subprogram(subprogram);
         //Create function parameters
         self.create_function_variables(pou, func, index, types_index);

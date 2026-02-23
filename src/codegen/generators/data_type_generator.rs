@@ -497,16 +497,10 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
 
     fn generate_debug_types(&mut self, types: &VecDeque<(&str, &DataType)>) -> Result<(), CodegenError> {
         for (_, data_type) in types.iter().filter(|(_, data_type)| data_type.is_backed_by_struct()) {
-            if let Err(err) = self.debug.register_debug_type(
-                data_type.get_name(),
-                data_type,
-                self.index,
-                &self.types_index,
-            ) {
-                log::debug!(
-                    "Skipping debug info for type {}: {err}",
-                    data_type.get_name()
-                );
+            if let Err(err) =
+                self.debug.register_debug_type(data_type.get_name(), data_type, self.index, &self.types_index)
+            {
+                log::debug!("Skipping debug info for type {}: {err}", data_type.get_name());
             }
         }
 
