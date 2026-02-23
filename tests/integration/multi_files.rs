@@ -32,7 +32,7 @@ fn multiple_files_create_same_generic_implementation() {
     let module = compile(&context, vec![gen_func, file1, file2]);
 
     // THEN both calls from foo1 and foo2 should target the same implementation
-    module.add_global_function_mapping("CONCAT_DATE__INT", concat_date as usize);
+    module.add_global_function_mapping("CONCAT_DATE__INT", concat_date as *const () as usize);
 
     let res: i64 = module.run_no_param("foo1");
     assert_eq!(res, 1 + 2 + 3);
