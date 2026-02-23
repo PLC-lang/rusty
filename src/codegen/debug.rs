@@ -309,9 +309,6 @@ impl<'ink> DebugBuilder<'ink> {
         types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
         if location.is_internal() {
-            // Still register a forward declaration so the type is available for
-            // debug info references (e.g. __FATPOINTER used as a function parameter)
-            self.register_concrete_type(name, self.create_forward_declaration(name));
             return Ok(());
         }
 
@@ -530,17 +527,21 @@ impl<'ink> DebugBuilder<'ink> {
             return Ok(self.create_forward_declaration(dt_name));
         }
 
-        // Try to register the type. If it fails or doesn't get added to the types map,
-        // return a forward declaration instead of erroring. This makes the debug info
-        // resilient to synthetic/compiler-generated types that may not have full debug info.
+        // Try to register the type.
         let _ = self.register_debug_type(dt_name, dt, index, types_index);
 
-        // If the type was registered, return it; otherwise return a forward declaration
+        // If the type was registered, return it; otherwise report it as unavailable.
+        // This can happen for compiler-internal / synthetic types (e.g. __FATPOINTER)
+        // whose source location is internal and are therefore intentionally excluded
+        // from debug info.
         if let Some(debug_type) = self.types.get(&key) {
             Ok(*debug_type)
         } else {
-            log::trace!("Type {dt_name} not found in debug types, using forward declaration");
-            Ok(self.create_forward_declaration(dt_name))
+            log::trace!("Type {dt_name} has no debug info, skipping");
+            Err(Diagnostic::codegen_error(
+                format!("No debug type registered for internal type {dt_name}"),
+                SourceLocation::internal(),
+            ))
         }
     }
 
@@ -687,8 +688,6 @@ impl<'ink> DebugBuilder<'ink> {
         return_type: Option<&DataType>,
         parameter_types: &[&DataType],
         file: DIFile<'ink>,
-        index: &Index,
-        types_index: &LlvmTypedIndex<'ink>,
     ) -> DISubroutineType<'ink> {
         let return_type = return_type
             .as_ref()
@@ -699,26 +698,14 @@ impl<'ink> DebugBuilder<'ink> {
 
         let parameter_types = parameter_types
             .iter()
-            .map(|dt| {
-                let key = dt.get_name().to_lowercase();
-                // Try direct lookup first, then lazy-register (e.g. for __FATPOINTER
-                // which is synthesized by the polymorphism lowering pass)
-                if let Some(&existing) = self.types.get(key.as_str()) {
-                    return existing.into();
-                }
-                if self.register_debug_type(dt.get_name(), dt, index, types_index).is_ok() {
-                    if let Some(&registered) = self.types.get(key.as_str()) {
-                        return registered.into();
-                    }
-                }
-                panic!("Could not find debug type information for {}", dt.get_name())
+            .filter_map(|dt| {
+                self.types.get(dt.get_name().to_lowercase().as_str()).copied().map(Into::into)
             })
             .collect::<Vec<DIType>>();
 
         self.debug_info.create_subroutine_type(file, return_type, &parameter_types, DIFlagsConstants::PUBLIC)
     }
 
-    #[allow(clippy::too_many_arguments)]
     fn create_function(
         &mut self,
         scope: DIScope<'ink>,
@@ -726,8 +713,6 @@ impl<'ink> DebugBuilder<'ink> {
         return_type: Option<&DataType>,
         parameter_types: &[&DataType],
         implementation_start: usize,
-        index: &Index,
-        types_index: &LlvmTypedIndex<'ink>,
     ) -> DISubprogram<'_> {
         let location = pou.get_location();
         let file = location
@@ -735,7 +720,7 @@ impl<'ink> DebugBuilder<'ink> {
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
         let is_external = matches!(pou.get_linkage(), LinkageType::External);
-        let ditype = self.create_subroutine_type(return_type, parameter_types, file, index, types_index);
+        let ditype = self.create_subroutine_type(return_type, parameter_types, file);
         self.debug_info.create_function(
             scope,
             pou.get_name(),
@@ -878,15 +863,8 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         } else {
             file.as_debug_info_scope()
         };
-        let subprogram = self.create_function(
-            scope,
-            pou,
-            return_type,
-            parameter_types,
-            implementation_start,
-            index,
-            types_index,
-        );
+        let subprogram =
+            self.create_function(scope, pou, return_type, parameter_types, implementation_start);
         func.function.set_subprogram(subprogram);
         //Create function parameters
         self.create_function_variables(pou, func, index, types_index);

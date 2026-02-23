@@ -503,7 +503,7 @@ A few adjustments were needed in the code generation phase to support interface 
 
 **Skipping struct lookup for interfaces**: When generating a method, the POU generator normally looks up the associated class's struct type. For interface methods this lookup is skipped because interfaces don't have struct types. The "self" parameter is simply a void pointer passed through the fat pointer's `data` field.
 
-**Debug info for synthesized types**: The `__FATPOINTER` struct is synthesized by the lowering pass and may not have location information. The debug builder was extended to lazily register debug types for such synthesized structs, so that functions taking `__FATPOINTER` parameters produce valid debug information.
+**Debug info for synthesized types**: The `__FATPOINTER` struct is synthesized by the lowering pass and has an internal source location. The debug builder excludes all internal types from debug info. Functions whose parameters reference internal types (e.g. `__FATPOINTER`) gracefully omit those parameters from the DWARF subroutine type, and struct members whose types are internal are skipped in the debug metadata.
 
 ## 4. Complete Example
 
