@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>E067 - RuSTy User Documentation</title>
+        <title>E124 - RuSTy User Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -174,17 +174,64 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="implicit-typecast"><a class="header" href="#implicit-typecast">Implicit typecast</a></h1>
+                        <h1 id="e124-invalid-escape-sequence-in-string-literal"><a class="header" href="#e124-invalid-escape-sequence-in-string-literal">E124: Invalid escape sequence in string literal</a></h1>
+<p>This error occurs when a string literal contains a <code>$</code>-escape sequence that is not valid
+per IEC 61131-3.</p>
+<p>Valid escape sequences are:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Sequence</th><th>Valid in</th><th>Result</th></tr>
+</thead>
+<tbody>
+<tr><td><code>$$</code></td><td>STRING, WSTRING</td><td>Literal <code>$</code></td></tr>
+<tr><td><code>$'</code></td><td>STRING</td><td>Literal <code>'</code></td></tr>
+<tr><td><code>$"</code></td><td>WSTRING</td><td>Literal <code>"</code></td></tr>
+<tr><td><code>$L</code>, <code>$l</code>, <code>$N</code>, <code>$n</code></td><td>STRING, WSTRING</td><td>Line feed (<code>\n</code>)</td></tr>
+<tr><td><code>$R</code>, <code>$r</code></td><td>STRING, WSTRING</td><td>Carriage return (<code>\r</code>)</td></tr>
+<tr><td><code>$T</code>, <code>$t</code></td><td>STRING, WSTRING</td><td>Horizontal tab (<code>\t</code>)</td></tr>
+<tr><td><code>$P</code>, <code>$p</code></td><td>STRING, WSTRING</td><td>Form feed (<code>\x0C</code>)</td></tr>
+<tr><td><code>$hh</code></td><td>STRING</td><td>Byte with hex value <code>hh</code> (exactly 2 hex digits)</td></tr>
+<tr><td><code>$hhhh</code></td><td>WSTRING</td><td>UTF-16 code unit with hex value <code>hhhh</code> (exactly 4 hex digits)</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<h3 id="unrecognised-escape-character"><a class="header" href="#unrecognised-escape-character">Unrecognised escape character</a></h3>
+<pre><code class="language-st">FUNCTION main : DINT
+VAR
+    s : STRING[20] := 'test$Qtest';   (* $Q is not a valid escape *)
+END_VAR
+    main := 0;
+END_FUNCTION
+</code></pre>
+<h3 id="incomplete-hex-escape"><a class="header" href="#incomplete-hex-escape">Incomplete hex escape</a></h3>
+<pre><code class="language-st">FUNCTION main : DINT
+VAR
+    s : STRING[10] := '$A';       (* STRING needs exactly 2 hex digits: e.g. $41 *)
+    w : WSTRING[10] := "$004";    (* WSTRING needs exactly 4 hex digits: e.g. $0041 *)
+END_VAR
+    main := 0;
+END_FUNCTION
+</code></pre>
+<h3 id="trailing-dollar-sign"><a class="header" href="#trailing-dollar-sign">Trailing dollar sign</a></h3>
+<pre><code class="language-st">FUNCTION main : DINT
+VAR
+    s : STRING[10] := 'hello$';   (* '$' at end of literal has nothing to escape *)
+END_VAR
+    main := 0;
+END_FUNCTION
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../using_rusty/error_configuration.md/E066.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../using_rusty/error_configuration.md/E123.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E068.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../using_rusty/header_generation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -194,11 +241,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../using_rusty/error_configuration.md/E066.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../using_rusty/error_configuration.md/E123.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E068.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../using_rusty/header_generation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>

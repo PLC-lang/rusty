@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c17b38b4.js";
+            window.path_to_searchindex_js = "searchindex-4f35b295.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-4ba2047e.js"></script>
+        <script src="toc-e2cbc6b4.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1533,6 +1533,55 @@ FUNCTION main
 
     x := 5;
     divX := x / ConstantZero;
+END_FUNCTION
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e124-invalid-escape-sequence-in-string-literal"><a class="header" href="#e124-invalid-escape-sequence-in-string-literal">E124: Invalid escape sequence in string literal</a></h1>
+<p>This error occurs when a string literal contains a <code>$</code>-escape sequence that is not valid
+per IEC 61131-3.</p>
+<p>Valid escape sequences are:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Sequence</th><th>Valid in</th><th>Result</th></tr>
+</thead>
+<tbody>
+<tr><td><code>$$</code></td><td>STRING, WSTRING</td><td>Literal <code>$</code></td></tr>
+<tr><td><code>$'</code></td><td>STRING</td><td>Literal <code>'</code></td></tr>
+<tr><td><code>$"</code></td><td>WSTRING</td><td>Literal <code>"</code></td></tr>
+<tr><td><code>$L</code>, <code>$l</code>, <code>$N</code>, <code>$n</code></td><td>STRING, WSTRING</td><td>Line feed (<code>\n</code>)</td></tr>
+<tr><td><code>$R</code>, <code>$r</code></td><td>STRING, WSTRING</td><td>Carriage return (<code>\r</code>)</td></tr>
+<tr><td><code>$T</code>, <code>$t</code></td><td>STRING, WSTRING</td><td>Horizontal tab (<code>\t</code>)</td></tr>
+<tr><td><code>$P</code>, <code>$p</code></td><td>STRING, WSTRING</td><td>Form feed (<code>\x0C</code>)</td></tr>
+<tr><td><code>$hh</code></td><td>STRING</td><td>Byte with hex value <code>hh</code> (exactly 2 hex digits)</td></tr>
+<tr><td><code>$hhhh</code></td><td>WSTRING</td><td>UTF-16 code unit with hex value <code>hhhh</code> (exactly 4 hex digits)</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="examples-1"><a class="header" href="#examples-1">Examples</a></h2>
+<h3 id="unrecognised-escape-character"><a class="header" href="#unrecognised-escape-character">Unrecognised escape character</a></h3>
+<pre><code class="language-st">FUNCTION main : DINT
+VAR
+    s : STRING[20] := 'test$Qtest';   (* $Q is not a valid escape *)
+END_VAR
+    main := 0;
+END_FUNCTION
+</code></pre>
+<h3 id="incomplete-hex-escape"><a class="header" href="#incomplete-hex-escape">Incomplete hex escape</a></h3>
+<pre><code class="language-st">FUNCTION main : DINT
+VAR
+    s : STRING[10] := '$A';       (* STRING needs exactly 2 hex digits: e.g. $41 *)
+    w : WSTRING[10] := "$004";    (* WSTRING needs exactly 4 hex digits: e.g. $0041 *)
+END_VAR
+    main := 0;
+END_FUNCTION
+</code></pre>
+<h3 id="trailing-dollar-sign"><a class="header" href="#trailing-dollar-sign">Trailing dollar sign</a></h3>
+<pre><code class="language-st">FUNCTION main : DINT
+VAR
+    s : STRING[10] := 'hello$';   (* '$' at end of literal has nothing to escape *)
+END_VAR
+    main := 0;
 END_FUNCTION
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
