@@ -219,39 +219,18 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             self.patch_method_call_deref(operator);
         }
 
+        // Handle calls returning a concrete type where an interface is expected,
+        // e.g. `reference := createFbA()` where `reference: IA` and `createFbA` returns `FbA`.
+        // This mirrors what `visit_reference_expr` does for variable references.
+        self.maybe_expand_fat_pointer(node);
+
         // Unwrap any call preambles, e.g. `consumer(instance)` will have produced a preamble of an alloca and
         // two assignments
         self.unwrap_call_preamble(node);
     }
 
     fn visit_reference_expr(&mut self, node: &mut plc_ast::ast::AstNode) {
-        let Some(ty) = self.annotations.get_type(node, self.index) else { return };
-        let Some(ty_hint) = self.annotations.get_type_hint(node, self.index) else { return };
-
-        // TODO: We need to be able to handle `referenceA := referenceB`
-        if ty.is_interface() || !ty_hint.is_interface() {
-            return;
-        }
-
-        let interface_name = ty_hint.get_name();
-        let pou_name = ty.get_name();
-
-        if self.call_depth > 0 {
-            // Something like `consumer(instance)` which needs a temporary fat pointer because the call
-            // expects a `__FATPOINTER` but we only have an instance So `consumer(instance)` is replaced by
-            // `consumer(__fatpointer_0)` and the call preamble contains: `[alloca __fatpointer_0 :
-            // __FATPOINTER, __fatpointer_0.data := ADR(instance), __fatpointer_0.table :=
-            // ADR(__itable_..._instance)]`.
-            //
-            // Same deal with `consumer(in := instance)` which will be transofrmed into
-            // `consumer(in := __fatpointer_0)`
-            self.create_fat_pointer_alloca_assignment_and_replace_node(node, interface_name, pou_name);
-        } else if let Some(left) = self.assignment_ctx.last() {
-            // Something like `reference := instance` which needs to be lowered to `reference.data :=
-            // ADR(...)` and `reference.table := ADR(...)`
-            let left = left.clone();
-            self.create_fat_pointer_assignment(&left, node, interface_name, pou_name);
-        }
+        self.maybe_expand_fat_pointer(node);
     }
 }
 
@@ -277,6 +256,37 @@ impl<'a> InterfaceDispatchLowerer<'a> {
 
         if self.generate_fatpointer {
             units[0].user_types.push(helper::create_fat_pointer_struct());
+        }
+    }
+
+    /// Checks whether `node` has a concrete type where an interface type is expected and, if so,
+    /// expands the fat-pointer assignment or alloca depending on context.
+    fn maybe_expand_fat_pointer(&mut self, node: &mut AstNode) {
+        let Some(ty) = self.annotations.get_type(node, self.index) else { return };
+        let Some(ty_hint) = self.annotations.get_type_hint(node, self.index) else { return };
+
+        // TODO: We need to be able to handle `referenceA := referenceB`
+        if ty.is_interface() || !ty_hint.is_interface() {
+            return;
+        }
+
+        let interface_name = ty_hint.get_name();
+        let pou_name = ty.get_name();
+
+        if self.call_depth > 0 {
+            // Something like `consumer(instance)` which needs a temporary fat pointer because the call
+            // expects a `__FATPOINTER` but we only have an instance. So `consumer(instance)` is replaced by
+            // `consumer(__fatpointer_0)` and the call preamble contains: `[alloca __fatpointer_0 :
+            // __FATPOINTER, __fatpointer_0.data := ADR(instance), __fatpointer_0.table :=
+            // ADR(__itable_..._instance)]`.
+            //
+            // Same deal with `consumer(in := instance)` which will be transformed into
+            // `consumer(in := __fatpointer_0)`
+            self.create_fat_pointer_alloca_assignment_and_replace_node(node, interface_name, pou_name);
+        } else if let Some(left) = self.assignment_ctx.last().cloned() {
+            // Something like `reference := instance` which needs to be lowered to `reference.data :=
+            // ADR(...)` and `reference.table := ADR(...)`
+            self.create_fat_pointer_assignment(&left, node, interface_name, pou_name);
         }
     }
 
@@ -1663,6 +1673,72 @@ mod tests {
             "__user_init_FbA(instance)",
             "reference.data := ADR(instance), reference.table := ADR(__itable_IA_FbA_instance)",
             "alloca __fatpointer_0: __FATPOINTER, __fatpointer_0.data := ADR(instance), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), result := __itable_IA#(reference.table^).foo^(reference.data^, ref := __fatpointer_0)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn assignment_from_function_returning_concrete_type() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION createFbA : FbA
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    reference: IA;
+                END_VAR
+
+                reference := createFbA();
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "alloca __createFbA0: FbA, createFbA(__createFbA0), reference.data := ADR(__createFbA0), reference.table := ADR(__itable_IA_FbA_instance)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn call_argument_from_function_returning_concrete_type() {
+        let source = r#"
+            INTERFACE IA
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+            END_FUNCTION_BLOCK
+
+            FUNCTION createFbA : FbA
+            END_FUNCTION
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in: IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    result: DINT;
+                END_VAR
+
+                consumer(createFbA());
+                consumer(in := createFbA());
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(lower_and_serialize_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "alloca __fatpointer_0: __FATPOINTER, alloca __createFbA0: FbA, createFbA(__createFbA0), __fatpointer_0.data := ADR(__createFbA0), __fatpointer_0.table := ADR(__itable_IA_FbA_instance), consumer(__fatpointer_0)",
+            "alloca __fatpointer_1: __FATPOINTER, alloca __createFbA1: FbA, createFbA(__createFbA1), __fatpointer_1.data := ADR(__createFbA1), __fatpointer_1.table := ADR(__itable_IA_FbA_instance), consumer(in := __fatpointer_1)",
         ]
         "#);
     }
