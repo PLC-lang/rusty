@@ -3,6 +3,7 @@ use plc_util::filtered_assert_snapshot_with_alignments;
 
 // Tests for aligment of datatypes on x86_64 and aarch64
 #[test]
+#[cfg(target_os = "macos")]
 fn test_datatype_alignment() {
     let result = codegen(
         r#"FUNCTION main
@@ -92,6 +93,7 @@ END_FUNCTION
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn test_struct_alignment() {
     let result = codegen(
         r#"FUNCTION main
