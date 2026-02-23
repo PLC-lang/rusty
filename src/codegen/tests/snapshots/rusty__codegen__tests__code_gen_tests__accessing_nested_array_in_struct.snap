@@ -18,6 +18,6 @@ entry:
   %m = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 0
   %field1 = getelementptr inbounds nuw %MyStruct, ptr %m, i32 0, i32 0
   %tmpVar = getelementptr inbounds [5 x i16], ptr %field1, i32 0, i32 3
-  store i16 7, ptr %tmpVar, align 2
+  store i16 7, ptr %tmpVar, align [filtered]
   ret void
 }

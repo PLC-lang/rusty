@@ -23,6 +23,7 @@ plc_util = { path = "./compiler/plc_util" }
 plc_diagnostics = { path = "./compiler/plc_diagnostics" }
 plc_index = { path = "./compiler/plc_index" }
 section_mangler = { path = "./compiler/section_mangler" }
+plc_llvm = { path = "./compiler/plc_llvm" }
 logos = "0.12.0"
 clap = { version = "3.0", features = ["derive"] }
 indexmap = { version = "2.0", features = ["serde"] }
@@ -78,6 +79,7 @@ members = [
     "compiler/plc_index",
     "compiler/section_mangler",
     "compiler/plc_lowering",
+    "compiler/plc_llvm",
     "compiler/plc_header_generator",
     "tests/test_utils",
 ]

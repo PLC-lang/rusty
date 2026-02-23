@@ -20,8 +20,8 @@ condition_check:                                  ; preds = %entry, %continue1
   br i1 true, label %while_body, label %continue
 
 while_body:                                       ; preds = %condition_check
-  %load_x = load i8, ptr %x, align 1
-  %load_x2 = load i8, ptr %x, align 1
+  %load_x = load i8, ptr %x, align [filtered]
+  %load_x2 = load i8, ptr %x, align [filtered]
   %1 = icmp ne i8 %load_x2, 0
   br i1 %1, label %condition_body, label %continue1
 

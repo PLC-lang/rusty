@@ -9,7 +9,7 @@ fn multiple_source_files_generated() {
     //Given 2 sources
     let src1 = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR_INPUT
 
     END_VAR
@@ -45,7 +45,7 @@ fn multiple_files_with_debug_info() {
     //Given 2 sources
     let src1: SourceCode = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR_INPUT
 
     END_VAR
@@ -84,7 +84,7 @@ fn multiple_files_in_different_locations_with_debug_info() {
     //Given 2 sources
     let src1: SourceCode = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR_INPUT
 
     END_VAR
@@ -125,7 +125,7 @@ fn forward_declared_constant_is_also_marked_constant() {
     // and the other with the definition of that constant.
     let src1 = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
         f: foo;
     END_VAR

@@ -11,19 +11,19 @@ declare void @CONCAT(ptr, ptr, ptr)
 
 define i8 @LIST_ADD(ptr %0, ptr %1) {
 entry:
-  %LIST_ADD = alloca i8, align 1
-  %INS = alloca [1001 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %INS, i8 0, i64 1001, i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %INS, ptr align 1 %0, i64 1000, i1 false)
-  %sx = alloca [2 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %sx, i8 0, i64 2, i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %sx, ptr align 1 %1, i64 1, i1 false)
-  store i8 0, ptr %LIST_ADD, align 1
-  %__CONCAT0 = alloca [1025 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %__CONCAT0, i8 0, i64 ptrtoint (ptr getelementptr ([1025 x i8], ptr null, i32 1) to i64), i1 false)
+  %LIST_ADD = alloca i8, align [filtered]
+  %INS = alloca [1001 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %INS, i8 0, i64 1001, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %INS, ptr align [filtered] %0, i64 1000, i1 false)
+  %sx = alloca [2 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %sx, i8 0, i64 2, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %sx, ptr align [filtered] %1, i64 1, i1 false)
+  store i8 0, ptr %LIST_ADD, align [filtered]
+  %__CONCAT0 = alloca [1025 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %__CONCAT0, i8 0, i64 ptrtoint (ptr getelementptr ([1025 x i8], ptr null, i32 1) to i64), i1 false)
   call void @CONCAT(ptr %__CONCAT0, ptr %sx, ptr %INS)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %INS, ptr align 1 %__CONCAT0, i32 1000, i1 false)
-  %LIST_ADD_ret = load i8, ptr %LIST_ADD, align 1
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %INS, ptr align [filtered] %__CONCAT0, i32 1000, i1 false)
+  %LIST_ADD_ret = load i8, ptr %LIST_ADD, align [filtered]
   ret i8 %LIST_ADD_ret
 }
 

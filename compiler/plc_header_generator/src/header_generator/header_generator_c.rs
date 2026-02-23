@@ -121,7 +121,7 @@ impl GeneratedHeaderForC {
             builtin_types,
             &[VariableBlockType::Global],
             &compilation_unit.user_types,
-            &compilation_unit.pous,
+            (&compilation_unit.pous, None),
             false,
         );
     }
@@ -185,7 +185,7 @@ impl GeneratedHeaderForC {
                             VariableBlockType::Output,
                         ],
                         &compilation_unit.user_types,
-                        &compilation_unit.pous,
+                        (&compilation_unit.pous, Some(&pou.kind)),
                         true,
                     ));
 
@@ -240,7 +240,7 @@ impl GeneratedHeaderForC {
                         VariableBlockType::Output,
                     ],
                     user_types,
-                    pous,
+                    (pous, Some(&pou.kind)),
                     true,
                 );
 
@@ -462,7 +462,7 @@ impl GeneratedHeaderForC {
                 VariableBlockType::Local,
             ],
             &compilation_unit.user_types,
-            pous,
+            (pous, Some(&pou.kind)),
             true,
         );
 
@@ -548,7 +548,7 @@ impl GeneratedHeaderForC {
         builtin_types: &[DataType],
         variable_block_types: &[VariableBlockType],
         user_types: &[UserTypeDeclaration],
-        pous: &Vec<Pou>,
+        (pous, pou_type): (&Vec<Pou>, Option<&PouType>),
         include_external: bool,
     ) -> Vec<Variable> {
         let mut variables: Vec<Variable> = Vec::new();
@@ -557,8 +557,14 @@ impl GeneratedHeaderForC {
             if variable_block_types.contains(&variable_block.kind)
                 && (include_external || variable_block.linkage != LinkageType::External)
             {
-                let is_reference = variable_block.kind == VariableBlockType::Input(ArgumentProperty::ByRef)
-                    || variable_block.kind == VariableBlockType::InOut;
+                let is_reference = if let Some(pou_type) = pou_type {
+                    variable_block.kind == VariableBlockType::Input(ArgumentProperty::ByRef)
+                        || variable_block.kind == VariableBlockType::InOut
+                        || (variable_block.kind == VariableBlockType::Output && !pou_type.is_stateful())
+                } else {
+                    variable_block.kind == VariableBlockType::Input(ArgumentProperty::ByRef)
+                        || variable_block.kind == VariableBlockType::InOut
+                };
 
                 variables.append(&mut self.get_transformed_variables_from_variables(
                     &variable_block.variables,

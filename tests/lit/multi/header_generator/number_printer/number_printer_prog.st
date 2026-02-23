@@ -12,6 +12,8 @@ VAR
         60,61,62,
         70,71,72
     ];
+    addedNumbers : INT;
+    addIntFb : AddInt_FB;
 END_VAR
     // Print output
     PrintNumber(42);    // CHECK: The number you asked for: 42
@@ -37,4 +39,13 @@ END_VAR
     // CHECK-NEXT: [50, 51, 52]
     // CHECK-NEXT: [60, 61, 62]
     // CHECK-NEXT: [70, 71, 72]
+
+    // Add numbers together
+    IF AddInt(4, 5, result => addedNumbers) = 0 THEN
+        PrintNumber(addedNumbers);  // CHECK: The number you asked for: 9
+    END_IF
+
+    // Add numbers together using function block
+    addIntFb();
+    PrintNumber(addIntFb.result);  // CHECK: The number you asked for: 17
 END_FUNCTION

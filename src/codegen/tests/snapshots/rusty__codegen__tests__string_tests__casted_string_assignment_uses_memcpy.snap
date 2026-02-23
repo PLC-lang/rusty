@@ -17,10 +17,10 @@ define void @prg(ptr %0) {
 entry:
   %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %a, ptr align 1 @utf08_literal_0, i32 80, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %a, ptr align 1 @utf08_literal_0, i32 80, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %b, ptr align 2 @utf16_literal_0, i32 160, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %b, ptr align 2 @utf16_literal_0, i32 160, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %a, ptr align [filtered] @utf08_literal_0, i32 80, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %a, ptr align [filtered] @utf08_literal_0, i32 80, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %b, ptr align [filtered] @utf16_literal_0, i32 160, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %b, ptr align [filtered] @utf16_literal_0, i32 160, i1 false)
   ret void
 }
 

@@ -63,6 +63,7 @@ pub fn generate_implementation_stubs<'ink>(
     types_index: &LlvmTypedIndex<'ink>,
     debug: &mut DebugBuilderEnum<'ink>,
     online_change: &OnlineChange,
+    file_name: &str,
 ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
     let mut llvm_index = LlvmTypedIndex::default();
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index, online_change);
@@ -76,8 +77,13 @@ pub fn generate_implementation_stubs<'ink>(
         .collect::<FxIndexMap<_, _>>();
     for (name, implementation) in implementations {
         if !implementation.is_generic() {
-            let curr_f =
-                pou_generator.generate_implementation_stub(implementation, module, debug, &mut llvm_index)?;
+            let curr_f = pou_generator.generate_implementation_stub(
+                implementation,
+                module,
+                debug,
+                &mut llvm_index,
+                file_name,
+            )?;
             llvm_index.associate_implementation(name, curr_f)?;
         }
     }
@@ -199,6 +205,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         module: &Module<'ink>,
         debug: &mut DebugBuilderEnum<'ink>,
         new_llvm_index: &mut LlvmTypedIndex<'ink>,
+        file_name: &str,
     ) -> Result<FunctionValue<'ink>, CodegenError> {
         let declared_parameters = self.index.get_available_parameters(implementation.get_call_name());
         let mut parameters = self.collect_parameters_for_implementation(implementation)?;
@@ -301,14 +308,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             function: curr_f,
             blocks: FxHashMap::default(),
         };
-        debug.register_function(
-            (self.index, self.llvm_index),
-            &function_context,
-            return_type,
-            parent_function,
-            parameter_types.as_slice(),
-            implementation.get_location().get_line(),
-        );
+        if implementation.is_in_unit(file_name) {
+            debug.register_function(
+                (self.index, self.llvm_index),
+                &function_context,
+                return_type,
+                parent_function,
+                parameter_types.as_slice(),
+                implementation.get_location().get_line(),
+            );
+        }
         Ok(curr_f)
     }
 
@@ -334,7 +343,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         //Create an entry for the global constructor of the project
         let str_value = ctor_str.const_named_struct(&[
-            self.llvm.context.i32_type().const_zero().as_basic_value_enum(),
+            self.llvm.context.i32_type().const_int(65535, false).as_basic_value_enum(),
             curr_f.as_global_value().as_basic_value_enum(),
             self.llvm.context.ptr_type(AddressSpace::default()).const_zero().as_basic_value_enum(),
         ]);
@@ -348,6 +357,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         global_ctors.set_initializer(&arr);
         global_ctors.set_linkage(Linkage::Appending);
+
         Ok(())
     }
     /// creates and returns all parameters for the given implementation
