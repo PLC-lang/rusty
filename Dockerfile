@@ -4,17 +4,23 @@ ARG CONTAINER_VERSION=$LLVM_VER-$RUST_VER
 ARG BASE_IMAGE=ghcr.io/plc-lang/rust-llvm:$CONTAINER_VERSION
 FROM $BASE_IMAGE
 
-# Allow invoking `plc` from anywhere
-ENV PLCLOC="/opt/rusty"
-ENV STDLIBLOC="/opt/rusty/stdlib"
-ENV PATH="${PLCLOC}:${PATH}"
+# Install plc compiler and standard library from .deb packages
+# Include both amd64 and arm64 stdlib for cross-compilation support
+COPY artifacts/deb/*.deb /tmp/deb/
 
-# Install the local RuSTy version
-COPY artifacts/plc/plc /opt/rusty/
-# Make the binary executable
-RUN chmod +x /opt/rusty/plc
-# Copy the standard library
-COPY artifacts/stdlib /opt/rusty/stdlib
+RUN native_arch=$(dpkg --print-architecture) && \
+    for deb in /tmp/deb/*.deb; do \
+        deb_arch=$(dpkg-deb --field "$deb" Architecture) ; \
+        if [ "$deb_arch" != "$native_arch" ] && [ "$deb_arch" != "all" ]; then \
+            dpkg --add-architecture "$deb_arch" 2>/dev/null || true ; \
+        fi ; \
+    done && \
+    dpkg --force-architecture -i /tmp/deb/*.deb && \
+    rm -rf /tmp/deb && \
+    ldconfig
+
+# Standard library include files for the compiler
+ENV STDLIBLOC="/usr/share/plc/include"
 
 ENTRYPOINT [ "/bin/bash", "-c" ]
 CMD ["plc", "--help"]

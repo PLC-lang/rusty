@@ -135,23 +135,28 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Download binary artifact
+      - name: Download deb artifacts (x86_64)
         uses: actions/download-artifact@v4
         with:
-          name: plc-${{ matrix.config.arch }}
-          path: artifacts/plc/
+          name: deb-x86_64
+          path: artifacts/deb-x86_64/
 
-      - name: Download stdlib
+      - name: Download deb artifacts (aarch64)
         uses: actions/download-artifact@v4
         with:
-          name: stdlib
-          path: artifacts/stdlib/
+          name: deb-aarch64
+          path: artifacts/deb-aarch64/
 
-      - name: Prepare artifacts
+      - name: Prepare deb artifacts
         run: |
-          chmod +x artifacts/plc/plc
-          echo "Binary architecture:"
-          file artifacts/plc/plc
+          mkdir -p artifacts/deb
+          # Copy the plc binary deb for this image's architecture only
+          cp artifacts/deb-${{ matrix.config.arch }}/plc_*_${{ matrix.config.docker_arch }}.deb artifacts/deb/
+          # Copy libiec61131std debs for BOTH architectures (cross-compilation support)
+          cp artifacts/deb-x86_64/libiec61131std_*_amd64.deb artifacts/deb/
+          cp artifacts/deb-aarch64/libiec61131std_*_arm64.deb artifacts/deb/
+          echo "Deb packages for Docker image (${{ matrix.config.docker_arch }}):"
+          ls -la artifacts/deb/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
