@@ -1344,7 +1344,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let parameter_type_name = self.get_parameter_type(parameter);
         let parameter_type = self.llvm_index.get_associated_type(&parameter_type_name)?;
-        match parameter.get_declaration_type() {
+        let declaration_type = parameter.get_declaration_type();
+        let parameter_type_info = self.index.get_effective_type_or_void_by_name(&parameter_type_name);
+
+        match declaration_type {
+            ArgumentType::ByVal(..)
+                if declaration_type.is_input() && parameter_type_info.is_aggregate_type() =>
+            {
+                // Aggregate VAR_INPUT defaults are passed by reference in function signatures.
+                let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
+                if let Some(initial_value) =
+                    self.get_initial_value(&parameter.initial_value, &parameter_type_name)
+                {
+                    let value = self.generate_expression(initial_value)?;
+                    self.llvm.builder.build_store(ptr_value, value)?;
+                }
+                Ok(ptr_value.as_basic_value_enum())
+            }
             ArgumentType::ByVal(..) => {
                 if let Some(initial_value) =
                     self.get_initial_value(&parameter.initial_value, &parameter_type_name)
