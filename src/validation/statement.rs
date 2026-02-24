@@ -1251,10 +1251,7 @@ fn node_is_builtin_adr<T: AnnotationMap>(node: &AstNode, context: &ValidationCon
         return false;
     };
 
-    context
-        .index
-        .get_builtin_function(call_name)
-        .is_some_and(|builtin| std::ptr::eq(builtin, adr_builtin))
+    context.index.get_builtin_function(call_name).is_some_and(|builtin| std::ptr::eq(builtin, adr_builtin))
 }
 
 fn variable_is_in_inherited_or_self_scope<T: AnnotationMap>(
