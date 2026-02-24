@@ -18,6 +18,7 @@ assume_linux=0
 junit=0
 package=0
 deb=0
+deb_revision="1"
 target=""
 
 CONTAINER_NAME='rust-llvm'
@@ -70,8 +71,9 @@ function run_build() {
     cmd="cargo build $CARGO_OPTIONS "
     log "Running $cmd"
     eval "$cmd"
+    local exit_code=$?
     echo "-----------------------------------"
-    if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+    if [[ $exit_code -ne 0 ]]; then
         echo "Build failed"
         exit 1
     else
@@ -99,8 +101,9 @@ function run_std_build() {
             new_cmd="$cmd --target=$val"
             log "Running $new_cmd"
             eval "$new_cmd"
+            local exit_code=$?
             echo "-----------------------------------"
-            if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+            if [[ $exit_code -ne 0 ]]; then
                 echo "Build $val failed"
                 exit 1
             else
@@ -110,8 +113,9 @@ function run_std_build() {
     else
         log "Running $cmd"
         eval "$cmd"
+        local exit_code=$?
         echo "-----------------------------------"
-        if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+        if [[ $exit_code -ne 0 ]]; then
             echo "Build failed"
             exit 1
         else
@@ -312,7 +316,7 @@ function target_to_deb_arch() {
         x86_64*)  echo "amd64" ;;
         aarch64*) echo "arm64" ;;
         *)
-            echo "Unsupported target architecture: $t"
+            echo "Unsupported target architecture: $t" >&2
             exit 1
             ;;
     esac
@@ -324,7 +328,7 @@ function target_to_multiarch_tuple() {
         x86_64*)  echo "x86_64-linux-gnu" ;;
         aarch64*) echo "aarch64-linux-gnu" ;;
         *)
-            echo "Unsupported target architecture: $t"
+            echo "Unsupported target architecture: $t" >&2
             exit 1
             ;;
     esac
@@ -337,7 +341,7 @@ function get_native_target() {
         x86_64)  echo "x86_64-linux-gnu" ;;
         aarch64) echo "aarch64-linux-gnu" ;;
         *)
-            echo "Unsupported native architecture: $arch"
+            echo "Unsupported native architecture: $arch" >&2
             exit 1
             ;;
     esac
@@ -375,7 +379,7 @@ function build_lib_deb() {
     elif [[ -d "$project_location/output/lib" ]]; then
         lib_source_dir="$project_location/output/lib"
     else
-        echo "Error: No library output found for target $target_val"
+        echo "Error: No library output found for target $target_val" >&2
         exit 1
     fi
 
@@ -384,11 +388,16 @@ function build_lib_deb() {
 
     # Verify at least the .so was copied
     if [[ ! -f "$stage_dir/usr/lib/$multiarch_tuple/libiec61131std.so" ]]; then
-        echo "Error: libiec61131std.so not found in $lib_source_dir"
+        echo "Error: libiec61131std.so not found in $lib_source_dir" >&2
         exit 1
     fi
 
     # Copy .st include files
+    if ! compgen -G "$project_location/output/include/*.st" > /dev/null; then
+        echo "Error: No .st include files found in '$project_location/output/include'." >&2
+        echo "Hint: Ensure the packaging step (--package) has been run before --deb." >&2
+        exit 1
+    fi
     cp "$project_location"/output/include/*.st "$stage_dir/usr/share/plc/include/"
 
     # Copy static debian packaging files
@@ -425,7 +434,7 @@ function build_lib_deb() {
 function run_package_deb() {
     local version
     version=$(get_project_version)
-    local deb_rev="1"
+    local deb_rev="$deb_revision"
     local deb_output_dir="$project_location/target/debian"
 
     make_dir "$deb_output_dir"
@@ -433,6 +442,7 @@ function run_package_deb() {
     echo "Packaging Debian packages"
     echo "-----------------------------------"
     echo "Version: $version"
+    echo "Revision: $deb_rev"
 
     # --- plc binary package via cargo-deb ---
     log "Building plc binary deb via cargo-deb"
@@ -524,6 +534,9 @@ function run_in_container() {
     if [[ $deb -ne 0 ]]; then
         params="$params --deb"
     fi
+    if [[ "$deb_revision" != "1" ]]; then
+        params="$params --deb-revision $deb_revision"
+    fi
     if [[ ! -z $target ]]; then
         params="$params --target $target"
     fi
@@ -554,7 +567,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-engine:,container-name:,coverage,package,deb,target:
+LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-engine:,container-name:,coverage,package,deb,deb-revision:,target:
 
 check_env
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -624,6 +637,10 @@ while true; do
             ;;
         --deb)
             deb=1
+            ;;
+        --deb-revision)
+            shift
+            deb_revision=$1
             ;;
         --target)
             shift

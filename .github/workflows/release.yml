@@ -3,6 +3,16 @@ name: Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+      tag:
+        description: 'Git tag for the release (e.g., v1.0.0)'
+        required: true
+        type: string
 
 jobs:
   build-release:
@@ -15,15 +25,14 @@ jobs:
           - { os: "ubuntu-24.04-arm", arch: "aarch64" }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Install cargo-deb
-        run: cargo install cargo-deb
+      - uses: actions/checkout@v4
 
       - name: Build and package (native ${{ matrix.config.arch }})
         shell: bash
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
         run: |
-          echo "Building release from tag ${{ github.event.release.tag_name }}"
+          echo "Building release from tag $RELEASE_TAG"
           ./scripts/build.sh --build --release --package --deb
 
       - name: Cross-build stdlib
@@ -57,19 +66,42 @@ jobs:
       - name: Prepare and upload assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
         run: |
-          # Rename binaries to include arch
-          cp artifacts/release-x86_64/target/release/plc plc-x86_64
-          cp artifacts/release-aarch64/target/release/plc plc-aarch64
+          # Debug: show artifact structure
+          echo "Artifact structure:"
+          find artifacts/ -type f
+          
+          # Rename binaries to include arch - find them regardless of path structure
+          find artifacts/release-x86_64/ -name "plc" -type f -exec cp {} plc-x86_64 \;
+          find artifacts/release-aarch64/ -name "plc" -type f -exec cp {} plc-aarch64 \;
           chmod +x plc-x86_64 plc-aarch64
+
+          # Validate binaries were copied
+          if [ ! -f plc-x86_64 ] || [ ! -f plc-aarch64 ]; then
+            echo "ERROR: Missing plc binaries"
+            ls -la plc-* 2>/dev/null || echo "No plc-* files found"
+            exit 1
+          fi
 
           # Collect all .deb files
           mkdir -p debs
-          cp artifacts/release-x86_64/target/debian/*.deb debs/ 2>/dev/null || true
-          cp artifacts/release-aarch64/target/debian/*.deb debs/ 2>/dev/null || true
+          find artifacts/release-x86_64/ -name "*.deb" -type f -exec cp {} debs/ \;
+          find artifacts/release-aarch64/ -name "*.deb" -type f -exec cp {} debs/ \;
+          
+          # Validate deb files were copied
+          if [ -z "$(ls -A debs/*.deb 2>/dev/null)" ]; then
+            echo "ERROR: No deb files found in debs/"
+            exit 1
+          fi
+          
+          # Verify we have the expected files
+          echo "Release assets:"
+          ls -la plc-x86_64 plc-aarch64 debs/
 
+          # For manual workflow_dispatch, the release must exist (created as draft beforehand)
           # Upload everything to the release
-          gh release upload ${{ github.event.release.tag_name }} \
+          gh release upload "$RELEASE_TAG" \
             --repo ${{ github.repository }} \
             plc-x86_64 \
             plc-aarch64 \

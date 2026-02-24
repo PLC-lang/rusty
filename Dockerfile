@@ -13,17 +13,15 @@ RUN native_arch=$(dpkg --print-architecture) && \
     if [ "$native_arch" = "amd64" ]; then foreign_arch="arm64"; \
     else foreign_arch="amd64"; fi && \
     dpkg --add-architecture "$foreign_arch" && \
-    # Install the foreign libc6 to satisfy cross-arch dependencies
+    # Install the foreign libc6 and all .deb packages with dependency resolution
     apt-get update && \
-    apt-get install -y --no-install-recommends "libc6:${foreign_arch}" && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    # Install all .deb packages
-    dpkg -i /tmp/deb/*.deb && \
+    apt-get install -y --no-install-recommends "libc6:${foreign_arch}" /tmp/deb/*.deb && \
     rm -rf /tmp/deb && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
     ldconfig
 
 # Standard library include files for the compiler
 ENV STDLIBLOC="/usr/share/plc/include"
 
-ENTRYPOINT [ "/bin/bash", "-c" ]
-CMD ["plc", "--help"]
+ENTRYPOINT ["plc"]
+CMD ["--help"]

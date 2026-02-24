@@ -55,6 +55,7 @@ It compiles ST programs to native machine code for multiple platforms."""
 section = "devel"
 priority = "optional"
 depends = "libc6"
+recommends = "libiec61131std"
 assets = [
     ["target/release/plc", "usr/bin/", "755"],
     ["../../compiler/plc_project/schema/plc-json.schema", "usr/share/plc/schema/", "644"],

@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run Check
         run: |
@@ -47,7 +47,7 @@ jobs:
       - name: Show disk space after cleanup
         run: df -h
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Cargo test
         run: |
@@ -68,10 +68,7 @@ jobs:
           - { os: "ubuntu-24.04-arm", arch: "aarch64" }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Install cargo-deb
-        run: cargo install cargo-deb
+      - uses: actions/checkout@v4
 
       - name: Release Build (native ${{ matrix.config.arch }})
         shell: bash
@@ -92,8 +89,7 @@ jobs:
 
           echo "Build command : ./scripts/build.sh --build --release"
           ./scripts/build.sh --build --release --package --deb \
-          --target x86_64-linux-gnu,aarch64-linux-gnu, \
-          x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
+            --target x86_64-linux-gnu,aarch64-linux-gnu,x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
       - uses: actions/upload-artifact@v4
         with:
@@ -133,7 +129,7 @@ jobs:
       packages: write
       contents: read
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download deb artifacts (x86_64)
         uses: actions/download-artifact@v4
@@ -150,13 +146,22 @@ jobs:
       - name: Prepare deb artifacts
         run: |
           mkdir -p artifacts/deb
+          # Debug: show artifact structure
+          echo "Artifact structure:"
+          find artifacts/ -name "*.deb" -type f
           # Copy the plc binary deb for this image's architecture only
-          cp artifacts/deb-${{ matrix.config.arch }}/plc_*_${{ matrix.config.docker_arch }}.deb artifacts/deb/
+          find artifacts/deb-${{ matrix.config.arch }}/ -name "plc_*_${{ matrix.config.docker_arch }}.deb" -exec cp {} artifacts/deb/ \;
           # Copy libiec61131std debs for BOTH architectures (cross-compilation support)
-          cp artifacts/deb-x86_64/libiec61131std_*_amd64.deb artifacts/deb/
-          cp artifacts/deb-aarch64/libiec61131std_*_arm64.deb artifacts/deb/
+          find artifacts/deb-x86_64/ -name "libiec61131std_*_amd64.deb" -exec cp {} artifacts/deb/ \;
+          find artifacts/deb-aarch64/ -name "libiec61131std_*_arm64.deb" -exec cp {} artifacts/deb/ \;
+          
+          # Validate that expected files were copied
           echo "Deb packages for Docker image (${{ matrix.config.docker_arch }}):"
           ls -la artifacts/deb/
+          if [ -z "$(ls -A artifacts/deb/*.deb 2>/dev/null)" ]; then
+            echo "ERROR: No deb files were copied to artifacts/deb/"
+            exit 1
+          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -170,11 +175,19 @@ jobs:
             --load
 
       - name: Log in to registry
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        if: |
+          github.event_name == 'workflow_dispatch' ||
+          (github.event_name != 'pull_request' && github.ref == 'refs/heads/master')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push image with temp tag
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
+        if: |
+          github.event_name == 'workflow_dispatch' ||
+          (github.event_name != 'pull_request' && github.ref == 'refs/heads/master')
         run: |
           IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
@@ -197,7 +210,9 @@ jobs:
     name: Push Multiplatform Manifest
     needs: build-and-push-image
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name != 'pull_request' && github.ref == 'refs/heads/master')
     permissions:
       packages: write
     steps:
@@ -205,7 +220,11 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create and push manifest
         run: |
@@ -255,7 +274,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run Checks
         run: |
@@ -279,7 +298,7 @@ jobs:
       - name: Show disk space after cleanup
         run: df -h
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run coverage in container
         run: |
@@ -291,7 +310,7 @@ jobs:
             -c "df -h && apt-get clean && rm -rf /var/lib/apt/lists/* && ./scripts/build.sh --coverage"
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: lcov.info
 
@@ -304,12 +323,14 @@ jobs:
   update-latest:
     name: Update Latest Pre-release
     needs: [package-linux]
-    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.ref == 'refs/heads/master' && github.event_name != 'pull_request')
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/download-artifact@v4
         with:
@@ -317,10 +338,21 @@ jobs:
 
       - name: Prepare assets
         run: |
-          cp artifacts/plc-x86_64/plc plc-x86_64
+          # Debug: show artifact structure
+          echo "Artifact structure:"
+          find artifacts/ -type f
+          # Copy plc binaries - find them regardless of subdirectory structure
+          find artifacts/plc-x86_64/ -name "plc" -type f -exec cp {} plc-x86_64 \;
           chmod +x plc-x86_64
-          cp artifacts/plc-aarch64/plc plc-aarch64
+          find artifacts/plc-aarch64/ -name "plc" -type f -exec cp {} plc-aarch64 \;
           chmod +x plc-aarch64
+          
+          # Validate binaries were copied
+          if [ ! -f plc-x86_64 ] || [ ! -f plc-aarch64 ]; then
+            echo "ERROR: Missing plc binaries"
+            ls -la plc-* 2>/dev/null || echo "No plc-* files found"
+            exit 1
+          fi
 
       - name: Update latest pre-release
         env:
@@ -333,8 +365,18 @@ jobs:
 
           # Collect all deb files
           mkdir -p debs
-          cp artifacts/deb-x86_64/*.deb debs/ 2>/dev/null || true
-          cp artifacts/deb-aarch64/*.deb debs/ 2>/dev/null || true
+          find artifacts/deb-x86_64/ -name "*.deb" -type f -exec cp {} debs/ \;
+          find artifacts/deb-aarch64/ -name "*.deb" -type f -exec cp {} debs/ \;
+          
+          # Validate deb files were copied
+          if [ -z "$(ls -A debs/*.deb 2>/dev/null)" ]; then
+            echo "ERROR: No deb files found in debs/"
+            exit 1
+          fi
+          
+          # Verify we have the expected files
+          echo "Release assets:"
+          ls -la plc-x86_64 plc-aarch64 debs/
 
           gh release create latest \
             --repo ${{ github.repository }} \
