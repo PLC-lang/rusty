@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-177efb60.js";
+            window.path_to_searchindex_js = "searchindex-9b2d60f1.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e2cbc6b4.js"></script>
@@ -1873,6 +1873,43 @@ END_FUNCTION
 since the embedded linker cannot generate executable files.</p>
 </blockquote>
 <p>The executable can then be started with <code>./ExternalFunctions</code>.</p>
+<h2 id="using-timers"><a class="header" href="#using-timers">Using Timers</a></h2>
+<p>Timers are used for measuring and actioning on real time delays or periods.</p>
+<p>They are Function Blocks which may only be used in Programs or other Function Blocks. This is because Functions should ideally have no state side effects. Not only RuSTy supports this model of Structured Text but also other compiler environments, such as Sysmac Studio. You must use a <code>main</code> function as the entrypoint and ensure it does not reference a Function Block.</p>
+<p>To use timers with the RuSTy compiler, include the header using the <code>-i ./stdlib/includes/timers.st</code> CLI argument. You must link with the Standard Library to execute this example program by passing the <code>-l iec61131std</code> CLI argument. The Standard Library can be retrieved as an Artifact from any of the RuSTy <a href="https://github.com/PLC-lang/rusty/actions">Build Pipelines</a>.</p>
+<pre><code class="language-iecst">{external}
+FUNCTION_BLOCK TON
+VAR_INPUT
+    IN: BOOL;
+    PT: TIME;
+END_VAR
+VAR_OUTPUT
+    Q: BOOL;
+    ET: TIME;
+END_VAR
+VAR
+    __signal__ : BOOL; (* Value representing the internal signal *)
+    __is_running__: BOOL; (* Internal flag to track timer on/off state *)
+    __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
+END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION main : DINT
+    MyTimerExample();
+END_FUNCTION
+
+PROGRAM MyTimerExample
+    VAR
+        timer: TON;
+    END_VAR
+
+    timer(IN:=TRUE, T#3s);
+
+    IF timer.Q THEN //evaluates to true after 3 seconds
+        timer(IN:=FALSE, T#3s);
+    END_IF
+END_PROGRAM
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="api-guidelines"><a class="header" href="#api-guidelines">API guidelines</a></h1>
 <h2 id="1-introduction"><a class="header" href="#1-introduction">1. Introduction</a></h2>
