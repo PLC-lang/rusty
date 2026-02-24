@@ -14,11 +14,12 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # Install LLVM 21, see https://apt.llvm.org/
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
-./llvm.sh 21 && sudo apt install libpolly-21-dev
+sudo ./llvm.sh 21 && sudo apt install libpolly-21-dev
 
 # Install uv, see https://docs.astral.sh/uv/getting-started/installation/
 # (Optional, but required for development)
 curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
 uv tool install lit
 ```
 
