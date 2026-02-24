@@ -5,12 +5,8 @@ on:
     types: [published]
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to release (e.g., 1.0.0)'
-        required: true
-        type: string
       tag:
-        description: 'Git tag for the release (e.g., v1.0.0)'
+        description: 'Git tag for the release (e.g., v1.0.0) - release must exist as draft'
         required: true
         type: string
 
