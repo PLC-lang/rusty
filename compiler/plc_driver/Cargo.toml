@@ -3,6 +3,8 @@ name = "plc_driver"
 version = "0.2.0"
 edition = "2021"
 build = "build.rs"
+license = "LGPL-3.0"
+description = "IEC 61131-3 Structured Text compiler"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -48,7 +50,6 @@ path = "./src/main.rs"
 [package.metadata.deb]
 name = "plc"
 maintainer = "PLC-lang Project"
-copyright = "2020-2026, PLC-lang contributors"
 extended-description = """\
 PLC is an IEC 61131-3 Structured Text compiler targeting LLVM. \
 It compiles ST programs to native machine code for multiple platforms."""
