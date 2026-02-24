@@ -1,9 +1,7 @@
 // RUN: not %COMPILE %s
-// XFAIL: *
 // WSTRING hex escapes require exactly 4 hex digits ($hhhh). '$004' provides
 // only three hex digits before end-of-string, which is an incomplete escape
-// sequence and should be a compile error per IEC 61131-3.
-// Currently the compiler silently keeps '$' and the remaining chars as literals.
+// sequence and is a compile error per IEC 61131-3 (E124).
 
 FUNCTION main : DINT
 VAR
