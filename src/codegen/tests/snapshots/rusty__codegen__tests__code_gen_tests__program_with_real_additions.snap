@@ -16,11 +16,11 @@ entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
-  store float 1.237500e+01, ptr %x, align 4
-  store float 2.500000e-01, ptr %y, align 4
-  %load_x = load float, ptr %x, align 4
-  %load_y = load float, ptr %y, align 4
+  store float 1.237500e+01, ptr %x, align [filtered]
+  store float 2.500000e-01, ptr %y, align [filtered]
+  %load_x = load float, ptr %x, align [filtered]
+  %load_y = load float, ptr %y, align [filtered]
   %tmpVar = fadd float %load_x, %load_y
-  store float %tmpVar, ptr %z, align 4
+  store float %tmpVar, ptr %z, align [filtered]
   ret void
 }

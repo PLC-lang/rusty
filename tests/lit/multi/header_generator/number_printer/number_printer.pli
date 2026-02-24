@@ -33,3 +33,27 @@ VAR_INPUT
     coordinateSet: MultiDemCoordinateSet;
 END_VAR
 END_FUNCTION
+
+FUNCTION AddInt : INT
+VAR_INPUT
+    a : INT;
+    b : INT;
+END_VAR
+VAR_OUTPUT
+    result : INT;
+END_VAR
+END_FUNCTION
+
+FUNCTION_BLOCK AddInt_FB
+VAR_INPUT
+    a : INT;
+    b : INT;
+END_VAR
+VAR_OUTPUT
+    result : INT;
+END_VAR
+
+    METHOD FB_INIT
+    END_METHOD
+
+END_FUNCTION_BLOCK

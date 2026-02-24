@@ -13,25 +13,25 @@ target triple = "[filtered]"
 
 define void @foo(ptr %0) {
 entry:
-  %vla = alloca %__foo_vla, align 8
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %vla, ptr align 1 %0, i64 ptrtoint (ptr getelementptr (%__foo_vla, ptr null, i32 1) to i64), i1 false)
+  %vla = alloca %__foo_vla, align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %vla, ptr align [filtered] %0, i64 ptrtoint (ptr getelementptr (%__foo_vla, ptr null, i32 1) to i64), i1 false)
   ret void
 }
 
 define void @bar() {
 entry:
-  %arr = alloca [2 x i16], align 2
-  call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([2 x i16], ptr null, i32 1) to i64), i1 false)
-  %auto_deref = load [2 x i16], ptr %arr, align 2
+  %arr = alloca [2 x i16], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %arr, i8 0, i64 ptrtoint (ptr getelementptr ([2 x i16], ptr null, i32 1) to i64), i1 false)
+  %auto_deref = load [2 x i16], ptr %arr, align [filtered]
   %outer_arr_gep = getelementptr inbounds [2 x i16], ptr %arr, i32 0, i32 0
-  %vla_struct = alloca %__foo_vla, align 8
+  %vla_struct = alloca %__foo_vla, align [filtered]
   %vla_array_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 0
   %vla_dimensions_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 1
-  store [2 x i32] [i32 0, i32 1], ptr %vla_dimensions_gep, align 4
-  store ptr %outer_arr_gep, ptr %vla_array_gep, align 8
-  %0 = load %__foo_vla, ptr %vla_struct, align 8
-  %vla_struct_ptr = alloca %__foo_vla, align 8
-  store %__foo_vla %0, ptr %vla_struct_ptr, align 8
+  store [2 x i32] [i32 0, i32 1], ptr %vla_dimensions_gep, align [filtered]
+  store ptr %outer_arr_gep, ptr %vla_array_gep, align [filtered]
+  %0 = load %__foo_vla, ptr %vla_struct, align [filtered]
+  %vla_struct_ptr = alloca %__foo_vla, align [filtered]
+  store %__foo_vla %0, ptr %vla_struct_ptr, align [filtered]
   call void @foo(ptr %vla_struct_ptr)
   ret void
 }

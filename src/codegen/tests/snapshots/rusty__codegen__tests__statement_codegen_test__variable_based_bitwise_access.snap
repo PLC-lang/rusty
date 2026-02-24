@@ -17,17 +17,17 @@ entry:
   %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
-  %load_x = load i16, ptr %x, align 2
-  %load_y = load i16, ptr %y, align 2
+  %load_x = load i16, ptr %x, align [filtered]
+  %load_y = load i16, ptr %y, align [filtered]
   %shift = ashr i16 %load_x, %load_y
   %1 = trunc i16 %shift to i8
   %2 = and i8 %1, 1
-  store i8 %2, ptr %a, align 1
-  %load_x1 = load i16, ptr %x, align 2
-  %load_y2 = load i16, ptr %y, align 2
+  store i8 %2, ptr %a, align [filtered]
+  %load_x1 = load i16, ptr %x, align [filtered]
+  %load_y2 = load i16, ptr %y, align [filtered]
   %3 = mul i16 %load_y2, 8
   %shift3 = ashr i16 %load_x1, %3
   %4 = trunc i16 %shift3 to i8
-  store i8 %4, ptr %b, align 1
+  store i8 %4, ptr %b, align [filtered]
   ret void
 }

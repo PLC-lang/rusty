@@ -2567,7 +2567,7 @@ fn division_by_zero_literal_results_in_error() {
     );
 
     assert_snapshot!(diagnostics, @"
-    warning[E123]: Division by Zero
+    error[E123]: Division by Zero
       ┌─ <internal>:9:21
       │
     9 │             divX := x / 0;
@@ -2592,7 +2592,7 @@ fn division_by_nested_zero_literal_results_in_error() {
     );
 
     assert_snapshot!(diagnostics, @"
-    warning[E123]: Division by Zero
+    error[E123]: Division by Zero
       ┌─ <internal>:9:21
       │
     9 │             divX := x / (0);
@@ -2621,7 +2621,7 @@ fn division_by_zero_constant_results_in_error() {
     );
 
     assert_snapshot!(diagnostics, @"
-    warning[E123]: Division by Zero
+    error[E123]: Division by Zero
        ┌─ <internal>:13:21
        │
     13 │             divX := x / ConstantZero;
@@ -2649,7 +2649,7 @@ fn division_by_local_zero_constant_results_in_error() {
     );
 
     assert_snapshot!(diagnostics, @"
-    warning[E123]: Division by Zero
+    error[E123]: Division by Zero
        ┌─ <internal>:12:21
        │
     12 │             divX := x / ConstantZero;
@@ -2684,7 +2684,7 @@ fn division_by_zero_in_struct_constant_results_in_error() {
     );
 
     assert_snapshot!(diagnostics, @"
-    warning[E123]: Division by Zero
+    error[E123]: Division by Zero
        ┌─ <internal>:18:13
        │
     18 │             x / pos.x;

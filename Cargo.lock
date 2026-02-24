@@ -761,6 +761,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "env_home"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7f84e12ccf0a7ddc17a6c41c93326024c42920d7ee630d04950e6926645c0fe"
+
+[[package]]
 name = "env_logger"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2356,6 +2362,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "plc_llvm"
+version = "0.1.0"
+dependencies = [
+ "cc",
+ "inkwell",
+ "which 8.0.0",
+]
+
+[[package]]
 name = "plc_lowering"
 version = "0.1.0"
 dependencies = [
@@ -2828,12 +2843,12 @@ dependencies = [
  "plc_diagnostics",
  "plc_driver",
  "plc_index",
+ "plc_llvm",
  "plc_project",
  "plc_source",
  "plc_util",
  "plc_xml",
  "pretty_assertions",
- "regex",
  "rustc-hash",
  "section_mangler",
  "serde",
@@ -2844,7 +2859,7 @@ dependencies = [
  "tempfile",
  "test_utils",
  "toml 0.5.11",
- "which",
+ "which 4.4.2",
 ]
 
 [[package]]
@@ -3998,6 +4013,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "which"
+version = "8.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3fabb953106c3c8eea8306e4393700d7657561cb43122571b172bbfb7c7ba1d"
+dependencies = [
+ "env_home",
+ "rustix 1.1.2",
+ "winsafe",
+]
+
+[[package]]
 name = "whoami"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4343,6 +4369,12 @@ dependencies = [
  "cfg-if",
  "windows-sys 0.48.0",
 ]
+
+[[package]]
+name = "winsafe"
+version = "0.0.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d135d17ab770252ad95e9a872d365cf3090e3be864a34ab46f48555993efc904"
 
 [[package]]
 name = "wit-bindgen"

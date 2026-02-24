@@ -224,7 +224,8 @@ lazy_static! {
         E120,   Error,      include_str!("./error_codes/E120.md"),  // Invalid use of `THIS` keyword
         E121,   Error,      include_str!("./error_codes/E121.md"),  // Recursive type alias
         E122,   Error,      include_str!("./error_codes/E122.md"),  // Invalid enum base type
-        E123,   Warning,    include_str!("./error_codes/E123.md"),  // Division by zero
+        E123,   Error,      include_str!("./error_codes/E123.md"),  // Division by zero
+        E124,   Error,      include_str!("./error_codes/E124.md"),  // Invalid escape sequence in string literal
     );
 }
 

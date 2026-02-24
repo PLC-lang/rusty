@@ -252,7 +252,7 @@ fn link_files_with_same_name_but_different_extension() {
 #[test]
 fn link_with_library_path() {
     let file1 = get_test_file("linking/lib.o");
-    let dir = current_dir().unwrap();
+    let dir = current_dir().unwrap().canonicalize().unwrap();
     let mut pipeline = BuildPipeline::new(&["plc", file1.as_str(), "-ltest", "-L", &dir.to_string_lossy()])
         .expect("Something is wrong :/");
     //Change the linker

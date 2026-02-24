@@ -1,0 +1,11 @@
+[package]
+name = "plc_llvm"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+inkwell.workspace = true
+
+[build-dependencies]
+cc = "1.0"
+which = "8.0"

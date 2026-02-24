@@ -4,52 +4,52 @@ expression: output_file_content_without_headers
 ---
 target triple = "[filtered]"
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___plc, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  %value = alloca i32, align 4
-  store i32 2, ptr %value, align 4
-  store i32 0, ptr %main, align 4
-  %load_value = load i32, ptr %value, align 4
+  %main = alloca i32, align [filtered]
+  %value = alloca i32, align [filtered]
+  store i32 2, ptr %value, align [filtered]
+  store i32 0, ptr %main, align [filtered]
+  %load_value = load i32, ptr %value, align [filtered]
   %call = call i32 @myConnection(i32 %load_value)
-  store i32 %call, ptr %main, align 4
-  %main_ret = load i32, ptr %main, align 4
+  store i32 %call, ptr %main, align [filtered]
+  %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }
 
 define i32 @myAdd(i32 %0, i32 %1) {
 entry:
-  %myAdd = alloca i32, align 4
-  %a = alloca i32, align 4
-  store i32 %0, ptr %a, align 4
-  %b = alloca i32, align 4
-  store i32 %1, ptr %b, align 4
-  store i32 0, ptr %myAdd, align 4
-  %load_a = load i32, ptr %a, align 4
-  %load_b = load i32, ptr %b, align 4
+  %myAdd = alloca i32, align [filtered]
+  %a = alloca i32, align [filtered]
+  store i32 %0, ptr %a, align [filtered]
+  %b = alloca i32, align [filtered]
+  store i32 %1, ptr %b, align [filtered]
+  store i32 0, ptr %myAdd, align [filtered]
+  %load_a = load i32, ptr %a, align [filtered]
+  %load_b = load i32, ptr %b, align [filtered]
   %tmpVar = add i32 %load_a, %load_b
-  store i32 %tmpVar, ptr %myAdd, align 4
-  %myAdd_ret = load i32, ptr %myAdd, align 4
+  store i32 %tmpVar, ptr %myAdd, align [filtered]
+  %myAdd_ret = load i32, ptr %myAdd, align [filtered]
   ret i32 %myAdd_ret
 }
 
 define i32 @myConnection(i32 %0) {
 entry:
-  %myConnection = alloca i32, align 4
-  %x = alloca i32, align 4
-  store i32 %0, ptr %x, align 4
-  %y = alloca i32, align 4
-  store i32 0, ptr %y, align 4
-  store i32 0, ptr %myConnection, align 4
-  %load_x = load i32, ptr %x, align 4
-  store i32 %load_x, ptr %y, align 4
-  %load_y = load i32, ptr %y, align 4
-  %load_x1 = load i32, ptr %x, align 4
+  %myConnection = alloca i32, align [filtered]
+  %x = alloca i32, align [filtered]
+  store i32 %0, ptr %x, align [filtered]
+  %y = alloca i32, align [filtered]
+  store i32 0, ptr %y, align [filtered]
+  store i32 0, ptr %myConnection, align [filtered]
+  %load_x = load i32, ptr %x, align [filtered]
+  store i32 %load_x, ptr %y, align [filtered]
+  %load_y = load i32, ptr %y, align [filtered]
+  %load_x1 = load i32, ptr %x, align [filtered]
   %call = call i32 @myAdd(i32 %load_y, i32 %load_x1)
-  store i32 %call, ptr %myConnection, align 4
-  %myConnection_ret = load i32, ptr %myConnection, align 4
+  store i32 %call, ptr %myConnection, align [filtered]
+  %myConnection_ret = load i32, ptr %myConnection, align [filtered]
   ret i32 %myConnection_ret
 }
 

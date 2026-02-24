@@ -16,21 +16,21 @@ entry:
   %X = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %pX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %rX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
-  store ptr null, ptr %pX, align 8
-  store ptr null, ptr %rX, align 8
-  store ptr %X, ptr %pX, align 8
-  store ptr %X, ptr %rX, align 8
-  %deref = load ptr, ptr %pX, align 8
-  %load_tmpVar = load i8, ptr %deref, align 1
-  store i8 %load_tmpVar, ptr %X, align 1
-  %deref1 = load ptr, ptr %rX, align 8
-  %load_tmpVar2 = load i8, ptr %deref1, align 1
-  store i8 %load_tmpVar2, ptr %X, align 1
-  %deref3 = load ptr, ptr %pX, align 8
-  %load_X = load i8, ptr %X, align 1
-  store i8 %load_X, ptr %deref3, align 1
-  %deref4 = load ptr, ptr %rX, align 8
-  %load_X5 = load i8, ptr %X, align 1
-  store i8 %load_X5, ptr %deref4, align 1
+  store ptr null, ptr %pX, align [filtered]
+  store ptr null, ptr %rX, align [filtered]
+  store ptr %X, ptr %pX, align [filtered]
+  store ptr %X, ptr %rX, align [filtered]
+  %deref = load ptr, ptr %pX, align [filtered]
+  %load_tmpVar = load i8, ptr %deref, align [filtered]
+  store i8 %load_tmpVar, ptr %X, align [filtered]
+  %deref1 = load ptr, ptr %rX, align [filtered]
+  %load_tmpVar2 = load i8, ptr %deref1, align [filtered]
+  store i8 %load_tmpVar2, ptr %X, align [filtered]
+  %deref3 = load ptr, ptr %pX, align [filtered]
+  %load_X = load i8, ptr %X, align [filtered]
+  store i8 %load_X, ptr %deref3, align [filtered]
+  %deref4 = load ptr, ptr %rX, align [filtered]
+  %load_X5 = load i8, ptr %X, align [filtered]
+  store i8 %load_X5, ptr %deref4, align [filtered]
   ret void
 }
