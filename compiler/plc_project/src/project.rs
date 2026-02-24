@@ -324,7 +324,7 @@ fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<V
 
         for p in paths {
             let path = p.context("Illegal Path")?;
-            sources.push(path);
+            sources.push(path.canonicalize().context("Illegal Path")?);
         }
     }
     Ok(sources)

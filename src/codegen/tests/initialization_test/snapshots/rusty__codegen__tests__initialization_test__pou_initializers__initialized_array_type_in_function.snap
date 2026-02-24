@@ -11,11 +11,11 @@ target triple = "[filtered]"
 
 define i16 @func() {
 entry:
-  %func = alloca i16, align 2
-  %arr_var = alloca [4 x i32], align 4
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr_var, ptr align 1 @__arr__init, i64 ptrtoint (ptr getelementptr ([4 x i32], ptr null, i32 1) to i64), i1 false)
-  store i16 0, ptr %func, align 2
-  %func_ret = load i16, ptr %func, align 2
+  %func = alloca i16, align [filtered]
+  %arr_var = alloca [4 x i32], align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr_var, ptr align [filtered] @__arr__init, i64 ptrtoint (ptr getelementptr ([4 x i32], ptr null, i32 1) to i64), i1 false)
+  store i16 0, ptr %func, align [filtered]
+  %func_ret = load i16, ptr %func, align [filtered]
   ret i16 %func_ret
 }
 

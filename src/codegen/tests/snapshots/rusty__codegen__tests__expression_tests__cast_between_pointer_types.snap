@@ -15,6 +15,6 @@ define void @baz(ptr %0) {
 entry:
   %ptr_x = getelementptr inbounds nuw %baz, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %baz, ptr %0, i32 0, i32 1
-  store ptr %y, ptr %ptr_x, align 8
+  store ptr %y, ptr %ptr_x, align [filtered]
   ret void
 }

@@ -9,9 +9,9 @@ target triple = "[filtered]"
 
 define i32 @func() {
 entry:
-  %func = alloca i32, align 4
-  store i32 0, ptr %func, align 4
-  %func_ret = load i32, ptr %func, align 4
+  %func = alloca i32, align [filtered]
+  store i32 0, ptr %func, align [filtered]
+  %func_ret = load i32, ptr %func, align [filtered]
   ret i32 %func_ret
 }
 
@@ -26,8 +26,8 @@ target triple = "[filtered]"
 
 define void @fb(ptr %0) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   ret void
 }
 
@@ -79,7 +79,7 @@ target triple = "[filtered]"
 define void @prog(ptr %0) {
 entry:
   %myFb = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
-  %load_a = load i32, ptr @prg_instance, align 4
+  %load_a = load i32, ptr @prg_instance, align [filtered]
   call void @prg2(ptr @prg2_instance)
   %call = call i32 @func()
   call void @fb(ptr %myFb)

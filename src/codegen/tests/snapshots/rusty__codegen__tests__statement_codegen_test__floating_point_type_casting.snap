@@ -9,26 +9,26 @@ target triple = "[filtered]"
 
 define i32 @fn() {
 entry:
-  %fn = alloca i32, align 4
-  %a = alloca float, align 4
-  %b = alloca float, align 4
-  %c = alloca float, align 4
-  %d = alloca double, align 8
-  %e = alloca double, align 8
-  %f = alloca double, align 8
-  store float 3.000000e+00, ptr %a, align 4
-  store float 3.500000e+00, ptr %b, align 4
-  store float 3.500000e+00, ptr %c, align 4
-  store double 3.000000e+00, ptr %d, align 8
-  store double 3.500000e+00, ptr %e, align 8
-  store double 3.500000e+00, ptr %f, align 8
-  store i32 0, ptr %fn, align 4
-  store float 3.000000e+00, ptr %a, align 4
-  store float 3.500000e+00, ptr %b, align 4
-  store float 3.500000e+00, ptr %c, align 4
-  store double 3.000000e+00, ptr %d, align 8
-  store double 3.500000e+00, ptr %e, align 8
-  store double 3.500000e+00, ptr %f, align 8
-  %fn_ret = load i32, ptr %fn, align 4
+  %fn = alloca i32, align [filtered]
+  %a = alloca float, align [filtered]
+  %b = alloca float, align [filtered]
+  %c = alloca float, align [filtered]
+  %d = alloca double, align [filtered]
+  %e = alloca double, align [filtered]
+  %f = alloca double, align [filtered]
+  store float 3.000000e+00, ptr %a, align [filtered]
+  store float 3.500000e+00, ptr %b, align [filtered]
+  store float 3.500000e+00, ptr %c, align [filtered]
+  store double 3.000000e+00, ptr %d, align [filtered]
+  store double 3.500000e+00, ptr %e, align [filtered]
+  store double 3.500000e+00, ptr %f, align [filtered]
+  store i32 0, ptr %fn, align [filtered]
+  store float 3.000000e+00, ptr %a, align [filtered]
+  store float 3.500000e+00, ptr %b, align [filtered]
+  store float 3.500000e+00, ptr %c, align [filtered]
+  store double 3.000000e+00, ptr %d, align [filtered]
+  store double 3.500000e+00, ptr %e, align [filtered]
+  store double 3.500000e+00, ptr %f, align [filtered]
+  %fn_ret = load i32, ptr %fn, align [filtered]
   ret i32 %fn_ret
 }

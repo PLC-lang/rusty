@@ -14,12 +14,12 @@ target triple = "[filtered]"
 
 define i32 @func(ptr %0) {
 entry:
-  %func = alloca i32, align 4
-  %x = alloca [6 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %x, i8 0, i64 6, i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %x, ptr align 1 %0, i64 5, i1 false)
-  store i32 0, ptr %func, align 4
-  %func_ret = load i32, ptr %func, align 4
+  %func = alloca i32, align [filtered]
+  %x = alloca [6 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %x, i8 0, i64 6, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %x, ptr align [filtered] %0, i64 5, i1 false)
+  store i32 0, ptr %func, align [filtered]
+  %func_ret = load i32, ptr %func, align [filtered]
   ret i32 %func_ret
 }
 

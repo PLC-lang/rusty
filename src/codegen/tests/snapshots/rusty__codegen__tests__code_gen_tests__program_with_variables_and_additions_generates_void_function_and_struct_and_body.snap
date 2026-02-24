@@ -15,8 +15,8 @@ define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  %load_x = load i32, ptr %x, align 4
-  %load_y = load i32, ptr %y, align 4
+  %load_x = load i32, ptr %x, align [filtered]
+  %load_y = load i32, ptr %y, align [filtered]
   %tmpVar = add i32 %load_x, %load_y
   ret void
 }

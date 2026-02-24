@@ -15,8 +15,8 @@ target triple = "[filtered]"
 
 define void @MyClass(ptr %0) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   ret void
@@ -24,15 +24,15 @@ entry:
 
 define void @MyClass__testMethod(ptr %0, ptr %1) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
-  %myMethodArg = alloca ptr, align 8
-  store ptr %1, ptr %myMethodArg, align 8
-  %deref = load ptr, ptr %myMethodArg, align 8
-  %load_x = load i16, ptr %x, align 2
-  store i16 %load_x, ptr %deref, align 2
+  %myMethodArg = alloca ptr, align [filtered]
+  store ptr %1, ptr %myMethodArg, align [filtered]
+  %deref = load ptr, ptr %myMethodArg, align [filtered]
+  %load_x = load i16, ptr %x, align [filtered]
+  store i16 %load_x, ptr %deref, align [filtered]
   ret void
 }
 

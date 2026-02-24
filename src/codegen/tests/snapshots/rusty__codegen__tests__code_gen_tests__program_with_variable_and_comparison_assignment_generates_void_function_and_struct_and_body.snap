@@ -15,29 +15,29 @@ define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  %load_x = load i32, ptr %x, align 4
+  %load_x = load i32, ptr %x, align [filtered]
   %tmpVar = icmp eq i32 %load_x, 1
   %1 = zext i1 %tmpVar to i8
-  store i8 %1, ptr %y, align 1
-  %load_x1 = load i32, ptr %x, align 4
+  store i8 %1, ptr %y, align [filtered]
+  %load_x1 = load i32, ptr %x, align [filtered]
   %tmpVar2 = icmp sgt i32 %load_x1, 2
   %2 = zext i1 %tmpVar2 to i8
-  store i8 %2, ptr %y, align 1
-  %load_x3 = load i32, ptr %x, align 4
+  store i8 %2, ptr %y, align [filtered]
+  %load_x3 = load i32, ptr %x, align [filtered]
   %tmpVar4 = icmp slt i32 %load_x3, 3
   %3 = zext i1 %tmpVar4 to i8
-  store i8 %3, ptr %y, align 1
-  %load_x5 = load i32, ptr %x, align 4
+  store i8 %3, ptr %y, align [filtered]
+  %load_x5 = load i32, ptr %x, align [filtered]
   %tmpVar6 = icmp ne i32 %load_x5, 4
   %4 = zext i1 %tmpVar6 to i8
-  store i8 %4, ptr %y, align 1
-  %load_x7 = load i32, ptr %x, align 4
+  store i8 %4, ptr %y, align [filtered]
+  %load_x7 = load i32, ptr %x, align [filtered]
   %tmpVar8 = icmp sge i32 %load_x7, 5
   %5 = zext i1 %tmpVar8 to i8
-  store i8 %5, ptr %y, align 1
-  %load_x9 = load i32, ptr %x, align 4
+  store i8 %5, ptr %y, align [filtered]
+  %load_x9 = load i32, ptr %x, align [filtered]
   %tmpVar10 = icmp sle i32 %load_x9, 6
   %6 = zext i1 %tmpVar10 to i8
-  store i8 %6, ptr %y, align 1
+  store i8 %6, ptr %y, align [filtered]
   ret void
 }

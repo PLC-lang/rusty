@@ -13,9 +13,9 @@ target triple = "[filtered]"
 
 define void @func(ptr %0, ptr %1) {
 entry:
-  %func = alloca ptr, align 8
-  store ptr %0, ptr %func, align 8
-  %xxx = alloca ptr, align 8
-  store ptr %1, ptr %xxx, align 8
+  %func = alloca ptr, align [filtered]
+  store ptr %0, ptr %func, align [filtered]
+  %xxx = alloca ptr, align [filtered]
+  store ptr %1, ptr %xxx, align [filtered]
   ret void
 }

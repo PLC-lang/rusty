@@ -6810,3 +6810,62 @@ fn named_arguments_are_annotated_with_location_and_depth() {
     ]
     "#);
 }
+
+#[test]
+fn array_literal_passed_to_function_var_input_gets_type_hint_propagated() {
+    // GIVEN a function with a VAR_INPUT array parameter and a call passing an array literal
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        r#"
+        FUNCTION foo : DINT
+            VAR_INPUT
+                arr : ARRAY[1..5] OF DINT;
+            END_VAR
+            foo := arr[1];
+        END_FUNCTION
+
+        PROGRAM main
+            foo([1, 2, 3, 4, 5]);
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+
+    // WHEN the code is annotated
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let call_stmt = &unit.implementations[1].statements[0];
+
+    // THEN the array literal argument and its inner elements receive correct type hints
+    if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = call_stmt {
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        let array_arg = parameters[0];
+
+        // The top-level array literal should have an Argument type hint with the array type
+        let hint = annotations.get_type_hint(array_arg, &index);
+        assert!(hint.is_some(), "array literal argument should have a type hint");
+        assert_eq!(hint.unwrap().get_name(), "__foo_arr");
+
+        // Drill into the array literal's inner ExpressionList and check element hints
+        if let AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) =
+            array_arg.get_stmt()
+        {
+            // The ExpressionList itself should have the array type hint
+            let list_hint = annotations.get_type_hint(elements, &index);
+            assert!(list_hint.is_some(), "expression list inside array literal should have a type hint");
+            assert_eq!(list_hint.unwrap().get_name(), "__foo_arr");
+
+            // Each element in the expression list should have a DINT type hint
+            if let AstStatement::ExpressionList(elems, ..) = elements.get_stmt() {
+                for elem in elems {
+                    assert_type_and_hint!(&annotations, &index, elem, DINT_TYPE, Some(DINT_TYPE));
+                }
+            } else {
+                unreachable!("expected ExpressionList inside array literal");
+            }
+        } else {
+            unreachable!("expected array literal as first argument");
+        }
+    } else {
+        unreachable!("expected CallStatement");
+    }
+}

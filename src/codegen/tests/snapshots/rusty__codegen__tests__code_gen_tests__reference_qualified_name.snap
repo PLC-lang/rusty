@@ -17,8 +17,8 @@ target triple = "[filtered]"
 
 define void @fb(ptr %0) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
   ret void
 }
@@ -34,11 +34,11 @@ entry:
 define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-  %load_x = load i32, ptr @foo_instance, align 4
-  store i32 %load_x, ptr %x, align 4
-  %load_y = load i32, ptr getelementptr inbounds nuw (%foo, ptr @foo_instance, i32 0, i32 1), align 4
-  store i32 %load_y, ptr %x, align 4
-  %load_x1 = load i32, ptr getelementptr inbounds nuw (%foo, ptr @foo_instance, i32 0, i32 2), align 4
-  store i32 %load_x1, ptr %x, align 4
+  %load_x = load i32, ptr @foo_instance, align [filtered]
+  store i32 %load_x, ptr %x, align [filtered]
+  %load_y = load i32, ptr getelementptr inbounds nuw (%foo, ptr @foo_instance, i32 0, i32 1), align [filtered]
+  store i32 %load_y, ptr %x, align [filtered]
+  %load_x1 = load i32, ptr getelementptr inbounds nuw (%foo, ptr @foo_instance, i32 0, i32 2), align [filtered]
+  store i32 %load_x1, ptr %x, align [filtered]
   ret void
 }
