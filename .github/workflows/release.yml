@@ -1,8 +1,6 @@
-name: Release
+name: Manual Release
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       tag:
@@ -25,10 +23,8 @@ jobs:
 
       - name: Build and package (native ${{ matrix.config.arch }})
         shell: bash
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
         run: |
-          echo "Building release from tag $RELEASE_TAG"
+          echo "Building release from tag ${{ inputs.tag }}"
           ./scripts/build.sh --build --release --package --deb
 
       - name: Cross-build stdlib
@@ -62,7 +58,7 @@ jobs:
       - name: Prepare and upload assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
           # Debug: show artifact structure
           echo "Artifact structure:"
@@ -95,8 +91,7 @@ jobs:
           echo "Release assets:"
           ls -la plc-x86_64 plc-aarch64 debs/
 
-          # For manual workflow_dispatch, the release must exist (created as draft beforehand)
-          # Upload everything to the release
+          # Upload everything to the release (must exist as draft)
           gh release upload "$RELEASE_TAG" \
             --repo ${{ github.repository }} \
             plc-x86_64 \
