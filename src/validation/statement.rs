@@ -1162,7 +1162,7 @@ fn validate_assignment<T: AnnotationMap>(
 
             // Auto deref in assignment on the left implies that this variable was specified as "REFERENCE TO"
             // If the right side of the assignment is using the builtin "ADR" we should return an invalid assignment error
-            if auto_deref.is_some() && node_is_builtin_adr(right) {
+            if auto_deref.is_some() && node_is_builtin_adr(right, context) {
                 validator.push_diagnostic(
                     Diagnostic::new(
                         "ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?")
@@ -1238,20 +1238,23 @@ fn validate_assignment<T: AnnotationMap>(
     }
 }
 
-fn node_is_builtin_adr(node: &AstNode) -> bool {
-    match node.get_stmt_peeled() {
-        AstStatement::CallStatement(call_stmt) => {
-            if let Some(identifier) = call_stmt.operator.get_identifier() {
-                match identifier.get_stmt() {
-                    AstStatement::Identifier(id) => id.to_lowercase() == "adr",
-                    _ => false,
-                }
-            } else {
-                false
-            }
-        }
-        _ => false,
-    }
+fn node_is_builtin_adr<T: AnnotationMap>(node: &AstNode, context: &ValidationContext<T>) -> bool {
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = node.get_stmt_peeled() else {
+        return false;
+    };
+
+    let Some(call_name) = context.annotations.get_call_name(operator.as_ref()) else {
+        return false;
+    };
+
+    let Some(adr_builtin) = builtins::get_builtin("ADR") else {
+        return false;
+    };
+
+    context
+        .index
+        .get_builtin_function(call_name)
+        .is_some_and(|builtin| std::ptr::eq(builtin, adr_builtin))
 }
 
 fn variable_is_in_inherited_or_self_scope<T: AnnotationMap>(
