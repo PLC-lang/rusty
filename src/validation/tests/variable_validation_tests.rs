@@ -1456,3 +1456,40 @@ fn enum_and_fb_output_must_not_generate_duplicate_symbol_error() {
 
     assert_snapshot!(&diagnostics, @"");
 }
+
+#[test]
+fn function_output_with_mismatched_type_assignment_must_produce_a_friendly_error_message() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION libFunction : INT
+        VAR_INPUT
+            inVar1 : INT;
+            inVar2 : REAL;
+        END_VAR
+        VAR_OUTPUT
+            result : REAL;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                i1 : INT;
+            END_VAR
+
+            libFunction(
+                inVar1 := 0,
+                inVar2 := 0.0,
+                result => i1
+            );
+        END_PROGRAM
+       ",
+    );
+
+    assert_snapshot!(&diagnostics, @"
+    warning[E067]: Implicit downcast from 'REAL' to 'INT'.
+       ┌─ <internal>:20:17
+       │
+    20 │                 result => i1
+       │                 ^^^^^^ Implicit downcast from 'REAL' to 'INT'.
+    ");
+}
