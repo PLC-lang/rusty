@@ -78,7 +78,7 @@ fn test_global_var_enum_added_to_debug_info() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "en3", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "__global_en3", scope: !2, file: !2, line: 5, baseType: !4, size: 64, align: 64, elements: !5)
+    !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "__global_en3", scope: !2, file: !2, line: 5, baseType: !4, size: 64, align [filtered], elements: !5)
     !4 = !DIBasicType(name: "LINT", size: 64, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !5 = !{!6, !7, !8}
     !6 = !DIEnumerator(name: "a", value: 0)
@@ -88,9 +88,9 @@ fn test_global_var_enum_added_to_debug_info() {
     !10 = !{i32 2, !"Debug Info Version", i32 3}
     !11 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !12, globals: !21, splitDebugInlining: false)
     !12 = !{!3, !13, !15}
-    !13 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "en1", scope: !2, file: !2, line: 2, baseType: !14, size: 32, align: 32, elements: !5)
+    !13 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "en1", scope: !2, file: !2, line: 2, baseType: !14, size: 32, align [filtered], elements: !5)
     !14 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !15 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "en2", scope: !2, file: !2, line: 3, baseType: !16, size: 8, align: 8, elements: !17)
+    !15 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "en2", scope: !2, file: !2, line: 3, baseType: !16, size: 8, align [filtered], elements: !17)
     !16 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !17 = !{!18, !19, !20}
     !18 = !DIEnumerator(name: "d", value: 0, isUnsigned: true)
@@ -142,7 +142,7 @@ fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "color", scope: !2, file: !2, line: 6, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Colors", scope: !2, file: !2, line: 2, baseType: !4, size: 32, align: 32, elements: !5)
+    !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Colors", scope: !2, file: !2, line: 2, baseType: !4, size: 32, align [filtered], elements: !5)
     !4 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !5 = !{!6, !7, !8}
     !6 = !DIEnumerator(name: "Red", value: 10)
@@ -150,7 +150,7 @@ fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
     !8 = !DIEnumerator(name: "Blue", value: 30)
     !9 = !DIGlobalVariableExpression(var: !10, expr: !DIExpression())
     !10 = distinct !DIGlobalVariable(name: "status", scope: !2, file: !2, line: 7, type: !11, isLocal: false, isDefinition: true)
-    !11 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Status", scope: !2, file: !2, line: 3, baseType: !12, size: 16, align: 16, elements: !13)
+    !11 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Status", scope: !2, file: !2, line: 3, baseType: !12, size: 16, align [filtered], elements: !13)
     !12 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !13 = !{!14, !15, !16}
     !14 = !DIEnumerator(name: "Error", value: -1)
@@ -158,7 +158,7 @@ fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
     !16 = !DIEnumerator(name: "Pending", value: 1)
     !17 = !DIGlobalVariableExpression(var: !18, expr: !DIExpression())
     !18 = distinct !DIGlobalVariable(name: "flags", scope: !2, file: !2, line: 8, type: !19, isLocal: false, isDefinition: true)
-    !19 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Flags", scope: !2, file: !2, line: 4, baseType: !20, size: 8, align: 8, elements: !21)
+    !19 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Flags", scope: !2, file: !2, line: 4, baseType: !20, size: 8, align [filtered], elements: !21)
     !20 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !21 = !{!22, !23, !24, !25}
     !22 = !DIEnumerator(name: "None", value: 0, isUnsigned: true)
@@ -209,22 +209,22 @@ fn test_global_var_struct_with_enum_members_added_to_debug_info() {
     @Priority.Low = unnamed_addr constant i8 1
     @Priority.Medium = unnamed_addr constant i8 5
     @Priority.High = unnamed_addr constant i8 10
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @__Device__init = unnamed_addr constant %Device { i32 0, i32 0, i8 1, [81 x i8] zeroinitializer }, !dbg !0
     @device = global %Device { i32 0, i32 0, i8 1, [81 x i8] zeroinitializer }, !dbg !27
     @__Device__init.1 = unnamed_addr constant %Device { i32 0, i32 0, i8 1, [81 x i8] zeroinitializer }, !dbg !29
 
     define void @__init_device(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_Device(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -242,26 +242,26 @@ fn test_global_var_struct_with_enum_members_added_to_debug_info() {
     !1 = distinct !DIGlobalVariable(name: "__Device__init", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "Device", scope: !2, file: !2, line: 5, size: 736, align: 64, flags: DIFlagPublic, elements: !5, identifier: "Device")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "Device", scope: !2, file: !2, line: 5, size: 736, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "Device")
     !5 = !{!6, !8, !14, !21}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "id", scope: !2, file: !2, line: 6, baseType: !7, size: 32, align: 32, flags: DIFlagPublic)
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "id", scope: !2, file: !2, line: 6, baseType: !7, size: 32, align [filtered], flags: DIFlagPublic)
     !7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "status", scope: !2, file: !2, line: 7, baseType: !9, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
-    !9 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Status", scope: !2, file: !2, line: 2, baseType: !7, size: 32, align: 32, elements: !10)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "status", scope: !2, file: !2, line: 7, baseType: !9, size: 32, align [filtered], offset: 32, flags: DIFlagPublic)
+    !9 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Status", scope: !2, file: !2, line: 2, baseType: !7, size: 32, align [filtered], elements: !10)
     !10 = !{!11, !12, !13}
     !11 = !DIEnumerator(name: "Idle", value: 0)
     !12 = !DIEnumerator(name: "Running", value: 1)
     !13 = !DIEnumerator(name: "Error", value: 2)
-    !14 = !DIDerivedType(tag: DW_TAG_member, name: "priority", scope: !2, file: !2, line: 8, baseType: !15, size: 8, align: 8, offset: 64, flags: DIFlagPublic)
-    !15 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Priority", scope: !2, file: !2, line: 3, baseType: !16, size: 8, align: 8, elements: !17)
+    !14 = !DIDerivedType(tag: DW_TAG_member, name: "priority", scope: !2, file: !2, line: 8, baseType: !15, size: 8, align [filtered], offset: 64, flags: DIFlagPublic)
+    !15 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Priority", scope: !2, file: !2, line: 3, baseType: !16, size: 8, align [filtered], elements: !17)
     !16 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !17 = !{!18, !19, !20}
     !18 = !DIEnumerator(name: "Low", value: 1, isUnsigned: true)
     !19 = !DIEnumerator(name: "Medium", value: 5, isUnsigned: true)
     !20 = !DIEnumerator(name: "High", value: 10, isUnsigned: true)
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "name", scope: !2, file: !2, line: 9, baseType: !22, size: 648, align: 8, offset: 72, flags: DIFlagPublic)
-    !22 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !23, align: 8)
-    !23 = !DICompositeType(tag: DW_TAG_array_type, baseType: !24, size: 648, align: 8, elements: !25)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "name", scope: !2, file: !2, line: 9, baseType: !22, size: 648, align [filtered], offset: 72, flags: DIFlagPublic)
+    !22 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !23, align [filtered])
+    !23 = !DICompositeType(tag: DW_TAG_array_type, baseType: !24, size: 648, align [filtered], elements: !25)
     !24 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !25 = !{!26}
     !26 = !DISubrange(count: 81, lowerBound: 0)

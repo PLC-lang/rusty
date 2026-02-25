@@ -993,14 +993,9 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                     .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
                 self.create_string_type(name, length, *encoding, size, index, types_index)
             }
-            DataTypeInformation::Enum { name, variants, referenced_type, .. } => self.create_enum_type(
-                name,
-                variants.to_vec(),
-                referenced_type,
-                location,
-                index,
-                types_index,
-            ),
+            DataTypeInformation::Enum { name, variants, referenced_type, .. } => {
+                self.create_enum_type(name, variants.to_vec(), referenced_type, location, index, types_index)
+            }
             DataTypeInformation::Alias { name, referenced_type } => {
                 self.create_typedef_type(name, referenced_type, location, index, types_index)
             }
