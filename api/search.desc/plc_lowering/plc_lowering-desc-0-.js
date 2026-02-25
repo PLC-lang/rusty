@@ -1,1 +1,0 @@
-searchState.loadedDescShard("plc_lowering", 0, "This module is responsible for lowering inherited …\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.")

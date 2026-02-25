@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/task.rs`."><title>task.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_task" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">async_task/</div>task.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>core::fmt;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/task.rs`."><title>task.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_task" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">async_task/</div>task.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>core::fmt;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>core::future::Future;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>core::marker::PhantomData;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>core::mem;
@@ -215,7 +215,7 @@
 <a href=#215 id=215 data-nosnippet>215</a>                        }
 <a href=#216 id=216 data-nosnippet>216</a>
 <a href=#217 id=217 data-nosnippet>217</a>                        <span class="comment">// Notify the awaiter that the task has been closed.
-<a href=#218 id=218 data-nosnippet>218</a>                        </span><span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
+<a href=#218 id=218 data-nosnippet>218</a>                        </span><span class="kw">if </span>state &amp; <span class="macro">AWAITER !</span>= <span class="number">0 </span>{
 <a href=#219 id=219 data-nosnippet>219</a>                            (<span class="kw-2">*</span>header).notify(<span class="prelude-val">None</span>);
 <a href=#220 id=220 data-nosnippet>220</a>                        }
 <a href=#221 id=221 data-nosnippet>221</a>
@@ -248,7 +248,7 @@
 <a href=#248 id=248 data-nosnippet>248</a>                <span class="kw">loop </span>{
 <a href=#249 id=249 data-nosnippet>249</a>                    <span class="comment">// If the task has been completed but not yet closed, that means its output
 <a href=#250 id=250 data-nosnippet>250</a>                    // must be dropped.
-<a href=#251 id=251 data-nosnippet>251</a>                    </span><span class="kw">if </span>state &amp; COMPLETED != <span class="number">0 </span>&amp;&amp; state &amp; CLOSED == <span class="number">0 </span>{
+<a href=#251 id=251 data-nosnippet>251</a>                    </span><span class="kw">if </span>state &amp; <span class="macro">COMPLETED !</span>= <span class="number">0 </span>&amp;&amp; state &amp; CLOSED == <span class="number">0 </span>{
 <a href=#252 id=252 data-nosnippet>252</a>                        <span class="comment">// Mark the task as closed in order to grab its output.
 <a href=#253 id=253 data-nosnippet>253</a>                        </span><span class="kw">match </span>(<span class="kw-2">*</span>header).state.compare_exchange_weak(
 <a href=#254 id=254 data-nosnippet>254</a>                            state,
@@ -327,7 +327,7 @@
 <a href=#327 id=327 data-nosnippet>327</a>
 <a href=#328 id=328 data-nosnippet>328</a>            <span class="kw">loop </span>{
 <a href=#329 id=329 data-nosnippet>329</a>                <span class="comment">// If the task has been closed, notify the awaiter and return `None`.
-<a href=#330 id=330 data-nosnippet>330</a>                </span><span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>{
+<a href=#330 id=330 data-nosnippet>330</a>                </span><span class="kw">if </span>state &amp; <span class="macro">CLOSED !</span>= <span class="number">0 </span>{
 <a href=#331 id=331 data-nosnippet>331</a>                    <span class="comment">// If the task is scheduled or running, we need to wait until its future is
 <a href=#332 id=332 data-nosnippet>332</a>                    // dropped.
 <a href=#333 id=333 data-nosnippet>333</a>                    </span><span class="kw">if </span>state &amp; (SCHEDULED | RUNNING) != <span class="number">0 </span>{
@@ -361,7 +361,7 @@
 <a href=#361 id=361 data-nosnippet>361</a>                    </span>state = (<span class="kw-2">*</span>header).state.load(Ordering::Acquire);
 <a href=#362 id=362 data-nosnippet>362</a>
 <a href=#363 id=363 data-nosnippet>363</a>                    <span class="comment">// If the task has been closed, restart.
-<a href=#364 id=364 data-nosnippet>364</a>                    </span><span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>{
+<a href=#364 id=364 data-nosnippet>364</a>                    </span><span class="kw">if </span>state &amp; <span class="macro">CLOSED !</span>= <span class="number">0 </span>{
 <a href=#365 id=365 data-nosnippet>365</a>                        <span class="kw">continue</span>;
 <a href=#366 id=366 data-nosnippet>366</a>                    }
 <a href=#367 id=367 data-nosnippet>367</a>
@@ -381,7 +381,7 @@
 <a href=#381 id=381 data-nosnippet>381</a>                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
 <a href=#382 id=382 data-nosnippet>382</a>                        <span class="comment">// Notify the awaiter. Even though the awaiter is most likely the current
 <a href=#383 id=383 data-nosnippet>383</a>                        // task, it could also be another task.
-<a href=#384 id=384 data-nosnippet>384</a>                        </span><span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
+<a href=#384 id=384 data-nosnippet>384</a>                        </span><span class="kw">if </span>state &amp; <span class="macro">AWAITER !</span>= <span class="number">0 </span>{
 <a href=#385 id=385 data-nosnippet>385</a>                            (<span class="kw-2">*</span>header).notify(<span class="prelude-val">Some</span>(cx.waker()));
 <a href=#386 id=386 data-nosnippet>386</a>                        }
 <a href=#387 id=387 data-nosnippet>387</a>
@@ -562,4 +562,5 @@
 <a href=#562 id=562 data-nosnippet>562</a>            .field(<span class="string">"header"</span>, <span class="self">self</span>.task.header())
 <a href=#563 id=563 data-nosnippet>563</a>            .finish()
 <a href=#564 id=564 data-nosnippet>564</a>    }
-<a href=#565 id=565 data-nosnippet>565</a>}</code></pre></div></section></main></body></html>
+<a href=#565 id=565 data-nosnippet>565</a>}
+</code></pre></div></section></main></body></html>

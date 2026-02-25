@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rayon-1.11.0/src/slice/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rayon/slice/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Parallel iterator types for [slices]
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rayon-1.11.0/src/slice/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rayon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rayon/slice/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Parallel iterator types for [slices]
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! You will rarely need to interact with this module directly unless you need
 <a href=#4 id=4 data-nosnippet>4</a>//! to name one of the iterator types.
@@ -110,7 +110,7 @@
 <a href=#110 id=110 data-nosnippet>110</a>    /// ```
 <a href=#111 id=111 data-nosnippet>111</a>    </span><span class="attr">#[track_caller]
 <a href=#112 id=112 data-nosnippet>112</a>    </span><span class="kw">fn </span>par_chunks(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; Chunks&lt;<span class="lifetime">'_</span>, T&gt; {
-<a href=#113 id=113 data-nosnippet>113</a>        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
+<a href=#113 id=113 data-nosnippet>113</a>        <span class="macro">assert!</span>(<span class="macro">chunk_size !</span>= <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
 <a href=#114 id=114 data-nosnippet>114</a>        Chunks::new(chunk_size, <span class="self">self</span>.as_parallel_slice())
 <a href=#115 id=115 data-nosnippet>115</a>    }
 <a href=#116 id=116 data-nosnippet>116</a>
@@ -130,7 +130,7 @@
 <a href=#130 id=130 data-nosnippet>130</a>    /// ```
 <a href=#131 id=131 data-nosnippet>131</a>    </span><span class="attr">#[track_caller]
 <a href=#132 id=132 data-nosnippet>132</a>    </span><span class="kw">fn </span>par_chunks_exact(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; ChunksExact&lt;<span class="lifetime">'_</span>, T&gt; {
-<a href=#133 id=133 data-nosnippet>133</a>        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
+<a href=#133 id=133 data-nosnippet>133</a>        <span class="macro">assert!</span>(<span class="macro">chunk_size !</span>= <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
 <a href=#134 id=134 data-nosnippet>134</a>        ChunksExact::new(chunk_size, <span class="self">self</span>.as_parallel_slice())
 <a href=#135 id=135 data-nosnippet>135</a>    }
 <a href=#136 id=136 data-nosnippet>136</a>
@@ -150,7 +150,7 @@
 <a href=#150 id=150 data-nosnippet>150</a>    /// ```
 <a href=#151 id=151 data-nosnippet>151</a>    </span><span class="attr">#[track_caller]
 <a href=#152 id=152 data-nosnippet>152</a>    </span><span class="kw">fn </span>par_rchunks(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; RChunks&lt;<span class="lifetime">'_</span>, T&gt; {
-<a href=#153 id=153 data-nosnippet>153</a>        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
+<a href=#153 id=153 data-nosnippet>153</a>        <span class="macro">assert!</span>(<span class="macro">chunk_size !</span>= <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
 <a href=#154 id=154 data-nosnippet>154</a>        RChunks::new(chunk_size, <span class="self">self</span>.as_parallel_slice())
 <a href=#155 id=155 data-nosnippet>155</a>    }
 <a href=#156 id=156 data-nosnippet>156</a>
@@ -170,7 +170,7 @@
 <a href=#170 id=170 data-nosnippet>170</a>    /// ```
 <a href=#171 id=171 data-nosnippet>171</a>    </span><span class="attr">#[track_caller]
 <a href=#172 id=172 data-nosnippet>172</a>    </span><span class="kw">fn </span>par_rchunks_exact(<span class="kw-2">&amp;</span><span class="self">self</span>, chunk_size: usize) -&gt; RChunksExact&lt;<span class="lifetime">'_</span>, T&gt; {
-<a href=#173 id=173 data-nosnippet>173</a>        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
+<a href=#173 id=173 data-nosnippet>173</a>        <span class="macro">assert!</span>(<span class="macro">chunk_size !</span>= <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
 <a href=#174 id=174 data-nosnippet>174</a>        RChunksExact::new(chunk_size, <span class="self">self</span>.as_parallel_slice())
 <a href=#175 id=175 data-nosnippet>175</a>    }
 <a href=#176 id=176 data-nosnippet>176</a>
@@ -273,7 +273,7 @@
 <a href=#273 id=273 data-nosnippet>273</a>    /// ```
 <a href=#274 id=274 data-nosnippet>274</a>    </span><span class="attr">#[track_caller]
 <a href=#275 id=275 data-nosnippet>275</a>    </span><span class="kw">fn </span>par_chunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; ChunksMut&lt;<span class="lifetime">'_</span>, T&gt; {
-<a href=#276 id=276 data-nosnippet>276</a>        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
+<a href=#276 id=276 data-nosnippet>276</a>        <span class="macro">assert!</span>(<span class="macro">chunk_size !</span>= <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
 <a href=#277 id=277 data-nosnippet>277</a>        ChunksMut::new(chunk_size, <span class="self">self</span>.as_parallel_slice_mut())
 <a href=#278 id=278 data-nosnippet>278</a>    }
 <a href=#279 id=279 data-nosnippet>279</a>
@@ -295,7 +295,7 @@
 <a href=#295 id=295 data-nosnippet>295</a>    /// ```
 <a href=#296 id=296 data-nosnippet>296</a>    </span><span class="attr">#[track_caller]
 <a href=#297 id=297 data-nosnippet>297</a>    </span><span class="kw">fn </span>par_chunks_exact_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; ChunksExactMut&lt;<span class="lifetime">'_</span>, T&gt; {
-<a href=#298 id=298 data-nosnippet>298</a>        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
+<a href=#298 id=298 data-nosnippet>298</a>        <span class="macro">assert!</span>(<span class="macro">chunk_size !</span>= <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
 <a href=#299 id=299 data-nosnippet>299</a>        ChunksExactMut::new(chunk_size, <span class="self">self</span>.as_parallel_slice_mut())
 <a href=#300 id=300 data-nosnippet>300</a>    }
 <a href=#301 id=301 data-nosnippet>301</a>
@@ -317,7 +317,7 @@
 <a href=#317 id=317 data-nosnippet>317</a>    /// ```
 <a href=#318 id=318 data-nosnippet>318</a>    </span><span class="attr">#[track_caller]
 <a href=#319 id=319 data-nosnippet>319</a>    </span><span class="kw">fn </span>par_rchunks_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; RChunksMut&lt;<span class="lifetime">'_</span>, T&gt; {
-<a href=#320 id=320 data-nosnippet>320</a>        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
+<a href=#320 id=320 data-nosnippet>320</a>        <span class="macro">assert!</span>(<span class="macro">chunk_size !</span>= <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
 <a href=#321 id=321 data-nosnippet>321</a>        RChunksMut::new(chunk_size, <span class="self">self</span>.as_parallel_slice_mut())
 <a href=#322 id=322 data-nosnippet>322</a>    }
 <a href=#323 id=323 data-nosnippet>323</a>
@@ -339,7 +339,7 @@
 <a href=#339 id=339 data-nosnippet>339</a>    /// ```
 <a href=#340 id=340 data-nosnippet>340</a>    </span><span class="attr">#[track_caller]
 <a href=#341 id=341 data-nosnippet>341</a>    </span><span class="kw">fn </span>par_rchunks_exact_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk_size: usize) -&gt; RChunksExactMut&lt;<span class="lifetime">'_</span>, T&gt; {
-<a href=#342 id=342 data-nosnippet>342</a>        <span class="macro">assert!</span>(chunk_size != <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
+<a href=#342 id=342 data-nosnippet>342</a>        <span class="macro">assert!</span>(<span class="macro">chunk_size !</span>= <span class="number">0</span>, <span class="string">"chunk_size must not be zero"</span>);
 <a href=#343 id=343 data-nosnippet>343</a>        RChunksExactMut::new(chunk_size, <span class="self">self</span>.as_parallel_slice_mut())
 <a href=#344 id=344 data-nosnippet>344</a>    }
 <a href=#345 id=345 data-nosnippet>345</a>
@@ -1239,4 +1239,5 @@
 <a href=#1239 id=1239 data-nosnippet>1239</a>            folder.consume_iter(split)
 <a href=#1240 id=1240 data-nosnippet>1240</a>        }
 <a href=#1241 id=1241 data-nosnippet>1241</a>    }
-<a href=#1242 id=1242 data-nosnippet>1242</a>}</code></pre></div></section></main></body></html>
+<a href=#1242 id=1242 data-nosnippet>1242</a>}
+</code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Common recipes to build nom parsers"><title>nom::recipes - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../nom/index.html">nom</a><span class="version">8.0.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module recipes</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#common-recipes-to-build-nom-parsers" title="Common recipes to build nom parsers">Common recipes to build nom parsers</a><ul><li><a href="#whitespace" title="Whitespace">Whitespace</a></li><li><a href="#comments" title="Comments">Comments</a></li><li><a href="#identifiers" title="Identifiers">Identifiers</a></li><li><a href="#literal-values" title="Literal Values">Literal Values</a></li></ul></li><li><a href="#implementing-fromstr" title="implementing FromStr">implementing FromStr</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate nom</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">nom</a></div><h1>Module <span>recipes</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/nom/lib.rs.html#460">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="common-recipes-to-build-nom-parsers"><a class="doc-anchor" href="#common-recipes-to-build-nom-parsers">§</a>Common recipes to build nom parsers</h2>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Common recipes to build nom parsers"><title>nom::recipes - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module recipes</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../nom/index.html">nom</a><span class="version">8.0.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module recipes</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#common-recipes-to-build-nom-parsers" title="Common recipes to build nom parsers">Common recipes to build nom parsers</a><ul><li><a href="#whitespace" title="Whitespace">Whitespace</a></li><li><a href="#comments" title="Comments">Comments</a></li><li><a href="#identifiers" title="Identifiers">Identifiers</a></li><li><a href="#literal-values" title="Literal Values">Literal Values</a></li></ul></li><li><a href="#implementing-fromstr" title="implementing FromStr">implementing FromStr</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate nom</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">nom</a></div><h1>Module <span>recipes</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/nom/lib.rs.html#460">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="common-recipes-to-build-nom-parsers"><a class="doc-anchor" href="#common-recipes-to-build-nom-parsers">§</a>Common recipes to build nom parsers</h2>
 <p>These are short recipes for accomplishing common tasks with nom.</p>
 <ul>
 <li><a href="#whitespace">Whitespace</a>
@@ -74,8 +74,7 @@ output of <code>()</code>.</p>
     (), <span class="comment">// Output is thrown away.
     </span>pair(char(<span class="string">'%'</span>), is_not(<span class="string">"\n\r"</span>))
   ).parse(i)
-}</code></pre></div>
-<h4 id="-c-style-comments-"><a class="doc-anchor" href="#-c-style-comments-">§</a><code>/* C-style comments */</code></h4>
+}</code></pre></div><h4 id="-c-style-comments-"><a class="doc-anchor" href="#-c-style-comments-">§</a><code>/* C-style comments */</code></h4>
 <p>Inline comments surrounded with sentinel tags <code>(*</code> and <code>*)</code>. This version returns an output of <code>()</code>
 and does not handle nested comments.</p>
 
@@ -96,8 +95,7 @@ and does not handle nested comments.</p>
       tag(<span class="string">"*)"</span>)
     )
   ).parse(i)
-}</code></pre></div>
-<h3 id="identifiers"><a class="doc-anchor" href="#identifiers">§</a>Identifiers</h3><h4 id="rust-style-identifiers"><a class="doc-anchor" href="#rust-style-identifiers">§</a><code>Rust-Style Identifiers</code></h4>
+}</code></pre></div><h3 id="identifiers"><a class="doc-anchor" href="#identifiers">§</a>Identifiers</h3><h4 id="rust-style-identifiers"><a class="doc-anchor" href="#rust-style-identifiers">§</a><code>Rust-Style Identifiers</code></h4>
 <p>Parsing identifiers that may start with a letter (or underscore) and may contain underscores,
 letters and numbers may be parsed like this:</p>
 
@@ -186,8 +184,7 @@ slice that is returned, which is demonstrated in the second hexadecimal number p
     ),
     |out: <span class="kw-2">&amp;</span>str| i64::from_str_radix(<span class="kw-2">&amp;</span>str::replace(<span class="kw-2">&amp;</span>out, <span class="string">"_"</span>, <span class="string">""</span>), <span class="number">16</span>)
   ).parse(input)
-}</code></pre></div>
-<h5 id="octal"><a class="doc-anchor" href="#octal">§</a>Octal</h5>
+}</code></pre></div><h5 id="octal"><a class="doc-anchor" href="#octal">§</a>Octal</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>nom::{
   IResult,
   Parser,
@@ -208,8 +205,7 @@ slice that is returned, which is demonstrated in the second hexadecimal number p
       )
     )
   ).parse(input)
-}</code></pre></div>
-<h5 id="binary"><a class="doc-anchor" href="#binary">§</a>Binary</h5>
+}</code></pre></div><h5 id="binary"><a class="doc-anchor" href="#binary">§</a>Binary</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>nom::{
   IResult,
   Parser,
@@ -230,8 +226,7 @@ slice that is returned, which is demonstrated in the second hexadecimal number p
       )
     )
   ).parse(input)
-}</code></pre></div>
-<h5 id="decimal"><a class="doc-anchor" href="#decimal">§</a>Decimal</h5>
+}</code></pre></div><h5 id="decimal"><a class="doc-anchor" href="#decimal">§</a>Decimal</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>nom::{
   IResult,
   Parser,
@@ -247,8 +242,7 @@ slice that is returned, which is demonstrated in the second hexadecimal number p
       terminated(one_of(<span class="string">"0123456789"</span>), many0(char(<span class="string">'_'</span>)))
     )
   ).parse(input)
-}</code></pre></div>
-<h4 id="floating-point-numbers"><a class="doc-anchor" href="#floating-point-numbers">§</a>Floating Point Numbers</h4>
+}</code></pre></div><h4 id="floating-point-numbers"><a class="doc-anchor" href="#floating-point-numbers">§</a>Floating Point Numbers</h4>
 <p>The following is adapted from <a href="https://github.com/ProgVal/rust-python-parser/blob/master/src/numbers.rs">the Python parser by Valentin Lorentz (ProgVal)</a>.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>nom::{
@@ -305,8 +299,7 @@ slice that is returned, which is demonstrated in the second hexadecimal number p
       terminated(one_of(<span class="string">"0123456789"</span>), many0(char(<span class="string">'_'</span>)))
     )
   ).parse(input)
-}</code></pre></div>
-<h2 id="implementing-fromstr"><a class="doc-anchor" href="#implementing-fromstr">§</a>implementing FromStr</h2>
+}</code></pre></div><h2 id="implementing-fromstr"><a class="doc-anchor" href="#implementing-fromstr">§</a>implementing FromStr</h2>
 <p>The <a href="https://doc.rust-lang.org/std/str/trait.FromStr.html">FromStr trait</a> provides
 a common interface to parse from a string.</p>
 
@@ -350,5 +343,4 @@ a common interface to parse from a string.</p>
 
   <span class="comment">// parsed: Err(Error { input: "123!", code: Tag })
   </span><span class="macro">println!</span>(<span class="string">"parsed: {:?}"</span>, <span class="string">"Hello, 123!"</span>.parse::&lt;Name&gt;());
-}</code></pre></div>
-</div></details></section></div></main></body></html>
+}</code></pre></div></div></details></section></div></main></body></html>

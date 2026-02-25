@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/raw.rs`."><title>raw.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_task" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">async_task/</div>raw.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>alloc::alloc::Layout <span class="kw">as </span>StdLayout;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/raw.rs`."><title>raw.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="async_task" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">async_task/</div>raw.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>alloc::alloc::Layout <span class="kw">as </span>StdLayout;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>core::cell::UnsafeCell;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>core::future::Future;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>core::mem::{<span class="self">self</span>, ManuallyDrop};
@@ -252,7 +252,7 @@
 <a href=#252 id=252 data-nosnippet>252</a>
 <a href=#253 id=253 data-nosnippet>253</a>            <span class="comment">// If the task is already scheduled, we just need to synchronize with the thread that
 <a href=#254 id=254 data-nosnippet>254</a>            // will run the task by "publishing" our current view of the memory.
-<a href=#255 id=255 data-nosnippet>255</a>            </span><span class="kw">if </span>state &amp; SCHEDULED != <span class="number">0 </span>{
+<a href=#255 id=255 data-nosnippet>255</a>            </span><span class="kw">if </span>state &amp; <span class="macro">SCHEDULED !</span>= <span class="number">0 </span>{
 <a href=#256 id=256 data-nosnippet>256</a>                <span class="comment">// Update the state without actually modifying it.
 <a href=#257 id=257 data-nosnippet>257</a>                </span><span class="kw">match </span>(<span class="kw-2">*</span>raw.header).state.compare_exchange_weak(
 <a href=#258 id=258 data-nosnippet>258</a>                    state,
@@ -308,7 +308,7 @@
 <a href=#308 id=308 data-nosnippet>308</a>
 <a href=#309 id=309 data-nosnippet>309</a>            <span class="comment">// If the task is already scheduled, we just need to synchronize with the thread that
 <a href=#310 id=310 data-nosnippet>310</a>            // will run the task by "publishing" our current view of the memory.
-<a href=#311 id=311 data-nosnippet>311</a>            </span><span class="kw">if </span>state &amp; SCHEDULED != <span class="number">0 </span>{
+<a href=#311 id=311 data-nosnippet>311</a>            </span><span class="kw">if </span>state &amp; <span class="macro">SCHEDULED !</span>= <span class="number">0 </span>{
 <a href=#312 id=312 data-nosnippet>312</a>                <span class="comment">// Update the state without actually modifying it.
 <a href=#313 id=313 data-nosnippet>313</a>                </span><span class="kw">match </span>(<span class="kw-2">*</span>raw.header).state.compare_exchange_weak(
 <a href=#314 id=314 data-nosnippet>314</a>                    state,
@@ -493,7 +493,7 @@
 <a href=#493 id=493 data-nosnippet>493</a>        <span class="comment">// Update the task's state before polling its future.
 <a href=#494 id=494 data-nosnippet>494</a>        </span><span class="kw">loop </span>{
 <a href=#495 id=495 data-nosnippet>495</a>            <span class="comment">// If the task has already been closed, drop the task reference and return.
-<a href=#496 id=496 data-nosnippet>496</a>            </span><span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>{
+<a href=#496 id=496 data-nosnippet>496</a>            </span><span class="kw">if </span>state &amp; <span class="macro">CLOSED !</span>= <span class="number">0 </span>{
 <a href=#497 id=497 data-nosnippet>497</a>                <span class="comment">// Drop the future.
 <a href=#498 id=498 data-nosnippet>498</a>                </span><span class="self">Self</span>::drop_future(ptr);
 <a href=#499 id=499 data-nosnippet>499</a>
@@ -502,7 +502,7 @@
 <a href=#502 id=502 data-nosnippet>502</a>
 <a href=#503 id=503 data-nosnippet>503</a>                <span class="comment">// Take the awaiter out.
 <a href=#504 id=504 data-nosnippet>504</a>                </span><span class="kw">let </span><span class="kw-2">mut </span>awaiter = <span class="prelude-val">None</span>;
-<a href=#505 id=505 data-nosnippet>505</a>                <span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
+<a href=#505 id=505 data-nosnippet>505</a>                <span class="kw">if </span>state &amp; <span class="macro">AWAITER !</span>= <span class="number">0 </span>{
 <a href=#506 id=506 data-nosnippet>506</a>                    awaiter = (<span class="kw-2">*</span>raw.header).take(<span class="prelude-val">None</span>);
 <a href=#507 id=507 data-nosnippet>507</a>                }
 <a href=#508 id=508 data-nosnippet>508</a>
@@ -585,14 +585,14 @@
 <a href=#585 id=585 data-nosnippet>585</a>                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
 <a href=#586 id=586 data-nosnippet>586</a>                            <span class="comment">// If the `Task` is dropped or if the task was closed while running,
 <a href=#587 id=587 data-nosnippet>587</a>                            // now it's time to drop the output.
-<a href=#588 id=588 data-nosnippet>588</a>                            </span><span class="kw">if </span>state &amp; TASK == <span class="number">0 </span>|| state &amp; CLOSED != <span class="number">0 </span>{
+<a href=#588 id=588 data-nosnippet>588</a>                            </span><span class="kw">if </span>state &amp; TASK == <span class="number">0 </span>|| state &amp; <span class="macro">CLOSED !</span>= <span class="number">0 </span>{
 <a href=#589 id=589 data-nosnippet>589</a>                                <span class="comment">// Drop the output.
 <a href=#590 id=590 data-nosnippet>590</a>                                </span>abort_on_panic(|| raw.output.drop_in_place());
 <a href=#591 id=591 data-nosnippet>591</a>                            }
 <a href=#592 id=592 data-nosnippet>592</a>
 <a href=#593 id=593 data-nosnippet>593</a>                            <span class="comment">// Take the awaiter out.
 <a href=#594 id=594 data-nosnippet>594</a>                            </span><span class="kw">let </span><span class="kw-2">mut </span>awaiter = <span class="prelude-val">None</span>;
-<a href=#595 id=595 data-nosnippet>595</a>                            <span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
+<a href=#595 id=595 data-nosnippet>595</a>                            <span class="kw">if </span>state &amp; <span class="macro">AWAITER !</span>= <span class="number">0 </span>{
 <a href=#596 id=596 data-nosnippet>596</a>                                awaiter = (<span class="kw-2">*</span>raw.header).take(<span class="prelude-val">None</span>);
 <a href=#597 id=597 data-nosnippet>597</a>                            }
 <a href=#598 id=598 data-nosnippet>598</a>
@@ -616,13 +616,13 @@
 <a href=#616 id=616 data-nosnippet>616</a>                </span><span class="kw">loop </span>{
 <a href=#617 id=617 data-nosnippet>617</a>                    <span class="comment">// If the task was closed while running, we'll need to unschedule in case it
 <a href=#618 id=618 data-nosnippet>618</a>                    // was woken up and then destroy it.
-<a href=#619 id=619 data-nosnippet>619</a>                    </span><span class="kw">let </span>new = <span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>{
+<a href=#619 id=619 data-nosnippet>619</a>                    </span><span class="kw">let </span>new = <span class="kw">if </span>state &amp; <span class="macro">CLOSED !</span>= <span class="number">0 </span>{
 <a href=#620 id=620 data-nosnippet>620</a>                        state &amp; !RUNNING &amp; !SCHEDULED
 <a href=#621 id=621 data-nosnippet>621</a>                    } <span class="kw">else </span>{
 <a href=#622 id=622 data-nosnippet>622</a>                        state &amp; !RUNNING
 <a href=#623 id=623 data-nosnippet>623</a>                    };
 <a href=#624 id=624 data-nosnippet>624</a>
-<a href=#625 id=625 data-nosnippet>625</a>                    <span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>&amp;&amp; !future_dropped {
+<a href=#625 id=625 data-nosnippet>625</a>                    <span class="kw">if </span>state &amp; <span class="macro">CLOSED !</span>= <span class="number">0 </span>&amp;&amp; !future_dropped {
 <a href=#626 id=626 data-nosnippet>626</a>                        <span class="comment">// The thread that closed the task didn't drop the future because it was
 <a href=#627 id=627 data-nosnippet>627</a>                        // running so now it's our responsibility to do so.
 <a href=#628 id=628 data-nosnippet>628</a>                        </span><span class="self">Self</span>::drop_future(ptr);
@@ -640,10 +640,10 @@
 <a href=#640 id=640 data-nosnippet>640</a>                            <span class="comment">// If the task was closed while running, we need to notify the awaiter.
 <a href=#641 id=641 data-nosnippet>641</a>                            // If the task was woken up while running, we need to schedule it.
 <a href=#642 id=642 data-nosnippet>642</a>                            // Otherwise, we just drop the task reference.
-<a href=#643 id=643 data-nosnippet>643</a>                            </span><span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>{
+<a href=#643 id=643 data-nosnippet>643</a>                            </span><span class="kw">if </span>state &amp; <span class="macro">CLOSED !</span>= <span class="number">0 </span>{
 <a href=#644 id=644 data-nosnippet>644</a>                                <span class="comment">// Take the awaiter out.
 <a href=#645 id=645 data-nosnippet>645</a>                                </span><span class="kw">let </span><span class="kw-2">mut </span>awaiter = <span class="prelude-val">None</span>;
-<a href=#646 id=646 data-nosnippet>646</a>                                <span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
+<a href=#646 id=646 data-nosnippet>646</a>                                <span class="kw">if </span>state &amp; <span class="macro">AWAITER !</span>= <span class="number">0 </span>{
 <a href=#647 id=647 data-nosnippet>647</a>                                    awaiter = (<span class="kw-2">*</span>raw.header).take(<span class="prelude-val">None</span>);
 <a href=#648 id=648 data-nosnippet>648</a>                                }
 <a href=#649 id=649 data-nosnippet>649</a>
@@ -654,7 +654,7 @@
 <a href=#654 id=654 data-nosnippet>654</a>                                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(w) = awaiter {
 <a href=#655 id=655 data-nosnippet>655</a>                                    abort_on_panic(|| w.wake());
 <a href=#656 id=656 data-nosnippet>656</a>                                }
-<a href=#657 id=657 data-nosnippet>657</a>                            } <span class="kw">else if </span>state &amp; SCHEDULED != <span class="number">0 </span>{
+<a href=#657 id=657 data-nosnippet>657</a>                            } <span class="kw">else if </span>state &amp; <span class="macro">SCHEDULED !</span>= <span class="number">0 </span>{
 <a href=#658 id=658 data-nosnippet>658</a>                                <span class="comment">// The thread that woke the task up didn't reschedule it because
 <a href=#659 id=659 data-nosnippet>659</a>                                // it was running so now it's our responsibility to do so.
 <a href=#660 id=660 data-nosnippet>660</a>                                </span><span class="self">Self</span>::schedule(ptr, ScheduleInfo::new(<span class="bool-val">true</span>));
@@ -694,7 +694,7 @@
 <a href=#694 id=694 data-nosnippet>694</a>                    <span class="kw">loop </span>{
 <a href=#695 id=695 data-nosnippet>695</a>                        <span class="comment">// If the task was closed while running, then unschedule it, drop its
 <a href=#696 id=696 data-nosnippet>696</a>                        // future, and drop the task reference.
-<a href=#697 id=697 data-nosnippet>697</a>                        </span><span class="kw">if </span>state &amp; CLOSED != <span class="number">0 </span>{
+<a href=#697 id=697 data-nosnippet>697</a>                        </span><span class="kw">if </span>state &amp; <span class="macro">CLOSED !</span>= <span class="number">0 </span>{
 <a href=#698 id=698 data-nosnippet>698</a>                            <span class="comment">// The thread that closed the task didn't drop the future because it
 <a href=#699 id=699 data-nosnippet>699</a>                            // was running so now it's our responsibility to do so.
 <a href=#700 id=700 data-nosnippet>700</a>                            </span>RawTask::&lt;F, T, S, M&gt;::drop_future(ptr);
@@ -706,7 +706,7 @@
 <a href=#706 id=706 data-nosnippet>706</a>
 <a href=#707 id=707 data-nosnippet>707</a>                            <span class="comment">// Take the awaiter out.
 <a href=#708 id=708 data-nosnippet>708</a>                            </span><span class="kw">let </span><span class="kw-2">mut </span>awaiter = <span class="prelude-val">None</span>;
-<a href=#709 id=709 data-nosnippet>709</a>                            <span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
+<a href=#709 id=709 data-nosnippet>709</a>                            <span class="kw">if </span>state &amp; <span class="macro">AWAITER !</span>= <span class="number">0 </span>{
 <a href=#710 id=710 data-nosnippet>710</a>                                awaiter = (<span class="kw-2">*</span>raw.header).take(<span class="prelude-val">None</span>);
 <a href=#711 id=711 data-nosnippet>711</a>                            }
 <a href=#712 id=712 data-nosnippet>712</a>
@@ -733,7 +733,7 @@
 <a href=#733 id=733 data-nosnippet>733</a>
 <a href=#734 id=734 data-nosnippet>734</a>                                <span class="comment">// Take the awaiter out.
 <a href=#735 id=735 data-nosnippet>735</a>                                </span><span class="kw">let </span><span class="kw-2">mut </span>awaiter = <span class="prelude-val">None</span>;
-<a href=#736 id=736 data-nosnippet>736</a>                                <span class="kw">if </span>state &amp; AWAITER != <span class="number">0 </span>{
+<a href=#736 id=736 data-nosnippet>736</a>                                <span class="kw">if </span>state &amp; <span class="macro">AWAITER !</span>= <span class="number">0 </span>{
 <a href=#737 id=737 data-nosnippet>737</a>                                    awaiter = (<span class="kw-2">*</span>raw.header).take(<span class="prelude-val">None</span>);
 <a href=#738 id=738 data-nosnippet>738</a>                                }
 <a href=#739 id=739 data-nosnippet>739</a>
@@ -753,4 +753,5 @@
 <a href=#753 id=753 data-nosnippet>753</a>            }
 <a href=#754 id=754 data-nosnippet>754</a>        }
 <a href=#755 id=755 data-nosnippet>755</a>    }
-<a href=#756 id=756 data-nosnippet>756</a>}</code></pre></div></section></main></body></html>
+<a href=#756 id=756 data-nosnippet>756</a>}
+</code></pre></div></section></main></body></html>

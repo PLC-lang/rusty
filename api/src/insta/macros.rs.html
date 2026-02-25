@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/insta-1.44.3/src/macros.rs`."><title>macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/</div>macros.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">/// Utility macro to return the name of the current function.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/insta-1.44.3/src/macros.rs`."><title>macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/</div>macros.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">/// Utility macro to return the name of the current function.
 <a href=#2 id=2 data-nosnippet>2</a></span><span class="attr">#[doc(hidden)]
 <a href=#3 id=3 data-nosnippet>3</a>#[macro_export]
 <a href=#4 id=4 data-nosnippet>4</a></span><span class="macro">macro_rules!</span> _function_name {
@@ -61,7 +61,7 @@
 <a href=#61 id=61 data-nosnippet>61</a>#[macro_export]
 <a href=#62 id=62 data-nosnippet>62</a></span><span class="macro">macro_rules!</span> assert_csv_snapshot {
 <a href=#63 id=63 data-nosnippet>63</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-<a href=#64 id=64 data-nosnippet>64</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=Csv, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
+<a href=#64 id=64 data-nosnippet>64</a>        <span class="macro-nonterminal">$crate::_assert_serialized_snapshot</span>!(format=Csv, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
 <a href=#65 id=65 data-nosnippet>65</a>    };
 <a href=#66 id=66 data-nosnippet>66</a>}
 <a href=#67 id=67 data-nosnippet>67</a>
@@ -91,7 +91,7 @@
 <a href=#91 id=91 data-nosnippet>91</a>#[macro_export]
 <a href=#92 id=92 data-nosnippet>92</a></span><span class="macro">macro_rules!</span> assert_toml_snapshot {
 <a href=#93 id=93 data-nosnippet>93</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-<a href=#94 id=94 data-nosnippet>94</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=Toml, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
+<a href=#94 id=94 data-nosnippet>94</a>        <span class="macro-nonterminal">$crate::_assert_serialized_snapshot</span>!(format=Toml, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
 <a href=#95 id=95 data-nosnippet>95</a>    };
 <a href=#96 id=96 data-nosnippet>96</a>}
 <a href=#97 id=97 data-nosnippet>97</a>
@@ -145,7 +145,7 @@
 <a href=#145 id=145 data-nosnippet>145</a>#[macro_export]
 <a href=#146 id=146 data-nosnippet>146</a></span><span class="macro">macro_rules!</span> assert_yaml_snapshot {
 <a href=#147 id=147 data-nosnippet>147</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-<a href=#148 id=148 data-nosnippet>148</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=Yaml, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
+<a href=#148 id=148 data-nosnippet>148</a>        <span class="macro-nonterminal">$crate::_assert_serialized_snapshot</span>!(format=Yaml, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
 <a href=#149 id=149 data-nosnippet>149</a>    };
 <a href=#150 id=150 data-nosnippet>150</a>}
 <a href=#151 id=151 data-nosnippet>151</a>
@@ -175,7 +175,7 @@
 <a href=#175 id=175 data-nosnippet>175</a>#[macro_export]
 <a href=#176 id=176 data-nosnippet>176</a></span><span class="macro">macro_rules!</span> assert_ron_snapshot {
 <a href=#177 id=177 data-nosnippet>177</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-<a href=#178 id=178 data-nosnippet>178</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=Ron, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
+<a href=#178 id=178 data-nosnippet>178</a>        <span class="macro-nonterminal">$crate::_assert_serialized_snapshot</span>!(format=Ron, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
 <a href=#179 id=179 data-nosnippet>179</a>    };
 <a href=#180 id=180 data-nosnippet>180</a>}
 <a href=#181 id=181 data-nosnippet>181</a>
@@ -205,7 +205,7 @@
 <a href=#205 id=205 data-nosnippet>205</a>#[macro_export]
 <a href=#206 id=206 data-nosnippet>206</a></span><span class="macro">macro_rules!</span> assert_json_snapshot {
 <a href=#207 id=207 data-nosnippet>207</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-<a href=#208 id=208 data-nosnippet>208</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=Json, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
+<a href=#208 id=208 data-nosnippet>208</a>        <span class="macro-nonterminal">$crate::_assert_serialized_snapshot</span>!(format=Json, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
 <a href=#209 id=209 data-nosnippet>209</a>    };
 <a href=#210 id=210 data-nosnippet>210</a>}
 <a href=#211 id=211 data-nosnippet>211</a>
@@ -236,7 +236,7 @@
 <a href=#236 id=236 data-nosnippet>236</a>#[macro_export]
 <a href=#237 id=237 data-nosnippet>237</a></span><span class="macro">macro_rules!</span> assert_compact_json_snapshot {
 <a href=#238 id=238 data-nosnippet>238</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-<a href=#239 id=239 data-nosnippet>239</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_serialized_snapshot!</span>(<span class="macro-nonterminal">format</span>=JsonCompact, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
+<a href=#239 id=239 data-nosnippet>239</a>        <span class="macro-nonterminal">$crate::_assert_serialized_snapshot</span>!(format=JsonCompact, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
 <a href=#240 id=240 data-nosnippet>240</a>    };
 <a href=#241 id=241 data-nosnippet>241</a>}
 <a href=#242 id=242 data-nosnippet>242</a>
@@ -248,23 +248,23 @@
 <a href=#248 id=248 data-nosnippet>248</a>    // and pass to `_assert_snapshot_base`
 <a href=#249 id=249 data-nosnippet>249</a>    </span>(format=<span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$value</span>:expr, $(<span class="kw">match </span>..)<span class="question-mark">? </span>{$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),* $(,)<span class="question-mark">?</span>} $(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {{
 <a href=#250 id=250 data-nosnippet>250</a>        <span class="kw">let </span>transform = |value| {
-<a href=#251 id=251 data-nosnippet>251</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_prepare_snapshot_for_redaction!</span>(<span class="macro-nonterminal">value</span>, {$(<span class="macro-nonterminal">$k </span>=&gt; <span class="macro-nonterminal">$v</span>),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>)
+<a href=#251 id=251 data-nosnippet>251</a>            <span class="macro-nonterminal">$crate::_prepare_snapshot_for_redaction</span>!(value, {$(<span class="macro-nonterminal">$k </span>=&gt; <span class="macro-nonterminal">$v</span>),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>)
 <a href=#252 id=252 data-nosnippet>252</a>        };
-<a href=#253 id=253 data-nosnippet>253</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=transform, <span class="macro-nonterminal">$value </span>$(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
+<a href=#253 id=253 data-nosnippet>253</a>        <span class="macro-nonterminal">$crate::_assert_snapshot_base</span>!(transform=transform, <span class="macro-nonterminal">$value </span>$(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
 <a href=#254 id=254 data-nosnippet>254</a>    }};
 <a href=#255 id=255 data-nosnippet>255</a>    <span class="comment">// If there's a name, redaction expressions, and debug_expr, capture and pass all to `_assert_snapshot_base`
 <a href=#256 id=256 data-nosnippet>256</a>    </span>(format=<span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr, $(<span class="kw">match </span>..)<span class="question-mark">? </span>{$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),* $(,)<span class="question-mark">?</span>}, <span class="macro-nonterminal">$debug_expr</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {{
 <a href=#257 id=257 data-nosnippet>257</a>        <span class="kw">let </span>transform = |value| {
-<a href=#258 id=258 data-nosnippet>258</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_prepare_snapshot_for_redaction!</span>(<span class="macro-nonterminal">value</span>, {$(<span class="macro-nonterminal">$k </span>=&gt; <span class="macro-nonterminal">$v</span>),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>)
+<a href=#258 id=258 data-nosnippet>258</a>            <span class="macro-nonterminal">$crate::_prepare_snapshot_for_redaction</span>!(value, {$(<span class="macro-nonterminal">$k </span>=&gt; <span class="macro-nonterminal">$v</span>),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>)
 <a href=#259 id=259 data-nosnippet>259</a>        };
-<a href=#260 id=260 data-nosnippet>260</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=transform, <span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$value</span>, <span class="macro-nonterminal">$debug_expr</span>);
+<a href=#260 id=260 data-nosnippet>260</a>        <span class="macro-nonterminal">$crate::_assert_snapshot_base</span>!(transform=transform, <span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$value</span>, <span class="macro-nonterminal">$debug_expr</span>);
 <a href=#261 id=261 data-nosnippet>261</a>    }};
 <a href=#262 id=262 data-nosnippet>262</a>    <span class="comment">// If there's a name and redaction expressions, capture and pass to `_assert_snapshot_base`
 <a href=#263 id=263 data-nosnippet>263</a>    </span>(format=<span class="macro-nonterminal">$format</span>:ident, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr, $(<span class="kw">match </span>..)<span class="question-mark">? </span>{$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),* $(,)<span class="question-mark">?</span>} $(,)<span class="question-mark">?</span>) =&gt; {{
 <a href=#264 id=264 data-nosnippet>264</a>        <span class="kw">let </span>transform = |value| {
-<a href=#265 id=265 data-nosnippet>265</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_prepare_snapshot_for_redaction!</span>(<span class="macro-nonterminal">value</span>, {$(<span class="macro-nonterminal">$k </span>=&gt; <span class="macro-nonterminal">$v</span>),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>)
+<a href=#265 id=265 data-nosnippet>265</a>            <span class="macro-nonterminal">$crate::_prepare_snapshot_for_redaction</span>!(value, {$(<span class="macro-nonterminal">$k </span>=&gt; <span class="macro-nonterminal">$v</span>),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>)
 <a href=#266 id=266 data-nosnippet>266</a>        };
-<a href=#267 id=267 data-nosnippet>267</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=transform, <span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$value</span>);
+<a href=#267 id=267 data-nosnippet>267</a>        <span class="macro-nonterminal">$crate::_assert_snapshot_base</span>!(transform=transform, <span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$value</span>);
 <a href=#268 id=268 data-nosnippet>268</a>    }};
 <a href=#269 id=269 data-nosnippet>269</a>    <span class="comment">// Capture serialization function and pass to `_assert_snapshot_base`
 <a href=#270 id=270 data-nosnippet>270</a>    //
@@ -273,7 +273,7 @@
 <a href=#273 id=273 data-nosnippet>273</a>            <span class="kw-2">&amp;</span>value,
 <a href=#274 id=274 data-nosnippet>274</a>            <span class="macro-nonterminal">$crate::_macro_support::SerializationFormat</span>::<span class="macro-nonterminal">$format</span>,
 <a href=#275 id=275 data-nosnippet>275</a>        )};
-<a href=#276 id=276 data-nosnippet>276</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=transform, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
+<a href=#276 id=276 data-nosnippet>276</a>        <span class="macro-nonterminal">$crate::_assert_snapshot_base</span>!(transform=transform, $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>);
 <a href=#277 id=277 data-nosnippet>277</a>    }};
 <a href=#278 id=278 data-nosnippet>278</a>}
 <a href=#279 id=279 data-nosnippet>279</a>
@@ -283,7 +283,7 @@
 <a href=#283 id=283 data-nosnippet>283</a></span><span class="macro">macro_rules!</span> _prepare_snapshot_for_redaction {
 <a href=#284 id=284 data-nosnippet>284</a>    (<span class="macro-nonterminal">$value</span>:expr, {$(<span class="macro-nonterminal">$k</span>:expr =&gt; <span class="macro-nonterminal">$v</span>:expr),<span class="kw-2">*</span>}, <span class="macro-nonterminal">$format</span>:ident) =&gt; {
 <a href=#285 id=285 data-nosnippet>285</a>        {
-<a href=#286 id=286 data-nosnippet>286</a>            <span class="kw">let </span>vec = <span class="macro-nonterminal">$</span><span class="macro">crate::_macro_support::vec!</span>[
+<a href=#286 id=286 data-nosnippet>286</a>            <span class="kw">let </span>vec = <span class="macro-nonterminal">$crate::_macro_support::vec</span>![
 <a href=#287 id=287 data-nosnippet>287</a>                $((
 <a href=#288 id=288 data-nosnippet>288</a>                    <span class="macro-nonterminal">$crate::_macro_support::Selector::parse</span>(<span class="macro-nonterminal">$k</span>).unwrap(),
 <a href=#289 id=289 data-nosnippet>289</a>                    <span class="macro-nonterminal">$crate::_macro_support::Redaction::from</span>(<span class="macro-nonterminal">$v</span>)
@@ -319,7 +319,7 @@
 <a href=#319 id=319 data-nosnippet>319</a></span><span class="attr">#[macro_export]
 <a href=#320 id=320 data-nosnippet>320</a></span><span class="macro">macro_rules!</span> assert_debug_snapshot {
 <a href=#321 id=321 data-nosnippet>321</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-<a href=#322 id=322 data-nosnippet>322</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro-nonterminal">$</span><span class="macro">crate::_macro_support::format!</span>(<span class="string">"{:#?}"</span>, <span class="macro-nonterminal">v</span>), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
+<a href=#322 id=322 data-nosnippet>322</a>        <span class="macro-nonterminal">$crate::_assert_snapshot_base</span>!(transform=|v| <span class="macro-nonterminal">$crate::_macro_support::format</span>!(<span class="string">"{:#?}"</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
 <a href=#323 id=323 data-nosnippet>323</a>    };
 <a href=#324 id=324 data-nosnippet>324</a>}
 <a href=#325 id=325 data-nosnippet>325</a>
@@ -333,7 +333,7 @@
 <a href=#333 id=333 data-nosnippet>333</a></span><span class="attr">#[macro_export]
 <a href=#334 id=334 data-nosnippet>334</a></span><span class="macro">macro_rules!</span> assert_compact_debug_snapshot {
 <a href=#335 id=335 data-nosnippet>335</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-<a href=#336 id=336 data-nosnippet>336</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro-nonterminal">$</span><span class="macro">crate::_macro_support::format!</span>(<span class="string">"{:?}"</span>, <span class="macro-nonterminal">v</span>), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
+<a href=#336 id=336 data-nosnippet>336</a>        <span class="macro-nonterminal">$crate::_assert_snapshot_base</span>!(transform=|v| <span class="macro-nonterminal">$crate::_macro_support::format</span>!(<span class="string">"{:?}"</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
 <a href=#337 id=337 data-nosnippet>337</a>    };
 <a href=#338 id=338 data-nosnippet>338</a>}
 <a href=#339 id=339 data-nosnippet>339</a>
@@ -348,8 +348,8 @@
 <a href=#348 id=348 data-nosnippet>348</a>    <span class="comment">// If there's an inline literal value, wrap the literal in a
 <a href=#349 id=349 data-nosnippet>349</a>    // `ReferenceValue::Inline`, call self.
 <a href=#350 id=350 data-nosnippet>350</a>    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, $(<span class="macro-nonterminal">$arg</span>:expr),<span class="kw-2">*</span>, @<span class="macro-nonterminal">$snapshot</span>:literal $(,)<span class="question-mark">?</span>) =&gt; {
-<a href=#351 id=351 data-nosnippet>351</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(
-<a href=#352 id=352 data-nosnippet>352</a>            <span class="macro-nonterminal">transform </span>= <span class="macro-nonterminal">$transform</span>,
+<a href=#351 id=351 data-nosnippet>351</a>        <span class="macro-nonterminal">$crate::_assert_snapshot_base</span>!(
+<a href=#352 id=352 data-nosnippet>352</a>            transform = <span class="macro-nonterminal">$transform</span>,
 <a href=#353 id=353 data-nosnippet>353</a>            <span class="attr">#[allow(clippy::needless_raw_string_hashes)]
 <a href=#354 id=354 data-nosnippet>354</a>            </span><span class="macro-nonterminal">$crate::_macro_support::InlineValue</span>(<span class="macro-nonterminal">$snapshot</span>),
 <a href=#355 id=355 data-nosnippet>355</a>            $(<span class="macro-nonterminal">$arg</span>),*
@@ -357,13 +357,13 @@
 <a href=#357 id=357 data-nosnippet>357</a>    };
 <a href=#358 id=358 data-nosnippet>358</a>    <span class="comment">// If there's no debug_expr, use the stringified value, call self.
 <a href=#359 id=359 data-nosnippet>359</a>    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$name</span>:expr, <span class="macro-nonterminal">$value</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
-<a href=#360 id=360 data-nosnippet>360</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform </span>= <span class="macro-nonterminal">$transform</span>, <span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$value</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$value</span>))
+<a href=#360 id=360 data-nosnippet>360</a>        <span class="macro-nonterminal">$crate::_assert_snapshot_base</span>!(transform = <span class="macro-nonterminal">$transform</span>, <span class="macro-nonterminal">$name</span>, <span class="macro-nonterminal">$value</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$value</span>))
 <a href=#361 id=361 data-nosnippet>361</a>    };
 <a href=#362 id=362 data-nosnippet>362</a>    <span class="comment">// If there's no name (and necessarily no debug expr), auto generate the
 <a href=#363 id=363 data-nosnippet>363</a>    // name, call self.
 <a href=#364 id=364 data-nosnippet>364</a>    </span>(transform=<span class="macro-nonterminal">$transform</span>:expr, <span class="macro-nonterminal">$value</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
-<a href=#365 id=365 data-nosnippet>365</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(
-<a href=#366 id=366 data-nosnippet>366</a>            <span class="macro-nonterminal">transform </span>= <span class="macro-nonterminal">$transform</span>,
+<a href=#365 id=365 data-nosnippet>365</a>        <span class="macro-nonterminal">$crate::_assert_snapshot_base</span>!(
+<a href=#366 id=366 data-nosnippet>366</a>            transform = <span class="macro-nonterminal">$transform</span>,
 <a href=#367 id=367 data-nosnippet>367</a>            <span class="macro-nonterminal">$crate::_macro_support::AutoName</span>,
 <a href=#368 id=368 data-nosnippet>368</a>            <span class="macro-nonterminal">$value
 <a href=#369 id=369 data-nosnippet>369</a>        </span>)
@@ -376,11 +376,11 @@
 <a href=#376 id=376 data-nosnippet>376</a>                <span class="attr">#[allow(clippy::redundant_closure_call)]
 <a href=#377 id=377 data-nosnippet>377</a>                </span><span class="macro-nonterminal">$transform</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$value</span>).as_str(),
 <a href=#378 id=378 data-nosnippet>378</a>            ).into(),
-<a href=#379 id=379 data-nosnippet>379</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_get_workspace_root!</span>().<span class="macro-nonterminal">as_path</span>(),
-<a href=#380 id=380 data-nosnippet>380</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_function_name!</span>(),
-<a href=#381 id=381 data-nosnippet>381</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_macro_support::module_path!</span>(),
-<a href=#382 id=382 data-nosnippet>382</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_macro_support::file!</span>(),
-<a href=#383 id=383 data-nosnippet>383</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_macro_support::line!</span>(),
+<a href=#379 id=379 data-nosnippet>379</a>            <span class="macro-nonterminal">$crate::_get_workspace_root</span>!().as_path(),
+<a href=#380 id=380 data-nosnippet>380</a>            <span class="macro-nonterminal">$crate::_function_name</span>!(),
+<a href=#381 id=381 data-nosnippet>381</a>            <span class="macro-nonterminal">$crate::_macro_support::module_path</span>!(),
+<a href=#382 id=382 data-nosnippet>382</a>            <span class="macro-nonterminal">$crate::_macro_support::file</span>!(),
+<a href=#383 id=383 data-nosnippet>383</a>            <span class="macro-nonterminal">$crate::_macro_support::line</span>!(),
 <a href=#384 id=384 data-nosnippet>384</a>            <span class="macro-nonterminal">$debug_expr</span>,
 <a href=#385 id=385 data-nosnippet>385</a>        )
 <a href=#386 id=386 data-nosnippet>386</a>        .unwrap()
@@ -409,7 +409,7 @@
 <a href=#409 id=409 data-nosnippet>409</a></span><span class="attr">#[macro_export]
 <a href=#410 id=410 data-nosnippet>410</a></span><span class="macro">macro_rules!</span> assert_binary_snapshot {
 <a href=#411 id=411 data-nosnippet>411</a>    (<span class="macro-nonterminal">$name_and_extension</span>:expr, <span class="macro-nonterminal">$value</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
-<a href=#412 id=412 data-nosnippet>412</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::assert_binary_snapshot!</span>(<span class="macro-nonterminal">$name_and_extension</span>, <span class="macro-nonterminal">$value</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$value</span>));
+<a href=#412 id=412 data-nosnippet>412</a>        <span class="macro-nonterminal">$crate::assert_binary_snapshot</span>!(<span class="macro-nonterminal">$name_and_extension</span>, <span class="macro-nonterminal">$value</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$value</span>));
 <a href=#413 id=413 data-nosnippet>413</a>    };
 <a href=#414 id=414 data-nosnippet>414</a>
 <a href=#415 id=415 data-nosnippet>415</a>    (<span class="macro-nonterminal">$name_and_extension</span>:expr, <span class="macro-nonterminal">$value</span>:expr, <span class="macro-nonterminal">$debug_expr</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
@@ -419,11 +419,11 @@
 <a href=#419 id=419 data-nosnippet>419</a>                content: <span class="macro-nonterminal">$value</span>,
 <a href=#420 id=420 data-nosnippet>420</a>            }
 <a href=#421 id=421 data-nosnippet>421</a>            .into(),
-<a href=#422 id=422 data-nosnippet>422</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_get_workspace_root!</span>().<span class="macro-nonterminal">as_path</span>(),
-<a href=#423 id=423 data-nosnippet>423</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_function_name!</span>(),
-<a href=#424 id=424 data-nosnippet>424</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_macro_support::module_path!</span>(),
-<a href=#425 id=425 data-nosnippet>425</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_macro_support::file!</span>(),
-<a href=#426 id=426 data-nosnippet>426</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_macro_support::line!</span>(),
+<a href=#422 id=422 data-nosnippet>422</a>            <span class="macro-nonterminal">$crate::_get_workspace_root</span>!().as_path(),
+<a href=#423 id=423 data-nosnippet>423</a>            <span class="macro-nonterminal">$crate::_function_name</span>!(),
+<a href=#424 id=424 data-nosnippet>424</a>            <span class="macro-nonterminal">$crate::_macro_support::module_path</span>!(),
+<a href=#425 id=425 data-nosnippet>425</a>            <span class="macro-nonterminal">$crate::_macro_support::file</span>!(),
+<a href=#426 id=426 data-nosnippet>426</a>            <span class="macro-nonterminal">$crate::_macro_support::line</span>!(),
 <a href=#427 id=427 data-nosnippet>427</a>            <span class="macro-nonterminal">$debug_expr</span>,
 <a href=#428 id=428 data-nosnippet>428</a>        )
 <a href=#429 id=429 data-nosnippet>429</a>        .unwrap()
@@ -437,7 +437,7 @@
 <a href=#437 id=437 data-nosnippet>437</a>#[deprecated = <span class="string">"use assert_snapshot!() instead"</span>]
 <a href=#438 id=438 data-nosnippet>438</a></span><span class="macro">macro_rules!</span> assert_display_snapshot {
 <a href=#439 id=439 data-nosnippet>439</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-<a href=#440 id=440 data-nosnippet>440</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::assert_snapshot!</span>($(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
+<a href=#440 id=440 data-nosnippet>440</a>        <span class="macro-nonterminal">$crate::assert_snapshot</span>!($(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
 <a href=#441 id=441 data-nosnippet>441</a>    };
 <a href=#442 id=442 data-nosnippet>442</a>}
 <a href=#443 id=443 data-nosnippet>443</a>
@@ -462,7 +462,7 @@
 <a href=#462 id=462 data-nosnippet>462</a></span><span class="attr">#[macro_export]
 <a href=#463 id=463 data-nosnippet>463</a></span><span class="macro">macro_rules!</span> assert_snapshot {
 <a href=#464 id=464 data-nosnippet>464</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {
-<a href=#465 id=465 data-nosnippet>465</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::_assert_snapshot_base!</span>(<span class="macro-nonterminal">transform</span>=|v| <span class="macro-nonterminal">$</span><span class="macro">crate::_macro_support::format!</span>(<span class="string">"{}"</span>, <span class="macro-nonterminal">v</span>), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
+<a href=#465 id=465 data-nosnippet>465</a>        <span class="macro-nonterminal">$crate::_assert_snapshot_base</span>!(transform=|v| <span class="macro-nonterminal">$crate::_macro_support::format</span>!(<span class="string">"{}"</span>, v), $(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>)
 <a href=#466 id=466 data-nosnippet>466</a>    };
 <a href=#467 id=467 data-nosnippet>467</a>}
 <a href=#468 id=468 data-nosnippet>468</a>
@@ -565,8 +565,8 @@
 <a href=#565 id=565 data-nosnippet>565</a>    </span>(<span class="macro-nonterminal">$base_path</span>:expr, <span class="macro-nonterminal">$glob</span>:expr, <span class="macro-nonterminal">$closure</span>:expr) =&gt; {{
 <a href=#566 id=566 data-nosnippet>566</a>        <span class="kw">use </span><span class="macro-nonterminal">$crate::_macro_support::path::Path</span>;
 <a href=#567 id=567 data-nosnippet>567</a>
-<a href=#568 id=568 data-nosnippet>568</a>        <span class="kw">let </span>base = <span class="macro-nonterminal">$</span><span class="macro">crate::_get_workspace_root!</span>()
-<a href=#569 id=569 data-nosnippet>569</a>            .<span class="macro-nonterminal">join</span>(Path::new(<span class="macro">file!</span>()).parent().unwrap())
+<a href=#568 id=568 data-nosnippet>568</a>        <span class="kw">let </span>base = <span class="macro-nonterminal">$crate::_get_workspace_root</span>!()
+<a href=#569 id=569 data-nosnippet>569</a>            .join(Path::new(<span class="macro">file!</span>()).parent().unwrap())
 <a href=#570 id=570 data-nosnippet>570</a>            .join(<span class="macro-nonterminal">$base_path</span>)
 <a href=#571 id=571 data-nosnippet>571</a>            .to_path_buf();
 <a href=#572 id=572 data-nosnippet>572</a>
@@ -574,7 +574,7 @@
 <a href=#574 id=574 data-nosnippet>574</a>        // we instead silently fall back.
 <a href=#575 id=575 data-nosnippet>575</a>        </span><span class="kw">let </span>base = base.canonicalize().unwrap_or_else(|<span class="kw">_</span>| base);
 <a href=#576 id=576 data-nosnippet>576</a>        <span class="macro-nonterminal">$crate::_macro_support::glob_exec</span>(
-<a href=#577 id=577 data-nosnippet>577</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::_get_workspace_root!</span>().<span class="macro-nonterminal">as_path</span>(),
+<a href=#577 id=577 data-nosnippet>577</a>            <span class="macro-nonterminal">$crate::_get_workspace_root</span>!().as_path(),
 <a href=#578 id=578 data-nosnippet>578</a>            <span class="kw-2">&amp;</span>base,
 <a href=#579 id=579 data-nosnippet>579</a>            <span class="macro-nonterminal">$glob</span>,
 <a href=#580 id=580 data-nosnippet>580</a>            <span class="macro-nonterminal">$closure</span>,
@@ -582,7 +582,7 @@
 <a href=#582 id=582 data-nosnippet>582</a>    }};
 <a href=#583 id=583 data-nosnippet>583</a>
 <a href=#584 id=584 data-nosnippet>584</a>    (<span class="macro-nonterminal">$glob</span>:expr, <span class="macro-nonterminal">$closure</span>:expr) =&gt; {{
-<a href=#585 id=585 data-nosnippet>585</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::glob!</span>(<span class="string">"."</span>, <span class="macro-nonterminal">$glob</span>, <span class="macro-nonterminal">$closure</span>)
+<a href=#585 id=585 data-nosnippet>585</a>        <span class="macro-nonterminal">$crate::glob</span>!(<span class="string">"."</span>, <span class="macro-nonterminal">$glob</span>, <span class="macro-nonterminal">$closure</span>)
 <a href=#586 id=586 data-nosnippet>586</a>    }};
 <a href=#587 id=587 data-nosnippet>587</a>}
 <a href=#588 id=588 data-nosnippet>588</a>
@@ -611,4 +611,5 @@
 <a href=#611 id=611 data-nosnippet>611</a>            $(<span class="macro-nonterminal">$x</span>)*
 <a href=#612 id=612 data-nosnippet>612</a>        })
 <a href=#613 id=613 data-nosnippet>613</a>    }
-<a href=#614 id=614 data-nosnippet>614</a>}</code></pre></div></section></main></body></html>
+<a href=#614 id=614 data-nosnippet>614</a>}
+</code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/concurrent-queue-2.5.0/src/unbounded.rs`."><title>unbounded.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="concurrent_queue" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">concurrent_queue/</div>unbounded.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>alloc::boxed::Box;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/concurrent-queue-2.5.0/src/unbounded.rs`."><title>unbounded.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="concurrent_queue" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">concurrent_queue/</div>unbounded.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>alloc::boxed::Box;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>core::mem::MaybeUninit;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>core::ptr;
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -174,7 +174,7 @@
 <a href=#174 id=174 data-nosnippet>174</a>
 <a href=#175 id=175 data-nosnippet>175</a>        <span class="kw">loop </span>{
 <a href=#176 id=176 data-nosnippet>176</a>            <span class="comment">// Check if the queue is closed.
-<a href=#177 id=177 data-nosnippet>177</a>            </span><span class="kw">if </span>tail &amp; MARK_BIT != <span class="number">0 </span>{
+<a href=#177 id=177 data-nosnippet>177</a>            </span><span class="kw">if </span>tail &amp; <span class="macro">MARK_BIT !</span>= <span class="number">0 </span>{
 <a href=#178 id=178 data-nosnippet>178</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(PushError::Closed(value));
 <a href=#179 id=179 data-nosnippet>179</a>            }
 <a href=#180 id=180 data-nosnippet>180</a>
@@ -276,7 +276,7 @@
 <a href=#276 id=276 data-nosnippet>276</a>                <span class="comment">// If the tail equals the head, that means the queue is empty.
 <a href=#277 id=277 data-nosnippet>277</a>                </span><span class="kw">if </span>head &gt;&gt; SHIFT == tail &gt;&gt; SHIFT {
 <a href=#278 id=278 data-nosnippet>278</a>                    <span class="comment">// Check if the queue is closed.
-<a href=#279 id=279 data-nosnippet>279</a>                    </span><span class="kw">if </span>tail &amp; MARK_BIT != <span class="number">0 </span>{
+<a href=#279 id=279 data-nosnippet>279</a>                    </span><span class="kw">if </span>tail &amp; <span class="macro">MARK_BIT !</span>= <span class="number">0 </span>{
 <a href=#280 id=280 data-nosnippet>280</a>                        <span class="kw">return </span><span class="prelude-val">Err</span>(PopError::Closed);
 <a href=#281 id=281 data-nosnippet>281</a>                    } <span class="kw">else </span>{
 <a href=#282 id=282 data-nosnippet>282</a>                        <span class="kw">return </span><span class="prelude-val">Err</span>(PopError::Empty);
@@ -284,7 +284,7 @@
 <a href=#284 id=284 data-nosnippet>284</a>                }
 <a href=#285 id=285 data-nosnippet>285</a>
 <a href=#286 id=286 data-nosnippet>286</a>                <span class="comment">// If head and tail are not in the same block, set `MARK_BIT` in head.
-<a href=#287 id=287 data-nosnippet>287</a>                </span><span class="kw">if </span>(head &gt;&gt; SHIFT) / LAP != (tail &gt;&gt; SHIFT) / LAP {
+<a href=#287 id=287 data-nosnippet>287</a>                </span><span class="kw">if </span>(head &gt;&gt; SHIFT) / <span class="macro">LAP !</span>= (tail &gt;&gt; SHIFT) / LAP {
 <a href=#288 id=288 data-nosnippet>288</a>                    new_head |= MARK_BIT;
 <a href=#289 id=289 data-nosnippet>289</a>                }
 <a href=#290 id=290 data-nosnippet>290</a>            }
@@ -326,7 +326,7 @@
 <a href=#326 id=326 data-nosnippet>326</a>                    // destroy but couldn't because we were busy reading from the slot.
 <a href=#327 id=327 data-nosnippet>327</a>                    </span><span class="kw">if </span>offset + <span class="number">1 </span>== BLOCK_CAP {
 <a href=#328 id=328 data-nosnippet>328</a>                        Block::destroy(block, <span class="number">0</span>);
-<a href=#329 id=329 data-nosnippet>329</a>                    } <span class="kw">else if </span>slot.state.fetch_or(READ, Ordering::AcqRel) &amp; DESTROY != <span class="number">0 </span>{
+<a href=#329 id=329 data-nosnippet>329</a>                    } <span class="kw">else if </span>slot.state.fetch_or(READ, Ordering::AcqRel) &amp; <span class="macro">DESTROY !</span>= <span class="number">0 </span>{
 <a href=#330 id=330 data-nosnippet>330</a>                        Block::destroy(block, offset + <span class="number">1</span>);
 <a href=#331 id=331 data-nosnippet>331</a>                    }
 <a href=#332 id=332 data-nosnippet>332</a>
@@ -398,7 +398,7 @@
 <a href=#398 id=398 data-nosnippet>398</a>
 <a href=#399 id=399 data-nosnippet>399</a>    <span class="doccomment">/// Returns `true` if the queue is closed.
 <a href=#400 id=400 data-nosnippet>400</a>    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-<a href=#401 id=401 data-nosnippet>401</a>        <span class="self">self</span>.tail.index.load(Ordering::SeqCst) &amp; MARK_BIT != <span class="number">0
+<a href=#401 id=401 data-nosnippet>401</a>        <span class="self">self</span>.tail.index.load(Ordering::SeqCst) &amp; <span class="macro">MARK_BIT !</span>= <span class="number">0
 <a href=#402 id=402 data-nosnippet>402</a>    </span>}
 <a href=#403 id=403 data-nosnippet>403</a>}
 <a href=#404 id=404 data-nosnippet>404</a>
@@ -415,7 +415,7 @@
 <a href=#415 id=415 data-nosnippet>415</a>
 <a href=#416 id=416 data-nosnippet>416</a>                <span class="kw">unsafe </span>{
 <a href=#417 id=417 data-nosnippet>417</a>                    <span class="comment">// Drop all values between `head` and `tail` and deallocate the heap-allocated blocks.
-<a href=#418 id=418 data-nosnippet>418</a>                    </span><span class="kw">while </span>head != tail {
+<a href=#418 id=418 data-nosnippet>418</a>                    </span><span class="kw">while </span><span class="macro">head !</span>= tail {
 <a href=#419 id=419 data-nosnippet>419</a>                        <span class="kw">let </span>offset = (head &gt;&gt; SHIFT) % LAP;
 <a href=#420 id=420 data-nosnippet>420</a>
 <a href=#421 id=421 data-nosnippet>421</a>                        <span class="kw">if </span>offset &lt; BLOCK_CAP {
@@ -449,4 +449,5 @@
 <a href=#449 id=449 data-nosnippet>449</a>            });
 <a href=#450 id=450 data-nosnippet>450</a>        });
 <a href=#451 id=451 data-nosnippet>451</a>    }
-<a href=#452 id=452 data-nosnippet>452</a>}</code></pre></div></section></main></body></html>
+<a href=#452 id=452 data-nosnippet>452</a>}
+</code></pre></div></section></main></body></html>

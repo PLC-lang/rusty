@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/deranged-0.5.5/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="deranged" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">deranged/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! `deranged` is a proof-of-concept implementation of ranged integers.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/deranged-0.5.5/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="deranged" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">deranged/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! `deranged` is a proof-of-concept implementation of ranged integers.
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="attr">#![cfg_attr(docsrs, feature(doc_cfg))]
 <a href=#4 id=4 data-nosnippet>4</a>#![no_std]
@@ -196,7 +196,7 @@
 <a href=#196 id=196 data-nosnippet>196</a><span class="doccomment">/// Implement a ranged integer type.
 <a href=#197 id=197 data-nosnippet>197</a></span><span class="macro">macro_rules!</span> impl_ranged {
 <a href=#198 id=198 data-nosnippet>198</a>    ($(
-<a href=#199 id=199 data-nosnippet>199</a>        <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ident </span>{
+<a href=#199 id=199 data-nosnippet>199</a>        <span class="macro-nonterminal">$type</span>:ident {
 <a href=#200 id=200 data-nosnippet>200</a>            mod_name: <span class="macro-nonterminal">$mod_name</span>:ident
 <a href=#201 id=201 data-nosnippet>201</a>            internal: <span class="macro-nonterminal">$internal</span>:ident
 <a href=#202 id=202 data-nosnippet>202</a>            signed: <span class="macro-nonterminal">$is_signed</span>:ident
@@ -214,19 +214,19 @@
 <a href=#214 id=214 data-nosnippet>214</a>        )]
 <a href=#215 id=215 data-nosnippet>215</a>        #[repr(transparent)]
 <a href=#216 id=216 data-nosnippet>216</a>        #[derive(Clone, Copy, Eq, Ord, Hash)]
-<a href=#217 id=217 data-nosnippet>217</a>        </span><span class="kw">pub struct </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="kw">const </span><span class="macro-nonterminal">MIN</span>: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt;(
+<a href=#217 id=217 data-nosnippet>217</a>        </span><span class="kw">pub struct </span><span class="macro-nonterminal">$type</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt;(
 <a href=#218 id=218 data-nosnippet>218</a>            Unsafe&lt;<span class="macro-nonterminal">$internal</span>&gt;,
 <a href=#219 id=219 data-nosnippet>219</a>        );
 <a href=#220 id=220 data-nosnippet>220</a>
 <a href=#221 id=221 data-nosnippet>221</a>        <span class="attr">#[doc = <span class="macro">concat!</span>(
 <a href=#222 id=222 data-nosnippet>222</a>            <span class="string">"An optional `"</span>,
-<a href=#223 id=223 data-nosnippet>223</a>            <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="kw">type</span>),
+<a href=#223 id=223 data-nosnippet>223</a>            <span class="macro">stringify!</span>(<span class="macro-nonterminal">$type</span>),
 <a href=#224 id=224 data-nosnippet>224</a>            <span class="string">"`; similar to `Option&lt;"</span>,
-<a href=#225 id=225 data-nosnippet>225</a>            <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="kw">type</span>),
+<a href=#225 id=225 data-nosnippet>225</a>            <span class="macro">stringify!</span>(<span class="macro-nonterminal">$type</span>),
 <a href=#226 id=226 data-nosnippet>226</a>            <span class="string">"&gt;` with better optimization."</span>,
 <a href=#227 id=227 data-nosnippet>227</a>        )]
 <a href=#228 id=228 data-nosnippet>228</a>        </span><span class="doccomment">///
-<a href=#229 id=229 data-nosnippet>229</a>        </span><span class="attr">#[<span class="macro-nonterminal">doc </span>= <span class="macro">concat!</span>(
+<a href=#229 id=229 data-nosnippet>229</a>        </span><span class="attr">#[doc = <span class="macro">concat!</span>(
 <a href=#230 id=230 data-nosnippet>230</a>            <span class="string">"If `MIN` is [`"</span>,
 <a href=#231 id=231 data-nosnippet>231</a>            <span class="macro">stringify!</span>(<span class="macro-nonterminal">$internal</span>),
 <a href=#232 id=232 data-nosnippet>232</a>            <span class="string">"::MIN`] _and_ `MAX` is [`"</span>,
@@ -246,17 +246,17 @@
 <a href=#246 id=246 data-nosnippet>246</a>            <span class="macro-nonterminal">$internal</span>,
 <a href=#247 id=247 data-nosnippet>247</a>        );
 <a href=#248 id=248 data-nosnippet>248</a>
-<a href=#249 id=249 data-nosnippet>249</a>        <span class="kw">impl </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="number">0</span>, <span class="number">0</span>&gt; {
-<a href=#250 id=250 data-nosnippet>250</a>            <span class="attr">#[<span class="macro-nonterminal">doc </span>= <span class="macro">concat!</span>(<span class="string">"A "</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="kw">type</span>), <span class="string">" that is always `VALUE`."</span>)]
-<a href=#251 id=251 data-nosnippet>251</a>            #[<span class="macro-nonterminal">inline</span>(always)]
-<a href=#252 id=252 data-nosnippet>252</a>            </span><span class="kw">pub const fn </span>exact&lt;<span class="kw">const </span>VALUE: <span class="macro-nonterminal">$internal</span>&gt;() -&gt; <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">VALUE</span>, VALUE&gt; {
+<a href=#249 id=249 data-nosnippet>249</a>        <span class="kw">impl </span><span class="macro-nonterminal">$type</span>&lt;<span class="number">0</span>, <span class="number">0</span>&gt; {
+<a href=#250 id=250 data-nosnippet>250</a>            <span class="attr">#[doc = <span class="macro">concat!</span>(<span class="string">"A "</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$type</span>), <span class="string">" that is always `VALUE`."</span>)]
+<a href=#251 id=251 data-nosnippet>251</a>            #[inline(always)]
+<a href=#252 id=252 data-nosnippet>252</a>            </span><span class="kw">pub const fn </span>exact&lt;<span class="kw">const </span>VALUE: <span class="macro-nonterminal">$internal</span>&gt;() -&gt; <span class="macro-nonterminal">$type</span>&lt;VALUE, VALUE&gt; {
 <a href=#253 id=253 data-nosnippet>253</a>                <span class="comment">// Safety: The value is the only one in range.
-<a href=#254 id=254 data-nosnippet>254</a>                </span><span class="kw">unsafe </span>{ <span class="macro-nonterminal">$</span><span class="kw">type</span><span class="macro-nonterminal">::new_unchecked</span>(VALUE) }
+<a href=#254 id=254 data-nosnippet>254</a>                </span><span class="kw">unsafe </span>{ <span class="macro-nonterminal">$type</span>::new_unchecked(VALUE) }
 <a href=#255 id=255 data-nosnippet>255</a>            }
 <a href=#256 id=256 data-nosnippet>256</a>        }
 <a href=#257 id=257 data-nosnippet>257</a>
 <a href=#258 id=258 data-nosnippet>258</a>        <span class="macro">if_unsigned!</span> { <span class="macro-nonterminal">$is_signed
-<a href=#259 id=259 data-nosnippet>259</a>        </span><span class="kw">impl </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="number">1</span>, { <span class="macro-nonterminal">$internal::MAX </span>}&gt; {
+<a href=#259 id=259 data-nosnippet>259</a>        </span><span class="kw">impl </span><span class="macro-nonterminal">$type</span>&lt;<span class="number">1</span>, { <span class="macro-nonterminal">$internal::MAX </span>}&gt; {
 <a href=#260 id=260 data-nosnippet>260</a>            <span class="doccomment">/// Creates a ranged integer from a non-zero value.
 <a href=#261 id=261 data-nosnippet>261</a>            </span><span class="attr">#[inline(always)]
 <a href=#262 id=262 data-nosnippet>262</a>            </span><span class="kw">pub const fn </span>from_nonzero(value: NonZero&lt;<span class="macro-nonterminal">$internal</span>&gt;) -&gt; <span class="self">Self </span>{
@@ -272,7 +272,7 @@
 <a href=#272 id=272 data-nosnippet>272</a>            }
 <a href=#273 id=273 data-nosnippet>273</a>        }}
 <a href=#274 id=274 data-nosnippet>274</a>
-<a href=#275 id=275 data-nosnippet>275</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#275 id=275 data-nosnippet>275</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; <span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#276 id=276 data-nosnippet>276</a>            <span class="doccomment">/// The smallest value that can be represented by this type.
 <a href=#277 id=277 data-nosnippet>277</a>            </span><span class="comment">// Safety: `MIN` is in range by definition.
 <a href=#278 id=278 data-nosnippet>278</a>            </span><span class="kw">pub const </span>MIN: <span class="self">Self </span>= <span class="self">Self</span>::new_static::&lt;MIN&gt;();
@@ -302,8 +302,8 @@
 <a href=#302 id=302 data-nosnippet>302</a>            /// A call to this function will output a hint to the compiler that the value is in
 <a href=#303 id=303 data-nosnippet>303</a>            /// range. In general this will help the optimizer to generate better code, but in edge
 <a href=#304 id=304 data-nosnippet>304</a>            /// cases this may lead to worse code generation. To avoid outputting the hint, you can
-<a href=#305 id=305 data-nosnippet>305</a>            </span><span class="attr">#[doc = <span class="macro">concat!</span>(<span class="string">"use [`"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="kw">type</span>), <span class="string">"::get_without_hint`]."</span>)]
-<a href=#306 id=306 data-nosnippet>306</a>            #[<span class="macro-nonterminal">track_caller</span>]
+<a href=#305 id=305 data-nosnippet>305</a>            </span><span class="attr">#[doc = <span class="macro">concat!</span>(<span class="string">"use [`"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$type</span>), <span class="string">"::get_without_hint`]."</span>)]
+<a href=#306 id=306 data-nosnippet>306</a>            #[track_caller]
 <a href=#307 id=307 data-nosnippet>307</a>            #[inline(always)]
 <a href=#308 id=308 data-nosnippet>308</a>            </span><span class="kw">pub const fn </span>get(<span class="self">self</span>) -&gt; <span class="macro-nonterminal">$internal </span>{
 <a href=#309 id=309 data-nosnippet>309</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -314,11 +314,11 @@
 <a href=#314 id=314 data-nosnippet>314</a>
 <a href=#315 id=315 data-nosnippet>315</a>            <span class="doccomment">/// Returns the value as a primitive type.
 <a href=#316 id=316 data-nosnippet>316</a>            ///
-<a href=#317 id=317 data-nosnippet>317</a>            </span><span class="attr">#[doc = <span class="macro">concat!</span>(<span class="string">"The returned value is identical to [`"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="kw">type</span>), <span class="string">"::get`]."</span>)]
+<a href=#317 id=317 data-nosnippet>317</a>            </span><span class="attr">#[doc = <span class="macro">concat!</span>(<span class="string">"The returned value is identical to [`"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$type</span>), <span class="string">"::get`]."</span>)]
 <a href=#318 id=318 data-nosnippet>318</a>            </span><span class="doccomment">/// Unlike `get`, no hints are output to the compiler indicating the range that the
 <a href=#319 id=319 data-nosnippet>319</a>            /// value is in. Depending on the scenario, this may with be helpful or harmful too
 <a href=#320 id=320 data-nosnippet>320</a>            /// optimization.
-<a href=#321 id=321 data-nosnippet>321</a>            </span><span class="attr">#[<span class="macro-nonterminal">inline</span>(always)]
+<a href=#321 id=321 data-nosnippet>321</a>            </span><span class="attr">#[inline(always)]
 <a href=#322 id=322 data-nosnippet>322</a>            </span><span class="kw">pub const fn </span>get_without_hint(<span class="self">self</span>) -&gt; <span class="macro-nonterminal">$internal </span>{
 <a href=#323 id=323 data-nosnippet>323</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
 <a href=#324 id=324 data-nosnippet>324</a>                <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>.get()
@@ -395,7 +395,7 @@
 <a href=#395 id=395 data-nosnippet>395</a>            </span><span class="attr">#[inline(always)]
 <a href=#396 id=396 data-nosnippet>396</a>            </span><span class="kw">pub const fn </span>expand&lt;<span class="kw">const </span>NEW_MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>NEW_MAX: <span class="macro-nonterminal">$internal</span>&gt;(
 <a href=#397 id=397 data-nosnippet>397</a>                <span class="self">self</span>,
-<a href=#398 id=398 data-nosnippet>398</a>            ) -&gt; <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">NEW_MIN</span>, NEW_MAX&gt; {
+<a href=#398 id=398 data-nosnippet>398</a>            ) -&gt; <span class="macro-nonterminal">$type</span>&lt;NEW_MIN, NEW_MAX&gt; {
 <a href=#399 id=399 data-nosnippet>399</a>                <span class="kw">const </span>{
 <a href=#400 id=400 data-nosnippet>400</a>                    <span class="macro">assert!</span>(MIN &lt;= MAX);
 <a href=#401 id=401 data-nosnippet>401</a>                    <span class="macro">assert!</span>(NEW_MIN &lt;= NEW_MAX);
@@ -403,7 +403,7 @@
 <a href=#403 id=403 data-nosnippet>403</a>                    <span class="macro">assert!</span>(NEW_MAX &gt;= MAX);
 <a href=#404 id=404 data-nosnippet>404</a>                }
 <a href=#405 id=405 data-nosnippet>405</a>                <span class="comment">// Safety: The range is widened.
-<a href=#406 id=406 data-nosnippet>406</a>                </span><span class="kw">unsafe </span>{ <span class="macro-nonterminal">$</span><span class="kw">type</span><span class="macro-nonterminal">::new_unchecked</span>(<span class="self">self</span>.get()) }
+<a href=#406 id=406 data-nosnippet>406</a>                </span><span class="kw">unsafe </span>{ <span class="macro-nonterminal">$type</span>::new_unchecked(<span class="self">self</span>.get()) }
 <a href=#407 id=407 data-nosnippet>407</a>            }
 <a href=#408 id=408 data-nosnippet>408</a>
 <a href=#409 id=409 data-nosnippet>409</a>            <span class="doccomment">/// Attempt to narrow the range that the value may be in. Returns `None` if the value
@@ -413,14 +413,14 @@
 <a href=#413 id=413 data-nosnippet>413</a>            </span><span class="kw">pub const fn </span>narrow&lt;
 <a href=#414 id=414 data-nosnippet>414</a>                <span class="kw">const </span>NEW_MIN: <span class="macro-nonterminal">$internal</span>,
 <a href=#415 id=415 data-nosnippet>415</a>                <span class="kw">const </span>NEW_MAX: <span class="macro-nonterminal">$internal</span>,
-<a href=#416 id=416 data-nosnippet>416</a>            &gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">NEW_MIN</span>, NEW_MAX&gt;&gt; {
+<a href=#416 id=416 data-nosnippet>416</a>            &gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$type</span>&lt;NEW_MIN, NEW_MAX&gt;&gt; {
 <a href=#417 id=417 data-nosnippet>417</a>                <span class="kw">const </span>{
 <a href=#418 id=418 data-nosnippet>418</a>                    <span class="macro">assert!</span>(MIN &lt;= MAX);
 <a href=#419 id=419 data-nosnippet>419</a>                    <span class="macro">assert!</span>(NEW_MIN &lt;= NEW_MAX);
 <a href=#420 id=420 data-nosnippet>420</a>                    <span class="macro">assert!</span>(NEW_MIN &gt;= MIN);
 <a href=#421 id=421 data-nosnippet>421</a>                    <span class="macro">assert!</span>(NEW_MAX &lt;= MAX);
 <a href=#422 id=422 data-nosnippet>422</a>                }
-<a href=#423 id=423 data-nosnippet>423</a>                <span class="macro-nonterminal">$</span><span class="kw">type</span>::&lt;<span class="macro-nonterminal">NEW_MIN</span>, NEW_MAX&gt;::new(<span class="self">self</span>.get())
+<a href=#423 id=423 data-nosnippet>423</a>                <span class="macro-nonterminal">$type</span>::&lt;NEW_MIN, NEW_MAX&gt;::new(<span class="self">self</span>.get())
 <a href=#424 id=424 data-nosnippet>424</a>            }
 <a href=#425 id=425 data-nosnippet>425</a>
 <a href=#426 id=426 data-nosnippet>426</a>            <span class="doccomment">/// Converts a string slice in a given base to an integer.
@@ -442,16 +442,16 @@
 <a href=#442 id=442 data-nosnippet>442</a>            /// Basic usage:
 <a href=#443 id=443 data-nosnippet>443</a>            ///
 <a href=#444 id=444 data-nosnippet>444</a>            /// ```rust
-<a href=#445 id=445 data-nosnippet>445</a>            </span><span class="attr">#[doc = <span class="macro">concat!</span>(<span class="string">"# use deranged::"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="kw">type</span>), <span class="string">";"</span>)]
-<a href=#446 id=446 data-nosnippet>446</a>            #[<span class="macro-nonterminal">doc </span>= <span class="macro">concat!</span>(
+<a href=#445 id=445 data-nosnippet>445</a>            </span><span class="attr">#[doc = <span class="macro">concat!</span>(<span class="string">"# use deranged::"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$type</span>), <span class="string">";"</span>)]
+<a href=#446 id=446 data-nosnippet>446</a>            #[doc = <span class="macro">concat!</span>(
 <a href=#447 id=447 data-nosnippet>447</a>                <span class="string">"assert_eq!("</span>,
-<a href=#448 id=448 data-nosnippet>448</a>                <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="kw">type</span>),
+<a href=#448 id=448 data-nosnippet>448</a>                <span class="macro">stringify!</span>(<span class="macro-nonterminal">$type</span>),
 <a href=#449 id=449 data-nosnippet>449</a>                <span class="string">"::&lt;5, 10&gt;::from_str_radix(\"A\", 16), Ok("</span>,
-<a href=#450 id=450 data-nosnippet>450</a>                <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="kw">type</span>),
+<a href=#450 id=450 data-nosnippet>450</a>                <span class="macro">stringify!</span>(<span class="macro-nonterminal">$type</span>),
 <a href=#451 id=451 data-nosnippet>451</a>                <span class="string">"::new_static::&lt;10&gt;()));"</span>,
 <a href=#452 id=452 data-nosnippet>452</a>            )]
 <a href=#453 id=453 data-nosnippet>453</a>            </span><span class="doccomment">/// ```
-<a href=#454 id=454 data-nosnippet>454</a>            </span><span class="attr">#[<span class="macro-nonterminal">inline</span>]
+<a href=#454 id=454 data-nosnippet>454</a>            </span><span class="attr">#[inline]
 <a href=#455 id=455 data-nosnippet>455</a>            </span><span class="kw">pub fn </span>from_str_radix(src: <span class="kw-2">&amp;</span>str, radix: u32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ParseIntError&gt; {
 <a href=#456 id=456 data-nosnippet>456</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
 <a href=#457 id=457 data-nosnippet>457</a>                <span class="kw">match </span><span class="macro-nonterminal">$internal::from_str_radix</span>(src, radix) {
@@ -612,12 +612,12 @@
 <a href=#612 id=612 data-nosnippet>612</a>            #[inline]
 <a href=#613 id=613 data-nosnippet>613</a>            </span><span class="kw">pub const fn </span>rem&lt;<span class="kw">const </span>RHS_VALUE: <span class="macro-nonterminal">$internal</span>&gt;(
 <a href=#614 id=614 data-nosnippet>614</a>                <span class="self">self</span>,
-<a href=#615 id=615 data-nosnippet>615</a>                rhs: <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">RHS_VALUE</span>, RHS_VALUE&gt;,
-<a href=#616 id=616 data-nosnippet>616</a>            ) -&gt; <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="number">0</span>, <span class="macro-nonterminal">RHS_VALUE</span>&gt; {
+<a href=#615 id=615 data-nosnippet>615</a>                rhs: <span class="macro-nonterminal">$type</span>&lt;RHS_VALUE, RHS_VALUE&gt;,
+<a href=#616 id=616 data-nosnippet>616</a>            ) -&gt; <span class="macro-nonterminal">$type</span>&lt;<span class="number">0</span>, RHS_VALUE&gt; {
 <a href=#617 id=617 data-nosnippet>617</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
 <a href=#618 id=618 data-nosnippet>618</a>                <span class="comment">// Safety: The result is guaranteed to be in range due to the nature of remainder on
 <a href=#619 id=619 data-nosnippet>619</a>                // unsigned integers.
-<a href=#620 id=620 data-nosnippet>620</a>                </span><span class="kw">unsafe </span>{ <span class="macro-nonterminal">$</span><span class="kw">type</span><span class="macro-nonterminal">::new_unchecked</span>(<span class="self">self</span>.get() % rhs.get()) }
+<a href=#620 id=620 data-nosnippet>620</a>                </span><span class="kw">unsafe </span>{ <span class="macro-nonterminal">$type</span>::new_unchecked(<span class="self">self</span>.get() % rhs.get()) }
 <a href=#621 id=621 data-nosnippet>621</a>            });
 <a href=#622 id=622 data-nosnippet>622</a>
 <a href=#623 id=623 data-nosnippet>623</a>            <span class="doccomment">/// Checked integer remainder. Computes `self % rhs`, returning `None` if `rhs == 0` or
@@ -709,7 +709,7 @@
 <a href=#709 id=709 data-nosnippet>709</a>                <span class="kw">const </span>{
 <a href=#710 id=710 data-nosnippet>710</a>                    <span class="macro">assert!</span>(MIN &lt;= MAX);
 <a href=#711 id=711 data-nosnippet>711</a>                    <span class="macro">if_signed!</span> { <span class="macro-nonterminal">$is_signed
-<a href=#712 id=712 data-nosnippet>712</a>                        </span><span class="macro">assert!</span>(MIN != <span class="macro-nonterminal">$internal::MIN</span>);
+<a href=#712 id=712 data-nosnippet>712</a>                        </span><span class="macro">assert!</span>(<span class="macro">MIN !</span>= <span class="macro-nonterminal">$internal::MIN</span>);
 <a href=#713 id=713 data-nosnippet>713</a>                        <span class="macro">assert!</span>(-MIN &lt;= MAX);
 <a href=#714 id=714 data-nosnippet>714</a>                        <span class="macro">assert!</span>(-MAX &gt;= MIN);
 <a href=#715 id=715 data-nosnippet>715</a>                    }
@@ -803,7 +803,7 @@
 <a href=#803 id=803 data-nosnippet>803</a>            </span><span class="kw">pub const fn </span>abs(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
 <a href=#804 id=804 data-nosnippet>804</a>                <span class="kw">const </span>{
 <a href=#805 id=805 data-nosnippet>805</a>                    <span class="macro">assert!</span>(MIN &lt;= MAX);
-<a href=#806 id=806 data-nosnippet>806</a>                    <span class="macro">assert!</span>(MIN != <span class="macro-nonterminal">$internal::MIN</span>);
+<a href=#806 id=806 data-nosnippet>806</a>                    <span class="macro">assert!</span>(<span class="macro">MIN !</span>= <span class="macro-nonterminal">$internal::MIN</span>);
 <a href=#807 id=807 data-nosnippet>807</a>                    <span class="macro">assert!</span>(-MIN &lt;= MAX);
 <a href=#808 id=808 data-nosnippet>808</a>                }
 <a href=#809 id=809 data-nosnippet>809</a>                <span class="comment">// &lt;Self as $crate::traits::AbsIsSafe&gt;::ASSERT;
@@ -1055,20 +1055,20 @@
 <a href=#1055 id=1055 data-nosnippet>1055</a>            <span class="doccomment">/// Creates an optional ranged value that is present.
 <a href=#1056 id=1056 data-nosnippet>1056</a>            </span><span class="attr">#[allow(non_snake_case)]
 <a href=#1057 id=1057 data-nosnippet>1057</a>            #[inline(always)]
-<a href=#1058 id=1058 data-nosnippet>1058</a>            </span><span class="kw">pub const fn </span><span class="prelude-val">Some</span>(value: <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;) -&gt; <span class="self">Self </span>{
+<a href=#1058 id=1058 data-nosnippet>1058</a>            </span><span class="kw">pub const fn </span><span class="prelude-val">Some</span>(value: <span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;) -&gt; <span class="self">Self </span>{
 <a href=#1059 id=1059 data-nosnippet>1059</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
 <a href=#1060 id=1060 data-nosnippet>1060</a>                <span class="self">Self</span>(value.get())
 <a href=#1061 id=1061 data-nosnippet>1061</a>            }
 <a href=#1062 id=1062 data-nosnippet>1062</a>
 <a href=#1063 id=1063 data-nosnippet>1063</a>            <span class="doccomment">/// Returns the value as the standard library's [`Option`] type.
 <a href=#1064 id=1064 data-nosnippet>1064</a>            </span><span class="attr">#[inline(always)]
-<a href=#1065 id=1065 data-nosnippet>1065</a>            </span><span class="kw">pub const fn </span>get(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt; {
+<a href=#1065 id=1065 data-nosnippet>1065</a>            </span><span class="kw">pub const fn </span>get(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt; {
 <a href=#1066 id=1066 data-nosnippet>1066</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
 <a href=#1067 id=1067 data-nosnippet>1067</a>                <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== <span class="self">Self</span>::NICHE {
 <a href=#1068 id=1068 data-nosnippet>1068</a>                    <span class="prelude-val">None
 <a href=#1069 id=1069 data-nosnippet>1069</a>                </span>} <span class="kw">else </span>{
 <a href=#1070 id=1070 data-nosnippet>1070</a>                    <span class="comment">// Safety: A stored value that is not the niche is always in range.
-<a href=#1071 id=1071 data-nosnippet>1071</a>                    </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="macro-nonterminal">$</span><span class="kw">type</span><span class="macro-nonterminal">::new_unchecked</span>(<span class="self">self</span>.<span class="number">0</span>) })
+<a href=#1071 id=1071 data-nosnippet>1071</a>                    </span><span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="macro-nonterminal">$type</span>::new_unchecked(<span class="self">self</span>.<span class="number">0</span>) })
 <a href=#1072 id=1072 data-nosnippet>1072</a>                }
 <a href=#1073 id=1073 data-nosnippet>1073</a>            }
 <a href=#1074 id=1074 data-nosnippet>1074</a>
@@ -1139,7 +1139,7 @@
 <a href=#1139 id=1139 data-nosnippet>1139</a>            }
 <a href=#1140 id=1140 data-nosnippet>1140</a>        }
 <a href=#1141 id=1141 data-nosnippet>1141</a>
-<a href=#1142 id=1142 data-nosnippet>1142</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::Debug <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1142 id=1142 data-nosnippet>1142</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::Debug <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1143 id=1143 data-nosnippet>1143</a>            <span class="attr">#[inline(always)]
 <a href=#1144 id=1144 data-nosnippet>1144</a>            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
 <a href=#1145 id=1145 data-nosnippet>1145</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1155,7 +1155,7 @@
 <a href=#1155 id=1155 data-nosnippet>1155</a>            }
 <a href=#1156 id=1156 data-nosnippet>1156</a>        }
 <a href=#1157 id=1157 data-nosnippet>1157</a>
-<a href=#1158 id=1158 data-nosnippet>1158</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::Display <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1158 id=1158 data-nosnippet>1158</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::Display <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1159 id=1159 data-nosnippet>1159</a>            <span class="attr">#[inline(always)]
 <a href=#1160 id=1160 data-nosnippet>1160</a>            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
 <a href=#1161 id=1161 data-nosnippet>1161</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1167,7 +1167,7 @@
 <a href=#1167 id=1167 data-nosnippet>1167</a>        </span><span class="kw">impl</span>&lt;
 <a href=#1168 id=1168 data-nosnippet>1168</a>            <span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>,
 <a href=#1169 id=1169 data-nosnippet>1169</a>            <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>,
-<a href=#1170 id=1170 data-nosnippet>1170</a>        &gt; smart_display::SmartDisplay <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1170 id=1170 data-nosnippet>1170</a>        &gt; smart_display::SmartDisplay <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1171 id=1171 data-nosnippet>1171</a>            <span class="kw">type </span>Metadata = &lt;<span class="macro-nonterminal">$internal </span><span class="kw">as </span>smart_display::SmartDisplay&gt;::Metadata;
 <a href=#1172 id=1172 data-nosnippet>1172</a>
 <a href=#1173 id=1173 data-nosnippet>1173</a>            <span class="attr">#[inline(always)]
@@ -1198,7 +1198,7 @@
 <a href=#1198 id=1198 data-nosnippet>1198</a>            }
 <a href=#1199 id=1199 data-nosnippet>1199</a>        }
 <a href=#1200 id=1200 data-nosnippet>1200</a>
-<a href=#1201 id=1201 data-nosnippet>1201</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; AsRef&lt;<span class="macro-nonterminal">$internal</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1201 id=1201 data-nosnippet>1201</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; AsRef&lt;<span class="macro-nonterminal">$internal</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1202 id=1202 data-nosnippet>1202</a>            <span class="attr">#[inline(always)]
 <a href=#1203 id=1203 data-nosnippet>1203</a>            </span><span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="macro-nonterminal">$internal </span>{
 <a href=#1204 id=1204 data-nosnippet>1204</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1206,7 +1206,7 @@
 <a href=#1206 id=1206 data-nosnippet>1206</a>            }
 <a href=#1207 id=1207 data-nosnippet>1207</a>        }
 <a href=#1208 id=1208 data-nosnippet>1208</a>
-<a href=#1209 id=1209 data-nosnippet>1209</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; Borrow&lt;<span class="macro-nonterminal">$internal</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1209 id=1209 data-nosnippet>1209</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; Borrow&lt;<span class="macro-nonterminal">$internal</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1210 id=1210 data-nosnippet>1210</a>            <span class="attr">#[inline(always)]
 <a href=#1211 id=1211 data-nosnippet>1211</a>            </span><span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="macro-nonterminal">$internal </span>{
 <a href=#1212 id=1212 data-nosnippet>1212</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1219,9 +1219,9 @@
 <a href=#1219 id=1219 data-nosnippet>1219</a>            <span class="kw">const </span>MAX_A: <span class="macro-nonterminal">$internal</span>,
 <a href=#1220 id=1220 data-nosnippet>1220</a>            <span class="kw">const </span>MIN_B: <span class="macro-nonterminal">$internal</span>,
 <a href=#1221 id=1221 data-nosnippet>1221</a>            <span class="kw">const </span>MAX_B: <span class="macro-nonterminal">$internal</span>,
-<a href=#1222 id=1222 data-nosnippet>1222</a>        &gt; PartialEq&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN_B</span>, MAX_B&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN_A</span>, MAX_A&gt; {
+<a href=#1222 id=1222 data-nosnippet>1222</a>        &gt; PartialEq&lt;<span class="macro-nonterminal">$type</span>&lt;MIN_B, MAX_B&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN_A, MAX_A&gt; {
 <a href=#1223 id=1223 data-nosnippet>1223</a>            <span class="attr">#[inline(always)]
-<a href=#1224 id=1224 data-nosnippet>1224</a>            </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN_B</span>, MAX_B&gt;) -&gt; bool {
+<a href=#1224 id=1224 data-nosnippet>1224</a>            </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$type</span>&lt;MIN_B, MAX_B&gt;) -&gt; bool {
 <a href=#1225 id=1225 data-nosnippet>1225</a>                <span class="kw">const </span>{
 <a href=#1226 id=1226 data-nosnippet>1226</a>                    <span class="macro">assert!</span>(MIN_A &lt;= MAX_A);
 <a href=#1227 id=1227 data-nosnippet>1227</a>                    <span class="macro">assert!</span>(MIN_B &lt;= MAX_B);
@@ -1251,9 +1251,9 @@
 <a href=#1251 id=1251 data-nosnippet>1251</a>            <span class="kw">const </span>MAX_A: <span class="macro-nonterminal">$internal</span>,
 <a href=#1252 id=1252 data-nosnippet>1252</a>            <span class="kw">const </span>MIN_B: <span class="macro-nonterminal">$internal</span>,
 <a href=#1253 id=1253 data-nosnippet>1253</a>            <span class="kw">const </span>MAX_B: <span class="macro-nonterminal">$internal</span>,
-<a href=#1254 id=1254 data-nosnippet>1254</a>        &gt; PartialOrd&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN_B</span>, MAX_B&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN_A</span>, MAX_A&gt; {
+<a href=#1254 id=1254 data-nosnippet>1254</a>        &gt; PartialOrd&lt;<span class="macro-nonterminal">$type</span>&lt;MIN_B, MAX_B&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN_A, MAX_A&gt; {
 <a href=#1255 id=1255 data-nosnippet>1255</a>            <span class="attr">#[inline(always)]
-<a href=#1256 id=1256 data-nosnippet>1256</a>            </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN_B</span>, MAX_B&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+<a href=#1256 id=1256 data-nosnippet>1256</a>            </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$type</span>&lt;MIN_B, MAX_B&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
 <a href=#1257 id=1257 data-nosnippet>1257</a>                <span class="kw">const </span>{
 <a href=#1258 id=1258 data-nosnippet>1258</a>                    <span class="macro">assert!</span>(MIN_A &lt;= MAX_A);
 <a href=#1259 id=1259 data-nosnippet>1259</a>                    <span class="macro">assert!</span>(MIN_B &lt;= MAX_B);
@@ -1305,7 +1305,7 @@
 <a href=#1305 id=1305 data-nosnippet>1305</a>            }
 <a href=#1306 id=1306 data-nosnippet>1306</a>        }
 <a href=#1307 id=1307 data-nosnippet>1307</a>
-<a href=#1308 id=1308 data-nosnippet>1308</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::Binary <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1308 id=1308 data-nosnippet>1308</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::Binary <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1309 id=1309 data-nosnippet>1309</a>            <span class="attr">#[inline(always)]
 <a href=#1310 id=1310 data-nosnippet>1310</a>            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
 <a href=#1311 id=1311 data-nosnippet>1311</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1313,7 +1313,7 @@
 <a href=#1313 id=1313 data-nosnippet>1313</a>            }
 <a href=#1314 id=1314 data-nosnippet>1314</a>        }
 <a href=#1315 id=1315 data-nosnippet>1315</a>
-<a href=#1316 id=1316 data-nosnippet>1316</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::LowerHex <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1316 id=1316 data-nosnippet>1316</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::LowerHex <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1317 id=1317 data-nosnippet>1317</a>            <span class="attr">#[inline(always)]
 <a href=#1318 id=1318 data-nosnippet>1318</a>            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
 <a href=#1319 id=1319 data-nosnippet>1319</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1321,7 +1321,7 @@
 <a href=#1321 id=1321 data-nosnippet>1321</a>            }
 <a href=#1322 id=1322 data-nosnippet>1322</a>        }
 <a href=#1323 id=1323 data-nosnippet>1323</a>
-<a href=#1324 id=1324 data-nosnippet>1324</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::UpperHex <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1324 id=1324 data-nosnippet>1324</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::UpperHex <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1325 id=1325 data-nosnippet>1325</a>            <span class="attr">#[inline(always)]
 <a href=#1326 id=1326 data-nosnippet>1326</a>            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
 <a href=#1327 id=1327 data-nosnippet>1327</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1329,7 +1329,7 @@
 <a href=#1329 id=1329 data-nosnippet>1329</a>            }
 <a href=#1330 id=1330 data-nosnippet>1330</a>        }
 <a href=#1331 id=1331 data-nosnippet>1331</a>
-<a href=#1332 id=1332 data-nosnippet>1332</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::LowerExp <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1332 id=1332 data-nosnippet>1332</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::LowerExp <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1333 id=1333 data-nosnippet>1333</a>            <span class="attr">#[inline(always)]
 <a href=#1334 id=1334 data-nosnippet>1334</a>            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
 <a href=#1335 id=1335 data-nosnippet>1335</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1337,7 +1337,7 @@
 <a href=#1337 id=1337 data-nosnippet>1337</a>            }
 <a href=#1338 id=1338 data-nosnippet>1338</a>        }
 <a href=#1339 id=1339 data-nosnippet>1339</a>
-<a href=#1340 id=1340 data-nosnippet>1340</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::UpperExp <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1340 id=1340 data-nosnippet>1340</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::UpperExp <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1341 id=1341 data-nosnippet>1341</a>            <span class="attr">#[inline(always)]
 <a href=#1342 id=1342 data-nosnippet>1342</a>            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
 <a href=#1343 id=1343 data-nosnippet>1343</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1345,7 +1345,7 @@
 <a href=#1345 id=1345 data-nosnippet>1345</a>            }
 <a href=#1346 id=1346 data-nosnippet>1346</a>        }
 <a href=#1347 id=1347 data-nosnippet>1347</a>
-<a href=#1348 id=1348 data-nosnippet>1348</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::Octal <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1348 id=1348 data-nosnippet>1348</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; fmt::Octal <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1349 id=1349 data-nosnippet>1349</a>            <span class="attr">#[inline(always)]
 <a href=#1350 id=1350 data-nosnippet>1350</a>            </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
 <a href=#1351 id=1351 data-nosnippet>1351</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1354,24 +1354,24 @@
 <a href=#1354 id=1354 data-nosnippet>1354</a>        }
 <a href=#1355 id=1355 data-nosnippet>1355</a>
 <a href=#1356 id=1356 data-nosnippet>1356</a>        <span class="macro">if_unsigned!</span> { <span class="macro-nonterminal">$is_signed
-<a href=#1357 id=1357 data-nosnippet>1357</a>            </span><span class="kw">impl </span>From&lt;NonZero&lt;<span class="macro-nonterminal">$internal</span>&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="number">1</span>, { <span class="macro-nonterminal">$internal::MAX </span>}&gt; {
+<a href=#1357 id=1357 data-nosnippet>1357</a>            </span><span class="kw">impl </span>From&lt;NonZero&lt;<span class="macro-nonterminal">$internal</span>&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;<span class="number">1</span>, { <span class="macro-nonterminal">$internal::MAX </span>}&gt; {
 <a href=#1358 id=1358 data-nosnippet>1358</a>                <span class="attr">#[inline(always)]
 <a href=#1359 id=1359 data-nosnippet>1359</a>                </span><span class="kw">fn </span>from(value: NonZero&lt;<span class="macro-nonterminal">$internal</span>&gt;) -&gt; <span class="self">Self </span>{
 <a href=#1360 id=1360 data-nosnippet>1360</a>                    <span class="self">Self</span>::from_nonzero(value)
 <a href=#1361 id=1361 data-nosnippet>1361</a>                }
 <a href=#1362 id=1362 data-nosnippet>1362</a>            }
 <a href=#1363 id=1363 data-nosnippet>1363</a>
-<a href=#1364 id=1364 data-nosnippet>1364</a>            <span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="number">1</span>, { <span class="macro-nonterminal">$internal::MAX </span>}&gt;&gt; <span class="kw">for </span>NonZero&lt;<span class="macro-nonterminal">$internal</span>&gt; {
+<a href=#1364 id=1364 data-nosnippet>1364</a>            <span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$type</span>&lt;<span class="number">1</span>, { <span class="macro-nonterminal">$internal::MAX </span>}&gt;&gt; <span class="kw">for </span>NonZero&lt;<span class="macro-nonterminal">$internal</span>&gt; {
 <a href=#1365 id=1365 data-nosnippet>1365</a>                <span class="attr">#[inline(always)]
-<a href=#1366 id=1366 data-nosnippet>1366</a>                </span><span class="kw">fn </span>from(value: <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="number">1</span>, { <span class="macro-nonterminal">$internal::MAX </span>}&gt;) -&gt; <span class="self">Self </span>{
+<a href=#1366 id=1366 data-nosnippet>1366</a>                </span><span class="kw">fn </span>from(value: <span class="macro-nonterminal">$type</span>&lt;<span class="number">1</span>, { <span class="macro-nonterminal">$internal::MAX </span>}&gt;) -&gt; <span class="self">Self </span>{
 <a href=#1367 id=1367 data-nosnippet>1367</a>                    value.to_nonzero()
 <a href=#1368 id=1368 data-nosnippet>1368</a>                }
 <a href=#1369 id=1369 data-nosnippet>1369</a>            }
 <a href=#1370 id=1370 data-nosnippet>1370</a>        }
 <a href=#1371 id=1371 data-nosnippet>1371</a>
-<a href=#1372 id=1372 data-nosnippet>1372</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; From&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$internal </span>{
+<a href=#1372 id=1372 data-nosnippet>1372</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; From&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$internal </span>{
 <a href=#1373 id=1373 data-nosnippet>1373</a>            <span class="attr">#[inline(always)]
-<a href=#1374 id=1374 data-nosnippet>1374</a>            </span><span class="kw">fn </span>from(value: <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;) -&gt; <span class="self">Self </span>{
+<a href=#1374 id=1374 data-nosnippet>1374</a>            </span><span class="kw">fn </span>from(value: <span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;) -&gt; <span class="self">Self </span>{
 <a href=#1375 id=1375 data-nosnippet>1375</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
 <a href=#1376 id=1376 data-nosnippet>1376</a>                value.get()
 <a href=#1377 id=1377 data-nosnippet>1377</a>            }
@@ -1380,9 +1380,9 @@
 <a href=#1380 id=1380 data-nosnippet>1380</a>        <span class="kw">impl</span>&lt;
 <a href=#1381 id=1381 data-nosnippet>1381</a>            <span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>,
 <a href=#1382 id=1382 data-nosnippet>1382</a>            <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>,
-<a href=#1383 id=1383 data-nosnippet>1383</a>        &gt; From&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$optional_type</span>&lt;MIN, MAX&gt; {
+<a href=#1383 id=1383 data-nosnippet>1383</a>        &gt; From&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$optional_type</span>&lt;MIN, MAX&gt; {
 <a href=#1384 id=1384 data-nosnippet>1384</a>            <span class="attr">#[inline(always)]
-<a href=#1385 id=1385 data-nosnippet>1385</a>            </span><span class="kw">fn </span>from(value: <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;) -&gt; <span class="self">Self </span>{
+<a href=#1385 id=1385 data-nosnippet>1385</a>            </span><span class="kw">fn </span>from(value: <span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;) -&gt; <span class="self">Self </span>{
 <a href=#1386 id=1386 data-nosnippet>1386</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
 <a href=#1387 id=1387 data-nosnippet>1387</a>                <span class="self">Self</span>::Some(value)
 <a href=#1388 id=1388 data-nosnippet>1388</a>            }
@@ -1391,9 +1391,9 @@
 <a href=#1391 id=1391 data-nosnippet>1391</a>        <span class="kw">impl</span>&lt;
 <a href=#1392 id=1392 data-nosnippet>1392</a>            <span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>,
 <a href=#1393 id=1393 data-nosnippet>1393</a>            <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>,
-<a href=#1394 id=1394 data-nosnippet>1394</a>        &gt; From&lt;<span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$optional_type</span>&lt;MIN, MAX&gt; {
+<a href=#1394 id=1394 data-nosnippet>1394</a>        &gt; From&lt;<span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$optional_type</span>&lt;MIN, MAX&gt; {
 <a href=#1395 id=1395 data-nosnippet>1395</a>            <span class="attr">#[inline(always)]
-<a href=#1396 id=1396 data-nosnippet>1396</a>            </span><span class="kw">fn </span>from(value: <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt;) -&gt; <span class="self">Self </span>{
+<a href=#1396 id=1396 data-nosnippet>1396</a>            </span><span class="kw">fn </span>from(value: <span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt;) -&gt; <span class="self">Self </span>{
 <a href=#1397 id=1397 data-nosnippet>1397</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
 <a href=#1398 id=1398 data-nosnippet>1398</a>                <span class="kw">match </span>value {
 <a href=#1399 id=1399 data-nosnippet>1399</a>                    <span class="prelude-val">Some</span>(value) =&gt; <span class="self">Self</span>::Some(value),
@@ -1405,7 +1405,7 @@
 <a href=#1405 id=1405 data-nosnippet>1405</a>        <span class="kw">impl</span>&lt;
 <a href=#1406 id=1406 data-nosnippet>1406</a>            <span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>,
 <a href=#1407 id=1407 data-nosnippet>1407</a>            <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>,
-<a href=#1408 id=1408 data-nosnippet>1408</a>        &gt; From&lt;<span class="macro-nonterminal">$optional_type</span>&lt;MIN, MAX&gt;&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt; {
+<a href=#1408 id=1408 data-nosnippet>1408</a>        &gt; From&lt;<span class="macro-nonterminal">$optional_type</span>&lt;MIN, MAX&gt;&gt; <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt; {
 <a href=#1409 id=1409 data-nosnippet>1409</a>            <span class="attr">#[inline(always)]
 <a href=#1410 id=1410 data-nosnippet>1410</a>            </span><span class="kw">fn </span>from(value: <span class="macro-nonterminal">$optional_type</span>&lt;MIN, MAX&gt;) -&gt; <span class="self">Self </span>{
 <a href=#1411 id=1411 data-nosnippet>1411</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1413,7 +1413,7 @@
 <a href=#1413 id=1413 data-nosnippet>1413</a>            }
 <a href=#1414 id=1414 data-nosnippet>1414</a>        }
 <a href=#1415 id=1415 data-nosnippet>1415</a>
-<a href=#1416 id=1416 data-nosnippet>1416</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; TryFrom&lt;<span class="macro-nonterminal">$internal</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1416 id=1416 data-nosnippet>1416</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; TryFrom&lt;<span class="macro-nonterminal">$internal</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1417 id=1417 data-nosnippet>1417</a>            <span class="kw">type </span>Error = TryFromIntError;
 <a href=#1418 id=1418 data-nosnippet>1418</a>
 <a href=#1419 id=1419 data-nosnippet>1419</a>            <span class="attr">#[inline]
@@ -1423,7 +1423,7 @@
 <a href=#1423 id=1423 data-nosnippet>1423</a>            }
 <a href=#1424 id=1424 data-nosnippet>1424</a>        }
 <a href=#1425 id=1425 data-nosnippet>1425</a>
-<a href=#1426 id=1426 data-nosnippet>1426</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; FromStr <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1426 id=1426 data-nosnippet>1426</a>        <span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; FromStr <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1427 id=1427 data-nosnippet>1427</a>            <span class="kw">type </span><span class="prelude-val">Err </span>= ParseIntError;
 <a href=#1428 id=1428 data-nosnippet>1428</a>
 <a href=#1429 id=1429 data-nosnippet>1429</a>            <span class="attr">#[inline]
@@ -1448,7 +1448,7 @@
 <a href=#1448 id=1448 data-nosnippet>1448</a>                <span class="kw">const </span>MAX_SRC: <span class="macro-nonterminal">$from_internal</span>,
 <a href=#1449 id=1449 data-nosnippet>1449</a>                <span class="kw">const </span>MIN_DST: <span class="macro-nonterminal">$internal</span>,
 <a href=#1450 id=1450 data-nosnippet>1450</a>                <span class="kw">const </span>MAX_DST: <span class="macro-nonterminal">$internal</span>,
-<a href=#1451 id=1451 data-nosnippet>1451</a>            &gt; From&lt;<span class="macro-nonterminal">$from</span>&lt;MIN_SRC, MAX_SRC&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN_DST</span>, MAX_DST&gt;
+<a href=#1451 id=1451 data-nosnippet>1451</a>            &gt; From&lt;<span class="macro-nonterminal">$from</span>&lt;MIN_SRC, MAX_SRC&gt;&gt; <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN_DST, MAX_DST&gt;
 <a href=#1452 id=1452 data-nosnippet>1452</a>        {
 <a href=#1453 id=1453 data-nosnippet>1453</a>            <span class="attr">#[inline(always)]
 <a href=#1454 id=1454 data-nosnippet>1454</a>            #[allow(trivial_numeric_casts, unused_comparisons)]
@@ -1508,12 +1508,12 @@
 <a href=#1508 id=1508 data-nosnippet>1508</a>                }
 <a href=#1509 id=1509 data-nosnippet>1509</a>
 <a href=#1510 id=1510 data-nosnippet>1510</a>                <span class="comment">// Safety: The source range is a subset of the destination range.
-<a href=#1511 id=1511 data-nosnippet>1511</a>                </span><span class="kw">unsafe </span>{ <span class="macro-nonterminal">$</span><span class="kw">type</span><span class="macro-nonterminal">::new_unchecked</span>(value.get() <span class="kw">as </span><span class="macro-nonterminal">$internal</span>) }
+<a href=#1511 id=1511 data-nosnippet>1511</a>                </span><span class="kw">unsafe </span>{ <span class="macro-nonterminal">$type</span>::new_unchecked(value.get() <span class="kw">as </span><span class="macro-nonterminal">$internal</span>) }
 <a href=#1512 id=1512 data-nosnippet>1512</a>            }
 <a href=#1513 id=1513 data-nosnippet>1513</a>        })+
 <a href=#1514 id=1514 data-nosnippet>1514</a>
 <a href=#1515 id=1515 data-nosnippet>1515</a>        <span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
-<a href=#1516 id=1516 data-nosnippet>1516</a>        </span><span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; serde_core::Serialize <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1516 id=1516 data-nosnippet>1516</a>        </span><span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; serde_core::Serialize <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1517 id=1517 data-nosnippet>1517</a>            <span class="attr">#[inline(always)]
 <a href=#1518 id=1518 data-nosnippet>1518</a>            </span><span class="kw">fn </span>serialize&lt;S: serde_core::Serializer&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
 <a href=#1519 id=1519 data-nosnippet>1519</a>            {
@@ -1540,7 +1540,7 @@
 <a href=#1540 id=1540 data-nosnippet>1540</a>            <span class="lifetime">'de</span>,
 <a href=#1541 id=1541 data-nosnippet>1541</a>            <span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>,
 <a href=#1542 id=1542 data-nosnippet>1542</a>            <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>,
-<a href=#1543 id=1543 data-nosnippet>1543</a>        &gt; serde_core::Deserialize&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1543 id=1543 data-nosnippet>1543</a>        &gt; serde_core::Deserialize&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1544 id=1544 data-nosnippet>1544</a>            <span class="attr">#[inline]
 <a href=#1545 id=1545 data-nosnippet>1545</a>            </span><span class="kw">fn </span>deserialize&lt;D: serde_core::Deserializer&lt;<span class="lifetime">'de</span>&gt;&gt;(deserializer: D)
 <a href=#1546 id=1546 data-nosnippet>1546</a>                -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
@@ -1572,7 +1572,7 @@
 <a href=#1572 id=1572 data-nosnippet>1572</a>                -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
 <a href=#1573 id=1573 data-nosnippet>1573</a>            {
 <a href=#1574 id=1574 data-nosnippet>1574</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
-<a href=#1575 id=1575 data-nosnippet>1575</a>                <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Some(<span class="macro-nonterminal">$</span><span class="kw">type</span>::&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;::deserialize(deserializer)<span class="question-mark">?</span>))
+<a href=#1575 id=1575 data-nosnippet>1575</a>                <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Some(<span class="macro-nonterminal">$type</span>::&lt;MIN, MAX&gt;::deserialize(deserializer)<span class="question-mark">?</span>))
 <a href=#1576 id=1576 data-nosnippet>1576</a>            }
 <a href=#1577 id=1577 data-nosnippet>1577</a>        }
 <a href=#1578 id=1578 data-nosnippet>1578</a>
@@ -1580,11 +1580,11 @@
 <a href=#1580 id=1580 data-nosnippet>1580</a>        </span><span class="kw">impl</span>&lt;
 <a href=#1581 id=1581 data-nosnippet>1581</a>            <span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>,
 <a href=#1582 id=1582 data-nosnippet>1582</a>            <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>,
-<a href=#1583 id=1583 data-nosnippet>1583</a>        &gt; rand08::distributions::Distribution&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt; <span class="kw">for </span>rand08::distributions::Standard {
+<a href=#1583 id=1583 data-nosnippet>1583</a>        &gt; rand08::distributions::Distribution&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt; <span class="kw">for </span>rand08::distributions::Standard {
 <a href=#1584 id=1584 data-nosnippet>1584</a>            <span class="attr">#[inline]
-<a href=#1585 id=1585 data-nosnippet>1585</a>            </span><span class="kw">fn </span>sample&lt;R: rand08::Rng + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1585 id=1585 data-nosnippet>1585</a>            </span><span class="kw">fn </span>sample&lt;R: rand08::Rng + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1586 id=1586 data-nosnippet>1586</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
-<a href=#1587 id=1587 data-nosnippet>1587</a>                <span class="macro-nonterminal">$</span><span class="kw">type</span><span class="macro-nonterminal">::new</span>(rng.gen_range(MIN..=MAX)).expect(<span class="string">"rand failed to generate a valid value"</span>)
+<a href=#1587 id=1587 data-nosnippet>1587</a>                <span class="macro-nonterminal">$type</span>::new(rng.gen_range(MIN..=MAX)).expect(<span class="string">"rand failed to generate a valid value"</span>)
 <a href=#1588 id=1588 data-nosnippet>1588</a>            }
 <a href=#1589 id=1589 data-nosnippet>1589</a>        }
 <a href=#1590 id=1590 data-nosnippet>1590</a>
@@ -1594,11 +1594,11 @@
 <a href=#1594 id=1594 data-nosnippet>1594</a>            </span><span class="kw">impl</span>&lt;
 <a href=#1595 id=1595 data-nosnippet>1595</a>                <span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>,
 <a href=#1596 id=1596 data-nosnippet>1596</a>                <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>,
-<a href=#1597 id=1597 data-nosnippet>1597</a>            &gt; rand09::distr::Distribution&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt; <span class="kw">for </span>rand09::distr::StandardUniform {
+<a href=#1597 id=1597 data-nosnippet>1597</a>            &gt; rand09::distr::Distribution&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt; <span class="kw">for </span>rand09::distr::StandardUniform {
 <a href=#1598 id=1598 data-nosnippet>1598</a>                <span class="attr">#[inline]
-<a href=#1599 id=1599 data-nosnippet>1599</a>                </span><span class="kw">fn </span>sample&lt;R: rand09::Rng + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1599 id=1599 data-nosnippet>1599</a>                </span><span class="kw">fn </span>sample&lt;R: rand09::Rng + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1600 id=1600 data-nosnippet>1600</a>                    <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
-<a href=#1601 id=1601 data-nosnippet>1601</a>                    <span class="macro-nonterminal">$</span><span class="kw">type</span><span class="macro-nonterminal">::new</span>(rng.random_range(MIN..=MAX)).expect(<span class="string">"rand failed to generate a valid value"</span>)
+<a href=#1601 id=1601 data-nosnippet>1601</a>                    <span class="macro-nonterminal">$type</span>::new(rng.random_range(MIN..=MAX)).expect(<span class="string">"rand failed to generate a valid value"</span>)
 <a href=#1602 id=1602 data-nosnippet>1602</a>                }
 <a href=#1603 id=1603 data-nosnippet>1603</a>            }
 <a href=#1604 id=1604 data-nosnippet>1604</a>        }
@@ -1612,7 +1612,7 @@
 <a href=#1612 id=1612 data-nosnippet>1612</a>            <span class="attr">#[inline]
 <a href=#1613 id=1613 data-nosnippet>1613</a>            </span><span class="kw">fn </span>sample&lt;R: rand08::Rng + <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, rng: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="macro-nonterminal">$optional_type</span>&lt;MIN, MAX&gt; {
 <a href=#1614 id=1614 data-nosnippet>1614</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
-<a href=#1615 id=1615 data-nosnippet>1615</a>                rng.r#gen::&lt;<span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt;&gt;().into()
+<a href=#1615 id=1615 data-nosnippet>1615</a>                rng.r#gen::&lt;<span class="prelude-ty">Option</span>&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt;&gt;().into()
 <a href=#1616 id=1616 data-nosnippet>1616</a>            }
 <a href=#1617 id=1617 data-nosnippet>1617</a>        }
 <a href=#1618 id=1618 data-nosnippet>1618</a>
@@ -1628,13 +1628,13 @@
 <a href=#1628 id=1628 data-nosnippet>1628</a>                <span class="kw">if </span>rng.random() {
 <a href=#1629 id=1629 data-nosnippet>1629</a>                    <span class="macro-nonterminal">$optional_type::None
 <a href=#1630 id=1630 data-nosnippet>1630</a>                </span>} <span class="kw">else </span>{
-<a href=#1631 id=1631 data-nosnippet>1631</a>                    <span class="macro-nonterminal">$optional_type::Some</span>(rng.random::&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt;())
+<a href=#1631 id=1631 data-nosnippet>1631</a>                    <span class="macro-nonterminal">$optional_type::Some</span>(rng.random::&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt;())
 <a href=#1632 id=1632 data-nosnippet>1632</a>                }
 <a href=#1633 id=1633 data-nosnippet>1633</a>            }
 <a href=#1634 id=1634 data-nosnippet>1634</a>        }
 <a href=#1635 id=1635 data-nosnippet>1635</a>
 <a href=#1636 id=1636 data-nosnippet>1636</a>        <span class="attr">#[cfg(feature = <span class="string">"num"</span>)]
-<a href=#1637 id=1637 data-nosnippet>1637</a>        </span><span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; num_traits::Bounded <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1637 id=1637 data-nosnippet>1637</a>        </span><span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; num_traits::Bounded <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1638 id=1638 data-nosnippet>1638</a>            <span class="attr">#[inline(always)]
 <a href=#1639 id=1639 data-nosnippet>1639</a>            </span><span class="kw">fn </span>min_value() -&gt; <span class="self">Self </span>{
 <a href=#1640 id=1640 data-nosnippet>1640</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1649,7 +1649,7 @@
 <a href=#1649 id=1649 data-nosnippet>1649</a>        }
 <a href=#1650 id=1650 data-nosnippet>1650</a>
 <a href=#1651 id=1651 data-nosnippet>1651</a>        <span class="attr">#[cfg(feature = <span class="string">"quickcheck"</span>)]
-<a href=#1652 id=1652 data-nosnippet>1652</a>        </span><span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; quickcheck::Arbitrary <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt; {
+<a href=#1652 id=1652 data-nosnippet>1652</a>        </span><span class="kw">impl</span>&lt;<span class="kw">const </span>MIN: <span class="macro-nonterminal">$internal</span>, <span class="kw">const </span>MAX: <span class="macro-nonterminal">$internal</span>&gt; quickcheck::Arbitrary <span class="kw">for </span><span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt; {
 <a href=#1653 id=1653 data-nosnippet>1653</a>            <span class="attr">#[inline]
 <a href=#1654 id=1654 data-nosnippet>1654</a>            </span><span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
 <a href=#1655 id=1655 data-nosnippet>1655</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
@@ -1677,7 +1677,7 @@
 <a href=#1677 id=1677 data-nosnippet>1677</a>            <span class="attr">#[inline]
 <a href=#1678 id=1678 data-nosnippet>1678</a>            </span><span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
 <a href=#1679 id=1679 data-nosnippet>1679</a>                <span class="kw">const </span>{ <span class="macro">assert!</span>(MIN &lt;= MAX); }
-<a href=#1680 id=1680 data-nosnippet>1680</a>                <span class="prelude-ty">Option</span>::&lt;<span class="macro-nonterminal">$</span><span class="kw">type</span>&lt;<span class="macro-nonterminal">MIN</span>, MAX&gt;&gt;::arbitrary(g).into()
+<a href=#1680 id=1680 data-nosnippet>1680</a>                <span class="prelude-ty">Option</span>::&lt;<span class="macro-nonterminal">$type</span>&lt;MIN, MAX&gt;&gt;::arbitrary(g).into()
 <a href=#1681 id=1681 data-nosnippet>1681</a>            }
 <a href=#1682 id=1682 data-nosnippet>1682</a>
 <a href=#1683 id=1683 data-nosnippet>1683</a>            <span class="attr">#[inline]
@@ -1985,4 +1985,5 @@
 <a href=#1985 id=1985 data-nosnippet>1985</a>
 <a href=#1986 id=1986 data-nosnippet>1986</a>        RangedIsize::new(value).expect(<span class="string">"rand failed to generate a valid value"</span>)
 <a href=#1987 id=1987 data-nosnippet>1987</a>    }
-<a href=#1988 id=1988 data-nosnippet>1988</a>}</code></pre></div></section></main></body></html>
+<a href=#1988 id=1988 data-nosnippet>1988</a>}
+</code></pre></div></section></main></body></html>

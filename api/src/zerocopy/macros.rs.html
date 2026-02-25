@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerocopy-0.8.31/src/macros.rs`."><title>macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zerocopy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">zerocopy/</div>macros.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright 2024 The Fuchsia Authors
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerocopy-0.8.31/src/macros.rs`."><title>macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zerocopy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">zerocopy/</div>macros.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright 2024 The Fuchsia Authors
 <a href=#2 id=2 data-nosnippet>2</a>//
 <a href=#3 id=3 data-nosnippet>3</a>// Licensed under the 2-Clause BSD License &lt;LICENSE-BSD or
 <a href=#4 id=4 data-nosnippet>4</a>// https://opensource.org/license/bsd-2-clause&gt;, Apache License, Version 2.0
@@ -674,8 +674,8 @@
 <a href=#674 id=674 data-nosnippet>674</a>            // the value returned from this branch.
 <a href=#675 id=675 data-nosnippet>675</a>            </span><span class="kw">let </span>u;
 <a href=#676 id=676 data-nosnippet>676</a>
-<a href=#677 id=677 data-nosnippet>677</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::assert_size_eq!</span>(<span class="macro-nonterminal">t</span>, u);
-<a href=#678 id=678 data-nosnippet>678</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::assert_align_gt_eq!</span>(<span class="macro-nonterminal">t</span>, u);
+<a href=#677 id=677 data-nosnippet>677</a>            <span class="macro-nonterminal">$crate::assert_size_eq</span>!(t, u);
+<a href=#678 id=678 data-nosnippet>678</a>            <span class="macro-nonterminal">$crate::assert_align_gt_eq</span>!(t, u);
 <a href=#679 id=679 data-nosnippet>679</a>
 <a href=#680 id=680 data-nosnippet>680</a>            <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span>u)
 <a href=#681 id=681 data-nosnippet>681</a>        } <span class="kw">else </span>{
@@ -783,8 +783,8 @@
 <a href=#783 id=783 data-nosnippet>783</a>            // u)` as the value returned from this branch.
 <a href=#784 id=784 data-nosnippet>784</a>            </span><span class="kw">let </span>u;
 <a href=#785 id=785 data-nosnippet>785</a>
-<a href=#786 id=786 data-nosnippet>786</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::assert_size_eq!</span>(<span class="macro-nonterminal">t</span>, u);
-<a href=#787 id=787 data-nosnippet>787</a>            <span class="macro-nonterminal">$</span><span class="macro">crate::assert_align_gt_eq!</span>(<span class="macro-nonterminal">t</span>, u);
+<a href=#786 id=786 data-nosnippet>786</a>            <span class="macro-nonterminal">$crate::assert_size_eq</span>!(t, u);
+<a href=#787 id=787 data-nosnippet>787</a>            <span class="macro-nonterminal">$crate::assert_align_gt_eq</span>!(t, u);
 <a href=#788 id=788 data-nosnippet>788</a>
 <a href=#789 id=789 data-nosnippet>789</a>            <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut </span>u)
 <a href=#790 id=790 data-nosnippet>790</a>        } <span class="kw">else </span>{
@@ -844,7 +844,7 @@
 <a href=#844 id=844 data-nosnippet>844</a>#[macro_export]
 <a href=#845 id=845 data-nosnippet>845</a></span><span class="macro">macro_rules!</span> include_value {
 <a href=#846 id=846 data-nosnippet>846</a>    (<span class="macro-nonterminal">$file</span>:expr $(,)<span class="question-mark">?</span>) =&gt; {
-<a href=#847 id=847 data-nosnippet>847</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::transmute!</span>(<span class="kw-2">*</span><span class="macro">::core::include_bytes!</span>(<span class="macro-nonterminal">$file</span>))
+<a href=#847 id=847 data-nosnippet>847</a>        <span class="macro-nonterminal">$crate::transmute</span>!(<span class="kw-2">*</span><span class="macro">::core::include_bytes!</span>(<span class="macro-nonterminal">$file</span>))
 <a href=#848 id=848 data-nosnippet>848</a>    };
 <a href=#849 id=849 data-nosnippet>849</a>}
 <a href=#850 id=850 data-nosnippet>850</a>
@@ -867,7 +867,7 @@
 <a href=#867 id=867 data-nosnippet>867</a>            }
 <a href=#868 id=868 data-nosnippet>868</a>        )<span class="question-mark">?
 <a href=#869 id=869 data-nosnippet>869</a>    </span>) =&gt; {
-<a href=#870 id=870 data-nosnippet>870</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::cryptocorrosion_derive_traits!</span>(@<span class="macro-nonterminal">assert_allowed_struct_repr </span><span class="attr">#[repr(<span class="macro-nonterminal">$repr</span>)]</span>);
+<a href=#870 id=870 data-nosnippet>870</a>        <span class="macro-nonterminal">$crate::cryptocorrosion_derive_traits</span>!(@assert_allowed_struct_repr <span class="attr">#[repr(<span class="macro-nonterminal">$repr</span>)]</span>);
 <a href=#871 id=871 data-nosnippet>871</a>
 <a href=#872 id=872 data-nosnippet>872</a>        $(<span class="attr">#[<span class="macro-nonterminal">$attr</span>]</span>)*
 <a href=#873 id=873 data-nosnippet>873</a>        <span class="attr">#[repr(<span class="macro-nonterminal">$repr</span>)]
@@ -959,8 +959,8 @@
 <a href=#959 id=959 data-nosnippet>959</a>            </span>(): <span class="macro-nonterminal">$crate::util::macro_util::PaddingFree</span>&lt;
 <a href=#960 id=960 data-nosnippet>960</a>                <span class="self">Self</span>,
 <a href=#961 id=961 data-nosnippet>961</a>                {
-<a href=#962 id=962 data-nosnippet>962</a>                    <span class="macro-nonterminal">$</span><span class="macro">crate::cryptocorrosion_derive_traits!</span>(
-<a href=#963 id=963 data-nosnippet>963</a>                        @<span class="macro-nonterminal">struct_padding_check </span><span class="attr">#[repr(<span class="macro-nonterminal">$repr</span>)]
+<a href=#962 id=962 data-nosnippet>962</a>                    <span class="macro-nonterminal">$crate::cryptocorrosion_derive_traits</span>!(
+<a href=#963 id=963 data-nosnippet>963</a>                        @struct_padding_check <span class="attr">#[repr(<span class="macro-nonterminal">$repr</span>)]
 <a href=#964 id=964 data-nosnippet>964</a>                        </span>$(($(<span class="macro-nonterminal">$tuple_field_ty</span>),<span class="kw-2">*</span>))<span class="question-mark">?
 <a href=#965 id=965 data-nosnippet>965</a>                        </span>$({$(<span class="macro-nonterminal">$field_ty</span>),<span class="kw-2">*</span>})<span class="question-mark">?
 <a href=#966 id=966 data-nosnippet>966</a>                    </span>)
@@ -1006,8 +1006,8 @@
 <a href=#1006 id=1006 data-nosnippet>1006</a>        </span>$(($(<span class="macro-nonterminal">$tuple_field_ty</span>:ty),<span class="kw-2">*</span>))<span class="question-mark">?
 <a href=#1007 id=1007 data-nosnippet>1007</a>        </span>$({$(<span class="macro-nonterminal">$field_ty</span>:ty),<span class="kw-2">*</span>})<span class="question-mark">?
 <a href=#1008 id=1008 data-nosnippet>1008</a>    </span>) =&gt; {
-<a href=#1009 id=1009 data-nosnippet>1009</a>        <span class="macro-nonterminal">$</span><span class="macro">crate::struct_padding!</span>(
-<a href=#1010 id=1010 data-nosnippet>1010</a>            <span class="macro-nonterminal">Self</span>,
+<a href=#1009 id=1009 data-nosnippet>1009</a>        <span class="macro-nonterminal">$crate::struct_padding</span>!(
+<a href=#1010 id=1010 data-nosnippet>1010</a>            <span class="self">Self</span>,
 <a href=#1011 id=1011 data-nosnippet>1011</a>            [
 <a href=#1012 id=1012 data-nosnippet>1012</a>                $($(<span class="macro-nonterminal">$tuple_field_ty</span>),<span class="kw-2">*</span>)<span class="question-mark">?
 <a href=#1013 id=1013 data-nosnippet>1013</a>                </span>$($(<span class="macro-nonterminal">$field_ty</span>),<span class="kw-2">*</span>)<span class="question-mark">?
@@ -1087,8 +1087,8 @@
 <a href=#1087 id=1087 data-nosnippet>1087</a>            (): <span class="macro-nonterminal">$crate::util::macro_util::PaddingFree</span>&lt;
 <a href=#1088 id=1088 data-nosnippet>1088</a>                <span class="self">Self</span>,
 <a href=#1089 id=1089 data-nosnippet>1089</a>                {
-<a href=#1090 id=1090 data-nosnippet>1090</a>                    <span class="macro-nonterminal">$</span><span class="macro">crate::union_padding!</span>(
-<a href=#1091 id=1091 data-nosnippet>1091</a>                        <span class="macro-nonterminal">Self</span>,
+<a href=#1090 id=1090 data-nosnippet>1090</a>                    <span class="macro-nonterminal">$crate::union_padding</span>!(
+<a href=#1091 id=1091 data-nosnippet>1091</a>                        <span class="self">Self</span>,
 <a href=#1092 id=1092 data-nosnippet>1092</a>                        [$(<span class="macro-nonterminal">$field_ty</span>),<span class="kw-2">*</span>]
 <a href=#1093 id=1093 data-nosnippet>1093</a>                    )
 <a href=#1094 id=1094 data-nosnippet>1094</a>                },
@@ -1623,4 +1623,5 @@
 <a href=#1623 id=1623 data-nosnippet>1623</a>            </span><span class="kw">pub struct </span>ReprC(u8, u8, u16);
 <a href=#1624 id=1624 data-nosnippet>1624</a>        }
 <a href=#1625 id=1625 data-nosnippet>1625</a>    }
-<a href=#1626 id=1626 data-nosnippet>1626</a>}</code></pre></div></section></main></body></html>
+<a href=#1626 id=1626 data-nosnippet>1626</a>}
+</code></pre></div></section></main></body></html>

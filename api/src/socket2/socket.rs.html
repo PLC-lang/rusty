@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/socket2-0.6.1/src/socket.rs`."><title>socket.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="socket2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">socket2/</div>socket.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright 2015 The Rust Project Developers.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/socket2-0.6.1/src/socket.rs`."><title>socket.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="socket2" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">socket2/</div>socket.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright 2015 The Rust Project Developers.
 <a href=#2 id=2 data-nosnippet>2</a>//
 <a href=#3 id=3 data-nosnippet>3</a>// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
 <a href=#4 id=4 data-nosnippet>4</a>// https://www.apache.org/licenses/LICENSE-2.0&gt; or the MIT license
@@ -831,7 +831,7 @@
 <a href=#831 id=831 data-nosnippet>831</a>    </span><span class="kw">pub fn </span>broadcast(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#832 id=832 data-nosnippet>832</a>        <span class="kw">unsafe </span>{
 <a href=#833 id=833 data-nosnippet>833</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_BROADCAST)
-<a href=#834 id=834 data-nosnippet>834</a>                .map(|broadcast| broadcast != <span class="number">0</span>)
+<a href=#834 id=834 data-nosnippet>834</a>                .map(|broadcast| <span class="macro">broadcast !</span>= <span class="number">0</span>)
 <a href=#835 id=835 data-nosnippet>835</a>        }
 <a href=#836 id=836 data-nosnippet>836</a>    }
 <a href=#837 id=837 data-nosnippet>837</a>
@@ -871,7 +871,7 @@
 <a href=#871 id=871 data-nosnippet>871</a>    </span><span class="kw">pub fn </span>keepalive(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#872 id=872 data-nosnippet>872</a>        <span class="kw">unsafe </span>{
 <a href=#873 id=873 data-nosnippet>873</a>            getsockopt::&lt;Bool&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_KEEPALIVE)
-<a href=#874 id=874 data-nosnippet>874</a>                .map(|keepalive| keepalive != <span class="bool-val">false </span><span class="kw">as </span>Bool)
+<a href=#874 id=874 data-nosnippet>874</a>                .map(|keepalive| <span class="macro">keepalive !</span>= <span class="bool-val">false </span><span class="kw">as </span>Bool)
 <a href=#875 id=875 data-nosnippet>875</a>        }
 <a href=#876 id=876 data-nosnippet>876</a>    }
 <a href=#877 id=877 data-nosnippet>877</a>
@@ -929,7 +929,7 @@
 <a href=#929 id=929 data-nosnippet>929</a>    </span><span class="kw">pub fn </span>out_of_band_inline(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#930 id=930 data-nosnippet>930</a>        <span class="kw">unsafe </span>{
 <a href=#931 id=931 data-nosnippet>931</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_OOBINLINE)
-<a href=#932 id=932 data-nosnippet>932</a>                .map(|oob_inline| oob_inline != <span class="number">0</span>)
+<a href=#932 id=932 data-nosnippet>932</a>                .map(|oob_inline| <span class="macro">oob_inline !</span>= <span class="number">0</span>)
 <a href=#933 id=933 data-nosnippet>933</a>        }
 <a href=#934 id=934 data-nosnippet>934</a>    }
 <a href=#935 id=935 data-nosnippet>935</a>
@@ -960,7 +960,7 @@
 <a href=#960 id=960 data-nosnippet>960</a>    </span><span class="kw">pub fn </span>passcred(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#961 id=961 data-nosnippet>961</a>        <span class="kw">unsafe </span>{
 <a href=#962 id=962 data-nosnippet>962</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_PASSCRED)
-<a href=#963 id=963 data-nosnippet>963</a>                .map(|passcred| passcred != <span class="number">0</span>)
+<a href=#963 id=963 data-nosnippet>963</a>                .map(|passcred| <span class="macro">passcred !</span>= <span class="number">0</span>)
 <a href=#964 id=964 data-nosnippet>964</a>        }
 <a href=#965 id=965 data-nosnippet>965</a>    }
 <a href=#966 id=966 data-nosnippet>966</a>
@@ -1066,7 +1066,7 @@
 <a href=#1066 id=1066 data-nosnippet>1066</a>    </span><span class="kw">pub fn </span>reuse_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#1067 id=1067 data-nosnippet>1067</a>        <span class="kw">unsafe </span>{
 <a href=#1068 id=1068 data-nosnippet>1068</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::SOL_SOCKET, sys::SO_REUSEADDR)
-<a href=#1069 id=1069 data-nosnippet>1069</a>                .map(|reuse| reuse != <span class="number">0</span>)
+<a href=#1069 id=1069 data-nosnippet>1069</a>                .map(|reuse| <span class="macro">reuse !</span>= <span class="number">0</span>)
 <a href=#1070 id=1070 data-nosnippet>1070</a>        }
 <a href=#1071 id=1071 data-nosnippet>1071</a>    }
 <a href=#1072 id=1072 data-nosnippet>1072</a>
@@ -1166,7 +1166,7 @@
 <a href=#1166 id=1166 data-nosnippet>1166</a>    </span><span class="kw">pub fn </span>header_included_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#1167 id=1167 data-nosnippet>1167</a>        <span class="kw">unsafe </span>{
 <a href=#1168 id=1168 data-nosnippet>1168</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_HDRINCL)
-<a href=#1169 id=1169 data-nosnippet>1169</a>                .map(|included| included != <span class="number">0</span>)
+<a href=#1169 id=1169 data-nosnippet>1169</a>                .map(|included| <span class="macro">included !</span>= <span class="number">0</span>)
 <a href=#1170 id=1170 data-nosnippet>1170</a>        }
 <a href=#1171 id=1171 data-nosnippet>1171</a>    }
 <a href=#1172 id=1172 data-nosnippet>1172</a>
@@ -1206,7 +1206,7 @@
 <a href=#1206 id=1206 data-nosnippet>1206</a>    </span><span class="kw">pub fn </span>ip_transparent_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#1207 id=1207 data-nosnippet>1207</a>        <span class="kw">unsafe </span>{
 <a href=#1208 id=1208 data-nosnippet>1208</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, libc::IP_TRANSPARENT)
-<a href=#1209 id=1209 data-nosnippet>1209</a>                .map(|transparent| transparent != <span class="number">0</span>)
+<a href=#1209 id=1209 data-nosnippet>1209</a>                .map(|transparent| <span class="macro">transparent !</span>= <span class="number">0</span>)
 <a href=#1210 id=1210 data-nosnippet>1210</a>        }
 <a href=#1211 id=1211 data-nosnippet>1211</a>    }
 <a href=#1212 id=1212 data-nosnippet>1212</a>
@@ -1428,7 +1428,7 @@
 <a href=#1428 id=1428 data-nosnippet>1428</a>    </span><span class="kw">pub fn </span>multicast_all_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#1429 id=1429 data-nosnippet>1429</a>        <span class="kw">unsafe </span>{
 <a href=#1430 id=1430 data-nosnippet>1430</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, libc::IP_MULTICAST_ALL)
-<a href=#1431 id=1431 data-nosnippet>1431</a>                .map(|all| all != <span class="number">0</span>)
+<a href=#1431 id=1431 data-nosnippet>1431</a>                .map(|all| <span class="macro">all !</span>= <span class="number">0</span>)
 <a href=#1432 id=1432 data-nosnippet>1432</a>        }
 <a href=#1433 id=1433 data-nosnippet>1433</a>    }
 <a href=#1434 id=1434 data-nosnippet>1434</a>
@@ -1488,7 +1488,7 @@
 <a href=#1488 id=1488 data-nosnippet>1488</a>    </span><span class="kw">pub fn </span>multicast_loop_v4(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#1489 id=1489 data-nosnippet>1489</a>        <span class="kw">unsafe </span>{
 <a href=#1490 id=1490 data-nosnippet>1490</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IP, sys::IP_MULTICAST_LOOP)
-<a href=#1491 id=1491 data-nosnippet>1491</a>                .map(|loop_v4| loop_v4 != <span class="number">0</span>)
+<a href=#1491 id=1491 data-nosnippet>1491</a>                .map(|loop_v4| <span class="macro">loop_v4 !</span>= <span class="number">0</span>)
 <a href=#1492 id=1492 data-nosnippet>1492</a>        }
 <a href=#1493 id=1493 data-nosnippet>1493</a>    }
 <a href=#1494 id=1494 data-nosnippet>1494</a>
@@ -1695,7 +1695,7 @@
 <a href=#1695 id=1695 data-nosnippet>1695</a>    </span><span class="kw">pub fn </span>header_included_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#1696 id=1696 data-nosnippet>1696</a>        <span class="kw">unsafe </span>{
 <a href=#1697 id=1697 data-nosnippet>1697</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IPV6, sys::IP_HDRINCL)
-<a href=#1698 id=1698 data-nosnippet>1698</a>                .map(|included| included != <span class="number">0</span>)
+<a href=#1698 id=1698 data-nosnippet>1698</a>                .map(|included| <span class="macro">included !</span>= <span class="number">0</span>)
 <a href=#1699 id=1699 data-nosnippet>1699</a>        }
 <a href=#1700 id=1700 data-nosnippet>1700</a>    }
 <a href=#1701 id=1701 data-nosnippet>1701</a>
@@ -1821,7 +1821,7 @@
 <a href=#1821 id=1821 data-nosnippet>1821</a>    </span><span class="kw">pub fn </span>multicast_all_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#1822 id=1822 data-nosnippet>1822</a>        <span class="kw">unsafe </span>{
 <a href=#1823 id=1823 data-nosnippet>1823</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IPV6, libc::IPV6_MULTICAST_ALL)
-<a href=#1824 id=1824 data-nosnippet>1824</a>                .map(|all| all != <span class="number">0</span>)
+<a href=#1824 id=1824 data-nosnippet>1824</a>                .map(|all| <span class="macro">all !</span>= <span class="number">0</span>)
 <a href=#1825 id=1825 data-nosnippet>1825</a>        }
 <a href=#1826 id=1826 data-nosnippet>1826</a>    }
 <a href=#1827 id=1827 data-nosnippet>1827</a>
@@ -1883,7 +1883,7 @@
 <a href=#1883 id=1883 data-nosnippet>1883</a>    </span><span class="kw">pub fn </span>multicast_loop_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#1884 id=1884 data-nosnippet>1884</a>        <span class="kw">unsafe </span>{
 <a href=#1885 id=1885 data-nosnippet>1885</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IPV6, sys::IPV6_MULTICAST_LOOP)
-<a href=#1886 id=1886 data-nosnippet>1886</a>                .map(|loop_v6| loop_v6 != <span class="number">0</span>)
+<a href=#1886 id=1886 data-nosnippet>1886</a>                .map(|loop_v6| <span class="macro">loop_v6 !</span>= <span class="number">0</span>)
 <a href=#1887 id=1887 data-nosnippet>1887</a>        }
 <a href=#1888 id=1888 data-nosnippet>1888</a>    }
 <a href=#1889 id=1889 data-nosnippet>1889</a>
@@ -1934,7 +1934,7 @@
 <a href=#1934 id=1934 data-nosnippet>1934</a>    </span><span class="kw">pub fn </span>only_v6(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#1935 id=1935 data-nosnippet>1935</a>        <span class="kw">unsafe </span>{
 <a href=#1936 id=1936 data-nosnippet>1936</a>            getsockopt::&lt;c_int&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_IPV6, sys::IPV6_V6ONLY)
-<a href=#1937 id=1937 data-nosnippet>1937</a>                .map(|only_v6| only_v6 != <span class="number">0</span>)
+<a href=#1937 id=1937 data-nosnippet>1937</a>                .map(|only_v6| <span class="macro">only_v6 !</span>= <span class="number">0</span>)
 <a href=#1938 id=1938 data-nosnippet>1938</a>        }
 <a href=#1939 id=1939 data-nosnippet>1939</a>    }
 <a href=#1940 id=1940 data-nosnippet>1940</a>
@@ -2219,7 +2219,7 @@
 <a href=#2219 id=2219 data-nosnippet>2219</a>    </span><span class="kw">pub fn </span>tcp_nodelay(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;bool&gt; {
 <a href=#2220 id=2220 data-nosnippet>2220</a>        <span class="kw">unsafe </span>{
 <a href=#2221 id=2221 data-nosnippet>2221</a>            getsockopt::&lt;Bool&gt;(<span class="self">self</span>.as_raw(), sys::IPPROTO_TCP, sys::TCP_NODELAY)
-<a href=#2222 id=2222 data-nosnippet>2222</a>                .map(|nodelay| nodelay != <span class="bool-val">false </span><span class="kw">as </span>Bool)
+<a href=#2222 id=2222 data-nosnippet>2222</a>                .map(|nodelay| <span class="macro">nodelay !</span>= <span class="bool-val">false </span><span class="kw">as </span>Bool)
 <a href=#2223 id=2223 data-nosnippet>2223</a>        }
 <a href=#2224 id=2224 data-nosnippet>2224</a>    }
 <a href=#2225 id=2225 data-nosnippet>2225</a>
@@ -2321,4 +2321,5 @@
 <a href=#2321 id=2321 data-nosnippet>2321</a><span class="macro">from!</span>(net::UdpSocket, Socket);
 <a href=#2322 id=2322 data-nosnippet>2322</a><span class="macro">from!</span>(Socket, net::TcpStream);
 <a href=#2323 id=2323 data-nosnippet>2323</a><span class="macro">from!</span>(Socket, net::TcpListener);
-<a href=#2324 id=2324 data-nosnippet>2324</a><span class="macro">from!</span>(Socket, net::UdpSocket);</code></pre></div></section></main></body></html>
+<a href=#2324 id=2324 data-nosnippet>2324</a><span class="macro">from!</span>(Socket, net::UdpSocket);
+</code></pre></div></section></main></body></html>

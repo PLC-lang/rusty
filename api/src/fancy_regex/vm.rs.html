@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/fancy-regex-0.11.0/src/vm.rs`."><title>vm.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">fancy_regex/</div>vm.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright 2016 The Fancy Regex Authors.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/fancy-regex-0.11.0/src/vm.rs`."><title>vm.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">fancy_regex/</div>vm.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright 2016 The Fancy Regex Authors.
 <a href=#2 id=2 data-nosnippet>2</a>//
 <a href=#3 id=3 data-nosnippet>3</a>// Permission is hereby granted, free of charge, to any person obtaining a copy
 <a href=#4 id=4 data-nosnippet>4</a>// of this software and associated documentation files (the "Software"), to deal
@@ -309,7 +309,7 @@
 <a href=#309 id=309 data-nosnippet>309</a>        <span class="self">self</span>.nsave += <span class="number">1</span>;
 <a href=#310 id=310 data-nosnippet>310</a>        <span class="self">self</span>.saves[slot] = val;
 <a href=#311 id=311 data-nosnippet>311</a>
-<a href=#312 id=312 data-nosnippet>312</a>        <span class="kw">if </span><span class="self">self</span>.options &amp; OPTION_TRACE != <span class="number">0 </span>{
+<a href=#312 id=312 data-nosnippet>312</a>        <span class="kw">if </span><span class="self">self</span>.options &amp; <span class="macro">OPTION_TRACE !</span>= <span class="number">0 </span>{
 <a href=#313 id=313 data-nosnippet>313</a>            <span class="macro">println!</span>(<span class="string">"saves: {:?}"</span>, <span class="self">self</span>.saves);
 <a href=#314 id=314 data-nosnippet>314</a>        }
 <a href=#315 id=315 data-nosnippet>315</a>    }
@@ -393,7 +393,7 @@
 <a href=#393 id=393 data-nosnippet>393</a>
 <a href=#394 id=394 data-nosnippet>394</a>    <span class="attr">#[inline]
 <a href=#395 id=395 data-nosnippet>395</a>    </span><span class="kw">fn </span>trace_stack(<span class="kw-2">&amp;</span><span class="self">self</span>, operation: <span class="kw-2">&amp;</span>str) {
-<a href=#396 id=396 data-nosnippet>396</a>        <span class="kw">if </span><span class="self">self</span>.options &amp; OPTION_TRACE != <span class="number">0 </span>{
+<a href=#396 id=396 data-nosnippet>396</a>        <span class="kw">if </span><span class="self">self</span>.options &amp; <span class="macro">OPTION_TRACE !</span>= <span class="number">0 </span>{
 <a href=#397 id=397 data-nosnippet>397</a>            <span class="macro">println!</span>(<span class="string">"stack after {}: {:?}"</span>, operation, <span class="self">self</span>.stack);
 <a href=#398 id=398 data-nosnippet>398</a>        }
 <a href=#399 id=399 data-nosnippet>399</a>    }
@@ -431,7 +431,7 @@
 <a href=#431 id=431 data-nosnippet>431</a>    options: <span class="kw-2">&amp;</span>RegexOptions,
 <a href=#432 id=432 data-nosnippet>432</a>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;usize&gt;&gt;&gt; {
 <a href=#433 id=433 data-nosnippet>433</a>    <span class="kw">let </span><span class="kw-2">mut </span>state = State::new(prog.n_saves, MAX_STACK, option_flags);
-<a href=#434 id=434 data-nosnippet>434</a>    <span class="kw">if </span>option_flags &amp; OPTION_TRACE != <span class="number">0 </span>{
+<a href=#434 id=434 data-nosnippet>434</a>    <span class="kw">if </span>option_flags &amp; <span class="macro">OPTION_TRACE !</span>= <span class="number">0 </span>{
 <a href=#435 id=435 data-nosnippet>435</a>        <span class="macro">println!</span>(<span class="string">"pos\tinstruction"</span>);
 <a href=#436 id=436 data-nosnippet>436</a>    }
 <a href=#437 id=437 data-nosnippet>437</a>    <span class="kw">let </span><span class="kw-2">mut </span>backtrack_count = <span class="number">0</span>;
@@ -440,7 +440,7 @@
 <a href=#440 id=440 data-nosnippet>440</a>    <span class="kw">loop </span>{
 <a href=#441 id=441 data-nosnippet>441</a>        <span class="comment">// break from this loop to fail, causes stack to pop
 <a href=#442 id=442 data-nosnippet>442</a>        </span><span class="lifetime">'fail</span>: <span class="kw">loop </span>{
-<a href=#443 id=443 data-nosnippet>443</a>            <span class="kw">if </span>option_flags &amp; OPTION_TRACE != <span class="number">0 </span>{
+<a href=#443 id=443 data-nosnippet>443</a>            <span class="kw">if </span>option_flags &amp; <span class="macro">OPTION_TRACE !</span>= <span class="number">0 </span>{
 <a href=#444 id=444 data-nosnippet>444</a>                <span class="macro">println!</span>(<span class="string">"{}\t{} {:?}"</span>, ix, pc, prog.body[pc]);
 <a href=#445 id=445 data-nosnippet>445</a>            }
 <a href=#446 id=446 data-nosnippet>446</a>            <span class="kw">match </span>prog.body[pc] {
@@ -449,7 +449,7 @@
 <a href=#449 id=449 data-nosnippet>449</a>                    // with an explicit group; we might want to
 <a href=#450 id=450 data-nosnippet>450</a>                    // optimize that.
 <a href=#451 id=451 data-nosnippet>451</a>                    //state.saves[1] = ix;
-<a href=#452 id=452 data-nosnippet>452</a>                    </span><span class="kw">if </span>option_flags &amp; OPTION_TRACE != <span class="number">0 </span>{
+<a href=#452 id=452 data-nosnippet>452</a>                    </span><span class="kw">if </span>option_flags &amp; <span class="macro">OPTION_TRACE !</span>= <span class="number">0 </span>{
 <a href=#453 id=453 data-nosnippet>453</a>                        <span class="macro">println!</span>(<span class="string">"saves: {:?}"</span>, state.saves);
 <a href=#454 id=454 data-nosnippet>454</a>                    }
 <a href=#455 id=455 data-nosnippet>455</a>                    <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>slot1) = state.saves.get(<span class="number">1</span>) {
@@ -678,14 +678,14 @@
 <a href=#678 id=678 data-nosnippet>678</a>                    }
 <a href=#679 id=679 data-nosnippet>679</a>                }
 <a href=#680 id=680 data-nosnippet>680</a>                Insn::ContinueFromPreviousMatchEnd =&gt; {
-<a href=#681 id=681 data-nosnippet>681</a>                    <span class="kw">if </span>ix &gt; pos || option_flags &amp; OPTION_SKIPPED_EMPTY_MATCH != <span class="number">0 </span>{
+<a href=#681 id=681 data-nosnippet>681</a>                    <span class="kw">if </span>ix &gt; pos || option_flags &amp; <span class="macro">OPTION_SKIPPED_EMPTY_MATCH !</span>= <span class="number">0 </span>{
 <a href=#682 id=682 data-nosnippet>682</a>                        <span class="kw">break </span><span class="lifetime">'fail</span>;
 <a href=#683 id=683 data-nosnippet>683</a>                    }
 <a href=#684 id=684 data-nosnippet>684</a>                }
 <a href=#685 id=685 data-nosnippet>685</a>            }
 <a href=#686 id=686 data-nosnippet>686</a>            pc += <span class="number">1</span>;
 <a href=#687 id=687 data-nosnippet>687</a>        }
-<a href=#688 id=688 data-nosnippet>688</a>        <span class="kw">if </span>option_flags &amp; OPTION_TRACE != <span class="number">0 </span>{
+<a href=#688 id=688 data-nosnippet>688</a>        <span class="kw">if </span>option_flags &amp; <span class="macro">OPTION_TRACE !</span>= <span class="number">0 </span>{
 <a href=#689 id=689 data-nosnippet>689</a>            <span class="macro">println!</span>(<span class="string">"fail"</span>);
 <a href=#690 id=690 data-nosnippet>690</a>        }
 <a href=#691 id=691 data-nosnippet>691</a>        <span class="comment">// "break 'fail" goes here
@@ -897,4 +897,5 @@
 <a href=#897 id=897 data-nosnippet>897</a>            check_saves_for_operations(operations)
 <a href=#898 id=898 data-nosnippet>898</a>        }
 <a href=#899 id=899 data-nosnippet>899</a>    }
-<a href=#900 id=900 data-nosnippet>900</a>}</code></pre></div></section></main></body></html>
+<a href=#900 id=900 data-nosnippet>900</a>}
+</code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num-bigint-0.4.6/src/biguint/convert.rs`."><title>convert.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">num_bigint/biguint/</div>convert.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// This uses stdlib features higher than the MSRV
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/num-bigint-0.4.6/src/biguint/convert.rs`."><title>convert.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="num_bigint" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">num_bigint/biguint/</div>convert.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// This uses stdlib features higher than the MSRV
 <a href=#2 id=2 data-nosnippet>2</a></span><span class="attr">#![allow(clippy::manual_range_contains)] </span><span class="comment">// 1.35
 <a href=#3 id=3 data-nosnippet>3</a>
 <a href=#4 id=4 data-nosnippet>4</a></span><span class="kw">use super</span>::{biguint_from_vec, BigUint, ToBigUint};
@@ -63,7 +63,7 @@
 <a href=#63 id=63 data-nosnippet>63</a><span class="comment">// Convert from a power of two radix (bits == ilog2(radix)) where bits doesn't evenly divide
 <a href=#64 id=64 data-nosnippet>64</a>// BigDigit::BITS
 <a href=#65 id=65 data-nosnippet>65</a></span><span class="kw">fn </span>from_inexact_bitwise_digits_le(v: <span class="kw-2">&amp;</span>[u8], bits: u8) -&gt; BigUint {
-<a href=#66 id=66 data-nosnippet>66</a>    <span class="macro">debug_assert!</span>(!v.is_empty() &amp;&amp; bits &lt;= <span class="number">8 </span>&amp;&amp; big_digit::BITS % bits != <span class="number">0</span>);
+<a href=#66 id=66 data-nosnippet>66</a>    <span class="macro">debug_assert!</span>(!v.is_empty() &amp;&amp; bits &lt;= <span class="number">8 </span>&amp;&amp; big_digit::BITS % <span class="macro">bits !</span>= <span class="number">0</span>);
 <a href=#67 id=67 data-nosnippet>67</a>    <span class="macro">debug_assert!</span>(v.iter().all(|<span class="kw-2">&amp;</span>c| BigDigit::from(c) &lt; (<span class="number">1 </span>&lt;&lt; bits)));
 <a href=#68 id=68 data-nosnippet>68</a>
 <a href=#69 id=69 data-nosnippet>69</a>    <span class="kw">let </span>total_bits = (v.len() <span class="kw">as </span>u64).saturating_mul(bits.into());
@@ -162,7 +162,7 @@
 <a href=#162 id=162 data-nosnippet>162</a>        <span class="kw">return </span><span class="prelude-val">Some</span>(BigUint::ZERO);
 <a href=#163 id=163 data-nosnippet>163</a>    }
 <a href=#164 id=164 data-nosnippet>164</a>
-<a href=#165 id=165 data-nosnippet>165</a>    <span class="kw">if </span>radix != <span class="number">256 </span>&amp;&amp; buf.iter().any(|<span class="kw-2">&amp;</span>b| b &gt;= radix <span class="kw">as </span>u8) {
+<a href=#165 id=165 data-nosnippet>165</a>    <span class="kw">if </span><span class="macro">radix !</span>= <span class="number">256 </span>&amp;&amp; buf.iter().any(|<span class="kw-2">&amp;</span>b| b &gt;= radix <span class="kw">as </span>u8) {
 <a href=#166 id=166 data-nosnippet>166</a>        <span class="kw">return </span><span class="prelude-val">None</span>;
 <a href=#167 id=167 data-nosnippet>167</a>    }
 <a href=#168 id=168 data-nosnippet>168</a>
@@ -193,7 +193,7 @@
 <a href=#193 id=193 data-nosnippet>193</a>        <span class="kw">return </span><span class="prelude-val">Some</span>(BigUint::ZERO);
 <a href=#194 id=194 data-nosnippet>194</a>    }
 <a href=#195 id=195 data-nosnippet>195</a>
-<a href=#196 id=196 data-nosnippet>196</a>    <span class="kw">if </span>radix != <span class="number">256 </span>&amp;&amp; buf.iter().any(|<span class="kw-2">&amp;</span>b| b &gt;= radix <span class="kw">as </span>u8) {
+<a href=#196 id=196 data-nosnippet>196</a>    <span class="kw">if </span><span class="macro">radix !</span>= <span class="number">256 </span>&amp;&amp; buf.iter().any(|<span class="kw-2">&amp;</span>b| b &gt;= radix <span class="kw">as </span>u8) {
 <a href=#197 id=197 data-nosnippet>197</a>        <span class="kw">return </span><span class="prelude-val">None</span>;
 <a href=#198 id=198 data-nosnippet>198</a>    }
 <a href=#199 id=199 data-nosnippet>199</a>
@@ -287,8 +287,8 @@
 <a href=#287 id=287 data-nosnippet>287</a>                <span class="kw">let </span>digit_bits = (bits - <span class="number">1</span>) % u64::from(big_digit::BITS) + <span class="number">1</span>;
 <a href=#288 id=288 data-nosnippet>288</a>                <span class="kw">let </span>bits_want = Ord::min(<span class="number">64 </span>- ret_bits, digit_bits);
 <a href=#289 id=289 data-nosnippet>289</a>
-<a href=#290 id=290 data-nosnippet>290</a>                <span class="kw">if </span>bits_want != <span class="number">0 </span>{
-<a href=#291 id=291 data-nosnippet>291</a>                    <span class="kw">if </span>bits_want != <span class="number">64 </span>{
+<a href=#290 id=290 data-nosnippet>290</a>                <span class="kw">if </span><span class="macro">bits_want !</span>= <span class="number">0 </span>{
+<a href=#291 id=291 data-nosnippet>291</a>                    <span class="kw">if </span><span class="macro">bits_want !</span>= <span class="number">64 </span>{
 <a href=#292 id=292 data-nosnippet>292</a>                        ret &lt;&lt;= bits_want;
 <a href=#293 id=293 data-nosnippet>293</a>                    }
 <a href=#294 id=294 data-nosnippet>294</a>                    <span class="comment">// XXX Conversion is useless if already 64-bit.
@@ -303,11 +303,11 @@
 <a href=#303 id=303 data-nosnippet>303</a>                //
 <a href=#304 id=304 data-nosnippet>304</a>                // See: https://en.wikipedia.org/wiki/Rounding#Rounding_to_prepare_for_shorter_precision
 <a href=#305 id=305 data-nosnippet>305</a>
-<a href=#306 id=306 data-nosnippet>306</a>                </span><span class="kw">if </span>digit_bits - bits_want != <span class="number">0 </span>{
+<a href=#306 id=306 data-nosnippet>306</a>                </span><span class="kw">if </span>digit_bits - <span class="macro">bits_want !</span>= <span class="number">0 </span>{
 <a href=#307 id=307 data-nosnippet>307</a>                    <span class="comment">// XXX Conversion is useless if already 64-bit.
 <a href=#308 id=308 data-nosnippet>308</a>                    </span><span class="attr">#[allow(clippy::useless_conversion)]
 <a href=#309 id=309 data-nosnippet>309</a>                    </span><span class="kw">let </span>masked = u64::from(<span class="kw-2">*</span>d) &lt;&lt; (<span class="number">64 </span>- (digit_bits - bits_want) <span class="kw">as </span>u32);
-<a href=#310 id=310 data-nosnippet>310</a>                    ret |= (masked != <span class="number">0</span>) <span class="kw">as </span>u64;
+<a href=#310 id=310 data-nosnippet>310</a>                    ret |= (<span class="macro">masked !</span>= <span class="number">0</span>) <span class="kw">as </span>u64;
 <a href=#311 id=311 data-nosnippet>311</a>                }
 <a href=#312 id=312 data-nosnippet>312</a>
 <a href=#313 id=313 data-nosnippet>313</a>                ret_bits += bits_want;
@@ -492,7 +492,7 @@
 <a href=#492 id=492 data-nosnippet>492</a>    </span><span class="kw">fn </span>from(<span class="kw-2">mut </span>n: u64) -&gt; <span class="self">Self </span>{
 <a href=#493 id=493 data-nosnippet>493</a>        <span class="kw">let </span><span class="kw-2">mut </span>ret: BigUint = <span class="self">Self</span>::ZERO;
 <a href=#494 id=494 data-nosnippet>494</a>
-<a href=#495 id=495 data-nosnippet>495</a>        <span class="kw">while </span>n != <span class="number">0 </span>{
+<a href=#495 id=495 data-nosnippet>495</a>        <span class="kw">while </span><span class="macro">n !</span>= <span class="number">0 </span>{
 <a href=#496 id=496 data-nosnippet>496</a>            ret.data.push(n <span class="kw">as </span>BigDigit);
 <a href=#497 id=497 data-nosnippet>497</a>            <span class="comment">// don't overflow if BITS is 64:
 <a href=#498 id=498 data-nosnippet>498</a>            </span>n = (n &gt;&gt; <span class="number">1</span>) &gt;&gt; (big_digit::BITS - <span class="number">1</span>);
@@ -507,7 +507,7 @@
 <a href=#507 id=507 data-nosnippet>507</a>    </span><span class="kw">fn </span>from(<span class="kw-2">mut </span>n: u128) -&gt; <span class="self">Self </span>{
 <a href=#508 id=508 data-nosnippet>508</a>        <span class="kw">let </span><span class="kw-2">mut </span>ret: BigUint = <span class="self">Self</span>::ZERO;
 <a href=#509 id=509 data-nosnippet>509</a>
-<a href=#510 id=510 data-nosnippet>510</a>        <span class="kw">while </span>n != <span class="number">0 </span>{
+<a href=#510 id=510 data-nosnippet>510</a>        <span class="kw">while </span><span class="macro">n !</span>= <span class="number">0 </span>{
 <a href=#511 id=511 data-nosnippet>511</a>            ret.data.push(n <span class="kw">as </span>BigDigit);
 <a href=#512 id=512 data-nosnippet>512</a>            n &gt;&gt;= big_digit::BITS;
 <a href=#513 id=513 data-nosnippet>513</a>        }
@@ -617,7 +617,7 @@
 <a href=#617 id=617 data-nosnippet>617</a>    }
 <a href=#618 id=618 data-nosnippet>618</a>
 <a href=#619 id=619 data-nosnippet>619</a>    <span class="kw">let </span><span class="kw-2">mut </span>r = u.data[last_i];
-<a href=#620 id=620 data-nosnippet>620</a>    <span class="kw">while </span>r != <span class="number">0 </span>{
+<a href=#620 id=620 data-nosnippet>620</a>    <span class="kw">while </span><span class="macro">r !</span>= <span class="number">0 </span>{
 <a href=#621 id=621 data-nosnippet>621</a>        res.push((r &amp; mask) <span class="kw">as </span>u8);
 <a href=#622 id=622 data-nosnippet>622</a>        r &gt;&gt;= bits;
 <a href=#623 id=623 data-nosnippet>623</a>    }
@@ -627,7 +627,7 @@
 <a href=#627 id=627 data-nosnippet>627</a>
 <a href=#628 id=628 data-nosnippet>628</a><span class="comment">// Extract bitwise digits that don't evenly divide BigDigit
 <a href=#629 id=629 data-nosnippet>629</a></span><span class="kw">fn </span>to_inexact_bitwise_digits_le(u: <span class="kw-2">&amp;</span>BigUint, bits: u8) -&gt; Vec&lt;u8&gt; {
-<a href=#630 id=630 data-nosnippet>630</a>    <span class="macro">debug_assert!</span>(!u.is_zero() &amp;&amp; bits &lt;= <span class="number">8 </span>&amp;&amp; big_digit::BITS % bits != <span class="number">0</span>);
+<a href=#630 id=630 data-nosnippet>630</a>    <span class="macro">debug_assert!</span>(!u.is_zero() &amp;&amp; bits &lt;= <span class="number">8 </span>&amp;&amp; big_digit::BITS % <span class="macro">bits !</span>= <span class="number">0</span>);
 <a href=#631 id=631 data-nosnippet>631</a>
 <a href=#632 id=632 data-nosnippet>632</a>    <span class="kw">let </span>mask: BigDigit = (<span class="number">1 </span>&lt;&lt; bits) - <span class="number">1</span>;
 <a href=#633 id=633 data-nosnippet>633</a>    <span class="kw">let </span>digits = Integer::div_ceil(<span class="kw-2">&amp;</span>u.bits(), <span class="kw-2">&amp;</span>u64::from(bits))
@@ -655,7 +655,7 @@
 <a href=#655 id=655 data-nosnippet>655</a>        }
 <a href=#656 id=656 data-nosnippet>656</a>    }
 <a href=#657 id=657 data-nosnippet>657</a>
-<a href=#658 id=658 data-nosnippet>658</a>    <span class="kw">if </span>rbits != <span class="number">0 </span>{
+<a href=#658 id=658 data-nosnippet>658</a>    <span class="kw">if </span><span class="macro">rbits !</span>= <span class="number">0 </span>{
 <a href=#659 id=659 data-nosnippet>659</a>        res.push(r <span class="kw">as </span>u8);
 <a href=#660 id=660 data-nosnippet>660</a>    }
 <a href=#661 id=661 data-nosnippet>661</a>
@@ -739,7 +739,7 @@
 <a href=#739 id=739 data-nosnippet>739</a>    }
 <a href=#740 id=740 data-nosnippet>740</a>
 <a href=#741 id=741 data-nosnippet>741</a>    <span class="kw">let </span><span class="kw-2">mut </span>r = digits.data[<span class="number">0</span>];
-<a href=#742 id=742 data-nosnippet>742</a>    <span class="kw">while </span>r != <span class="number">0 </span>{
+<a href=#742 id=742 data-nosnippet>742</a>    <span class="kw">while </span><span class="macro">r !</span>= <span class="number">0 </span>{
 <a href=#743 id=743 data-nosnippet>743</a>        res.push((r % radix) <span class="kw">as </span>u8);
 <a href=#744 id=744 data-nosnippet>744</a>        r /= radix;
 <a href=#745 id=745 data-nosnippet>745</a>    }
@@ -863,4 +863,5 @@
 <a href=#863 id=863 data-nosnippet>863</a>            <span class="macro">assert!</span>(radix.pow(power + <span class="number">1</span>) &gt; big_digit::HALF);
 <a href=#864 id=864 data-nosnippet>864</a>        }
 <a href=#865 id=865 data-nosnippet>865</a>    }
-<a href=#866 id=866 data-nosnippet>866</a>}</code></pre></div></section></main></body></html>
+<a href=#866 id=866 data-nosnippet>866</a>}
+</code></pre></div></section></main></body></html>

@@ -1,1 +1,0 @@
-searchState.loadedDescShard("pest_derive", 0, "pest. The Elegant Parser\nThe main method that’s called by the proc macro (a …")

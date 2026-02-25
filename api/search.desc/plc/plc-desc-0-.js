@@ -1,1 +1,0 @@
-searchState.loadedDescShard("plc", 0, "")

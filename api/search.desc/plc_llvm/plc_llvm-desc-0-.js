@@ -1,1 +1,0 @@
-searchState.loadedDescShard("plc_llvm", 0, "This crate provides Rust bindings for LLVM Target Machine …")

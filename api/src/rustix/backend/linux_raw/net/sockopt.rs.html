@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.2/src/backend/linux_raw/net/sockopt.rs`."><title>sockopt.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rustix/backend/linux_raw/net/</div>sockopt.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! linux_raw syscalls supporting `rustix::net::sockopt`.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.2/src/backend/linux_raw/net/sockopt.rs`."><title>sockopt.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rustix/backend/linux_raw/net/</div>sockopt.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! linux_raw syscalls supporting `rustix::net::sockopt`.
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! # Safety
 <a href=#4 id=4 data-nosnippet>4</a>//!
@@ -184,7 +184,7 @@
 <a href=#184 id=184 data-nosnippet>184</a><span class="attr">#[inline]
 <a href=#185 id=185 data-nosnippet>185</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>socket_linger(fd: BorrowedFd&lt;<span class="lifetime">'_</span>&gt;) -&gt; io::Result&lt;<span class="prelude-ty">Option</span>&lt;Duration&gt;&gt; {
 <a href=#186 id=186 data-nosnippet>186</a>    <span class="kw">let </span>linger: c::linger = getsockopt(fd, c::SOL_SOCKET, c::SO_LINGER)<span class="question-mark">?</span>;
-<a href=#187 id=187 data-nosnippet>187</a>    <span class="prelude-val">Ok</span>((linger.l_onoff != <span class="number">0</span>).then(|| Duration::from_secs(linger.l_linger <span class="kw">as </span>u64)))
+<a href=#187 id=187 data-nosnippet>187</a>    <span class="prelude-val">Ok</span>((linger.<span class="macro">l_onoff !</span>= <span class="number">0</span>).then(|| Duration::from_secs(linger.l_linger <span class="kw">as </span>u64)))
 <a href=#188 id=188 data-nosnippet>188</a>}
 <a href=#189 id=189 data-nosnippet>189</a>
 <a href=#190 id=190 data-nosnippet>190</a><span class="attr">#[inline]
@@ -209,7 +209,7 @@
 <a href=#209 id=209 data-nosnippet>209</a>        Timeout::Send =&gt; c::SO_SNDTIMEO_NEW,
 <a href=#210 id=210 data-nosnippet>210</a>    };
 <a href=#211 id=211 data-nosnippet>211</a>    <span class="kw">match </span>setsockopt(fd, c::SOL_SOCKET, optname, time) {
-<a href=#212 id=212 data-nosnippet>212</a>        <span class="prelude-val">Err</span>(io::Errno::NOPROTOOPT) <span class="kw">if </span>c::SO_RCVTIMEO_NEW != c::SO_RCVTIMEO_OLD =&gt; {
+<a href=#212 id=212 data-nosnippet>212</a>        <span class="prelude-val">Err</span>(io::Errno::NOPROTOOPT) <span class="kw">if </span><span class="macro">c::SO_RCVTIMEO_NEW !</span>= c::SO_RCVTIMEO_OLD =&gt; {
 <a href=#213 id=213 data-nosnippet>213</a>            set_socket_timeout_old(fd, id, timeout)
 <a href=#214 id=214 data-nosnippet>214</a>        }
 <a href=#215 id=215 data-nosnippet>215</a>        otherwise =&gt; otherwise,
@@ -238,7 +238,7 @@
 <a href=#238 id=238 data-nosnippet>238</a>        Timeout::Send =&gt; c::SO_SNDTIMEO_NEW,
 <a href=#239 id=239 data-nosnippet>239</a>    };
 <a href=#240 id=240 data-nosnippet>240</a>    <span class="kw">let </span>time: __kernel_sock_timeval = <span class="kw">match </span>getsockopt(fd, c::SOL_SOCKET, optname) {
-<a href=#241 id=241 data-nosnippet>241</a>        <span class="prelude-val">Err</span>(io::Errno::NOPROTOOPT) <span class="kw">if </span>c::SO_RCVTIMEO_NEW != c::SO_RCVTIMEO_OLD =&gt; {
+<a href=#241 id=241 data-nosnippet>241</a>        <span class="prelude-val">Err</span>(io::Errno::NOPROTOOPT) <span class="kw">if </span><span class="macro">c::SO_RCVTIMEO_NEW !</span>= c::SO_RCVTIMEO_OLD =&gt; {
 <a href=#242 id=242 data-nosnippet>242</a>            <span class="kw">return </span>socket_timeout_old(fd, id)
 <a href=#243 id=243 data-nosnippet>243</a>        }
 <a href=#244 id=244 data-nosnippet>244</a>        otherwise =&gt; otherwise<span class="question-mark">?</span>,
@@ -1146,7 +1146,7 @@
 <a href=#1146 id=1146 data-nosnippet>1146</a>
 <a href=#1147 id=1147 data-nosnippet>1147</a><span class="attr">#[inline]
 <a href=#1148 id=1148 data-nosnippet>1148</a></span><span class="kw">fn </span>to_bool(value: c::c_uint) -&gt; bool {
-<a href=#1149 id=1149 data-nosnippet>1149</a>    value != <span class="number">0
+<a href=#1149 id=1149 data-nosnippet>1149</a>    <span class="macro">value !</span>= <span class="number">0
 <a href=#1150 id=1150 data-nosnippet>1150</a></span>}
 <a href=#1151 id=1151 data-nosnippet>1151</a>
 <a href=#1152 id=1152 data-nosnippet>1152</a><span class="doccomment">/// Convert to seconds, rounding up if necessary.
@@ -1157,4 +1157,5 @@
 <a href=#1157 id=1157 data-nosnippet>1157</a>        secs = secs.checked_add(<span class="number">1</span>).ok_or(io::Errno::INVAL)<span class="question-mark">?</span>;
 <a href=#1158 id=1158 data-nosnippet>1158</a>    }
 <a href=#1159 id=1159 data-nosnippet>1159</a>    T::try_from(secs).map_err(|_e| io::Errno::INVAL)
-<a href=#1160 id=1160 data-nosnippet>1160</a>}</code></pre></div></section></main></body></html>
+<a href=#1160 id=1160 data-nosnippet>1160</a>}
+</code></pre></div></section></main></body></html>

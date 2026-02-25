@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/resolver.rs`."><title>resolver.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rusty/</div>resolver.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/resolver.rs`."><title>resolver.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rusty/</div>resolver.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 <a href=#4 id=4 data-nosnippet>4</a>//!
@@ -1962,8 +1962,8 @@
 <a href=#1962 id=1962 data-nosnippet>1962</a>                            bigger_type.get_name().to_string()
 <a href=#1963 id=1963 data-nosnippet>1963</a>                        };
 <a href=#1964 id=1964 data-nosnippet>1964</a>
-<a href=#1965 id=1965 data-nosnippet>1965</a>                        <span class="kw">let </span>bigger_is_left = bigger_type != right_type;
-<a href=#1966 id=1966 data-nosnippet>1966</a>                        <span class="kw">let </span>bigger_is_right = bigger_type != left_type;
+<a href=#1965 id=1965 data-nosnippet>1965</a>                        <span class="kw">let </span>bigger_is_left = <span class="macro">bigger_type !</span>= right_type;
+<a href=#1966 id=1966 data-nosnippet>1966</a>                        <span class="kw">let </span>bigger_is_right = <span class="macro">bigger_type !</span>= left_type;
 <a href=#1967 id=1967 data-nosnippet>1967</a>
 <a href=#1968 id=1968 data-nosnippet>1968</a>                        <span class="kw">if </span>bigger_is_left || bigger_is_right {
 <a href=#1969 id=1969 data-nosnippet>1969</a>                            <span class="comment">// if these types are different we need to update the 'other' type's annotation
@@ -2260,7 +2260,7 @@
 <a href=#2260 id=2260 data-nosnippet>2260</a>        <span class="self">self</span>.annotation_map
 <a href=#2261 id=2261 data-nosnippet>2261</a>            .get(stmt)
 <a href=#2262 id=2262 data-nosnippet>2262</a>            .map(|it| it.is_const())
-<a href=#2263 id=2263 data-nosnippet>2263</a>            .filter(|it| <span class="kw-2">*</span>it != ctx.constant)
+<a href=#2263 id=2263 data-nosnippet>2263</a>            .filter(|it| <span class="kw-2">*</span><span class="macro">it !</span>= ctx.constant)
 <a href=#2264 id=2264 data-nosnippet>2264</a>            .unwrap_or(<span class="bool-val">false</span>)
 <a href=#2265 id=2265 data-nosnippet>2265</a>    }
 <a href=#2266 id=2266 data-nosnippet>2266</a>
@@ -2294,7 +2294,7 @@
 <a href=#2294 id=2294 data-nosnippet>2294</a>                    )
 <a href=#2295 id=2295 data-nosnippet>2295</a>                {
 <a href=#2296 id=2296 data-nosnippet>2296</a>                    <span class="comment">// see if this was casted
-<a href=#2297 id=2297 data-nosnippet>2297</a>                    </span><span class="kw">if </span>base_type != literal_type {
+<a href=#2297 id=2297 data-nosnippet>2297</a>                    </span><span class="kw">if </span><span class="macro">base_type !</span>= literal_type {
 <a href=#2298 id=2298 data-nosnippet>2298</a>                        <span class="kw">return </span><span class="prelude-val">Some</span>(StatementAnnotation::value(base_type.get_name()));
 <a href=#2299 id=2299 data-nosnippet>2299</a>                    }
 <a href=#2300 id=2300 data-nosnippet>2300</a>                }
@@ -2587,7 +2587,7 @@
 <a href=#2587 id=2587 data-nosnippet>2587</a>        <span class="comment">// pointer size is 64Bits matching LINT
 <a href=#2588 id=2588 data-nosnippet>2588</a>        // therefore get the bigger type of current and LINT to check if cast is necessary
 <a href=#2589 id=2589 data-nosnippet>2589</a>        </span><span class="kw">let </span>bigger_type = get_bigger_type(value_type, <span class="self">self</span>.index.get_type_or_panic(LINT_TYPE), <span class="self">self</span>.index);
-<a href=#2590 id=2590 data-nosnippet>2590</a>        <span class="kw">if </span>bigger_type != value_type {
+<a href=#2590 id=2590 data-nosnippet>2590</a>        <span class="kw">if </span><span class="macro">bigger_type !</span>= value_type {
 <a href=#2591 id=2591 data-nosnippet>2591</a>            <span class="kw">let </span>bigger_type = bigger_type.clone();
 <a href=#2592 id=2592 data-nosnippet>2592</a>            <span class="self">self</span>.update_expected_types(<span class="kw-2">&amp;</span>bigger_type, statement);
 <a href=#2593 id=2593 data-nosnippet>2593</a>        }
@@ -2999,4 +2999,5 @@
 <a href=#2999 id=2999 data-nosnippet>2999</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">" 1.7976931348623157E+309"</span>), <span class="string">"LREAL"</span>);
 <a href=#3000 id=3000 data-nosnippet>3000</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">"-1.7976931348623157E+309"</span>), <span class="string">"LREAL"</span>);
 <a href=#3001 id=3001 data-nosnippet>3001</a>    }
-<a href=#3002 id=3002 data-nosnippet>3002</a>}</code></pre></div></section></main></body></html>
+<a href=#3002 id=3002 data-nosnippet>3002</a>}
+</code></pre></div></section></main></body></html>

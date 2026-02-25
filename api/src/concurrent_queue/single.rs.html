@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/concurrent-queue-2.5.0/src/single.rs`."><title>single.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="concurrent_queue" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">concurrent_queue/</div>single.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>core::mem::MaybeUninit;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/concurrent-queue-2.5.0/src/single.rs`."><title>single.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="concurrent_queue" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">concurrent_queue/</div>single.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>core::mem::MaybeUninit;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>core::ptr;
 <a href=#3 id=3 data-nosnippet>3</a>
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::sync::atomic::{AtomicUsize, Ordering};
@@ -41,7 +41,7 @@
 <a href=#41 id=41 data-nosnippet>41</a>            });
 <a href=#42 id=42 data-nosnippet>42</a>            <span class="self">self</span>.state.fetch_and(!LOCKED, Ordering::Release);
 <a href=#43 id=43 data-nosnippet>43</a>            <span class="prelude-val">Ok</span>(())
-<a href=#44 id=44 data-nosnippet>44</a>        } <span class="kw">else if </span>state &amp; CLOSED != <span class="number">0 </span>{
+<a href=#44 id=44 data-nosnippet>44</a>        } <span class="kw">else if </span>state &amp; <span class="macro">CLOSED !</span>= <span class="number">0 </span>{
 <a href=#45 id=45 data-nosnippet>45</a>            <span class="prelude-val">Err</span>(PushError::Closed(value))
 <a href=#46 id=46 data-nosnippet>46</a>        } <span class="kw">else </span>{
 <a href=#47 id=47 data-nosnippet>47</a>            <span class="prelude-val">Err</span>(PushError::Full(value))
@@ -60,7 +60,7 @@
 <a href=#60 id=60 data-nosnippet>60</a>                .compare_exchange(state, LOCKED | PUSHED, Ordering::SeqCst, Ordering::SeqCst)
 <a href=#61 id=61 data-nosnippet>61</a>                .unwrap_or_else(|x| x);
 <a href=#62 id=62 data-nosnippet>62</a>
-<a href=#63 id=63 data-nosnippet>63</a>            <span class="kw">if </span>prev &amp; CLOSED != <span class="number">0 </span>{
+<a href=#63 id=63 data-nosnippet>63</a>            <span class="kw">if </span>prev &amp; <span class="macro">CLOSED !</span>= <span class="number">0 </span>{
 <a href=#64 id=64 data-nosnippet>64</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(ForcePushError(value));
 <a href=#65 id=65 data-nosnippet>65</a>            }
 <a href=#66 id=66 data-nosnippet>66</a>
@@ -144,7 +144,7 @@
 <a href=#144 id=144 data-nosnippet>144</a>
 <a href=#145 id=145 data-nosnippet>145</a>    <span class="doccomment">/// Returns the number of items in the queue.
 <a href=#146 id=146 data-nosnippet>146</a>    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-<a href=#147 id=147 data-nosnippet>147</a>        usize::from(<span class="self">self</span>.state.load(Ordering::SeqCst) &amp; PUSHED != <span class="number">0</span>)
+<a href=#147 id=147 data-nosnippet>147</a>        usize::from(<span class="self">self</span>.state.load(Ordering::SeqCst) &amp; <span class="macro">PUSHED !</span>= <span class="number">0</span>)
 <a href=#148 id=148 data-nosnippet>148</a>    }
 <a href=#149 id=149 data-nosnippet>149</a>
 <a href=#150 id=150 data-nosnippet>150</a>    <span class="doccomment">/// Returns `true` if the queue is empty.
@@ -167,7 +167,7 @@
 <a href=#167 id=167 data-nosnippet>167</a>
 <a href=#168 id=168 data-nosnippet>168</a>    <span class="doccomment">/// Returns `true` if the queue is closed.
 <a href=#169 id=169 data-nosnippet>169</a>    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-<a href=#170 id=170 data-nosnippet>170</a>        <span class="self">self</span>.state.load(Ordering::SeqCst) &amp; CLOSED != <span class="number">0
+<a href=#170 id=170 data-nosnippet>170</a>        <span class="self">self</span>.state.load(Ordering::SeqCst) &amp; <span class="macro">CLOSED !</span>= <span class="number">0
 <a href=#171 id=171 data-nosnippet>171</a>    </span>}
 <a href=#172 id=172 data-nosnippet>172</a>}
 <a href=#173 id=173 data-nosnippet>173</a>
@@ -176,7 +176,7 @@
 <a href=#176 id=176 data-nosnippet>176</a>        <span class="comment">// Drop the value in the slot.
 <a href=#177 id=177 data-nosnippet>177</a>        </span><span class="kw">let </span><span class="self">Self </span>{ state, slot } = <span class="self">self</span>;
 <a href=#178 id=178 data-nosnippet>178</a>        state.with_mut(|state| {
-<a href=#179 id=179 data-nosnippet>179</a>            <span class="kw">if </span><span class="kw-2">*</span>state &amp; PUSHED != <span class="number">0 </span>{
+<a href=#179 id=179 data-nosnippet>179</a>            <span class="kw">if </span><span class="kw-2">*</span>state &amp; <span class="macro">PUSHED !</span>= <span class="number">0 </span>{
 <a href=#180 id=180 data-nosnippet>180</a>                slot.with_mut(|slot| <span class="kw">unsafe </span>{
 <a href=#181 id=181 data-nosnippet>181</a>                    <span class="kw">let </span>value = <span class="kw-2">&amp;mut *</span>slot;
 <a href=#182 id=182 data-nosnippet>182</a>                    value.as_mut_ptr().drop_in_place();
@@ -184,4 +184,5 @@
 <a href=#184 id=184 data-nosnippet>184</a>            }
 <a href=#185 id=185 data-nosnippet>185</a>        });
 <a href=#186 id=186 data-nosnippet>186</a>    }
-<a href=#187 id=187 data-nosnippet>187</a>}</code></pre></div></section></main></body></html>
+<a href=#187 id=187 data-nosnippet>187</a>}
+</code></pre></div></section></main></body></html>

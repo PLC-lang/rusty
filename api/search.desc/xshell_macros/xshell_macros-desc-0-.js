@@ -1,1 +1,0 @@
-searchState.loadedDescShard("xshell_macros", 0, "Private implementation details of <code>xshell</code>.")

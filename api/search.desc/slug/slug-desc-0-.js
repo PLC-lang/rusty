@@ -1,1 +1,0 @@
-searchState.loadedDescShard("slug", 0, "Convert any unicode string to an ascii “slug” (useful …")

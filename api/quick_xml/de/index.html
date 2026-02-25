@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Serde `Deserializer` module."><title>quick_xml::de - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../quick_xml/index.html">quick_<wbr>xml</a><span class="version">0.30.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module de</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#table-of-contents" title="Table of Contents">Table of Contents</a></li><li><a href="#mapping-xml-to-rust-types" title="Mapping XML to Rust types">Mapping XML to Rust types</a><ul><li><a href="#optional-attributes-and-elements" title="Optional attributes and elements">Optional attributes and elements</a></li><li><a href="#choices-xschoice-xml-schema-type" title="Choices (`xs:choice` XML Schema type)">Choices (<code>xs:choice</code> XML Schema type)</a></li><li><a href="#sequences-xsall-and-xssequence-xml-schema-types" title="Sequences (`xs:all` and `xs:sequence` XML Schema types)">Sequences (<code>xs:all</code> and <code>xs:sequence</code> XML Schema types)</a></li></ul></li><li><a href="#composition-rules" title="Composition Rules">Composition Rules</a></li><li><a href="#difference-between-text-and-value-special-names" title="Difference between `$text` and `$value` special names">Difference between <code>$text</code> and <code>$value</code> special names</a><ul><li><a href="#text" title="`$text`"><code>$text</code></a></li><li><a href="#value" title="`$value`"><code>$value</code></a></li></ul></li><li><a href="#frequently-used-patterns" title="Frequently Used Patterns">Frequently Used Patterns</a><ul><li><a href="#element-lists" title="`&#60;element&#62;` lists"><code>&lt;element&gt;</code> lists</a></li><li><a href="#enumunit-variants-as-a-text" title="Enum::Unit Variants As a Text">Enum::Unit Variants As a Text</a></li><li><a href="#internally-tagged-enums" title="Internally Tagged Enums">Internally Tagged Enums</a></li></ul></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate quick_<wbr>xml</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">quick_xml</a></div><h1>Module <span>de</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/quick_xml/de/mod.rs.html#1-4468">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Serde <code>Deserializer</code> module.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Serde `Deserializer` module."><title>quick_xml::de - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module de</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../quick_xml/index.html">quick_<wbr>xml</a><span class="version">0.30.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module de</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#table-of-contents" title="Table of Contents">Table of Contents</a></li><li><a href="#mapping-xml-to-rust-types" title="Mapping XML to Rust types">Mapping XML to Rust types</a><ul><li><a href="#optional-attributes-and-elements" title="Optional attributes and elements">Optional attributes and elements</a></li><li><a href="#choices-xschoice-xml-schema-type" title="Choices (`xs:choice` XML Schema type)">Choices (<code>xs:choice</code> XML Schema type)</a></li><li><a href="#sequences-xsall-and-xssequence-xml-schema-types" title="Sequences (`xs:all` and `xs:sequence` XML Schema types)">Sequences (<code>xs:all</code> and <code>xs:sequence</code> XML Schema types)</a></li></ul></li><li><a href="#composition-rules" title="Composition Rules">Composition Rules</a></li><li><a href="#difference-between-text-and-value-special-names" title="Difference between `$text` and `$value` special names">Difference between <code>$text</code> and <code>$value</code> special names</a><ul><li><a href="#text" title="`$text`"><code>$text</code></a></li><li><a href="#value" title="`$value`"><code>$value</code></a></li></ul></li><li><a href="#frequently-used-patterns" title="Frequently Used Patterns">Frequently Used Patterns</a><ul><li><a href="#element-lists" title="`&#60;element&#62;` lists"><code>&lt;element&gt;</code> lists</a></li><li><a href="#enumunit-variants-as-a-text" title="Enum::Unit Variants As a Text">Enum::Unit Variants As a Text</a></li><li><a href="#internally-tagged-enums" title="Internally Tagged Enums">Internally Tagged Enums</a></li></ul></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate quick_<wbr>xml</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">quick_xml</a></div><h1>Module <span>de</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/quick_xml/de/mod.rs.html#1-4468">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Serde <code>Deserializer</code> module.</p>
 <p>Due to the complexity of the XML standard and the fact that Serde was developed
 with JSON in mind, not all Serde concepts apply smoothly to XML. This leads to
 that fact that some XML concepts are inexpressible in terms of Serde derives
@@ -73,9 +73,9 @@ text and CDATA content):
 <td>
 <p>You can use any type that can be deserialized from an <code>&amp;str</code>, for example:</p>
 <ul>
-<li><a href="https://doc.rust-lang.org/1.90.0/alloc/string/struct.String.html" title="struct alloc::string::String"><code>String</code></a> and <a href="https://doc.rust-lang.org/1.90.0/std/primitive.str.html" title="primitive str"><code>&amp;str</code></a></li>
-<li><a href="https://doc.rust-lang.org/1.90.0/alloc/borrow/enum.Cow.html" title="enum alloc::borrow::Cow"><code>Cow&lt;str&gt;</code></a></li>
-<li><a href="https://doc.rust-lang.org/1.90.0/std/primitive.u32.html" title="primitive u32"><code>u32</code></a>, <a href="https://doc.rust-lang.org/1.90.0/std/primitive.f32.html" title="primitive f32"><code>f32</code></a> and other numeric types</li>
+<li><a href="https://doc.rust-lang.org/1.93.1/alloc/string/struct.String.html" title="struct alloc::string::String"><code>String</code></a> and <a href="https://doc.rust-lang.org/1.93.1/std/primitive.str.html" title="primitive str"><code>&amp;str</code></a></li>
+<li><a href="https://doc.rust-lang.org/1.93.1/alloc/borrow/enum.Cow.html" title="enum alloc::borrow::Cow"><code>Cow&lt;str&gt;</code></a></li>
+<li><a href="https://doc.rust-lang.org/1.93.1/std/primitive.u32.html" title="primitive u32"><code>u32</code></a>, <a href="https://doc.rust-lang.org/1.93.1/std/primitive.f32.html" title="primitive f32"><code>f32</code></a> and other numeric types</li>
 <li><code>enum</code>s, like
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
 </span><span class="kw">enum </span>Language {
@@ -83,8 +83,7 @@ text and CDATA content):
   Cpp,
   <span class="attr">#[serde(other)]
   </span>Other,
-}</code></pre></div>
-</li>
+}</code></pre></div></li>
 </ul>
 <div style="background:rgba(120,145,255,0.45);padding:0.75em;">
 <p>NOTE: deserialization to non-owned types (i.e. borrow from the input),
@@ -151,14 +150,12 @@ The name of the struct itself does not matter:</p>
   <span class="attr">#[serde(rename = <span class="string">"@two"</span>)]
   </span>two: U,
 }</code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Get only the one attribute, ignore the other
 </span><span class="attr">#[derive(Deserialize)]
 </span><span class="kw">struct </span>AnyName {
   <span class="attr">#[serde(rename = <span class="string">"@one"</span>)]
   </span>one: T,
 }</code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Ignore all attributes
 // You can also use the `()` type (unit type)
 </span><span class="attr">#[derive(Deserialize)]
@@ -192,13 +189,11 @@ does not matter:
   one: T,
   two: U,
 }</code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Get only the one element, ignore the other
 </span><span class="attr">#[derive(Deserialize)]
 </span><span class="kw">struct </span>AnyName {
   one: T,
 }</code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Ignore all elements
 // You can also use the `()` type (unit type)
 </span><span class="attr">#[derive(Deserialize)]
@@ -229,8 +224,7 @@ for an attribute:</p>
   <span class="attr">#[serde(rename = <span class="string">"@field"</span>)]
   </span>attribute: T,
   field: U,
-}</code></pre></div>
-</td>
+}</code></pre></div></td>
 </tr>
 <!-- ======================================================================================= -->
 <tr><th colspan="2">
@@ -317,7 +311,6 @@ left side depending on amount of information that you want to get:</p>
   </span><span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
   </span>Text(String),
 }</code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
 </span><span class="kw">struct </span>Two {
   field2: T,
@@ -331,7 +324,6 @@ left side depending on amount of information that you want to get:</p>
   <span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
   </span>Text,
 }</code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
 #[serde(rename_all = <span class="string">"snake_case"</span>)]
 </span><span class="kw">enum </span>AnyName {
@@ -339,8 +331,7 @@ left side depending on amount of information that you want to get:</p>
   <span class="comment">// the &lt;two&gt; and textual content will be mapped to this
   </span><span class="attr">#[serde(other)]
   </span>Other,
-}</code></pre></div>
-<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+}</code></pre></div><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
 <p>NOTE: You should have variants for all possible tag names in your enum
 or have an <code>#[serde(other)]</code> variant.</p>
 <!-- TODO: document an error type if that requirement is violated -->
@@ -388,8 +379,7 @@ Rust enum variant based on a tag name:</p>
 
   <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
   </span>any_name: Choice,
-}</code></pre></div>
-</td>
+}</code></pre></div></td>
 </tr>
 <!-- 10 ==================================================================================== -->
 <tr>
@@ -421,8 +411,7 @@ Rust enum variant based on a tag name:</p>
 
   <span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
   </span>any_name: Choice,
-}</code></pre></div>
-<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+}</code></pre></div><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
 <p>NOTE: if your <code>Choice</code> enum would contain an <code>#[serde(other)]</code>
 variant, element <code>&lt;field&gt;</code> will be mapped to the <code>field</code> and not to the enum
 variant.</p>
@@ -466,8 +455,7 @@ described here is very common, so it is shown explicitly.</p>
   </span>field: T,
 
   choice: Holder,
-}</code></pre></div>
-</td>
+}</code></pre></div></td>
 </tr>
 <!-- 12 ==================================================================================== -->
 <tr>
@@ -507,8 +495,7 @@ described here is very common, so it is shown explicitly.</p>
   field: T,
 
   choice: Holder,
-}</code></pre></div>
-</td>
+}</code></pre></div></td>
 </tr>
 <!-- ======================================================================================== -->
 <tr><th colspan="2">
@@ -526,7 +513,7 @@ A sequence inside of a tag without a dedicated name:
   &lt;item/&gt;
 &lt;/any-tag&gt;</code></pre></div></td>
 <td>
-<p>A structure with a field which is a sequence type, for example, <a href="https://doc.rust-lang.org/1.90.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec"><code>Vec</code></a>.
+<p>A structure with a field which is a sequence type, for example, <a href="https://doc.rust-lang.org/1.93.1/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec"><code>Vec</code></a>.
 Because XML syntax does not distinguish between empty sequences and missed
 elements, we should indicate that on the Rust side, because serde will require
 that field <code>item</code> exists. You can do that in two possible ways:</p>
@@ -537,7 +524,7 @@ that field <code>item</code> exists. You can do that in two possible ways:</p>
   <span class="attr">#[serde(default)]
   </span>item: Vec&lt;Item&gt;,
 }</code></pre></div>
-<p>Use the <a href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option"><code>Option</code></a>. In that case inner array will always contains at least one
+<p>Use the <a href="https://doc.rust-lang.org/1.93.1/core/option/enum.Option.html" title="enum core::option::Option"><code>Option</code></a>. In that case inner array will always contains at least one
 element after deserialization:</p>
 
 <div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
@@ -572,15 +559,13 @@ to choose the right variant:</p>
 <span class="kw">type </span>Two = ...;
 <span class="attr">#[derive(Deserialize)]
 </span><span class="kw">struct </span>AnyName(One, String, Two, One);</code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
 #[serde(rename_all = <span class="string">"snake_case"</span>)]
 </span><span class="kw">enum </span>Choice {
   One,
 }
 <span class="kw">type </span>Two = ...;
-<span class="kw">type </span>AnyName = (Choice, String, Two, Choice);</code></pre></div>
-<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<span class="kw">type </span>AnyName = (Choice, String, Two, Choice);</code></pre></div><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
 <p>NOTE: consequent text and CDATA nodes are merged into the one text node,
 so you cannot have two adjacent string types in your sequence.</p>
 </div>
@@ -612,7 +597,6 @@ A homogeneous sequence of elements with a fixed or dynamic size:
   </span>Other,
 }
 <span class="kw">type </span>AnyName = [Choice; <span class="number">4</span>];</code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
 #[serde(rename_all = <span class="string">"snake_case"</span>)]
 </span><span class="kw">enum </span>Choice {
@@ -621,8 +605,7 @@ A homogeneous sequence of elements with a fixed or dynamic size:
   <span class="attr">#[serde(rename = <span class="string">"$text"</span>)]
   </span>Other(String),
 }
-<span class="kw">type </span>AnyName = Vec&lt;Choice&gt;;</code></pre></div>
-<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<span class="kw">type </span>AnyName = Vec&lt;Choice&gt;;</code></pre></div><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
 <p>NOTE: consequent text and CDATA nodes are merged into the one text node,
 so you cannot have two adjacent string types in your sequence.</p>
 </div>
@@ -659,7 +642,6 @@ tuple should be able to be deserialized from the full element (<code>&lt;one&gt;
   </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
   </span>any_name: (One, String, Two, One),
 }</code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">type </span>One = ...;
 <span class="kw">type </span>Two = ...;
 
@@ -675,8 +657,7 @@ tuple should be able to be deserialized from the full element (<code>&lt;one&gt;
   // #[serde(flatten)]
   </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
   </span>any_name: NamedTuple,
-}</code></pre></div>
-<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+}</code></pre></div><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
 <p>NOTE: consequent text and CDATA nodes are merged into the one text node,
 so you cannot have two adjacent string types in your sequence.</p>
 </div>
@@ -720,7 +701,6 @@ element (<code>&lt;one&gt;...&lt;/one&gt;</code>).</p>
   </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
   </span>any_name: [Choice; <span class="number">4</span>],
 }</code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize)]
 #[serde(rename_all = <span class="string">"snake_case"</span>)]
 </span><span class="kw">enum </span>Choice {
@@ -738,8 +718,7 @@ element (<code>&lt;one&gt;...&lt;/one&gt;</code>).</p>
   // #[serde(flatten)]
   </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
   </span>any_name: Vec&lt;Choice&gt;,
-}</code></pre></div>
-<div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+}</code></pre></div><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
 <p>NOTE: consequent text and CDATA nodes are merged into the one text node,
 so you cannot have two adjacent string types in your sequence.</p>
 </div>
@@ -795,7 +774,7 @@ of following types are supported:</p>
 <li>all primitive types (strings, numbers, booleans)</li>
 <li>unit variants of enumerations (serializes to a name of a variant)</li>
 <li>newtypes (delegates serialization to inner type)</li>
-<li><a href="https://doc.rust-lang.org/1.90.0/core/option/enum.Option.html" title="enum core::option::Option"><code>Option</code></a> of above (<code>None</code> serializes to nothing)</li>
+<li><a href="https://doc.rust-lang.org/1.93.1/core/option/enum.Option.html" title="enum core::option::Option"><code>Option</code></a> of above (<code>None</code> serializes to nothing)</li>
 <li>sequences (including tuples and tuple variants of enumerations) of above,
 excluding <code>None</code> and empty string elements (because it will not be possible
 to deserialize them back). The elements are separated by space(s)</li>
@@ -817,8 +796,7 @@ types are allowed in this mode:</p>
 <span class="macro">assert_eq!</span>(xml, <span class="string">"&lt;AnyName&gt;1 2 3&lt;/AnyName&gt;"</span>);
 
 <span class="kw">let </span>object: AnyName = from_str(<span class="kw-2">&amp;</span>xml).unwrap();
-<span class="macro">assert_eq!</span>(object, obj);</code></pre></div>
-<h3 id="value"><a class="doc-anchor" href="#value">§</a><code>$value</code></h3><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
+<span class="macro">assert_eq!</span>(object, obj);</code></pre></div><h3 id="value"><a class="doc-anchor" href="#value">§</a><code>$value</code></h3><div style="background:rgba(120,145,255,0.45);padding:0.75em;">
 <p>NOTE: a name <code>#content</code> would better explain the purpose of that field,
 but <code>$value</code> is used for compatibility with other XML serde crates, which
 uses that name. This will allow you to switch XML crates more smoothly if required.</p>
@@ -856,8 +834,7 @@ deserialize it from the same elements:</p>
     <span class="comment">// &lt;A/&gt;, &lt;B/&gt; or &lt;C/&gt;
     </span><span class="attr">#[serde(rename = <span class="string">"$value"</span>)]
     </span>field: Enum,
-}</code></pre></div>
-<h4 id="primitives-and-sequences-of-primitives"><a class="doc-anchor" href="#primitives-and-sequences-of-primitives">§</a>Primitives and sequences of primitives</h4>
+}</code></pre></div><h4 id="primitives-and-sequences-of-primitives"><a class="doc-anchor" href="#primitives-and-sequences-of-primitives">§</a>Primitives and sequences of primitives</h4>
 <p>Sequences serialized to a list of elements. Note, that types that does not
 produce their own tag (i. e. primitives) are written as is, without delimiters:</p>
 
@@ -889,8 +866,7 @@ would be a most used example of that attribute:</p>
 
 <span class="kw">let </span>obj = AnyName { field: <span class="string">"content"</span>.to_string() };
 <span class="kw">let </span>xml = to_string(<span class="kw-2">&amp;</span>obj).unwrap();
-<span class="macro">assert_eq!</span>(xml, <span class="string">"&lt;AnyName&gt;content&lt;/AnyName&gt;"</span>);</code></pre></div>
-<h4 id="structs-and-sequences-of-structs"><a class="doc-anchor" href="#structs-and-sequences-of-structs">§</a>Structs and sequences of structs</h4>
+<span class="macro">assert_eq!</span>(xml, <span class="string">"&lt;AnyName&gt;content&lt;/AnyName&gt;"</span>);</code></pre></div><h4 id="structs-and-sequences-of-structs"><a class="doc-anchor" href="#structs-and-sequences-of-structs">§</a>Structs and sequences of structs</h4>
 <p>Note, that structures do not have a serializable name as well (name of the
 type is never used), so it is impossible to serialize non-unit struct or
 sequence of non-unit structs in <code>$value</code> field. (sequences of) unit structs
@@ -919,8 +895,7 @@ to nothing:</p>
 <span class="macro">assert_eq!</span>(object, AnyName { field: <span class="macro">vec!</span>[] });
 
 <span class="kw">let </span>object: AnyName = from_str(<span class="string">"&lt;AnyName&gt;&lt;A/&gt;&lt;B/&gt;&lt;C/&gt;&lt;/AnyName&gt;"</span>).unwrap();
-<span class="macro">assert_eq!</span>(object, AnyName { field: <span class="macro">vec!</span>[Unit, Unit, Unit] });</code></pre></div>
-<h4 id="enums-and-sequences-of-enums"><a class="doc-anchor" href="#enums-and-sequences-of-enums">§</a>Enums and sequences of enums</h4>
+<span class="macro">assert_eq!</span>(object, AnyName { field: <span class="macro">vec!</span>[Unit, Unit, Unit] });</code></pre></div><h4 id="enums-and-sequences-of-enums"><a class="doc-anchor" href="#enums-and-sequences-of-enums">§</a>Enums and sequences of enums</h4>
 <p>Enumerations uses the variant name as an element name:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Deserialize, Serialize, PartialEq, Debug)]

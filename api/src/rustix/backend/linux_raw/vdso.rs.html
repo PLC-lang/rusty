@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.2/src/backend/linux_raw/vdso.rs`."><title>vdso.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rustix/backend/linux_raw/</div>vdso.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Parse the Linux vDSO.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustix-1.1.2/src/backend/linux_raw/vdso.rs`."><title>vdso.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="rustix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rustix/backend/linux_raw/</div>vdso.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Parse the Linux vDSO.
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! The following code is transliterated from
 <a href=#4 id=4 data-nosnippet>4</a>//! tools/testing/selftests/vDSO/parse_vdso.c in Linux 6.13, which is licensed
@@ -57,7 +57,7 @@
 <a href=#57 id=57 data-nosnippet>57</a>    <span class="kw">for </span>b <span class="kw">in </span>name.to_bytes() {
 <a href=#58 id=58 data-nosnippet>58</a>        h = (h &lt;&lt; <span class="number">4</span>).wrapping_add(u32::from(<span class="kw-2">*</span>b));
 <a href=#59 id=59 data-nosnippet>59</a>        <span class="kw">let </span>g = h &amp; <span class="number">0xf000_0000</span>;
-<a href=#60 id=60 data-nosnippet>60</a>        <span class="kw">if </span>g != <span class="number">0 </span>{
+<a href=#60 id=60 data-nosnippet>60</a>        <span class="kw">if </span><span class="macro">g !</span>= <span class="number">0 </span>{
 <a href=#61 id=61 data-nosnippet>61</a>            h ^= g &gt;&gt; <span class="number">24</span>;
 <a href=#62 id=62 data-nosnippet>62</a>        }
 <a href=#63 id=63 data-nosnippet>63</a>        h &amp;= !g;
@@ -192,7 +192,7 @@
 <a href=#192 id=192 data-nosnippet>192</a>                    </span>.as_ptr();
 <a href=#193 id=193 data-nosnippet>193</a>                }
 <a href=#194 id=194 data-nosnippet>194</a>                DT_SYMENT =&gt; {
-<a href=#195 id=195 data-nosnippet>195</a>                    <span class="kw">if </span>d.d_un.d_ptr != size_of::&lt;Elf_Sym&gt;() {
+<a href=#195 id=195 data-nosnippet>195</a>                    <span class="kw">if </span>d.d_un.<span class="macro">d_ptr !</span>= size_of::&lt;Elf_Sym&gt;() {
 <a href=#196 id=196 data-nosnippet>196</a>                        <span class="kw">return </span><span class="prelude-val">None</span>; <span class="comment">// Failed
 <a href=#197 id=197 data-nosnippet>197</a>                    </span>}
 <a href=#198 id=198 data-nosnippet>198</a>                }
@@ -270,7 +270,7 @@
 <a href=#270 id=270 data-nosnippet>270</a>        </span>ver &amp;= <span class="number">0x7fff</span>; <span class="comment">// Apparently bit 15 means "hidden"
 <a href=#271 id=271 data-nosnippet>271</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>def = <span class="self">self</span>.verdef;
 <a href=#272 id=272 data-nosnippet>272</a>        <span class="kw">loop </span>{
-<a href=#273 id=273 data-nosnippet>273</a>            <span class="kw">if </span>(<span class="kw-2">*</span>def).vd_version != VER_DEF_CURRENT {
+<a href=#273 id=273 data-nosnippet>273</a>            <span class="kw">if </span>(<span class="kw-2">*</span>def).<span class="macro">vd_version !</span>= VER_DEF_CURRENT {
 <a href=#274 id=274 data-nosnippet>274</a>                <span class="kw">return </span><span class="bool-val">false</span>; <span class="comment">// Failed
 <a href=#275 id=275 data-nosnippet>275</a>            </span>}
 <a href=#276 id=276 data-nosnippet>276</a>
@@ -322,7 +322,7 @@
 <a href=#322 id=322 data-nosnippet>322</a>        <span class="kw">if </span>ELF_ST_BIND(sym.st_info) != STB_GLOBAL &amp;&amp; ELF_ST_BIND(sym.st_info) != STB_WEAK {
 <a href=#323 id=323 data-nosnippet>323</a>            <span class="kw">return </span><span class="bool-val">false</span>;
 <a href=#324 id=324 data-nosnippet>324</a>        }
-<a href=#325 id=325 data-nosnippet>325</a>        <span class="kw">if </span>name != CStr::from_ptr(<span class="self">self</span>.symstrings.add(sym.st_name <span class="kw">as </span>usize).cast()) {
+<a href=#325 id=325 data-nosnippet>325</a>        <span class="kw">if </span><span class="macro">name !</span>= CStr::from_ptr(<span class="self">self</span>.symstrings.add(sym.st_name <span class="kw">as </span>usize).cast()) {
 <a href=#326 id=326 data-nosnippet>326</a>            <span class="kw">return </span><span class="bool-val">false</span>;
 <a href=#327 id=327 data-nosnippet>327</a>        }
 <a href=#328 id=328 data-nosnippet>328</a>
@@ -387,9 +387,9 @@
 <a href=#387 id=387 data-nosnippet>387</a>                <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="kw-2">*</span><span class="self">self
 <a href=#388 id=388 data-nosnippet>388</a>                    </span>.bucket
 <a href=#389 id=389 data-nosnippet>389</a>                    .add((ElfHashEntry::from(elf_hash(name)) % <span class="self">self</span>.nbucket) <span class="kw">as </span>usize);
-<a href=#390 id=390 data-nosnippet>390</a>                <span class="kw">while </span>i != <span class="number">0 </span>{
+<a href=#390 id=390 data-nosnippet>390</a>                <span class="kw">while </span><span class="macro">i !</span>= <span class="number">0 </span>{
 <a href=#391 id=391 data-nosnippet>391</a>                    <span class="kw">let </span>sym: <span class="kw-2">&amp;</span>Elf_Sym = <span class="kw-2">&amp;*</span><span class="self">self</span>.symtab.add(i <span class="kw">as </span>usize);
-<a href=#392 id=392 data-nosnippet>392</a>                    <span class="kw">if </span>sym.st_shndx != SHN_UNDEF &amp;&amp; <span class="self">self</span>.check_sym(sym, i, name, version, ver_hash)
+<a href=#392 id=392 data-nosnippet>392</a>                    <span class="kw">if </span>sym.<span class="macro">st_shndx !</span>= SHN_UNDEF &amp;&amp; <span class="self">self</span>.check_sym(sym, i, name, version, ver_hash)
 <a href=#393 id=393 data-nosnippet>393</a>                    {
 <a href=#394 id=394 data-nosnippet>394</a>                        <span class="kw">let </span>sum = <span class="self">self</span>.addr_from_elf(sym.st_value).unwrap();
 <a href=#395 id=395 data-nosnippet>395</a>                        <span class="macro">assert!</span>(
@@ -542,4 +542,5 @@
 <a href=#542 id=542 data-nosnippet>542</a>            </span><span class="macro">assert!</span>(!ptr.is_null());
 <a href=#543 id=543 data-nosnippet>543</a>        }
 <a href=#544 id=544 data-nosnippet>544</a>    }
-<a href=#545 id=545 data-nosnippet>545</a>}</code></pre></div></section></main></body></html>
+<a href=#545 id=545 data-nosnippet>545</a>}
+</code></pre></div></section></main></body></html>

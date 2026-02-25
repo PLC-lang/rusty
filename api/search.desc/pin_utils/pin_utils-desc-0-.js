@@ -1,1 +1,0 @@
-searchState.loadedDescShard("pin_utils", 0, "Utilities for pinning\nPins a value on the stack.\nA pinned projection of a struct field.\nAn unpinned projection of a struct field.")
