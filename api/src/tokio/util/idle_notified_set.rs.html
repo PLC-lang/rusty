@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.48.0/src/util/idle_notified_set.rs`."><title>idle_notified_set.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/util/</div>idle_notified_set.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! This module defines an `IdleNotifiedSet`, which is a collection of elements.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.49.0/src/util/idle_notified_set.rs`."><title>idle_notified_set.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/util/</div>idle_notified_set.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! This module defines an `IdleNotifiedSet`, which is a collection of elements.
 <a href=#2 id=2 data-nosnippet>2</a>//! Each element is intended to correspond to a task, and the collection will
 <a href=#3 id=3 data-nosnippet>3</a>//! keep track of which tasks have had their waker notified, and which have not.
 <a href=#4 id=4 data-nosnippet>4</a>//!
@@ -349,162 +349,165 @@
 <a href=#349 id=349 data-nosnippet>349</a></span><span class="kw">unsafe fn </span>move_to_new_list&lt;T&gt;(from: <span class="kw-2">&amp;mut </span>LinkedList&lt;T&gt;, to: <span class="kw-2">&amp;mut </span>LinkedList&lt;T&gt;) {
 <a href=#350 id=350 data-nosnippet>350</a>    <span class="kw">while let </span><span class="prelude-val">Some</span>(entry) = from.pop_back() {
 <a href=#351 id=351 data-nosnippet>351</a>        entry.my_list.with_mut(|ptr| {
-<a href=#352 id=352 data-nosnippet>352</a>            <span class="kw-2">*</span>ptr = List::Neither;
-<a href=#353 id=353 data-nosnippet>353</a>        });
-<a href=#354 id=354 data-nosnippet>354</a>        to.push_front(entry);
-<a href=#355 id=355 data-nosnippet>355</a>    }
-<a href=#356 id=356 data-nosnippet>356</a>}
-<a href=#357 id=357 data-nosnippet>357</a>
-<a href=#358 id=358 data-nosnippet>358</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; EntryInOneOfTheLists&lt;<span class="lifetime">'a</span>, T&gt; {
-<a href=#359 id=359 data-nosnippet>359</a>    <span class="doccomment">/// Remove this entry from the list it is in, returning the value associated
-<a href=#360 id=360 data-nosnippet>360</a>    /// with the entry.
-<a href=#361 id=361 data-nosnippet>361</a>    ///
-<a href=#362 id=362 data-nosnippet>362</a>    /// This consumes the value, since it is no longer guaranteed to be in a
-<a href=#363 id=363 data-nosnippet>363</a>    /// list.
-<a href=#364 id=364 data-nosnippet>364</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="self">self</span>) -&gt; T {
-<a href=#365 id=365 data-nosnippet>365</a>        <span class="self">self</span>.set.length -= <span class="number">1</span>;
-<a href=#366 id=366 data-nosnippet>366</a>
-<a href=#367 id=367 data-nosnippet>367</a>        {
-<a href=#368 id=368 data-nosnippet>368</a>            <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="self">self</span>.set.lists.lock();
+<a href=#352 id=352 data-nosnippet>352</a>            <span class="comment">// Safety: pointer is accessed while holding the mutex.
+<a href=#353 id=353 data-nosnippet>353</a>            </span><span class="kw">unsafe </span>{
+<a href=#354 id=354 data-nosnippet>354</a>                <span class="kw-2">*</span>ptr = List::Neither;
+<a href=#355 id=355 data-nosnippet>355</a>            }
+<a href=#356 id=356 data-nosnippet>356</a>        });
+<a href=#357 id=357 data-nosnippet>357</a>        to.push_front(entry);
+<a href=#358 id=358 data-nosnippet>358</a>    }
+<a href=#359 id=359 data-nosnippet>359</a>}
+<a href=#360 id=360 data-nosnippet>360</a>
+<a href=#361 id=361 data-nosnippet>361</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; EntryInOneOfTheLists&lt;<span class="lifetime">'a</span>, T&gt; {
+<a href=#362 id=362 data-nosnippet>362</a>    <span class="doccomment">/// Remove this entry from the list it is in, returning the value associated
+<a href=#363 id=363 data-nosnippet>363</a>    /// with the entry.
+<a href=#364 id=364 data-nosnippet>364</a>    ///
+<a href=#365 id=365 data-nosnippet>365</a>    /// This consumes the value, since it is no longer guaranteed to be in a
+<a href=#366 id=366 data-nosnippet>366</a>    /// list.
+<a href=#367 id=367 data-nosnippet>367</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="self">self</span>) -&gt; T {
+<a href=#368 id=368 data-nosnippet>368</a>        <span class="self">self</span>.set.length -= <span class="number">1</span>;
 <a href=#369 id=369 data-nosnippet>369</a>
-<a href=#370 id=370 data-nosnippet>370</a>            <span class="comment">// Safety: We are holding the lock so there is no race, and we will
-<a href=#371 id=371 data-nosnippet>371</a>            // remove the entry afterwards to uphold invariants.
-<a href=#372 id=372 data-nosnippet>372</a>            </span><span class="kw">let </span>old_my_list = <span class="self">self</span>.entry.my_list.with_mut(|ptr| <span class="kw">unsafe </span>{
-<a href=#373 id=373 data-nosnippet>373</a>                <span class="kw">let </span>old_my_list = <span class="kw-2">*</span>ptr;
-<a href=#374 id=374 data-nosnippet>374</a>                <span class="kw-2">*</span>ptr = List::Neither;
-<a href=#375 id=375 data-nosnippet>375</a>                old_my_list
-<a href=#376 id=376 data-nosnippet>376</a>            });
-<a href=#377 id=377 data-nosnippet>377</a>
-<a href=#378 id=378 data-nosnippet>378</a>            <span class="kw">let </span>list = <span class="kw">match </span>old_my_list {
-<a href=#379 id=379 data-nosnippet>379</a>                List::Idle =&gt; <span class="kw-2">&amp;mut </span>lock.idle,
-<a href=#380 id=380 data-nosnippet>380</a>                List::Notified =&gt; <span class="kw-2">&amp;mut </span>lock.notified,
-<a href=#381 id=381 data-nosnippet>381</a>                <span class="comment">// An entry in one of the lists is in one of the lists.
-<a href=#382 id=382 data-nosnippet>382</a>                </span>List::Neither =&gt; <span class="macro">unreachable!</span>(),
-<a href=#383 id=383 data-nosnippet>383</a>            };
-<a href=#384 id=384 data-nosnippet>384</a>
-<a href=#385 id=385 data-nosnippet>385</a>            <span class="kw">unsafe </span>{
-<a href=#386 id=386 data-nosnippet>386</a>                <span class="comment">// Safety: We just checked that the entry is in this particular
-<a href=#387 id=387 data-nosnippet>387</a>                // list.
-<a href=#388 id=388 data-nosnippet>388</a>                </span>list.remove(ListEntry::as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>.entry)).unwrap();
-<a href=#389 id=389 data-nosnippet>389</a>            }
-<a href=#390 id=390 data-nosnippet>390</a>        }
-<a href=#391 id=391 data-nosnippet>391</a>
-<a href=#392 id=392 data-nosnippet>392</a>        <span class="comment">// By setting `my_list` to `Neither`, we have taken ownership of the
-<a href=#393 id=393 data-nosnippet>393</a>        // value. We return it to the caller.
-<a href=#394 id=394 data-nosnippet>394</a>        //
-<a href=#395 id=395 data-nosnippet>395</a>        // Safety: We have a mutable reference to the `IdleNotifiedSet` that
-<a href=#396 id=396 data-nosnippet>396</a>        // owns this entry, so we can use its permission to access the value.
-<a href=#397 id=397 data-nosnippet>397</a>        </span><span class="self">self</span>.entry
-<a href=#398 id=398 data-nosnippet>398</a>            .value
-<a href=#399 id=399 data-nosnippet>399</a>            .with_mut(|ptr| <span class="kw">unsafe </span>{ ManuallyDrop::take(<span class="kw-2">&amp;mut *</span>ptr) })
-<a href=#400 id=400 data-nosnippet>400</a>    }
-<a href=#401 id=401 data-nosnippet>401</a>
-<a href=#402 id=402 data-nosnippet>402</a>    <span class="doccomment">/// Access the value in this entry together with a context for its waker.
-<a href=#403 id=403 data-nosnippet>403</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_value_and_context&lt;F, U&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, func: F) -&gt; U
-<a href=#404 id=404 data-nosnippet>404</a>    <span class="kw">where
-<a href=#405 id=405 data-nosnippet>405</a>        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; U,
-<a href=#406 id=406 data-nosnippet>406</a>        T: <span class="lifetime">'static</span>,
-<a href=#407 id=407 data-nosnippet>407</a>    {
-<a href=#408 id=408 data-nosnippet>408</a>        <span class="kw">let </span>waker = waker_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.entry);
-<a href=#409 id=409 data-nosnippet>409</a>
-<a href=#410 id=410 data-nosnippet>410</a>        <span class="kw">let </span><span class="kw-2">mut </span>context = Context::from_waker(<span class="kw-2">&amp;</span>waker);
-<a href=#411 id=411 data-nosnippet>411</a>
-<a href=#412 id=412 data-nosnippet>412</a>        <span class="comment">// Safety: We have a mutable reference to the `IdleNotifiedSet` that
-<a href=#413 id=413 data-nosnippet>413</a>        // owns this entry, so we can use its permission to access the value.
-<a href=#414 id=414 data-nosnippet>414</a>        </span><span class="self">self</span>.entry
-<a href=#415 id=415 data-nosnippet>415</a>            .value
-<a href=#416 id=416 data-nosnippet>416</a>            .with_mut(|ptr| <span class="kw">unsafe </span>{ func(<span class="kw-2">&amp;mut *</span>ptr, <span class="kw-2">&amp;mut </span>context) })
-<a href=#417 id=417 data-nosnippet>417</a>    }
-<a href=#418 id=418 data-nosnippet>418</a>}
-<a href=#419 id=419 data-nosnippet>419</a>
-<a href=#420 id=420 data-nosnippet>420</a><span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>IdleNotifiedSet&lt;T&gt; {
-<a href=#421 id=421 data-nosnippet>421</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#422 id=422 data-nosnippet>422</a>        <span class="comment">// Clear both lists.
-<a href=#423 id=423 data-nosnippet>423</a>        </span><span class="self">self</span>.drain(drop);
-<a href=#424 id=424 data-nosnippet>424</a>
-<a href=#425 id=425 data-nosnippet>425</a>        <span class="attr">#[cfg(debug_assertions)]
-<a href=#426 id=426 data-nosnippet>426</a>        </span><span class="kw">if </span>!std::thread::panicking() {
-<a href=#427 id=427 data-nosnippet>427</a>            <span class="kw">let </span>lock = <span class="self">self</span>.lists.lock();
-<a href=#428 id=428 data-nosnippet>428</a>            <span class="macro">assert!</span>(lock.idle.is_empty());
-<a href=#429 id=429 data-nosnippet>429</a>            <span class="macro">assert!</span>(lock.notified.is_empty());
-<a href=#430 id=430 data-nosnippet>430</a>        }
-<a href=#431 id=431 data-nosnippet>431</a>    }
-<a href=#432 id=432 data-nosnippet>432</a>}
-<a href=#433 id=433 data-nosnippet>433</a>
-<a href=#434 id=434 data-nosnippet>434</a><span class="kw">impl</span>&lt;T: <span class="lifetime">'static</span>&gt; Wake <span class="kw">for </span>ListEntry&lt;T&gt; {
-<a href=#435 id=435 data-nosnippet>435</a>    <span class="kw">fn </span>wake_by_ref(me: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
-<a href=#436 id=436 data-nosnippet>436</a>        <span class="kw">let </span><span class="kw-2">mut </span>lock = me.parent.lock();
-<a href=#437 id=437 data-nosnippet>437</a>
-<a href=#438 id=438 data-nosnippet>438</a>        <span class="comment">// Safety: We are holding the lock and we will update the lists to
-<a href=#439 id=439 data-nosnippet>439</a>        // maintain invariants.
-<a href=#440 id=440 data-nosnippet>440</a>        </span><span class="kw">let </span>old_my_list = me.my_list.with_mut(|ptr| <span class="kw">unsafe </span>{
-<a href=#441 id=441 data-nosnippet>441</a>            <span class="kw">let </span>old_my_list = <span class="kw-2">*</span>ptr;
-<a href=#442 id=442 data-nosnippet>442</a>            <span class="kw">if </span>old_my_list == List::Idle {
-<a href=#443 id=443 data-nosnippet>443</a>                <span class="kw-2">*</span>ptr = List::Notified;
-<a href=#444 id=444 data-nosnippet>444</a>            }
-<a href=#445 id=445 data-nosnippet>445</a>            old_my_list
-<a href=#446 id=446 data-nosnippet>446</a>        });
-<a href=#447 id=447 data-nosnippet>447</a>
-<a href=#448 id=448 data-nosnippet>448</a>        <span class="kw">if </span>old_my_list == List::Idle {
-<a href=#449 id=449 data-nosnippet>449</a>            <span class="comment">// We move ourself to the notified list.
-<a href=#450 id=450 data-nosnippet>450</a>            </span><span class="kw">let </span>me = <span class="kw">unsafe </span>{
-<a href=#451 id=451 data-nosnippet>451</a>                <span class="comment">// Safety: We just checked that we are in this particular list.
-<a href=#452 id=452 data-nosnippet>452</a>                </span>lock.idle.remove(ListEntry::as_raw(me)).unwrap()
-<a href=#453 id=453 data-nosnippet>453</a>            };
-<a href=#454 id=454 data-nosnippet>454</a>            lock.notified.push_front(me);
-<a href=#455 id=455 data-nosnippet>455</a>
-<a href=#456 id=456 data-nosnippet>456</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = lock.waker.take() {
-<a href=#457 id=457 data-nosnippet>457</a>                drop(lock);
-<a href=#458 id=458 data-nosnippet>458</a>                waker.wake();
-<a href=#459 id=459 data-nosnippet>459</a>            }
-<a href=#460 id=460 data-nosnippet>460</a>        }
-<a href=#461 id=461 data-nosnippet>461</a>    }
-<a href=#462 id=462 data-nosnippet>462</a>
-<a href=#463 id=463 data-nosnippet>463</a>    <span class="kw">fn </span>wake(me: Arc&lt;<span class="self">Self</span>&gt;) {
-<a href=#464 id=464 data-nosnippet>464</a>        <span class="self">Self</span>::wake_by_ref(<span class="kw-2">&amp;</span>me);
-<a href=#465 id=465 data-nosnippet>465</a>    }
-<a href=#466 id=466 data-nosnippet>466</a>}
-<a href=#467 id=467 data-nosnippet>467</a>
-<a href=#468 id=468 data-nosnippet>468</a><span class="doccomment">/// # Safety
-<a href=#469 id=469 data-nosnippet>469</a>///
-<a href=#470 id=470 data-nosnippet>470</a>/// `ListEntry` is forced to be !Unpin.
-<a href=#471 id=471 data-nosnippet>471</a></span><span class="kw">unsafe impl</span>&lt;T&gt; linked_list::Link <span class="kw">for </span>ListEntry&lt;T&gt; {
-<a href=#472 id=472 data-nosnippet>472</a>    <span class="kw">type </span>Handle = Arc&lt;ListEntry&lt;T&gt;&gt;;
-<a href=#473 id=473 data-nosnippet>473</a>    <span class="kw">type </span>Target = ListEntry&lt;T&gt;;
-<a href=#474 id=474 data-nosnippet>474</a>
-<a href=#475 id=475 data-nosnippet>475</a>    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; NonNull&lt;ListEntry&lt;T&gt;&gt; {
-<a href=#476 id=476 data-nosnippet>476</a>        <span class="kw">let </span>ptr: <span class="kw-2">*const </span>ListEntry&lt;T&gt; = Arc::as_ptr(handle);
-<a href=#477 id=477 data-nosnippet>477</a>        <span class="comment">// Safety: We can't get a null pointer from `Arc::as_ptr`.
-<a href=#478 id=478 data-nosnippet>478</a>        </span><span class="kw">unsafe </span>{ NonNull::new_unchecked(ptr <span class="kw">as </span><span class="kw-2">*mut </span>ListEntry&lt;T&gt;) }
-<a href=#479 id=479 data-nosnippet>479</a>    }
-<a href=#480 id=480 data-nosnippet>480</a>
-<a href=#481 id=481 data-nosnippet>481</a>    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;ListEntry&lt;T&gt;&gt;) -&gt; Arc&lt;ListEntry&lt;T&gt;&gt; {
-<a href=#482 id=482 data-nosnippet>482</a>        Arc::from_raw(ptr.as_ptr())
-<a href=#483 id=483 data-nosnippet>483</a>    }
-<a href=#484 id=484 data-nosnippet>484</a>
-<a href=#485 id=485 data-nosnippet>485</a>    <span class="kw">unsafe fn </span>pointers(
-<a href=#486 id=486 data-nosnippet>486</a>        target: NonNull&lt;ListEntry&lt;T&gt;&gt;,
-<a href=#487 id=487 data-nosnippet>487</a>    ) -&gt; NonNull&lt;linked_list::Pointers&lt;ListEntry&lt;T&gt;&gt;&gt; {
-<a href=#488 id=488 data-nosnippet>488</a>        ListEntry::addr_of_pointers(target)
-<a href=#489 id=489 data-nosnippet>489</a>    }
-<a href=#490 id=490 data-nosnippet>490</a>}
-<a href=#491 id=491 data-nosnippet>491</a>
-<a href=#492 id=492 data-nosnippet>492</a><span class="attr">#[cfg(all(test, not(loom)))]
-<a href=#493 id=493 data-nosnippet>493</a></span><span class="kw">mod </span>tests {
-<a href=#494 id=494 data-nosnippet>494</a>    <span class="kw">use </span><span class="kw">crate</span>::runtime::Builder;
-<a href=#495 id=495 data-nosnippet>495</a>    <span class="kw">use </span><span class="kw">crate</span>::task::JoinSet;
-<a href=#496 id=496 data-nosnippet>496</a>
-<a href=#497 id=497 data-nosnippet>497</a>    <span class="comment">// A test that runs under miri.
-<a href=#498 id=498 data-nosnippet>498</a>    //
-<a href=#499 id=499 data-nosnippet>499</a>    // https://github.com/tokio-rs/tokio/pull/5693
-<a href=#500 id=500 data-nosnippet>500</a>    </span><span class="attr">#[test]
-<a href=#501 id=501 data-nosnippet>501</a>    </span><span class="kw">fn </span>join_set_test() {
-<a href=#502 id=502 data-nosnippet>502</a>        <span class="kw">let </span>rt = Builder::new_current_thread().build().unwrap();
-<a href=#503 id=503 data-nosnippet>503</a>
-<a href=#504 id=504 data-nosnippet>504</a>        <span class="kw">let </span><span class="kw-2">mut </span>set = JoinSet::new();
-<a href=#505 id=505 data-nosnippet>505</a>        set.spawn_on(futures::future::ready(()), rt.handle());
+<a href=#370 id=370 data-nosnippet>370</a>        {
+<a href=#371 id=371 data-nosnippet>371</a>            <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="self">self</span>.set.lists.lock();
+<a href=#372 id=372 data-nosnippet>372</a>
+<a href=#373 id=373 data-nosnippet>373</a>            <span class="comment">// Safety: We are holding the lock so there is no race, and we will
+<a href=#374 id=374 data-nosnippet>374</a>            // remove the entry afterwards to uphold invariants.
+<a href=#375 id=375 data-nosnippet>375</a>            </span><span class="kw">let </span>old_my_list = <span class="self">self</span>.entry.my_list.with_mut(|ptr| <span class="kw">unsafe </span>{
+<a href=#376 id=376 data-nosnippet>376</a>                <span class="kw">let </span>old_my_list = <span class="kw-2">*</span>ptr;
+<a href=#377 id=377 data-nosnippet>377</a>                <span class="kw-2">*</span>ptr = List::Neither;
+<a href=#378 id=378 data-nosnippet>378</a>                old_my_list
+<a href=#379 id=379 data-nosnippet>379</a>            });
+<a href=#380 id=380 data-nosnippet>380</a>
+<a href=#381 id=381 data-nosnippet>381</a>            <span class="kw">let </span>list = <span class="kw">match </span>old_my_list {
+<a href=#382 id=382 data-nosnippet>382</a>                List::Idle =&gt; <span class="kw-2">&amp;mut </span>lock.idle,
+<a href=#383 id=383 data-nosnippet>383</a>                List::Notified =&gt; <span class="kw-2">&amp;mut </span>lock.notified,
+<a href=#384 id=384 data-nosnippet>384</a>                <span class="comment">// An entry in one of the lists is in one of the lists.
+<a href=#385 id=385 data-nosnippet>385</a>                </span>List::Neither =&gt; <span class="macro">unreachable!</span>(),
+<a href=#386 id=386 data-nosnippet>386</a>            };
+<a href=#387 id=387 data-nosnippet>387</a>
+<a href=#388 id=388 data-nosnippet>388</a>            <span class="kw">unsafe </span>{
+<a href=#389 id=389 data-nosnippet>389</a>                <span class="comment">// Safety: We just checked that the entry is in this particular
+<a href=#390 id=390 data-nosnippet>390</a>                // list.
+<a href=#391 id=391 data-nosnippet>391</a>                </span>list.remove(ListEntry::as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>.entry)).unwrap();
+<a href=#392 id=392 data-nosnippet>392</a>            }
+<a href=#393 id=393 data-nosnippet>393</a>        }
+<a href=#394 id=394 data-nosnippet>394</a>
+<a href=#395 id=395 data-nosnippet>395</a>        <span class="comment">// By setting `my_list` to `Neither`, we have taken ownership of the
+<a href=#396 id=396 data-nosnippet>396</a>        // value. We return it to the caller.
+<a href=#397 id=397 data-nosnippet>397</a>        //
+<a href=#398 id=398 data-nosnippet>398</a>        // Safety: We have a mutable reference to the `IdleNotifiedSet` that
+<a href=#399 id=399 data-nosnippet>399</a>        // owns this entry, so we can use its permission to access the value.
+<a href=#400 id=400 data-nosnippet>400</a>        </span><span class="self">self</span>.entry
+<a href=#401 id=401 data-nosnippet>401</a>            .value
+<a href=#402 id=402 data-nosnippet>402</a>            .with_mut(|ptr| <span class="kw">unsafe </span>{ ManuallyDrop::take(<span class="kw-2">&amp;mut *</span>ptr) })
+<a href=#403 id=403 data-nosnippet>403</a>    }
+<a href=#404 id=404 data-nosnippet>404</a>
+<a href=#405 id=405 data-nosnippet>405</a>    <span class="doccomment">/// Access the value in this entry together with a context for its waker.
+<a href=#406 id=406 data-nosnippet>406</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with_value_and_context&lt;F, U&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, func: F) -&gt; U
+<a href=#407 id=407 data-nosnippet>407</a>    <span class="kw">where
+<a href=#408 id=408 data-nosnippet>408</a>        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T, <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; U,
+<a href=#409 id=409 data-nosnippet>409</a>        T: <span class="lifetime">'static</span>,
+<a href=#410 id=410 data-nosnippet>410</a>    {
+<a href=#411 id=411 data-nosnippet>411</a>        <span class="kw">let </span>waker = waker_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.entry);
+<a href=#412 id=412 data-nosnippet>412</a>
+<a href=#413 id=413 data-nosnippet>413</a>        <span class="kw">let </span><span class="kw-2">mut </span>context = Context::from_waker(<span class="kw-2">&amp;</span>waker);
+<a href=#414 id=414 data-nosnippet>414</a>
+<a href=#415 id=415 data-nosnippet>415</a>        <span class="comment">// Safety: We have a mutable reference to the `IdleNotifiedSet` that
+<a href=#416 id=416 data-nosnippet>416</a>        // owns this entry, so we can use its permission to access the value.
+<a href=#417 id=417 data-nosnippet>417</a>        </span><span class="self">self</span>.entry
+<a href=#418 id=418 data-nosnippet>418</a>            .value
+<a href=#419 id=419 data-nosnippet>419</a>            .with_mut(|ptr| <span class="kw">unsafe </span>{ func(<span class="kw-2">&amp;mut *</span>ptr, <span class="kw-2">&amp;mut </span>context) })
+<a href=#420 id=420 data-nosnippet>420</a>    }
+<a href=#421 id=421 data-nosnippet>421</a>}
+<a href=#422 id=422 data-nosnippet>422</a>
+<a href=#423 id=423 data-nosnippet>423</a><span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>IdleNotifiedSet&lt;T&gt; {
+<a href=#424 id=424 data-nosnippet>424</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#425 id=425 data-nosnippet>425</a>        <span class="comment">// Clear both lists.
+<a href=#426 id=426 data-nosnippet>426</a>        </span><span class="self">self</span>.drain(drop);
+<a href=#427 id=427 data-nosnippet>427</a>
+<a href=#428 id=428 data-nosnippet>428</a>        <span class="attr">#[cfg(debug_assertions)]
+<a href=#429 id=429 data-nosnippet>429</a>        </span><span class="kw">if </span>!std::thread::panicking() {
+<a href=#430 id=430 data-nosnippet>430</a>            <span class="kw">let </span>lock = <span class="self">self</span>.lists.lock();
+<a href=#431 id=431 data-nosnippet>431</a>            <span class="macro">assert!</span>(lock.idle.is_empty());
+<a href=#432 id=432 data-nosnippet>432</a>            <span class="macro">assert!</span>(lock.notified.is_empty());
+<a href=#433 id=433 data-nosnippet>433</a>        }
+<a href=#434 id=434 data-nosnippet>434</a>    }
+<a href=#435 id=435 data-nosnippet>435</a>}
+<a href=#436 id=436 data-nosnippet>436</a>
+<a href=#437 id=437 data-nosnippet>437</a><span class="kw">impl</span>&lt;T: <span class="lifetime">'static</span>&gt; Wake <span class="kw">for </span>ListEntry&lt;T&gt; {
+<a href=#438 id=438 data-nosnippet>438</a>    <span class="kw">fn </span>wake_by_ref(me: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;) {
+<a href=#439 id=439 data-nosnippet>439</a>        <span class="kw">let </span><span class="kw-2">mut </span>lock = me.parent.lock();
+<a href=#440 id=440 data-nosnippet>440</a>
+<a href=#441 id=441 data-nosnippet>441</a>        <span class="comment">// Safety: We are holding the lock and we will update the lists to
+<a href=#442 id=442 data-nosnippet>442</a>        // maintain invariants.
+<a href=#443 id=443 data-nosnippet>443</a>        </span><span class="kw">let </span>old_my_list = me.my_list.with_mut(|ptr| <span class="kw">unsafe </span>{
+<a href=#444 id=444 data-nosnippet>444</a>            <span class="kw">let </span>old_my_list = <span class="kw-2">*</span>ptr;
+<a href=#445 id=445 data-nosnippet>445</a>            <span class="kw">if </span>old_my_list == List::Idle {
+<a href=#446 id=446 data-nosnippet>446</a>                <span class="kw-2">*</span>ptr = List::Notified;
+<a href=#447 id=447 data-nosnippet>447</a>            }
+<a href=#448 id=448 data-nosnippet>448</a>            old_my_list
+<a href=#449 id=449 data-nosnippet>449</a>        });
+<a href=#450 id=450 data-nosnippet>450</a>
+<a href=#451 id=451 data-nosnippet>451</a>        <span class="kw">if </span>old_my_list == List::Idle {
+<a href=#452 id=452 data-nosnippet>452</a>            <span class="comment">// We move ourself to the notified list.
+<a href=#453 id=453 data-nosnippet>453</a>            </span><span class="kw">let </span>me = <span class="kw">unsafe </span>{
+<a href=#454 id=454 data-nosnippet>454</a>                <span class="comment">// Safety: We just checked that we are in this particular list.
+<a href=#455 id=455 data-nosnippet>455</a>                </span>lock.idle.remove(ListEntry::as_raw(me)).unwrap()
+<a href=#456 id=456 data-nosnippet>456</a>            };
+<a href=#457 id=457 data-nosnippet>457</a>            lock.notified.push_front(me);
+<a href=#458 id=458 data-nosnippet>458</a>
+<a href=#459 id=459 data-nosnippet>459</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(waker) = lock.waker.take() {
+<a href=#460 id=460 data-nosnippet>460</a>                drop(lock);
+<a href=#461 id=461 data-nosnippet>461</a>                waker.wake();
+<a href=#462 id=462 data-nosnippet>462</a>            }
+<a href=#463 id=463 data-nosnippet>463</a>        }
+<a href=#464 id=464 data-nosnippet>464</a>    }
+<a href=#465 id=465 data-nosnippet>465</a>
+<a href=#466 id=466 data-nosnippet>466</a>    <span class="kw">fn </span>wake(me: Arc&lt;<span class="self">Self</span>&gt;) {
+<a href=#467 id=467 data-nosnippet>467</a>        <span class="self">Self</span>::wake_by_ref(<span class="kw-2">&amp;</span>me);
+<a href=#468 id=468 data-nosnippet>468</a>    }
+<a href=#469 id=469 data-nosnippet>469</a>}
+<a href=#470 id=470 data-nosnippet>470</a>
+<a href=#471 id=471 data-nosnippet>471</a><span class="doccomment">/// # Safety
+<a href=#472 id=472 data-nosnippet>472</a>///
+<a href=#473 id=473 data-nosnippet>473</a>/// `ListEntry` is forced to be !Unpin.
+<a href=#474 id=474 data-nosnippet>474</a></span><span class="kw">unsafe impl</span>&lt;T&gt; linked_list::Link <span class="kw">for </span>ListEntry&lt;T&gt; {
+<a href=#475 id=475 data-nosnippet>475</a>    <span class="kw">type </span>Handle = Arc&lt;ListEntry&lt;T&gt;&gt;;
+<a href=#476 id=476 data-nosnippet>476</a>    <span class="kw">type </span>Target = ListEntry&lt;T&gt;;
+<a href=#477 id=477 data-nosnippet>477</a>
+<a href=#478 id=478 data-nosnippet>478</a>    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; NonNull&lt;ListEntry&lt;T&gt;&gt; {
+<a href=#479 id=479 data-nosnippet>479</a>        <span class="kw">let </span>ptr: <span class="kw-2">*const </span>ListEntry&lt;T&gt; = Arc::as_ptr(handle);
+<a href=#480 id=480 data-nosnippet>480</a>        <span class="comment">// Safety: We can't get a null pointer from `Arc::as_ptr`.
+<a href=#481 id=481 data-nosnippet>481</a>        </span><span class="kw">unsafe </span>{ NonNull::new_unchecked(ptr <span class="kw">as </span><span class="kw-2">*mut </span>ListEntry&lt;T&gt;) }
+<a href=#482 id=482 data-nosnippet>482</a>    }
+<a href=#483 id=483 data-nosnippet>483</a>
+<a href=#484 id=484 data-nosnippet>484</a>    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;ListEntry&lt;T&gt;&gt;) -&gt; Arc&lt;ListEntry&lt;T&gt;&gt; {
+<a href=#485 id=485 data-nosnippet>485</a>        <span class="kw">unsafe </span>{ Arc::from_raw(ptr.as_ptr()) }
+<a href=#486 id=486 data-nosnippet>486</a>    }
+<a href=#487 id=487 data-nosnippet>487</a>
+<a href=#488 id=488 data-nosnippet>488</a>    <span class="kw">unsafe fn </span>pointers(
+<a href=#489 id=489 data-nosnippet>489</a>        target: NonNull&lt;ListEntry&lt;T&gt;&gt;,
+<a href=#490 id=490 data-nosnippet>490</a>    ) -&gt; NonNull&lt;linked_list::Pointers&lt;ListEntry&lt;T&gt;&gt;&gt; {
+<a href=#491 id=491 data-nosnippet>491</a>        <span class="kw">unsafe </span>{ ListEntry::addr_of_pointers(target) }
+<a href=#492 id=492 data-nosnippet>492</a>    }
+<a href=#493 id=493 data-nosnippet>493</a>}
+<a href=#494 id=494 data-nosnippet>494</a>
+<a href=#495 id=495 data-nosnippet>495</a><span class="attr">#[cfg(all(test, not(loom)))]
+<a href=#496 id=496 data-nosnippet>496</a></span><span class="kw">mod </span>tests {
+<a href=#497 id=497 data-nosnippet>497</a>    <span class="kw">use </span><span class="kw">crate</span>::runtime::Builder;
+<a href=#498 id=498 data-nosnippet>498</a>    <span class="kw">use </span><span class="kw">crate</span>::task::JoinSet;
+<a href=#499 id=499 data-nosnippet>499</a>
+<a href=#500 id=500 data-nosnippet>500</a>    <span class="comment">// A test that runs under miri.
+<a href=#501 id=501 data-nosnippet>501</a>    //
+<a href=#502 id=502 data-nosnippet>502</a>    // https://github.com/tokio-rs/tokio/pull/5693
+<a href=#503 id=503 data-nosnippet>503</a>    </span><span class="attr">#[test]
+<a href=#504 id=504 data-nosnippet>504</a>    </span><span class="kw">fn </span>join_set_test() {
+<a href=#505 id=505 data-nosnippet>505</a>        <span class="kw">let </span>rt = Builder::new_current_thread().build().unwrap();
 <a href=#506 id=506 data-nosnippet>506</a>
-<a href=#507 id=507 data-nosnippet>507</a>        rt.block_on(set.join_next()).unwrap().unwrap();
-<a href=#508 id=508 data-nosnippet>508</a>    }
-<a href=#509 id=509 data-nosnippet>509</a>}
+<a href=#507 id=507 data-nosnippet>507</a>        <span class="kw">let </span><span class="kw-2">mut </span>set = JoinSet::new();
+<a href=#508 id=508 data-nosnippet>508</a>        set.spawn_on(futures::future::ready(()), rt.handle());
+<a href=#509 id=509 data-nosnippet>509</a>
+<a href=#510 id=510 data-nosnippet>510</a>        rt.block_on(set.join_next()).unwrap().unwrap();
+<a href=#511 id=511 data-nosnippet>511</a>    }
+<a href=#512 id=512 data-nosnippet>512</a>}
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.48.0/src/runtime/task/join.rs`."><title>join.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/runtime/task/</div>join.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::runtime::task::{Header, RawTask};
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.49.0/src/runtime/task/join.rs`."><title>join.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/runtime/task/</div>join.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::runtime::task::{Header, RawTask};
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>std::fmt;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>std::future::Future;
@@ -339,37 +339,36 @@
 <a href=#339 id=339 data-nosnippet>339</a>        //
 <a href=#340 id=340 data-nosnippet>340</a>        // The type of `T` must match the task's output type.
 <a href=#341 id=341 data-nosnippet>341</a>        </span><span class="kw">unsafe </span>{
-<a href=#342 id=342 data-nosnippet>342</a>            <span class="self">self</span>.raw
-<a href=#343 id=343 data-nosnippet>343</a>                .try_read_output(<span class="kw-2">&amp;mut </span>ret <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_ as </span><span class="kw-2">*mut </span>(), cx.waker());
-<a href=#344 id=344 data-nosnippet>344</a>        }
-<a href=#345 id=345 data-nosnippet>345</a>
-<a href=#346 id=346 data-nosnippet>346</a>        <span class="kw">if </span>ret.is_ready() {
-<a href=#347 id=347 data-nosnippet>347</a>            coop.made_progress();
-<a href=#348 id=348 data-nosnippet>348</a>        }
-<a href=#349 id=349 data-nosnippet>349</a>
-<a href=#350 id=350 data-nosnippet>350</a>        ret
-<a href=#351 id=351 data-nosnippet>351</a>    }
-<a href=#352 id=352 data-nosnippet>352</a>}
-<a href=#353 id=353 data-nosnippet>353</a>
-<a href=#354 id=354 data-nosnippet>354</a><span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>JoinHandle&lt;T&gt; {
-<a href=#355 id=355 data-nosnippet>355</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#356 id=356 data-nosnippet>356</a>        <span class="kw">if </span><span class="self">self</span>.raw.state().drop_join_handle_fast().is_ok() {
-<a href=#357 id=357 data-nosnippet>357</a>            <span class="kw">return</span>;
-<a href=#358 id=358 data-nosnippet>358</a>        }
-<a href=#359 id=359 data-nosnippet>359</a>
-<a href=#360 id=360 data-nosnippet>360</a>        <span class="self">self</span>.raw.drop_join_handle_slow();
-<a href=#361 id=361 data-nosnippet>361</a>    }
-<a href=#362 id=362 data-nosnippet>362</a>}
-<a href=#363 id=363 data-nosnippet>363</a>
-<a href=#364 id=364 data-nosnippet>364</a><span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>JoinHandle&lt;T&gt;
-<a href=#365 id=365 data-nosnippet>365</a><span class="kw">where
-<a href=#366 id=366 data-nosnippet>366</a>    </span>T: fmt::Debug,
-<a href=#367 id=367 data-nosnippet>367</a>{
-<a href=#368 id=368 data-nosnippet>368</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#369 id=369 data-nosnippet>369</a>        <span class="comment">// Safety: The header pointer is valid.
-<a href=#370 id=370 data-nosnippet>370</a>        </span><span class="kw">let </span>id_ptr = <span class="kw">unsafe </span>{ Header::get_id_ptr(<span class="self">self</span>.raw.header_ptr()) };
-<a href=#371 id=371 data-nosnippet>371</a>        <span class="kw">let </span>id = <span class="kw">unsafe </span>{ id_ptr.as_ref() };
-<a href=#372 id=372 data-nosnippet>372</a>        fmt.debug_struct(<span class="string">"JoinHandle"</span>).field(<span class="string">"id"</span>, id).finish()
-<a href=#373 id=373 data-nosnippet>373</a>    }
-<a href=#374 id=374 data-nosnippet>374</a>}
+<a href=#342 id=342 data-nosnippet>342</a>            <span class="self">self</span>.raw.try_read_output(<span class="kw-2">&amp;mut </span>ret, cx.waker());
+<a href=#343 id=343 data-nosnippet>343</a>        }
+<a href=#344 id=344 data-nosnippet>344</a>
+<a href=#345 id=345 data-nosnippet>345</a>        <span class="kw">if </span>ret.is_ready() {
+<a href=#346 id=346 data-nosnippet>346</a>            coop.made_progress();
+<a href=#347 id=347 data-nosnippet>347</a>        }
+<a href=#348 id=348 data-nosnippet>348</a>
+<a href=#349 id=349 data-nosnippet>349</a>        ret
+<a href=#350 id=350 data-nosnippet>350</a>    }
+<a href=#351 id=351 data-nosnippet>351</a>}
+<a href=#352 id=352 data-nosnippet>352</a>
+<a href=#353 id=353 data-nosnippet>353</a><span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>JoinHandle&lt;T&gt; {
+<a href=#354 id=354 data-nosnippet>354</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#355 id=355 data-nosnippet>355</a>        <span class="kw">if </span><span class="self">self</span>.raw.state().drop_join_handle_fast().is_ok() {
+<a href=#356 id=356 data-nosnippet>356</a>            <span class="kw">return</span>;
+<a href=#357 id=357 data-nosnippet>357</a>        }
+<a href=#358 id=358 data-nosnippet>358</a>
+<a href=#359 id=359 data-nosnippet>359</a>        <span class="self">self</span>.raw.drop_join_handle_slow();
+<a href=#360 id=360 data-nosnippet>360</a>    }
+<a href=#361 id=361 data-nosnippet>361</a>}
+<a href=#362 id=362 data-nosnippet>362</a>
+<a href=#363 id=363 data-nosnippet>363</a><span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>JoinHandle&lt;T&gt;
+<a href=#364 id=364 data-nosnippet>364</a><span class="kw">where
+<a href=#365 id=365 data-nosnippet>365</a>    </span>T: fmt::Debug,
+<a href=#366 id=366 data-nosnippet>366</a>{
+<a href=#367 id=367 data-nosnippet>367</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#368 id=368 data-nosnippet>368</a>        <span class="comment">// Safety: The header pointer is valid.
+<a href=#369 id=369 data-nosnippet>369</a>        </span><span class="kw">let </span>id_ptr = <span class="kw">unsafe </span>{ Header::get_id_ptr(<span class="self">self</span>.raw.header_ptr()) };
+<a href=#370 id=370 data-nosnippet>370</a>        <span class="kw">let </span>id = <span class="kw">unsafe </span>{ id_ptr.as_ref() };
+<a href=#371 id=371 data-nosnippet>371</a>        fmt.debug_struct(<span class="string">"JoinHandle"</span>).field(<span class="string">"id"</span>, id).finish()
+<a href=#372 id=372 data-nosnippet>372</a>    }
+<a href=#373 id=373 data-nosnippet>373</a>}
 </code></pre></div></section></main></body></html>

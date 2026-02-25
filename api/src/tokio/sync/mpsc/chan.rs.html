@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.48.0/src/sync/mpsc/chan.rs`."><title>chan.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/sync/mpsc/</div>chan.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::loom::cell::UnsafeCell;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.49.0/src/sync/mpsc/chan.rs`."><title>chan.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/sync/mpsc/</div>chan.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::loom::cell::UnsafeCell;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span><span class="kw">crate</span>::loom::future::AtomicWaker;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::loom::sync::Arc;
@@ -439,187 +439,191 @@
 <a href=#439 id=439 data-nosnippet>439</a>                            <span class="kw">return </span><span class="prelude-val">Ok</span>(value);
 <a href=#440 id=440 data-nosnippet>440</a>                        }
 <a href=#441 id=441 data-nosnippet>441</a>                        TryPopResult::Closed =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TryRecvError::Disconnected),
-<a href=#442 id=442 data-nosnippet>442</a>                        TryPopResult::Empty =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TryRecvError::Empty),
-<a href=#443 id=443 data-nosnippet>443</a>                        TryPopResult::Busy =&gt; {} <span class="comment">// fall through
-<a href=#444 id=444 data-nosnippet>444</a>                    </span>}
-<a href=#445 id=445 data-nosnippet>445</a>                };
-<a href=#446 id=446 data-nosnippet>446</a>            }
-<a href=#447 id=447 data-nosnippet>447</a>
-<a href=#448 id=448 data-nosnippet>448</a>            <span class="macro">try_recv!</span>();
-<a href=#449 id=449 data-nosnippet>449</a>
-<a href=#450 id=450 data-nosnippet>450</a>            <span class="comment">// If a previous `poll_recv` call has set a waker, we wake it here.
-<a href=#451 id=451 data-nosnippet>451</a>            // This allows us to put our own CachedParkThread waker in the
-<a href=#452 id=452 data-nosnippet>452</a>            // AtomicWaker slot instead.
-<a href=#453 id=453 data-nosnippet>453</a>            //
-<a href=#454 id=454 data-nosnippet>454</a>            // This is not a spurious wakeup to `poll_recv` since we just got a
-<a href=#455 id=455 data-nosnippet>455</a>            // Busy from `try_pop`, which only happens if there are messages in
-<a href=#456 id=456 data-nosnippet>456</a>            // the queue.
-<a href=#457 id=457 data-nosnippet>457</a>            </span><span class="self">self</span>.inner.rx_waker.wake();
-<a href=#458 id=458 data-nosnippet>458</a>
-<a href=#459 id=459 data-nosnippet>459</a>            <span class="comment">// Park the thread until the problematic send has completed.
-<a href=#460 id=460 data-nosnippet>460</a>            </span><span class="kw">let </span><span class="kw-2">mut </span>park = CachedParkThread::new();
-<a href=#461 id=461 data-nosnippet>461</a>            <span class="kw">let </span>waker = park.waker().unwrap();
-<a href=#462 id=462 data-nosnippet>462</a>            <span class="kw">loop </span>{
-<a href=#463 id=463 data-nosnippet>463</a>                <span class="self">self</span>.inner.rx_waker.register_by_ref(<span class="kw-2">&amp;</span>waker);
-<a href=#464 id=464 data-nosnippet>464</a>                <span class="comment">// It is possible that the problematic send has now completed,
-<a href=#465 id=465 data-nosnippet>465</a>                // so we have to check for messages again.
-<a href=#466 id=466 data-nosnippet>466</a>                </span><span class="macro">try_recv!</span>();
-<a href=#467 id=467 data-nosnippet>467</a>                park.park();
-<a href=#468 id=468 data-nosnippet>468</a>            }
-<a href=#469 id=469 data-nosnippet>469</a>        })
-<a href=#470 id=470 data-nosnippet>470</a>    }
-<a href=#471 id=471 data-nosnippet>471</a>
-<a href=#472 id=472 data-nosnippet>472</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>semaphore(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>S {
-<a href=#473 id=473 data-nosnippet>473</a>        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.semaphore
+<a href=#442 id=442 data-nosnippet>442</a>                        <span class="comment">// If close() was called, an empty queue should report Disconnected.
+<a href=#443 id=443 data-nosnippet>443</a>                        </span>TryPopResult::Empty <span class="kw">if </span>rx_fields.rx_closed =&gt; {
+<a href=#444 id=444 data-nosnippet>444</a>                            <span class="kw">return </span><span class="prelude-val">Err</span>(TryRecvError::Disconnected)
+<a href=#445 id=445 data-nosnippet>445</a>                        }
+<a href=#446 id=446 data-nosnippet>446</a>                        TryPopResult::Empty =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TryRecvError::Empty),
+<a href=#447 id=447 data-nosnippet>447</a>                        TryPopResult::Busy =&gt; {} <span class="comment">// fall through
+<a href=#448 id=448 data-nosnippet>448</a>                    </span>}
+<a href=#449 id=449 data-nosnippet>449</a>                };
+<a href=#450 id=450 data-nosnippet>450</a>            }
+<a href=#451 id=451 data-nosnippet>451</a>
+<a href=#452 id=452 data-nosnippet>452</a>            <span class="macro">try_recv!</span>();
+<a href=#453 id=453 data-nosnippet>453</a>
+<a href=#454 id=454 data-nosnippet>454</a>            <span class="comment">// If a previous `poll_recv` call has set a waker, we wake it here.
+<a href=#455 id=455 data-nosnippet>455</a>            // This allows us to put our own CachedParkThread waker in the
+<a href=#456 id=456 data-nosnippet>456</a>            // AtomicWaker slot instead.
+<a href=#457 id=457 data-nosnippet>457</a>            //
+<a href=#458 id=458 data-nosnippet>458</a>            // This is not a spurious wakeup to `poll_recv` since we just got a
+<a href=#459 id=459 data-nosnippet>459</a>            // Busy from `try_pop`, which only happens if there are messages in
+<a href=#460 id=460 data-nosnippet>460</a>            // the queue.
+<a href=#461 id=461 data-nosnippet>461</a>            </span><span class="self">self</span>.inner.rx_waker.wake();
+<a href=#462 id=462 data-nosnippet>462</a>
+<a href=#463 id=463 data-nosnippet>463</a>            <span class="comment">// Park the thread until the problematic send has completed.
+<a href=#464 id=464 data-nosnippet>464</a>            </span><span class="kw">let </span><span class="kw-2">mut </span>park = CachedParkThread::new();
+<a href=#465 id=465 data-nosnippet>465</a>            <span class="kw">let </span>waker = park.waker().unwrap();
+<a href=#466 id=466 data-nosnippet>466</a>            <span class="kw">loop </span>{
+<a href=#467 id=467 data-nosnippet>467</a>                <span class="self">self</span>.inner.rx_waker.register_by_ref(<span class="kw-2">&amp;</span>waker);
+<a href=#468 id=468 data-nosnippet>468</a>                <span class="comment">// It is possible that the problematic send has now completed,
+<a href=#469 id=469 data-nosnippet>469</a>                // so we have to check for messages again.
+<a href=#470 id=470 data-nosnippet>470</a>                </span><span class="macro">try_recv!</span>();
+<a href=#471 id=471 data-nosnippet>471</a>                park.park();
+<a href=#472 id=472 data-nosnippet>472</a>            }
+<a href=#473 id=473 data-nosnippet>473</a>        })
 <a href=#474 id=474 data-nosnippet>474</a>    }
 <a href=#475 id=475 data-nosnippet>475</a>
-<a href=#476 id=476 data-nosnippet>476</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>sender_strong_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-<a href=#477 id=477 data-nosnippet>477</a>        <span class="self">self</span>.inner.tx_count.load(Acquire)
+<a href=#476 id=476 data-nosnippet>476</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>semaphore(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>S {
+<a href=#477 id=477 data-nosnippet>477</a>        <span class="kw-2">&amp;</span><span class="self">self</span>.inner.semaphore
 <a href=#478 id=478 data-nosnippet>478</a>    }
 <a href=#479 id=479 data-nosnippet>479</a>
-<a href=#480 id=480 data-nosnippet>480</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>sender_weak_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-<a href=#481 id=481 data-nosnippet>481</a>        <span class="self">self</span>.inner.tx_weak_count.load(Relaxed)
+<a href=#480 id=480 data-nosnippet>480</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>sender_strong_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+<a href=#481 id=481 data-nosnippet>481</a>        <span class="self">self</span>.inner.tx_count.load(Acquire)
 <a href=#482 id=482 data-nosnippet>482</a>    }
-<a href=#483 id=483 data-nosnippet>483</a>}
-<a href=#484 id=484 data-nosnippet>484</a>
-<a href=#485 id=485 data-nosnippet>485</a><span class="kw">impl</span>&lt;T, S: Semaphore&gt; Drop <span class="kw">for </span>Rx&lt;T, S&gt; {
-<a href=#486 id=486 data-nosnippet>486</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#487 id=487 data-nosnippet>487</a>        <span class="kw">use </span><span class="kw">super</span>::block::Read::Value;
+<a href=#483 id=483 data-nosnippet>483</a>
+<a href=#484 id=484 data-nosnippet>484</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>sender_weak_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+<a href=#485 id=485 data-nosnippet>485</a>        <span class="self">self</span>.inner.tx_weak_count.load(Relaxed)
+<a href=#486 id=486 data-nosnippet>486</a>    }
+<a href=#487 id=487 data-nosnippet>487</a>}
 <a href=#488 id=488 data-nosnippet>488</a>
-<a href=#489 id=489 data-nosnippet>489</a>        <span class="self">self</span>.close();
-<a href=#490 id=490 data-nosnippet>490</a>
-<a href=#491 id=491 data-nosnippet>491</a>        <span class="self">self</span>.inner.rx_fields.with_mut(|rx_fields_ptr| {
-<a href=#492 id=492 data-nosnippet>492</a>            <span class="kw">let </span>rx_fields = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>rx_fields_ptr };
-<a href=#493 id=493 data-nosnippet>493</a>            <span class="kw">struct </span>Guard&lt;<span class="lifetime">'a</span>, T, S: Semaphore&gt; {
-<a href=#494 id=494 data-nosnippet>494</a>                list: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>list::Rx&lt;T&gt;,
-<a href=#495 id=495 data-nosnippet>495</a>                tx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>list::Tx&lt;T&gt;,
-<a href=#496 id=496 data-nosnippet>496</a>                sem: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>S,
-<a href=#497 id=497 data-nosnippet>497</a>            }
-<a href=#498 id=498 data-nosnippet>498</a>
-<a href=#499 id=499 data-nosnippet>499</a>            <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, S: Semaphore&gt; Guard&lt;<span class="lifetime">'a</span>, T, S&gt; {
-<a href=#500 id=500 data-nosnippet>500</a>                <span class="kw">fn </span>drain(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#501 id=501 data-nosnippet>501</a>                    <span class="comment">// call T's destructor.
-<a href=#502 id=502 data-nosnippet>502</a>                    </span><span class="kw">while let </span><span class="prelude-val">Some</span>(Value(<span class="kw">_</span>)) = <span class="self">self</span>.list.pop(<span class="self">self</span>.tx) {
-<a href=#503 id=503 data-nosnippet>503</a>                        <span class="self">self</span>.sem.add_permit();
-<a href=#504 id=504 data-nosnippet>504</a>                    }
-<a href=#505 id=505 data-nosnippet>505</a>                }
-<a href=#506 id=506 data-nosnippet>506</a>            }
-<a href=#507 id=507 data-nosnippet>507</a>
-<a href=#508 id=508 data-nosnippet>508</a>            <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, S: Semaphore&gt; Drop <span class="kw">for </span>Guard&lt;<span class="lifetime">'a</span>, T, S&gt; {
-<a href=#509 id=509 data-nosnippet>509</a>                <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#510 id=510 data-nosnippet>510</a>                    <span class="self">self</span>.drain();
-<a href=#511 id=511 data-nosnippet>511</a>                }
-<a href=#512 id=512 data-nosnippet>512</a>            }
-<a href=#513 id=513 data-nosnippet>513</a>
-<a href=#514 id=514 data-nosnippet>514</a>            <span class="kw">let </span><span class="kw-2">mut </span>guard = Guard {
-<a href=#515 id=515 data-nosnippet>515</a>                list: <span class="kw-2">&amp;mut </span>rx_fields.list,
-<a href=#516 id=516 data-nosnippet>516</a>                tx: <span class="kw-2">&amp;</span><span class="self">self</span>.inner.tx,
-<a href=#517 id=517 data-nosnippet>517</a>                sem: <span class="kw-2">&amp;</span><span class="self">self</span>.inner.semaphore,
-<a href=#518 id=518 data-nosnippet>518</a>            };
-<a href=#519 id=519 data-nosnippet>519</a>
-<a href=#520 id=520 data-nosnippet>520</a>            guard.drain();
-<a href=#521 id=521 data-nosnippet>521</a>        });
-<a href=#522 id=522 data-nosnippet>522</a>    }
-<a href=#523 id=523 data-nosnippet>523</a>}
-<a href=#524 id=524 data-nosnippet>524</a>
-<a href=#525 id=525 data-nosnippet>525</a><span class="comment">// ===== impl Chan =====
-<a href=#526 id=526 data-nosnippet>526</a>
-<a href=#527 id=527 data-nosnippet>527</a></span><span class="kw">impl</span>&lt;T, S&gt; Chan&lt;T, S&gt; {
-<a href=#528 id=528 data-nosnippet>528</a>    <span class="kw">fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) {
-<a href=#529 id=529 data-nosnippet>529</a>        <span class="comment">// Push the value
-<a href=#530 id=530 data-nosnippet>530</a>        </span><span class="self">self</span>.tx.push(value);
-<a href=#531 id=531 data-nosnippet>531</a>
-<a href=#532 id=532 data-nosnippet>532</a>        <span class="comment">// Notify the rx task
-<a href=#533 id=533 data-nosnippet>533</a>        </span><span class="self">self</span>.rx_waker.wake();
-<a href=#534 id=534 data-nosnippet>534</a>    }
+<a href=#489 id=489 data-nosnippet>489</a><span class="kw">impl</span>&lt;T, S: Semaphore&gt; Drop <span class="kw">for </span>Rx&lt;T, S&gt; {
+<a href=#490 id=490 data-nosnippet>490</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#491 id=491 data-nosnippet>491</a>        <span class="kw">use </span><span class="kw">super</span>::block::Read::Value;
+<a href=#492 id=492 data-nosnippet>492</a>
+<a href=#493 id=493 data-nosnippet>493</a>        <span class="self">self</span>.close();
+<a href=#494 id=494 data-nosnippet>494</a>
+<a href=#495 id=495 data-nosnippet>495</a>        <span class="self">self</span>.inner.rx_fields.with_mut(|rx_fields_ptr| {
+<a href=#496 id=496 data-nosnippet>496</a>            <span class="kw">let </span>rx_fields = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>rx_fields_ptr };
+<a href=#497 id=497 data-nosnippet>497</a>            <span class="kw">struct </span>Guard&lt;<span class="lifetime">'a</span>, T, S: Semaphore&gt; {
+<a href=#498 id=498 data-nosnippet>498</a>                list: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>list::Rx&lt;T&gt;,
+<a href=#499 id=499 data-nosnippet>499</a>                tx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>list::Tx&lt;T&gt;,
+<a href=#500 id=500 data-nosnippet>500</a>                sem: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>S,
+<a href=#501 id=501 data-nosnippet>501</a>            }
+<a href=#502 id=502 data-nosnippet>502</a>
+<a href=#503 id=503 data-nosnippet>503</a>            <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, S: Semaphore&gt; Guard&lt;<span class="lifetime">'a</span>, T, S&gt; {
+<a href=#504 id=504 data-nosnippet>504</a>                <span class="kw">fn </span>drain(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#505 id=505 data-nosnippet>505</a>                    <span class="comment">// call T's destructor.
+<a href=#506 id=506 data-nosnippet>506</a>                    </span><span class="kw">while let </span><span class="prelude-val">Some</span>(Value(<span class="kw">_</span>)) = <span class="self">self</span>.list.pop(<span class="self">self</span>.tx) {
+<a href=#507 id=507 data-nosnippet>507</a>                        <span class="self">self</span>.sem.add_permit();
+<a href=#508 id=508 data-nosnippet>508</a>                    }
+<a href=#509 id=509 data-nosnippet>509</a>                }
+<a href=#510 id=510 data-nosnippet>510</a>            }
+<a href=#511 id=511 data-nosnippet>511</a>
+<a href=#512 id=512 data-nosnippet>512</a>            <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, S: Semaphore&gt; Drop <span class="kw">for </span>Guard&lt;<span class="lifetime">'a</span>, T, S&gt; {
+<a href=#513 id=513 data-nosnippet>513</a>                <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#514 id=514 data-nosnippet>514</a>                    <span class="self">self</span>.drain();
+<a href=#515 id=515 data-nosnippet>515</a>                }
+<a href=#516 id=516 data-nosnippet>516</a>            }
+<a href=#517 id=517 data-nosnippet>517</a>
+<a href=#518 id=518 data-nosnippet>518</a>            <span class="kw">let </span><span class="kw-2">mut </span>guard = Guard {
+<a href=#519 id=519 data-nosnippet>519</a>                list: <span class="kw-2">&amp;mut </span>rx_fields.list,
+<a href=#520 id=520 data-nosnippet>520</a>                tx: <span class="kw-2">&amp;</span><span class="self">self</span>.inner.tx,
+<a href=#521 id=521 data-nosnippet>521</a>                sem: <span class="kw-2">&amp;</span><span class="self">self</span>.inner.semaphore,
+<a href=#522 id=522 data-nosnippet>522</a>            };
+<a href=#523 id=523 data-nosnippet>523</a>
+<a href=#524 id=524 data-nosnippet>524</a>            guard.drain();
+<a href=#525 id=525 data-nosnippet>525</a>        });
+<a href=#526 id=526 data-nosnippet>526</a>    }
+<a href=#527 id=527 data-nosnippet>527</a>}
+<a href=#528 id=528 data-nosnippet>528</a>
+<a href=#529 id=529 data-nosnippet>529</a><span class="comment">// ===== impl Chan =====
+<a href=#530 id=530 data-nosnippet>530</a>
+<a href=#531 id=531 data-nosnippet>531</a></span><span class="kw">impl</span>&lt;T, S&gt; Chan&lt;T, S&gt; {
+<a href=#532 id=532 data-nosnippet>532</a>    <span class="kw">fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) {
+<a href=#533 id=533 data-nosnippet>533</a>        <span class="comment">// Push the value
+<a href=#534 id=534 data-nosnippet>534</a>        </span><span class="self">self</span>.tx.push(value);
 <a href=#535 id=535 data-nosnippet>535</a>
-<a href=#536 id=536 data-nosnippet>536</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>decrement_weak_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-<a href=#537 id=537 data-nosnippet>537</a>        <span class="self">self</span>.tx_weak_count.fetch_sub(<span class="number">1</span>, Relaxed);
+<a href=#536 id=536 data-nosnippet>536</a>        <span class="comment">// Notify the rx task
+<a href=#537 id=537 data-nosnippet>537</a>        </span><span class="self">self</span>.rx_waker.wake();
 <a href=#538 id=538 data-nosnippet>538</a>    }
 <a href=#539 id=539 data-nosnippet>539</a>
-<a href=#540 id=540 data-nosnippet>540</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>increment_weak_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-<a href=#541 id=541 data-nosnippet>541</a>        <span class="self">self</span>.tx_weak_count.fetch_add(<span class="number">1</span>, Relaxed);
+<a href=#540 id=540 data-nosnippet>540</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>decrement_weak_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+<a href=#541 id=541 data-nosnippet>541</a>        <span class="self">self</span>.tx_weak_count.fetch_sub(<span class="number">1</span>, Relaxed);
 <a href=#542 id=542 data-nosnippet>542</a>    }
 <a href=#543 id=543 data-nosnippet>543</a>
-<a href=#544 id=544 data-nosnippet>544</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>strong_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-<a href=#545 id=545 data-nosnippet>545</a>        <span class="self">self</span>.tx_count.load(Acquire)
+<a href=#544 id=544 data-nosnippet>544</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>increment_weak_count(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+<a href=#545 id=545 data-nosnippet>545</a>        <span class="self">self</span>.tx_weak_count.fetch_add(<span class="number">1</span>, Relaxed);
 <a href=#546 id=546 data-nosnippet>546</a>    }
 <a href=#547 id=547 data-nosnippet>547</a>
-<a href=#548 id=548 data-nosnippet>548</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>weak_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-<a href=#549 id=549 data-nosnippet>549</a>        <span class="self">self</span>.tx_weak_count.load(Relaxed)
+<a href=#548 id=548 data-nosnippet>548</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>strong_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+<a href=#549 id=549 data-nosnippet>549</a>        <span class="self">self</span>.tx_count.load(Acquire)
 <a href=#550 id=550 data-nosnippet>550</a>    }
-<a href=#551 id=551 data-nosnippet>551</a>}
-<a href=#552 id=552 data-nosnippet>552</a>
-<a href=#553 id=553 data-nosnippet>553</a><span class="kw">impl</span>&lt;T, S&gt; Drop <span class="kw">for </span>Chan&lt;T, S&gt; {
-<a href=#554 id=554 data-nosnippet>554</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#555 id=555 data-nosnippet>555</a>        <span class="kw">use </span><span class="kw">super</span>::block::Read::Value;
+<a href=#551 id=551 data-nosnippet>551</a>
+<a href=#552 id=552 data-nosnippet>552</a>    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>weak_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+<a href=#553 id=553 data-nosnippet>553</a>        <span class="self">self</span>.tx_weak_count.load(Relaxed)
+<a href=#554 id=554 data-nosnippet>554</a>    }
+<a href=#555 id=555 data-nosnippet>555</a>}
 <a href=#556 id=556 data-nosnippet>556</a>
-<a href=#557 id=557 data-nosnippet>557</a>        <span class="comment">// Safety: the only owner of the rx fields is Chan, and being
-<a href=#558 id=558 data-nosnippet>558</a>        // inside its own Drop means we're the last ones to touch it.
-<a href=#559 id=559 data-nosnippet>559</a>        </span><span class="self">self</span>.rx_fields.with_mut(|rx_fields_ptr| {
-<a href=#560 id=560 data-nosnippet>560</a>            <span class="kw">let </span>rx_fields = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>rx_fields_ptr };
-<a href=#561 id=561 data-nosnippet>561</a>
-<a href=#562 id=562 data-nosnippet>562</a>            <span class="kw">while let </span><span class="prelude-val">Some</span>(Value(<span class="kw">_</span>)) = rx_fields.list.pop(<span class="kw-2">&amp;</span><span class="self">self</span>.tx) {}
-<a href=#563 id=563 data-nosnippet>563</a>            <span class="kw">unsafe </span>{ rx_fields.list.free_blocks() };
-<a href=#564 id=564 data-nosnippet>564</a>        });
-<a href=#565 id=565 data-nosnippet>565</a>    }
-<a href=#566 id=566 data-nosnippet>566</a>}
-<a href=#567 id=567 data-nosnippet>567</a>
-<a href=#568 id=568 data-nosnippet>568</a><span class="comment">// ===== impl Semaphore for (::Semaphore, capacity) =====
-<a href=#569 id=569 data-nosnippet>569</a>
-<a href=#570 id=570 data-nosnippet>570</a></span><span class="kw">impl </span>Semaphore <span class="kw">for </span>bounded::Semaphore {
-<a href=#571 id=571 data-nosnippet>571</a>    <span class="kw">fn </span>add_permit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-<a href=#572 id=572 data-nosnippet>572</a>        <span class="self">self</span>.semaphore.release(<span class="number">1</span>);
-<a href=#573 id=573 data-nosnippet>573</a>    }
-<a href=#574 id=574 data-nosnippet>574</a>
-<a href=#575 id=575 data-nosnippet>575</a>    <span class="kw">fn </span>add_permits(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) {
-<a href=#576 id=576 data-nosnippet>576</a>        <span class="self">self</span>.semaphore.release(n)
+<a href=#557 id=557 data-nosnippet>557</a><span class="kw">impl</span>&lt;T, S&gt; Drop <span class="kw">for </span>Chan&lt;T, S&gt; {
+<a href=#558 id=558 data-nosnippet>558</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#559 id=559 data-nosnippet>559</a>        <span class="kw">use </span><span class="kw">super</span>::block::Read::Value;
+<a href=#560 id=560 data-nosnippet>560</a>
+<a href=#561 id=561 data-nosnippet>561</a>        <span class="comment">// Safety: the only owner of the rx fields is Chan, and being
+<a href=#562 id=562 data-nosnippet>562</a>        // inside its own Drop means we're the last ones to touch it.
+<a href=#563 id=563 data-nosnippet>563</a>        </span><span class="self">self</span>.rx_fields.with_mut(|rx_fields_ptr| {
+<a href=#564 id=564 data-nosnippet>564</a>            <span class="kw">let </span>rx_fields = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>rx_fields_ptr };
+<a href=#565 id=565 data-nosnippet>565</a>
+<a href=#566 id=566 data-nosnippet>566</a>            <span class="kw">while let </span><span class="prelude-val">Some</span>(Value(<span class="kw">_</span>)) = rx_fields.list.pop(<span class="kw-2">&amp;</span><span class="self">self</span>.tx) {}
+<a href=#567 id=567 data-nosnippet>567</a>            <span class="kw">unsafe </span>{ rx_fields.list.free_blocks() };
+<a href=#568 id=568 data-nosnippet>568</a>        });
+<a href=#569 id=569 data-nosnippet>569</a>    }
+<a href=#570 id=570 data-nosnippet>570</a>}
+<a href=#571 id=571 data-nosnippet>571</a>
+<a href=#572 id=572 data-nosnippet>572</a><span class="comment">// ===== impl Semaphore for (::Semaphore, capacity) =====
+<a href=#573 id=573 data-nosnippet>573</a>
+<a href=#574 id=574 data-nosnippet>574</a></span><span class="kw">impl </span>Semaphore <span class="kw">for </span>bounded::Semaphore {
+<a href=#575 id=575 data-nosnippet>575</a>    <span class="kw">fn </span>add_permit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+<a href=#576 id=576 data-nosnippet>576</a>        <span class="self">self</span>.semaphore.release(<span class="number">1</span>);
 <a href=#577 id=577 data-nosnippet>577</a>    }
 <a href=#578 id=578 data-nosnippet>578</a>
-<a href=#579 id=579 data-nosnippet>579</a>    <span class="kw">fn </span>is_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-<a href=#580 id=580 data-nosnippet>580</a>        <span class="self">self</span>.semaphore.available_permits() == <span class="self">self</span>.bound
+<a href=#579 id=579 data-nosnippet>579</a>    <span class="kw">fn </span>add_permits(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) {
+<a href=#580 id=580 data-nosnippet>580</a>        <span class="self">self</span>.semaphore.release(n)
 <a href=#581 id=581 data-nosnippet>581</a>    }
 <a href=#582 id=582 data-nosnippet>582</a>
-<a href=#583 id=583 data-nosnippet>583</a>    <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-<a href=#584 id=584 data-nosnippet>584</a>        <span class="self">self</span>.semaphore.close();
+<a href=#583 id=583 data-nosnippet>583</a>    <span class="kw">fn </span>is_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+<a href=#584 id=584 data-nosnippet>584</a>        <span class="self">self</span>.semaphore.available_permits() == <span class="self">self</span>.bound
 <a href=#585 id=585 data-nosnippet>585</a>    }
 <a href=#586 id=586 data-nosnippet>586</a>
-<a href=#587 id=587 data-nosnippet>587</a>    <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-<a href=#588 id=588 data-nosnippet>588</a>        <span class="self">self</span>.semaphore.is_closed()
+<a href=#587 id=587 data-nosnippet>587</a>    <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+<a href=#588 id=588 data-nosnippet>588</a>        <span class="self">self</span>.semaphore.close();
 <a href=#589 id=589 data-nosnippet>589</a>    }
-<a href=#590 id=590 data-nosnippet>590</a>}
-<a href=#591 id=591 data-nosnippet>591</a>
-<a href=#592 id=592 data-nosnippet>592</a><span class="comment">// ===== impl Semaphore for AtomicUsize =====
-<a href=#593 id=593 data-nosnippet>593</a>
-<a href=#594 id=594 data-nosnippet>594</a></span><span class="kw">impl </span>Semaphore <span class="kw">for </span>unbounded::Semaphore {
-<a href=#595 id=595 data-nosnippet>595</a>    <span class="kw">fn </span>add_permit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-<a href=#596 id=596 data-nosnippet>596</a>        <span class="kw">let </span>prev = <span class="self">self</span>.<span class="number">0</span>.fetch_sub(<span class="number">2</span>, Release);
+<a href=#590 id=590 data-nosnippet>590</a>
+<a href=#591 id=591 data-nosnippet>591</a>    <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+<a href=#592 id=592 data-nosnippet>592</a>        <span class="self">self</span>.semaphore.is_closed()
+<a href=#593 id=593 data-nosnippet>593</a>    }
+<a href=#594 id=594 data-nosnippet>594</a>}
+<a href=#595 id=595 data-nosnippet>595</a>
+<a href=#596 id=596 data-nosnippet>596</a><span class="comment">// ===== impl Semaphore for AtomicUsize =====
 <a href=#597 id=597 data-nosnippet>597</a>
-<a href=#598 id=598 data-nosnippet>598</a>        <span class="kw">if </span>prev &gt;&gt; <span class="number">1 </span>== <span class="number">0 </span>{
-<a href=#599 id=599 data-nosnippet>599</a>            <span class="comment">// Something went wrong
-<a href=#600 id=600 data-nosnippet>600</a>            </span>process::abort();
-<a href=#601 id=601 data-nosnippet>601</a>        }
-<a href=#602 id=602 data-nosnippet>602</a>    }
-<a href=#603 id=603 data-nosnippet>603</a>
-<a href=#604 id=604 data-nosnippet>604</a>    <span class="kw">fn </span>add_permits(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) {
-<a href=#605 id=605 data-nosnippet>605</a>        <span class="kw">let </span>prev = <span class="self">self</span>.<span class="number">0</span>.fetch_sub(n &lt;&lt; <span class="number">1</span>, Release);
-<a href=#606 id=606 data-nosnippet>606</a>
-<a href=#607 id=607 data-nosnippet>607</a>        <span class="kw">if </span>(prev &gt;&gt; <span class="number">1</span>) &lt; n {
-<a href=#608 id=608 data-nosnippet>608</a>            <span class="comment">// Something went wrong
-<a href=#609 id=609 data-nosnippet>609</a>            </span>process::abort();
-<a href=#610 id=610 data-nosnippet>610</a>        }
-<a href=#611 id=611 data-nosnippet>611</a>    }
-<a href=#612 id=612 data-nosnippet>612</a>
-<a href=#613 id=613 data-nosnippet>613</a>    <span class="kw">fn </span>is_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-<a href=#614 id=614 data-nosnippet>614</a>        <span class="self">self</span>.<span class="number">0</span>.load(Acquire) &gt;&gt; <span class="number">1 </span>== <span class="number">0
-<a href=#615 id=615 data-nosnippet>615</a>    </span>}
+<a href=#598 id=598 data-nosnippet>598</a></span><span class="kw">impl </span>Semaphore <span class="kw">for </span>unbounded::Semaphore {
+<a href=#599 id=599 data-nosnippet>599</a>    <span class="kw">fn </span>add_permit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+<a href=#600 id=600 data-nosnippet>600</a>        <span class="kw">let </span>prev = <span class="self">self</span>.<span class="number">0</span>.fetch_sub(<span class="number">2</span>, Release);
+<a href=#601 id=601 data-nosnippet>601</a>
+<a href=#602 id=602 data-nosnippet>602</a>        <span class="kw">if </span>prev &gt;&gt; <span class="number">1 </span>== <span class="number">0 </span>{
+<a href=#603 id=603 data-nosnippet>603</a>            <span class="comment">// Something went wrong
+<a href=#604 id=604 data-nosnippet>604</a>            </span>process::abort();
+<a href=#605 id=605 data-nosnippet>605</a>        }
+<a href=#606 id=606 data-nosnippet>606</a>    }
+<a href=#607 id=607 data-nosnippet>607</a>
+<a href=#608 id=608 data-nosnippet>608</a>    <span class="kw">fn </span>add_permits(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) {
+<a href=#609 id=609 data-nosnippet>609</a>        <span class="kw">let </span>prev = <span class="self">self</span>.<span class="number">0</span>.fetch_sub(n &lt;&lt; <span class="number">1</span>, Release);
+<a href=#610 id=610 data-nosnippet>610</a>
+<a href=#611 id=611 data-nosnippet>611</a>        <span class="kw">if </span>(prev &gt;&gt; <span class="number">1</span>) &lt; n {
+<a href=#612 id=612 data-nosnippet>612</a>            <span class="comment">// Something went wrong
+<a href=#613 id=613 data-nosnippet>613</a>            </span>process::abort();
+<a href=#614 id=614 data-nosnippet>614</a>        }
+<a href=#615 id=615 data-nosnippet>615</a>    }
 <a href=#616 id=616 data-nosnippet>616</a>
-<a href=#617 id=617 data-nosnippet>617</a>    <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-<a href=#618 id=618 data-nosnippet>618</a>        <span class="self">self</span>.<span class="number">0</span>.fetch_or(<span class="number">1</span>, Release);
-<a href=#619 id=619 data-nosnippet>619</a>    }
+<a href=#617 id=617 data-nosnippet>617</a>    <span class="kw">fn </span>is_idle(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+<a href=#618 id=618 data-nosnippet>618</a>        <span class="self">self</span>.<span class="number">0</span>.load(Acquire) &gt;&gt; <span class="number">1 </span>== <span class="number">0
+<a href=#619 id=619 data-nosnippet>619</a>    </span>}
 <a href=#620 id=620 data-nosnippet>620</a>
-<a href=#621 id=621 data-nosnippet>621</a>    <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-<a href=#622 id=622 data-nosnippet>622</a>        <span class="self">self</span>.<span class="number">0</span>.load(Acquire) &amp; <span class="number">1 </span>== <span class="number">1
-<a href=#623 id=623 data-nosnippet>623</a>    </span>}
-<a href=#624 id=624 data-nosnippet>624</a>}
+<a href=#621 id=621 data-nosnippet>621</a>    <span class="kw">fn </span>close(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+<a href=#622 id=622 data-nosnippet>622</a>        <span class="self">self</span>.<span class="number">0</span>.fetch_or(<span class="number">1</span>, Release);
+<a href=#623 id=623 data-nosnippet>623</a>    }
+<a href=#624 id=624 data-nosnippet>624</a>
+<a href=#625 id=625 data-nosnippet>625</a>    <span class="kw">fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+<a href=#626 id=626 data-nosnippet>626</a>        <span class="self">self</span>.<span class="number">0</span>.load(Acquire) &amp; <span class="number">1 </span>== <span class="number">1
+<a href=#627 id=627 data-nosnippet>627</a>    </span>}
+<a href=#628 id=628 data-nosnippet>628</a>}
 </code></pre></div></section></main></body></html>

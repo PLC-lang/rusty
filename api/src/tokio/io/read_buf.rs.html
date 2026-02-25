@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.48.0/src/io/read_buf.rs`."><title>read_buf.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/io/</div>read_buf.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>std::fmt;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.49.0/src/io/read_buf.rs`."><title>read_buf.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/io/</div>read_buf.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>std::fmt;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>std::mem::MaybeUninit;
 <a href=#3 id=3 data-nosnippet>3</a>
 <a href=#4 id=4 data-nosnippet>4</a><span class="doccomment">/// A wrapper around a byte buffer that is incrementally filled and initialized.
@@ -283,45 +283,63 @@
 <a href=#283 id=283 data-nosnippet>283</a>
 <a href=#284 id=284 data-nosnippet>284</a>    <span class="comment">// SAFETY: The caller guarantees that at least `cnt` unfilled bytes have been initialized.
 <a href=#285 id=285 data-nosnippet>285</a>    </span><span class="kw">unsafe fn </span>advance_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cnt: usize) {
-<a href=#286 id=286 data-nosnippet>286</a>        <span class="self">self</span>.assume_init(cnt);
-<a href=#287 id=287 data-nosnippet>287</a>        <span class="self">self</span>.advance(cnt);
-<a href=#288 id=288 data-nosnippet>288</a>    }
-<a href=#289 id=289 data-nosnippet>289</a>
-<a href=#290 id=290 data-nosnippet>290</a>    <span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>bytes::buf::UninitSlice {
-<a href=#291 id=291 data-nosnippet>291</a>        <span class="comment">// SAFETY: No region of `unfilled` will be deinitialized because it is
-<a href=#292 id=292 data-nosnippet>292</a>        // exposed as an `UninitSlice`, whose API guarantees that the memory is
-<a href=#293 id=293 data-nosnippet>293</a>        // never deinitialized.
-<a href=#294 id=294 data-nosnippet>294</a>        </span><span class="kw">let </span>unfilled = <span class="kw">unsafe </span>{ <span class="self">self</span>.unfilled_mut() };
-<a href=#295 id=295 data-nosnippet>295</a>        <span class="kw">let </span>len = unfilled.len();
-<a href=#296 id=296 data-nosnippet>296</a>        <span class="kw">let </span>ptr = unfilled.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>u8;
-<a href=#297 id=297 data-nosnippet>297</a>
-<a href=#298 id=298 data-nosnippet>298</a>        <span class="comment">// SAFETY: The pointer is valid for `len` bytes because it comes from a
-<a href=#299 id=299 data-nosnippet>299</a>        // slice of that length.
-<a href=#300 id=300 data-nosnippet>300</a>        </span><span class="kw">unsafe </span>{ bytes::buf::UninitSlice::from_raw_parts_mut(ptr, len) }
-<a href=#301 id=301 data-nosnippet>301</a>    }
-<a href=#302 id=302 data-nosnippet>302</a>}
-<a href=#303 id=303 data-nosnippet>303</a>
-<a href=#304 id=304 data-nosnippet>304</a><span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ReadBuf&lt;<span class="lifetime">'_</span>&gt; {
-<a href=#305 id=305 data-nosnippet>305</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#306 id=306 data-nosnippet>306</a>        f.debug_struct(<span class="string">"ReadBuf"</span>)
-<a href=#307 id=307 data-nosnippet>307</a>            .field(<span class="string">"filled"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filled)
-<a href=#308 id=308 data-nosnippet>308</a>            .field(<span class="string">"initialized"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.initialized)
-<a href=#309 id=309 data-nosnippet>309</a>            .field(<span class="string">"capacity"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.capacity())
-<a href=#310 id=310 data-nosnippet>310</a>            .finish()
-<a href=#311 id=311 data-nosnippet>311</a>    }
-<a href=#312 id=312 data-nosnippet>312</a>}
-<a href=#313 id=313 data-nosnippet>313</a>
-<a href=#314 id=314 data-nosnippet>314</a><span class="kw">unsafe fn </span>slice_to_uninit_mut(slice: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;] {
-<a href=#315 id=315 data-nosnippet>315</a>    <span class="kw-2">&amp;mut *</span>(slice <span class="kw">as </span><span class="kw-2">*mut </span>[u8] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;u8&gt;])
-<a href=#316 id=316 data-nosnippet>316</a>}
-<a href=#317 id=317 data-nosnippet>317</a>
-<a href=#318 id=318 data-nosnippet>318</a><span class="comment">// TODO: This could use `MaybeUninit::slice_assume_init` when it is stable.
-<a href=#319 id=319 data-nosnippet>319</a></span><span class="kw">unsafe fn </span>slice_assume_init(slice: <span class="kw-2">&amp;</span>[MaybeUninit&lt;u8&gt;]) -&gt; <span class="kw-2">&amp;</span>[u8] {
-<a href=#320 id=320 data-nosnippet>320</a>    <span class="kw-2">&amp;*</span>(slice <span class="kw">as </span><span class="kw-2">*const </span>[MaybeUninit&lt;u8&gt;] <span class="kw">as </span><span class="kw-2">*const </span>[u8])
-<a href=#321 id=321 data-nosnippet>321</a>}
-<a href=#322 id=322 data-nosnippet>322</a>
-<a href=#323 id=323 data-nosnippet>323</a><span class="comment">// TODO: This could use `MaybeUninit::slice_assume_init_mut` when it is stable.
-<a href=#324 id=324 data-nosnippet>324</a></span><span class="kw">unsafe fn </span>slice_assume_init_mut(slice: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;]) -&gt; <span class="kw-2">&amp;mut </span>[u8] {
-<a href=#325 id=325 data-nosnippet>325</a>    <span class="kw-2">&amp;mut *</span>(slice <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;u8&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[u8])
-<a href=#326 id=326 data-nosnippet>326</a>}
+<a href=#286 id=286 data-nosnippet>286</a>        <span class="kw">unsafe </span>{
+<a href=#287 id=287 data-nosnippet>287</a>            <span class="self">self</span>.assume_init(cnt);
+<a href=#288 id=288 data-nosnippet>288</a>        }
+<a href=#289 id=289 data-nosnippet>289</a>        <span class="self">self</span>.advance(cnt);
+<a href=#290 id=290 data-nosnippet>290</a>    }
+<a href=#291 id=291 data-nosnippet>291</a>
+<a href=#292 id=292 data-nosnippet>292</a>    <span class="kw">fn </span>chunk_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>bytes::buf::UninitSlice {
+<a href=#293 id=293 data-nosnippet>293</a>        <span class="comment">// SAFETY: No region of `unfilled` will be deinitialized because it is
+<a href=#294 id=294 data-nosnippet>294</a>        // exposed as an `UninitSlice`, whose API guarantees that the memory is
+<a href=#295 id=295 data-nosnippet>295</a>        // never deinitialized.
+<a href=#296 id=296 data-nosnippet>296</a>        </span><span class="kw">let </span>unfilled = <span class="kw">unsafe </span>{ <span class="self">self</span>.unfilled_mut() };
+<a href=#297 id=297 data-nosnippet>297</a>        <span class="kw">let </span>len = unfilled.len();
+<a href=#298 id=298 data-nosnippet>298</a>        <span class="kw">let </span>ptr = unfilled.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>u8;
+<a href=#299 id=299 data-nosnippet>299</a>
+<a href=#300 id=300 data-nosnippet>300</a>        <span class="comment">// SAFETY: The pointer is valid for `len` bytes because it comes from a
+<a href=#301 id=301 data-nosnippet>301</a>        // slice of that length.
+<a href=#302 id=302 data-nosnippet>302</a>        </span><span class="kw">unsafe </span>{ bytes::buf::UninitSlice::from_raw_parts_mut(ptr, len) }
+<a href=#303 id=303 data-nosnippet>303</a>    }
+<a href=#304 id=304 data-nosnippet>304</a>}
+<a href=#305 id=305 data-nosnippet>305</a>
+<a href=#306 id=306 data-nosnippet>306</a><span class="kw">impl </span>fmt::Debug <span class="kw">for </span>ReadBuf&lt;<span class="lifetime">'_</span>&gt; {
+<a href=#307 id=307 data-nosnippet>307</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#308 id=308 data-nosnippet>308</a>        f.debug_struct(<span class="string">"ReadBuf"</span>)
+<a href=#309 id=309 data-nosnippet>309</a>            .field(<span class="string">"filled"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.filled)
+<a href=#310 id=310 data-nosnippet>310</a>            .field(<span class="string">"initialized"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.initialized)
+<a href=#311 id=311 data-nosnippet>311</a>            .field(<span class="string">"capacity"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.capacity())
+<a href=#312 id=312 data-nosnippet>312</a>            .finish()
+<a href=#313 id=313 data-nosnippet>313</a>    }
+<a href=#314 id=314 data-nosnippet>314</a>}
+<a href=#315 id=315 data-nosnippet>315</a>
+<a href=#316 id=316 data-nosnippet>316</a><span class="doccomment">/// # Safety
+<a href=#317 id=317 data-nosnippet>317</a>///
+<a href=#318 id=318 data-nosnippet>318</a>/// The caller must ensure that `slice` is fully initialized
+<a href=#319 id=319 data-nosnippet>319</a>/// and never writes uninitialized bytes to the returned slice.
+<a href=#320 id=320 data-nosnippet>320</a></span><span class="kw">unsafe fn </span>slice_to_uninit_mut(slice: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;] {
+<a href=#321 id=321 data-nosnippet>321</a>    <span class="comment">// SAFETY: `MaybeUninit&lt;u8&gt;` has the same memory layout as u8, and the caller
+<a href=#322 id=322 data-nosnippet>322</a>    // promises to not write uninitialized bytes to the returned slice.
+<a href=#323 id=323 data-nosnippet>323</a>    </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(slice <span class="kw">as </span><span class="kw-2">*mut </span>[u8] <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;u8&gt;]) }
+<a href=#324 id=324 data-nosnippet>324</a>}
+<a href=#325 id=325 data-nosnippet>325</a>
+<a href=#326 id=326 data-nosnippet>326</a><span class="doccomment">/// # Safety
+<a href=#327 id=327 data-nosnippet>327</a>///
+<a href=#328 id=328 data-nosnippet>328</a>/// The caller must ensure that `slice` is fully initialized.
+<a href=#329 id=329 data-nosnippet>329</a></span><span class="comment">// TODO: This could use `MaybeUninit::slice_assume_init` when it is stable.
+<a href=#330 id=330 data-nosnippet>330</a></span><span class="kw">unsafe fn </span>slice_assume_init(slice: <span class="kw-2">&amp;</span>[MaybeUninit&lt;u8&gt;]) -&gt; <span class="kw-2">&amp;</span>[u8] {
+<a href=#331 id=331 data-nosnippet>331</a>    <span class="comment">// SAFETY: `MaybeUninit&lt;u8&gt;` has the same memory layout as u8, and the caller
+<a href=#332 id=332 data-nosnippet>332</a>    // promises that `slice` is fully initialized.
+<a href=#333 id=333 data-nosnippet>333</a>    </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(slice <span class="kw">as </span><span class="kw-2">*const </span>[MaybeUninit&lt;u8&gt;] <span class="kw">as </span><span class="kw-2">*const </span>[u8]) }
+<a href=#334 id=334 data-nosnippet>334</a>}
+<a href=#335 id=335 data-nosnippet>335</a>
+<a href=#336 id=336 data-nosnippet>336</a><span class="doccomment">/// # Safety
+<a href=#337 id=337 data-nosnippet>337</a>///
+<a href=#338 id=338 data-nosnippet>338</a>/// The caller must ensure that `slice` is fully initialized.
+<a href=#339 id=339 data-nosnippet>339</a></span><span class="comment">// TODO: This could use `MaybeUninit::slice_assume_init_mut` when it is stable.
+<a href=#340 id=340 data-nosnippet>340</a></span><span class="kw">unsafe fn </span>slice_assume_init_mut(slice: <span class="kw-2">&amp;mut </span>[MaybeUninit&lt;u8&gt;]) -&gt; <span class="kw-2">&amp;mut </span>[u8] {
+<a href=#341 id=341 data-nosnippet>341</a>    <span class="comment">// SAFETY: `MaybeUninit&lt;u8&gt;` has the same memory layout as `u8`, and the caller
+<a href=#342 id=342 data-nosnippet>342</a>    // promises that `slice` is fully initialized.
+<a href=#343 id=343 data-nosnippet>343</a>    </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(slice <span class="kw">as </span><span class="kw-2">*mut </span>[MaybeUninit&lt;u8&gt;] <span class="kw">as </span><span class="kw-2">*mut </span>[u8]) }
+<a href=#344 id=344 data-nosnippet>344</a>}
 </code></pre></div></section></main></body></html>
