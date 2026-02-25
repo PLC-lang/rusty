@@ -1,7 +1,5 @@
 ---
 source: src/index/tests/instance_resolver_tests.rs
-assertion_line: 29
 expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
-
 ---
 []

@@ -1,0 +1,39 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef ALIASES_H_
+#define ALIASES_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <time.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef bool T_Bool;
+
+typedef int16_t T_Array[12];
+
+typedef int32_t T_DInt;
+
+typedef char T_String[51];
+
+// varStringInput: maximum of 51 T_String(s)
+// varArrayOfIntInput: maximum of 12 T_Array(s)
+void fnThatUsesAliases(T_String* varStringInput, T_DInt varDIntInput, T_Array* varArrayOfIntInput, T_Bool varBoolInput);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !ALIASES_H_ */

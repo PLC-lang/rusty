@@ -19,8 +19,8 @@ define void @prog(ptr %0) {
 entry:
   %output1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
   %output2 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %output1, ptr align 1 @utf08_literal_0, i32 7, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %output2, ptr align 2 @utf16_literal_0, i32 16, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %output1, ptr align [filtered] @utf08_literal_0, i32 7, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %output2, ptr align [filtered] @utf16_literal_0, i32 16, i1 false)
   ret void
 }
 
@@ -29,8 +29,8 @@ entry:
   %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   call void @prog(ptr @prog_instance)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %x, ptr align 1 @prog_instance, i32 6, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %y, ptr align 2 getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), i32 14, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %x, ptr align [filtered] @prog_instance, i32 6, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %y, ptr align [filtered] getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), i32 14, i1 false)
   ret void
 }
 

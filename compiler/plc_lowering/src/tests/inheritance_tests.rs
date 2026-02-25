@@ -66,7 +66,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "foo",
             type_name: "foo",
@@ -140,7 +140,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -160,7 +160,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[1];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "bar",
             type_name: "bar",
@@ -213,7 +213,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -237,7 +237,7 @@ mod units_tests {
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         // let unit = &project.units[0].get_unit();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "child",
             type_name: "child",
@@ -298,7 +298,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -334,7 +334,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "child",
             type_name: "child",
@@ -691,7 +691,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -725,7 +725,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "foo",
             type_name: "foo",
@@ -795,7 +795,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -836,7 +836,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "main",
             type_name: "main",
@@ -1102,7 +1102,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###)
+        "#)
     }
 
     #[test]
@@ -1133,7 +1133,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "child",
             type_name: "child",
@@ -1286,7 +1286,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -1692,7 +1692,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[1];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "bar.set0",
             type_name: "bar.set0",
@@ -1750,7 +1750,7 @@ mod units_tests {
                 Protected,
             ),
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -2144,7 +2144,7 @@ mod resolve_bases_tests {
 
         let Some(ReferenceExpr { base, .. }) = try_from!(left, ReferenceExpr) else { unreachable!() };
         let base1 = base.as_ref().unwrap().deref();
-        assert_debug_snapshot!(annotations.get(base1).unwrap(), @r###"
+        assert_debug_snapshot!(annotations.get(base1).unwrap(), @r#"
         Variable {
             resulting_type: "fb",
             qualified_name: "fb2.__fb",
@@ -2154,7 +2154,7 @@ mod resolve_bases_tests {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
 
         let Some(ReferenceExpr { base, .. }) = try_from!(base1, ReferenceExpr) else { unreachable!() };
         let base2 = base.as_ref().unwrap().deref();
@@ -2172,7 +2172,7 @@ mod resolve_bases_tests {
 
         let Some(ReferenceExpr { base, .. }) = try_from!(base2, ReferenceExpr) else { unreachable!() };
         let base3 = base.as_ref().unwrap().deref();
-        assert_debug_snapshot!(annotations.get(base3).unwrap(), @r###"
+        assert_debug_snapshot!(annotations.get(base3).unwrap(), @r#"
         Variable {
             resulting_type: "baz",
             qualified_name: "foo.__baz",
@@ -2182,7 +2182,7 @@ mod resolve_bases_tests {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     }
 }
 
@@ -2210,7 +2210,7 @@ mod inherited_properties {
         let (_, AnnotatedProject { units, .. }) = parse_and_annotate("test", vec![src]).unwrap();
         let implementation = &units[0].get_unit().implementations[1];
         let stmt = &implementation.statements[0];
-        assert_debug_snapshot!(stmt, @r###"
+        assert_debug_snapshot!(stmt, @r#"
         CallStatement {
             operator: ReferenceExpr {
                 kind: Member(
@@ -2231,7 +2231,7 @@ mod inherited_properties {
             },
             parameters: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -2256,7 +2256,7 @@ mod inherited_properties {
         let (_, AnnotatedProject { units, .. }) = parse_and_annotate("test", vec![src]).unwrap();
         let implementation = &units[0].get_unit().implementations[2];
         let stmt = &implementation.statements[0];
-        assert_debug_snapshot!(stmt, @r###"
+        assert_debug_snapshot!(stmt, @r#"
         CallStatement {
             operator: ReferenceExpr {
                 kind: Member(
@@ -2286,7 +2286,7 @@ mod inherited_properties {
             },
             parameters: None,
         }
-        "###);
+        "#);
     }
 
     #[test]
@@ -2315,7 +2315,7 @@ mod inherited_properties {
         let (_, AnnotatedProject { units, .. }) = parse_and_annotate("test", vec![src]).unwrap();
         let implementation = &units[0].get_unit().implementations[2];
         let stmt = &implementation.statements[0];
-        assert_debug_snapshot!(stmt, @r###"
+        assert_debug_snapshot!(stmt, @r#"
         CallStatement {
             operator: ReferenceExpr {
                 kind: Member(
@@ -2366,6 +2366,6 @@ mod inherited_properties {
                 },
             ),
         }
-        "###);
+        "#);
     }
 }

@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_xml/src/model/block.rs
-expression: "Block::visit(&mut reader).unwrap()"
+expression: "Block::visit(&mut reader, tag).unwrap()"
 ---
 Block {
     local_id: 1,

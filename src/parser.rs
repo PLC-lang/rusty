@@ -114,7 +114,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
                 let last_pou = unit
                     .pous
                     .iter()
-                    .filter(|it| {
+                    .rfind(|it| {
                         // Only consider the last POU that is a program, function, function block
                         // or class
                         matches!(
@@ -122,14 +122,13 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
                             PouType::Program | PouType::Function | PouType::FunctionBlock | PouType::Class
                         )
                     })
-                    .next_back()
                     .map(|it| it.name.as_str())
                     .unwrap_or("__unknown__");
                 let mut actions = parse_actions(&mut lexer, linkage, last_pou);
                 unit.implementations.append(&mut actions);
             }
             KeywordType => {
-                let unit_type = parse_type(&mut lexer);
+                let unit_type = parse_type(&mut lexer, linkage);
                 for utype in unit_type {
                     unit.user_types.push(utype);
                 }
@@ -851,7 +850,7 @@ fn parse_action(
 }
 
 // TYPE ... END_TYPE
-fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
+fn parse_type(lexer: &mut ParseSession, linkage: LinkageType) -> Vec<UserTypeDeclaration> {
     lexer.advance(); // consume the TYPE
 
     parse_any_in_region(lexer, vec![KeywordEndType], |lexer| {
@@ -869,6 +868,7 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
                     initializer,
                     location: name_location,
                     scope: lexer.scope.clone(),
+                    linkage,
                 });
             }
         }

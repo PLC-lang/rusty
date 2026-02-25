@@ -1,0 +1,33 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef FUNCTIONS_WITH_PRIMITIVE_TYPES_H_
+#define FUNCTIONS_WITH_PRIMITIVE_TYPES_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <time.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void fnThatIsVoid(int16_t varIntInput);
+
+int16_t fnThatReturnsInt(float_t varRealInputToFunc, int16_t varIntInputToFunc, time_t varDateAndTimeInputToFunc, float_t* varRealInOutFunc, int16_t* varIntOutputFunc);
+
+time_t fnThatReturnsTimeOfDay(time_t varDateTimeInput);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !FUNCTIONS_WITH_PRIMITIVE_TYPES_H_ */

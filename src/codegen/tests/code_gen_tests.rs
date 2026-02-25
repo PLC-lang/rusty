@@ -1117,8 +1117,8 @@ fn fb_method_called_locally() {
 
     define void @foo(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
@@ -1126,32 +1126,32 @@ fn fb_method_called_locally() {
 
     define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %foo.addToBar = alloca i32, align 4
-      %in = alloca i16, align 2
-      store i16 %1, ptr %in, align 2
-      store i32 0, ptr %foo.addToBar, align 4
-      %load_in = load i16, ptr %in, align 2
+      %foo.addToBar = alloca i32, align [filtered]
+      %in = alloca i16, align [filtered]
+      store i16 %1, ptr %in, align [filtered]
+      store i32 0, ptr %foo.addToBar, align [filtered]
+      %load_in = load i16, ptr %in, align [filtered]
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, ptr %bar, align 4
+      %load_bar = load i32, ptr %bar, align [filtered]
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, ptr %bar, align 4
-      %load_bar1 = load i32, ptr %bar, align 4
-      store i32 %load_bar1, ptr %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar, align [filtered]
+      %load_bar1 = load i32, ptr %bar, align [filtered]
+      store i32 %load_bar1, ptr %foo.addToBar, align [filtered]
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align [filtered]
       ret i32 %foo__addToBar_ret
     }
 
     define void @main() {
     entry:
-      %fb = alloca %foo, align 8
-      %x = alloca i32, align 4
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %x, align 4
+      %fb = alloca %foo, align [filtered]
+      %x = alloca i32, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %x, align [filtered]
       %call = call i32 @foo__addToBar(ptr %fb, i16 3)
-      store i32 %call, ptr %x, align 4
+      store i32 %call, ptr %x, align [filtered]
       ret void
     }
 
@@ -1205,8 +1205,8 @@ fn fb_local_method_var_shadows_parent_var() {
 
     define void @foo(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
@@ -1214,34 +1214,34 @@ fn fb_local_method_var_shadows_parent_var() {
 
     define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %foo.addToBar = alloca i32, align 4
-      %in = alloca i16, align 2
-      store i16 %1, ptr %in, align 2
-      %bar1 = alloca i32, align 4
-      store i32 69, ptr %bar1, align 4
-      store i32 0, ptr %foo.addToBar, align 4
-      %load_in = load i16, ptr %in, align 2
+      %foo.addToBar = alloca i32, align [filtered]
+      %in = alloca i16, align [filtered]
+      store i16 %1, ptr %in, align [filtered]
+      %bar1 = alloca i32, align [filtered]
+      store i32 69, ptr %bar1, align [filtered]
+      store i32 0, ptr %foo.addToBar, align [filtered]
+      %load_in = load i16, ptr %in, align [filtered]
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, ptr %bar1, align 4
+      %load_bar = load i32, ptr %bar1, align [filtered]
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, ptr %bar1, align 4
-      %load_bar2 = load i32, ptr %bar1, align 4
-      store i32 %load_bar2, ptr %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar1, align [filtered]
+      %load_bar2 = load i32, ptr %bar1, align [filtered]
+      store i32 %load_bar2, ptr %foo.addToBar, align [filtered]
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align [filtered]
       ret i32 %foo__addToBar_ret
     }
 
     define void @main() {
     entry:
-      %fb = alloca %foo, align 8
-      %x = alloca i32, align 4
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %x, align 4
+      %fb = alloca %foo, align [filtered]
+      %x = alloca i32, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %x, align [filtered]
       %call = call i32 @foo__addToBar(ptr %fb, i16 3)
-      store i32 %call, ptr %x, align 4
+      store i32 %call, ptr %x, align [filtered]
       ret void
     }
 
@@ -1300,27 +1300,27 @@ fn prog_method_called_locally() {
     define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %foo.addToBar = alloca i32, align 4
-      %in = alloca i16, align 2
-      store i16 %1, ptr %in, align 2
-      store i32 0, ptr %foo.addToBar, align 4
-      %load_in = load i16, ptr %in, align 2
+      %foo.addToBar = alloca i32, align [filtered]
+      %in = alloca i16, align [filtered]
+      store i16 %1, ptr %in, align [filtered]
+      store i32 0, ptr %foo.addToBar, align [filtered]
+      %load_in = load i16, ptr %in, align [filtered]
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, ptr %bar, align 4
+      %load_bar = load i32, ptr %bar, align [filtered]
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, ptr %bar, align 4
-      %load_bar1 = load i32, ptr %bar, align 4
-      store i32 %load_bar1, ptr %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar, align [filtered]
+      %load_bar1 = load i32, ptr %bar, align [filtered]
+      store i32 %load_bar1, ptr %foo.addToBar, align [filtered]
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align [filtered]
       ret i32 %foo__addToBar_ret
     }
 
     define void @main() {
     entry:
-      %x = alloca i32, align 4
-      store i32 0, ptr %x, align 4
+      %x = alloca i32, align [filtered]
+      store i32 0, ptr %x, align [filtered]
       %call = call i32 @foo__addToBar(ptr @foo_instance, i16 3)
-      store i32 %call, ptr %x, align 4
+      store i32 %call, ptr %x, align [filtered]
       ret void
     }
     "#)
@@ -1376,29 +1376,29 @@ fn prog_local_method_var_shadows_parent_var() {
     define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %foo.addToBar = alloca i32, align 4
-      %in = alloca i16, align 2
-      store i16 %1, ptr %in, align 2
-      %bar1 = alloca i32, align 4
-      store i32 69, ptr %bar1, align 4
-      store i32 0, ptr %foo.addToBar, align 4
-      %load_in = load i16, ptr %in, align 2
+      %foo.addToBar = alloca i32, align [filtered]
+      %in = alloca i16, align [filtered]
+      store i16 %1, ptr %in, align [filtered]
+      %bar1 = alloca i32, align [filtered]
+      store i32 69, ptr %bar1, align [filtered]
+      store i32 0, ptr %foo.addToBar, align [filtered]
+      %load_in = load i16, ptr %in, align [filtered]
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, ptr %bar1, align 4
+      %load_bar = load i32, ptr %bar1, align [filtered]
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, ptr %bar1, align 4
-      %load_bar2 = load i32, ptr %bar1, align 4
-      store i32 %load_bar2, ptr %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar1, align [filtered]
+      %load_bar2 = load i32, ptr %bar1, align [filtered]
+      store i32 %load_bar2, ptr %foo.addToBar, align [filtered]
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align [filtered]
       ret i32 %foo__addToBar_ret
     }
 
     define void @main() {
     entry:
-      %x = alloca i32, align 4
-      store i32 0, ptr %x, align 4
+      %x = alloca i32, align [filtered]
+      store i32 0, ptr %x, align [filtered]
       %call = call i32 @foo__addToBar(ptr @foo_instance, i16 3)
-      store i32 %call, ptr %x, align 4
+      store i32 %call, ptr %x, align [filtered]
       ret void
     }
     "#)
@@ -1627,38 +1627,38 @@ fn for_statement_with_binary_expressions() {
       %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
       %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
-      %load_y = load i32, ptr %y, align 4
+      %load_y = load i32, ptr %y, align [filtered]
       %tmpVar = add i32 %load_y, 1
-      store i32 %tmpVar, ptr %x, align 4
-      %load_step = load i32, ptr %step, align 4
+      store i32 %tmpVar, ptr %x, align [filtered]
+      %load_step = load i32, ptr %step, align [filtered]
       %tmpVar1 = mul i32 %load_step, 3
       %is_incrementing = icmp sgt i32 %tmpVar1, 0
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     predicate_sle:                                    ; preds = %increment, %entry
-      %load_z = load i32, ptr %z, align 4
+      %load_z = load i32, ptr %z, align [filtered]
       %tmpVar2 = sub i32 %load_z, 2
-      %1 = load i32, ptr %x, align 4
+      %1 = load i32, ptr %x, align [filtered]
       %condition = icmp sle i32 %1, %tmpVar2
       br i1 %condition, label %loop, label %continue
 
     predicate_sge:                                    ; preds = %increment, %entry
-      %load_z3 = load i32, ptr %z, align 4
+      %load_z3 = load i32, ptr %z, align [filtered]
       %tmpVar4 = sub i32 %load_z3, 2
-      %2 = load i32, ptr %x, align 4
+      %2 = load i32, ptr %x, align [filtered]
       %condition5 = icmp sge i32 %2, %tmpVar4
       br i1 %condition5, label %loop, label %continue
 
     loop:                                             ; preds = %predicate_sge, %predicate_sle
-      %load_x = load i32, ptr %x, align 4
+      %load_x = load i32, ptr %x, align [filtered]
       br label %increment
 
     increment:                                        ; preds = %loop
-      %3 = load i32, ptr %x, align 4
-      %load_step6 = load i32, ptr %step, align 4
+      %3 = load i32, ptr %x, align [filtered]
+      %load_step6 = load i32, ptr %step, align [filtered]
       %tmpVar7 = mul i32 %load_step6, 3
       %next = add i32 %tmpVar7, %3
-      store i32 %next, ptr %x, align 4
+      store i32 %next, ptr %x, align [filtered]
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     continue:                                         ; preds = %predicate_sge, %predicate_sle
@@ -1688,46 +1688,46 @@ fn for_statement_type_casting() {
 
     define void @main() {
     entry:
-      %a = alloca i8, align 1
-      %b = alloca i16, align 2
-      store i8 0, ptr %a, align 1
-      store i16 1, ptr %b, align 2
-      store i8 0, ptr %a, align 1
-      %load_b = load i16, ptr %b, align 2
+      %a = alloca i8, align [filtered]
+      %b = alloca i16, align [filtered]
+      store i8 0, ptr %a, align [filtered]
+      store i16 1, ptr %b, align [filtered]
+      store i8 0, ptr %a, align [filtered]
+      %load_b = load i16, ptr %b, align [filtered]
       %0 = trunc i16 %load_b to i8
       %1 = sext i8 %0 to i32
       %is_incrementing = icmp sgt i32 %1, 0
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     predicate_sle:                                    ; preds = %increment, %entry
-      %2 = load i8, ptr %a, align 1
+      %2 = load i8, ptr %a, align [filtered]
       %3 = zext i8 %2 to i32
       %condition = icmp sle i32 %3, 10
       br i1 %condition, label %loop, label %continue
 
     predicate_sge:                                    ; preds = %increment, %entry
-      %4 = load i8, ptr %a, align 1
+      %4 = load i8, ptr %a, align [filtered]
       %5 = zext i8 %4 to i32
       %condition1 = icmp sge i32 %5, 10
       br i1 %condition1, label %loop, label %continue
 
     loop:                                             ; preds = %predicate_sge, %predicate_sle
-      %load_b2 = load i16, ptr %b, align 2
+      %load_b2 = load i16, ptr %b, align [filtered]
       %6 = sext i16 %load_b2 to i32
       %tmpVar = mul i32 %6, 3
       %7 = trunc i32 %tmpVar to i16
-      store i16 %7, ptr %b, align 2
+      store i16 %7, ptr %b, align [filtered]
       br label %increment
 
     increment:                                        ; preds = %loop
-      %8 = load i8, ptr %a, align 1
-      %load_b3 = load i16, ptr %b, align 2
+      %8 = load i8, ptr %a, align [filtered]
+      %load_b3 = load i16, ptr %b, align [filtered]
       %9 = trunc i16 %load_b3 to i8
       %10 = sext i8 %9 to i32
       %11 = zext i8 %8 to i32
       %next = add i32 %10, %11
       %12 = trunc i32 %next to i8
-      store i8 %12, ptr %a, align 1
+      store i8 %12, ptr %a, align [filtered]
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     continue:                                         ; preds = %predicate_sge, %predicate_sle
@@ -3990,8 +3990,8 @@ fn variables_in_var_external_block_are_not_generated() {
 
     define void @bar(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       ret void
     }
 
@@ -4056,7 +4056,7 @@ fn methods_var_output() {
         "
         FUNCTION_BLOCK foo
         METHOD baz
-        VAR_OUTPUT 
+        VAR_OUTPUT
             out : STRING;
         END_VAR
             out := 'hello';
@@ -4064,7 +4064,7 @@ fn methods_var_output() {
         END_FUNCTION_BLOCK
 
         FUNCTION main
-        VAR 
+        VAR
             s: STRING;
             fb: foo;
         END_VAR
@@ -4074,5 +4074,172 @@ fn methods_var_output() {
         ",
     );
 
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn program_with_var_temp_external_member_access_uses_correct_gep_index() {
+    // This test verifies that when a PROGRAM has VAR_TEMP variables,
+    // accessing the program's non-temp members from outside (e.g., from main)
+    // uses the correct GEP indices. VAR_TEMP variables are not part of the
+    // POU struct (they're stack-allocated), so they must be excluded when
+    // computing the struct GEP index. The codegen uses `get_struct_member_index`
+    // which filters out temp/external/return variables for POUs.
+    let res = codegen(
+        "
+        PROGRAM mainProg
+        VAR_TEMP
+            temp1 : DINT;
+            temp2 : DINT;
+        END_VAR
+        VAR
+            a : DINT;
+            b : DINT;
+        END_VAR
+            a := 10;
+            b := 20;
+        END_PROGRAM
+
+        FUNCTION main : DINT
+        VAR
+            x, y : DINT;
+        END_VAR
+            mainProg();
+            x := mainProg.a;
+            y := mainProg.b;
+        END_FUNCTION
+        ",
+    );
+
+    // The key assertion here is that mainProg.a uses GEP index 0 and mainProg.b uses GEP index 1,
+    // NOT index 2 and 3 (which would be wrong if VAR_TEMP was counted in the struct index).
+    // Note: location_in_parent remains unique (temp1=0, temp2=1, a=2, b=3), but
+    // get_struct_member_index computes the correct struct index by filtering out temps.
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn program_with_var_temp_before_var_generates_correct_struct_layout() {
+    // Verifies that VAR_TEMP variables declared before VAR do not affect
+    // the struct layout - only VAR members should be in the struct
+    let res = codegen(
+        "
+        PROGRAM prg
+        VAR_TEMP
+            t1 : DINT;
+            t2 : DINT;
+            t3 : DINT;
+        END_VAR
+        VAR
+            v1 : DINT;
+            v2 : DINT;
+        END_VAR
+            v1 := t1 + t2;
+            v2 := t3;
+        END_PROGRAM
+        ",
+    );
+
+    // The struct should only contain v1 and v2, not t1, t2, t3
+    // GEP indices for v1 should be 0, v2 should be 1
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn array_of_struct_partial_initialization() {
+    // This test verifies that array of struct initialization works correctly
+    // with different initializer styles:
+    // 1. Single element initialization (only first element, rest defaults to zero)
+    // 2. Full initialization (all elements explicitly initialized)
+    let res = codegen(
+        "
+        TYPE STRUCT2 :
+            STRUCT
+                x1 : BOOL;
+                x2 : DINT;
+                x3 : DINT;
+                x4 : DINT;
+            END_STRUCT
+        END_TYPE
+
+        PROGRAM mainProg
+        VAR
+            // Single element initializer - only arr1[0] is initialized
+            arr1 : ARRAY[0..1] OF STRUCT2 := [(x1 := TRUE, x2 := 128, x3 := 12, x4 := 421)];
+            // Full initializer - both elements explicitly initialized
+            arr2 : ARRAY[0..1] OF STRUCT2 := [(x1 := TRUE, x2 := 100), (x1 := FALSE, x2 := 200)];
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn array_of_struct_initialization_in_body() {
+    // This test verifies that array of struct initialization works correctly
+    // when done in the program body (not just in VAR declaration)
+    // Multiple struct initializers are supported
+    let res = codegen(
+        "
+        TYPE MyStruct :
+            STRUCT
+                a : DINT;
+                b : DINT;
+            END_STRUCT
+        END_TYPE
+
+        PROGRAM mainProg
+        VAR
+            arr : ARRAY[0..1] OF MyStruct;
+            x, y : DINT;
+        END_VAR
+            arr := [(a := 10, b := 20), (a := 30, b := 40)];
+            x := arr[0].a;
+            y := arr[1].b;
+        END_PROGRAM
+        ",
+    );
+
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn function_block_member_access_is_case_insensitive() {
+    // This test verifies that accessing VAR_OUTPUT members of a function block
+    // works correctly with case-insensitive names (IEC 61131-3 is case-insensitive).
+    // The function block declares `OUT` but we access it as `Out` or `out`.
+    // This was a regression where get_struct_member_index used case-sensitive comparison.
+    let res = codegen(
+        "
+        FUNCTION_BLOCK FB_Test
+        VAR_INPUT
+            IN : REAL;
+        END_VAR
+        VAR_OUTPUT
+            OUT : REAL;
+            LIM : BOOL;
+        END_VAR
+            OUT := IN * 2.0;
+            LIM := OUT > 100.0;
+        END_FUNCTION_BLOCK
+
+        PROGRAM mainProg
+        VAR
+            fb : FB_Test;
+            result : REAL;
+            limited : BOOL;
+        END_VAR
+            fb(IN := 50.0);
+            // Access with different casing than declaration
+            result := fb.Out;   // declared as OUT
+            limited := fb.Lim;  // declared as LIM
+        END_PROGRAM
+        ",
+    );
+
+    // The test passes if codegen succeeds - previously this would fail with
+    // "Could not resolve reference to FB_Test.OUT" due to case-sensitive comparison
     filtered_assert_snapshot!(res);
 }

@@ -17,7 +17,9 @@ use plc_source::source_location::SourceLocation;
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::index::ImplementationType;
 use crate::typesystem::VOID_TYPE;
-use crate::validation::statement::helper::get_literal_int_or_const_expr_value;
+use crate::validation::statement::helper::{
+    get_literal_int_or_const_expr_value, is_literal_or_const_expr_value_zero,
+};
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
@@ -622,11 +624,7 @@ fn validate_reference<T: AnnotationMap>(
                     .and_then(|qualifier| context.index.find_pou(qualifier))
                     .map(|pou| (pou.get_name(), pou.get_container()))
                     .is_some_and(|(pou, container)| {
-                        !(qualified_name.starts_with(pou)
-                                || qualified_name.starts_with(container)
-                                || context.index.is_init_function(pou)
-                                //Hack: Avoid internal check here because of the super call
-                                || location.is_internal())
+                        !variable_is_in_pou_or_container(pou, container, context, qualified_name, location)
                     })
             {
                 validator.push_diagnostic(
@@ -835,6 +833,10 @@ fn visit_binary_expression<T: AnnotationMap>(
             validate_binary_expression(validator, statement, &Operator::Less, left, right, context);
             // check for the = operator
             validate_binary_expression(validator, statement, &Operator::Equal, left, right, context);
+        }
+        Operator::Division => {
+            validate_binary_expression(validator, statement, operator, left, right, context);
+            validate_zero_diviser(context, validator, right, &statement.location);
         }
         _ => validate_binary_expression(validator, statement, operator, left, right, context),
     }
@@ -1104,10 +1106,17 @@ fn validate_assignment<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    let mut is_output_assignment = false;
+
     if let Some(left) = left {
         // Check if we are assigning to a...
-        if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
-            context.annotations.get(left)
+        if let Some(StatementAnnotation::Variable {
+            constant,
+            qualified_name,
+            argument_type,
+            auto_deref,
+            ..
+        }) = context.annotations.get(left)
         {
             // ...constant variable
             if *constant {
@@ -1134,6 +1143,36 @@ fn validate_assignment<T: AnnotationMap>(
                     .with_error_code("E042")
                     .with_location(location)
                     );
+            }
+
+            is_output_assignment = matches!(argument_type, ArgumentType::ByRef(VariableType::Output))
+                || matches!(argument_type, ArgumentType::ByVal(VariableType::Output));
+
+            if is_output_assignment
+                && !variable_is_in_inherited_or_self_scope(
+                    context.qualifier.and_then(|qualifier| context.index.find_pou(qualifier)),
+                    context,
+                    qualified_name,
+                    location,
+                )
+                && !context.is_call()
+            {
+                validator.push_diagnostic(
+                    Diagnostic::new("VAR_OUTPUT variables cannot be assigned outside of their scope.")
+                        .with_error_code("E037")
+                        .with_location(location),
+                );
+            }
+
+            // Auto deref in assignment on the left implies that this variable was specified as "REFERENCE TO"
+            // If the right side of the assignment is using the builtin "ADR" we should return an invalid assignment error
+            if auto_deref.is_some() && node_is_builtin_adr(right, context) {
+                validator.push_diagnostic(
+                    Diagnostic::new(
+                        "ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?")
+                        .with_error_code("E037")
+                        .with_location(location),
+                );
             }
         }
 
@@ -1197,10 +1236,115 @@ fn validate_assignment<T: AnnotationMap>(
             } else {
                 validate_assignment_mismatch(context, validator, left_type, right_type, location);
             }
+        } else if is_output_assignment {
+            // If this is an output assignment, then we need to swap the types for type size validation
+            // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
+            validate_assignment_type_sizes(validator, right_type, left.unwrap(), context)
         } else {
             validate_assignment_type_sizes(validator, left_type, right, context)
         }
     }
+}
+
+fn node_is_builtin_adr<T: AnnotationMap>(node: &AstNode, context: &ValidationContext<T>) -> bool {
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = node.get_stmt_peeled() else {
+        return false;
+    };
+
+    let Some(call_name) = context.annotations.get_call_name(operator.as_ref()) else {
+        return false;
+    };
+
+    let Some(adr_builtin) = builtins::get_builtin("ADR") else {
+        return false;
+    };
+
+    context.index.get_builtin_function(call_name).is_some_and(|builtin| std::ptr::eq(builtin, adr_builtin))
+}
+
+fn variable_is_in_inherited_or_self_scope<T: AnnotationMap>(
+    option_pou: Option<&PouIndexEntry>,
+    context: &ValidationContext<T>,
+    qualified_name: &str,
+    location: &SourceLocation,
+) -> bool {
+    if let Some(pou) = option_pou {
+        let mut found = false;
+
+        if let Some(super_class) = pou.get_super_class() {
+            if let Some(super_pou) = context.index.find_pou(super_class) {
+                found = variable_is_in_pou_or_container(
+                    super_pou.get_name(),
+                    super_pou.get_container(),
+                    context,
+                    qualified_name,
+                    location,
+                );
+
+                if !found {
+                    found = variable_is_in_inherited_or_self_scope(
+                        Some(super_pou),
+                        context,
+                        qualified_name,
+                        location,
+                    );
+                }
+            }
+        }
+
+        if found {
+            return true;
+        }
+
+        if let Some(parent) = pou.get_parent_pou_name() {
+            if let Some(parent_pou) = context.index.find_pou(parent) {
+                found = variable_is_in_pou_or_container(
+                    parent_pou.get_name(),
+                    parent_pou.get_container(),
+                    context,
+                    qualified_name,
+                    location,
+                );
+
+                if !found {
+                    found = variable_is_in_inherited_or_self_scope(
+                        Some(parent_pou),
+                        context,
+                        qualified_name,
+                        location,
+                    );
+                }
+            }
+        }
+
+        if found {
+            return true;
+        }
+
+        return variable_is_in_pou_or_container(
+            pou.get_name(),
+            pou.get_container(),
+            context,
+            qualified_name,
+            location,
+        );
+    }
+
+    true
+}
+
+fn variable_is_in_pou_or_container<T: AnnotationMap>(
+    pou: &str,
+    container: &str,
+    context: &ValidationContext<T>,
+    qualified_name: &str,
+    location: &SourceLocation,
+) -> bool {
+    qualified_name.starts_with(pou)
+        || qualified_name.starts_with(container)
+        || context.index.is_init_function(pou)
+        //Hack: Avoid internal check here because of the super call
+        || location.is_internal()
 }
 
 /// Returns true if an assignment statement exists such that a return value is assigned to a void
@@ -1876,6 +2020,20 @@ fn validate_argument_count<T: AnnotationMap>(
     }
 }
 
+/// Validates an expression to ensure that the given literal or constant is not 0
+fn validate_zero_diviser<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    statement: &AstNode,
+    location: &SourceLocation,
+) {
+    if is_literal_or_const_expr_value_zero(statement, context) {
+        validator.push_diagnostic(
+            Diagnostic::new("Division by Zero").with_error_code("E123").with_location(location),
+        );
+    }
+}
+
 pub(crate) mod helper {
     use std::ops::Range;
 
@@ -1945,5 +2103,33 @@ pub(crate) mod helper {
         }
 
         variant_const_values
+    }
+
+    pub fn is_literal_or_const_expr_value_zero<T>(right: &AstNode, context: &ValidationContext<T>) -> bool
+    where
+        T: AnnotationMap,
+    {
+        let right = right.get_node_peeled();
+        if right.is_zero() {
+            return true;
+        }
+
+        if let Some(statement_annotation) = context.annotations.get(right) {
+            if let Some(path) = statement_annotation.qualified_name() {
+                if let Some(element) = context.index.find_fully_qualified_variable(path) {
+                    if statement_annotation.is_const() {
+                        if let Some(constant_statement) = context
+                            .index
+                            .get_const_expressions()
+                            .maybe_get_constant_statement(&element.initial_value)
+                        {
+                            return constant_statement.is_zero();
+                        }
+                    }
+                }
+            }
+        }
+
+        false
     }
 }

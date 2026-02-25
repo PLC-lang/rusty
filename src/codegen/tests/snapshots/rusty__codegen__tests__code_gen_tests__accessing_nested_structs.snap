@@ -20,9 +20,9 @@ entry:
   %m = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 0
   %out1 = getelementptr inbounds nuw %OuterStruct, ptr %m, i32 0, i32 0
   %inner1 = getelementptr inbounds nuw %InnerStruct, ptr %out1, i32 0, i32 0
-  store i16 3, ptr %inner1, align 2
+  store i16 3, ptr %inner1, align [filtered]
   %out2 = getelementptr inbounds nuw %OuterStruct, ptr %m, i32 0, i32 1
   %inner2 = getelementptr inbounds nuw %InnerStruct, ptr %out2, i32 0, i32 1
-  store i16 7, ptr %inner2, align 2
+  store i16 7, ptr %inner2, align [filtered]
   ret void
 }

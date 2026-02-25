@@ -6,7 +6,7 @@ target triple = "[filtered]"
 
 %main = type { i32, i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___plc, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
 @main_instance = global %main zeroinitializer, !dbg !0
 
 define void @main(ptr %0) !dbg !12 {
@@ -14,7 +14,7 @@ entry:
     #dbg_declare(ptr %0, !16, !DIExpression(), !17)
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  store i32 0, ptr %a, align 4, !dbg !18
+  store i32 0, ptr %a, align [filtered], !dbg !18
   call void @main__newAction(ptr %0), !dbg !17
   call void @main__newAction2(ptr %0), !dbg !19
   ret void, !dbg !20
@@ -24,33 +24,33 @@ define void @main__newAction(ptr %0) {
 entry:
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  %load_a = load i32, ptr %a, align 4, !dbg !21
-  %tmpVar = add i32 %load_a, 1, !dbg !21
-  store i32 %tmpVar, ptr %a, align 4, !dbg !21
-  ret void, !dbg !22
+  %load_a = load i32, ptr %a, align [filtered]
+  %tmpVar = add i32 %load_a, 1
+  store i32 %tmpVar, ptr %a, align [filtered]
+  ret void
 }
 
 define void @main__newAction2(ptr %0) {
 entry:
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  %load_b = load i32, ptr %b, align 4, !dbg !23
-  %tmpVar = add i32 %load_b, 2, !dbg !23
-  store i32 %tmpVar, ptr %b, align 4, !dbg !23
-  ret void, !dbg !22
+  %load_b = load i32, ptr %b, align [filtered]
+  %tmpVar = add i32 %load_b, 2
+  store i32 %tmpVar, ptr %b, align [filtered]
+  ret void
 }
 
 define void @__init_main(ptr %0) {
 entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
 define void @__user_init_main(ptr %0) {
 entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
@@ -67,11 +67,11 @@ entry:
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "main", scope: !2, file: !2, line: 1, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "<internal>.cfc", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "main", scope: !2, file: !2, line: 1, size: 64, align: 64, flags: DIFlagPublic, elements: !4, identifier: "main")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "main", scope: !2, file: !2, line: 1, size: 64, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "main")
 !4 = !{!5, !7}
-!5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align [filtered], flags: DIFlagPublic)
 !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align [filtered], offset: 32, flags: DIFlagPublic)
 !8 = !{i32 2, !"Dwarf Version", i32 5}
 !9 = !{i32 2, !"Debug Info Version", i32 3}
 !10 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !11, splitDebugInlining: false)
@@ -85,6 +85,3 @@ entry:
 !18 = !DILocation(line: 3, scope: !12)
 !19 = !DILocation(line: 2, scope: !12)
 !20 = !DILocation(line: 0, scope: !12)
-!21 = !DILocation(line: 1, scope: !2)
-!22 = !DILocation(line: 0, scope: !2)
-!23 = !DILocation(line: 2, scope: !2)

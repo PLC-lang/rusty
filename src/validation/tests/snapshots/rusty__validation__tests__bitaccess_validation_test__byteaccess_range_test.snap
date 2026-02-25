@@ -19,5 +19,3 @@ error[E057]: Byte-Wise access for type LWORD must be in range 0..7
   │
 8 │                 d.%B8;
   │                   ^^^ Byte-Wise access for type LWORD must be in range 0..7
-
-

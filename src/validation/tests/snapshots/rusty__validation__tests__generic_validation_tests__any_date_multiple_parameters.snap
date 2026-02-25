@@ -55,5 +55,3 @@ error[E062]: Invalid type nature for generic argument. CHAR is no ANY_DATE
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                               ^^^^^^^^ Invalid type nature for generic argument. CHAR is no ANY_DATE
-
-

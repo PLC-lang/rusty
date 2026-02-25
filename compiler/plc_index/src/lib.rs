@@ -5,6 +5,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
 use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
 
 // TODO: The clone is super expensive here, eventually we should have a inner type wrapped around Arc, e.g.
 //       `struct GlobalContext { inner: Arc<GlobalContextInner> }`
@@ -15,7 +16,8 @@ use rustc_hash::FxHashMap;
 //       RefCells may or may not make sense here, because maybe we dont want to pass the GlobalContext as a mutable reference?
 //       -> diagnostics: RefCell<Diagnostics>, (private visibility)
 //       -> index: RefCell<Index>, (private visibility; `get_index(&self) -> &mut Index`?)
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct GlobalContext {
     /// HashMap containing all read, i.e. parsed, sources where the key represents
     /// the relative file path and the value some [`SourceCode`]
@@ -27,7 +29,7 @@ pub struct GlobalContext {
 }
 
 // XXX: Temporary
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ErrorFormat {
     #[default]
     Rich,

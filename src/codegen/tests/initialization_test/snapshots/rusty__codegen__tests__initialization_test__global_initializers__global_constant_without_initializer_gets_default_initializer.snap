@@ -14,19 +14,19 @@ target triple = "[filtered]"
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  %cmd1 = alloca %commands, align 8
-  %myStr1 = alloca [81 x i8], align 1
-  %myArr1 = alloca [4 x i16], align 2
-  %cmd2 = alloca %commands, align 8
-  %myArr2 = alloca [4 x i16], align 2
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %cmd1, ptr align 1 @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %myStr1, ptr align 1 @__main.myStr1__init, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-  call void @llvm.memset.p0.i64(ptr align 1 %myArr1, i8 0, i64 ptrtoint (ptr getelementptr ([4 x i16], ptr null, i32 1) to i64), i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %cmd2, ptr align 1 @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
-  call void @llvm.memset.p0.i64(ptr align 1 %myArr2, i8 0, i64 ptrtoint (ptr getelementptr ([4 x i16], ptr null, i32 1) to i64), i1 false)
-  store i32 0, ptr %main, align 4
-  %main_ret = load i32, ptr %main, align 4
+  %main = alloca i32, align [filtered]
+  %cmd1 = alloca %commands, align [filtered]
+  %myStr1 = alloca [81 x i8], align [filtered]
+  %myArr1 = alloca [4 x i16], align [filtered]
+  %cmd2 = alloca %commands, align [filtered]
+  %myArr2 = alloca [4 x i16], align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %cmd1, ptr align [filtered] @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %myStr1, ptr align [filtered] @__main.myStr1__init, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0.i64(ptr align [filtered] %myArr1, i8 0, i64 ptrtoint (ptr getelementptr ([4 x i16], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %cmd2, ptr align [filtered] @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0.i64(ptr align [filtered] %myArr2, i8 0, i64 ptrtoint (ptr getelementptr ([4 x i16], ptr null, i32 1) to i64), i1 false)
+  store i32 0, ptr %main, align [filtered]
+  %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }
 

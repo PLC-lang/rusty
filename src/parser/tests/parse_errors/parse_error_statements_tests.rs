@@ -282,7 +282,7 @@ fn test_nested_if_with_missing_end_if() {
 
     assert_snapshot!(diagnostics);
 
-    insta::assert_snapshot!(format!("{:#?}", unit.implementations[0].statements), @r###"
+    insta::assert_snapshot!(format!("{:#?}", unit.implementations[0].statements), @r#"
     [
         IfStatement {
             blocks: [
@@ -345,7 +345,7 @@ fn test_nested_if_with_missing_end_if() {
             else_block: [],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -377,7 +377,7 @@ fn test_nested_for_with_missing_end_for() {
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        @r###"
+        @r#"
     [
         ForLoopStatement {
             counter: ReferenceExpr {
@@ -454,7 +454,7 @@ fn test_nested_for_with_missing_end_for() {
             ],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -473,7 +473,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        @r###"
+        @r#"
     [
         RepeatLoopStatement {
             condition: BinaryExpression {
@@ -530,7 +530,7 @@ fn test_repeat_with_missing_semicolon_in_body() {
             },
         },
     ]
-    "###
+    "#
     );
 }
 
@@ -549,7 +549,7 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
     assert_snapshot!(diagnostics);
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        @r###"
+        @r#"
     [
         RepeatLoopStatement {
             condition: EmptyStatement,
@@ -599,7 +599,7 @@ fn test_nested_repeat_with_missing_until_end_repeat() {
             ],
         },
     ]
-    "###
+    "#
     );
 }
 
@@ -621,7 +621,7 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        @r###"
+        @r#"
     [
         RepeatLoopStatement {
             condition: EmptyStatement,
@@ -671,7 +671,7 @@ fn test_nested_repeat_with_missing_condition_and_end_repeat() {
             ],
         },
     ]
-    "###
+    "#
     );
 }
 
@@ -692,7 +692,7 @@ fn test_nested_repeat_with_missing_end_repeat() {
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        @r###"
+        @r#"
     [
         RepeatLoopStatement {
             condition: BinaryExpression {
@@ -760,7 +760,7 @@ fn test_nested_repeat_with_missing_end_repeat() {
             ],
         },
     ]
-    "###
+    "#
     );
 }
 
@@ -780,7 +780,7 @@ fn test_while_with_missing_semicolon_in_body() {
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        @r###"
+        @r#"
     [
         WhileLoopStatement {
             condition: BinaryExpression {
@@ -837,7 +837,7 @@ fn test_while_with_missing_semicolon_in_body() {
             },
         },
     ]
-    "###
+    "#
     );
 }
 
@@ -857,7 +857,7 @@ fn test_nested_while_with_missing_end_while() {
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        @r###"
+        @r#"
     [
         WhileLoopStatement {
             condition: BinaryExpression {
@@ -925,7 +925,7 @@ fn test_nested_while_with_missing_end_while() {
             ],
         },
     ]
-    "###
+    "#
     );
 }
 
@@ -943,7 +943,7 @@ fn test_while_with_missing_do() {
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        @r###"
+        @r#"
     [
         WhileLoopStatement {
             condition: BinaryExpression {
@@ -987,7 +987,7 @@ fn test_while_with_missing_do() {
             ],
         },
     ]
-    "###
+    "#
     );
 }
 
@@ -1006,7 +1006,7 @@ fn test_case_body_with_missing_semicolon() {
 
     insta::assert_snapshot!(
         format!("{:#?}", unit.implementations[0].statements),
-        @r###"
+        @r#"
     [
         CaseStatement {
             selector: ReferenceExpr {
@@ -1052,7 +1052,7 @@ fn test_case_body_with_missing_semicolon() {
             else_block: [],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -1135,6 +1135,7 @@ fn pointer_type_without_to_test() {
         location: SourceLocation::internal(),
         initializer: None,
         scope: None,
+        linkage: LinkageType::Internal,
     };
     assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
 
@@ -1164,6 +1165,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
         location: SourceLocation::internal(),
         initializer: None,
         scope: None,
+        linkage: LinkageType::Internal,
     };
     assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
     assert_snapshot!(diagnostics);

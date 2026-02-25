@@ -25,5 +25,3 @@ error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0
    │
 16 │             fb(s, arr_64); // invalid implicit
    │                   ^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LINT' to 'ARRAY[0..1] OF DINT'
-
-

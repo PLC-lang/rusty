@@ -17,5 +17,3 @@ error[E004]: foo: Ambiguous datatype.
   │                         ^^^ foo: Ambiguous datatype.
 3 │         TYPE foo : INT; END_TYPE
   │              --- see also
-
-

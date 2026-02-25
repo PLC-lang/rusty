@@ -30,11 +30,11 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  store ptr @global1, ptr @prog_instance, align 8
-  store ptr @global2, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align 8
+  store ptr @global1, ptr @prog_instance, align [filtered]
+  store ptr @global2, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align [filtered]
   call void @prog(ptr @prog_instance)
-  store ptr @global4, ptr @prog_instance, align 8
-  store ptr @global5, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align 8
+  store ptr @global4, ptr @prog_instance, align [filtered]
+  store ptr @global5, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align [filtered]
   call void @prog(ptr @prog_instance)
   ret void
 }

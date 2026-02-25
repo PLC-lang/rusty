@@ -13,5 +13,3 @@ error[E007]: Unexpected token: expected KeywordEndVar but found 'END_PROGRAM'
   │
 1 │ PROGRAM buz VAR END_PROGRAM 
   │                 ^^^^^^^^^^^ Unexpected token: expected KeywordEndVar but found 'END_PROGRAM'
-
-

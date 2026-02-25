@@ -7,5 +7,3 @@ error[E073]: Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,
   │
 5 │             'a' =  'b'; // missing compare function :-(
   │             ^^^^^^^^^^ Missing compare function 'FUNCTION STRING_EQUAL : BOOL VAR_INPUT a,b : STRING; END_VAR ...'.
-
-

@@ -1344,7 +1344,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let parameter_type_name = self.get_parameter_type(parameter);
         let parameter_type = self.llvm_index.get_associated_type(&parameter_type_name)?;
-        match parameter.get_declaration_type() {
+        let declaration_type = parameter.get_declaration_type();
+        let parameter_type_info = self.index.get_effective_type_or_void_by_name(&parameter_type_name);
+
+        match declaration_type {
+            ArgumentType::ByVal(..)
+                if declaration_type.is_input() && parameter_type_info.is_aggregate_type() =>
+            {
+                // Aggregate VAR_INPUT defaults are passed by reference in function signatures.
+                let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
+                if let Some(initial_value) =
+                    self.get_initial_value(&parameter.initial_value, &parameter_type_name)
+                {
+                    let value = self.generate_expression(initial_value)?;
+                    self.llvm.builder.build_store(ptr_value, value)?;
+                }
+                Ok(ptr_value.as_basic_value_enum())
+            }
             ArgumentType::ByVal(..) => {
                 if let Some(initial_value) =
                     self.get_initial_value(&parameter.initial_value, &parameter_type_name)
@@ -1537,15 +1553,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 }
                 Some(StatementAnnotation::Variable { qualified_name, .. }) => {
-                    let member_location = self
-                        .index
-                        .find_fully_qualified_variable(qualified_name)
-                        .map(VariableIndexEntry::get_location_in_parent)
-                        .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?;
-                    let pointee = {
-                        let datatype = self.annotations.get_type(qualifier_node, self.index).unwrap();
-                        self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                    // Get the container (qualifier) type name for struct member index lookup
+                    let qualifier_type = self.annotations.get_type(qualifier_node, self.index).unwrap();
+                    let container_name = qualifier_type.get_name();
+
+                    // For POUs (programs, function blocks, classes), use get_struct_member_index
+                    // to compute the correct GEP index. This properly handles POUs with
+                    // VAR_TEMP/VAR_EXTERNAL variables which are not part of the struct
+                    // (they're stack-allocated or external).
+                    // For regular structs (including vtables), use location_in_parent directly.
+                    let member_location = if self.index.find_pou(container_name).is_some() {
+                        self.index
+                            .get_struct_member_index(container_name, name)
+                            .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?
+                    } else {
+                        self.index
+                            .find_fully_qualified_variable(qualified_name)
+                            .map(VariableIndexEntry::get_location_in_parent)
+                            .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?
                     };
+
+                    let pointee = self.llvm_index.get_associated_type(container_name).unwrap();
 
                     let gep: PointerValue<'_> = self.llvm.get_member_pointer_from_struct(
                         pointee,
@@ -2165,6 +2193,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
             AstStatement::Assignment { .. } => self.generate_literal_struct(literal_statement),
+            // Reference expressions (e.g., variable references in array literals like `[..., str]`)
+            // should be evaluated as regular expressions
+            AstStatement::ReferenceExpr(_) => {
+                self.generate_expression(literal_statement).map(ExpressionValue::RValue)
+            }
             _ => Err(cannot_generate_literal().into()),
         }
     }
@@ -2409,8 +2442,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let elements =
             if self.index.get_effective_type_or_void_by_name(inner_type.get_name()).information.is_struct() {
                 match elements.get_stmt() {
+                    // ExpressionList of struct initializers: [(a:=1), (b:=2)] or [(a:=1, b:=2), (c:=3, d:=4)]
                     AstStatement::ExpressionList(expressions) => expressions.iter().collect(),
-                    _ => unreachable!("This should always be an expression list"),
+                    // Single struct initializer wrapped in parentheses: [(a := 1, b := 2)]
+                    // The ParenExpression represents ONE struct, not multiple elements
+                    AstStatement::ParenExpression(_) => vec![elements],
+                    // Single struct initializer without parentheses
+                    _ => vec![elements],
                 }
             } else {
                 flatten_expression_list(elements)

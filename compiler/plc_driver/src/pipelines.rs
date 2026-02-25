@@ -9,7 +9,7 @@ use std::{
 };
 
 use crate::{
-    cli::{self, CompileParameters, ConfigOption, SubCommands},
+    cli::{self, CompileParameters, ConfigOption, GenerateOption, SubCommands},
     get_project, CompileOptions, LinkOptions, LinkerScript,
 };
 use ast::{
@@ -18,7 +18,6 @@ use ast::{
 };
 
 use itertools::Itertools;
-use log::debug;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
@@ -41,6 +40,10 @@ use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
 };
+use plc_header_generator::{
+    header_generator::{combine_generated_headers, get_generated_header, GeneratedHeader},
+    GenerateHeaderOptions,
+};
 use plc_index::GlobalContext;
 use plc_lowering::inheritance::InheritanceLowerer;
 use project::{
@@ -48,10 +51,10 @@ use project::{
     project::{LibraryInformation, Project},
 };
 use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 use source_code::{source_location::SourceLocation, SourceContainer};
 
 use serde_json;
-use tempfile::NamedTempFile;
 use toml;
 
 pub mod participant;
@@ -74,6 +77,7 @@ pub trait Pipeline {
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
     fn generate(&mut self, context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic>;
+    fn generate_headers(&mut self, project: AnnotatedProject) -> Result<(), Diagnostic>;
 }
 
 impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
@@ -203,11 +207,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
             library_paths.extend_from_slice(self.project.get_library_paths());
             //Get the specified linker script or load the default linker script in a temp file
-            let linker_script = if params.no_linker_script {
-                LinkerScript::None
-            } else {
-                params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
-            };
+            let linker_script = params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default();
 
             LinkOptions {
                 libraries,
@@ -220,6 +220,33 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 module_name: self.get_module_name(),
             }
         })
+    }
+
+    pub fn get_generate_header_options(&self) -> Option<GenerateHeaderOptions> {
+        let header_output_path =
+            self.compile_parameters.as_ref().map(|params| params.header_output.clone().unwrap_or_default());
+
+        let output_path = if let Some(output_path) = header_output_path {
+            PathBuf::from(output_path)
+        } else {
+            PathBuf::from(String::new())
+        };
+
+        self.compile_parameters.as_ref().map(|params| match params.commands.as_ref() {
+            Some(SubCommands::Generate { option, .. }) => match option {
+                GenerateOption::Headers { include_stubs, language, prefix, .. } => GenerateHeaderOptions {
+                    include_stubs: *include_stubs,
+                    language: *language,
+                    output_path,
+                    prefix: prefix.clone().unwrap_or(String::new()),
+                },
+            },
+            _ => GenerateHeaderOptions { output_path, ..Default::default() },
+        })
+    }
+
+    fn get_header_output_file(&self) -> Option<String> {
+        self.compile_parameters.as_ref().map(|params| params.output.clone().unwrap_or_default())
     }
 
     fn print_config_options(&self, option: ConfigOption) -> Result<(), Diagnostic> {
@@ -333,11 +360,17 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             annotated_project.generate_hardware_information(format, location)?;
         }
 
-        // 5. Codegen
+        // Skip code-gen if it is check
         if self.compile_parameters.as_ref().is_some_and(CompileParameters::is_check) {
             return Ok(());
         }
 
+        // Generate Header files
+        if self.compile_parameters.as_ref().is_some_and(CompileParameters::is_header_generator) {
+            return self.generate_headers(annotated_project);
+        }
+
+        // 5. Codegen
         self.generate(&CodegenContext::create(), annotated_project)
     }
 
@@ -429,6 +462,33 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             .unwrap_or(Ok(()))?;
         Ok(())
     }
+
+    fn generate_headers(&mut self, project: AnnotatedProject) -> Result<(), Diagnostic> {
+        let Some(generate_header_options) = self.get_generate_header_options() else {
+            log::debug!("No generate header options provided!");
+            return Ok(());
+        };
+
+        let mut generated_headers: Vec<Box<dyn GeneratedHeader>> = Vec::new();
+
+        for unit in project.units {
+            generated_headers.push(get_generated_header(&generate_header_options, &unit.unit)?);
+        }
+
+        let output_file = self.get_header_output_file().unwrap_or_default();
+
+        if !output_file.is_empty() {
+            let generated_header =
+                combine_generated_headers(&generate_header_options, generated_headers, output_file)?;
+            write_header_file(generated_header)?;
+        } else {
+            for generated_header in generated_headers {
+                write_header_file(generated_header)?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
@@ -464,9 +524,25 @@ fn write_got_layout(
     fs::write(location, s).map_err(|_| Diagnostic::new("GOT layout could not be written to file"))
 }
 
+fn write_header_file(generated_header: Box<dyn GeneratedHeader>) -> Result<(), Diagnostic> {
+    if !generated_header.is_empty() {
+        // Create the directories to the output path (if it is necessary to do so)
+        if !generated_header.get_directory().is_empty() {
+            fs::create_dir_all(generated_header.get_directory())?;
+        }
+
+        // Write the header file
+        fs::write(generated_header.get_path(), generated_header.get_contents())?;
+    }
+
+    Ok(())
+}
+
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
 ///been generated
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct ParsedProject {
     units: Vec<CompilationUnit>,
 }
@@ -569,6 +645,8 @@ impl ParsedProject {
 
 ///A project that has also been indexed
 /// Units inside an index project are ready be resolved and annotated
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct IndexedProject {
     project: ParsedProject,
     index: Index,
@@ -621,7 +699,8 @@ impl IndexedProject {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct AnnotatedUnit {
     unit: CompilationUnit,
     dependencies: FxIndexSet<Dependency>,
@@ -649,6 +728,8 @@ impl From<AnnotatedUnit> for CompilationUnit {
 }
 
 /// A project that has been annotated with information about different types and used units
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct AnnotatedProject {
     pub units: Vec<AnnotatedUnit>,
     pub index: Index,
@@ -983,29 +1064,11 @@ impl GeneratedProject {
                 //HACK: Create a temp file that would contain the bultin linker script
                 //FIXME: This has to be done regardless if the file is used or not because it has
                 //to be in scope by the time we call the linker
-                let mut file = NamedTempFile::new()?;
                 match link_options.linker_script {
-                    LinkerScript::Builtin => {
-                        let target = self.target.get_target_triple().to_string();
-                        //Only do this on linux systems
-                        if target.contains("linux") {
-                            if target.contains("x86_64") {
-                                let content = include_str!("../../../scripts/linker/x86_64.script");
-                                writeln!(file, "{content}")?;
-                                linker.set_linker_script(file.get_location_str().to_string());
-                            } else if target.contains("aarch64") {
-                                let content = include_str!("../../../scripts/linker/aarch64.script");
-                                writeln!(file, "{content}")?;
-                                linker.set_linker_script(file.get_location_str().to_string());
-                            } else {
-                                debug!("No script for target : {target}");
-                            }
-                        } else {
-                            debug!("No script for target : {target}");
-                        }
-                    }
                     LinkerScript::Path(script) => linker.set_linker_script(script),
                     LinkerScript::None => {}
+                    #[allow(deprecated)]
+                    LinkerScript::Builtin => {}
                 };
 
                 match link_options.format {

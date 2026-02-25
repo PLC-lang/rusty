@@ -19,5 +19,3 @@ error[E053]: Literal 4294967296 out of range (UDINT)
    │
 10 │                 UDINT#4_294_967_296;
    │                 ^^^^^^^^^^^^^^^^^^^ Literal 4294967296 out of range (UDINT)
-
-

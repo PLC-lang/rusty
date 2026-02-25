@@ -27,7 +27,7 @@ fn initializer_with_ref_call_annotated_as_pointer() {
     let initializer_bar = unit.pous[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
     let initializer_bar_annotation = annotations.get(initializer_bar).unwrap();
 
-    assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r###"
+    assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r#"
     (
         CallStatement {
             operator: ReferenceExpr {
@@ -53,7 +53,7 @@ fn initializer_with_ref_call_annotated_as_pointer() {
             resulting_type: "__POINTER_TO_DINT",
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -75,7 +75,7 @@ fn initializer_with_refassignment_annotated_with_replacementast() {
     let initializer_bar = unit.pous[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
     let initializer_bar_annotation = annotations.get(initializer_bar).unwrap();
 
-    assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r###"
+    assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r#"
     (
         ReferenceExpr {
             kind: Member(
@@ -95,7 +95,7 @@ fn initializer_with_refassignment_annotated_with_replacementast() {
             auto_deref: None,
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -117,7 +117,7 @@ fn initializer_of_alias_annotated_with_replacementast() {
     let initializer_bar = unit.pous[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
     let initializer_bar_annotation = annotations.get(initializer_bar).unwrap();
 
-    assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r###"
+    assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r#"
     (
         ReferenceExpr {
             kind: Member(
@@ -137,7 +137,7 @@ fn initializer_of_alias_annotated_with_replacementast() {
             auto_deref: None,
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -159,7 +159,7 @@ fn initializer_of_alias_annotated_with_replacementast_array() {
     let initializer_bar = unit.pous[0].variable_blocks[0].variables[1].initializer.as_ref().unwrap();
     let initializer_bar_annotation = annotations.get(initializer_bar).unwrap();
 
-    assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r###"
+    assert_debug_snapshot!((initializer_bar, initializer_bar_annotation), @r#"
     (
         ReferenceExpr {
             kind: Index(
@@ -182,5 +182,5 @@ fn initializer_of_alias_annotated_with_replacementast_array() {
             resulting_type: "DINT",
         },
     )
-    "###);
+    "#);
 }

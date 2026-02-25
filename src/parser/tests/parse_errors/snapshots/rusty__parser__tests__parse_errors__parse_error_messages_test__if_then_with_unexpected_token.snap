@@ -58,5 +58,3 @@ error[E048]: Could not resolve reference to CHARLIE
   │
 3 │         IF TRUE CHARLIE
   │                 ^^^^^^^ Could not resolve reference to CHARLIE
-
-

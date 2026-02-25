@@ -572,3 +572,112 @@ fn struct_field_members_assignments_are_annotated_correctly_in_array_of_structs(
     let AstStatement::ParenExpression(z) = &elements[1].stmt else { panic!() };
     assert_eq!(&annotations.get_type_hint(z, &index).unwrap().name, "STRUCT2");
 }
+
+#[test]
+fn struct_field_members_assignments_are_annotated_correctly_in_array_of_structs_assignment_in_body() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        TYPE STRUCT1 : STRUCT
+            x    : DINT;
+            arr   : ARRAY[0..1] OF STRUCT2;
+        END_STRUCT END_TYPE
+
+        TYPE STRUCT2 : STRUCT
+            y  : INT;
+            z  : INT;
+        END_STRUCT END_TYPE
+
+        PROGRAM main
+            VAR_TEMP
+                var_init1 : ARRAY[0..1] OF STRUCT1;
+            END_VAR
+            var_init1 := [(x := 0, arr := [(y := 0), (z := 0)])];
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    // Get the assignment statement: var_init1 := [(x := 0, arr := [(y := 0), (z := 0)])];
+    let assignment_stmt = &unit.implementations[0].statements[0];
+    let AstStatement::Assignment(assignment) = &assignment_stmt.stmt else { panic!() };
+
+    // [(x := 0, arr := [(y := 0), (z := 0)])]
+    let AstStatement::Literal(AstLiteral::Array(arr)) = &assignment.right.stmt else { panic!() };
+    let AstStatement::ParenExpression(paren) = &arr.elements().unwrap().stmt else { panic!() };
+    let AstStatement::ExpressionList(elements) = &paren.stmt else { panic!() };
+
+    // x := 0
+    let x = &elements[0];
+    assert_eq!(&annotations.get_type_hint(x, &index).unwrap().name, "STRUCT1");
+
+    // arr := [(y := 0), (z := 0)]
+    let AstStatement::Assignment(arr_assignment) = &elements[1].stmt else { panic!() };
+
+    // [(y := 0), (z := 0)]
+    let AstStatement::Literal(AstLiteral::Array(inner_arr)) = &arr_assignment.right.stmt else { panic!() };
+    let AstStatement::ExpressionList(inner_elements) = &inner_arr.elements.as_ref().unwrap().stmt else {
+        panic!()
+    };
+
+    // y := 0
+    let AstStatement::ParenExpression(y) = &inner_elements[0].stmt else { panic!() };
+    assert_eq!(&annotations.get_type_hint(y, &index).unwrap().name, "STRUCT2");
+
+    // z := 0
+    let AstStatement::ParenExpression(z) = &inner_elements[1].stmt else { panic!() };
+    assert_eq!(&annotations.get_type_hint(z, &index).unwrap().name, "STRUCT2");
+}
+
+#[test]
+fn struct_with_nested_array_in_array_of_structs_assignment_in_body() {
+    // This test specifically checks that arrays inside struct initializers within
+    // array literals in assignment statements are properly annotated
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        TYPE myStruct : STRUCT
+            a, b : DINT;
+            c : ARRAY[0..1] OF DINT;
+        END_STRUCT END_TYPE
+
+        PROGRAM main
+            VAR_TEMP
+                arr : ARRAY[0..1] OF myStruct;
+            END_VAR
+            arr := [(a := 10, b := 20, c := [30, 40])];
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    // Get the assignment statement: arr := [(a := 10, b := 20, c := [30, 40])];
+    let assignment_stmt = &unit.implementations[0].statements[0];
+    let AstStatement::Assignment(assignment) = &assignment_stmt.stmt else { panic!() };
+
+    // [(a := 10, b := 20, c := [30, 40])]
+    let AstStatement::Literal(AstLiteral::Array(arr)) = &assignment.right.stmt else { panic!() };
+    let AstStatement::ParenExpression(paren) = &arr.elements().unwrap().stmt else { panic!() };
+    let AstStatement::ExpressionList(elements) = &paren.stmt else { panic!() };
+
+    // a := 10
+    let a = &elements[0];
+    assert_eq!(&annotations.get_type_hint(a, &index).unwrap().name, "myStruct");
+
+    // b := 20
+    let b = &elements[1];
+    assert_eq!(&annotations.get_type_hint(b, &index).unwrap().name, "myStruct");
+
+    // c := [30, 40]
+    let c = &elements[2];
+    assert_eq!(&annotations.get_type_hint(c, &index).unwrap().name, "myStruct");
+
+    // Check that the inner array [30, 40] has the correct type hint
+    let AstStatement::Assignment(c_assignment) = &c.stmt else { panic!() };
+    let inner_array = &c_assignment.right;
+    assert_eq!(&annotations.get_type_hint(inner_array, &index).unwrap().name, "__myStruct_c");
+}

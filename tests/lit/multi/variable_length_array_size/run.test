@@ -1,0 +1,2 @@
+RUN: %COMPILE %S/main.st %S/function.st %S/function_block.st && %RUN | %CHECK %s
+CHECK: Test

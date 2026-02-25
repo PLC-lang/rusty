@@ -15,5 +15,3 @@ error[E028]: Variable block is empty
   │ ╭─────────────────────────────^
 7 │ │                 END_STRUCT
   │ ╰──────────────────────────^ Variable block is empty
-
-

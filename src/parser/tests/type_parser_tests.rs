@@ -1,6 +1,6 @@
 use crate::test_utils::tests::{parse, parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_ast::ast::{DataType, DataTypeDeclaration, UserTypeDeclaration, Variable};
+use plc_ast::ast::{DataType, DataTypeDeclaration, LinkageType, UserTypeDeclaration, Variable};
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
 
@@ -78,6 +78,7 @@ fn simple_struct_type_can_be_parsed() {
             initializer: None,
             location: SourceLocation::internal(),
             scope: None,
+            linkage: LinkageType::Internal,
         }
     );
     assert_eq!(ast_string, expected_ast);
@@ -199,6 +200,7 @@ fn type_alias_can_be_parsed() {
             initializer: None,
             location: SourceLocation::internal(),
             scope: None,
+            linkage: LinkageType::Internal,
         }
     );
 
@@ -833,7 +835,7 @@ fn enum_with_no_elements_produces_syntax_error() {
         "#,
     );
     assert!(!diagnostics.is_empty());
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E007]: Unexpected token: expected Literal but found )
       ┌─ <internal>:2:32
       │
@@ -845,7 +847,7 @@ fn enum_with_no_elements_produces_syntax_error() {
       │
     6 │         
       │         ^ Unexpected token: expected KeywordEndType but found ''
-    "###);
+    ");
     // User type should still be created despite the error (error recovery)
     assert_debug_snapshot!(result.user_types[0], @r#"
     UserTypeDeclaration {

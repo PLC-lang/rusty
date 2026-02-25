@@ -31,5 +31,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION
   │
 1 │ FUNCTION foo : STRUCT x : INT; y : INT; END_STRUCT VAR_INPUT END_VAR END_FUNCTION
   │                                                                      ^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION'
-
-

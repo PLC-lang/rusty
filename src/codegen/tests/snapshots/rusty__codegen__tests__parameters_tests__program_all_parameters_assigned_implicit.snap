@@ -26,11 +26,11 @@ entry:
   %var1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %var2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %var3 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
-  %load_var1 = load i32, ptr %var1, align 4
-  store i32 %load_var1, ptr @prog_instance, align 4
-  store ptr %var3, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 2), align 8
+  %load_var1 = load i32, ptr %var1, align [filtered]
+  store i32 %load_var1, ptr @prog_instance, align [filtered]
+  store ptr %var3, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 2), align [filtered]
   call void @prog(ptr @prog_instance)
-  %1 = load i32, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align 4
-  store i32 %1, ptr %var2, align 4
+  %1 = load i32, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align [filtered]
+  store i32 %1, ptr %var2, align [filtered]
   ret void
 }

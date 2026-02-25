@@ -1,4 +1,4 @@
-ARG LLVM_VER=14
+ARG LLVM_VER=21
 ARG RUST_VER=1.90
 ARG CONTAINER_VERSION=$LLVM_VER-$RUST_VER
 ARG BASE_IMAGE=ghcr.io/plc-lang/rust-llvm:$CONTAINER_VERSION
@@ -10,7 +10,7 @@ ENV STDLIBLOC="/opt/rusty/stdlib"
 ENV PATH="${PLCLOC}:${PATH}"
 
 # Install the local RuSTy version
-COPY artifacts/plc /opt/rusty
+COPY artifacts/plc/plc /opt/rusty/
 # Make the binary executable
 RUN chmod +x /opt/rusty/plc
 # Copy the standard library

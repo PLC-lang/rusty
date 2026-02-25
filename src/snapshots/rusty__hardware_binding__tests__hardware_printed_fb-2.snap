@@ -1,8 +1,6 @@
 ---
 source: src/hardware_binding.rs
-assertion_line: 311
 expression: res
-
 ---
 [[HardwareConfiguration]]
 name = 'gFb.a'
@@ -609,4 +607,3 @@ address = [
 ]
 ,
 ]
-

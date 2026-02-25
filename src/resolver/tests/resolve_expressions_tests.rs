@@ -559,6 +559,58 @@ fn parenthesized_expression_assignment() {
 }
 
 #[test]
+fn binary_expression_with_parenthesized_different_types() {
+    // Regression test: Multiplying REAL by parenthesized INT expression should work
+    // The parenthesized (b - c) expression should get proper type promotion to REAL
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "PROGRAM main
+            VAR
+                a : REAL;
+                b : INT;
+                c : INT;
+                result : REAL;
+            END_VAR
+
+            result := (a) * (b - c);
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    // The assignment should resolve correctly
+    let stmt = &unit.implementations[0].statements[0];
+    let AstStatement::Assignment(Assignment { right, .. }) = &stmt.stmt else { panic!() };
+
+    // The outer binary expression (a) * (b - c) should be REAL
+    assert_eq!(annotations.get_type_or_void(right, &index).get_name(), "REAL");
+
+    // Extract the binary expression
+    let AstStatement::BinaryExpression(BinaryExpression { left, right: rhs, .. }) = right.get_stmt() else {
+        panic!()
+    };
+
+    // left = (a), should be REAL
+    assert!(left.is_paren());
+    assert_eq!(annotations.get_type_or_void(left, &index).get_name(), "REAL");
+
+    // right = (b - c), should have type DINT (result of INT - INT) but hint REAL for promotion
+    assert!(rhs.is_paren());
+    let rhs_type = annotations.get_type_or_void(rhs, &index);
+    // The inner expression b - c is DINT, but it should be promotable to REAL
+    assert!(rhs_type.get_name() == "DINT" || rhs_type.get_name() == "REAL");
+
+    // Check that the right-hand side (b - c) has a type hint for promotion to REAL
+    let rhs_hint = annotations.get_type_hint(rhs, &index);
+    assert!(rhs_hint.is_some(), "Parenthesized expression (b - c) should have a type hint for promotion");
+    assert_eq!(
+        rhs_hint.unwrap().get_name(),
+        "REAL",
+        "Type hint should be REAL for promotion in REAL * (INT - INT)"
+    );
+}
+
+#[test]
 fn unary_expressions_resolves_types() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
@@ -3926,7 +3978,7 @@ fn hardware_access_types_annotated() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[0]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "BYTE",
             qualified_name: "__PI_1_1",
@@ -3936,14 +3988,14 @@ fn hardware_access_types_annotated() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[1]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "INT",
             qualified_name: "__PI_1_2",
@@ -3953,14 +4005,14 @@ fn hardware_access_types_annotated() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[2]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "__M_1_3",
@@ -3970,14 +4022,14 @@ fn hardware_access_types_annotated() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[3]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "BOOL",
             qualified_name: "__G_1_4",
@@ -3987,14 +4039,14 @@ fn hardware_access_types_annotated() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[4]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "LINT",
             qualified_name: "__PI_2_1",
@@ -4004,7 +4056,7 @@ fn hardware_access_types_annotated() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
@@ -4399,7 +4451,13 @@ fn array_passed_to_function_with_vla_param_is_annotated_correctly() {
         ..
     }) = stmt.get_stmt()
     {
-        assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", Some("__arr_vla_1_int"));
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            reference.as_ref(),
+            "__foo_arr",
+            Some("__foo_arr_vla_1_int")
+        );
     } else {
         unreachable!()
     }
@@ -4582,7 +4640,7 @@ fn vla_struct_reference_is_annotated_as_array() {
     assert_eq!(
         type_hint.clone().information,
         DataTypeInformation::Array {
-            name: "__arr_vla_1_int".to_string(),
+            name: "__foo_arr_vla_1_int".to_string(),
             inner_type_name: "INT".to_string(),
             dimensions: vec![Dimension {
                 start_offset: TypeSize::Undetermined,
@@ -4621,7 +4679,7 @@ fn vla_access_is_annotated_correctly() {
         assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
 
         // reference is annotated with type and hint
-        assert_type_and_hint!(&annotations, &index, base.as_ref(), "__foo_arr", Some("__arr_vla_1_int"));
+        assert_type_and_hint!(&annotations, &index, base.as_ref(), "__foo_arr", Some("__foo_arr_vla_1_int"));
     } else {
         panic!("expected an array access, got none")
     }
@@ -4662,7 +4720,7 @@ fn vla_write_access_is_annotated_correctly() {
                 &index,
                 reference.as_ref(),
                 "__foo_arr",
-                Some("__arr_vla_1_int")
+                Some("__foo_arr_vla_1_int")
             );
         } else {
             panic!("expected an array access, got none")
@@ -4708,7 +4766,7 @@ fn writing_value_read_from_vla_to_vla() {
                 &index,
                 reference.as_ref(),
                 "__foo_arr1",
-                Some("__arr_vla_1_int")
+                Some("__foo_arr1_vla_1_int")
             );
         } else {
             panic!("expected an array access, got none")
@@ -4729,7 +4787,7 @@ fn writing_value_read_from_vla_to_vla() {
                 &index,
                 reference.as_ref(),
                 "__foo_arr2",
-                Some("__arr_vla_1_int")
+                Some("__foo_arr2_vla_1_int")
             );
         } else {
             panic!("expected an array access, got none")
@@ -4780,7 +4838,7 @@ fn address_of_works_on_vla() {
                 &index,
                 reference.as_ref(),
                 "__foo_arr",
-                Some("__arr_vla_1_int")
+                Some("__foo_arr_vla_1_int")
             );
         } else {
             panic!("expected an array access, got none")
@@ -4821,7 +4879,13 @@ fn by_ref_vla_access_is_annotated_correctly() {
         assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
 
         // reference is annotated with type and hint
-        assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", Some("__arr_vla_1_int"));
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            reference.as_ref(),
+            "__foo_arr",
+            Some("__foo_arr_vla_1_int")
+        );
     } else {
         panic!("expected an array access, got none")
     }
@@ -4843,7 +4907,7 @@ fn by_ref_vla_access_is_annotated_correctly() {
             &index,
             reference.as_ref(),
             "__foo_arr2",
-            Some("__arr_vla_1_int")
+            Some("__foo_arr2_vla_1_int")
         );
     } else {
         panic!("expected an array access, got none")
@@ -4949,7 +5013,13 @@ fn multi_dimensional_vla_access_is_annotated_correctly() {
         assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
 
         // reference is annotated with type and hint
-        assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", Some("__arr_vla_2_int"));
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            reference.as_ref(),
+            "__foo_arr",
+            Some("__foo_arr_vla_2_int")
+        );
     } else {
         panic!("expected an array access, got none")
     }
@@ -5585,7 +5655,7 @@ fn hardware_address_in_body_resolves_to_global_var() {
 
     let stmt = &unit.implementations[0].statements[0].get_stmt();
     if let AstStatement::Assignment(Assignment { left, .. }) = stmt {
-        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r#"
         Variable {
             resulting_type: "BOOL",
             qualified_name: "__PI_1_2_3",
@@ -5595,13 +5665,13 @@ fn hardware_address_in_body_resolves_to_global_var() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Should be an assignment")
     }
     let stmt = &unit.implementations[0].statements[1].get_stmt();
     if let AstStatement::Assignment(Assignment { right, .. }) = stmt {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "BOOL",
             qualified_name: "__PI_1_2_3",
@@ -5611,7 +5681,7 @@ fn hardware_address_in_body_resolves_to_global_var() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Should be an assignment")
     }
@@ -5650,7 +5720,7 @@ fn internal_var_config_global_resolves() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { left, .. }), .. } =
         &unit.implementations[2].statements[0]
     {
-        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "__PI_1_2_1",
@@ -5660,7 +5730,7 @@ fn internal_var_config_global_resolves() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
@@ -5700,7 +5770,7 @@ fn reference_to_alloca_resolved() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[1]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "main.foo",
@@ -5710,7 +5780,7 @@ fn reference_to_alloca_resolved() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be an assignment");
     }
@@ -5792,7 +5862,7 @@ fn reference_to_alloca_nested_resolved() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[2]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "main.foo",
@@ -5802,7 +5872,7 @@ fn reference_to_alloca_nested_resolved() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be an assignment");
     }
@@ -5816,7 +5886,7 @@ fn reference_to_alloca_nested_resolved() {
     };
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = &blocks[0].body[1] {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "main.baz",
@@ -5826,7 +5896,7 @@ fn reference_to_alloca_nested_resolved() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be an assignment");
     }
@@ -5856,7 +5926,7 @@ fn reference_inside_array_access_index_is_resolved() {
         ..
     } = stmt
     {
-        insta::assert_debug_snapshot!(annotations.get(idx).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(idx).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "main.idx",
@@ -5866,7 +5936,7 @@ fn reference_inside_array_access_index_is_resolved() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Expected a reference expression")
     }
@@ -6168,7 +6238,7 @@ fn program_call_declared_as_variable_is_annotated() {
         unreachable!()
     };
 
-    insta::assert_debug_snapshot!(annotations.get(operator), @r###"
+    insta::assert_debug_snapshot!(annotations.get(operator), @r#"
     Some(
         Variable {
             resulting_type: "ridiculous_chaining",
@@ -6180,7 +6250,7 @@ fn program_call_declared_as_variable_is_annotated() {
             auto_deref: None,
         },
     )
-    "###);
+    "#);
 
     insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]), @r#"
     Some(
@@ -6739,4 +6809,63 @@ fn named_arguments_are_annotated_with_location_and_depth() {
         ),
     ]
     "#);
+}
+
+#[test]
+fn array_literal_passed_to_function_var_input_gets_type_hint_propagated() {
+    // GIVEN a function with a VAR_INPUT array parameter and a call passing an array literal
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        r#"
+        FUNCTION foo : DINT
+            VAR_INPUT
+                arr : ARRAY[1..5] OF DINT;
+            END_VAR
+            foo := arr[1];
+        END_FUNCTION
+
+        PROGRAM main
+            foo([1, 2, 3, 4, 5]);
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+
+    // WHEN the code is annotated
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let call_stmt = &unit.implementations[1].statements[0];
+
+    // THEN the array literal argument and its inner elements receive correct type hints
+    if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = call_stmt {
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        let array_arg = parameters[0];
+
+        // The top-level array literal should have an Argument type hint with the array type
+        let hint = annotations.get_type_hint(array_arg, &index);
+        assert!(hint.is_some(), "array literal argument should have a type hint");
+        assert_eq!(hint.unwrap().get_name(), "__foo_arr");
+
+        // Drill into the array literal's inner ExpressionList and check element hints
+        if let AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) =
+            array_arg.get_stmt()
+        {
+            // The ExpressionList itself should have the array type hint
+            let list_hint = annotations.get_type_hint(elements, &index);
+            assert!(list_hint.is_some(), "expression list inside array literal should have a type hint");
+            assert_eq!(list_hint.unwrap().get_name(), "__foo_arr");
+
+            // Each element in the expression list should have a DINT type hint
+            if let AstStatement::ExpressionList(elems, ..) = elements.get_stmt() {
+                for elem in elems {
+                    assert_type_and_hint!(&annotations, &index, elem, DINT_TYPE, Some(DINT_TYPE));
+                }
+            } else {
+                unreachable!("expected ExpressionList inside array literal");
+            }
+        } else {
+            unreachable!("expected array literal as first argument");
+        }
+    } else {
+        unreachable!("expected CallStatement");
+    }
 }

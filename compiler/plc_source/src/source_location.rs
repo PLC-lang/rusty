@@ -4,6 +4,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use serde::{Deserialize, Serialize};
+
 use crate::{SourceCode, SourceContainer};
 
 #[derive(Clone, Default)]
@@ -53,7 +55,7 @@ impl SourceLocationFactory {
 
 /// The location of a certain element in a text file
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct TextLocation {
     /// Line in the source code where this location points to
     line: usize,
@@ -76,7 +78,7 @@ impl TextLocation {
 }
 
 /// Represents the location of a code element in a source code
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum CodeSpan {
     /// The location of a block in a diagram
     Block { local_id: usize, execution_order: Option<usize>, inner_range: Option<Range<usize>> },
@@ -196,7 +198,7 @@ impl CodeSpan {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash, Default, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Default, Debug, Serialize, Deserialize)]
 pub enum FileMarker {
     File(&'static str),
     #[default]
@@ -243,7 +245,8 @@ impl FileMarker {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct SourceLocation {
     span: CodeSpan,
     /// the name of the file if available. if there is no file available
@@ -356,7 +359,7 @@ impl SourceLocation {
                     inner_range: inner_range
                         .as_ref()
                         .map(|it| it.start..range.end.offset)
-                        .or_else(|| Some(range.start.offset..range.end.offset)),
+                        .or(Some(range.start.offset..range.end.offset)),
                 }
             }
             //None any -> None (unsupported)

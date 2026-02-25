@@ -47,9 +47,8 @@ impl Linker {
                     };
                     match (platform, target_os) {
                         (_, "win32") | (_, "windows") | ("win32", _) | ("windows", _) => {
-                            return Err(LinkerError::Target(target_os.into()))
-                        }
-
+                            Box::new(CcLinker::new("clang"))
+                        } //only clang from llvm is supported in windows
                         (_, "darwin") => Box::new(CcLinker::new("clang")),
 
                         _ => Box::new(CcLinker::new("ld.lld")),
@@ -265,7 +264,7 @@ mod test {
     use crate::linker::{Linker, LinkerType};
 
     #[test]
-    fn windows_target_triple_should_result_in_error() {
+    fn windows_target_triple_should_result_in_ok() {
         for target in &[
             "x86_64-pc-windows-gnu",
             "x86_64-pc-win32-gnu",
@@ -280,7 +279,7 @@ mod test {
             "i686-windows-gnu",
             "i686-win32-gnu",
         ] {
-            assert!(Linker::new(target, LinkerType::Internal).is_err());
+            assert!(Linker::new(target, LinkerType::Internal).is_ok());
         }
     }
 

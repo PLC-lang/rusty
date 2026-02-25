@@ -13,5 +13,3 @@ warning[E039]: This will overflow for type INT
   │
 4 │             b : INT := 32767 + 1;
   │                        ^^^^^^^^^ This will overflow for type INT
-
-
