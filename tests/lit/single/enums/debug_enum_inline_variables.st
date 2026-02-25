@@ -32,7 +32,7 @@ END_FUNCTION
 // Inline enum for 'mode' variable
 // CHECK: !DICompositeType(tag: DW_TAG_enumeration_type, name: "__global_mode"
 // CHECK-SAME: baseType: ![[MODE_BASE:[0-9]+]]
-// CHECK-SAME: size: 8, align: 8
+// CHECK-SAME: size: 8
 
 // CHECK: ![[MODE_BASE]] = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned
 

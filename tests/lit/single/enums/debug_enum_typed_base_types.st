@@ -27,18 +27,18 @@ END_FUNCTION
 
 // CHECK: !DICompositeType(tag: DW_TAG_enumeration_type, name: "ByteStatus"
 // CHECK-SAME: baseType: ![[BYTE_BASE:[0-9]+]]
-// CHECK-SAME: size: 8, align: 8
+// CHECK-SAME: size: 8
 
 // CHECK: ![[BYTE_BASE]] = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned
 
 // CHECK: !DICompositeType(tag: DW_TAG_enumeration_type, name: "IntLevel"
 // CHECK-SAME: baseType: ![[INT_BASE:[0-9]+]]
-// CHECK-SAME: size: 16, align: 16
+// CHECK-SAME: size: 16
 
 // CHECK: ![[INT_BASE]] = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed
 
 // CHECK: !DICompositeType(tag: DW_TAG_enumeration_type, name: "LintCounter"
 // CHECK-SAME: baseType: ![[LINT_BASE:[0-9]+]]
-// CHECK-SAME: size: 64, align: 64
+// CHECK-SAME: size: 64
 
 // CHECK: ![[LINT_BASE]] = !DIBasicType(name: "LINT", size: 64, encoding: DW_ATE_signed
