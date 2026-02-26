@@ -1,0 +1,2 @@
+RUN: %COMPILE build plc.json && %RUN | %CHECK %s
+CHECK: 36

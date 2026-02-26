@@ -15,12 +15,12 @@ define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %b1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  %load_b1 = load i8, ptr %b1, align 1
+  %load_b1 = load i8, ptr %b1, align [filtered]
   %1 = icmp ne i8 %load_b1, 0
   br i1 %1, label %condition_body, label %continue
 
 condition_body:                                   ; preds = %entry
-  %load_x = load i32, ptr %x, align 4
+  %load_x = load i32, ptr %x, align [filtered]
   br label %continue
 
 continue:                                         ; preds = %condition_body, %entry

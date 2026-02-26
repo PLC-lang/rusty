@@ -55,7 +55,226 @@ fn test_global_var_enum_added_to_debug_info() {
     "#,
     );
 
-    filtered_assert_snapshot!(codegen)
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @en3 = global i64 0, !dbg !0
+    @en1.a = unnamed_addr constant i32 0
+    @en1.b = unnamed_addr constant i32 1
+    @en1.c = unnamed_addr constant i32 2
+    @en2.d = unnamed_addr constant i8 0
+    @en2.e = unnamed_addr constant i8 1
+    @en2.f = unnamed_addr constant i8 2
+    @__global_en3.a = unnamed_addr constant i64 0
+    @__global_en3.b = unnamed_addr constant i64 1
+    @__global_en3.c = unnamed_addr constant i64 2
+
+    !llvm.module.flags = !{!9, !10}
+    !llvm.dbg.cu = !{!11}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "en3", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "__global_en3", scope: !2, file: !2, line: 5, baseType: !4, size: 64, align [filtered], elements: !5)
+    !4 = !DIBasicType(name: "LINT", size: 64, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !5 = !{!6, !7, !8}
+    !6 = !DIEnumerator(name: "a", value: 0)
+    !7 = !DIEnumerator(name: "b", value: 1)
+    !8 = !DIEnumerator(name: "c", value: 2)
+    !9 = !{i32 2, !"Dwarf Version", i32 5}
+    !10 = !{i32 2, !"Debug Info Version", i32 3}
+    !11 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !12, globals: !21, splitDebugInlining: false)
+    !12 = !{!3, !13, !15}
+    !13 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "en1", scope: !2, file: !2, line: 2, baseType: !14, size: 32, align [filtered], elements: !5)
+    !14 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !15 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "en2", scope: !2, file: !2, line: 3, baseType: !16, size: 8, align [filtered], elements: !17)
+    !16 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !17 = !{!18, !19, !20}
+    !18 = !DIEnumerator(name: "d", value: 0, isUnsigned: true)
+    !19 = !DIEnumerator(name: "e", value: 1, isUnsigned: true)
+    !20 = !DIEnumerator(name: "f", value: 2, isUnsigned: true)
+    !21 = !{!0}
+    "#)
+}
+
+#[test]
+fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
+    // Test enums with explicit values: non-sequential, negative, and mixed implicit/explicit
+    let codegen = codegen(
+        r#"
+    TYPE Colors : (Red := 10, Green := 20, Blue := 30); END_TYPE
+    TYPE Status : INT (Error := -1, Ok := 0, Pending := 1); END_TYPE
+    TYPE Flags : BYTE (None := 0, Read := 4, Write := 8, Execute := 16); END_TYPE
+    VAR_GLOBAL
+        color : Colors;
+        status : Status;
+        flags : Flags;
+    END_VAR
+    "#,
+    );
+
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @color = global i32 10, !dbg !0
+    @status = global i16 0, !dbg !9
+    @flags = global i8 0, !dbg !17
+    @Colors.Red = unnamed_addr constant i32 10
+    @Colors.Green = unnamed_addr constant i32 20
+    @Colors.Blue = unnamed_addr constant i32 30
+    @Status.Error = unnamed_addr constant i16 -1
+    @Status.Ok = unnamed_addr constant i16 0
+    @Status.Pending = unnamed_addr constant i16 1
+    @Flags.None = unnamed_addr constant i8 0
+    @Flags.Read = unnamed_addr constant i8 4
+    @Flags.Write = unnamed_addr constant i8 8
+    @Flags.Execute = unnamed_addr constant i8 16
+
+    !llvm.module.flags = !{!26, !27}
+    !llvm.dbg.cu = !{!28}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "color", scope: !2, file: !2, line: 6, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Colors", scope: !2, file: !2, line: 2, baseType: !4, size: 32, align [filtered], elements: !5)
+    !4 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !5 = !{!6, !7, !8}
+    !6 = !DIEnumerator(name: "Red", value: 10)
+    !7 = !DIEnumerator(name: "Green", value: 20)
+    !8 = !DIEnumerator(name: "Blue", value: 30)
+    !9 = !DIGlobalVariableExpression(var: !10, expr: !DIExpression())
+    !10 = distinct !DIGlobalVariable(name: "status", scope: !2, file: !2, line: 7, type: !11, isLocal: false, isDefinition: true)
+    !11 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Status", scope: !2, file: !2, line: 3, baseType: !12, size: 16, align [filtered], elements: !13)
+    !12 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !13 = !{!14, !15, !16}
+    !14 = !DIEnumerator(name: "Error", value: -1)
+    !15 = !DIEnumerator(name: "Ok", value: 0)
+    !16 = !DIEnumerator(name: "Pending", value: 1)
+    !17 = !DIGlobalVariableExpression(var: !18, expr: !DIExpression())
+    !18 = distinct !DIGlobalVariable(name: "flags", scope: !2, file: !2, line: 8, type: !19, isLocal: false, isDefinition: true)
+    !19 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Flags", scope: !2, file: !2, line: 4, baseType: !20, size: 8, align [filtered], elements: !21)
+    !20 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !21 = !{!22, !23, !24, !25}
+    !22 = !DIEnumerator(name: "None", value: 0, isUnsigned: true)
+    !23 = !DIEnumerator(name: "Read", value: 4, isUnsigned: true)
+    !24 = !DIEnumerator(name: "Write", value: 8, isUnsigned: true)
+    !25 = !DIEnumerator(name: "Execute", value: 16, isUnsigned: true)
+    !26 = !{i32 2, !"Dwarf Version", i32 5}
+    !27 = !{i32 2, !"Debug Info Version", i32 3}
+    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !29, globals: !30, splitDebugInlining: false)
+    !29 = !{!3, !11, !19}
+    !30 = !{!0, !9, !17}
+    "#)
+}
+
+#[test]
+fn test_global_var_struct_with_enum_members_added_to_debug_info() {
+    // Test structs containing enum fields to verify composite type interaction
+    let codegen = codegen(
+        r#"
+    TYPE Status : (Idle, Running, Error); END_TYPE
+    TYPE Priority : BYTE (Low := 1, Medium := 5, High := 10); END_TYPE
+
+    TYPE Device : STRUCT
+        id : DINT;
+        status : Status;
+        priority : Priority;
+        name : STRING;
+    END_STRUCT
+    END_TYPE
+
+    VAR_GLOBAL
+        device : Device;
+    END_VAR
+    "#,
+    );
+
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %Device = type { i32, i32, i8, [81 x i8] }
+
+    @Status.Idle = unnamed_addr constant i32 0
+    @Status.Running = unnamed_addr constant i32 1
+    @Status.Error = unnamed_addr constant i32 2
+    @Priority.Low = unnamed_addr constant i8 1
+    @Priority.Medium = unnamed_addr constant i8 5
+    @Priority.High = unnamed_addr constant i8 10
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
+    @__Device__init = unnamed_addr constant %Device { i32 0, i32 0, i8 1, [81 x i8] zeroinitializer }, !dbg !0
+    @device = global %Device { i32 0, i32 0, i8 1, [81 x i8] zeroinitializer }, !dbg !27
+    @__Device__init.1 = unnamed_addr constant %Device { i32 0, i32 0, i8 1, [81 x i8] zeroinitializer }, !dbg !29
+
+    define void @__init_device(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__user_init_Device(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      call void @__init_device(ptr @device)
+      call void @__user_init_Device(ptr @device)
+      ret void
+    }
+
+    !llvm.module.flags = !{!31, !32}
+    !llvm.dbg.cu = !{!33}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "__Device__init", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "Device", scope: !2, file: !2, line: 5, size: 736, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "Device")
+    !5 = !{!6, !8, !14, !21}
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "id", scope: !2, file: !2, line: 6, baseType: !7, size: 32, align [filtered], flags: DIFlagPublic)
+    !7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "status", scope: !2, file: !2, line: 7, baseType: !9, size: 32, align [filtered], offset: 32, flags: DIFlagPublic)
+    !9 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Status", scope: !2, file: !2, line: 2, baseType: !7, size: 32, align [filtered], elements: !10)
+    !10 = !{!11, !12, !13}
+    !11 = !DIEnumerator(name: "Idle", value: 0)
+    !12 = !DIEnumerator(name: "Running", value: 1)
+    !13 = !DIEnumerator(name: "Error", value: 2)
+    !14 = !DIDerivedType(tag: DW_TAG_member, name: "priority", scope: !2, file: !2, line: 8, baseType: !15, size: 8, align [filtered], offset: 64, flags: DIFlagPublic)
+    !15 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Priority", scope: !2, file: !2, line: 3, baseType: !16, size: 8, align [filtered], elements: !17)
+    !16 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !17 = !{!18, !19, !20}
+    !18 = !DIEnumerator(name: "Low", value: 1, isUnsigned: true)
+    !19 = !DIEnumerator(name: "Medium", value: 5, isUnsigned: true)
+    !20 = !DIEnumerator(name: "High", value: 10, isUnsigned: true)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "name", scope: !2, file: !2, line: 9, baseType: !22, size: 648, align [filtered], offset: 72, flags: DIFlagPublic)
+    !22 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !23, align [filtered])
+    !23 = !DICompositeType(tag: DW_TAG_array_type, baseType: !24, size: 648, align [filtered], elements: !25)
+    !24 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !25 = !{!26}
+    !26 = !DISubrange(count: 81, lowerBound: 0)
+    !27 = !DIGlobalVariableExpression(var: !28, expr: !DIExpression())
+    !28 = distinct !DIGlobalVariable(name: "device", scope: !2, file: !2, line: 14, type: !4, isLocal: false, isDefinition: true)
+    !29 = !DIGlobalVariableExpression(var: !30, expr: !DIExpression())
+    !30 = distinct !DIGlobalVariable(name: "__Device__init", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
+    !31 = !{i32 2, !"Dwarf Version", i32 5}
+    !32 = !{i32 2, !"Debug Info Version", i32 3}
+    !33 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !34, globals: !35, splitDebugInlining: false)
+    !34 = !{!9, !15}
+    !35 = !{!27, !0, !29}
+    "#)
 }
 
 #[test]
@@ -243,22 +462,22 @@ fn switch_case_debug_info() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
 
     define i32 @main() !dbg !4 {
     entry:
-      %main = alloca i32, align 4
-      %x1 = alloca i16, align 2
-      %x2 = alloca i16, align 2
-      %x3 = alloca i16, align 2
+      %main = alloca i32, align [filtered]
+      %x1 = alloca i16, align [filtered]
+      %x2 = alloca i16, align [filtered]
+      %x3 = alloca i16, align [filtered]
         #dbg_declare(ptr %x1, !8, !DIExpression(), !10)
-      store i16 0, ptr %x1, align 2
+      store i16 0, ptr %x1, align [filtered]
         #dbg_declare(ptr %x2, !11, !DIExpression(), !12)
-      store i16 0, ptr %x2, align 2
+      store i16 0, ptr %x2, align [filtered]
         #dbg_declare(ptr %x3, !13, !DIExpression(), !14)
-      store i16 0, ptr %x3, align 2
+      store i16 0, ptr %x3, align [filtered]
         #dbg_declare(ptr %main, !15, !DIExpression(), !17)
-      store i32 0, ptr %main, align 4
+      store i32 0, ptr %main, align [filtered]
       br label %condition_check, !dbg !18
 
     condition_check:                                  ; preds = %continue2, %entry
@@ -268,7 +487,7 @@ fn switch_case_debug_info() {
       br i1 false, label %condition_body, label %continue1, !dbg !19
 
     continue:                                         ; preds = %condition_body, %condition_check
-      %main_ret = load i32, ptr %main, align 4, !dbg !20
+      %main_ret = load i32, ptr %main, align [filtered], !dbg !20
       ret i32 %main_ret, !dbg !20
 
     condition_body:                                   ; preds = %while_body
@@ -278,12 +497,12 @@ fn switch_case_debug_info() {
       br label %continue1, !dbg !21
 
     continue1:                                        ; preds = %buffer_block, %while_body
-      %load_x1 = load i16, ptr %x1, align 2, !dbg !22
+      %load_x1 = load i16, ptr %x1, align [filtered], !dbg !22
       %0 = sext i16 %load_x1 to i32, !dbg !22
       %tmpVar = add i32 %0, 1, !dbg !22
       %1 = trunc i32 %tmpVar to i16, !dbg !22
-      store i16 %1, ptr %x1, align 2, !dbg !22
-      %load_x13 = load i16, ptr %x1, align 2, !dbg !22
+      store i16 %1, ptr %x1, align [filtered], !dbg !22
+      %load_x13 = load i16, ptr %x1, align [filtered], !dbg !22
       switch i16 %load_x13, label %else [
         i16 1, label %case
         i16 2, label %case4
@@ -291,21 +510,21 @@ fn switch_case_debug_info() {
       ], !dbg !23
 
     case:                                             ; preds = %continue1
-      store i16 1, ptr %x2, align 2, !dbg !24
+      store i16 1, ptr %x2, align [filtered], !dbg !24
       br label %continue2, !dbg !25
 
     case4:                                            ; preds = %continue1
-      store i16 2, ptr %x2, align 2, !dbg !26
+      store i16 2, ptr %x2, align [filtered], !dbg !26
       br label %continue2, !dbg !25
 
     case5:                                            ; preds = %continue1
-      store i16 3, ptr %x2, align 2, !dbg !27
+      store i16 3, ptr %x2, align [filtered], !dbg !27
       br label %continue2, !dbg !25
 
     else:                                             ; preds = %continue1
-      store i16 0, ptr %x1, align 2, !dbg !28
-      store i16 1, ptr %x2, align 2, !dbg !29
-      store i16 2, ptr %x3, align 2, !dbg !30
+      store i16 0, ptr %x1, align [filtered], !dbg !28
+      store i16 1, ptr %x2, align [filtered], !dbg !29
+      store i16 2, ptr %x3, align [filtered], !dbg !30
       br label %continue2, !dbg !25
 
     continue2:                                        ; preds = %else, %case5, %case4, %case
@@ -328,14 +547,14 @@ fn switch_case_debug_info() {
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
-    !8 = !DILocalVariable(name: "x1", scope: !4, file: !3, line: 4, type: !9, align: 16)
+    !8 = !DILocalVariable(name: "x1", scope: !4, file: !3, line: 4, type: !9, align [filtered])
     !9 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !10 = !DILocation(line: 4, column: 16, scope: !4)
-    !11 = !DILocalVariable(name: "x2", scope: !4, file: !3, line: 5, type: !9, align: 16)
+    !11 = !DILocalVariable(name: "x2", scope: !4, file: !3, line: 5, type: !9, align [filtered])
     !12 = !DILocation(line: 5, column: 16, scope: !4)
-    !13 = !DILocalVariable(name: "x3", scope: !4, file: !3, line: 6, type: !9, align: 16)
+    !13 = !DILocalVariable(name: "x3", scope: !4, file: !3, line: 6, type: !9, align [filtered])
     !14 = !DILocation(line: 6, column: 16, scope: !4)
-    !15 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !16, align: 32)
+    !15 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !16, align [filtered])
     !16 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !17 = !DILocation(line: 2, column: 17, scope: !4)
     !18 = !DILocation(line: 22, column: 12, scope: !4)
@@ -374,7 +593,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     %__vtable_fb = type { ptr, ptr }
     %fb = type { ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
     @__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !0
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
@@ -382,8 +601,8 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     define void @fb(ptr %0) !dbg !14 {
     entry:
         #dbg_declare(ptr %0, !18, !DIExpression(), !19)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       ret void, !dbg !19
     }
@@ -391,46 +610,46 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     define void @fb__foo(ptr %0) !dbg !20 {
     entry:
         #dbg_declare(ptr %0, !21, !DIExpression(), !22)
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       ret void, !dbg !22
     }
 
     define void @__init___vtable_fb(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @fb, ptr %__body, align 8
-      %deref1 = load ptr, ptr %self, align 8
+      store ptr @fb, ptr %__body, align [filtered]
+      %deref1 = load ptr, ptr %self, align [filtered]
       %foo = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 1
-      store ptr @fb__foo, ptr %foo, align 8
+      store ptr @fb__foo, ptr %foo, align [filtered]
       ret void
     }
 
     define void @__init_fb(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_fb_instance, ptr %__vtable, align 8
+      store ptr @__vtable_fb_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init_fb(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_fb(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -448,11 +667,11 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !1 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !5, identifier: "fb")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 64, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "fb")
     !5 = !{!6}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____fb___vtable", scope: !2, file: !2, baseType: !8, align: 64)
-    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__fb___vtable", baseType: !9, size: 64, align: 64, dwarfAddressSpace: 1)
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align [filtered], flags: DIFlagPublic)
+    !7 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____fb___vtable", scope: !2, file: !2, baseType: !8, align [filtered])
+    !8 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__fb___vtable", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
     !9 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !10 = !{i32 2, !"Dwarf Version", i32 5}
     !11 = !{i32 2, !"Debug Info Version", i32 3}
@@ -503,53 +722,53 @@ fn action_with_var_temp() {
 
     %PLC_PRG = type {}
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @PLC_PRG_instance = global %PLC_PRG zeroinitializer, !dbg !0
 
     define i32 @main() !dbg !9 {
     entry:
-      %main = alloca i32, align 4
+      %main = alloca i32, align [filtered]
         #dbg_declare(ptr %main, !12, !DIExpression(), !14)
-      store i32 0, ptr %main, align 4
+      store i32 0, ptr %main, align [filtered]
       call void @PLC_PRG(ptr @PLC_PRG_instance), !dbg !15
       call void @PLC_PRG__act(ptr @PLC_PRG_instance), !dbg !16
-      %main_ret = load i32, ptr %main, align 4, !dbg !17
+      %main_ret = load i32, ptr %main, align [filtered], !dbg !17
       ret i32 %main_ret, !dbg !17
     }
 
     define void @PLC_PRG(ptr %0) !dbg !18 {
     entry:
         #dbg_declare(ptr %0, !21, !DIExpression(), !22)
-      %x = alloca i32, align 4
+      %x = alloca i32, align [filtered]
         #dbg_declare(ptr %x, !23, !DIExpression(), !24)
-      store i32 0, ptr %x, align 4
-      store i32 0, ptr %x, align 4, !dbg !22
+      store i32 0, ptr %x, align [filtered]
+      store i32 0, ptr %x, align [filtered], !dbg !22
       ret void, !dbg !25
     }
 
     define void @PLC_PRG__act(ptr %0) !dbg !26 {
     entry:
         #dbg_declare(ptr %0, !27, !DIExpression(), !28)
-      %x = alloca i32, align 4
+      %x = alloca i32, align [filtered]
         #dbg_declare(ptr %x, !29, !DIExpression(), !30)
-      store i32 0, ptr %x, align 4
-      %load_x = load i32, ptr %x, align 4, !dbg !28
+      store i32 0, ptr %x, align [filtered]
+      %load_x = load i32, ptr %x, align [filtered], !dbg !28
       %tmpVar = add i32 %load_x, 1, !dbg !28
-      store i32 %tmpVar, ptr %x, align 4, !dbg !28
+      store i32 %tmpVar, ptr %x, align [filtered], !dbg !28
       ret void, !dbg !31
     }
 
     define void @__init_plc_prg(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_PLC_PRG(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -566,7 +785,7 @@ fn action_with_var_temp() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "PLC_PRG", scope: !2, file: !2, line: 7, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "PLC_PRG", scope: !2, file: !2, line: 7, align: 64, flags: DIFlagPublic, elements: !4, identifier: "PLC_PRG")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "PLC_PRG", scope: !2, file: !2, line: 7, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "PLC_PRG")
     !4 = !{}
     !5 = !{i32 2, !"Dwarf Version", i32 5}
     !6 = !{i32 2, !"Debug Info Version", i32 3}
@@ -575,7 +794,7 @@ fn action_with_var_temp() {
     !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 2, type: !10, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
     !11 = !{null}
-    !12 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 2, type: !13, align: 32)
+    !12 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 2, type: !13, align [filtered])
     !13 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !14 = !DILocation(line: 2, column: 17, scope: !9)
     !15 = !DILocation(line: 3, column: 12, scope: !9)
@@ -586,13 +805,13 @@ fn action_with_var_temp() {
     !20 = !{null, !3}
     !21 = !DILocalVariable(name: "PLC_PRG", scope: !18, file: !2, line: 12, type: !3)
     !22 = !DILocation(line: 12, column: 12, scope: !18)
-    !23 = !DILocalVariable(name: "x", scope: !18, file: !2, line: 9, type: !13, align: 32)
+    !23 = !DILocalVariable(name: "x", scope: !18, file: !2, line: 9, type: !13, align [filtered])
     !24 = !DILocation(line: 9, column: 12, scope: !18)
     !25 = !DILocation(line: 13, column: 8, scope: !18)
     !26 = distinct !DISubprogram(name: "PLC_PRG.act", linkageName: "PLC_PRG.act", scope: !2, file: !2, line: 16, type: !19, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !27 = !DILocalVariable(name: "PLC_PRG", scope: !26, file: !2, line: 17, type: !3)
     !28 = !DILocation(line: 17, column: 16, scope: !26)
-    !29 = !DILocalVariable(name: "x", scope: !26, file: !2, line: 9, type: !13, align: 32)
+    !29 = !DILocalVariable(name: "x", scope: !26, file: !2, line: 9, type: !13, align [filtered])
     !30 = !DILocation(line: 9, column: 12, scope: !26)
     !31 = !DILocation(line: 18, column: 12, scope: !26)
     "#);
@@ -661,65 +880,65 @@ END_FUNCTION
     @__struct___init = unnamed_addr constant %struct_ { %inner { [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, [3 x %inner] zeroinitializer, [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, !dbg !0
     @__inner__init = unnamed_addr constant %inner { [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, !dbg !32
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
 
     define void @main() !dbg !39 {
     entry:
-      %st = alloca %struct_, align 8
-      %s = alloca [81 x i8], align 1
-      %b = alloca i8, align 1
-      %arr = alloca [3 x [81 x i8]], align 1
-      %i = alloca i16, align 2
+      %st = alloca %struct_, align [filtered]
+      %s = alloca [81 x i8], align [filtered]
+      %b = alloca i8, align [filtered]
+      %arr = alloca [3 x [81 x i8]], align [filtered]
+      %i = alloca i16, align [filtered]
         #dbg_declare(ptr %st, !43, !DIExpression(), !44)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %st, ptr align 1 @__struct___init, i64 ptrtoint (ptr getelementptr (%struct_, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %st, ptr align [filtered] @__struct___init, i64 ptrtoint (ptr getelementptr (%struct_, ptr null, i32 1) to i64), i1 false)
         #dbg_declare(ptr %s, !45, !DIExpression(), !46)
-      call void @llvm.memset.p0.i64(ptr align 1 %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
         #dbg_declare(ptr %b, !47, !DIExpression(), !48)
-      store i8 0, ptr %b, align 1
+      store i8 0, ptr %b, align [filtered]
         #dbg_declare(ptr %arr, !49, !DIExpression(), !50)
-      call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %arr, i8 0, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false)
         #dbg_declare(ptr %i, !51, !DIExpression(), !52)
-      store i16 0, ptr %i, align 2
+      store i16 0, ptr %i, align [filtered]
       call void @__init_struct_(ptr %st), !dbg !53
       call void @__user_init_struct_(ptr %st), !dbg !53
       %s1 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 2, !dbg !54
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %s1, i32 80, i1 false), !dbg !54
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] %s1, i32 80, i1 false), !dbg !54
       %inner = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !55
       %s2 = getelementptr inbounds nuw %inner, ptr %inner, i32 0, i32 0, !dbg !55
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %s2, i32 80, i1 false), !dbg !55
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] %s2, i32 80, i1 false), !dbg !55
       %b3 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 3, !dbg !56
-      %load_b = load i8, ptr %b3, align 1, !dbg !56
-      store i8 %load_b, ptr %b, align 1, !dbg !56
+      %load_b = load i8, ptr %b3, align [filtered], !dbg !56
+      store i8 %load_b, ptr %b, align [filtered], !dbg !56
       %inner4 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !57
       %b5 = getelementptr inbounds nuw %inner, ptr %inner4, i32 0, i32 1, !dbg !57
-      %load_b6 = load i8, ptr %b5, align 1, !dbg !57
-      store i8 %load_b6, ptr %b, align 1, !dbg !57
+      %load_b6 = load i8, ptr %b5, align [filtered], !dbg !57
+      store i8 %load_b6, ptr %b, align [filtered], !dbg !57
       %arr7 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !58
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 %arr7, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !58
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] %arr7, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !58
       %inner8 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !59
       %arr9 = getelementptr inbounds nuw %inner, ptr %inner8, i32 0, i32 3, !dbg !59
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 %arr9, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !59
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] %arr9, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !59
       %i10 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 6, !dbg !60
-      %load_i = load i16, ptr %i10, align 2, !dbg !60
-      store i16 %load_i, ptr %i, align 2, !dbg !60
+      %load_i = load i16, ptr %i10, align [filtered], !dbg !60
+      store i16 %load_i, ptr %i, align [filtered], !dbg !60
       %inner11 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !61
       %i12 = getelementptr inbounds nuw %inner, ptr %inner11, i32 0, i32 4, !dbg !61
-      %load_i13 = load i16, ptr %i12, align 2, !dbg !61
-      store i16 %load_i13, ptr %i, align 2, !dbg !61
+      %load_i13 = load i16, ptr %i12, align [filtered], !dbg !61
+      store i16 %load_i13, ptr %i, align [filtered], !dbg !61
       %tmpVar = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 0, !dbg !62
       %arr14 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !62
       %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], ptr %arr14, i32 0, i32 0, !dbg !62
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar, ptr align 1 %tmpVar15, i32 80, i1 false), !dbg !62
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar, ptr align [filtered] %tmpVar15, i32 80, i1 false), !dbg !62
       %tmpVar16 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 1, !dbg !63
       %inner17 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !63
       %arr18 = getelementptr inbounds nuw %inner, ptr %inner17, i32 0, i32 3, !dbg !63
       %tmpVar19 = getelementptr inbounds [3 x [81 x i8]], ptr %arr18, i32 0, i32 1, !dbg !63
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar16, ptr align 1 %tmpVar19, i32 80, i1 false), !dbg !63
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar16, ptr align [filtered] %tmpVar19, i32 80, i1 false), !dbg !63
       %tmpVar20 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 2, !dbg !64
       %inner21 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !64
       %arr22 = getelementptr inbounds nuw %inner, ptr %inner21, i32 0, i32 3, !dbg !64
       %tmpVar23 = getelementptr inbounds [3 x [81 x i8]], ptr %arr22, i32 0, i32 2, !dbg !64
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar20, ptr align 1 %tmpVar23, i32 80, i1 false), !dbg !64
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar20, ptr align [filtered] %tmpVar23, i32 80, i1 false), !dbg !64
       ret void, !dbg !65
     }
 
@@ -734,57 +953,57 @@ END_FUNCTION
 
     define void @__init_struct_(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %inner = getelementptr inbounds nuw %struct_, ptr %deref, i32 0, i32 0
       call void @__init_inner(ptr %inner)
-      %deref1 = load ptr, ptr %self, align 8
+      %deref1 = load ptr, ptr %self, align [filtered]
       %s = getelementptr inbounds nuw %struct_, ptr %deref1, i32 0, i32 2
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false)
-      %deref2 = load ptr, ptr %self, align 8
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] @utf08_literal_0, i32 6, i1 false)
+      %deref2 = load ptr, ptr %self, align [filtered]
       %b = getelementptr inbounds nuw %struct_, ptr %deref2, i32 0, i32 3
-      store i8 1, ptr %b, align 1
-      %deref3 = load ptr, ptr %self, align 8
+      store i8 1, ptr %b, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
       %r = getelementptr inbounds nuw %struct_, ptr %deref3, i32 0, i32 4
-      store float 0x400921CAC0000000, ptr %r, align 4
-      %deref4 = load ptr, ptr %self, align 8
+      store float 0x400921CAC0000000, ptr %r, align [filtered]
+      %deref4 = load ptr, ptr %self, align [filtered]
       %i = getelementptr inbounds nuw %struct_, ptr %deref4, i32 0, i32 6
-      store i16 42, ptr %i, align 2
+      store i16 42, ptr %i, align [filtered]
       ret void
     }
 
     define void @__init_inner(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %s = getelementptr inbounds nuw %inner, ptr %deref, i32 0, i32 0
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false)
-      %deref1 = load ptr, ptr %self, align 8
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] @utf08_literal_0, i32 6, i1 false)
+      %deref1 = load ptr, ptr %self, align [filtered]
       %b = getelementptr inbounds nuw %inner, ptr %deref1, i32 0, i32 1
-      store i8 1, ptr %b, align 1
-      %deref2 = load ptr, ptr %self, align 8
+      store i8 1, ptr %b, align [filtered]
+      %deref2 = load ptr, ptr %self, align [filtered]
       %r = getelementptr inbounds nuw %inner, ptr %deref2, i32 0, i32 2
-      store float 0x400921CAC0000000, ptr %r, align 4
-      %deref3 = load ptr, ptr %self, align 8
+      store float 0x400921CAC0000000, ptr %r, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
       %i = getelementptr inbounds nuw %inner, ptr %deref3, i32 0, i32 4
-      store i16 42, ptr %i, align 2
+      store i16 42, ptr %i, align [filtered]
       ret void
     }
 
     define void @__user_init_inner(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_struct_(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
-      %deref = load ptr, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
       %inner = getelementptr inbounds nuw %struct_, ptr %deref, i32 0, i32 0
       call void @__user_init_inner(ptr %inner)
       ret void
@@ -805,34 +1024,34 @@ END_FUNCTION
     !1 = distinct !DIGlobalVariable(name: "__struct___init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "struct_", scope: !2, file: !2, line: 2, size: 13440, align: 64, flags: DIFlagPublic, elements: !5, identifier: "struct_")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "struct_", scope: !2, file: !2, line: 2, size: 13440, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "struct_")
     !5 = !{!6, !25, !27, !28, !29, !30, !31}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "inner", scope: !2, file: !2, line: 3, baseType: !7, size: 2688, align: 64, flags: DIFlagPublic)
-    !7 = !DICompositeType(tag: DW_TAG_structure_type, name: "inner", scope: !2, file: !2, line: 13, size: 2688, align: 64, flags: DIFlagPublic, elements: !8, identifier: "inner")
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "inner", scope: !2, file: !2, line: 3, baseType: !7, size: 2688, align [filtered], flags: DIFlagPublic)
+    !7 = !DICompositeType(tag: DW_TAG_structure_type, name: "inner", scope: !2, file: !2, line: 13, size: 2688, align [filtered], flags: DIFlagPublic, elements: !8, identifier: "inner")
     !8 = !{!9, !15, !17, !19, !23}
-    !9 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 14, baseType: !10, size: 648, align: 8, flags: DIFlagPublic)
-    !10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !11, align: 8)
-    !11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 648, align: 8, elements: !13)
+    !9 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 14, baseType: !10, size: 648, align [filtered], flags: DIFlagPublic)
+    !10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !11, align [filtered])
+    !11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 648, align [filtered], elements: !13)
     !12 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !13 = !{!14}
     !14 = !DISubrange(count: 81, lowerBound: 0)
-    !15 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 15, baseType: !16, size: 8, align: 8, offset: 648, flags: DIFlagPublic)
+    !15 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 15, baseType: !16, size: 8, align [filtered], offset: 648, flags: DIFlagPublic)
     !16 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
-    !17 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 16, baseType: !18, size: 32, align: 32, offset: 672, flags: DIFlagPublic)
+    !17 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 16, baseType: !18, size: 32, align [filtered], offset: 672, flags: DIFlagPublic)
     !18 = !DIBasicType(name: "REAL", size: 32, encoding: DW_ATE_float, flags: DIFlagPublic)
-    !19 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !2, file: !2, line: 17, baseType: !20, size: 1944, align: 8, offset: 704, flags: DIFlagPublic)
-    !20 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 1944, align: 8, elements: !21)
+    !19 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !2, file: !2, line: 17, baseType: !20, size: 1944, align [filtered], offset: 704, flags: DIFlagPublic)
+    !20 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 1944, align [filtered], elements: !21)
     !21 = !{!22}
     !22 = !DISubrange(count: 3, lowerBound: 0)
-    !23 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !2, file: !2, line: 18, baseType: !24, size: 16, align: 16, offset: 2656, flags: DIFlagPublic)
+    !23 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !2, file: !2, line: 18, baseType: !24, size: 16, align [filtered], offset: 2656, flags: DIFlagPublic)
     !24 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !25 = !DIDerivedType(tag: DW_TAG_member, name: "inner_arr", scope: !2, file: !2, line: 4, baseType: !26, size: 8064, align: 64, offset: 2688, flags: DIFlagPublic)
-    !26 = !DICompositeType(tag: DW_TAG_array_type, baseType: !7, size: 8064, align: 64, elements: !21)
-    !27 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 5, baseType: !10, size: 648, align: 8, offset: 10752, flags: DIFlagPublic)
-    !28 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 6, baseType: !16, size: 8, align: 8, offset: 11400, flags: DIFlagPublic)
-    !29 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 7, baseType: !18, size: 32, align: 32, offset: 11424, flags: DIFlagPublic)
-    !30 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !2, file: !2, line: 8, baseType: !20, size: 1944, align: 8, offset: 11456, flags: DIFlagPublic)
-    !31 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !2, file: !2, line: 9, baseType: !24, size: 16, align: 16, offset: 13408, flags: DIFlagPublic)
+    !25 = !DIDerivedType(tag: DW_TAG_member, name: "inner_arr", scope: !2, file: !2, line: 4, baseType: !26, size: 8064, align [filtered], offset: 2688, flags: DIFlagPublic)
+    !26 = !DICompositeType(tag: DW_TAG_array_type, baseType: !7, size: 8064, align [filtered], elements: !21)
+    !27 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 5, baseType: !10, size: 648, align [filtered], offset: 10752, flags: DIFlagPublic)
+    !28 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 6, baseType: !16, size: 8, align [filtered], offset: 11400, flags: DIFlagPublic)
+    !29 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 7, baseType: !18, size: 32, align [filtered], offset: 11424, flags: DIFlagPublic)
+    !30 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !2, file: !2, line: 8, baseType: !20, size: 1944, align [filtered], offset: 11456, flags: DIFlagPublic)
+    !31 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !2, file: !2, line: 9, baseType: !24, size: 16, align [filtered], offset: 13408, flags: DIFlagPublic)
     !32 = !DIGlobalVariableExpression(var: !33, expr: !DIExpression())
     !33 = distinct !DIGlobalVariable(name: "__inner__init", scope: !2, file: !2, line: 13, type: !34, isLocal: false, isDefinition: true)
     !34 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !7)
@@ -844,15 +1063,15 @@ END_FUNCTION
     !40 = !DISubroutineType(flags: DIFlagPublic, types: !41)
     !41 = !{null}
     !42 = !{}
-    !43 = !DILocalVariable(name: "st", scope: !39, file: !2, line: 24, type: !4, align: 64)
+    !43 = !DILocalVariable(name: "st", scope: !39, file: !2, line: 24, type: !4, align [filtered])
     !44 = !DILocation(line: 24, column: 4, scope: !39)
-    !45 = !DILocalVariable(name: "s", scope: !39, file: !2, line: 25, type: !10, align: 8)
+    !45 = !DILocalVariable(name: "s", scope: !39, file: !2, line: 25, type: !10, align [filtered])
     !46 = !DILocation(line: 25, column: 4, scope: !39)
-    !47 = !DILocalVariable(name: "b", scope: !39, file: !2, line: 26, type: !16, align: 8)
+    !47 = !DILocalVariable(name: "b", scope: !39, file: !2, line: 26, type: !16, align [filtered])
     !48 = !DILocation(line: 26, column: 4, scope: !39)
-    !49 = !DILocalVariable(name: "arr", scope: !39, file: !2, line: 27, type: !20, align: 8)
+    !49 = !DILocalVariable(name: "arr", scope: !39, file: !2, line: 27, type: !20, align [filtered])
     !50 = !DILocation(line: 27, column: 4, scope: !39)
-    !51 = !DILocalVariable(name: "i", scope: !39, file: !2, line: 28, type: !24, align: 16)
+    !51 = !DILocalVariable(name: "i", scope: !39, file: !2, line: 28, type: !24, align [filtered])
     !52 = !DILocation(line: 28, column: 4, scope: !39)
     !53 = !DILocation(line: 0, scope: !39)
     !54 = !DILocation(line: 32, column: 4, scope: !39)
@@ -910,7 +1129,7 @@ fn constants_are_tagged_as_such() {
 
     @x = unnamed_addr constant i32 0, !dbg !0
     @s = unnamed_addr constant [81 x i8] zeroinitializer, !dbg !5
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @prog_instance = global %prog zeroinitializer, !dbg !13
     @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !20
     @f = unnamed_addr constant %foo zeroinitializer, !dbg !26
@@ -926,41 +1145,41 @@ fn constants_are_tagged_as_such() {
 
     define i32 @bar() !dbg !38 {
     entry:
-      %bar = alloca i32, align 4
-      %d = alloca i32, align 4
+      %bar = alloca i32, align [filtered]
+      %d = alloca i32, align [filtered]
         #dbg_declare(ptr %d, !41, !DIExpression(), !42)
-      store i32 42, ptr %d, align 4
+      store i32 42, ptr %d, align [filtered]
         #dbg_declare(ptr %bar, !43, !DIExpression(), !44)
-      store i32 0, ptr %bar, align 4
-      %bar_ret = load i32, ptr %bar, align 4, !dbg !45
+      store i32 0, ptr %bar, align [filtered]
+      %bar_ret = load i32, ptr %bar, align [filtered], !dbg !45
       ret i32 %bar_ret, !dbg !45
     }
 
     define void @__init_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__init_prog(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_foo(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_prog(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -984,24 +1203,24 @@ fn constants_are_tagged_as_such() {
     !5 = !DIGlobalVariableExpression(var: !6, expr: !DIExpression())
     !6 = distinct !DIGlobalVariable(name: "s", scope: !2, file: !2, line: 4, type: !7, isLocal: false, isDefinition: true)
     !7 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !8)
-    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !9, align: 8)
-    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, align: 8, elements: !11)
+    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !9, align [filtered])
+    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, align [filtered], elements: !11)
     !10 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !11 = !{!12}
     !12 = !DISubrange(count: 81, lowerBound: 0)
     !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
     !14 = distinct !DIGlobalVariable(name: "prog", scope: !2, file: !2, line: 8, type: !15, isLocal: false, isDefinition: true)
-    !15 = !DICompositeType(tag: DW_TAG_structure_type, name: "prog", scope: !2, file: !2, line: 8, size: 96, align: 64, flags: DIFlagPublic, elements: !16, identifier: "prog")
+    !15 = !DICompositeType(tag: DW_TAG_structure_type, name: "prog", scope: !2, file: !2, line: 8, size: 96, align [filtered], flags: DIFlagPublic, elements: !16, identifier: "prog")
     !16 = !{!17, !18, !19}
-    !17 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align: 32, flags: DIFlagPublic)
-    !18 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
-    !19 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+    !17 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align [filtered], flags: DIFlagPublic)
+    !18 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align [filtered], offset: 32, flags: DIFlagPublic)
+    !19 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align [filtered], offset: 64, flags: DIFlagPublic)
     !20 = !DIGlobalVariableExpression(var: !21, expr: !DIExpression())
     !21 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 14, type: !22, isLocal: false, isDefinition: true)
     !22 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !23)
-    !23 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 14, size: 32, align: 64, flags: DIFlagPublic, elements: !24, identifier: "foo")
+    !23 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 14, size: 32, align [filtered], flags: DIFlagPublic, elements: !24, identifier: "foo")
     !24 = !{!25}
-    !25 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 15, baseType: !4, size: 32, align: 32, flags: DIFlagPublic)
+    !25 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 15, baseType: !4, size: 32, align [filtered], flags: DIFlagPublic)
     !26 = !DIGlobalVariableExpression(var: !27, expr: !DIExpression())
     !27 = distinct !DIGlobalVariable(name: "f", scope: !2, file: !2, line: 5, type: !22, isLocal: false, isDefinition: true)
     !28 = !{i32 2, !"Dwarf Version", i32 5}
@@ -1017,9 +1236,9 @@ fn constants_are_tagged_as_such() {
     !38 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 19, type: !39, scopeLine: 23, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !30, retainedNodes: !35)
     !39 = !DISubroutineType(flags: DIFlagPublic, types: !40)
     !40 = !{null}
-    !41 = !DILocalVariable(name: "d", scope: !38, file: !2, line: 21, type: !3, align: 32)
+    !41 = !DILocalVariable(name: "d", scope: !38, file: !2, line: 21, type: !3, align [filtered])
     !42 = !DILocation(line: 21, column: 12, scope: !38)
-    !43 = !DILocalVariable(name: "bar", scope: !38, file: !2, line: 19, type: !4, align: 32)
+    !43 = !DILocalVariable(name: "bar", scope: !38, file: !2, line: 19, type: !4, align [filtered])
     !44 = !DILocation(line: 19, column: 17, scope: !38)
     !45 = !DILocation(line: 23, column: 8, scope: !38)
     "#);
@@ -1055,19 +1274,19 @@ fn test_debug_info_regular_pointer_types() {
     @struct_ptr = global ptr null, !dbg !13
     @string_ptr = global ptr null, !dbg !22
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !31
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
 
     define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -1082,31 +1301,31 @@ fn test_debug_info_regular_pointer_types() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "basic_ptr", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_basic_ptr", scope: !2, file: !2, baseType: !4, align: 64)
-    !4 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_basic_ptr", baseType: !5, size: 64, align: 64, dwarfAddressSpace: 1)
+    !3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_basic_ptr", scope: !2, file: !2, baseType: !4, align [filtered])
+    !4 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_basic_ptr", baseType: !5, size: 64, align [filtered], dwarfAddressSpace: 1)
     !5 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !6 = !DIGlobalVariableExpression(var: !7, expr: !DIExpression())
     !7 = distinct !DIGlobalVariable(name: "array_ptr", scope: !2, file: !2, line: 4, type: !8, isLocal: false, isDefinition: true)
-    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_array_ptr", scope: !2, file: !2, baseType: !9, align: 64)
-    !9 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_array_ptr", baseType: !10, size: 64, align: 64, dwarfAddressSpace: 1)
-    !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !5, size: 352, align: 32, elements: !11)
+    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_array_ptr", scope: !2, file: !2, baseType: !9, align [filtered])
+    !9 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_array_ptr", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !5, size: 352, align [filtered], elements: !11)
     !11 = !{!12}
     !12 = !DISubrange(count: 11, lowerBound: 0)
     !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
     !14 = distinct !DIGlobalVariable(name: "struct_ptr", scope: !2, file: !2, line: 5, type: !15, isLocal: false, isDefinition: true)
-    !15 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____global_struct_ptr", scope: !2, file: !2, baseType: !16, align: 64)
-    !16 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_struct_ptr", baseType: !17, size: 64, align: 64, dwarfAddressSpace: 1)
-    !17 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 9, size: 64, align: 64, flags: DIFlagPublic, elements: !18, identifier: "myStruct")
+    !15 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____global_struct_ptr", scope: !2, file: !2, baseType: !16, align [filtered])
+    !16 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_struct_ptr", baseType: !17, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !17 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 9, size: 64, align [filtered], flags: DIFlagPublic, elements: !18, identifier: "myStruct")
     !18 = !{!19, !20}
-    !19 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 10, baseType: !5, size: 32, align: 32, flags: DIFlagPublic)
-    !20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 11, baseType: !21, size: 8, align: 8, offset: 32, flags: DIFlagPublic)
+    !19 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 10, baseType: !5, size: 32, align [filtered], flags: DIFlagPublic)
+    !20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 11, baseType: !21, size: 8, align [filtered], offset: 32, flags: DIFlagPublic)
     !21 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
     !22 = !DIGlobalVariableExpression(var: !23, expr: !DIExpression())
     !23 = distinct !DIGlobalVariable(name: "string_ptr", scope: !2, file: !2, line: 6, type: !24, isLocal: false, isDefinition: true)
-    !24 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____global_string_ptr", scope: !2, file: !2, baseType: !25, align: 64)
-    !25 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_string_ptr", baseType: !26, size: 64, align: 64, dwarfAddressSpace: 1)
-    !26 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !27, align: 8)
-    !27 = !DICompositeType(tag: DW_TAG_array_type, baseType: !28, size: 648, align: 8, elements: !29)
+    !24 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____global_string_ptr", scope: !2, file: !2, baseType: !25, align [filtered])
+    !25 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_string_ptr", baseType: !26, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !26 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !27, align [filtered])
+    !27 = !DICompositeType(tag: DW_TAG_array_type, baseType: !28, size: 648, align [filtered], elements: !29)
     !28 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !29 = !{!30}
     !30 = !DISubrange(count: 81, lowerBound: 0)
@@ -1153,7 +1372,7 @@ fn test_debug_info_auto_deref_parameters() {
     %test_with_ref_params = type { ptr, ptr, ptr, ptr, ptr }
     %myStruct = type { i32, i8 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @test_with_ref_params_instance = global %test_with_ref_params zeroinitializer, !dbg !0
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !34
 
@@ -1170,29 +1389,29 @@ fn test_debug_info_auto_deref_parameters() {
 
     define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__init_test_with_ref_params(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_test_with_ref_params(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -1209,37 +1428,37 @@ fn test_debug_info_auto_deref_parameters() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "test_with_ref_params", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "test_with_ref_params", scope: !2, file: !2, line: 2, size: 320, align: 64, flags: DIFlagPublic, elements: !4, identifier: "test_with_ref_params")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "test_with_ref_params", scope: !2, file: !2, line: 2, size: 320, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "test_with_ref_params")
     !4 = !{!5, !13, !20, !23, !31}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "input_ref", scope: !2, file: !2, line: 4, baseType: !6, size: 64, align: 64, flags: DIFlagPublic)
-    !6 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_STRING", scope: !2, file: !2, baseType: !7, align: 64)
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_STRING", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
-    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !9, align: 8)
-    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, align: 8, elements: !11)
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "input_ref", scope: !2, file: !2, line: 4, baseType: !6, size: 64, align [filtered], flags: DIFlagPublic)
+    !6 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_STRING", scope: !2, file: !2, baseType: !7, align [filtered])
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_STRING", baseType: !8, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !9, align [filtered])
+    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, align [filtered], elements: !11)
     !10 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !11 = !{!12}
     !12 = !DISubrange(count: 81, lowerBound: 0)
-    !13 = !DIDerivedType(tag: DW_TAG_member, name: "array_ref", scope: !2, file: !2, line: 5, baseType: !14, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
-    !14 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to___test_with_ref_params_array_ref", scope: !2, file: !2, baseType: !15, align: 64)
-    !15 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to___test_with_ref_params_array_ref", baseType: !16, size: 64, align: 64, dwarfAddressSpace: 1)
-    !16 = !DICompositeType(tag: DW_TAG_array_type, baseType: !17, size: 192, align: 32, elements: !18)
+    !13 = !DIDerivedType(tag: DW_TAG_member, name: "array_ref", scope: !2, file: !2, line: 5, baseType: !14, size: 64, align [filtered], offset: 64, flags: DIFlagPublic)
+    !14 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to___test_with_ref_params_array_ref", scope: !2, file: !2, baseType: !15, align [filtered])
+    !15 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to___test_with_ref_params_array_ref", baseType: !16, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !16 = !DICompositeType(tag: DW_TAG_array_type, baseType: !17, size: 192, align [filtered], elements: !18)
     !17 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !18 = !{!19}
     !19 = !DISubrange(count: 6, lowerBound: 0)
-    !20 = !DIDerivedType(tag: DW_TAG_member, name: "inout_value", scope: !2, file: !2, line: 8, baseType: !21, size: 64, align: 64, offset: 128, flags: DIFlagPublic)
-    !21 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_DINT", scope: !2, file: !2, baseType: !22, align: 64)
-    !22 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_DINT", baseType: !17, size: 64, align: 64, dwarfAddressSpace: 1)
-    !23 = !DIDerivedType(tag: DW_TAG_member, name: "inout_struct", scope: !2, file: !2, line: 9, baseType: !24, size: 64, align: 64, offset: 192, flags: DIFlagPublic)
-    !24 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_myStruct", scope: !2, file: !2, baseType: !25, align: 64)
-    !25 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myStruct", baseType: !26, size: 64, align: 64, dwarfAddressSpace: 1)
-    !26 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 16, size: 64, align: 64, flags: DIFlagPublic, elements: !27, identifier: "myStruct")
+    !20 = !DIDerivedType(tag: DW_TAG_member, name: "inout_value", scope: !2, file: !2, line: 8, baseType: !21, size: 64, align [filtered], offset: 128, flags: DIFlagPublic)
+    !21 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_DINT", scope: !2, file: !2, baseType: !22, align [filtered])
+    !22 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_DINT", baseType: !17, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !23 = !DIDerivedType(tag: DW_TAG_member, name: "inout_struct", scope: !2, file: !2, line: 9, baseType: !24, size: 64, align [filtered], offset: 192, flags: DIFlagPublic)
+    !24 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_myStruct", scope: !2, file: !2, baseType: !25, align [filtered])
+    !25 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_myStruct", baseType: !26, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !26 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 16, size: 64, align [filtered], flags: DIFlagPublic, elements: !27, identifier: "myStruct")
     !27 = !{!28, !29}
-    !28 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 17, baseType: !17, size: 32, align: 32, flags: DIFlagPublic)
-    !29 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 18, baseType: !30, size: 8, align: 8, offset: 32, flags: DIFlagPublic)
+    !28 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 17, baseType: !17, size: 32, align [filtered], flags: DIFlagPublic)
+    !29 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 18, baseType: !30, size: 8, align [filtered], offset: 32, flags: DIFlagPublic)
     !30 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
-    !31 = !DIDerivedType(tag: DW_TAG_member, name: "local_ref", scope: !2, file: !2, line: 12, baseType: !32, size: 64, align: 64, offset: 256, flags: DIFlagPublic)
-    !32 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____test_with_ref_params_local_ref", scope: !2, file: !2, baseType: !33, align: 64)
-    !33 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_ref_params_local_ref", baseType: !17, size: 64, align: 64, dwarfAddressSpace: 1)
+    !31 = !DIDerivedType(tag: DW_TAG_member, name: "local_ref", scope: !2, file: !2, line: 12, baseType: !32, size: 64, align [filtered], offset: 256, flags: DIFlagPublic)
+    !32 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____test_with_ref_params_local_ref", scope: !2, file: !2, baseType: !33, align [filtered])
+    !33 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_ref_params_local_ref", baseType: !17, size: 64, align [filtered], dwarfAddressSpace: 1)
     !34 = !DIGlobalVariableExpression(var: !35, expr: !DIExpression())
     !35 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 16, type: !36, isLocal: false, isDefinition: true)
     !36 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !26)
@@ -1282,7 +1501,7 @@ fn test_debug_info_auto_deref_alias_pointers() {
 
     %myStruct = type { i32, i8 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !0
     @global_struct = global %myStruct zeroinitializer, !dbg !10
     @global_var = global i32 42, !dbg !12
@@ -1291,23 +1510,23 @@ fn test_debug_info_auto_deref_alias_pointers() {
 
     define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__init___Test() {
     entry:
       call void @__init_mystruct(ptr @global_struct)
-      store ptr @global_var, ptr @alias_int, align 8
-      store ptr @global_struct, ptr @alias_struct, align 8
+      store ptr @global_var, ptr @alias_int, align [filtered]
+      store ptr @global_struct, ptr @alias_struct, align [filtered]
       call void @__user_init_myStruct(ptr @global_struct)
       ret void
     }
@@ -1319,11 +1538,11 @@ fn test_debug_info_auto_deref_alias_pointers() {
     !1 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 10, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 10, size: 64, align: 64, flags: DIFlagPublic, elements: !5, identifier: "myStruct")
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 10, size: 64, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "myStruct")
     !5 = !{!6, !8}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !7, size: 32, align: 32, flags: DIFlagPublic)
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !7, size: 32, align [filtered], flags: DIFlagPublic)
     !7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 12, baseType: !9, size: 8, align: 8, offset: 32, flags: DIFlagPublic)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 12, baseType: !9, size: 8, align [filtered], offset: 32, flags: DIFlagPublic)
     !9 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
     !10 = !DIGlobalVariableExpression(var: !11, expr: !DIExpression())
     !11 = distinct !DIGlobalVariable(name: "global_struct", scope: !2, file: !2, line: 6, type: !4, isLocal: false, isDefinition: true)
@@ -1331,12 +1550,12 @@ fn test_debug_info_auto_deref_alias_pointers() {
     !13 = distinct !DIGlobalVariable(name: "global_var", scope: !2, file: !2, line: 3, type: !7, isLocal: false, isDefinition: true)
     !14 = !DIGlobalVariableExpression(var: !15, expr: !DIExpression())
     !15 = distinct !DIGlobalVariable(name: "alias_int", scope: !2, file: !2, line: 4, type: !16, isLocal: false, isDefinition: true)
-    !16 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_int", scope: !2, file: !2, baseType: !17, align: 64)
-    !17 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_int", baseType: !7, size: 64, align: 64, dwarfAddressSpace: 1)
+    !16 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_int", scope: !2, file: !2, baseType: !17, align [filtered])
+    !17 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_int", baseType: !7, size: 64, align [filtered], dwarfAddressSpace: 1)
     !18 = !DIGlobalVariableExpression(var: !19, expr: !DIExpression())
     !19 = distinct !DIGlobalVariable(name: "alias_struct", scope: !2, file: !2, line: 7, type: !20, isLocal: false, isDefinition: true)
-    !20 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_struct", scope: !2, file: !2, baseType: !21, align: 64)
-    !21 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_struct", baseType: !4, size: 64, align: 64, dwarfAddressSpace: 1)
+    !20 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_struct", scope: !2, file: !2, baseType: !21, align [filtered])
+    !21 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_struct", baseType: !4, size: 64, align [filtered], dwarfAddressSpace: 1)
     !22 = !{i32 2, !"Dwarf Version", i32 5}
     !23 = !{i32 2, !"Debug Info Version", i32 3}
     !24 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !25, splitDebugInlining: false)
@@ -1375,7 +1594,7 @@ fn test_debug_info_mixed_pointer_types() {
 
     %mixed_ptr = type { ptr, ptr, ptr, ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @mixed_ptr_instance = global %mixed_ptr zeroinitializer, !dbg !0
     @regular_ptr = global ptr null, !dbg !24
     @alias_var = global ptr null, !dbg !28
@@ -1392,22 +1611,22 @@ fn test_debug_info_mixed_pointer_types() {
 
     define void @__init_mixed_ptr(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_mixed_ptr(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__init___Test() {
     entry:
       call void @__init_mixed_ptr(ptr @mixed_ptr_instance)
-      store ptr @regular_ptr, ptr @alias_var, align 8
+      store ptr @regular_ptr, ptr @alias_var, align [filtered]
       call void @__user_init_mixed_ptr(ptr @mixed_ptr_instance)
       ret void
     }
@@ -1418,37 +1637,37 @@ fn test_debug_info_mixed_pointer_types() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "mixed_ptr", scope: !2, file: !2, line: 7, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mixed_ptr", scope: !2, file: !2, line: 7, size: 256, align: 64, flags: DIFlagPublic, elements: !4, identifier: "mixed_ptr")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mixed_ptr", scope: !2, file: !2, line: 7, size: 256, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "mixed_ptr")
     !4 = !{!5, !13, !17, !21}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "ref_param", scope: !2, file: !2, line: 9, baseType: !6, size: 64, align: 64, flags: DIFlagPublic)
-    !6 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_STRING", scope: !2, file: !2, baseType: !7, align: 64)
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_STRING", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
-    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !9, align: 8)
-    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, align: 8, elements: !11)
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "ref_param", scope: !2, file: !2, line: 9, baseType: !6, size: 64, align [filtered], flags: DIFlagPublic)
+    !6 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_STRING", scope: !2, file: !2, baseType: !7, align [filtered])
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_STRING", baseType: !8, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !9, align [filtered])
+    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, align [filtered], elements: !11)
     !10 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !11 = !{!12}
     !12 = !DISubrange(count: 81, lowerBound: 0)
-    !13 = !DIDerivedType(tag: DW_TAG_member, name: "inout_param", scope: !2, file: !2, line: 12, baseType: !14, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
-    !14 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_DINT", scope: !2, file: !2, baseType: !15, align: 64)
-    !15 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_DINT", baseType: !16, size: 64, align: 64, dwarfAddressSpace: 1)
+    !13 = !DIDerivedType(tag: DW_TAG_member, name: "inout_param", scope: !2, file: !2, line: 12, baseType: !14, size: 64, align [filtered], offset: 64, flags: DIFlagPublic)
+    !14 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_DINT", scope: !2, file: !2, baseType: !15, align [filtered])
+    !15 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_DINT", baseType: !16, size: 64, align [filtered], dwarfAddressSpace: 1)
     !16 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !17 = !DIDerivedType(tag: DW_TAG_member, name: "local_ptr", scope: !2, file: !2, line: 15, baseType: !18, size: 64, align: 64, offset: 128, flags: DIFlagPublic)
-    !18 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____mixed_ptr_local_ptr", scope: !2, file: !2, baseType: !19, align: 64)
-    !19 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__mixed_ptr_local_ptr", baseType: !20, size: 64, align: 64, dwarfAddressSpace: 1)
+    !17 = !DIDerivedType(tag: DW_TAG_member, name: "local_ptr", scope: !2, file: !2, line: 15, baseType: !18, size: 64, align [filtered], offset: 128, flags: DIFlagPublic)
+    !18 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____mixed_ptr_local_ptr", scope: !2, file: !2, baseType: !19, align [filtered])
+    !19 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__mixed_ptr_local_ptr", baseType: !20, size: 64, align [filtered], dwarfAddressSpace: 1)
     !20 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "local_ref", scope: !2, file: !2, line: 16, baseType: !22, size: 64, align: 64, offset: 192, flags: DIFlagPublic)
-    !22 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____mixed_ptr_local_ref", scope: !2, file: !2, baseType: !23, align: 64)
-    !23 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__mixed_ptr_local_ref", baseType: !20, size: 64, align: 64, dwarfAddressSpace: 1)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "local_ref", scope: !2, file: !2, line: 16, baseType: !22, size: 64, align [filtered], offset: 192, flags: DIFlagPublic)
+    !22 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____mixed_ptr_local_ref", scope: !2, file: !2, baseType: !23, align [filtered])
+    !23 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__mixed_ptr_local_ref", baseType: !20, size: 64, align [filtered], dwarfAddressSpace: 1)
     !24 = !DIGlobalVariableExpression(var: !25, expr: !DIExpression())
     !25 = distinct !DIGlobalVariable(name: "regular_ptr", scope: !2, file: !2, line: 3, type: !26, isLocal: false, isDefinition: true)
-    !26 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_regular_ptr", scope: !2, file: !2, baseType: !27, align: 64)
-    !27 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_regular_ptr", baseType: !16, size: 64, align: 64, dwarfAddressSpace: 1)
+    !26 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_regular_ptr", scope: !2, file: !2, baseType: !27, align [filtered])
+    !27 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_regular_ptr", baseType: !16, size: 64, align [filtered], dwarfAddressSpace: 1)
     !28 = !DIGlobalVariableExpression(var: !29, expr: !DIExpression())
     !29 = distinct !DIGlobalVariable(name: "alias_var", scope: !2, file: !2, line: 4, type: !30, isLocal: false, isDefinition: true)
-    !30 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_var", scope: !2, file: !2, baseType: !31, align: 64)
-    !31 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_var", baseType: !32, size: 64, align: 64, dwarfAddressSpace: 1)
-    !32 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_alias_var_", scope: !2, file: !2, baseType: !33, align: 64)
-    !33 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_var_", baseType: !16, size: 64, align: 64, dwarfAddressSpace: 1)
+    !30 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_var", scope: !2, file: !2, baseType: !31, align [filtered])
+    !31 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_var", baseType: !32, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !32 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_alias_var_", scope: !2, file: !2, baseType: !33, align [filtered])
+    !33 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_var_", baseType: !16, size: 64, align [filtered], dwarfAddressSpace: 1)
     !34 = !{i32 2, !"Dwarf Version", i32 5}
     !35 = !{i32 2, !"Debug Info Version", i32 3}
     !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false)
@@ -1502,7 +1721,7 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     @array_reference = global ptr null, !dbg !6
     @struct_reference = global ptr null, !dbg !13
     @string_reference = global ptr null, !dbg !22
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @test_with_reference_params_instance = global %test_with_reference_params zeroinitializer, !dbg !31
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !47
 
@@ -1517,29 +1736,29 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
 
     define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__init_test_with_reference_params(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_test_with_reference_params(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -1556,50 +1775,50 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "basic_reference", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____global_basic_reference", scope: !2, file: !2, baseType: !4, align: 64)
-    !4 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_basic_reference", baseType: !5, size: 64, align: 64, dwarfAddressSpace: 1)
+    !3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____global_basic_reference", scope: !2, file: !2, baseType: !4, align [filtered])
+    !4 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_basic_reference", baseType: !5, size: 64, align [filtered], dwarfAddressSpace: 1)
     !5 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !6 = !DIGlobalVariableExpression(var: !7, expr: !DIExpression())
     !7 = distinct !DIGlobalVariable(name: "array_reference", scope: !2, file: !2, line: 4, type: !8, isLocal: false, isDefinition: true)
-    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____global_array_reference", scope: !2, file: !2, baseType: !9, align: 64)
-    !9 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_array_reference", baseType: !10, size: 64, align: 64, dwarfAddressSpace: 1)
-    !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !5, size: 352, align: 32, elements: !11)
+    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____global_array_reference", scope: !2, file: !2, baseType: !9, align [filtered])
+    !9 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_array_reference", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !5, size: 352, align [filtered], elements: !11)
     !11 = !{!12}
     !12 = !DISubrange(count: 11, lowerBound: 0)
     !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
     !14 = distinct !DIGlobalVariable(name: "struct_reference", scope: !2, file: !2, line: 5, type: !15, isLocal: false, isDefinition: true)
-    !15 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____global_struct_reference", scope: !2, file: !2, baseType: !16, align: 64)
-    !16 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_struct_reference", baseType: !17, size: 64, align: 64, dwarfAddressSpace: 1)
-    !17 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 19, size: 64, align: 64, flags: DIFlagPublic, elements: !18, identifier: "myStruct")
+    !15 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____global_struct_reference", scope: !2, file: !2, baseType: !16, align [filtered])
+    !16 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_struct_reference", baseType: !17, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !17 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 19, size: 64, align [filtered], flags: DIFlagPublic, elements: !18, identifier: "myStruct")
     !18 = !{!19, !20}
-    !19 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 20, baseType: !5, size: 32, align: 32, flags: DIFlagPublic)
-    !20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 21, baseType: !21, size: 8, align: 8, offset: 32, flags: DIFlagPublic)
+    !19 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 20, baseType: !5, size: 32, align [filtered], flags: DIFlagPublic)
+    !20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 21, baseType: !21, size: 8, align [filtered], offset: 32, flags: DIFlagPublic)
     !21 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
     !22 = !DIGlobalVariableExpression(var: !23, expr: !DIExpression())
     !23 = distinct !DIGlobalVariable(name: "string_reference", scope: !2, file: !2, line: 6, type: !24, isLocal: false, isDefinition: true)
-    !24 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____global_string_reference", scope: !2, file: !2, baseType: !25, align: 64)
-    !25 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_string_reference", baseType: !26, size: 64, align: 64, dwarfAddressSpace: 1)
-    !26 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !27, align: 8)
-    !27 = !DICompositeType(tag: DW_TAG_array_type, baseType: !28, size: 648, align: 8, elements: !29)
+    !24 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____global_string_reference", scope: !2, file: !2, baseType: !25, align [filtered])
+    !25 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_string_reference", baseType: !26, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !26 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !27, align [filtered])
+    !27 = !DICompositeType(tag: DW_TAG_array_type, baseType: !28, size: 648, align [filtered], elements: !29)
     !28 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !29 = !{!30}
     !30 = !DISubrange(count: 81, lowerBound: 0)
     !31 = !DIGlobalVariableExpression(var: !32, expr: !DIExpression())
     !32 = distinct !DIGlobalVariable(name: "test_with_reference_params", scope: !2, file: !2, line: 9, type: !33, isLocal: false, isDefinition: true)
-    !33 = !DICompositeType(tag: DW_TAG_structure_type, name: "test_with_reference_params", scope: !2, file: !2, line: 9, size: 192, align: 64, flags: DIFlagPublic, elements: !34, identifier: "test_with_reference_params")
+    !33 = !DICompositeType(tag: DW_TAG_structure_type, name: "test_with_reference_params", scope: !2, file: !2, line: 9, size: 192, align [filtered], flags: DIFlagPublic, elements: !34, identifier: "test_with_reference_params")
     !34 = !{!35, !38, !44}
-    !35 = !DIDerivedType(tag: DW_TAG_member, name: "ref_param", scope: !2, file: !2, line: 11, baseType: !36, size: 64, align: 64, flags: DIFlagPublic)
-    !36 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_ref_param", scope: !2, file: !2, baseType: !37, align: 64)
-    !37 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_ref_param", baseType: !5, size: 64, align: 64, dwarfAddressSpace: 1)
-    !38 = !DIDerivedType(tag: DW_TAG_member, name: "array_ref_param", scope: !2, file: !2, line: 12, baseType: !39, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
-    !39 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_array_ref_param", scope: !2, file: !2, baseType: !40, align: 64)
-    !40 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_array_ref_param", baseType: !41, size: 64, align: 64, dwarfAddressSpace: 1)
-    !41 = !DICompositeType(tag: DW_TAG_array_type, baseType: !21, size: 48, align: 8, elements: !42)
+    !35 = !DIDerivedType(tag: DW_TAG_member, name: "ref_param", scope: !2, file: !2, line: 11, baseType: !36, size: 64, align [filtered], flags: DIFlagPublic)
+    !36 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_ref_param", scope: !2, file: !2, baseType: !37, align [filtered])
+    !37 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_ref_param", baseType: !5, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !38 = !DIDerivedType(tag: DW_TAG_member, name: "array_ref_param", scope: !2, file: !2, line: 12, baseType: !39, size: 64, align [filtered], offset: 64, flags: DIFlagPublic)
+    !39 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_array_ref_param", scope: !2, file: !2, baseType: !40, align [filtered])
+    !40 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_array_ref_param", baseType: !41, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !41 = !DICompositeType(tag: DW_TAG_array_type, baseType: !21, size: 48, align [filtered], elements: !42)
     !42 = !{!43}
     !43 = !DISubrange(count: 6, lowerBound: 0)
-    !44 = !DIDerivedType(tag: DW_TAG_member, name: "local_reference", scope: !2, file: !2, line: 15, baseType: !45, size: 64, align: 64, offset: 128, flags: DIFlagPublic)
-    !45 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_local_reference", scope: !2, file: !2, baseType: !46, align: 64)
-    !46 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_local_reference", baseType: !17, size: 64, align: 64, dwarfAddressSpace: 1)
+    !44 = !DIDerivedType(tag: DW_TAG_member, name: "local_reference", scope: !2, file: !2, line: 15, baseType: !45, size: 64, align [filtered], offset: 128, flags: DIFlagPublic)
+    !45 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_local_reference", scope: !2, file: !2, baseType: !46, align [filtered])
+    !46 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_local_reference", baseType: !17, size: 64, align [filtered], dwarfAddressSpace: 1)
     !47 = !DIGlobalVariableExpression(var: !48, expr: !DIExpression())
     !48 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 19, type: !49, isLocal: false, isDefinition: true)
     !49 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !17)
@@ -1639,20 +1858,20 @@ fn range_datatype_debug() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
 
     define i32 @main() !dbg !4 {
     entry:
-      %main = alloca i32, align 4
-      %r = alloca i32, align 4
+      %main = alloca i32, align [filtered]
+      %r = alloca i32, align [filtered]
         #dbg_declare(ptr %r, !8, !DIExpression(), !11)
-      store i32 0, ptr %r, align 4
+      store i32 0, ptr %r, align [filtered]
         #dbg_declare(ptr %main, !12, !DIExpression(), !13)
-      store i32 0, ptr %main, align 4
-      store i32 50, ptr %r, align 4, !dbg !14
-      %load_r = load i32, ptr %r, align 4, !dbg !15
-      store i32 %load_r, ptr %main, align 4, !dbg !15
-      %main_ret = load i32, ptr %main, align 4, !dbg !16
+      store i32 0, ptr %main, align [filtered]
+      store i32 50, ptr %r, align [filtered], !dbg !14
+      %load_r = load i32, ptr %r, align [filtered], !dbg !15
+      store i32 %load_r, ptr %main, align [filtered], !dbg !15
+      %main_ret = load i32, ptr %main, align [filtered], !dbg !16
       ret i32 %main_ret, !dbg !16
     }
 
@@ -1672,11 +1891,11 @@ fn range_datatype_debug() {
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
-    !8 = !DILocalVariable(name: "r", scope: !4, file: !3, line: 8, type: !9, align: 32)
-    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_0_100__DINT", scope: !3, file: !3, line: 2, baseType: !10, align: 32)
+    !8 = !DILocalVariable(name: "r", scope: !4, file: !3, line: 8, type: !9, align [filtered])
+    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_0_100__DINT", scope: !3, file: !3, line: 2, baseType: !10, align [filtered])
     !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !11 = !DILocation(line: 8, column: 12, scope: !4)
-    !12 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 6, type: !10, align: 32)
+    !12 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 6, type: !10, align [filtered])
     !13 = !DILocation(line: 6, column: 17, scope: !4)
     !14 = !DILocation(line: 10, column: 12, scope: !4)
     !15 = !DILocation(line: 11, column: 12, scope: !4)
@@ -1712,20 +1931,20 @@ fn range_datatype_reference_expr_bounds_debug() {
     target triple = "[filtered]"
 
     @ZERO = unnamed_addr constant i32 0, !dbg !0
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
 
     define i32 @main() !dbg !9 {
     entry:
-      %main = alloca i32, align 4
-      %r = alloca i32, align 4
+      %main = alloca i32, align [filtered]
+      %r = alloca i32, align [filtered]
         #dbg_declare(ptr %r, !13, !DIExpression(), !15)
-      store i32 0, ptr %r, align 4
+      store i32 0, ptr %r, align [filtered]
         #dbg_declare(ptr %main, !16, !DIExpression(), !17)
-      store i32 0, ptr %main, align 4
-      store i32 50, ptr %r, align 4, !dbg !18
-      %load_r = load i32, ptr %r, align 4, !dbg !19
-      store i32 %load_r, ptr %main, align 4, !dbg !19
-      %main_ret = load i32, ptr %main, align 4, !dbg !20
+      store i32 0, ptr %main, align [filtered]
+      store i32 50, ptr %r, align [filtered], !dbg !18
+      %load_r = load i32, ptr %r, align [filtered], !dbg !19
+      store i32 %load_r, ptr %main, align [filtered], !dbg !19
+      %main_ret = load i32, ptr %main, align [filtered], !dbg !20
       ret i32 %main_ret, !dbg !20
     }
 
@@ -1750,10 +1969,10 @@ fn range_datatype_reference_expr_bounds_debug() {
     !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
     !11 = !{null}
     !12 = !{}
-    !13 = !DILocalVariable(name: "r", scope: !9, file: !2, line: 12, type: !14, align: 32)
-    !14 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_0_103__DINT", scope: !2, file: !2, line: 6, baseType: !4, align: 32)
+    !13 = !DILocalVariable(name: "r", scope: !9, file: !2, line: 12, type: !14, align [filtered])
+    !14 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_0_103__DINT", scope: !2, file: !2, line: 6, baseType: !4, align [filtered])
     !15 = !DILocation(line: 12, column: 12, scope: !9)
-    !16 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 10, type: !4, align: 32)
+    !16 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 10, type: !4, align [filtered])
     !17 = !DILocation(line: 10, column: 17, scope: !9)
     !18 = !DILocation(line: 14, column: 12, scope: !9)
     !19 = !DILocation(line: 15, column: 12, scope: !9)
@@ -1787,7 +2006,7 @@ fn range_datatype_fqn_reference_bounds_debug() {
 
     %prog = type { i32, i32 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @prog_instance = global %prog { i32 10, i32 0 }, !dbg !0
 
     define void @prog(ptr %0) !dbg !14 {
@@ -1800,15 +2019,15 @@ fn range_datatype_fqn_reference_bounds_debug() {
 
     define void @__init_prog(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_prog(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -1825,13 +2044,13 @@ fn range_datatype_fqn_reference_bounds_debug() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "prog", scope: !2, file: !2, line: 6, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "prog", scope: !2, file: !2, line: 6, size: 64, align: 64, flags: DIFlagPublic, elements: !4, identifier: "prog")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "prog", scope: !2, file: !2, line: 6, size: 64, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "prog")
     !4 = !{!5, !8}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "TEN", scope: !2, file: !2, line: 8, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "TEN", scope: !2, file: !2, line: 8, baseType: !6, size: 32, align [filtered], flags: DIFlagPublic)
     !6 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !7)
     !7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 11, baseType: !9, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
-    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_10_103__DINT", scope: !2, file: !2, line: 2, baseType: !7, align: 32)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 11, baseType: !9, size: 32, align [filtered], offset: 32, flags: DIFlagPublic)
+    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_10_103__DINT", scope: !2, file: !2, line: 2, baseType: !7, align [filtered])
     !10 = !{i32 2, !"Dwarf Version", i32 5}
     !11 = !{i32 2, !"Debug Info Version", i32 3}
     !12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false)
@@ -1873,7 +2092,7 @@ fn range_datatype_debug_alias_reused() {
 
     %prog = type { i32, i32, i32, i32 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @prog_instance = global %prog { i32 10, i32 0, i32 0, i32 0 }, !dbg !0
 
     define void @prog(ptr %0) !dbg !16 {
@@ -1888,15 +2107,15 @@ fn range_datatype_debug_alias_reused() {
 
     define void @__init_prog(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
     define void @__user_init_prog(ptr %0) {
     entry:
-      %self = alloca ptr, align 8
-      store ptr %0, ptr %self, align 8
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
@@ -1913,15 +2132,15 @@ fn range_datatype_debug_alias_reused() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "prog", scope: !2, file: !2, line: 6, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "prog", scope: !2, file: !2, line: 6, size: 128, align: 64, flags: DIFlagPublic, elements: !4, identifier: "prog")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "prog", scope: !2, file: !2, line: 6, size: 128, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "prog")
     !4 = !{!5, !8, !10, !11}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "ZERO", scope: !2, file: !2, line: 8, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "ZERO", scope: !2, file: !2, line: 8, baseType: !6, size: 32, align [filtered], flags: DIFlagPublic)
     !6 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !7)
     !7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "u", scope: !2, file: !2, line: 11, baseType: !9, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
-    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_10_103__DINT", scope: !2, file: !2, line: 2, baseType: !7, align: 32)
-    !10 = !DIDerivedType(tag: DW_TAG_member, name: "v", scope: !2, file: !2, line: 12, baseType: !9, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
-    !11 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !2, file: !2, line: 13, baseType: !9, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "u", scope: !2, file: !2, line: 11, baseType: !9, size: 32, align [filtered], offset: 32, flags: DIFlagPublic)
+    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_10_103__DINT", scope: !2, file: !2, line: 2, baseType: !7, align [filtered])
+    !10 = !DIDerivedType(tag: DW_TAG_member, name: "v", scope: !2, file: !2, line: 12, baseType: !9, size: 32, align [filtered], offset: 64, flags: DIFlagPublic)
+    !11 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !2, file: !2, line: 13, baseType: !9, size: 32, align [filtered], offset: 96, flags: DIFlagPublic)
     !12 = !{i32 2, !"Dwarf Version", i32 5}
     !13 = !{i32 2, !"Debug Info Version", i32 3}
     !14 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !15, splitDebugInlining: false)

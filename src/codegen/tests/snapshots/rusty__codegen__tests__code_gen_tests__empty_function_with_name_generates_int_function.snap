@@ -9,8 +9,8 @@ target triple = "[filtered]"
 
 define i16 @foo() {
 entry:
-  %foo = alloca i16, align 2
-  store i16 0, ptr %foo, align 2
-  %foo_ret = load i16, ptr %foo, align 2
+  %foo = alloca i16, align [filtered]
+  store i16 0, ptr %foo, align [filtered]
+  %foo_ret = load i16, ptr %foo, align [filtered]
   ret i16 %foo_ret
 }

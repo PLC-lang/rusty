@@ -13,7 +13,6 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use regex::{Captures, Regex};
 use std::{ops::Range, str::FromStr};
 
 use super::parse_hardware_access;
@@ -869,62 +868,175 @@ fn trim_quotes(quoted_string: &str) -> String {
     quoted_string[1..quoted_string.len() - 1].to_string()
 }
 
-fn handle_special_chars(string: &str, is_wide: bool) -> String {
-    let (re, re_hex) = if is_wide {
-        (
-            Regex::new(r#"(\$([lLnNpPrRtT$"]))"#).expect("valid regex"), //Cannot fail
-            Regex::new(r"(\$([[:xdigit:]]{2}){2})+").expect("valid regex"), //Cannot fail
-        )
-    } else {
-        (
-            Regex::new(r"(\$([lLnNpPrRtT$']))").expect("valid regex"), //Cannot fail
-            Regex::new(r"(\$([[:xdigit:]]{2}))+").expect("valid regex"), //Cannot fail
-        )
-    };
+/// Errors produced by [`handle_special_chars`] for invalid `$`-escape sequences.
+#[derive(Debug, PartialEq, Clone)]
+enum EscapeError {
+    /// `$` at the very end of the string — nothing follows it.
+    ///
+    /// **Note**: this variant is currently unreachable from [`parse_literal_string`].
+    /// The lexer regex treats `$.` (dollar + any character) as an atomic unit, so a
+    /// `$` immediately before the closing delimiter is consumed as the `$'`/`$"` quote-escape,
+    /// leaving the string unterminated — a lexer-level E007 rather than E124.
+    /// Detecting this case as E124 requires the lexer to distinguish mid-string `$'`
+    /// (quote-escape) from trailing `$` + closing delimiter, which needs a separate
+    /// token variant and is tracked as a future enhancement.
+    TrailingDollar,
+    /// `$X` where `X` is not a recognised named-escape character and not a hex digit.
+    UnrecognizedEscape(char),
+    /// `$` followed by hex digit(s) but not enough to form a complete escape
+    /// (STRING needs 2, WSTRING needs 4).
+    IncompleteHexEscape,
+}
 
-    // separated re and re_hex to minimize copying
-    let res = re.replace_all(string, |caps: &Captures| {
-        let cap_str = &caps[1];
-        match cap_str {
-            "$l" | "$L" => "\n",
-            "$n" | "$N" => "\n",
-            "$p" | "$P" => "\x0C",
-            "$r" | "$R" => "\r",
-            "$t" | "$T" => "\t",
-            "$$" => "$",
-            "$'" => "\'",
-            "$\"" => "\"",
-            _ => unreachable!(),
+/// Process all `$`-escape sequences in a string literal (content between quotes) in a
+/// single pass.  Returns the decoded string and a list of any invalid escapes found.
+/// Invalid escapes are kept as-is in the decoded string for error-recovery purposes.
+fn handle_special_chars(string: &str, is_wide: bool) -> (String, Vec<EscapeError>) {
+    let hex_digits_per_unit = if is_wide { 4 } else { 2 };
+
+    let mut result = String::with_capacity(string.len());
+    let mut errors: Vec<EscapeError> = Vec::new();
+    let chars: Vec<char> = string.chars().collect();
+    let len = chars.len();
+    let mut i = 0;
+
+    while i < len {
+        if chars[i] != '$' {
+            result.push(chars[i]);
+            i += 1;
+            continue;
         }
-    });
 
-    re_hex
-        .replace_all(&res, |caps: &Captures| {
-            let hex = &caps[0];
-            let hex_vals: Vec<&str> = hex.split('$').filter(|it| !it.is_empty()).collect();
-            let res = if is_wide {
-                let hex_vals: Vec<u16> =
-                    hex_vals.iter().map(|it| u16::from_str_radix(it, 16).unwrap_or_default()).collect();
-                String::from_utf16_lossy(&hex_vals)
+        // We have a '$' — check what follows.
+        if i + 1 >= len {
+            errors.push(EscapeError::TrailingDollar);
+            result.push('$');
+            i += 1;
+            continue;
+        }
+
+        let next = chars[i + 1];
+
+        // Named escapes
+        match next {
+            'l' | 'L' | 'n' | 'N' => {
+                result.push('\n');
+                i += 2;
+                continue;
+            }
+            'p' | 'P' => {
+                result.push('\x0C');
+                i += 2;
+                continue;
+            }
+            'r' | 'R' => {
+                result.push('\r');
+                i += 2;
+                continue;
+            }
+            't' | 'T' => {
+                result.push('\t');
+                i += 2;
+                continue;
+            }
+            '$' => {
+                result.push('$');
+                i += 2;
+                continue;
+            }
+            '\'' | '"' => {
+                result.push(next);
+                i += 2;
+                continue;
+            }
+            _ => {}
+        }
+
+        // Try to consume consecutive hex escape sequences ($XX or $XXXX).
+        if next.is_ascii_hexdigit() {
+            if is_wide {
+                let mut hex_units: Vec<u16> = Vec::new();
+                while i < len && chars[i] == '$' {
+                    if i + 1 + hex_digits_per_unit > len {
+                        break;
+                    }
+                    let hex_str: String = chars[i + 1..i + 1 + hex_digits_per_unit].iter().collect();
+                    if hex_str.len() == hex_digits_per_unit && hex_str.chars().all(|c| c.is_ascii_hexdigit())
+                    {
+                        hex_units.push(u16::from_str_radix(&hex_str, 16).unwrap_or_default());
+                        i += 1 + hex_digits_per_unit;
+                    } else {
+                        break;
+                    }
+                }
+                if !hex_units.is_empty() {
+                    result.push_str(&String::from_utf16_lossy(&hex_units));
+                    continue;
+                }
             } else {
-                let hex_vals: Vec<u8> =
-                    hex_vals.iter().map(|it| u8::from_str_radix(it, 16).unwrap_or_default()).collect();
-                String::from_utf8_lossy(&hex_vals).to_string()
-            };
-            res
-        })
-        .into()
+                let mut hex_bytes: Vec<u8> = Vec::new();
+                while i < len && chars[i] == '$' {
+                    if i + 1 + hex_digits_per_unit > len {
+                        break;
+                    }
+                    let hex_str: String = chars[i + 1..i + 1 + hex_digits_per_unit].iter().collect();
+                    if hex_str.len() == hex_digits_per_unit && hex_str.chars().all(|c| c.is_ascii_hexdigit())
+                    {
+                        hex_bytes.push(u8::from_str_radix(&hex_str, 16).unwrap_or_default());
+                        i += 1 + hex_digits_per_unit;
+                    } else {
+                        break;
+                    }
+                }
+                if !hex_bytes.is_empty() {
+                    result.push_str(&String::from_utf8_lossy(&hex_bytes));
+                    continue;
+                }
+            }
+            // next was a hex digit but we couldn't form a complete escape.
+            errors.push(EscapeError::IncompleteHexEscape);
+            result.push('$');
+            i += 1;
+            continue;
+        }
+
+        // Unrecognized escape — not a named escape and not a hex digit.
+        errors.push(EscapeError::UnrecognizedEscape(next));
+        result.push('$');
+        i += 1;
+    }
+
+    (result, errors)
 }
 
 fn parse_literal_string(lexer: &mut ParseSession, is_wide: bool) -> Option<AstNode> {
     let result = lexer.slice();
     let location = lexer.location();
 
-    let string_literal = Some(AstNode::new_literal(
-        AstLiteral::new_string(handle_special_chars(&trim_quotes(result), is_wide), is_wide),
-        lexer.next_id(),
-        location,
-    ));
+    let (processed, errors) = handle_special_chars(&trim_quotes(result), is_wide);
+
+    for error in &errors {
+        let message = match error {
+            EscapeError::TrailingDollar => {
+                "Invalid escape sequence in string literal: trailing '$' has nothing to escape".to_string()
+            }
+            EscapeError::UnrecognizedEscape(c) => {
+                format!("Invalid escape sequence in string literal: '${c}' is not a valid escape sequence")
+            }
+            EscapeError::IncompleteHexEscape => {
+                let n = if is_wide { 4 } else { 2 };
+                format!(
+                    "Invalid escape sequence in string literal: incomplete hex escape, expected {n} hex digits after '$'"
+                )
+            }
+        };
+        lexer.accept_diagnostic(
+            Diagnostic::new(message).with_error_code("E124").with_location(location.clone()),
+        );
+    }
+
+    let string_literal =
+        Some(AstNode::new_literal(AstLiteral::new_string(processed, is_wide), lexer.next_id(), location));
     lexer.advance();
     string_literal
 }
@@ -955,31 +1067,184 @@ fn parse_literal_real(
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::expressions_parser::handle_special_chars;
+    use crate::parser::expressions_parser::{handle_special_chars, EscapeError};
+
+    // ── helpers ────────────────────────────────────────────────────────────────
+
+    fn ok(s: &str, wide: bool) -> String {
+        let (result, errors) = handle_special_chars(s, wide);
+        assert!(errors.is_empty(), "unexpected errors for {s:?}: {errors:?}");
+        result
+    }
+
+    fn errs(s: &str, wide: bool) -> Vec<EscapeError> {
+        handle_special_chars(s, wide).1
+    }
+
+    // ── existing regression tests (updated to use the new return type) ─────────
 
     #[test]
     fn replace_all_test() {
-        // following special chars should be replaced
         let string = "a $l$L b $n$N test $p$P c $r$R d $t$T$$ $'quote$' $57 💖 $F0$9F$92$96";
         let expected = "a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ 'quote' W 💖 💖";
 
         let w_string = r#"a $l$L b $n$N test $p$P c $r$R d $t$T$$ $"double$" $0077 💖 $D83D$DC96"#;
         let w_expected = "a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ \"double\" w 💖 💖";
 
-        assert_eq!(handle_special_chars(w_string, true), w_expected);
-        assert_eq!(handle_special_chars(string, false), expected);
+        assert_eq!(ok(w_string, true), w_expected);
+        assert_eq!(ok(string, false), expected);
     }
 
     #[test]
     fn should_not_replace_test() {
-        // following special chars should not be replaced
+        // $0043 in STRING: $00 → NUL, then '4' and '3' as literals; $" produces '"'
         let string = r#"$0043 $"no replace$""#;
-        let expected = "\u{0}43 $\"no replace$\"";
-
+        let expected = "\u{0}43 \"no replace\"";
+        // $57 in WSTRING: '5' is a hex digit but only 4-digit escapes are valid in WSTRING,
+        // and "57 $" is not 4 hex digits → incomplete hex error; $' produces '\''
         let w_string = r#"$57 $'no replace$'"#;
-        let w_expected = "$57 $'no replace$'";
+        let w_expected = "$57 'no replace'";
 
-        assert_eq!(handle_special_chars(w_string, true), w_expected);
-        assert_eq!(handle_special_chars(string, false), expected);
+        assert_eq!(handle_special_chars(w_string, true).0, w_expected);
+        assert_eq!(handle_special_chars(string, false).0, expected);
+    }
+
+    #[test]
+    fn dollar_dollar_followed_by_hex_should_not_be_double_processed() {
+        // $$ → literal '$'; the digits that follow must NOT be re-interpreted as a hex escape
+        assert_eq!(ok("Price: $$100", false), "Price: $100");
+        assert_eq!(ok("$$41", false), "$41");
+        assert_eq!(ok("$$1002", true), "$1002");
+    }
+
+    // ── happy-path unit tests ──────────────────────────────────────────────────
+
+    #[test]
+    fn named_escapes_string() {
+        assert_eq!(ok("$N", false), "\n");
+        assert_eq!(ok("$n", false), "\n");
+        assert_eq!(ok("$L", false), "\n"); // line-feed alias
+        assert_eq!(ok("$l", false), "\n");
+        assert_eq!(ok("$R", false), "\r");
+        assert_eq!(ok("$r", false), "\r");
+        assert_eq!(ok("$T", false), "\t");
+        assert_eq!(ok("$t", false), "\t");
+        assert_eq!(ok("$P", false), "\x0C");
+        assert_eq!(ok("$p", false), "\x0C");
+        assert_eq!(ok("$$", false), "$");
+        assert_eq!(ok("$'", false), "'");
+        assert_eq!(ok("$\"", false), "\""); // double-quote also valid in STRING
+    }
+
+    #[test]
+    fn named_escapes_wstring() {
+        assert_eq!(ok("$N", true), "\n");
+        assert_eq!(ok("$n", true), "\n");
+        assert_eq!(ok("$L", true), "\n");
+        assert_eq!(ok("$l", true), "\n");
+        assert_eq!(ok("$R", true), "\r");
+        assert_eq!(ok("$r", true), "\r");
+        assert_eq!(ok("$T", true), "\t");
+        assert_eq!(ok("$t", true), "\t");
+        assert_eq!(ok("$P", true), "\x0C");
+        assert_eq!(ok("$p", true), "\x0C");
+        assert_eq!(ok("$$", true), "$");
+        assert_eq!(ok("$\"", true), "\"");
+        assert_eq!(ok("$'", true), "'"); // single-quote also valid in WSTRING
+    }
+
+    #[test]
+    fn hex_escape_string_valid_ascii() {
+        assert_eq!(ok("$48$49", false), "HI"); // $48='H', $49='I'
+        assert_eq!(ok("$41", false), "A");
+        assert_eq!(ok("$00", false), "\u{0}"); // NUL byte
+    }
+
+    #[test]
+    fn hex_escape_string_valid_multibyte_utf8() {
+        // 💖 = U+1F496 = bytes F0 9F 92 96
+        assert_eq!(ok("$F0$9F$92$96", false), "💖");
+    }
+
+    #[test]
+    fn hex_escape_string_invalid_utf8_replaced_with_replacement_char() {
+        // Invalid UTF-8 byte sequences are decoded lossily → U+FFFD
+        assert_eq!(ok("$80", false), "\u{FFFD}"); // lone continuation byte
+        assert_eq!(ok("caf$E9", false), "caf\u{FFFD}"); // 0xE9 without continuation
+        assert_eq!(ok("$FF", false), "\u{FFFD}"); // never-valid UTF-8 byte
+    }
+
+    #[test]
+    fn hex_escape_wstring_valid_bmp() {
+        assert_eq!(ok("$0048$0049", true), "HI"); // U+0048='H', U+0049='I'
+        assert_eq!(ok("$0077", true), "w"); // U+0077='w'
+    }
+
+    #[test]
+    fn hex_escape_wstring_valid_surrogate_pair() {
+        assert_eq!(ok("$D83D$DE00", true), "😀"); // U+1F600
+        assert_eq!(ok("$D83D$DC96", true), "💖"); // U+1F496
+    }
+
+    #[test]
+    fn hex_escape_wstring_unpaired_surrogates_replaced_with_replacement_char() {
+        assert_eq!(ok("$D800", true), "\u{FFFD}"); // high surrogate alone
+        assert_eq!(ok("$DE00", true), "\u{FFFD}"); // orphan low surrogate
+        assert_eq!(ok("$D83D$0041", true), "\u{FFFD}A"); // high + non-low BMP char
+        assert_eq!(ok("$DE00$D83D", true), "\u{FFFD}\u{FFFD}"); // reversed pair
+    }
+
+    // ── unhappy-path unit tests ────────────────────────────────────────────────
+
+    #[test]
+    fn trailing_dollar_produces_error() {
+        assert_eq!(errs("hello$", false), vec![EscapeError::TrailingDollar]);
+        assert_eq!(errs("$", false), vec![EscapeError::TrailingDollar]);
+        assert_eq!(errs("hello$", true), vec![EscapeError::TrailingDollar]);
+        // Trailing '$' after a valid escape is also caught
+        assert_eq!(errs("$N$", false), vec![EscapeError::TrailingDollar]);
+        assert_eq!(errs("$48$", false), vec![EscapeError::TrailingDollar]);
+    }
+
+    #[test]
+    fn unrecognized_named_escape_produces_error() {
+        // $Q: 'Q' is not a named-escape char and not a hex digit
+        assert_eq!(errs("$Q", false), vec![EscapeError::UnrecognizedEscape('Q')]);
+        assert_eq!(errs("$Q", true), vec![EscapeError::UnrecognizedEscape('Q')]);
+        // $Z similarly
+        assert_eq!(errs("$Z", false), vec![EscapeError::UnrecognizedEscape('Z')]);
+    }
+
+    #[test]
+    fn incomplete_hex_escape_produces_error() {
+        // STRING needs 2 hex digits: '$A' has only 1
+        assert_eq!(errs("$A", false), vec![EscapeError::IncompleteHexEscape]);
+        // WSTRING needs 4 hex digits: '$004' has only 3
+        assert_eq!(errs("$004", true), vec![EscapeError::IncompleteHexEscape]);
+        // WSTRING: first char hex but 4-char window contains non-hex
+        assert_eq!(errs("$A5z1", true), vec![EscapeError::IncompleteHexEscape]);
+    }
+
+    #[test]
+    fn multiple_errors_all_reported() {
+        // Two invalid escapes in one string — both must appear in the error list
+        let errors = errs("$Q hello $", false);
+        assert_eq!(errors, vec![EscapeError::UnrecognizedEscape('Q'), EscapeError::TrailingDollar]);
+    }
+
+    #[test]
+    fn error_recovery_keeps_dollar_in_output() {
+        // The decoded string keeps the '$' for error-recovery; the error is reported separately
+        let (s, e) = handle_special_chars("$Q", false);
+        assert_eq!(s, "$Q");
+        assert_eq!(e, vec![EscapeError::UnrecognizedEscape('Q')]);
+
+        let (s, e) = handle_special_chars("hello$", false);
+        assert_eq!(s, "hello$");
+        assert_eq!(e, vec![EscapeError::TrailingDollar]);
+
+        let (s, e) = handle_special_chars("$A", false);
+        assert_eq!(s, "$A");
+        assert_eq!(e, vec![EscapeError::IncompleteHexEscape]);
     }
 }
