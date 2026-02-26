@@ -1069,6 +1069,10 @@ fn external_initializers() {
         END_VAR
     END_FUNCTION_BLOCK
 
+    VAR_GLOBAL
+        fb_global : foo;
+    END_VAR
+
     FUNCTION main: DINT
     VAR
         fb: foo;
@@ -1084,9 +1088,10 @@ fn external_initializers() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { ptr }
     %foo = type { ptr, i32 }
+    %__vtable_foo = type { ptr }
 
+    @fb_global = global %foo { ptr null, i32 5 }
     @__vtable_foo_instance = external global %__vtable_foo
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
@@ -1114,7 +1119,7 @@ fn external_initializers() {
 
     define void @__unit___internal____ctor() {
     entry:
-      call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
+      call void @foo__ctor(ptr @fb_global)
       ret void
     }
 
@@ -1234,7 +1239,6 @@ fn external_initializers_in_fbs() {
     entry:
       call void @main__ctor(ptr @main_inst)
       call void @__vtable_main__ctor(ptr @__vtable_main_instance)
-      call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
     }
     "#);
@@ -1355,7 +1359,6 @@ fn external_inherited_initializers() {
     define void @__unit___internal____ctor() {
     entry:
       call void @__vtable_bar__ctor(ptr @__vtable_bar_instance)
-      call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
     }
 

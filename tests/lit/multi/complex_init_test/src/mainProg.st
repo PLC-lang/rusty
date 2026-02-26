@@ -11,15 +11,11 @@ VAR_INPUT
 	timeout := T#1s,
 	bigTime := LT#10s,
 	state := element0,
-(*	states := [ element1,element0,element1], // NOT working *)
+	states := [ element1,element0,element1],
 	simple := (a := 11, b := TRUE),
 	partialSimple := (a := 12, b := TRUE),
-	
-	(*	arr := [ (a := 5, b := FALSE),(a := 6, b := TRUE),(a := 7, b := FALSE)],// NOT working *)
-	(* arr := gcArrSimple_Full, //NOT working *)
-	(*	partialArr :=	[ (a := 19),(b:= TRUE),(a := 7)], //NOT working *)
-	(* partialArr:= gcArrSimple_Partial, //NOT working *)	
-	
+	arr := [ (a := 5, b := FALSE),(a := 6, b := TRUE),(a := 7, b := FALSE)],
+	partialArr := [ (a := 19),(b:= TRUE),(a := 7)],
 	gains := [ 9.0,8.0,7.0]);
 	iComplexConst	: complex := cComplexpartial;
 
@@ -36,15 +32,11 @@ VAR_OUTPUT
 	timeout := T#1s,
 	bigTime := LT#10s,
 	state := element0,
-(*	states := [ element1,element0,element1],  //NOT working *)
+	states := [ element1,element0,element1],
 	simple := (a := 11, b := TRUE),
 	partialSimple := (a := 12, b := TRUE),
-	
-	(*	arr := [ (a := 5, b := FALSE),(a := 6, b := TRUE),(a := 7, b := FALSE)],// NOT working *)
-	(* arr := gcArrSimple_Full, //NOT working *)
-	(*	partialArr :=	[ (a := 19),(b:= TRUE),(a := 7)], //NOT working *)
-	(* partialArr:= gcArrSimple_Partial, //NOT working *)	
-
+	arr := [ (a := 5, b := FALSE),(a := 6, b := TRUE),(a := 7, b := FALSE)],
+	partialArr := [ (a := 19),(b:= TRUE),(a := 7)],
 	gains := [ 9.0,8.0,7.0]);
 	oComplexConst	: complex := cComplexpartial;
 
@@ -64,15 +56,11 @@ VAR
 	timeout := T#1s,
 	bigTime := LT#10s,
 	state := element0,
-(*	states := [ element1,element0,element1], // NOT working *)
+	states := [ element1,element0,element1],
 	simple := (a := 11, b := TRUE),
 	partialSimple := (a := 12, b := TRUE),
-	
-	(*	arr := [ (a := 5, b := FALSE),(a := 6, b := TRUE),(a := 7, b := FALSE)],// NOT working *)
-	(* arr := gcArrSimple_Full, //NOT working *)
-	(*	partialArr :=	[ (a := 19),(b:= TRUE),(a := 7)], //NOT working *)
-	(* partialArr:= gcArrSimple_Partial, //NOT working *)	
-	
+	arr := [ (a := 5, b := FALSE),(a := 6, b := TRUE),(a := 7, b := FALSE)],
+	partialArr := [ (a := 19),(b:= TRUE),(a := 7)],
 	gains := [ 9.0,8.0,7.0]);
 	ComplexConst	: complex := cComplexpartial;
 

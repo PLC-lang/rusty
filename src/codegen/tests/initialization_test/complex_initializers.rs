@@ -157,10 +157,10 @@ fn init_functions_generated_for_programs() {
             PROGRAM PLC_PRG
             VAR
                 to_init: REF_TO STRING := REF(s);
-            END_VAR    
+            END_VAR
             END_PROGRAM
 
-            VAR_GLOBAL 
+            VAR_GLOBAL
                 s: STRING;
             END_VAR
             "#,
@@ -215,7 +215,6 @@ fn init_functions_generated_for_programs() {
 }
 
 #[test]
-#[ignore = "ADR() currently not working, tracked in PRG-2686"]
 fn init_functions_work_with_adr() {
     let result = generate_to_string(
         "Test",
@@ -224,10 +223,10 @@ fn init_functions_work_with_adr() {
             PROGRAM PLC_PRG
             VAR
                 to_init: LWORD := ADR(s);
-            END_VAR    
+            END_VAR
             END_PROGRAM
 
-            VAR_GLOBAL 
+            VAR_GLOBAL
                 s: STRING;
             END_VAR
             "#,
@@ -238,63 +237,36 @@ fn init_functions_work_with_adr() {
     filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
-    %PLC_PRG = type { [81 x i8]* }
+    %PLC_PRG = type { i64 }
 
     @s = global [81 x i8] zeroinitializer
     @PLC_PRG_instance = global %PLC_PRG zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
-    define void @PLC_PRG(%PLC_PRG* %0) {
+    define void @PLC_PRG(ptr %0) {
     entry:
-      %to_init = getelementptr inbounds %PLC_PRG, %PLC_PRG* %0, i32 0, i32 0
-      ret void
-    }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %PLC_PRG = type { [81 x i8]* }
-
-    @PLC_PRG_instance = external global %PLC_PRG
-    @s = external global [81 x i8]
-
-    define void @__init_plc_prg(%PLC_PRG* %0) {
-    entry:
-      %self = alloca %PLC_PRG*, align 8
-      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
-      %deref = load %PLC_PRG*, %PLC_PRG** %self, align 8
-      %to_init = getelementptr inbounds %PLC_PRG, %PLC_PRG* %deref, i32 0, i32 0
-      store [81 x i8]* @s, [81 x i8]** %to_init, align 8
+      %to_init = getelementptr inbounds nuw %PLC_PRG, ptr %0, i32 0, i32 0
       ret void
     }
 
-    declare void @PLC_PRG(%PLC_PRG*)
-
-    define void @__user_init_PLC_PRG(%PLC_PRG* %0) {
+    define void @PLC_PRG__ctor(ptr %0) {
     entry:
-      %self = alloca %PLC_PRG*, align 8
-      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %PLC_PRG = type { [81 x i8]* }
-
-    @PLC_PRG_instance = external global %PLC_PRG
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
-      call void @__user_init_PLC_PRG(%PLC_PRG* @PLC_PRG_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %to_init = getelementptr inbounds nuw %PLC_PRG, ptr %deref, i32 0, i32 0
+      store i64 ptrtoint (ptr @s to i64), ptr %to_init, align [filtered]
       ret void
     }
 
-    declare void @__init_plc_prg(%PLC_PRG*)
-
-    declare void @PLC_PRG(%PLC_PRG*)
-
-    declare void @__user_init_PLC_PRG(%PLC_PRG*)
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @PLC_PRG__ctor(ptr @PLC_PRG_instance)
+      ret void
+    }
     "#);
 }
 
@@ -304,14 +276,14 @@ fn init_functions_generated_for_function_blocks() {
         "Test",
         vec![SourceCode::from(
             r#"
-            VAR_GLOBAL 
+            VAR_GLOBAL
                 s: STRING;
             END_VAR
 
             FUNCTION_BLOCK foo
             VAR
                 to_init: REF_TO STRING := REF(s);
-            END_VAR    
+            END_VAR
             END_FUNCTION_BLOCK
             "#,
         )],
@@ -407,12 +379,12 @@ fn nested_initializer_pous() {
         "Test",
         vec![SourceCode::from(
             r#"
-            VAR_GLOBAL 
+            VAR_GLOBAL
                 str : STRING := 'hello';
             END_VAR
 
             FUNCTION_BLOCK foo
-            VAR 
+            VAR
                 str_ref : REF_TO STRING := REF(str);
                 b: bar;
             END_VAR
@@ -425,7 +397,7 @@ fn nested_initializer_pous() {
             END_ACTION
 
             FUNCTION_BLOCK bar
-            VAR 
+            VAR
                 b: baz;
             END_VAR
                 b.print();
@@ -436,7 +408,7 @@ fn nested_initializer_pous() {
             END_ACTION
 
             FUNCTION_BLOCK baz
-            VAR 
+            VAR
                 str_ref : REF_TO STRING := REF(str);
             END_VAR
             END_FUNCTION_BLOCK
@@ -450,7 +422,7 @@ fn nested_initializer_pous() {
                 other_ref_to_global: REF_TO STRING := REF(str);
                 f: foo;
             END_VAR
-                // do something   
+                // do something
             END_PROGRAM
 
             PROGRAM sideProg
@@ -1074,7 +1046,7 @@ fn ref_to_input_variable() {
             VAR
                 ps: LWORD := REF(st);
             END_VAR
-            END_FUNCTION_BLOCK 
+            END_FUNCTION_BLOCK
             "#,
         )],
     )
@@ -1090,14 +1062,14 @@ fn ref_to_inout_variable() {
         "Test",
         vec![SourceCode::from(
             r#"
-            FUNCTION_BLOCK bar 
+            FUNCTION_BLOCK bar
             VAR_IN_OUT
                 st: STRING;
             END_VAR
             VAR
                 ps: LWORD := REF(st);
             END_VAR
-            END_FUNCTION_BLOCK 
+            END_FUNCTION_BLOCK
             "#,
         )],
     )
@@ -1123,8 +1095,8 @@ fn struct_types() {
                 s2 : ARRAY[0..1] OF STRING := ['hello', 'world'];
             END_VAR
 
-            PROGRAM prog 
-            VAR 
+            PROGRAM prog
+            VAR
                 str: myStruct;
             END_VAR
             END_PROGRAM
@@ -1241,8 +1213,8 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
                 END_STRUCT
             END_TYPE
 
-            PROGRAM prog 
-            VAR 
+            PROGRAM prog
+            VAR
             END_VAR
             END_PROGRAM
 
@@ -1255,7 +1227,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
                 METHOD m
                 END_METHOD
             END_CLASS
-            
+
             // no init function is expected for this action
             ACTION foo.act
             END_ACTION
@@ -1574,7 +1546,7 @@ fn aliased_types() {
             VAR_GLOBAL
                 ps: STRING;
                 global_alias: alias;
-            END_VAR    
+            END_VAR
 
             TYPE alias : foo; END_TYPE
 
@@ -1720,7 +1692,7 @@ fn array_of_instances() {
                 ps: STRING;
                 globals: ARRAY[0..10] OF foo;
                 globals2: ARRAY[0..10] OF foo;
-            END_VAR    
+            END_VAR
 
             FUNCTION_BLOCK foo
             VAR
@@ -1782,9 +1754,9 @@ fn var_config_aliased_variables_initialized() {
         "Test",
         vec![SourceCode::from(
             r#"
-            FUNCTION_BLOCK FB 
-            VAR 
-            foo AT %I* : DINT; 
+            FUNCTION_BLOCK FB
+            VAR
+            foo AT %I* : DINT;
             END_VAR
             END_FUNCTION_BLOCK
 
@@ -1793,7 +1765,7 @@ fn var_config_aliased_variables_initialized() {
             prog.instance2.foo AT %QX1.2.2 : DINT;
             END_VAR
 
-            PROGRAM prog 
+            PROGRAM prog
             VAR
                 instance1: FB;
                 instance2: FB;
@@ -3252,7 +3224,7 @@ fn methods_call_init_functions_for_their_members() {
 
         FUNCTION_BLOCK bar
             METHOD baz
-                VAR 
+                VAR
                     fb: foo;
                 END_VAR
             END_METHOD
@@ -3446,8 +3418,8 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
             END_METHOD
         END_FUNCTION_BLOCK
 
-        PROGRAM prog 
-        VAR 
+        PROGRAM prog
+        VAR
             f : foo;
         END_VAR
             f();
@@ -3588,7 +3560,7 @@ fn user_fb_init_in_global_struct() {
             r#"
         TYPE
             bar : STRUCT
-               f: foo; 
+               f: foo;
             END_STRUCT;
         END_TYPE
 
@@ -3607,8 +3579,8 @@ fn user_fb_init_in_global_struct() {
             END_METHOD
         END_FUNCTION_BLOCK
 
-        PROGRAM prog 
-        VAR 
+        PROGRAM prog
+        VAR
             str: bar;
         END_VAR
             str.f();
@@ -3771,8 +3743,8 @@ fn user_init_called_when_declared_as_external() {
             END_METHOD
         END_FUNCTION_BLOCK
 
-        PROGRAM prog 
-        VAR 
+        PROGRAM prog
+        VAR
             f: foo;
         END_VAR
             f();
@@ -3829,7 +3801,6 @@ fn user_init_called_when_declared_as_external() {
 
     define void @__unit___internal____ctor() {
     entry:
-      call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       call void @prog__ctor(ptr @prog_instance)
       ret void
     }

@@ -26,6 +26,7 @@ pub struct GlobalContext {
     /// [`IdProvider`] used during the parsing session
     provider: IdProvider,
     error_fmt: ErrorFormat,
+    // TODO: Move to a dedicated CompilerOptions struct — this is a compile flag, not global context.
     generate_external_constructors: bool,
 }
 

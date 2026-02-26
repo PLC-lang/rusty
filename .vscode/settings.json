@@ -2,19 +2,6 @@
     "rust-analyzer.runnables.extraTestBinaryArgs": [
         "--nocapture"
     ],
-    "chat.tools.terminal.autoApprove": {
-        "cargo nextest": true,
-        "cargo test": true,
-        "cargo r": true,
-        "/^cd /workspaces/rusty && bash scripts/build\\.sh --lit 2>&1 \\| grep -A 30 \"Failed Tests\"$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "lit": true,
-        "cargo build": true,
-        "./scripts/build.sh": true,
-        "./target/debug/plc": true,
-        "/workspaces/rusty/target/debug/plc": true
     "files.associations": {
         "*.pli": "st"
     }

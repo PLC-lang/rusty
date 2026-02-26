@@ -29,10 +29,7 @@ VAR_GLOBAL
 	simple := gcSimple_Override,
 	partialSimple := (a := 12, b := TRUE),
 	
-	(*	arr := [ (a := 5, b := FALSE),(a := 6, b := TRUE),(a := 7, b := FALSE)], //NOT working *)
 	arr := gcArrSimple_Full,
-	
-	(*	partialArr :=	[ (a := 19),(b:= TRUE),(a := 7)], //NOT working *)
 	partialArr:= gcArrSimple_Partial,
 
 	gains := gcGains_Test);

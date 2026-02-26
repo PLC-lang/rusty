@@ -116,7 +116,6 @@ pub fn generate_global_constants_for_pou_members<'ink>(
         .filter(|(_, it)| it.is_in_unit(location));
     for (_pou, implementation) in implementations {
         let type_name = implementation.get_type_name();
-        //TODO: should we skip includes here?
         if implementation.is_init() {
             // initializer functions don't need global constants to initialize members
             continue;

@@ -1,5 +1,5 @@
-use crate::test_utils::tests::codegen;
 use plc_util::filtered_assert_snapshot;
+use test_utils::codegen;
 /// # Architecture Design Record: Arrays
 /// ST supports C-like arrays
 #[test]
@@ -21,6 +21,20 @@ fn declaring_an_array() {
     target triple = "[filtered]"
 
     @d = global [10 x i32] zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @Data__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @Data__ctor(ptr @d)
+      ret void
+    }
     "#);
 }
 
@@ -45,6 +59,22 @@ fn initializing_an_array() {
     target triple = "[filtered]"
 
     @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @Data__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], ptr %deref, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @Data__ctor(ptr @d)
+      ret void
+    }
     "#);
 }
 
@@ -76,12 +106,41 @@ fn assigning_full_arrays() {
     %prg = type { [10 x i32], [10 x i32] }
 
     @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @prg(ptr %0) {
     entry:
       %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
       %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %a, ptr align [filtered] %b, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
+      ret void
+    }
+
+    define void @prg__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %a = getelementptr inbounds nuw %prg, ptr %deref, i32 0, i32 0
+      call void @Data__ctor(ptr %a)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %b = getelementptr inbounds nuw %prg, ptr %deref1, i32 0, i32 1
+      call void @Data__ctor(ptr %b)
+      ret void
+    }
+
+    define void @Data__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], ptr %deref, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @prg__ctor(ptr @prg_instance)
       ret void
     }
 
@@ -127,7 +186,9 @@ fn accessing_array_elements() {
     %prg = type { [10 x i32], [3 x i32] }
 
     @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
     @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
+    @__prg.b__init.1 = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
 
     define void @prg(ptr %0) {
     entry:
@@ -137,6 +198,44 @@ fn accessing_array_elements() {
       %tmpVar1 = getelementptr inbounds [3 x i32], ptr %b, i32 0, i32 1
       %load_tmpVar = load i32, ptr %tmpVar1, align [filtered]
       store i32 %load_tmpVar, ptr %tmpVar, align [filtered]
+      ret void
+    }
+
+    define void @prg__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %a = getelementptr inbounds nuw %prg, ptr %deref, i32 0, i32 0
+      call void @Data__ctor(ptr %a)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %b = getelementptr inbounds nuw %prg, ptr %deref1, i32 0, i32 1
+      call void @__prg_b__ctor(ptr %b)
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %b3 = getelementptr inbounds nuw %prg, ptr %deref2, i32 0, i32 1
+      store [3 x i32] [i32 3, i32 4, i32 5], ptr %b3, align [filtered]
+      ret void
+    }
+
+    define void @Data__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], ptr %deref, align [filtered]
+      ret void
+    }
+
+    define void @__prg_b__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @prg__ctor(ptr @prg_instance)
       ret void
     }
     "#);

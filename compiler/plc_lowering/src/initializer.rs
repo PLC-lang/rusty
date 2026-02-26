@@ -1,26 +1,41 @@
-//! The initializer lowering module is responsible for adding initialization logic
-//! to PLC AST nodes. This includes generating default values for variables, handling
-//! constant expressions, and ensuring that all necessary initializations are present
-//! before code generation. The module traverses the AST and modifies nodes as needed
-//! to include initialization code, making sure that the resulting AST is ready for
-//! further compilation stages.
-//! Initialization logic is as follows:
-//! - Every struct(and POU) has a constructor for fields with constant or pointer initializers.
-//!    - The name for this constructor is `<StructName>__ctor`
-//!    - The constructor is always public
-//! - Variables of the struct are initialized by calling the constructor
-//! - Global variables are initialized in a global constructor function called `__unit_<name>__ctor`
-//!   - This function is called per module inside the static initialization code
-//!   - The function is private to the module
-//! - Stateless POUs (functions and methods) are initialized during their call.
-//!     - Variables of a stateless POU of a struct type are initialized using the constructor call.
-//! - External POUs and struct constructors are marked as `extern` and have no body, unless
-//!   `--generate-external-constructors` is enabled for the build.
-//! - Included units (`-i`) do not generate constructors by default.
-//! - External variables are not re-initialized in the global constructor; they are assumed to be
-//!   initialized externally.
-//! - Built-in types and variables are not re-initialized in the global
-//!   constructor.
+//! The initializer lowering module generates constructor functions (`__ctor`) for every
+//! user-defined type and POU in a compilation unit. It traverses the AST to collect
+//! initialization logic and injects it as new POU definitions before code generation.
+//!
+//! ## Constructor generation
+//!
+//! - Every user-defined type and stateful POU gets a constructor named `<TypeName>__ctor`.
+//!   The constructor body contains assignments for fields with initializers and calls to
+//!   nested type constructors.
+//! - For types defined in other compilation units (sibling files, included or external units),
+//!   constructor calls are emitted but no constructor POU is generated — codegen and the
+//!   linker resolve the actual definition.
+//!
+//! ## Global initialization
+//!
+//! - Global variables are initialized in a per-module function called `__unit_<name>__ctor`,
+//!   registered via LLVM's `.init_array` for automatic execution at startup.
+//!
+//! ## Stateless POUs
+//!
+//! - Functions and methods do not have persistent state. Their local variables are initialized
+//!   on each call via a "stack constructor" that is prepended to the function body.
+//!
+//! ## Linkage behavior
+//!
+//! - **Included** (`-i`) types come from pre-built libraries. Their constructors are generated
+//!   when the library itself is compiled, so this module only emits a declaration (`Body::External`)
+//!   for them — never a definition.
+//! - **External** types are defined in the same project but written in a different language (e.g. C).
+//!   By default they get `Body::External` (declared). With `--generate-external-constructors`,
+//!   the compiler generates constructor definitions for them as well.
+//! - **Built-in** types get `Body::None` (no constructor generated).
+//! - External variables are not re-initialized; they are assumed to be initialized externally.
+//!
+//! ## User-defined constructors
+//!
+//! - Stateful POUs may define an `FB_INIT` method that is called after the generated
+//!   constructor body, acting as a user-defined initialization hook.
 
 use std::rc::Rc;
 
@@ -47,6 +62,8 @@ use plc_source::source_location::SourceLocation;
 enum Body {
     Internal(Vec<AstNode>),
     External(Vec<AstNode>),
+    /// Sentinel: no constructor will be generated for this type (generic, VLA, built-in).
+    /// Inserted during pre-registration so that `apply_initialization` silently skips these entries.
     None,
 }
 
@@ -97,6 +114,10 @@ impl Context {
 }
 
 impl AstVisitor for Initializer {
+    /// Generates the constructor body for a POU. For stateful POUs (programs, function blocks,
+    /// classes) this includes base class ctor calls, member ctor calls, vtable assignment, and
+    /// user-defined `FB_INIT` hooks. For programs, also registers a call in the global constructor.
+    /// For stateless POUs with a struct return type, adds a ctor call to the stack constructor.
     fn visit_pou(&mut self, pou: &plc_ast::ast::Pou) {
         self.context.enter_pou(pou.name.as_str());
         if pou.is_stateful() {
@@ -121,13 +142,8 @@ impl AstVisitor for Initializer {
         self.stack_constructor.insert(pou.name.clone(), constructor_body);
         // If the POU has a base class, call the base constructor first
         if let Some(super_class) = &pou.super_class {
-            let base_ctor_call = create_call_statement(
-                &format!("{}__ctor", super_class.name),
-                &format!("__{}", super_class.name),
-                Some("self"),
-                self.id_provider.clone(),
-                &SourceLocation::internal(),
-            );
+            let base_ctor_call =
+                self.create_ctor_call(&super_class.name, &format!("__{}", super_class.name), Some("self"));
             self.add_to_current_constructor(vec![base_ctor_call]);
         }
         pou.walk(self);
@@ -150,42 +166,21 @@ impl AstVisitor for Initializer {
         }
         // If a program, add a constructor call to the global variables
         if pou.is_program() {
-            let call = create_call_statement(
-                &format!("{}__ctor", pou.name),
-                pou.get_return_name(),
-                None,
-                self.id_provider.clone(),
-                &SourceLocation::internal(),
-            );
+            let call = self.create_ctor_call(&pou.name, pou.get_return_name(), None);
             self.global_constructor.push(call);
         }
         // If a stateless POU with a named return type, add constructor call for the return value
         if !pou.is_stateful() {
             if let Some(return_type) = &pou.return_type {
                 if let Some(return_type_name) = return_type.get_name() {
-                    let has_constructor = if self.constructors.contains_key(return_type_name) {
-                        true
-                    } else if self
-                        .index
-                        .as_ref()
-                        .and_then(|idx| idx.find_effective_type_by_name(return_type_name))
-                        .is_some_and(|dt| dt.is_struct() && dt.linkage.is_external_or_included())
-                    {
-                        self.constructors
-                            .entry(return_type_name.to_string())
-                            .or_insert(Body::External(vec![]));
-                        true
-                    } else {
-                        false
-                    };
+                    let has_constructor = self.constructors.contains_key(return_type_name)
+                        || self
+                            .index
+                            .as_ref()
+                            .and_then(|idx| idx.find_type(return_type_name))
+                            .is_some_and(|dt| !dt.linkage.is_built_in());
                     if has_constructor {
-                        let call = create_call_statement(
-                            &format!("{}__ctor", return_type_name),
-                            pou.get_return_name(),
-                            None,
-                            self.id_provider.clone(),
-                            &SourceLocation::internal(),
-                        );
+                        let call = self.create_ctor_call(return_type_name, pou.get_return_name(), None);
                         self.add_to_current_stack_constructor(vec![call]);
                     }
                 }
@@ -195,9 +190,19 @@ impl AstVisitor for Initializer {
     }
 
     fn visit_variable_block(&mut self, block: &plc_ast::ast::VariableBlock) {
-        // Skip constant blocks
         if block.constant {
             return;
+        }
+        // Included global variables are always initialized by their owning library.
+        // External globals are initialized by their owning module unless
+        // `generate_externals` is set.
+        if block.kind.is_global() {
+            if block.linkage == LinkageType::Include {
+                return;
+            }
+            if block.linkage == LinkageType::External && !self.generate_externals {
+                return;
+            }
         }
         self.context.enter_variable_block(block);
         block.walk(self);
@@ -216,17 +221,17 @@ impl AstVisitor for Initializer {
         self.global_constructor.push(assignment);
     }
 
+    /// Processes a single variable declaration, generating constructor calls for member types
+    /// and lowering initializer expressions into the appropriate constructor body.
     fn visit_variable(&mut self, variable: &plc_ast::ast::Variable) {
+        let index = self.index.as_ref().expect("index is set at this stage");
         let variable_block_type =
             self.context.current_variable_block.expect("variable block is set at this stage");
-        // Find if the parent is stateful (scope the index borrow)
-        let is_stateful = {
-            let index = self.index.as_ref().expect("index is set at this stage");
-            if let Some(pou_name) = &self.context.current_pou {
-                index.find_pou(pou_name).is_some_and(|it| it.is_stateful())
-            } else {
-                true
-            }
+        // Find if the parent is stateful
+        let is_stateful = if let Some(pou_name) = &self.context.current_pou {
+            index.find_pou(pou_name).is_some_and(|it| it.is_stateful())
+        } else {
+            true
         };
         let mut stmts = vec![];
         let base = Self::get_base_ident(&variable_block_type, is_stateful);
@@ -242,7 +247,6 @@ impl AstVisitor for Initializer {
         // Determine if we need to create an initializer
         // For alias/reference variables (AT x), if there's no explicit initializer, we use the AT target (address)
         // BUT only if the address is a simple identifier (not a hardware address like %I* or %QX1.2.1)
-        let index = self.index.as_ref().expect("index is set at this stage");
         let initializer_to_use = if variable.initializer.is_some() {
             variable.initializer.as_ref()
         } else if is_alias_or_reference_variable(variable, index)
@@ -320,15 +324,19 @@ impl AstVisitor for Initializer {
         }
     }
 
+    /// Generates the constructor body for a user-defined type. Handles alias types (typedef
+    /// chains) by calling the parent type's constructor, and struct types by delegating to
+    /// `visit_data_type`. Also lowers any explicit initializer into an assignment.
     fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {
         let name = user_type.data_type.get_name().expect("name is set at this stage");
         self.context.enter_datatype(name);
+        // Generic, VLA, and built-in types don't need constructors. We register Body::None
+        // so that apply_initialization skips POU generation for them (see Body::None => {}).
         if user_type.data_type.is_generic() {
             self.constructors.insert(name.to_string(), Body::None);
             self.context.exit_datatype();
             return;
         }
-        // Skip creating constructors for VLA types - they're parameter types that don't need initialization
         let index = self.index.as_ref().expect("index is set at this stage");
         if index.get_type_information_or_void(name).is_vla() {
             self.constructors.insert(name.to_string(), Body::None);
@@ -348,25 +356,10 @@ impl AstVisitor for Initializer {
         // This handles typedef chains like: mysubtype2 -> mysubtype -> mytypedefstruct
         if let DataType::SubRangeType { referenced_type, bounds: None, .. } = &user_type.data_type {
             // This is a typedef (alias) without bounds - call the parent constructor
-            let has_parent_ctor = if self.constructors.contains_key(referenced_type) {
-                true
-            } else if index
-                .find_effective_type_by_name(referenced_type)
-                .is_some_and(|dt| dt.is_struct() && dt.linkage.is_external_or_included())
-            {
-                self.constructors.entry(referenced_type.to_string()).or_insert(Body::External(vec![]));
-                true
-            } else {
-                false
-            };
+            let has_parent_ctor = self.constructors.contains_key(referenced_type)
+                || index.find_type(referenced_type).is_some_and(|dt| !dt.linkage.is_built_in());
             if has_parent_ctor {
-                let parent_ctor_call = create_call_statement(
-                    &format!("{}__ctor", referenced_type),
-                    "self",
-                    None,
-                    self.id_provider.clone(),
-                    &SourceLocation::internal(),
-                );
+                let parent_ctor_call = self.create_ctor_call(referenced_type, "self", None);
                 self.add_to_current_constructor(vec![parent_ctor_call]);
             }
         }
@@ -382,35 +375,19 @@ impl AstVisitor for Initializer {
         self.context.exit_datatype();
     }
 
+    /// Processes a struct data type's fields, generating constructor calls for fields whose
+    /// types have constructors, and lowering field initializers into assignments.
     fn visit_data_type(&mut self, data_type: &plc_ast::ast::DataType) {
-        // Only structs get constructors
         if let plc_ast::ast::DataType::StructType { variables, .. } = data_type {
             let index = self.index.as_ref().expect("index is set at this stage");
             let mut constructor = vec![];
             for variable in variables.iter() {
                 // First, check if the field's type has a constructor and generate a call if needed
                 if let Some(type_name) = variable.data_type_declaration.get_referenced_type() {
-                    let has_constructor = if self.constructors.contains_key(type_name) {
-                        true
-                    } else if index
-                        .find_effective_type_by_name(type_name)
-                        .is_some_and(|dt| dt.is_struct() && dt.linkage.is_external_or_included())
-                    {
-                        // Struct type from an included/external unit — register an external constructor declaration
-                        self.constructors.entry(type_name.to_string()).or_insert(Body::External(vec![]));
-                        true
-                    } else {
-                        false
-                    };
+                    let has_constructor = self.constructors.contains_key(type_name)
+                        || index.find_type(type_name).is_some_and(|dt| !dt.linkage.is_built_in());
                     if has_constructor {
-                        let call = create_call_statement(
-                            &format!("{}__ctor", type_name),
-                            variable.get_name(),
-                            Some("self"),
-                            self.id_provider.clone(),
-                            &SourceLocation::internal(),
-                        );
-                        constructor.push(call);
+                        constructor.push(self.create_ctor_call(type_name, variable.get_name(), Some("self")));
                     }
                 }
 
@@ -455,14 +432,13 @@ impl AstVisitor for Initializer {
 }
 
 /// Policy describing how an initializer is lowered into constructor assignments.
-///
-/// - RefAssign: emit a `REF=` assignment for alias/reference variables or reference-typed fields.
-/// - StructDecompose: decompose a struct literal into per-field assignments.
-/// - DirectAssign: emit a standard `:=` assignment without decomposition.
 #[derive(Debug, Clone)]
 enum InitLoweringPolicy {
+    /// Emit a `REF=` assignment for alias/reference variables or reference-typed fields.
     RefAssign(Box<AstNode>),
+    /// Decompose a struct literal into per-field assignments.
     StructDecompose,
+    /// Emit a standard `:=` assignment without decomposition.
     DirectAssign,
 }
 
@@ -643,6 +619,11 @@ impl Initializer {
         unit
     }
 
+    /// Returns the appropriate constructor body variant based on the type's linkage.
+    /// - Internal types get `Body::Internal` (defined).
+    /// - External types get `Body::Internal` when `generate_externals` is set, otherwise `Body::External` (declared).
+    /// - Included types always get `Body::External` — their constructors are built with the library.
+    /// - Built-in types get `Body::None` (no constructor).
     fn constructor_body_for_linkage(&self, linkage: LinkageType) -> Body {
         match linkage {
             LinkageType::Internal => Body::Internal(vec![]),
@@ -668,26 +649,27 @@ impl Initializer {
         }
     }
 
-    /// Register a single POU's constructor in the constructors map
+    /// Register a single POU's constructor in the constructors map.
+    /// Generic and built-in POUs are registered with `Body::None` so that
+    /// `apply_initialization` skips constructor POU generation for them.
     fn pre_register_pou_constructor(&mut self, pou: &plc_ast::ast::Pou) {
-        // Skip generic POUs
         if pou.is_generic() {
             self.constructors.insert(pou.name.clone(), Body::None);
             return;
         }
 
-        // Skip built-in types
         if pou.linkage == LinkageType::BuiltIn {
             self.constructors.insert(pou.name.clone(), Body::None);
             return;
         }
 
-        // Register the constructor based on linkage and whether it's stateful
         if pou.is_stateful() {
             self.constructors.entry(pou.name.clone()).or_insert(Body::None);
         }
     }
 
+    /// Appends statements to the stack constructor of the current POU. Stack constructors
+    /// are prepended to the function body and initialize local variables on each call.
     fn add_to_current_stack_constructor(&mut self, node: Vec<AstNode>) {
         if node.is_empty() {
             return;
@@ -708,6 +690,8 @@ impl Initializer {
         }
     }
 
+    /// Appends statements to the constructor of the current POU or datatype, or to the
+    /// global constructor if we're in a global variable block.
     fn add_to_current_constructor(&mut self, node: Vec<AstNode>) {
         if node.is_empty() {
             return;
@@ -733,41 +717,51 @@ impl Initializer {
         }
     }
 
-    fn get_constructor_call(
-        &mut self,
-        type_name: &str,
-        base: Option<&str>,
-        var_name: &str,
-    ) -> Option<AstNode> {
+    /// Creates a call statement to the constructor of the given type: `<type_name>__ctor(<var_name>)`.
+    fn create_ctor_call(&self, type_name: &str, var_name: &str, base: Option<&str>) -> AstNode {
+        create_call_statement(
+            &format!("{type_name}__ctor"),
+            var_name,
+            base,
+            self.id_provider.clone(),
+            &SourceLocation::internal(),
+        )
+    }
+
+    /// Returns a constructor call for `type_name` if it needs one. Checks the current unit's
+    /// registered constructors first, then falls back to the global index for types defined
+    /// in other compilation units (stateful POUs or any non-built-in user-defined type).
+    fn get_constructor_call(&self, type_name: &str, base: Option<&str>, var_name: &str) -> Option<AstNode> {
         let should_create_call = if self.constructors.contains_key(type_name) {
             true
         } else if self
-                .index
-                .as_ref()
-                .and_then(|idx| idx.find_effective_type_by_name(type_name))
-                .is_some_and(|dt| dt.is_struct() && dt.linkage.is_external_or_included())
+            .index
+            .as_ref()
+            .and_then(|idx| idx.find_pou(type_name))
+            .is_some_and(|pou| pou.is_stateful())
         {
-            // Struct type from an included/external unit — register an external constructor declaration
-            self.constructors.entry(type_name.to_string()).or_insert(Body::External(vec![]));
             true
         } else {
-            false
+            // Check the global index for user-defined types from other compilation units.
+            // Any non-built-in type gets a constructor during its own unit's lowering pass.
+            // We only emit the call here — the constructor declaration is handled by codegen.
+            // We use find_type (not find_effective_type_by_name) to avoid resolving aliases,
+            // which would lose the original type's linkage.
+            self.index
+                .as_ref()
+                .and_then(|idx| idx.find_type(type_name))
+                .is_some_and(|dt| !dt.linkage.is_built_in())
         };
 
         if should_create_call {
-            let call = create_call_statement(
-                &format!("{}__ctor", type_name),
-                var_name,
-                base,
-                self.id_provider.clone(),
-                &SourceLocation::internal(),
-            );
-            Some(call)
+            Some(self.create_ctor_call(type_name, var_name, base))
         } else {
             None
         }
     }
 
+    /// Returns a call to the user-defined constructor (e.g. `FB_INIT`) for the given type,
+    /// if one is registered and exists as a method in the index.
     fn get_user_defined_constructor_call(&mut self, type_name: &str, var_name: &str) -> Option<AstNode> {
         if let Some(index) = self.index.as_ref() {
             // Search for the user defined constructor for the given struct
@@ -1002,9 +996,10 @@ mod tests {
         // Expecting a function declaration: void MyStruct__ctor(MyStruct* self)
         // Expecting assignments inside the constructor: self->a = 5; self->c = 1;
         // Expecting an assignment: self->b = &gVar;
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyStruct").unwrap()), @r"
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyStruct").unwrap()), @"
         intern:
         self.a := 5
+        __MyStruct_b__ctor(self.b)
         self.b := ADR(gVar)
         self.c := TRUE
         ");
@@ -1072,9 +1067,10 @@ mod tests {
         // Check for constructors
         // Expecting a function declaration: void InnerStruct__ctor(InnerStruct* self)
         // Expecting assignments inside the constructor: self->a = 1; self->b = &gVar;
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("InnerStruct").unwrap()), @r"
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("InnerStruct").unwrap()), @"
         intern:
         self.a := 1
+        __InnerStruct_b__ctor(self.b)
         self.b := ADR(gVar)
         ");
         // Expecting a function declaration: void InnerStruct2__ctor(InnerStruct2* self)
@@ -1234,12 +1230,10 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        // Check for internal var assignment in global constructor
-        // Expecting a call to MyExtStruct__ctor(&internalVar);
-        // No call to MyExtStruct__ctor(&extVar);
+        // Only the internal global variable gets a constructor call.
+        // The external global variable is skipped (its owning module initializes it).
         insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"
         MyExtStruct__ctor(internalVar)
-        MyExtStruct__ctor(extVar)
         ");
         // Check that no constructor is generated for MyExtStruct
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyExtStruct").unwrap()), @r"
@@ -1340,18 +1334,26 @@ mod tests {
         self.FB_INIT()
         ");
         // Check that there's a constructor function for the vtables
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__vtable_MyBaseFB").unwrap()), @r"
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__vtable_MyBaseFB").unwrap()), @"
         intern:
+        ____vtable_MyBaseFB___body__ctor(self.__body)
         self.__body := ADR(MyBaseFB)
+        ____vtable_MyBaseFB_baseMeth__ctor(self.baseMeth)
         self.baseMeth := ADR(MyBaseFB.baseMeth)
+        ____vtable_MyBaseFB_overrideMeth__ctor(self.overrideMeth)
         self.overrideMeth := ADR(MyBaseFB.overrideMeth)
         ");
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__vtable_MyFB").unwrap()), @r"
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__vtable_MyFB").unwrap()), @"
         intern:
+        ____vtable_MyFB___body__ctor(self.__body)
         self.__body := ADR(MyFB)
+        ____vtable_MyFB_baseMeth__ctor(self.baseMeth)
         self.baseMeth := ADR(MyBaseFB.baseMeth)
+        ____vtable_MyFB_overrideMeth__ctor(self.overrideMeth)
         self.overrideMeth := ADR(MyFB.overrideMeth)
+        ____vtable_MyFB_FB_INIT__ctor(self.FB_INIT)
         self.FB_INIT := ADR(MyFB.FB_INIT)
+        ____vtable_MyFB_localMeth__ctor(self.localMeth)
         self.localMeth := ADR(MyFB.localMeth)
         ");
     }
@@ -1388,18 +1390,6 @@ mod tests {
     /// This is similar to the lit test at tests/lit/multi/constructors/src
     ///
     /// Note: constructor names use the `__ctor` suffix (double underscore).
-    /// BUG: The child constructor should call baseFb__ctor(self.__baseFb) to initialize
-    /// the parent properly, but currently it only sets up the vtable and calls FB_INIT
-    /// directly without initializing the base's fields (like the reference 'y').
-    /// This causes unresolved references when the parent constructor logic is skipped.
-    ///
-    /// Expected child__ctor behavior:
-    ///   baseFb__ctor(self.__baseFb)      // <-- MISSING: should call parent constructor first
-    ///   self.__vtable := ADR(__vtable_child_instance)
-    ///
-    /// Current (buggy) child__ctor behavior:
-    ///   self.__vtable := ADR(__vtable_child_instance)
-    ///   self.FB_INIT()                  // calls FB_INIT but parent fields not initialized
     #[test]
     fn child_constructor_calls_parent_constructor_across_files() {
         let base: SourceCode = SourceCode::new(
@@ -1619,16 +1609,17 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let body = print_body_to_string(initializer.constructors.get("RefVars").unwrap());
-
-        assert!(body.contains("self.r REF= self.x"));
-        assert!(!body.contains("self.r := REF(self.x)"));
-
-        assert!(body.contains("self.rt := REF(self.x)"));
-        assert!(!body.contains("self.rt REF= self.x"));
-
-        assert!(body.contains("self.p := ADR(self.x)"));
-        assert!(!body.contains("self.p REF= self.x"));
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("RefVars").unwrap()), @r"
+        intern:
+        __RefVars___vtable__ctor(self.__vtable)
+        __RefVars_r__ctor(self.r)
+        self.r REF= self.x
+        __RefVars_rt__ctor(self.rt)
+        self.rt := REF(self.x)
+        __RefVars_p__ctor(self.p)
+        self.p := ADR(self.x)
+        self.__vtable := ADR(__vtable_RefVars_instance)
+        ");
     }
 
     #[test]
@@ -1642,10 +1633,12 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let body = print_to_string(&initializer.global_constructor);
-
-        assert!(body.contains("alias_ident REF= target"));
-        assert!(!body.contains("alias_hw REF= %IX1.2"));
+        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @r"
+        __global_alias_ident__ctor(alias_ident)
+        alias_ident REF= target
+        __global_alias_hw__ctor(alias_hw)
+        alias_hw REF= __PI_1_2
+        ");
     }
 
     #[test]
@@ -1665,10 +1658,43 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let body = print_body_to_string(initializer.constructors.get("Foo").unwrap());
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("Foo").unwrap()), @r"
+        intern:
+        __Foo___vtable__ctor(self.__vtable)
+        MyStruct__ctor(self.s)
+        self.s.field := self.local
+        self.__vtable := ADR(__vtable_Foo_instance)
+        ");
+    }
 
-        assert!(body.contains("self.s.field := self.local"));
-        assert!(!body.contains("self.s.field := local"));
+    #[test]
+    fn struct_with_stateful_pou_member_gets_nested_ctor_call() {
+        let src = r#"
+        TYPE MyStruct : STRUCT
+            fb : FbA := (x := 10);
+        END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+        VAR
+            x : DINT;
+        END_VAR
+        END_FUNCTION_BLOCK
+        "#;
+
+        let initializer = parse_and_init(src);
+        // MyStruct's constructor calls FbA's constructor for its member, then applies the override
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyStruct").unwrap()), @r"
+        intern:
+        FbA__ctor(self.fb)
+        self.fb.x := 10
+        ");
+        // FbA gets its own constructor with vtable initialization
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("FbA").unwrap()), @r"
+        intern:
+        __FbA___vtable__ctor(self.__vtable)
+        self.__vtable := ADR(__vtable_FbA_instance)
+        ");
     }
 
     #[test]
@@ -1686,8 +1712,92 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let body = print_to_string(&initializer.global_constructor);
+        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @r"
+        MyStruct__ctor(s)
+        s.r REF= g
+        ");
+    }
 
-        assert!(body.contains("s.r REF= g"));
+    #[test]
+    fn fb_with_fb_init_calls_user_defined_constructor() {
+        let src = r#"
+        FUNCTION_BLOCK MyFb
+        VAR
+            x : DINT := 10;
+        END_VAR
+            METHOD FB_INIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#;
+
+        let initializer = parse_and_init(src);
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyFb").unwrap()), @r"
+        intern:
+        __MyFb___vtable__ctor(self.__vtable)
+        self.x := 10
+        self.__vtable := ADR(__vtable_MyFb_instance)
+        self.FB_INIT()
+        ");
+    }
+
+    #[test]
+    fn fb_without_fb_init_has_no_user_defined_call() {
+        let src = r#"
+        FUNCTION_BLOCK MyFb
+        VAR
+            x : DINT := 10;
+        END_VAR
+        END_FUNCTION_BLOCK
+        "#;
+
+        let initializer = parse_and_init(src);
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyFb").unwrap()), @r"
+        intern:
+        __MyFb___vtable__ctor(self.__vtable)
+        self.x := 10
+        self.__vtable := ADR(__vtable_MyFb_instance)
+        ");
+    }
+
+    #[test]
+    fn class_with_fb_init_calls_user_defined_constructor() {
+        let src = r#"
+        CLASS MyClass
+        VAR
+            x : DINT := 5;
+        END_VAR
+            METHOD FB_INIT
+            END_METHOD
+        END_CLASS
+        "#;
+
+        let initializer = parse_and_init(src);
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyClass").unwrap()), @r"
+        intern:
+        __MyClass___vtable__ctor(self.__vtable)
+        self.x := 5
+        self.__vtable := ADR(__vtable_MyClass_instance)
+        self.FB_INIT()
+        ");
+    }
+
+    #[test]
+    fn program_with_fb_init_calls_user_defined_constructor() {
+        let src = r#"
+        PROGRAM MyProg
+        VAR
+            x : DINT := 10;
+        END_VAR
+            METHOD FB_INIT
+            END_METHOD
+        END_PROGRAM
+        "#;
+
+        let initializer = parse_and_init(src);
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyProg").unwrap()), @r"
+        intern:
+        self.x := 10
+        self.FB_INIT()
+        ");
     }
 }

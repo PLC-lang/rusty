@@ -396,7 +396,7 @@ Note that the `FB_INIT` method doesn't need implementation details in the IEC611
 
 #### Constructor flags for external libraries
 
-ruSTy now generates constructor functions for initialization. This replaces the older `__<FunctionBlockName>__init` global pattern.
+ruSTy generates constructor functions (`__ctor`) for initialization of stateful types.
 
 Use these flags depending on how you build and link external code:
 

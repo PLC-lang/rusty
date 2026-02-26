@@ -348,7 +348,7 @@ pub enum LinkageType {
     /// This indicates an element has been included as part of the library.
     /// This is equivalant to external in almost all cases. The only difference is when code is
     /// in constructor functions where an external function can get a constructor, while an
-    /// included function will not. See compile flat ´generate-external-constructors´
+    /// included function will not. See compile flag ´generate-external-constructors´
     Include,
     /// This indicates an element that should not have any declarations within the compiled project
     /// For example a built in function is implied to exist but not declared
