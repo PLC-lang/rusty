@@ -1106,10 +1106,17 @@ fn validate_assignment<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    let mut is_output_assignment = false;
+
     if let Some(left) = left {
         // Check if we are assigning to a...
-        if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
-            context.annotations.get(left)
+        if let Some(StatementAnnotation::Variable {
+            constant,
+            qualified_name,
+            argument_type,
+            auto_deref,
+            ..
+        }) = context.annotations.get(left)
         {
             // ...constant variable
             if *constant {
@@ -1138,8 +1145,10 @@ fn validate_assignment<T: AnnotationMap>(
                     );
             }
 
-            if (matches!(argument_type, ArgumentType::ByRef(VariableType::Output))
-                || matches!(argument_type, ArgumentType::ByVal(VariableType::Output)))
+            is_output_assignment = matches!(argument_type, ArgumentType::ByRef(VariableType::Output))
+                || matches!(argument_type, ArgumentType::ByVal(VariableType::Output));
+
+            if is_output_assignment
                 && !variable_is_in_inherited_or_self_scope(
                     context.qualifier.and_then(|qualifier| context.index.find_pou(qualifier)),
                     context,
@@ -1150,6 +1159,17 @@ fn validate_assignment<T: AnnotationMap>(
             {
                 validator.push_diagnostic(
                     Diagnostic::new("VAR_OUTPUT variables cannot be assigned outside of their scope.")
+                        .with_error_code("E037")
+                        .with_location(location),
+                );
+            }
+
+            // Auto deref in assignment on the left implies that this variable was specified as "REFERENCE TO"
+            // If the right side of the assignment is using the builtin "ADR" we should return an invalid assignment error
+            if auto_deref.is_some() && node_is_builtin_adr(right, context) {
+                validator.push_diagnostic(
+                    Diagnostic::new(
+                        "ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?")
                         .with_error_code("E037")
                         .with_location(location),
                 );
@@ -1216,10 +1236,30 @@ fn validate_assignment<T: AnnotationMap>(
             } else {
                 validate_assignment_mismatch(context, validator, left_type, right_type, location);
             }
+        } else if is_output_assignment {
+            // If this is an output assignment, then we need to swap the types for type size validation
+            // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
+            validate_assignment_type_sizes(validator, right_type, left.unwrap(), context)
         } else {
             validate_assignment_type_sizes(validator, left_type, right, context)
         }
     }
+}
+
+fn node_is_builtin_adr<T: AnnotationMap>(node: &AstNode, context: &ValidationContext<T>) -> bool {
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = node.get_stmt_peeled() else {
+        return false;
+    };
+
+    let Some(call_name) = context.annotations.get_call_name(operator.as_ref()) else {
+        return false;
+    };
+
+    let Some(adr_builtin) = builtins::get_builtin("ADR") else {
+        return false;
+    };
+
+    context.index.get_builtin_function(call_name).is_some_and(|builtin| std::ptr::eq(builtin, adr_builtin))
 }
 
 fn variable_is_in_inherited_or_self_scope<T: AnnotationMap>(
