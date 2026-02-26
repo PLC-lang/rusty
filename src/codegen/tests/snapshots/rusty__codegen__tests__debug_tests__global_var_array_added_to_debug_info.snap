@@ -10,6 +10,43 @@ target triple = "[filtered]"
 @a = global [11 x i32] zeroinitializer, !dbg !0
 @b = global [110 x i32] zeroinitializer, !dbg !7
 @c = global [11 x [10 x i32]] zeroinitializer, !dbg !12
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+define void @__global_a__ctor(ptr %0) {
+entry:
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
+  ret void
+}
+
+define void @__global_b__ctor(ptr %0) {
+entry:
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
+  ret void
+}
+
+define void @__global_c___ctor(ptr %0) {
+entry:
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
+  ret void
+}
+
+define void @__global_c__ctor(ptr %0) {
+entry:
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
+  ret void
+}
+
+define void @__unit___internal____ctor() {
+entry:
+  call void @__global_a__ctor(ptr @a)
+  call void @__global_b__ctor(ptr @b)
+  call void @__global_c__ctor(ptr @c)
+  ret void
+}
 
 !llvm.module.flags = !{!17, !18}
 !llvm.dbg.cu = !{!19}

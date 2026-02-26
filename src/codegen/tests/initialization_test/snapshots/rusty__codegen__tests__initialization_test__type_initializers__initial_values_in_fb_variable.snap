@@ -7,10 +7,9 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%TON = type { i16, i16 }
 %main = type { i16, %TON, %TON }
+%TON = type { i16, i16 }
 
-@__TON__init = unnamed_addr constant %TON zeroinitializer
 @main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }
 @__main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
 @__main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }

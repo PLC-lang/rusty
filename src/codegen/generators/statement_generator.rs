@@ -332,9 +332,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let exp_gen = self.create_expr_generator(llvm_index);
         let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
-            it.get_basic_value_enum()
-                .try_into()
-                .map_err(|err| CodegenError::new(format!("{err:?}").as_str(), left_statement))
+            it.get_basic_value_enum().try_into().map_err(|_| {
+                CodegenError::new(
+                    format!("Error getting a basic value enum from {it:?}. Statement: {left_statement:?}")
+                        .as_str(),
+                    left_statement,
+                )
+            })
         })?;
 
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;

@@ -1,0 +1,1 @@
+RUN: %COMPILE build plc.json && %RUN | %CHECK %S/main.st

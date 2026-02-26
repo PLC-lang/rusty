@@ -86,6 +86,7 @@ fn representation() {
                 "<internal>",
             ),
         },
+        linkage: Internal,
     }
     "#);
 
@@ -109,6 +110,7 @@ fn representation() {
                 "<internal>",
             ),
         },
+        linkage: Internal,
     }
     "#);
 
@@ -132,6 +134,7 @@ fn representation() {
         location: SourceLocation {
             span: None,
         },
+        linkage: BuiltIn,
     }
     "#);
 
@@ -168,6 +171,7 @@ fn representation() {
                 "<internal>",
             ),
         },
+        linkage: Internal,
     }
     "#);
 }
@@ -180,6 +184,7 @@ fn declare() {
             VAR_INPUT {ref}
                 arr : ARRAY[*] OF DINT;
             END_VAR
+            arr[0] := 42;
         END_FUNCTION
     ";
 
@@ -246,6 +251,7 @@ fn pass() {
                 "<internal>",
             ),
         },
+        linkage: Internal,
     }
     "#);
 
@@ -316,8 +322,6 @@ fn pass() {
 
     %__foo_arr = type { ptr, [2 x i32] }
 
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
-
     define i32 @main() {
     entry:
       %main = alloca i32, align [filtered]
@@ -383,8 +387,6 @@ fn access() {
 
     %__foo_arr = type { ptr, [2 x i32] }
 
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
-
     define i32 @foo(ptr %0) {
     entry:
       %foo = alloca i32, align [filtered]
@@ -442,8 +444,6 @@ fn multi_dimensional() {
     target triple = "[filtered]"
 
     %__foo_arr = type { ptr, [4 x i32] }
-
-    @____foo_arr__init = unnamed_addr constant %__foo_arr zeroinitializer
 
     define i32 @foo(ptr %0) {
     entry:

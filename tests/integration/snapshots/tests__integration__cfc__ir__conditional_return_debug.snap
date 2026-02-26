@@ -4,8 +4,6 @@ expression: output_file_content_without_headers
 ---
 target triple = "[filtered]"
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
-
 define i32 @foo(i32 %0) !dbg !4 {
 entry:
   %foo = alloca i32, align [filtered]
@@ -26,11 +24,6 @@ else_block:                                       ; preds = %entry
   store i32 10, ptr %val, align [filtered], !dbg !15
   %foo_ret1 = load i32, ptr %foo, align [filtered], !dbg !16
   ret i32 %foo_ret1, !dbg !16
-}
-
-define void @__init___plc() {
-entry:
-  ret void
 }
 
 !llvm.module.flags = !{!0, !1}

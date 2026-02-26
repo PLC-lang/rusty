@@ -1,0 +1,13 @@
+{
+    "name": "InitExample",
+    "files" : [
+        "main.st",
+        "src/*.st",
+        "src/*.dt",
+        "src/*.gvl",
+        "../../util/printf.pli"
+    ],
+    "compile_type" : "Static",
+    "libraries" : [
+    ]
+}

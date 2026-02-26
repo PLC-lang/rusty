@@ -1,9 +1,7 @@
-use common::compile_and_run;
+use common::{compile_and_run, get_includes};
 
 // Import common functionality into the integration tests
 mod common;
-
-use common::add_std;
 
 #[test]
 fn wstring_to_string_conversion() {
@@ -20,9 +18,10 @@ fn wstring_to_string_conversion() {
         res := WSTRING_TO_STRING(WSTRING#"hello");
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(&maintype.res, "hello\0".as_bytes());
 }
 
@@ -41,9 +40,10 @@ fn empty_wstring_to_string_conversion() {
         res := WSTRING_TO_STRING("");
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType { res: [0; 81] };
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.res, [0; 81]);
 }
 
@@ -62,9 +62,10 @@ fn wstring_to_string_extra_conversion() {
         res := WSTRING_TO_STRING(WSTRING#"hèßlo👽️");
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(&String::from_utf8_lossy(&maintype.res), "hèßlo👽️\0");
     assert_eq!(&maintype.res, "hèßlo👽️\0".as_bytes());
 }
@@ -84,9 +85,10 @@ fn wstring_to_string_conversion_long() {
         res := WSTRING_TO_STRING("111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999");
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType { res: [0; 81] };
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         &String::from_utf8_lossy(&maintype.res),
         "11111111112222222222333333333344444444445555555555666666666677777777778888888888\0"
@@ -112,9 +114,10 @@ fn wstring_to_wchar_conversion() {
         res := WSTRING_TO_WCHAR(WSTRING#"ABC");
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.res, [65u16, 0u16]);
 }
 
@@ -133,9 +136,10 @@ fn string_to_wstring_conversion() {
         res := STRING_TO_WSTRING(STRING#'Hello');
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.res, [72u16, 101u16, 108u16, 108u16, 111u16, 0u16]);
 }
 
@@ -154,9 +158,10 @@ fn empty_string_to_wstring_conversion() {
         res := STRING_TO_WSTRING('');
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType { res: [0; 81] };
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.res, [0; 81]);
 }
 
@@ -178,9 +183,10 @@ fn string_to_wstring_extra_conversion() {
     for (i, c) in "Hèßlo😀\0".encode_utf16().enumerate() {
         exp[i] = c;
     }
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType { res: [0; 8] };
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(&String::from_utf16_lossy(&maintype.res), "Hèßlo😀\0");
     assert_eq!(&maintype.res, &exp);
 }
@@ -206,9 +212,10 @@ fn string_to_wstring_long_conversion() {
     {
         exp[i] = c;
     }
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType { res: [0; 81] };
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         &String::from_utf16_lossy(&maintype.res),
         "11111111112222222222333333333344444444445555555555666666666677777777778888888888\0"
@@ -231,9 +238,10 @@ fn string_to_char_conversion() {
         res := STRING_TO_CHAR(STRING#'BCD');
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.res, "B\0".as_bytes());
 }
 
@@ -252,9 +260,10 @@ fn wchar_to_wstring_conversion() {
         res := WCHAR_TO_WSTRING(WCHAR#"A");
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(&maintype.res, &[65u16, 0u16]);
 }
 
@@ -273,9 +282,10 @@ fn wchar_to_char_conversion() {
         res := WCHAR_TO_CHAR(WCHAR#"A");
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.res, "A\0".as_bytes());
 }
 
@@ -294,9 +304,10 @@ fn char_to_string_conversion() {
         res := CHAR_TO_STRING(CHAR#'B');
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.res, "B\0".as_bytes());
 }
 
@@ -315,8 +326,9 @@ fn char_to_wchar_conversion() {
         res := CHAR_TO_WCHAR(CHAR#'B');
     END_PROGRAM
         "#;
-    let sources = add_std!(src, "string_conversion.st", "string_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["string_conversion.st", "string_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.res, [66u16, 0u16]);
 }

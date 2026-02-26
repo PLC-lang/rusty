@@ -633,12 +633,19 @@ impl Walker for CompilationUnit {
     where
         V: AstVisitor,
     {
+        for user_type in &self.user_types {
+            visitor.visit_user_type_declaration(user_type);
+        }
+
         for block in &self.global_vars {
             visitor.visit_variable_block(block);
         }
+        for config_variable in &self.var_config {
+            visitor.visit_config_variable(config_variable);
+        }
 
-        for user_type in &self.user_types {
-            visitor.visit_user_type_declaration(user_type);
+        for interface in &self.interfaces {
+            visitor.visit_interface(interface);
         }
 
         for pou in &self.pous {
@@ -647,14 +654,6 @@ impl Walker for CompilationUnit {
 
         for i in &self.implementations {
             visitor.visit_implementation(i);
-        }
-
-        for config_variable in &self.var_config {
-            visitor.visit_config_variable(config_variable);
-        }
-
-        for interface in &self.interfaces {
-            visitor.visit_interface(interface);
         }
     }
 }

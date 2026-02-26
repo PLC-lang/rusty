@@ -60,6 +60,7 @@ impl<'i> PouIndexer<'i> {
             },
             nature: TypeNature::Any,
             location: pou.name_location.clone(),
+            linkage: pou.linkage,
         };
 
         match &pou.kind {
@@ -316,6 +317,7 @@ pub fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str,
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
+            linkage: ast::LinkageType::Internal,
         });
     }
 

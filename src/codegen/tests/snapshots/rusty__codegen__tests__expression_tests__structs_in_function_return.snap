@@ -7,10 +7,6 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%myStruct = type { i16 }
-
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
-
 define void @func(ptr %0, ptr %1) {
 entry:
   %func = alloca ptr, align [filtered]

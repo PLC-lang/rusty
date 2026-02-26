@@ -1698,11 +1698,5 @@ fn assigning_adr_to_reference_to_var_must_result_in_validation_error() {
       │
     9 │             refe := ADR(myDint);
       │             ^^^^^^^^^^^^^^^^^^^ ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?
-
-    warning[E067]: Implicit downcast from 'LWORD' to 'DINT'.
-      ┌─ <internal>:9:21
-      │
-    9 │             refe := ADR(myDint);
-      │                     ^^^^^^^^^^^ Implicit downcast from 'LWORD' to 'DINT'.
     ");
 }

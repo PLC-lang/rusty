@@ -62,7 +62,8 @@ fn string_literals_are_annotated() {
                 encoding: crate::typesystem::StringEncoding::Utf8,
                 size: crate::typesystem::TypeSize::LiteralInteger(4)
             },
-            location: SourceLocation::internal()
+            location: SourceLocation::internal(),
+            linkage: plc_ast::ast::LinkageType::Internal,
         }
     );
     assert_eq!(
@@ -75,7 +76,8 @@ fn string_literals_are_annotated() {
                 encoding: crate::typesystem::StringEncoding::Utf16,
                 size: crate::typesystem::TypeSize::LiteralInteger(7)
             },
-            location: SourceLocation::internal()
+            location: SourceLocation::internal(),
+            linkage: plc_ast::ast::LinkageType::Internal,
         }
     );
 }
