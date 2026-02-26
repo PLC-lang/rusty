@@ -17,6 +17,8 @@ container_engine=0
 assume_linux=0
 junit=0
 package=0
+deb=0
+deb_revision="1"
 target=""
 
 CONTAINER_NAME='rust-llvm'
@@ -69,8 +71,9 @@ function run_build() {
     cmd="cargo build $CARGO_OPTIONS "
     log "Running $cmd"
     eval "$cmd"
+    local exit_code=$?
     echo "-----------------------------------"
-    if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+    if [[ $exit_code -ne 0 ]]; then
         echo "Build failed"
         exit 1
     else
@@ -98,8 +101,9 @@ function run_std_build() {
             new_cmd="$cmd --target=$val"
             log "Running $new_cmd"
             eval "$new_cmd"
+            local exit_code=$?
             echo "-----------------------------------"
-            if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+            if [[ $exit_code -ne 0 ]]; then
                 echo "Build $val failed"
                 exit 1
             else
@@ -109,8 +113,9 @@ function run_std_build() {
     else
         log "Running $cmd"
         eval "$cmd"
+        local exit_code=$?
         echo "-----------------------------------"
-        if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+        if [[ $exit_code -ne 0 ]]; then
             echo "Build failed"
             exit 1
         else
@@ -303,6 +308,188 @@ function run_package_std() {
 
 }
 
+function get_project_version() {
+    grep '^version' "$project_location/Cargo.toml" | head -1 | sed 's/.*"\(.*\)".*/\1/'
+}
+
+function target_to_deb_arch() {
+    local t=$1
+    case "$t" in
+        x86_64*)  echo "amd64" ;;
+        aarch64*) echo "arm64" ;;
+        *)
+            echo "Unsupported target architecture: $t" >&2
+            exit 1
+            ;;
+    esac
+}
+
+function target_to_multiarch_tuple() {
+    local t=$1
+    case "$t" in
+        x86_64*)  echo "x86_64-linux-gnu" ;;
+        aarch64*) echo "aarch64-linux-gnu" ;;
+        *)
+            echo "Unsupported target architecture: $t" >&2
+            exit 1
+            ;;
+    esac
+}
+
+function get_native_target() {
+    local arch
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64)  echo "x86_64-linux-gnu" ;;
+        aarch64) echo "aarch64-linux-gnu" ;;
+        *)
+            echo "Unsupported native architecture: $arch" >&2
+            exit 1
+            ;;
+    esac
+}
+
+function build_lib_deb() {
+    local target_val=$1
+    local version=$2
+    local deb_rev=$3
+    local deb_output_dir=$4
+
+    local deb_arch
+    deb_arch=$(target_to_deb_arch "$target_val")
+    local multiarch_tuple
+    multiarch_tuple=$(target_to_multiarch_tuple "$target_val")
+    local pkg_name="libiec61131std"
+    local pkg_version="${version}-${deb_rev}"
+    local stage_dir="$deb_output_dir/${pkg_name}_${pkg_version}_${deb_arch}"
+
+    log "Building $pkg_name deb for $deb_arch ($target_val)"
+
+    # Clean previous staging directory
+    rm -rf "$stage_dir"
+
+    # Create directory structure
+    mkdir -p "$stage_dir/DEBIAN"
+    mkdir -p "$stage_dir/usr/lib/$multiarch_tuple"
+    mkdir -p "$stage_dir/usr/share/plc/include"
+    mkdir -p "$stage_dir/usr/share/doc/$pkg_name"
+
+    # Copy library files from output/
+    local lib_source_dir
+    if [[ -d "$project_location/output/$target_val/lib" ]]; then
+        lib_source_dir="$project_location/output/$target_val/lib"
+    elif [[ -d "$project_location/output/lib" ]]; then
+        lib_source_dir="$project_location/output/lib"
+    else
+        echo "Error: No library output found for target $target_val" >&2
+        exit 1
+    fi
+
+    cp "$lib_source_dir/libiec61131std.so" "$stage_dir/usr/lib/$multiarch_tuple/" 2>/dev/null || true
+    cp "$lib_source_dir/libiec61131std.a"  "$stage_dir/usr/lib/$multiarch_tuple/" 2>/dev/null || true
+
+    # Verify at least the .so was copied
+    if [[ ! -f "$stage_dir/usr/lib/$multiarch_tuple/libiec61131std.so" ]]; then
+        echo "Error: libiec61131std.so not found in $lib_source_dir" >&2
+        exit 1
+    fi
+
+    # Copy .st include files
+    if ! compgen -G "$project_location/output/include/*.st" > /dev/null; then
+        echo "Error: No .st include files found in '$project_location/output/include'." >&2
+        echo "Hint: Ensure the packaging step (--package) has been run before --deb." >&2
+        exit 1
+    fi
+    cp "$project_location"/output/include/*.st "$stage_dir/usr/share/plc/include/"
+
+    # Copy static debian packaging files
+    local debian_dir="$project_location/scripts/debian/libiec61131std"
+
+    cp "$debian_dir/copyright" "$stage_dir/usr/share/doc/$pkg_name/copyright"
+    cp "$debian_dir/postinst"  "$stage_dir/DEBIAN/postinst"
+    cp "$debian_dir/postrm"    "$stage_dir/DEBIAN/postrm"
+
+    # Calculate installed size in KiB
+    local installed_size
+    installed_size=$(du -sk "$stage_dir" | cut -f1)
+
+    # Generate control file from template
+    sed -e "s/__PKG_VERSION__/${pkg_version}/" \
+        -e "s/__DEB_ARCH__/${deb_arch}/" \
+        -e "s/__INSTALLED_SIZE__/${installed_size}/" \
+        "$debian_dir/control.template" > "$stage_dir/DEBIAN/control"
+
+    # Set permissions
+    find "$stage_dir" -type d -exec chmod 0755 {} \;
+    find "$stage_dir/usr" -type f -exec chmod 0644 {} \;
+    chmod 0755 "$stage_dir/DEBIAN/postinst"
+    chmod 0755 "$stage_dir/DEBIAN/postrm"
+
+    # Build the .deb
+    dpkg-deb --build --root-owner-group "$stage_dir" "$deb_output_dir/"
+    log "Built: $deb_output_dir/${pkg_name}_${pkg_version}_${deb_arch}.deb"
+
+    # Clean up staging directory
+    rm -rf "$stage_dir"
+}
+
+function run_package_deb() {
+    local version
+    version=$(get_project_version)
+    local deb_rev="$deb_revision"
+    local deb_output_dir="$project_location/target/debian"
+
+    make_dir "$deb_output_dir"
+
+    echo "Packaging Debian packages"
+    echo "-----------------------------------"
+    echo "Version: $version"
+    echo "Revision: $deb_rev"
+
+    # --- plc binary package via cargo-deb ---
+    log "Building plc binary deb via cargo-deb"
+    if command -v cargo-deb &> /dev/null; then
+        cargo deb -p plc_driver --no-build --no-strip \
+            --output "$deb_output_dir" \
+            --deb-revision "$deb_rev"
+        echo "plc binary deb built"
+    else
+        echo "Warning: cargo-deb not found, skipping plc binary deb"
+        echo "Install with: cargo install cargo-deb"
+    fi
+
+    # --- libiec61131std library package via dpkg-deb ---
+    if command -v dpkg-deb &> /dev/null; then
+        if [[ -n "$target" ]]; then
+            local built_archs=""
+            for val in ${target//,/ }; do
+                # Skip empty values (trailing commas)
+                [[ -z "$val" ]] && continue
+                # Deduplicate by deb architecture to avoid rebuilding the same .deb
+                local arch
+                arch=$(target_to_deb_arch "$val")
+                if [[ "$built_archs" == *"$arch"* ]]; then
+                    log "Skipping $val, already built deb for $arch"
+                    continue
+                fi
+                built_archs="$built_archs $arch"
+                build_lib_deb "$val" "$version" "$deb_rev" "$deb_output_dir"
+            done
+        else
+            local native_target
+            native_target=$(get_native_target)
+            build_lib_deb "$native_target" "$version" "$deb_rev" "$deb_output_dir"
+        fi
+        echo "libiec61131std deb(s) built"
+    else
+        echo "Warning: dpkg-deb not found, skipping libiec61131std deb"
+    fi
+
+    echo "-----------------------------------"
+    echo "Debian packages in: $deb_output_dir/"
+    ls -la "$deb_output_dir/"*.deb 2>/dev/null || echo "No .deb files found"
+}
+
 function run_in_container() {
     if [ "$container_engine" == "0" ]; then
         container_engine=$(get_container_engine)
@@ -346,6 +533,12 @@ function run_in_container() {
     if [[ $package -ne 0 ]]; then
         params="$params --package"
     fi
+    if [[ $deb -ne 0 ]]; then
+        params="$params --deb"
+    fi
+    if [[ "$deb_revision" != "1" ]]; then
+        params="$params --deb-revision $deb_revision"
+    fi
     if [[ ! -z $target ]]; then
         params="$params --target $target"
     fi
@@ -376,7 +569,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-engine:,container-name:,coverage,package,target:
+LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-engine:,container-name:,coverage,package,deb,deb-revision:,target:
 
 check_env
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -444,6 +637,13 @@ while true; do
         --package)
             package=1
             ;;
+        --deb)
+            deb=1
+            ;;
+        --deb-revision)
+            shift
+            deb_revision=$1
+            ;;
         --target)
             shift
             target=$1
@@ -499,6 +699,10 @@ fi
 
 if [[ $package -ne 0 ]]; then
     run_package_std
+fi
+
+if [[ $deb -ne 0 ]]; then
+    run_package_deb
 fi
 
 if [[ $test -ne 0 ]]; then
