@@ -12,8 +12,6 @@ target triple = "[filtered]"
 %STRUCT2 = type { i32, i32 }
 
 @main_instance = global %main { [3 x %STRUCT1] [%STRUCT1 { i32 0, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 2, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 1 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 1, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 { i32 0, i32 2 }] }] }
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer
-@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer
 @__main.var_init1__init = unnamed_addr constant [3 x %STRUCT1] [%STRUCT1 { i32 0, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 2, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 1 }, %STRUCT2 zeroinitializer] }, %STRUCT1 { i32 1, [2 x %STRUCT2] [%STRUCT2 { i32 1, i32 0 }, %STRUCT2 { i32 0, i32 2 }] }]
 
 define void @main(ptr %0) {

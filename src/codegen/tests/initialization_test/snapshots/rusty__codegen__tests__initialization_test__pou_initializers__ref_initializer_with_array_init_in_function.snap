@@ -1,0 +1,28 @@
+---
+source: src/codegen/tests/initialization_test/pou_initializers.rs
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+@globalString = global [81 x i8] c"Global String\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+@__main.arr__init = unnamed_addr constant [2 x i32] [i32 1, i32 2]
+
+define i32 @main() {
+entry:
+  %main = alloca i32, align [filtered]
+  %localString = alloca ptr, align [filtered]
+  %arr = alloca [2 x i32], align [filtered]
+  store ptr @globalString, ptr %localString, align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] @__main.arr__init, i64 ptrtoint (ptr getelementptr ([2 x i32], ptr null, i32 1) to i64), i1 false)
+  store i32 0, ptr %main, align [filtered]
+  %main_ret = load i32, ptr %main, align [filtered]
+  ret i32 %main_ret
+}
+
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

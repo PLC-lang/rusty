@@ -40,19 +40,11 @@ typedef struct {
     int16_t varChildInt;
 } fbChild_type;
 
-void __fbGreatGrandParent__init(fbGreatGrandParent_type* self);
-
 void fbGreatGrandParent(fbGreatGrandParent_type* self);
-
-void __fbGrandParent__init(fbGrandParent_type* self);
 
 void fbGrandParent(fbGrandParent_type* self);
 
-void __fbParent__init(fbParent_type* self);
-
 void fbParent(fbParent_type* self);
-
-void __fbChild__init(fbChild_type* self);
 
 void fbChild(fbChild_type* self);
 

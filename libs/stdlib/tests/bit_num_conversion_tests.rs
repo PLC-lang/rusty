@@ -1,9 +1,7 @@
-use common::compile_and_run;
+use common::{compile_and_run, get_includes};
 
 // Import common functionality into the integration tests
 mod common;
-
-use common::add_std;
 
 #[derive(Default)]
 struct F64Type {
@@ -83,9 +81,10 @@ fn lword_to_lreal_conversion() {
         ret.max := LWORD_TO_LREAL(LWORD#4611686018427387904);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = F64Type::default();
-    let _res: f64 = compile_and_run(sources, &mut maintype);
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
     assert_eq!(maintype.max, 2f64);
 }
@@ -105,9 +104,10 @@ fn lword_to_lint_conversion() {
         ret.max := LWORD_TO_LINT(LWORD#9223372036854775807);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.max, 9223372036854775807i64);
 }
@@ -127,9 +127,10 @@ fn lword_to_dint_conversion() {
         ret.max := LWORD_TO_DINT(LWORD#2147483647);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.max, 2147483647i32);
 }
@@ -149,9 +150,10 @@ fn lword_to_int_conversion() {
         ret.max := LWORD_TO_INT(LWORD#32767);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.max, 32767i16);
 }
@@ -171,9 +173,10 @@ fn lword_to_sint_conversion() {
         ret.max := LWORD_TO_SINT(LWORD#127);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.max, 127i8);
 }
@@ -193,9 +196,10 @@ fn lword_to_ulint_conversion() {
         ret.max := LWORD_TO_ULINT(LWORD#18446744073709551615);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 18446744073709551615u64);
 }
@@ -215,9 +219,10 @@ fn lword_to_udint_conversion() {
         ret.max := LWORD_TO_UDINT(LWORD#4294967295);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 4294967295u32);
 }
@@ -237,9 +242,10 @@ fn lword_to_uint_conversion() {
         ret.max := LWORD_TO_UINT(LWORD#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 65535u16);
 }
@@ -259,9 +265,10 @@ fn lword_to_usint_conversion() {
         ret.max := LWORD_TO_USINT(LWORD#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }
@@ -282,9 +289,10 @@ fn dword_to_real_conversion() {
         ret.max := DWORD_TO_REAL(DWORD#1073741824);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = F32Type::default();
-    let _res: f32 = compile_and_run(sources, &mut maintype);
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
     assert_eq!(maintype.max, 2f32);
 }
@@ -304,9 +312,10 @@ fn dword_to_lint_conversion() {
         ret.max := DWORD_TO_LINT(DWORD#4294967295);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.max, 4294967295i64);
 }
@@ -328,9 +337,10 @@ fn dword_to_dint_conversion() {
         ret.negative := DWORD_TO_DINT(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.max, 2147483647i32);
     assert_eq!(maintype.max_overflow, -1i32);
@@ -352,9 +362,10 @@ fn dword_to_int_conversion() {
         ret.max := DWORD_TO_INT(DWORD#32767);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.max, 32767i16);
 }
@@ -374,9 +385,10 @@ fn dword_to_sint_conversion() {
         ret.max := DWORD_TO_SINT(DWORD#127);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.max, 127i8);
 }
@@ -396,9 +408,10 @@ fn dword_to_ulint_conversion() {
         ret.max := DWORD_TO_ULINT(DWORD#4294967295);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 4294967295u64);
 }
@@ -418,9 +431,10 @@ fn dword_to_udint_conversion() {
         ret.max := DWORD_TO_UDINT(DWORD#4294967295);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 4294967295u32);
 }
@@ -440,9 +454,10 @@ fn dword_to_uint_conversion() {
         ret.max := DWORD_TO_UINT(DWORD#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 65535u16);
 }
@@ -462,9 +477,10 @@ fn dword_to_usint_conversion() {
         ret.max := DWORD_TO_USINT(DWORD#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }
@@ -484,9 +500,10 @@ fn word_to_lint_conversion() {
         ret.max := WORD_TO_LINT(WORD#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.max, 65535i64);
 }
@@ -506,9 +523,10 @@ fn word_to_dint_conversion() {
         ret.max := WORD_TO_DINT(WORD#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.max, 65535i32);
 }
@@ -528,9 +546,10 @@ fn word_to_int_conversion() {
         ret.max := WORD_TO_INT(WORD#32767);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.max, 32767i16);
 }
@@ -550,9 +569,10 @@ fn word_to_sint_conversion() {
         ret.max := WORD_TO_SINT(WORD#127);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.max, 127i8);
 }
@@ -572,9 +592,10 @@ fn word_to_ulint_conversion() {
         ret.max := WORD_TO_ULINT(WORD#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 65535u64);
 }
@@ -594,9 +615,10 @@ fn word_to_udint_conversion() {
         ret.max := WORD_TO_UDINT(WORD#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 65535u32);
 }
@@ -616,9 +638,10 @@ fn word_to_uint_conversion() {
         ret.max := WORD_TO_UINT(WORD#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 65535u16);
 }
@@ -638,9 +661,10 @@ fn word_to_usint_conversion() {
         ret.max := WORD_TO_USINT(WORD#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }
@@ -660,9 +684,10 @@ fn byte_to_lint_conversion() {
         ret.max := BYTE_TO_LINT(BYTE#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.max, 255i64);
 }
@@ -682,9 +707,10 @@ fn byte_to_dint_conversion() {
         ret.max := BYTE_TO_DINT(BYTE#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.max, 255i32);
 }
@@ -704,9 +730,10 @@ fn byte_to_int_conversion() {
         ret.max := BYTE_TO_INT(BYTE#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.max, 255i16);
 }
@@ -726,9 +753,10 @@ fn byte_to_sint_conversion() {
         ret.max := BYTE_TO_SINT(BYTE#127);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.max, 127i8);
 }
@@ -748,9 +776,10 @@ fn byte_to_ulint_conversion() {
         ret.max := BYTE_TO_ULINT(BYTE#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 255u64);
 }
@@ -770,9 +799,10 @@ fn byte_to_udint_conversion() {
         ret.max := BYTE_TO_UDINT(BYTE#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 255u32);
 }
@@ -792,9 +822,10 @@ fn byte_to_uint_conversion() {
         ret.max := BYTE_TO_UINT(BYTE#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 255u16);
 }
@@ -814,9 +845,10 @@ fn byte_to_usint_conversion() {
         ret.max := BYTE_TO_USINT(BYTE#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }
@@ -836,9 +868,10 @@ fn bool_to_lint_conversion() {
         ret.max := BOOL_TO_LINT(BOOL#1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.max, 1i64);
 }
@@ -858,9 +891,10 @@ fn bool_to_dint_conversion() {
         ret.max := BOOL_TO_DINT(BOOL#1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.max, 1i32);
 }
@@ -880,9 +914,10 @@ fn bool_to_int_conversion() {
         ret.max := BOOL_TO_INT(BOOL#1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.max, 1i16);
 }
@@ -902,9 +937,10 @@ fn bool_to_sint_conversion() {
         ret.max := BOOL_TO_SINT(BOOL#1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.max, 1i8);
 }
@@ -924,9 +960,10 @@ fn bool_to_ulint_conversion() {
         ret.max := BOOL_TO_ULINT(BOOL#1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 1u64);
 }
@@ -946,9 +983,10 @@ fn bool_to_udint_conversion() {
         ret.max := BOOL_TO_UDINT(BOOL#1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 1u32);
 }
@@ -968,9 +1006,10 @@ fn bool_to_uint_conversion() {
         ret.max := BOOL_TO_UINT(BOOL#1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 1u16);
 }
@@ -990,9 +1029,10 @@ fn bool_to_usint_conversion() {
         ret.max := BOOL_TO_USINT(BOOL#1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 1u8);
 }
@@ -1014,9 +1054,10 @@ fn lreal_to_lword_conversion() {
         ret.max := LREAL_TO_LWORD(LREAL#2);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 4611686018427387904u64);
 }
@@ -1038,9 +1079,10 @@ fn real_to_dword_conversion() {
         ret.max := REAL_TO_DWORD(REAL#2);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 1073741824u32);
 }
@@ -1060,9 +1102,10 @@ fn lint_to_lword_conversion() {
         ret.max := LINT_TO_LWORD(LINT#9223372036854775807);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 9223372036854775807u64);
 }
@@ -1082,9 +1125,10 @@ fn lint_to_dword_conversion() {
         ret.max := LINT_TO_DWORD(LINT#4294967295);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 4294967295u32);
 }
@@ -1104,9 +1148,10 @@ fn lint_to_word_conversion() {
         ret.max := LINT_TO_WORD(LINT#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 65535u16);
 }
@@ -1126,9 +1171,10 @@ fn lint_to_byte_conversion() {
         ret.max := LINT_TO_BYTE(LINT#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }
@@ -1148,9 +1194,10 @@ fn dint_to_lword_conversion() {
         ret.max := DINT_TO_LWORD(DINT#2147483647);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 2147483647u64);
 }
@@ -1170,9 +1217,10 @@ fn dint_to_dword_conversion() {
         ret.max := DINT_TO_DWORD(DINT#2147483647);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 2147483647u32);
 }
@@ -1192,9 +1240,10 @@ fn dint_to_word_conversion() {
         ret.max := DINT_TO_WORD(DINT#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 65535u16);
 }
@@ -1214,9 +1263,10 @@ fn dint_to_byte_conversion() {
         ret.max := DINT_TO_BYTE(DINT#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }
@@ -1236,9 +1286,10 @@ fn int_to_lword_conversion() {
         ret.max := INT_TO_LWORD(INT#32767);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 32767u64);
 }
@@ -1258,9 +1309,10 @@ fn int_to_dword_conversion() {
         ret.max := INT_TO_DWORD(INT#32767);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 32767u32);
 }
@@ -1280,9 +1332,10 @@ fn int_to_word_conversion() {
         ret.max := INT_TO_WORD(INT#32767);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 32767u16);
 }
@@ -1302,9 +1355,10 @@ fn int_to_byte_conversion() {
         ret.max := INT_TO_BYTE(INT#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }
@@ -1324,9 +1378,10 @@ fn sint_to_lword_conversion() {
         ret.max := SINT_TO_LWORD(SINT#127);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 127u64);
 }
@@ -1346,9 +1401,10 @@ fn sint_to_dword_conversion() {
         ret.max := SINT_TO_DWORD(SINT#127);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 127u32);
 }
@@ -1368,9 +1424,10 @@ fn sint_to_word_conversion() {
         ret.max := SINT_TO_WORD(SINT#127);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 127u16);
 }
@@ -1390,9 +1447,10 @@ fn sint_to_byte_conversion() {
         ret.max := SINT_TO_BYTE(SINT#127);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 127u8);
 }
@@ -1412,9 +1470,10 @@ fn ulint_to_lword_conversion() {
         ret.max := ULINT_TO_LWORD(ULINT#18446744073709551615);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 18446744073709551615u64);
 }
@@ -1434,9 +1493,10 @@ fn ulint_to_dword_conversion() {
         ret.max := ULINT_TO_DWORD(ULINT#4294967295);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 4294967295u32);
 }
@@ -1456,9 +1516,10 @@ fn ulint_to_word_conversion() {
         ret.max := ULINT_TO_WORD(ULINT#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 65535u16);
 }
@@ -1478,9 +1539,10 @@ fn ulint_to_byte_conversion() {
         ret.max := ULINT_TO_BYTE(ULINT#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }
@@ -1500,9 +1562,10 @@ fn udint_to_lword_conversion() {
         ret.max := UDINT_TO_LWORD(UDINT#4294967295);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 4294967295u64);
 }
@@ -1522,9 +1585,10 @@ fn udint_to_dword_conversion() {
         ret.max := UDINT_TO_DWORD(UDINT#4294967295);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 4294967295u32);
 }
@@ -1544,9 +1608,10 @@ fn udint_to_word_conversion() {
         ret.max := UDINT_TO_WORD(UDINT#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 65535u16);
 }
@@ -1566,9 +1631,10 @@ fn udint_to_byte_conversion() {
         ret.max := UDINT_TO_BYTE(UDINT#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }
@@ -1588,9 +1654,10 @@ fn uint_to_lword_conversion() {
         ret.max := UINT_TO_LWORD(UINT#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 65535u64);
 }
@@ -1610,9 +1677,10 @@ fn uint_to_dword_conversion() {
         ret.max := UINT_TO_DWORD(UINT#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 65535u32);
 }
@@ -1632,9 +1700,10 @@ fn uint_to_word_conversion() {
         ret.max := UINT_TO_WORD(UINT#65535);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 65535u16);
 }
@@ -1654,9 +1723,10 @@ fn uint_to_byte_conversion() {
         ret.max := UINT_TO_BYTE(UINT#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }
@@ -1676,9 +1746,10 @@ fn usint_to_lword_conversion() {
         ret.max := USINT_TO_LWORD(USINT#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.max, 255u64);
 }
@@ -1698,9 +1769,10 @@ fn usint_to_dword_conversion() {
         ret.max := USINT_TO_DWORD(USINT#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.max, 255u32);
 }
@@ -1720,9 +1792,10 @@ fn usint_to_word_conversion() {
         ret.max := USINT_TO_WORD(USINT#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.max, 255u16);
 }
@@ -1742,9 +1815,10 @@ fn usint_to_byte_conversion() {
         ret.max := USINT_TO_BYTE(USINT#255);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_num_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_num_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.max, 255u8);
 }

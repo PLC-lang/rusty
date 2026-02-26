@@ -1,5 +1,5 @@
-use crate::test_utils::tests::codegen;
 use plc_util::filtered_assert_snapshot;
+use test_utils::codegen;
 /// # Architecture Design Record: Enums
 /// An Enum (or Enumeration) is a special datatype in ST. An Enum datatype represents a numeric datatype (default is i32)
 /// with a list of  well defined values with dedicated qualified names (e.g. `@qualifier.red`, `@qualifier.yellow`, `@qualifier.green`).
@@ -13,7 +13,7 @@ use plc_util::filtered_assert_snapshot;
 fn enums_generate_a_global_constants_for_each_element() {
     let src = r#"
         TYPE Color : (red, yellow, green);
-        END_TYPE;
+        END_TYPE
 
         VAR_GLOBAL
             myColor : Color;
@@ -28,6 +28,20 @@ fn enums_generate_a_global_constants_for_each_element() {
     @Color.red = unnamed_addr constant i32 0
     @Color.yellow = unnamed_addr constant i32 1
     @Color.green = unnamed_addr constant i32 2
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @Color__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @Color__ctor(ptr @myColor)
+      ret void
+    }
     "#);
 }
 
@@ -40,10 +54,10 @@ fn enums_generate_a_global_constants_for_each_element() {
 fn enums_constants_are_automatically_numbered_or_user_defined() {
     let src = r#"
         TYPE Color : (red := 1, yellow := 2, green := 4, blue := 8);
-        END_TYPE;
+        END_TYPE
 
         TYPE State : BYTE (open := 1, closed := 4, idle, running);
-        END_TYPE;
+        END_TYPE
 
         VAR_GLOBAL
             myColor : Color;
@@ -66,6 +80,28 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
     @State.closed = unnamed_addr constant i8 4
     @State.idle = unnamed_addr constant i8 5
     @State.running = unnamed_addr constant i8 6
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @Color__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @State__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @Color__ctor(ptr @myColor)
+      call void @State__ctor(ptr @myState)
+      ret void
+    }
     "#);
 }
 
@@ -94,6 +130,28 @@ fn inline_declaration_of_enum_types() {
     @__global_backColor.red = unnamed_addr constant i32 0
     @__global_backColor.green = unnamed_addr constant i32 1
     @__global_backColor.yellow = unnamed_addr constant i32 2
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @__global_frontColor__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__global_backColor__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__global_frontColor__ctor(ptr @frontColor)
+      call void @__global_backColor__ctor(ptr @backColor)
+      ret void
+    }
     "#);
 }
 
@@ -107,10 +165,10 @@ fn inline_declaration_of_enum_types() {
 fn using_enums() {
     let src = r#"
         TYPE ProcessState : (open := 1, closed := 4, idle, running);
-        END_TYPE;
+        END_TYPE
 
         TYPE Door : (open := 8, closed := 16);
-        END_TYPE;
+        END_TYPE
 
         PROGRAM prg
             VAR x, y, z : DINT; END_VAR
@@ -136,6 +194,7 @@ fn using_enums() {
     @ProcessState.running = unnamed_addr constant i32 6
     @Door.open = unnamed_addr constant i32 8
     @Door.closed = unnamed_addr constant i32 16
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @prg(ptr %0) {
     entry:
@@ -145,6 +204,33 @@ fn using_enums() {
       store i32 5, ptr %x, align [filtered]
       store i32 4, ptr %y, align [filtered]
       store i32 16, ptr %z, align [filtered]
+      ret void
+    }
+
+    define void @prg__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @ProcessState__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @Door__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @prg__ctor(ptr @prg_instance)
       ret void
     }
     "#);
@@ -177,6 +263,20 @@ fn enum_with_zero_element_no_default_initializes_to_zero() {
     @STATE_WITH_ZERO.idle = unnamed_addr constant i8 0
     @STATE_WITH_ZERO.running = unnamed_addr constant i8 1
     @STATE_WITH_ZERO.stopped = unnamed_addr constant i8 2
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @STATE_WITH_ZERO__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @STATE_WITH_ZERO__ctor(ptr @myState)
+      ret void
+    }
     "#);
 }
 
@@ -207,6 +307,22 @@ fn enum_with_zero_element_and_default_initializes_to_default() {
     @STATE_WITH_DEFAULT.idle = unnamed_addr constant i8 0
     @STATE_WITH_DEFAULT.running = unnamed_addr constant i8 1
     @STATE_WITH_DEFAULT.stopped = unnamed_addr constant i8 2
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @STATE_WITH_DEFAULT__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i8 1, ptr %deref, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @STATE_WITH_DEFAULT__ctor(ptr @myState)
+      ret void
+    }
     "#);
 }
 
@@ -237,6 +353,20 @@ fn enum_without_zero_no_default_initializes_to_first_element() {
     @PRIORITY.low = unnamed_addr constant i16 10
     @PRIORITY.medium = unnamed_addr constant i16 20
     @PRIORITY.high = unnamed_addr constant i16 30
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @PRIORITY__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @PRIORITY__ctor(ptr @myPriority)
+      ret void
+    }
     "#);
 }
 
@@ -267,6 +397,22 @@ fn enum_without_zero_with_default_initializes_to_default() {
     @PRIORITY_WITH_DEFAULT.low = unnamed_addr constant i16 10
     @PRIORITY_WITH_DEFAULT.medium = unnamed_addr constant i16 20
     @PRIORITY_WITH_DEFAULT.high = unnamed_addr constant i16 30
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @PRIORITY_WITH_DEFAULT__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i16 20, ptr %deref, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @PRIORITY_WITH_DEFAULT__ctor(ptr @myPriority)
+      ret void
+    }
     "#);
 }
 
@@ -300,6 +446,22 @@ fn enum_61131_standard_style_with_type_before_list() {
     @COLOR.green = unnamed_addr constant i32 -16711936
     @COLOR.blue = unnamed_addr constant i32 -16776961
     @COLOR.black = unnamed_addr constant i32 -2013265920
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @COLOR__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 -2013265920, ptr %deref, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @COLOR__ctor(ptr @myColor)
+      ret void
+    }
     "#);
 }
 
@@ -333,5 +495,21 @@ fn enum_codesys_style_with_type_after_list() {
     @COLOR_CODESYS.green = unnamed_addr constant i32 -16711936
     @COLOR_CODESYS.blue = unnamed_addr constant i32 -16776961
     @COLOR_CODESYS.black = unnamed_addr constant i32 -2013265920
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @COLOR_CODESYS__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      store i32 -2013265920, ptr %deref, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @COLOR_CODESYS__ctor(ptr @myColor)
+      ret void
+    }
     "#);
 }

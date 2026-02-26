@@ -143,7 +143,6 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
 
                     // there was an error during evaluation
                     (Err(kind), _) => {
-                        //error during resolving
                         unresolvable.push(
                             UnresolvableConstant::new(candidate, kind.get_reason()).with_kind(kind.clone()),
                         );

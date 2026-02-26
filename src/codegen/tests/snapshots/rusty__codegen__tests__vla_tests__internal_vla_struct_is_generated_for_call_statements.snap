@@ -9,8 +9,6 @@ target triple = "[filtered]"
 
 %__foo_vla = type { ptr, [2 x i32] }
 
-@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
-
 define void @foo(ptr %0) {
 entry:
   %vla = alloca %__foo_vla, align [filtered]

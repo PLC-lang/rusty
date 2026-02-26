@@ -11,7 +11,6 @@ target triple = "[filtered]"
 %fb = type { i32 }
 
 @bar_instance = global %bar zeroinitializer
-@__fb__init = unnamed_addr constant %fb zeroinitializer
 
 define void @bar(ptr %0) {
 entry:

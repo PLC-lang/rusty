@@ -213,9 +213,9 @@ function create_shared_library() {
     local cc=$1
     local lib_dir=$2
     local target=$3
-    
+
     log "Creating a shared library from the compiled static library"
-    
+
     # Check if we're on macOS and adjust linker flags accordingly
     case "$(uname -s)" in
         Darwin*)
@@ -227,7 +227,7 @@ function create_shared_library() {
             "$cc" "${cmd_args[@]}"
             ;;
         *)
-            local cmd_args=("--shared" "-L$lib_dir" "-Wl,--whole-archive" "-liec61131std" "-o" "$lib_dir/libiec61131std.so" "-Wl,--no-whole-archive" "-lm" "-fuse-ld=lld")
+            local cmd_args=("--shared" "-L$lib_dir" "-Wl,--whole-archive" "$lib_dir/libiec61131std.a" "-o" "$lib_dir/libiec61131std.so" "-Wl,--no-whole-archive" "-lm" "-fuse-ld=lld")
             if [[ -n "$target" ]]; then
                 cmd_args+=("--target=$target")
             fi
@@ -237,19 +237,21 @@ function create_shared_library() {
     esac
 }
 
+
+
 function run_package_std() {
     local cc
     cc=$(get_compiler)
     local OUTPUT_DIR=$project_location/output
     local target_dir="$project_location/target"
     local include_dir=$OUTPUT_DIR/include
-    
+
     make_dir "$OUTPUT_DIR"
     log "Packaging Standard functions"
     log "Removing previous output folder"
     rm -rf "$OUTPUT_DIR"
     make_dir "$include_dir"
-    
+
     # Copy the iec61131-st folder
     cp -r "$project_location"/libs/stdlib/iec61131-st/*.st "$include_dir"
 
@@ -263,7 +265,7 @@ function run_package_std() {
             if [[ $val == *"-linux-gnu" && $val != *"unknown-linux-gnu" ]]; then
                 rustc_target="${val/-linux-gnu/-unknown-linux-gnu}"
             fi
-            
+
             # Determine release or debug directory
             local rel_dir="$target_dir/$rustc_target"
             if [[ $release -ne 0 ]]; then
@@ -271,19 +273,19 @@ function run_package_std() {
             else
                 rel_dir="$rel_dir/debug"
             fi
-            
+
             if [[ ! -d "$rel_dir" ]]; then
                 echo "Compilation directory $rel_dir not found"
                 exit 1
             fi
-            
+
             cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null || log "$rel_dir does not contain *.a files"
             create_shared_library "$cc" "$lib_dir" "$val"
         done
     else
         local lib_dir=$OUTPUT_DIR/lib
         make_dir "$lib_dir"
-        
+
         # Determine release or debug directory
         local rel_dir="$target_dir"
         if [[ $release -ne 0 ]]; then
@@ -291,7 +293,7 @@ function run_package_std() {
         else
             rel_dir="$rel_dir/debug"
         fi
-        
+
         cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null || log "$rel_dir does not contain *.a files"
         create_shared_library "$cc" "$lib_dir" ""
     fi

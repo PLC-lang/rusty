@@ -7,11 +7,10 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%fb = type { i32 }
 %foo = type { i32, i32, %fb }
+%fb = type { i32 }
 %prg = type { i32 }
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer
 @foo_instance = global %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
 

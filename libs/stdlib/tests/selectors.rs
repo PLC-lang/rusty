@@ -1,11 +1,12 @@
 // Import common functionality into the integration tests
 mod common;
 
-use common::add_std;
 use plc::codegen::CodegenContext;
+use plc_source::Compilable;
 
+use crate::common::compile_and_load as compile;
 use crate::common::compile_and_run_no_params;
-use crate::common::compile_with_native as compile;
+use crate::common::get_includes;
 
 #[test]
 fn test_mux() {
@@ -19,7 +20,7 @@ fn test_mux() {
     main := MUX(2,a,b,c);
     END_FUNCTION";
 
-    let res: i32 = compile_and_run_no_params(src);
+    let res: i32 = compile_and_run_no_params(src.containers(), vec![]);
     assert_eq!(res, 3);
 }
 
@@ -34,7 +35,7 @@ fn test_sel() {
     main := SEL(FALSE,a,b);
     END_FUNCTION";
 
-    let res: i32 = compile_and_run_no_params(src);
+    let res: i32 = compile_and_run_no_params(src.containers(), vec![]);
     assert_eq!(res, 1);
 }
 
@@ -48,7 +49,7 @@ fn test_move() {
     main := MOVE(a);
     END_FUNCTION";
 
-    let res: i32 = compile_and_run_no_params(src);
+    let res: i32 = compile_and_run_no_params(src.containers(), vec![]);
     assert_eq!(res, 1);
 }
 
@@ -58,8 +59,8 @@ fn test_max_int() {
     main := MAX(INT#5,INT#2,INT#1,INT#3,INT#4,INT#7,INT#-1);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: i16 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: i16 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(res, 7);
 }
 
@@ -69,8 +70,8 @@ fn test_max_dint() {
     main := MAX(DINT#5,DINT#2,DINT#1,DINT#3,DINT#4,DINT#7,DINT#-1);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: i32 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: i32 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(res, 7);
 }
 
@@ -80,8 +81,8 @@ fn test_max_lint() {
     main := MAX(LINT#5,LINT#2,LINT#1,LINT#3,LINT#4,LINT#7,LINT#-1);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(res, 7);
 }
 
@@ -91,8 +92,8 @@ fn test_max_char() {
     main := MAX(CHAR#'a',CHAR#'d',CHAR#'e',CHAR#'g',CHAR#'f',CHAR#'c',CHAR#'b');
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: u8 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: u8 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(res, b'g');
 }
 
@@ -102,8 +103,8 @@ fn test_max_date() {
     main := MAX(T#35ms, T#40ms,T#1ms,T#30ms);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(res, 40_000_000);
 }
 
@@ -113,8 +114,8 @@ fn test_max_real() {
     main := MAX(0.5, 0.1,1.5,1.2);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: f32 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: f32 = compile_and_run_no_params(vec![src.into()], includes);
     assert!((res - 1.5_f32).abs() < f32::EPSILON);
 }
 
@@ -124,8 +125,8 @@ fn test_max_lreal() {
     main := MAX(LREAL#0.5, 0.1, 1.5, 1.2);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: f64 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: f64 = compile_and_run_no_params(vec![src.into()], includes);
     assert!((res - 1.5_f64).abs() < f64::EPSILON);
 }
 
@@ -135,8 +136,8 @@ fn test_min_int() {
     main := MIN(INT#5,INT#2,INT#-1,INT#3,INT#4,INT#7,INT#1);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: i16 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: i16 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(res, -1);
 }
 
@@ -146,8 +147,8 @@ fn test_min_dint() {
     main := MIN(DINT#5,DINT#2,DINT#-1,DINT#3,DINT#4,DINT#7,DINT#1);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: i32 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: i32 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(res, -1);
 }
 
@@ -157,8 +158,8 @@ fn test_min_lint() {
     main := MIN(LINT#5,LINT#2,LINT#-1,LINT#3,LINT#4,LINT#7,LINT#1);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(res, -1);
 }
 
@@ -168,8 +169,8 @@ fn test_min_char() {
     main := MIN(CHAR#'b',CHAR#'d',CHAR#'e',CHAR#'g',CHAR#'f',CHAR#'a',CHAR#'c');
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: u8 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: u8 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(res, b'a');
 }
 
@@ -179,8 +180,8 @@ fn test_min_date() {
     main := MIN(T#40ms,T#1d,T#30ms,T#5m);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(res, 30_000_000);
 }
 
@@ -190,8 +191,8 @@ fn test_min_real() {
     main := MIN(0.5,0.1,1.5,1.2);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: f32 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: f32 = compile_and_run_no_params(vec![src.into()], includes);
     assert!((res - 0.1_f32).abs() <= f32::EPSILON);
 }
 
@@ -201,8 +202,8 @@ fn test_min_lreal() {
     main := MIN(LREAL#0.5, LREAL#0.1,LREAL#1.5,LREAL#1.2);
     END_FUNCTION";
 
-    let src = add_std!(src, "selectors.st");
-    let res: f64 = compile_and_run_no_params(src);
+    let includes = get_includes(&["selectors.st"]);
+    let res: f64 = compile_and_run_no_params(vec![src.into()], includes);
     assert!((res - 0.1_f64).abs() < f64::EPSILON);
 }
 
@@ -217,9 +218,9 @@ fn test_limit_int() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "selectors.st");
+    let includes = get_includes(&["selectors.st"]);
     let context = CodegenContext::create();
-    let module = compile(&context, src);
+    let module = compile(&context, vec![src.into()], includes);
 
     //In range No Actions
     let res: i16 = module.run("main", &mut 30i16);
@@ -245,9 +246,9 @@ fn test_limit_dint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "selectors.st");
+    let includes = get_includes(&["selectors.st"]);
     let context = CodegenContext::create();
-    let module = compile(&context, src);
+    let module = compile(&context, vec![src.into()], includes);
 
     //In range No Actions
     let res: i32 = module.run("main", &mut 30i32);
@@ -273,9 +274,9 @@ fn test_limit_lint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "selectors.st");
+    let includes = get_includes(&["selectors.st"]);
     let context = CodegenContext::create();
-    let module = compile(&context, src);
+    let module = compile(&context, vec![src.into()], includes);
 
     //In range No Actions
     let res: i64 = module.run("main", &mut 30i64);
@@ -301,9 +302,9 @@ fn test_limit_char() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "selectors.st");
+    let includes = get_includes(&["selectors.st"]);
     let context = CodegenContext::create();
-    let module = compile(&context, src);
+    let module = compile(&context, vec![src.into()], includes);
 
     //In range No Actions
     let res: u8 = module.run("main", &mut b'c');
@@ -329,9 +330,9 @@ fn test_limit_real() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "selectors.st");
+    let includes = get_includes(&["selectors.st"]);
     let context = CodegenContext::create();
-    let module = compile(&context, src);
+    let module = compile(&context, vec![src.into()], includes);
 
     //In range No Actions
     let res: f32 = module.run("main", &mut 10.5f32);
@@ -357,9 +358,9 @@ fn test_limit_lreal() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "selectors.st");
+    let includes = get_includes(&["selectors.st"]);
     let context = CodegenContext::create();
-    let module = compile(&context, src);
+    let module = compile(&context, vec![src.into()], includes);
 
     //In range No Actions
     let res: f64 = module.run("main", &mut 10.5f64);

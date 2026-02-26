@@ -401,7 +401,6 @@ fn self_referential_struct_via_reference_codegen() {
     %Node = type { i32, ptr }
 
     @main_instance = global %main zeroinitializer
-    @__Node__init = unnamed_addr constant %Node zeroinitializer
 
     define void @main(ptr %0) {
     entry:

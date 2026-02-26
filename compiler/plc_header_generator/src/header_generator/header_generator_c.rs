@@ -101,7 +101,7 @@ impl GeneratedHeaderForC {
     /// Populates the self scoped [TemplateData] instance with the user types that should be added to the generated header file
     fn prepare_user_types(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
         for user_type in &compilation_unit.user_types {
-            if user_type.linkage == LinkageType::External {
+            if user_type.linkage.is_external_or_included() {
                 continue;
             }
 
@@ -129,7 +129,10 @@ impl GeneratedHeaderForC {
     /// Populates the self scoped [TemplateData] instance with the functions that should be added to the generated header file
     fn prepare_functions(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
         for pou in &compilation_unit.pous {
-            if pou.linkage == LinkageType::External {
+            if matches!(pou.kind, PouType::Init | PouType::ProjectInit) {
+                continue;
+            }
+            if pou.linkage.is_external_or_included() {
                 continue;
             }
 
@@ -200,7 +203,10 @@ impl GeneratedHeaderForC {
         }
 
         for implementation in &compilation_unit.implementations {
-            if implementation.linkage == LinkageType::External {
+            if matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit) {
+                continue;
+            }
+            if implementation.linkage.is_external_or_included() {
                 continue;
             }
 
@@ -481,25 +487,12 @@ impl GeneratedHeaderForC {
             });
         }
 
-        // Get void type
-        let void_type = self.get_type_name_for_type(
-            &ExtendedTypeName { type_name: String::new(), is_variadic: false, is_sized_variadic: false },
-            builtin_types,
-        );
-
         // Push the parameters for the function
         let mut parameters: Vec<Variable> = Vec::new();
         parameters.push(Variable {
             data_type: format!("{data_type}{}", self.get_reference_symbol()),
             name: String::from("self"),
             variable_type: VariableType::Default,
-        });
-
-        // TODO: May need to be removed after the initialization changes are made to the compiler
-        self.template_data.functions.push(Function {
-            return_type: void_type.get_type_name(),
-            name: format!("__{function_name}__init"),
-            parameters: parameters.clone(),
         });
 
         self.template_data.functions.push(Function {

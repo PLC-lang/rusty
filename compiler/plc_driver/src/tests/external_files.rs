@@ -63,6 +63,8 @@ fn external_file_global_var() {
 }
 
 #[test]
+//TODO: is this test redundant? I think validation should catch this already and it should not land
+//in codegen
 fn calling_external_file_function_without_including_file_results_in_error() {
     //Given a program calling a function from an external file
     let prog = SourceCode::new(

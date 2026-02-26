@@ -11,7 +11,6 @@ target triple = "[filtered]"
 %MyStruct = type { [5 x i16] }
 
 @Main_instance = global %Main zeroinitializer
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 
 define void @Main(ptr %0) {
 entry:
