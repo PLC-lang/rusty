@@ -742,17 +742,10 @@ impl Initializer {
         let should_create_call = if self.constructors.contains_key(type_name) {
             true
         } else if self
-            .index
-            .as_ref()
-            .and_then(|idx| idx.find_pou(type_name))
-            .is_some_and(|pou| pou.is_stateful())
-        {
-            true
-        } else if self
-            .index
-            .as_ref()
-            .and_then(|idx| idx.find_effective_type_by_name(type_name))
-            .is_some_and(|dt| dt.is_struct() && dt.linkage.is_external_or_included())
+                .index
+                .as_ref()
+                .and_then(|idx| idx.find_effective_type_by_name(type_name))
+                .is_some_and(|dt| dt.is_struct() && dt.linkage.is_external_or_included())
         {
             // Struct type from an included/external unit — register an external constructor declaration
             self.constructors.entry(type_name.to_string()).or_insert(Body::External(vec![]));
