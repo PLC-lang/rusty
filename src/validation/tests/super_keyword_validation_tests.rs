@@ -24,7 +24,7 @@ fn chaining_super_is_invalid() {
     ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E119]: `SUPER` is not allowed in member-access position.
        ┌─ <internal>:16:20
        │

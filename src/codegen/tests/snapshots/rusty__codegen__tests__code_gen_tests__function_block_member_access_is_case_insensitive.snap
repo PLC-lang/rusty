@@ -7,10 +7,9 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%FB_Test = type { float, float, i8 }
 %mainProg = type { %FB_Test, float, i8 }
+%FB_Test = type { float, float, i8 }
 
-@__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
 @mainProg_instance = global %mainProg zeroinitializer
 
 define void @FB_Test(ptr %0) {

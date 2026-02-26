@@ -712,7 +712,7 @@ mod tests {
             FUNCTION_BLOCK A
                 METHOD alpha
                 END_METHOD
-                
+
                 alpha();
             END_FUNCTION_BLOCK
 
@@ -720,7 +720,7 @@ mod tests {
                 METHOD bravo
                     alpha();
                 END_METHOD
-                
+
                 alpha();
                 bravo();
             END_FUNCTION_BLOCK
@@ -846,6 +846,12 @@ mod tests {
         insta::assert_debug_snapshot!(lower_statements(source, &["main", "operateOnA"]), @r#"
         [
             "// Statements in main",
+            "__main_refInstanceA__ctor(refInstanceA)",
+            "__main_refInstanceB__ctor(refInstanceB)",
+            "__main_refInstanceC__ctor(refInstanceC)",
+            "__main_refInstanceArrayA__ctor(refInstanceArrayA)",
+            "__main_refInstanceArrayB__ctor(refInstanceArrayB)",
+            "__main_refInstanceArrayC__ctor(refInstanceArrayC)",
             "__vtable_A#(refInstanceA^.__vtable^).alpha^(A#(refInstanceA^))",
             "__vtable_B#(refInstanceB^.__A.__vtable^).bravo^(B#(refInstanceB^))",
             "__vtable_C#(refInstanceC^.__B.__A.__vtable^).charlie^(C#(refInstanceC^))",
@@ -891,6 +897,7 @@ mod tests {
         insta::assert_debug_snapshot!(lower_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
+            "__main_refInstanceA__ctor(refInstanceA)",
             "__vtable_A#(refInstanceA^.__vtable^).__body^(refInstanceA^)",
             "__vtable_A#(refInstanceA^.__vtable^).__body^(refInstanceA^, 1, 2, 3)",
             "__vtable_A#(refInstanceA^.__vtable^).__body^(refInstanceA^, localIn, localOut, localInout)",
@@ -931,6 +938,7 @@ mod tests {
         insta::assert_debug_snapshot!(lower_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
+            "__main_refInstanceA__ctor(refInstanceA)",
             "__vtable_A#(refInstanceA^.__vtable^).__body^(refInstanceA^)",
             "__vtable_B#(refInstanceA^.refB^.__vtable^).__body^(refInstanceA^.refB^)",
             "__vtable_C#(refInstanceA^.refB^.refC^.__vtable^).__body^(refInstanceA^.refB^.refC^)",
@@ -970,6 +978,7 @@ mod tests {
         insta::assert_debug_snapshot!(lower_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
+            "__main_refInstanceA__ctor(refInstanceA)",
             "__vtable_A#(refInstanceA^.__vtable^).__body^(refInstanceA^)",
             "__vtable_B#(refInstanceA^.refB^.__vtable^).__body^(refInstanceA^.refB^)",
             "__vtable_C#(refInstanceA^.refB^.refC^.__vtable^).__body^(refInstanceA^.refB^.refC^)",
@@ -1009,6 +1018,7 @@ mod tests {
         insta::assert_debug_snapshot!(lower_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
+            "__main_refInstanceA__ctor(refInstanceA)",
             "__vtable_A#(refInstanceA.__vtable^).__body^(refInstanceA)",
             "__vtable_A#(refInstanceA.refB.__vtable^).__body^(refInstanceA.refB)",
             "__vtable_B#(refInstanceA.refB.refC.__vtable^).__body^(refInstanceA.refB.refC)",

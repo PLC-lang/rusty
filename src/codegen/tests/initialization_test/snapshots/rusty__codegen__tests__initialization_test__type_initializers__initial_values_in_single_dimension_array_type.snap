@@ -8,4 +8,3 @@ target datalayout = "[filtered]"
 target triple = "[filtered]"
 
 @x = global [3 x i16] [i16 1, i16 2, i16 3]
-@__MyArray__init = unnamed_addr constant [3 x i16] [i16 1, i16 2, i16 3]

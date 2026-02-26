@@ -12,7 +12,6 @@ target triple = "[filtered]"
 
 @MY_CONST = unnamed_addr constant i32 10
 @main_instance = global %main zeroinitializer
-@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
 define void @main(ptr %0) {
 entry:

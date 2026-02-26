@@ -843,6 +843,26 @@ mod units_tests {
             linkage: Internal,
             pou_type: Function,
             statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__main_arr__ctor",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "arr",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
@@ -1334,27 +1354,7 @@ mod units_tests {
                     operator: ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "__init_child",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "fb",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__user_init_child",
+                                name: "child__ctor",
                             },
                         ),
                         base: None,
@@ -1848,7 +1848,7 @@ mod units_tests {
                     operator: ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "__init_foo",
+                                name: "foo__ctor",
                             },
                         ),
                         base: None,
@@ -1868,47 +1868,7 @@ mod units_tests {
                     operator: ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "__init_foo2",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo2_inst",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__user_init_foo",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo_inst",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__user_init_foo2",
+                                name: "foo2__ctor",
                             },
                         ),
                         base: None,

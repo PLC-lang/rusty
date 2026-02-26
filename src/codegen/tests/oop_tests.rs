@@ -26,17 +26,13 @@ fn members_from_base_class_are_available_in_subclasses() {
     target triple = "[filtered]"
 
     %__vtable_foo = type { ptr }
-    %foo = type { ptr, i16, [81 x i8], [11 x [81 x i8]] }
     %__vtable_bar = type { ptr }
+    %foo = type { ptr, i16, [81 x i8], [11 x [81 x i8]] }
     %bar = type { %foo }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -57,87 +53,97 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void
     }
 
-    define void @__init___vtable_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @foo, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_bar(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @bar, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init_foo(ptr %0) {
+    define void @foo__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_foo_instance, ptr %__vtable, align [filtered]
+      call void @__foo___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %c = getelementptr inbounds nuw %foo, ptr %deref1, i32 0, i32 3
+      call void @__foo_c__ctor(ptr %c)
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__vtable3 = getelementptr inbounds nuw %foo, ptr %deref2, i32 0, i32 0
+      store ptr @__vtable_foo_instance, ptr %__vtable3, align [filtered]
       ret void
     }
 
-    define void @__init_bar(ptr %0) {
+    define void @bar__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
-      call void @__init_foo(ptr %__foo)
+      call void @foo__ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
+      call void @foo__ctor(ptr %__foo2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__foo4 = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_bar(ptr %0) {
+    define void @__foo_c__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init_bar(ptr %0) {
+    define void @__vtable_foo__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
-      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
-      call void @__user_init_foo(ptr %__foo)
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
+      call void @____vtable_foo___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 0
+      store ptr @foo, ptr %__body2, align [filtered]
       ret void
     }
 
-    define void @__user_init_foo(ptr %0) {
+    define void @__vtable_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_bar, ptr %deref, i32 0, i32 0
+      call void @____vtable_bar___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_bar, ptr %deref1, i32 0, i32 0
+      store ptr @bar, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_foo(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_bar___body__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_foo(ptr @__vtable_foo_instance)
-      call void @__init___vtable_bar(ptr @__vtable_bar_instance)
-      call void @__user_init___vtable_foo(ptr @__vtable_foo_instance)
-      call void @__user_init___vtable_bar(ptr @__vtable_bar_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
+      call void @__vtable_bar__ctor(ptr @__vtable_bar_instance)
       ret void
     }
     "#);
@@ -173,22 +179,16 @@ fn write_to_parent_variable_qualified_access() {
     target triple = "[filtered]"
 
     %__vtable_fb = type { ptr }
-    %fb = type { ptr, i16, i16 }
     %__vtable_fb2 = type { ptr }
-    %fb2 = type { %fb }
     %__vtable_foo = type { ptr }
+    %fb = type { ptr, i16, i16 }
+    %fb2 = type { %fb }
     %foo = type { ptr, %fb2 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
-    @__fb__init = unnamed_addr constant %fb zeroinitializer
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
-    @____vtable_fb2__init = unnamed_addr constant %__vtable_fb2 zeroinitializer
-    @__fb2__init = unnamed_addr constant %fb2 zeroinitializer
     @__vtable_fb2_instance = global %__vtable_fb2 zeroinitializer
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @fb(ptr %0) {
     entry:
@@ -220,129 +220,131 @@ fn write_to_parent_variable_qualified_access() {
       ret void
     }
 
-    define void @__init___vtable_fb(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @fb, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_fb2(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @fb2, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @foo, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb2(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__fb = getelementptr inbounds nuw %fb2, ptr %deref, i32 0, i32 0
-      call void @__init_fb(ptr %__fb)
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %__fb2 = getelementptr inbounds nuw %fb2, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %fb, ptr %__fb2, i32 0, i32 0
-      store ptr @__vtable_fb2_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb(ptr %0) {
+    define void @fb__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_fb_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__init_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %myFb = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 1
-      call void @__init_fb2(ptr %myFb)
+      call void @__fb___vtable__ctor(ptr %__vtable)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %__vtable = getelementptr inbounds nuw %foo, ptr %deref1, i32 0, i32 0
-      store ptr @__vtable_foo_instance, ptr %__vtable, align [filtered]
+      %__vtable2 = getelementptr inbounds nuw %fb, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_fb_instance, ptr %__vtable2, align [filtered]
       ret void
     }
 
-    define void @__user_init_fb(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_fb2(ptr %0) {
+    define void @fb2__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__fb = getelementptr inbounds nuw %fb2, ptr %deref, i32 0, i32 0
-      call void @__user_init_fb(ptr %__fb)
+      call void @fb__ctor(ptr %__fb)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__fb2 = getelementptr inbounds nuw %fb2, ptr %deref1, i32 0, i32 0
+      call void @fb__ctor(ptr %__fb2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__fb4 = getelementptr inbounds nuw %fb2, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %__fb4, i32 0, i32 0
+      store ptr @__vtable_fb2_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_fb(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init___vtable_fb2(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init___vtable_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_foo(ptr %0) {
+    define void @foo__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
-      %myFb = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 1
-      call void @__user_init_fb2(ptr %myFb)
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
+      call void @__foo___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %myFb = getelementptr inbounds nuw %foo, ptr %deref1, i32 0, i32 1
+      call void @fb2__ctor(ptr %myFb)
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__vtable3 = getelementptr inbounds nuw %foo, ptr %deref2, i32 0, i32 0
+      store ptr @__vtable_foo_instance, ptr %__vtable3, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @__vtable_fb__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb(ptr @__vtable_fb_instance)
-      call void @__init___vtable_fb2(ptr @__vtable_fb2_instance)
-      call void @__init___vtable_foo(ptr @__vtable_foo_instance)
-      call void @__user_init___vtable_fb(ptr @__vtable_fb_instance)
-      call void @__user_init___vtable_fb2(ptr @__vtable_fb2_instance)
-      call void @__user_init___vtable_foo(ptr @__vtable_foo_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
+      call void @____vtable_fb___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 0
+      store ptr @fb, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_fb2__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_fb2, ptr %deref, i32 0, i32 0
+      call void @____vtable_fb2___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_fb2, ptr %deref1, i32 0, i32 0
+      store ptr @fb2, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_foo__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
+      call void @____vtable_foo___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 0
+      store ptr @foo, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__fb___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_fb___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_fb2___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_foo___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_fb__ctor(ptr @__vtable_fb_instance)
+      call void @__vtable_fb2__ctor(ptr @__vtable_fb2_instance)
+      call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
     }
     "#);
@@ -382,19 +384,15 @@ fn write_to_parent_variable_in_instance() {
     target triple = "[filtered]"
 
     %__vtable_foo = type { ptr, ptr }
-    %foo = type { ptr, [81 x i8] }
     %__vtable_bar = type { ptr, ptr }
+    %foo = type { ptr, [81 x i8] }
     %bar = type { %foo }
 
+    @__vtable_foo_instance = global %__vtable_foo zeroinitializer
+    @__vtable_bar_instance = global %__vtable_bar zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer
-    @__vtable_bar_instance = global %__vtable_bar zeroinitializer
 
     define void @foo(ptr %0) {
     entry:
@@ -430,12 +428,121 @@ fn write_to_parent_variable_in_instance() {
       %s = alloca [81 x i8], align [filtered]
       %fb = alloca %bar, align [filtered]
       call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__bar__init, i64 ptrtoint (ptr getelementptr (%bar, ptr null, i32 1) to i64), i1 false)
-      call void @__init_bar(ptr %fb)
-      call void @__user_init_bar(ptr %fb)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%bar, ptr null, i32 1) to i64), i1 false)
+      call void @bar__ctor(ptr %fb)
       %__foo = getelementptr inbounds nuw %bar, ptr %fb, i32 0, i32 0
       call void @foo__baz(ptr %__foo)
       call void @bar(ptr %fb)
+      ret void
+    }
+
+    define void @foo__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
+      call void @__foo___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__vtable2 = getelementptr inbounds nuw %foo, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_foo_instance, ptr %__vtable2, align [filtered]
+      ret void
+    }
+
+    define void @bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
+      call void @foo__ctor(ptr %__foo)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
+      call void @foo__ctor(ptr %__foo2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__foo4 = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
+      store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_foo__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
+      call void @____vtable_foo___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 0
+      store ptr @foo, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref3, i32 0, i32 1
+      call void @____vtable_foo_baz__ctor(ptr %baz)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %baz5 = getelementptr inbounds nuw %__vtable_foo, ptr %deref4, i32 0, i32 1
+      store ptr @foo__baz, ptr %baz5, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_bar, ptr %deref, i32 0, i32 0
+      call void @____vtable_bar___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_bar, ptr %deref1, i32 0, i32 0
+      store ptr @bar, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %baz = getelementptr inbounds nuw %__vtable_bar, ptr %deref3, i32 0, i32 1
+      call void @____vtable_bar_baz__ctor(ptr %baz)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %baz5 = getelementptr inbounds nuw %__vtable_bar, ptr %deref4, i32 0, i32 1
+      store ptr @foo__baz, ptr %baz5, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_foo___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_foo_baz__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_bar___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_bar_baz__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
+      call void @__vtable_bar__ctor(ptr @__vtable_bar_instance)
       ret void
     }
 
@@ -444,99 +551,6 @@ fn write_to_parent_variable_in_instance() {
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    define void @__init___vtable_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @foo, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
-      store ptr @foo__baz, ptr %baz, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_bar(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @bar, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
-      store ptr @foo__baz, ptr %baz, align [filtered]
-      ret void
-    }
-
-    define void @__init_bar(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
-      call void @__init_foo(ptr %__foo)
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
-      store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__init_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_foo_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__user_init___vtable_bar(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_bar(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
-      call void @__user_init_foo(ptr %__foo)
-      ret void
-    }
-
-    define void @__user_init_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init___vtable_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__init___Test() {
-    entry:
-      call void @__init___vtable_foo(ptr @__vtable_foo_instance)
-      call void @__init___vtable_bar(ptr @__vtable_bar_instance)
-      call void @__user_init___vtable_foo(ptr @__vtable_foo_instance)
-      call void @__user_init___vtable_bar(ptr @__vtable_bar_instance)
-      ret void
-    }
 
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
@@ -586,22 +600,16 @@ fn array_in_parent_generated() {
     target triple = "[filtered]"
 
     %__vtable_grandparent = type { ptr }
-    %grandparent = type { ptr, [6 x i16], i16 }
     %__vtable_parent = type { ptr }
-    %parent = type { %grandparent, [11 x i16], i16 }
     %__vtable_child = type { ptr }
+    %grandparent = type { ptr, [6 x i16], i16 }
+    %parent = type { %grandparent, [11 x i16], i16 }
     %child = type { %parent, [11 x i16] }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
-    @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent zeroinitializer
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @grandparent(ptr %0) {
     entry:
@@ -636,6 +644,7 @@ fn array_in_parent_generated() {
     entry:
       %arr = alloca [11 x %child], align [filtered]
       call void @llvm.memset.p0.i64(ptr align [filtered] %arr, i8 0, i64 ptrtoint (ptr getelementptr ([11 x %child], ptr null, i32 1) to i64), i1 false)
+      call void @__main_arr__ctor(ptr %arr)
       %tmpVar = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 0
       %__parent = getelementptr inbounds nuw %child, ptr %tmpVar, i32 0, i32 0
       %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0
@@ -663,136 +672,168 @@ fn array_in_parent_generated() {
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
-
-    define void @__init___vtable_grandparent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @grandparent, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_parent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @parent, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_child(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @child, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init_child(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
-      call void @__init_parent(ptr %__parent)
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
-      store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__init_parent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
-      call void @__init_grandparent(ptr %__grandparent)
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent2, i32 0, i32 0
-      store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__init_grandparent(ptr %0) {
+    define void @grandparent__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_grandparent_instance, ptr %__vtable, align [filtered]
+      call void @__grandparent___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %y = getelementptr inbounds nuw %grandparent, ptr %deref1, i32 0, i32 1
+      call void @__grandparent_y__ctor(ptr %y)
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__vtable3 = getelementptr inbounds nuw %grandparent, ptr %deref2, i32 0, i32 0
+      store ptr @__vtable_grandparent_instance, ptr %__vtable3, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_parent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_grandparent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init___vtable_child(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init___vtable_grandparent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_child(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
-      call void @__user_init_parent(ptr %__parent)
-      ret void
-    }
-
-    define void @__user_init_parent(ptr %0) {
+    define void @parent__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
-      call void @__user_init_grandparent(ptr %__grandparent)
+      call void @grandparent__ctor(ptr %__grandparent)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
+      call void @grandparent__ctor(ptr %__grandparent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %x = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 1
+      call void @__parent_x__ctor(ptr %x)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__grandparent5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent5, i32 0, i32 0
+      store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @child__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_grandparent(ptr @__vtable_grandparent_instance)
-      call void @__init___vtable_parent(ptr @__vtable_parent_instance)
-      call void @__init___vtable_child(ptr @__vtable_child_instance)
-      call void @__user_init___vtable_grandparent(ptr @__vtable_grandparent_instance)
-      call void @__user_init___vtable_parent(ptr @__vtable_parent_instance)
-      call void @__user_init___vtable_child(ptr @__vtable_child_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
+      call void @parent__ctor(ptr %__parent)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      call void @parent__ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %z = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1
+      call void @__child_z__ctor(ptr %z)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
+      store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
     }
+
+    define void @__grandparent_y__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent_x__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__child_z__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__main_arr__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_grandparent__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      call void @____vtable_grandparent___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref1, i32 0, i32 0
+      store ptr @grandparent, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_parent__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_parent, ptr %deref, i32 0, i32 0
+      call void @____vtable_parent___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_parent, ptr %deref1, i32 0, i32 0
+      store ptr @parent, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_child__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_child, ptr %deref, i32 0, i32 0
+      call void @____vtable_child___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_child, ptr %deref1, i32 0, i32 0
+      store ptr @child, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__grandparent___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_grandparent___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_parent___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_grandparent__ctor(ptr @__vtable_grandparent_instance)
+      call void @__vtable_parent__ctor(ptr @__vtable_parent_instance)
+      call void @__vtable_child__ctor(ptr @__vtable_child_instance)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
@@ -832,22 +873,16 @@ fn complex_array_access_generated() {
     target triple = "[filtered]"
 
     %__vtable_grandparent = type { ptr }
-    %grandparent = type { ptr, [6 x i16], i16 }
     %__vtable_parent = type { ptr }
-    %parent = type { %grandparent, [11 x i16], i16 }
     %__vtable_child = type { ptr }
+    %grandparent = type { ptr, [6 x i16], i16 }
+    %parent = type { %grandparent, [11 x i16], i16 }
     %child = type { %parent, [11 x i16] }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
-    @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
-    @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent zeroinitializer
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
-    @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @grandparent(ptr %0) {
     entry:
@@ -902,131 +937,156 @@ fn complex_array_access_generated() {
       ret void
     }
 
-    define void @__init___vtable_grandparent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @grandparent, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_parent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @parent, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_child(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
-      store ptr @child, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init_parent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
-      call void @__init_grandparent(ptr %__grandparent)
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent2, i32 0, i32 0
-      store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__init_grandparent(ptr %0) {
+    define void @grandparent__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_grandparent_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__init_child(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
-      call void @__init_parent(ptr %__parent)
+      call void @__grandparent___vtable__ctor(ptr %__vtable)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
-      store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
+      %y = getelementptr inbounds nuw %grandparent, ptr %deref1, i32 0, i32 1
+      call void @__grandparent_y__ctor(ptr %y)
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__vtable3 = getelementptr inbounds nuw %grandparent, ptr %deref2, i32 0, i32 0
+      store ptr @__vtable_grandparent_instance, ptr %__vtable3, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_parent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_grandparent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init___vtable_child(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init___vtable_grandparent(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_child(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
-      call void @__user_init_parent(ptr %__parent)
-      ret void
-    }
-
-    define void @__user_init_parent(ptr %0) {
+    define void @parent__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
-      call void @__user_init_grandparent(ptr %__grandparent)
+      call void @grandparent__ctor(ptr %__grandparent)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
+      call void @grandparent__ctor(ptr %__grandparent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %x = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 1
+      call void @__parent_x__ctor(ptr %x)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__grandparent5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent5, i32 0, i32 0
+      store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @child__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_grandparent(ptr @__vtable_grandparent_instance)
-      call void @__init___vtable_parent(ptr @__vtable_parent_instance)
-      call void @__init___vtable_child(ptr @__vtable_child_instance)
-      call void @__user_init___vtable_grandparent(ptr @__vtable_grandparent_instance)
-      call void @__user_init___vtable_parent(ptr @__vtable_parent_instance)
-      call void @__user_init___vtable_child(ptr @__vtable_child_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
+      call void @parent__ctor(ptr %__parent)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      call void @parent__ctor(ptr %__parent2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %z = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1
+      call void @__child_z__ctor(ptr %z)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
+      store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
+      ret void
+    }
+
+    define void @__grandparent_y__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent_x__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__child_z__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_grandparent__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      call void @____vtable_grandparent___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref1, i32 0, i32 0
+      store ptr @grandparent, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_parent__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_parent, ptr %deref, i32 0, i32 0
+      call void @____vtable_parent___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_parent, ptr %deref1, i32 0, i32 0
+      store ptr @parent, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_child__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_child, ptr %deref, i32 0, i32 0
+      call void @____vtable_child___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_child, ptr %deref1, i32 0, i32 0
+      store ptr @child, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__grandparent___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_grandparent___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_parent___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_grandparent__ctor(ptr @__vtable_grandparent_instance)
+      call void @__vtable_parent__ctor(ptr @__vtable_parent_instance)
+      call void @__vtable_child__ctor(ptr @__vtable_child_instance)
       ret void
     }
     "#);
@@ -1106,10 +1166,8 @@ fn this_in_method_call_chain() {
     %__vtable_FB_Test = type { ptr, ptr, ptr }
     %FB_Test = type { ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1137,50 +1195,75 @@ fn this_in_method_call_chain() {
       ret void
     }
 
-    define void @__init___vtable_fb_test(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @FB_Test, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %Step = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
-      store ptr @FB_Test__Step, ptr %Step, align [filtered]
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %Increment = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref2, i32 0, i32 2
-      store ptr @FB_Test__Increment, ptr %Increment, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb_test(ptr %0) {
+    define void @FB_Test__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_FB_Test_instance, ptr %__vtable, align [filtered]
+      call void @__FB_Test___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__vtable2 = getelementptr inbounds nuw %FB_Test, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_FB_Test_instance, ptr %__vtable2, align [filtered]
       ret void
     }
 
-    define void @__user_init_FB_Test(ptr %0) {
+    define void @__vtable_FB_Test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      call void @____vtable_FB_Test___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 0
+      store ptr @FB_Test, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %Step = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref3, i32 0, i32 1
+      call void @____vtable_FB_Test_Step__ctor(ptr %Step)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %Step5 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref4, i32 0, i32 1
+      store ptr @FB_Test__Step, ptr %Step5, align [filtered]
+      %deref6 = load ptr, ptr %self, align [filtered]
+      %Increment = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref6, i32 0, i32 2
+      call void @____vtable_FB_Test_Increment__ctor(ptr %Increment)
+      %deref7 = load ptr, ptr %self, align [filtered]
+      %Increment8 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref7, i32 0, i32 2
+      store ptr @FB_Test__Increment, ptr %Increment8, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_FB_Test(ptr %0) {
+    define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_FB_Test_Step__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb_test(ptr @__vtable_FB_Test_instance)
-      call void @__user_init___vtable_FB_Test(ptr @__vtable_FB_Test_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_FB_Test_Increment__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
     }
     "#);
@@ -1212,10 +1295,8 @@ fn this_in_method_and_body_in_function_block() {
     %__vtable_FB_Test = type { ptr, ptr }
     %FB_Test = type { ptr, i16 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test { ptr null, i16 5 }
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1250,47 +1331,65 @@ fn this_in_method_and_body_in_function_block() {
       ret i16 %FB_Test__GetVal_ret
     }
 
-    define void @__init___vtable_fb_test(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @FB_Test, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %GetVal = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
-      store ptr @FB_Test__GetVal, ptr %GetVal, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb_test(ptr %0) {
+    define void @FB_Test__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_FB_Test_instance, ptr %__vtable, align [filtered]
+      call void @__FB_Test___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %val = getelementptr inbounds nuw %FB_Test, ptr %deref1, i32 0, i32 1
+      store i16 5, ptr %val, align [filtered]
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__vtable3 = getelementptr inbounds nuw %FB_Test, ptr %deref2, i32 0, i32 0
+      store ptr @__vtable_FB_Test_instance, ptr %__vtable3, align [filtered]
       ret void
     }
 
-    define void @__user_init_FB_Test(ptr %0) {
+    define void @__vtable_FB_Test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      call void @____vtable_FB_Test___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 0
+      store ptr @FB_Test, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %GetVal = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref3, i32 0, i32 1
+      call void @____vtable_FB_Test_GetVal__ctor(ptr %GetVal)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %GetVal5 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref4, i32 0, i32 1
+      store ptr @FB_Test__GetVal, ptr %GetVal5, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_FB_Test(ptr %0) {
+    define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_FB_Test_GetVal__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb_test(ptr @__vtable_FB_Test_instance)
-      call void @__user_init___vtable_FB_Test(ptr @__vtable_FB_Test_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
     }
     "#);
@@ -1331,17 +1430,13 @@ fn pass_this_to_method() {
     target triple = "[filtered]"
 
     %__vtable_FB_Test = type { ptr, ptr }
+    %__vtable_FB_Test2 = type { ptr, ptr }
     %FB_Test = type { ptr, i16 }
     %FB_Test2 = type { ptr }
-    %__vtable_FB_Test2 = type { ptr, ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test { ptr null, i16 5 }
-    @__FB_Test2__init = unnamed_addr constant %FB_Test2 zeroinitializer
-    @____vtable_FB_Test2__init = unnamed_addr constant %__vtable_FB_Test2 zeroinitializer
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
     @__vtable_FB_Test2_instance = global %__vtable_FB_Test2 zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1360,10 +1455,9 @@ fn pass_this_to_method() {
       %x = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %test = alloca %FB_Test2, align [filtered]
       %x1 = alloca i16, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %test, ptr align [filtered] @__FB_Test2__init, i64 ptrtoint (ptr getelementptr (%FB_Test2, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %test, i8 0, i64 ptrtoint (ptr getelementptr (%FB_Test2, ptr null, i32 1) to i64), i1 false)
       store i16 0, ptr %x1, align [filtered]
-      call void @__init_fb_test2(ptr %test)
-      call void @__user_init_FB_Test2(ptr %test)
+      call void @FB_Test2__ctor(ptr %test)
       %1 = load ptr, ptr %this, align [filtered]
       %call = call i16 @FB_Test2__bar(ptr %test, ptr %1)
       ret void
@@ -1394,93 +1488,133 @@ fn pass_this_to_method() {
       ret i16 %FB_Test2__bar_ret
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    define void @__init___vtable_fb_test(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @FB_Test, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %foo = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
-      store ptr @FB_Test__foo, ptr %foo, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_fb_test2(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @FB_Test2, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %bar = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
-      store ptr @FB_Test2__bar, ptr %bar, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb_test(ptr %0) {
+    define void @FB_Test__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_FB_Test_instance, ptr %__vtable, align [filtered]
+      call void @__FB_Test___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %x = getelementptr inbounds nuw %FB_Test, ptr %deref1, i32 0, i32 1
+      store i16 5, ptr %x, align [filtered]
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__vtable3 = getelementptr inbounds nuw %FB_Test, ptr %deref2, i32 0, i32 0
+      store ptr @__vtable_FB_Test_instance, ptr %__vtable3, align [filtered]
       ret void
     }
 
-    define void @__init_fb_test2(ptr %0) {
+    define void @FB_Test2__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %FB_Test2, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_FB_Test2_instance, ptr %__vtable, align [filtered]
+      call void @__FB_Test2___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__vtable2 = getelementptr inbounds nuw %FB_Test2, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_FB_Test2_instance, ptr %__vtable2, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_FB_Test2(ptr %0) {
+    define void @__FB_Test2.bar_test__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init_FB_Test(ptr %0) {
+    define void @__vtable_FB_Test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      call void @____vtable_FB_Test___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 0
+      store ptr @FB_Test, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %foo = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref3, i32 0, i32 1
+      call void @____vtable_FB_Test_foo__ctor(ptr %foo)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %foo5 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref4, i32 0, i32 1
+      store ptr @FB_Test__foo, ptr %foo5, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_FB_Test2__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test2, ptr %deref, i32 0, i32 0
+      call void @____vtable_FB_Test2___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_FB_Test2, ptr %deref1, i32 0, i32 0
+      store ptr @FB_Test2, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %bar = getelementptr inbounds nuw %__vtable_FB_Test2, ptr %deref3, i32 0, i32 1
+      call void @____vtable_FB_Test2_bar__ctor(ptr %bar)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %bar5 = getelementptr inbounds nuw %__vtable_FB_Test2, ptr %deref4, i32 0, i32 1
+      store ptr @FB_Test2__bar, ptr %bar5, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init_FB_Test2(ptr %0) {
+    define void @__FB_Test2___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_FB_Test(ptr %0) {
+    define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_FB_Test_foo__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb_test(ptr @__vtable_FB_Test_instance)
-      call void @__init___vtable_fb_test2(ptr @__vtable_FB_Test2_instance)
-      call void @__user_init___vtable_FB_Test(ptr @__vtable_FB_Test_instance)
-      call void @__user_init___vtable_FB_Test2(ptr @__vtable_FB_Test2_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    define void @____vtable_FB_Test2___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_FB_Test2_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
+      call void @__vtable_FB_Test2__ctor(ptr @__vtable_FB_Test2_instance)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -1513,10 +1647,8 @@ fn this_with_shadowed_variable() {
     %__vtable_FB_Test = type { ptr, ptr }
     %FB_Test = type { ptr, i16 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test { ptr null, i16 5 }
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1539,6 +1671,7 @@ fn this_with_shadowed_variable() {
       store i16 10, ptr %val1, align [filtered]
       store i16 0, ptr %local_val, align [filtered]
       store i16 0, ptr %shadow_val, align [filtered]
+      store i16 10, ptr %val1, align [filtered]
       %deref = load ptr, ptr %this, align [filtered]
       %val2 = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 1
       %load_val = load i16, ptr %val2, align [filtered]
@@ -1548,47 +1681,65 @@ fn this_with_shadowed_variable() {
       ret void
     }
 
-    define void @__init___vtable_fb_test(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @FB_Test, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %shadow_val = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
-      store ptr @FB_Test__shadow_val, ptr %shadow_val, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb_test(ptr %0) {
+    define void @FB_Test__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_FB_Test_instance, ptr %__vtable, align [filtered]
+      call void @__FB_Test___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %val = getelementptr inbounds nuw %FB_Test, ptr %deref1, i32 0, i32 1
+      store i16 5, ptr %val, align [filtered]
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__vtable3 = getelementptr inbounds nuw %FB_Test, ptr %deref2, i32 0, i32 0
+      store ptr @__vtable_FB_Test_instance, ptr %__vtable3, align [filtered]
       ret void
     }
 
-    define void @__user_init_FB_Test(ptr %0) {
+    define void @__vtable_FB_Test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      call void @____vtable_FB_Test___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 0
+      store ptr @FB_Test, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %shadow_val = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref3, i32 0, i32 1
+      call void @____vtable_FB_Test_shadow_val__ctor(ptr %shadow_val)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %shadow_val5 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref4, i32 0, i32 1
+      store ptr @FB_Test__shadow_val, ptr %shadow_val5, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_FB_Test(ptr %0) {
+    define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_FB_Test_shadow_val__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb_test(ptr @__vtable_FB_Test_instance)
-      call void @__user_init___vtable_FB_Test(ptr @__vtable_FB_Test_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
     }
     "#);
@@ -1621,10 +1772,8 @@ fn this_calling_function_and_passing_this() {
     %__vtable_FB_Test = type { ptr }
     %FB_Test = type { ptr, i16 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1651,44 +1800,56 @@ fn this_calling_function_and_passing_this() {
       ret i16 %foo_ret
     }
 
-    define void @__init___vtable_fb_test(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @FB_Test, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb_test(ptr %0) {
+    define void @FB_Test__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_FB_Test_instance, ptr %__vtable, align [filtered]
+      call void @__FB_Test___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__vtable2 = getelementptr inbounds nuw %FB_Test, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_FB_Test_instance, ptr %__vtable2, align [filtered]
       ret void
     }
 
-    define void @__user_init_FB_Test(ptr %0) {
+    define void @__foo_pfb__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_FB_Test(ptr %0) {
+    define void @__vtable_FB_Test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      call void @____vtable_FB_Test___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 0
+      store ptr @FB_Test, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb_test(ptr @__vtable_FB_Test_instance)
-      call void @__user_init___vtable_FB_Test(ptr @__vtable_FB_Test_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
     }
     "#);
@@ -1727,10 +1888,8 @@ fn this_in_property_and_calling_method() {
     %__vtable_FB_Test = type { ptr, ptr, ptr, ptr }
     %FB_Test = type { ptr, i16 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1794,53 +1953,88 @@ fn this_in_property_and_calling_method() {
       ret void
     }
 
-    define void @__init___vtable_fb_test(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @FB_Test, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %DoubleX = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
-      store ptr @FB_Test__DoubleX, ptr %DoubleX, align [filtered]
-      %deref2 = load ptr, ptr %self, align [filtered]
-      %__get_Value = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref2, i32 0, i32 2
-      store ptr @FB_Test____get_Value, ptr %__get_Value, align [filtered]
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__set_Value = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref3, i32 0, i32 3
-      store ptr @FB_Test____set_Value, ptr %__set_Value, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb_test(ptr %0) {
+    define void @FB_Test__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_FB_Test_instance, ptr %__vtable, align [filtered]
+      call void @__FB_Test___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__vtable2 = getelementptr inbounds nuw %FB_Test, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_FB_Test_instance, ptr %__vtable2, align [filtered]
       ret void
     }
 
-    define void @__user_init_FB_Test(ptr %0) {
+    define void @__vtable_FB_Test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      call void @____vtable_FB_Test___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 0
+      store ptr @FB_Test, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %DoubleX = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref3, i32 0, i32 1
+      call void @____vtable_FB_Test_DoubleX__ctor(ptr %DoubleX)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %DoubleX5 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref4, i32 0, i32 1
+      store ptr @FB_Test__DoubleX, ptr %DoubleX5, align [filtered]
+      %deref6 = load ptr, ptr %self, align [filtered]
+      %__get_Value = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref6, i32 0, i32 2
+      call void @____vtable_FB_Test___get_Value__ctor(ptr %__get_Value)
+      %deref7 = load ptr, ptr %self, align [filtered]
+      %__get_Value8 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref7, i32 0, i32 2
+      store ptr @FB_Test____get_Value, ptr %__get_Value8, align [filtered]
+      %deref9 = load ptr, ptr %self, align [filtered]
+      %__set_Value = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref9, i32 0, i32 3
+      call void @____vtable_FB_Test___set_Value__ctor(ptr %__set_Value)
+      %deref10 = load ptr, ptr %self, align [filtered]
+      %__set_Value11 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref10, i32 0, i32 3
+      store ptr @FB_Test____set_Value, ptr %__set_Value11, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_FB_Test(ptr %0) {
+    define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_FB_Test_DoubleX__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb_test(ptr @__vtable_FB_Test_instance)
-      call void @__user_init___vtable_FB_Test(ptr @__vtable_FB_Test_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_FB_Test___get_Value__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_FB_Test___set_Value__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
     }
     "#);
@@ -1872,10 +2066,8 @@ fn this_with_self_pointer() {
     %__vtable_FB_Test = type { ptr, ptr }
     %FB_Test = type { ptr, ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
-    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1901,47 +2093,72 @@ fn this_with_self_pointer() {
       ret void
     }
 
-    define void @__init___vtable_fb_test(ptr %0) {
+    define void @FB_Test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
+      call void @__FB_Test___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %refToSelf = getelementptr inbounds nuw %FB_Test, ptr %deref1, i32 0, i32 1
+      call void @__FB_Test_refToSelf__ctor(ptr %refToSelf)
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__vtable3 = getelementptr inbounds nuw %FB_Test, ptr %deref2, i32 0, i32 0
+      store ptr @__vtable_FB_Test_instance, ptr %__vtable3, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test_refToSelf__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_FB_Test__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @FB_Test, ptr %__body, align [filtered]
+      call void @____vtable_FB_Test___body__ctor(ptr %__body)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %InitRef = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
-      store ptr @FB_Test__InitRef, ptr %InitRef, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 0
+      store ptr @FB_Test, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %InitRef = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref3, i32 0, i32 1
+      call void @____vtable_FB_Test_InitRef__ctor(ptr %InitRef)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %InitRef5 = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref4, i32 0, i32 1
+      store ptr @FB_Test__InitRef, ptr %InitRef5, align [filtered]
       ret void
     }
 
-    define void @__init_fb_test(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__vtable = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_FB_Test_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_FB_Test(ptr %0) {
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_FB_Test(ptr %0) {
+    define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_FB_Test_InitRef__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb_test(ptr @__vtable_FB_Test_instance)
-      call void @__user_init___vtable_FB_Test(ptr @__vtable_FB_Test_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
     }
     "#);
@@ -1971,10 +2188,8 @@ fn this_in_variable_initialization() {
     %__vtable_FB = type { ptr }
     %FB = type { ptr, i16, ptr, i16 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_FB__init = unnamed_addr constant %__vtable_FB zeroinitializer
-    @__FB__init = unnamed_addr constant %FB { ptr null, i16 5, ptr null, i16 5 }
     @__vtable_FB_instance = global %__vtable_FB zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @FB(ptr %0) {
     entry:
@@ -1987,44 +2202,62 @@ fn this_in_variable_initialization() {
       ret void
     }
 
-    define void @__init___vtable_fb(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_FB, ptr %deref, i32 0, i32 0
-      store ptr @FB, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb(ptr %0) {
+    define void @FB__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %FB, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_FB_instance, ptr %__vtable, align [filtered]
+      call void @__FB___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %self2 = getelementptr inbounds nuw %FB, ptr %deref1, i32 0, i32 2
+      call void @__FB_self__ctor(ptr %self2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %y = getelementptr inbounds nuw %FB, ptr %deref3, i32 0, i32 3
+      store i16 5, ptr %y, align [filtered]
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__vtable5 = getelementptr inbounds nuw %FB, ptr %deref4, i32 0, i32 0
+      store ptr @__vtable_FB_instance, ptr %__vtable5, align [filtered]
       ret void
     }
 
-    define void @__user_init_FB(ptr %0) {
+    define void @__FB_self__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_FB(ptr %0) {
+    define void @__vtable_FB__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_FB, ptr %deref, i32 0, i32 0
+      call void @____vtable_FB___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_FB, ptr %deref1, i32 0, i32 0
+      store ptr @FB, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__FB___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_FB___body__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb(ptr @__vtable_FB_instance)
-      call void @__user_init___vtable_FB(ptr @__vtable_FB_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_FB__ctor(ptr @__vtable_FB_instance)
       ret void
     }
     "#);
@@ -2051,16 +2284,60 @@ fn this_in_action_in_functionblock() {
     %__vtable_fb = type { ptr }
     %fb = type { ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
-    @__fb__init = unnamed_addr constant %fb zeroinitializer
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @fb(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @fb__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
+      call void @__fb___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__vtable2 = getelementptr inbounds nuw %fb, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_fb_instance, ptr %__vtable2, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_fb__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
+      call void @____vtable_fb___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 0
+      store ptr @fb, ptr %__body2, align [filtered]
+      ret void
+    }
+
+    define void @__fb___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_fb___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_fb__ctor(ptr @__vtable_fb_instance)
       ret void
     }
 
@@ -2071,47 +2348,6 @@ fn this_in_action_in_functionblock() {
       %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align [filtered]
       call void @fb(ptr %deref)
-      ret void
-    }
-
-    define void @__init___vtable_fb(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @fb, ptr %__body, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__vtable = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_fb_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_fb(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init___vtable_fb(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__init___Test() {
-    entry:
-      call void @__init___vtable_fb(ptr @__vtable_fb_instance)
-      call void @__user_init___vtable_fb(ptr @__vtable_fb_instance)
       ret void
     }
     "#);
@@ -2137,10 +2373,8 @@ fn this_calling_functionblock_body_from_method() {
     %__vtable_fb = type { ptr, ptr }
     %fb = type { ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
-    @__fb__init = unnamed_addr constant %fb zeroinitializer
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @fb(ptr %0) {
     entry:
@@ -2163,47 +2397,62 @@ fn this_calling_functionblock_body_from_method() {
       ret i16 %fb__foo_ret
     }
 
-    define void @__init___vtable_fb(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
-      store ptr @fb, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %foo = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 1
-      store ptr @fb__foo, ptr %foo, align [filtered]
-      ret void
-    }
-
-    define void @__init_fb(ptr %0) {
+    define void @fb__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_fb_instance, ptr %__vtable, align [filtered]
+      call void @__fb___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__vtable2 = getelementptr inbounds nuw %fb, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_fb_instance, ptr %__vtable2, align [filtered]
       ret void
     }
 
-    define void @__user_init_fb(ptr %0) {
+    define void @__vtable_fb__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
+      call void @____vtable_fb___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 0
+      store ptr @fb, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %foo = getelementptr inbounds nuw %__vtable_fb, ptr %deref3, i32 0, i32 1
+      call void @____vtable_fb_foo__ctor(ptr %foo)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %foo5 = getelementptr inbounds nuw %__vtable_fb, ptr %deref4, i32 0, i32 1
+      store ptr @fb__foo, ptr %foo5, align [filtered]
+      ret void
+    }
+
+    define void @__fb___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_fb(ptr %0) {
+    define void @____vtable_fb___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_fb_foo__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_fb(ptr @__vtable_fb_instance)
-      call void @__user_init___vtable_fb(ptr @__vtable_fb_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_fb__ctor(ptr @__vtable_fb_instance)
       ret void
     }
     "#);
@@ -2239,17 +2488,13 @@ fn fb_extension_with_output() {
     target triple = "[filtered]"
 
     %__vtable_foo = type { ptr, ptr }
-    %foo = type { ptr }
     %__vtable_foo2 = type { ptr, ptr }
+    %foo = type { ptr }
     %foo2 = type { %foo }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_foo2__init = unnamed_addr constant %__vtable_foo2 zeroinitializer
-    @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
     @__vtable_foo2_instance = global %__vtable_foo2 zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2293,93 +2538,113 @@ fn fb_extension_with_output() {
       ret void
     }
 
-    define void @__init___vtable_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @foo, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %met1 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
-      store ptr @foo__met1, ptr %met1, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_foo2(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @foo2, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %met1 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
-      store ptr @foo__met1, ptr %met1, align [filtered]
-      ret void
-    }
-
-    define void @__init_foo(ptr %0) {
+    define void @foo__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_foo_instance, ptr %__vtable, align [filtered]
+      call void @__foo___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__vtable2 = getelementptr inbounds nuw %foo, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_foo_instance, ptr %__vtable2, align [filtered]
       ret void
     }
 
-    define void @__init_foo2(ptr %0) {
+    define void @foo2__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__foo = getelementptr inbounds nuw %foo2, ptr %deref, i32 0, i32 0
-      call void @__init_foo(ptr %__foo)
+      call void @foo__ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %foo2, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
+      call void @foo__ctor(ptr %__foo2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__foo4 = getelementptr inbounds nuw %foo2, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
       store ptr @__vtable_foo2_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
-    define void @__user_init_foo2(ptr %0) {
+    define void @__vtable_foo__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
-      %__foo = getelementptr inbounds nuw %foo2, ptr %deref, i32 0, i32 0
-      call void @__user_init_foo(ptr %__foo)
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
+      call void @____vtable_foo___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 0
+      store ptr @foo, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %met1 = getelementptr inbounds nuw %__vtable_foo, ptr %deref3, i32 0, i32 1
+      call void @____vtable_foo_met1__ctor(ptr %met1)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %met15 = getelementptr inbounds nuw %__vtable_foo, ptr %deref4, i32 0, i32 1
+      store ptr @foo__met1, ptr %met15, align [filtered]
       ret void
     }
 
-    define void @__user_init_foo(ptr %0) {
+    define void @__vtable_foo2__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_foo2, ptr %deref, i32 0, i32 0
+      call void @____vtable_foo2___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_foo2, ptr %deref1, i32 0, i32 0
+      store ptr @foo2, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %met1 = getelementptr inbounds nuw %__vtable_foo2, ptr %deref3, i32 0, i32 1
+      call void @____vtable_foo2_met1__ctor(ptr %met1)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %met15 = getelementptr inbounds nuw %__vtable_foo2, ptr %deref4, i32 0, i32 1
+      store ptr @foo__met1, ptr %met15, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_foo(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_foo2(ptr %0) {
+    define void @____vtable_foo_met1__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_foo2___body__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_foo(ptr @__vtable_foo_instance)
-      call void @__init___vtable_foo2(ptr @__vtable_foo2_instance)
-      call void @__user_init___vtable_foo(ptr @__vtable_foo_instance)
-      call void @__user_init___vtable_foo2(ptr @__vtable_foo2_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_foo2_met1__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
+      call void @__vtable_foo2__ctor(ptr @__vtable_foo2_instance)
       ret void
     }
     "#);
@@ -2428,17 +2693,13 @@ fn function_with_output_used_in_main_by_extension() {
     target triple = "[filtered]"
 
     %__vtable_foo = type { ptr, ptr }
-    %foo = type { ptr }
     %__vtable_foo2 = type { ptr, ptr }
+    %foo = type { ptr }
     %foo2 = type { %foo, i16 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_foo2__init = unnamed_addr constant %__vtable_foo2 zeroinitializer
-    @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
     @__vtable_foo2_instance = global %__vtable_foo2 zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2488,14 +2749,12 @@ fn function_with_output_used_in_main_by_extension() {
       %foo_inst = alloca %foo, align [filtered]
       %foo2_inst = alloca %foo2, align [filtered]
       %out = alloca i16, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %foo_inst, ptr align [filtered] @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %foo2_inst, ptr align [filtered] @__foo2__init, i64 ptrtoint (ptr getelementptr (%foo2, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %foo_inst, i8 0, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %foo2_inst, i8 0, i64 ptrtoint (ptr getelementptr (%foo2, ptr null, i32 1) to i64), i1 false)
       store i16 0, ptr %out, align [filtered]
       store i32 0, ptr %main, align [filtered]
-      call void @__init_foo(ptr %foo_inst)
-      call void @__init_foo2(ptr %foo2_inst)
-      call void @__user_init_foo(ptr %foo_inst)
-      call void @__user_init_foo2(ptr %foo2_inst)
+      call void @foo__ctor(ptr %foo_inst)
+      call void @foo2__ctor(ptr %foo2_inst)
       %call = call i16 @foo__met1(ptr %foo_inst, i16 1, i16 5, ptr %out)
       %__foo = getelementptr inbounds nuw %foo2, ptr %foo2_inst, i32 0, i32 0
       %call1 = call i16 @foo__met1(ptr %__foo, i16 2, i16 5, ptr %out)
@@ -2503,99 +2762,119 @@ fn function_with_output_used_in_main_by_extension() {
       ret i32 %main_ret
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
-    define void @__init___vtable_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @foo, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %met1 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
-      store ptr @foo__met1, ptr %met1, align [filtered]
-      ret void
-    }
-
-    define void @__init___vtable_foo2(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
-      store ptr @foo2, ptr %__body, align [filtered]
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %met1 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
-      store ptr @foo__met1, ptr %met1, align [filtered]
-      ret void
-    }
-
-    define void @__init_foo2(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %__foo = getelementptr inbounds nuw %foo2, ptr %deref, i32 0, i32 0
-      call void @__init_foo(ptr %__foo)
-      %deref1 = load ptr, ptr %self, align [filtered]
-      %__foo2 = getelementptr inbounds nuw %foo2, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
-      store ptr @__vtable_foo2_instance, ptr %__vtable, align [filtered]
-      ret void
-    }
-
-    define void @__init_foo(ptr %0) {
+    define void @foo__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
-      store ptr @__vtable_foo_instance, ptr %__vtable, align [filtered]
+      call void @__foo___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__vtable2 = getelementptr inbounds nuw %foo, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_foo_instance, ptr %__vtable2, align [filtered]
       ret void
     }
 
-    define void @__user_init_foo2(ptr %0) {
+    define void @foo2__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
       %__foo = getelementptr inbounds nuw %foo2, ptr %deref, i32 0, i32 0
-      call void @__user_init_foo(ptr %__foo)
+      call void @foo__ctor(ptr %__foo)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__foo2 = getelementptr inbounds nuw %foo2, ptr %deref1, i32 0, i32 0
+      call void @foo__ctor(ptr %__foo2)
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__foo4 = getelementptr inbounds nuw %foo2, ptr %deref3, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
+      store ptr @__vtable_foo2_instance, ptr %__vtable, align [filtered]
       ret void
     }
 
-    define void @__user_init_foo(ptr %0) {
+    define void @__vtable_foo__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
+      call void @____vtable_foo___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 0
+      store ptr @foo, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %met1 = getelementptr inbounds nuw %__vtable_foo, ptr %deref3, i32 0, i32 1
+      call void @____vtable_foo_met1__ctor(ptr %met1)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %met15 = getelementptr inbounds nuw %__vtable_foo, ptr %deref4, i32 0, i32 1
+      store ptr @foo__met1, ptr %met15, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_foo2__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_foo2, ptr %deref, i32 0, i32 0
+      call void @____vtable_foo2___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_foo2, ptr %deref1, i32 0, i32 0
+      store ptr @foo2, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %met1 = getelementptr inbounds nuw %__vtable_foo2, ptr %deref3, i32 0, i32 1
+      call void @____vtable_foo2_met1__ctor(ptr %met1)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %met15 = getelementptr inbounds nuw %__vtable_foo2, ptr %deref4, i32 0, i32 1
+      store ptr @foo__met1, ptr %met15, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_foo(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_foo2(ptr %0) {
+    define void @____vtable_foo_met1__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @____vtable_foo2___body__ctor(ptr %0) {
     entry:
-      call void @__init___vtable_foo(ptr @__vtable_foo_instance)
-      call void @__init___vtable_foo2(ptr @__vtable_foo2_instance)
-      call void @__user_init___vtable_foo(ptr @__vtable_foo_instance)
-      call void @__user_init___vtable_foo2(ptr @__vtable_foo2_instance)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    define void @____vtable_foo2_met1__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
+      call void @__vtable_foo2__ctor(ptr @__vtable_foo2_instance)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }

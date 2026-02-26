@@ -32,8 +32,6 @@ typedef struct {
 
 extern prog_type prog_instance;
 
-void __prog__init(prog_type* self);
-
 void prog(prog_type* self);
 
 #ifdef __cplusplus

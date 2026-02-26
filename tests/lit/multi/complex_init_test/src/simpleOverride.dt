@@ -1,0 +1,6 @@
+TYPE simpleOverride : // Explicit field initializers overriding implicit defaults
+	STRUCT
+		a	: INT := 10;
+		b	: BOOL := TRUE;
+	END_STRUCT
+END_TYPE

@@ -78,32 +78,10 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
     "functions": [
       {
         "return_type": "void",
-        "name": "__fbGreatGrandParent__init",
-        "parameters": [
-          {
-            "data_type": "fbGreatGrandParent_type*",
-            "name": "self",
-            "variable_type": "Default"
-          }
-        ]
-      },
-      {
-        "return_type": "void",
         "name": "fbGreatGrandParent",
         "parameters": [
           {
             "data_type": "fbGreatGrandParent_type*",
-            "name": "self",
-            "variable_type": "Default"
-          }
-        ]
-      },
-      {
-        "return_type": "void",
-        "name": "__fbGrandParent__init",
-        "parameters": [
-          {
-            "data_type": "fbGrandParent_type*",
             "name": "self",
             "variable_type": "Default"
           }
@@ -122,32 +100,10 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
       },
       {
         "return_type": "void",
-        "name": "__fbParent__init",
-        "parameters": [
-          {
-            "data_type": "fbParent_type*",
-            "name": "self",
-            "variable_type": "Default"
-          }
-        ]
-      },
-      {
-        "return_type": "void",
         "name": "fbParent",
         "parameters": [
           {
             "data_type": "fbParent_type*",
-            "name": "self",
-            "variable_type": "Default"
-          }
-        ]
-      },
-      {
-        "return_type": "void",
-        "name": "__fbChild__init",
-        "parameters": [
-          {
-            "data_type": "fbChild_type*",
             "name": "self",
             "variable_type": "Default"
           }

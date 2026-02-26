@@ -1,4 +1,4 @@
-use common::compile_with_native;
+use common::{compile_and_load, get_includes};
 use iec61131std::counters::CTDParams;
 use iec61131std::counters::CTUDParams;
 use iec61131std::counters::CTUParams;
@@ -6,7 +6,6 @@ use iec61131std::counters::CTUParams;
 // Import common functionality into the integration tests
 mod common;
 
-use common::add_std;
 use plc::codegen::CodegenContext;
 
 #[repr(C)]
@@ -37,9 +36,10 @@ fn ctu() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUType::<i16> { ..CTUType::default() };
     // count up
     module.run::<_, ()>("main", &mut main_inst);
@@ -79,9 +79,10 @@ fn ctu_int() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUType::<i16> { ..CTUType::default() };
     // count up
     module.run::<_, ()>("main", &mut main_inst);
@@ -121,9 +122,10 @@ fn ctu_dint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUType::<i32> { ..CTUType::default() };
     // count up
     module.run::<_, ()>("main", &mut main_inst);
@@ -163,9 +165,10 @@ fn ctu_udint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUType::<u32> { ..CTUType::default() };
     // count up
     module.run::<_, ()>("main", &mut main_inst);
@@ -205,9 +208,10 @@ fn ctu_lint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUType::<i64> { ..CTUType::default() };
     // count up
     module.run::<_, ()>("main", &mut main_inst);
@@ -247,9 +251,10 @@ fn ctu_ulint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUType::<u64> { ..CTUType::default() };
     // count up
     module.run::<_, ()>("main", &mut main_inst);
@@ -299,9 +304,10 @@ fn ctd() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<i16> { load: true, ..CTDType::default() };
     // count down
     module.run::<_, ()>("main", &mut main_inst);
@@ -342,9 +348,10 @@ fn ctd_int() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<i16> { load: true, ..CTDType::default() };
     // count down
     module.run::<_, ()>("main", &mut main_inst);
@@ -385,9 +392,10 @@ fn ctd_dint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<i32> { load: true, ..CTDType::default() };
     // count down
     module.run::<_, ()>("main", &mut main_inst);
@@ -428,9 +436,10 @@ fn ctd_udint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<u32> { load: true, ..CTDType::default() };
     // count down
     module.run::<_, ()>("main", &mut main_inst);
@@ -471,9 +480,10 @@ fn ctd_lint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<i64> { load: true, ..CTDType::default() };
     // count down
     module.run::<_, ()>("main", &mut main_inst);
@@ -514,9 +524,10 @@ fn ctd_ulint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTDType::<u64> { load: true, ..CTDType::default() };
     // count down
     module.run::<_, ()>("main", &mut main_inst);
@@ -591,9 +602,10 @@ fn ctud() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUDType::<i16> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     module.run::<_, ()>("main", &mut main_inst);
@@ -666,9 +678,10 @@ fn ctud_int() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUDType::<i16> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     module.run::<_, ()>("main", &mut main_inst);
@@ -741,9 +754,10 @@ fn ctud_dint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUDType::<i32> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     module.run::<_, ()>("main", &mut main_inst);
@@ -816,9 +830,10 @@ fn ctud_udint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUDType::<u32> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     module.run::<_, ()>("main", &mut main_inst);
@@ -891,9 +906,10 @@ fn ctud_lint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUDType::<i64> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     module.run::<_, ()>("main", &mut main_inst);
@@ -966,9 +982,10 @@ fn ctud_ulint() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "counters.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["counters.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = CTUDType::<u64> { load: true, ..CTUDType::default() };
     // 1st call, load PV value
     module.run::<_, ()>("main", &mut main_inst);
