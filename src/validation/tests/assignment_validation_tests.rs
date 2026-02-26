@@ -1674,3 +1674,29 @@ fn assigning_arrays_with_same_size_and_type_class_but_different_inner_type_is_an
        │                 ^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LWORD' to 'ARRAY[0..1] OF LINT'
     ");
 }
+
+#[test]
+fn assigning_adr_to_reference_to_var_must_result_in_validation_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM mainProg
+            VAR
+                refe: REFERENCE TO DINT;
+                myDint : DINT;
+            END_VAR
+
+            myDint := 10;
+            refe := ADR(myDint);
+
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E037]: ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?
+      ┌─ <internal>:9:13
+      │
+    9 │             refe := ADR(myDint);
+      │             ^^^^^^^^^^^^^^^^^^^ ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?
+    ");
+}

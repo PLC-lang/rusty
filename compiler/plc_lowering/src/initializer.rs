@@ -163,7 +163,22 @@ impl AstVisitor for Initializer {
         if !pou.is_stateful() {
             if let Some(return_type) = &pou.return_type {
                 if let Some(return_type_name) = return_type.get_name() {
-                    if self.constructors.contains_key(return_type_name) {
+                    let has_constructor = if self.constructors.contains_key(return_type_name) {
+                        true
+                    } else if self
+                        .index
+                        .as_ref()
+                        .and_then(|idx| idx.find_effective_type_by_name(return_type_name))
+                        .is_some_and(|dt| dt.is_struct() && dt.linkage.is_external_or_included())
+                    {
+                        self.constructors
+                            .entry(return_type_name.to_string())
+                            .or_insert(Body::External(vec![]));
+                        true
+                    } else {
+                        false
+                    };
+                    if has_constructor {
                         let call = create_call_statement(
                             &format!("{}__ctor", return_type_name),
                             pou.get_return_name(),
@@ -202,15 +217,16 @@ impl AstVisitor for Initializer {
     }
 
     fn visit_variable(&mut self, variable: &plc_ast::ast::Variable) {
-        // grab the index
-        let index = self.index.as_ref().expect("index is set at this stage");
         let variable_block_type =
             self.context.current_variable_block.expect("variable block is set at this stage");
-        // Find if the parent is stateful
-        let is_stateful = if let Some(pou_name) = &self.context.current_pou {
-            index.find_pou(pou_name).is_some_and(|it| it.is_stateful())
-        } else {
-            true
+        // Find if the parent is stateful (scope the index borrow)
+        let is_stateful = {
+            let index = self.index.as_ref().expect("index is set at this stage");
+            if let Some(pou_name) = &self.context.current_pou {
+                index.find_pou(pou_name).is_some_and(|it| it.is_stateful())
+            } else {
+                true
+            }
         };
         let mut stmts = vec![];
         let base = Self::get_base_ident(&variable_block_type, is_stateful);
@@ -226,6 +242,7 @@ impl AstVisitor for Initializer {
         // Determine if we need to create an initializer
         // For alias/reference variables (AT x), if there's no explicit initializer, we use the AT target (address)
         // BUT only if the address is a simple identifier (not a hardware address like %I* or %QX1.2.1)
+        let index = self.index.as_ref().expect("index is set at this stage");
         let initializer_to_use = if variable.initializer.is_some() {
             variable.initializer.as_ref()
         } else if is_alias_or_reference_variable(variable, index)
@@ -331,7 +348,18 @@ impl AstVisitor for Initializer {
         // This handles typedef chains like: mysubtype2 -> mysubtype -> mytypedefstruct
         if let DataType::SubRangeType { referenced_type, bounds: None, .. } = &user_type.data_type {
             // This is a typedef (alias) without bounds - call the parent constructor
-            if self.constructors.contains_key(referenced_type) {
+            let has_parent_ctor = if self.constructors.contains_key(referenced_type) {
+                true
+            } else if index
+                .find_effective_type_by_name(referenced_type)
+                .is_some_and(|dt| dt.is_struct() && dt.linkage.is_external_or_included())
+            {
+                self.constructors.entry(referenced_type.to_string()).or_insert(Body::External(vec![]));
+                true
+            } else {
+                false
+            };
+            if has_parent_ctor {
                 let parent_ctor_call = create_call_statement(
                     &format!("{}__ctor", referenced_type),
                     "self",
@@ -362,7 +390,19 @@ impl AstVisitor for Initializer {
             for variable in variables.iter() {
                 // First, check if the field's type has a constructor and generate a call if needed
                 if let Some(type_name) = variable.data_type_declaration.get_referenced_type() {
-                    if self.constructors.contains_key(type_name) {
+                    let has_constructor = if self.constructors.contains_key(type_name) {
+                        true
+                    } else if index
+                        .find_effective_type_by_name(type_name)
+                        .is_some_and(|dt| dt.is_struct() && dt.linkage.is_external_or_included())
+                    {
+                        // Struct type from an included/external unit — register an external constructor declaration
+                        self.constructors.entry(type_name.to_string()).or_insert(Body::External(vec![]));
+                        true
+                    } else {
+                        false
+                    };
+                    if has_constructor {
                         let call = create_call_statement(
                             &format!("{}__ctor", type_name),
                             variable.get_name(),
@@ -693,11 +733,32 @@ impl Initializer {
         }
     }
 
-    fn get_constructor_call(&self, type_name: &str, base: Option<&str>, var_name: &str) -> Option<AstNode> {
+    fn get_constructor_call(
+        &mut self,
+        type_name: &str,
+        base: Option<&str>,
+        var_name: &str,
+    ) -> Option<AstNode> {
         let should_create_call = if self.constructors.contains_key(type_name) {
             true
+        } else if self
+            .index
+            .as_ref()
+            .and_then(|idx| idx.find_pou(type_name))
+            .is_some_and(|pou| pou.is_stateful())
+        {
+            true
+        } else if self
+            .index
+            .as_ref()
+            .and_then(|idx| idx.find_effective_type_by_name(type_name))
+            .is_some_and(|dt| dt.is_struct() && dt.linkage.is_external_or_included())
+        {
+            // Struct type from an included/external unit — register an external constructor declaration
+            self.constructors.entry(type_name.to_string()).or_insert(Body::External(vec![]));
+            true
         } else {
-            self.index.as_ref().and_then(|idx| idx.find_pou(type_name)).is_some_and(|pou| pou.is_stateful())
+            false
         };
 
         if should_create_call {
@@ -1192,6 +1253,32 @@ mod tests {
         extern:
         self.a := 5
         self.b := TRUE
+        ");
+    }
+
+    #[test]
+    fn external_struct_ctor_called_in_program() {
+        let src = r#"
+        {external}
+        TYPE MyExtStruct : STRUCT
+            a : INT := 5;
+            b : BOOL := TRUE;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM MyProgram
+        VAR
+            extVar : MyExtStruct;
+        END_VAR
+        END_PROGRAM
+        "#;
+
+        let initializer = parse_and_init(src);
+        // Check for program constructor
+        // Expecting a call to MyExtStruct__ctor(&extVar);
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyProgram").unwrap()), @"
+        intern:
+        MyExtStruct__ctor(self.extVar)
         ");
     }
 

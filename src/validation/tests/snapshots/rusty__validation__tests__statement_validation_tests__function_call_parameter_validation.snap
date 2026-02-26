@@ -32,12 +32,6 @@ error[E037]: Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
 25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
    │                                 ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REF_TO WSTRING' to 'DINT'
 
-warning[E067]: Implicit downcast from 'REAL' to 'DINT'.
-   ┌─ <internal>:25:60
-   │
-25 │             foo(input1 := var2, inout1 := var3, output1 => var4); // invalid types assigned
-   │                                                            ^^^^ Implicit downcast from 'REAL' to 'DINT'.
-
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:27:17
    │

@@ -55,7 +55,289 @@ fn test_global_var_enum_added_to_debug_info() {
     "#,
     );
 
-    filtered_assert_snapshot!(codegen)
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @en3 = global i64 0, !dbg !0
+    @en1.a = unnamed_addr constant i32 0
+    @en1.b = unnamed_addr constant i32 1
+    @en1.c = unnamed_addr constant i32 2
+    @en2.d = unnamed_addr constant i8 0
+    @en2.e = unnamed_addr constant i8 1
+    @en2.f = unnamed_addr constant i8 2
+    @__global_en3.a = unnamed_addr constant i64 0
+    @__global_en3.b = unnamed_addr constant i64 1
+    @__global_en3.c = unnamed_addr constant i64 2
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @en1__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @en2__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__global_en3__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__global_en3__ctor(ptr @en3)
+      ret void
+    }
+
+    !llvm.module.flags = !{!9, !10}
+    !llvm.dbg.cu = !{!11}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "en3", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "__global_en3", scope: !2, file: !2, line: 5, baseType: !4, size: 64, align [filtered], elements: !5)
+    !4 = !DIBasicType(name: "LINT", size: 64, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !5 = !{!6, !7, !8}
+    !6 = !DIEnumerator(name: "a", value: 0)
+    !7 = !DIEnumerator(name: "b", value: 1)
+    !8 = !DIEnumerator(name: "c", value: 2)
+    !9 = !{i32 2, !"Dwarf Version", i32 5}
+    !10 = !{i32 2, !"Debug Info Version", i32 3}
+    !11 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !12, globals: !21, splitDebugInlining: false)
+    !12 = !{!3, !13, !15}
+    !13 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "en1", scope: !2, file: !2, line: 2, baseType: !14, size: 32, align [filtered], elements: !5)
+    !14 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !15 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "en2", scope: !2, file: !2, line: 3, baseType: !16, size: 8, align [filtered], elements: !17)
+    !16 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !17 = !{!18, !19, !20}
+    !18 = !DIEnumerator(name: "d", value: 0, isUnsigned: true)
+    !19 = !DIEnumerator(name: "e", value: 1, isUnsigned: true)
+    !20 = !DIEnumerator(name: "f", value: 2, isUnsigned: true)
+    !21 = !{!0}
+    "#)
+}
+
+#[test]
+fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
+    // Test enums with explicit values: non-sequential, negative, and mixed implicit/explicit
+    let codegen = codegen(
+        r#"
+    TYPE Colors : (Red := 10, Green := 20, Blue := 30); END_TYPE
+    TYPE Status : INT (Error := -1, Ok := 0, Pending := 1); END_TYPE
+    TYPE Flags : BYTE (None := 0, Read := 4, Write := 8, Execute := 16); END_TYPE
+    VAR_GLOBAL
+        color : Colors;
+        status : Status;
+        flags : Flags;
+    END_VAR
+    "#,
+    );
+
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @color = global i32 10, !dbg !0
+    @status = global i16 0, !dbg !9
+    @flags = global i8 0, !dbg !17
+    @Colors.Red = unnamed_addr constant i32 10
+    @Colors.Green = unnamed_addr constant i32 20
+    @Colors.Blue = unnamed_addr constant i32 30
+    @Status.Error = unnamed_addr constant i16 -1
+    @Status.Ok = unnamed_addr constant i16 0
+    @Status.Pending = unnamed_addr constant i16 1
+    @Flags.None = unnamed_addr constant i8 0
+    @Flags.Read = unnamed_addr constant i8 4
+    @Flags.Write = unnamed_addr constant i8 8
+    @Flags.Execute = unnamed_addr constant i8 16
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @Colors__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @Status__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @Flags__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @Colors__ctor(ptr @color)
+      call void @Status__ctor(ptr @status)
+      call void @Flags__ctor(ptr @flags)
+      ret void
+    }
+
+    !llvm.module.flags = !{!26, !27}
+    !llvm.dbg.cu = !{!28}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "color", scope: !2, file: !2, line: 6, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Colors", scope: !2, file: !2, line: 2, baseType: !4, size: 32, align [filtered], elements: !5)
+    !4 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !5 = !{!6, !7, !8}
+    !6 = !DIEnumerator(name: "Red", value: 10)
+    !7 = !DIEnumerator(name: "Green", value: 20)
+    !8 = !DIEnumerator(name: "Blue", value: 30)
+    !9 = !DIGlobalVariableExpression(var: !10, expr: !DIExpression())
+    !10 = distinct !DIGlobalVariable(name: "status", scope: !2, file: !2, line: 7, type: !11, isLocal: false, isDefinition: true)
+    !11 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Status", scope: !2, file: !2, line: 3, baseType: !12, size: 16, align [filtered], elements: !13)
+    !12 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !13 = !{!14, !15, !16}
+    !14 = !DIEnumerator(name: "Error", value: -1)
+    !15 = !DIEnumerator(name: "Ok", value: 0)
+    !16 = !DIEnumerator(name: "Pending", value: 1)
+    !17 = !DIGlobalVariableExpression(var: !18, expr: !DIExpression())
+    !18 = distinct !DIGlobalVariable(name: "flags", scope: !2, file: !2, line: 8, type: !19, isLocal: false, isDefinition: true)
+    !19 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Flags", scope: !2, file: !2, line: 4, baseType: !20, size: 8, align [filtered], elements: !21)
+    !20 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !21 = !{!22, !23, !24, !25}
+    !22 = !DIEnumerator(name: "None", value: 0, isUnsigned: true)
+    !23 = !DIEnumerator(name: "Read", value: 4, isUnsigned: true)
+    !24 = !DIEnumerator(name: "Write", value: 8, isUnsigned: true)
+    !25 = !DIEnumerator(name: "Execute", value: 16, isUnsigned: true)
+    !26 = !{i32 2, !"Dwarf Version", i32 5}
+    !27 = !{i32 2, !"Debug Info Version", i32 3}
+    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !29, globals: !30, splitDebugInlining: false)
+    !29 = !{!3, !11, !19}
+    !30 = !{!0, !9, !17}
+    "#)
+}
+
+#[test]
+fn test_global_var_struct_with_enum_members_added_to_debug_info() {
+    // Test structs containing enum fields to verify composite type interaction
+    let codegen = codegen(
+        r#"
+    TYPE Status : (Idle, Running, Error); END_TYPE
+    TYPE Priority : BYTE (Low := 1, Medium := 5, High := 10); END_TYPE
+
+    TYPE Device : STRUCT
+        id : DINT;
+        status : Status;
+        priority : Priority;
+        name : STRING;
+    END_STRUCT
+    END_TYPE
+
+    VAR_GLOBAL
+        device : Device;
+    END_VAR
+    "#,
+    );
+
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %Device = type { i32, i32, i8, [81 x i8] }
+
+    @device = global %Device { i32 0, i32 0, i8 1, [81 x i8] zeroinitializer }, !dbg !0
+    @Status.Idle = unnamed_addr constant i32 0
+    @Status.Running = unnamed_addr constant i32 1
+    @Status.Error = unnamed_addr constant i32 2
+    @Priority.Low = unnamed_addr constant i8 1
+    @Priority.Medium = unnamed_addr constant i8 5
+    @Priority.High = unnamed_addr constant i8 10
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @Status__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @Priority__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @Device__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %status = getelementptr inbounds nuw %Device, ptr %deref, i32 0, i32 1
+      call void @Status__ctor(ptr %status)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %priority = getelementptr inbounds nuw %Device, ptr %deref1, i32 0, i32 2
+      call void @Priority__ctor(ptr %priority)
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @Device__ctor(ptr @device)
+      ret void
+    }
+
+    !llvm.module.flags = !{!26, !27}
+    !llvm.dbg.cu = !{!28}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "device", scope: !2, file: !2, line: 14, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "Device", scope: !2, file: !2, line: 5, size: 736, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "Device")
+    !4 = !{!5, !7, !13, !20}
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "id", scope: !2, file: !2, line: 6, baseType: !6, size: 32, align [filtered], flags: DIFlagPublic)
+    !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !7 = !DIDerivedType(tag: DW_TAG_member, name: "status", scope: !2, file: !2, line: 7, baseType: !8, size: 32, align [filtered], offset: 32, flags: DIFlagPublic)
+    !8 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Status", scope: !2, file: !2, line: 2, baseType: !6, size: 32, align [filtered], elements: !9)
+    !9 = !{!10, !11, !12}
+    !10 = !DIEnumerator(name: "Idle", value: 0)
+    !11 = !DIEnumerator(name: "Running", value: 1)
+    !12 = !DIEnumerator(name: "Error", value: 2)
+    !13 = !DIDerivedType(tag: DW_TAG_member, name: "priority", scope: !2, file: !2, line: 8, baseType: !14, size: 8, align [filtered], offset: 64, flags: DIFlagPublic)
+    !14 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Priority", scope: !2, file: !2, line: 3, baseType: !15, size: 8, align [filtered], elements: !16)
+    !15 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !16 = !{!17, !18, !19}
+    !17 = !DIEnumerator(name: "Low", value: 1, isUnsigned: true)
+    !18 = !DIEnumerator(name: "Medium", value: 5, isUnsigned: true)
+    !19 = !DIEnumerator(name: "High", value: 10, isUnsigned: true)
+    !20 = !DIDerivedType(tag: DW_TAG_member, name: "name", scope: !2, file: !2, line: 9, baseType: !21, size: 648, align [filtered], offset: 72, flags: DIFlagPublic)
+    !21 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !22, align [filtered])
+    !22 = !DICompositeType(tag: DW_TAG_array_type, baseType: !23, size: 648, align [filtered], elements: !24)
+    !23 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !24 = !{!25}
+    !25 = !DISubrange(count: 81, lowerBound: 0)
+    !26 = !{i32 2, !"Dwarf Version", i32 5}
+    !27 = !{i32 2, !"Debug Info Version", i32 3}
+    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !29, globals: !30, splitDebugInlining: false)
+    !29 = !{!8, !14}
+    !30 = !{!0}
+    "#)
 }
 
 #[test]
