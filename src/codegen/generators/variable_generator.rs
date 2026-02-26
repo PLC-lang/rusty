@@ -89,8 +89,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             })?;
             index.associate_global(name, global_variable)?;
 
-            if !self.global_index.is_enum_variant(variable.get_qualified_name())
-            {
+            if !self.global_index.is_enum_variant(variable.get_qualified_name()) {
                 // generate debug info for non-enum-variant variables
                 self.debug.create_global_variable(
                     variable.get_qualified_name(),
