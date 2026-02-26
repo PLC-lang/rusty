@@ -508,7 +508,7 @@ pub(super) fn get_user_init_fn_name(type_name: &str) -> String {
 
 /// Creates an assignment of form `self.__vtable := ADR(__vtable_<pou_name>_instance)`. This is required to
 /// initialize the virtual table of a class or function block. For more information refere to
-/// [`crate::lowering::vtable`] and [`crate::lowering::polymorphism`].
+/// [`crate::lowering::polymorphism::table`] and [`crate::lowering::polymorphism::dispatch`].
 fn create_vtable_initializer(lowerer: &InitVisitor, ids: &mut IdProvider, pou_name: &str) -> Option<AstNode> {
     let pou = lowerer.index.find_pou(pou_name)?;
     if !(pou.is_class() || pou.is_function_block()) {

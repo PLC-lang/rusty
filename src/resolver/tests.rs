@@ -10,4 +10,5 @@ mod resolve_generic_calls;
 mod resolve_literals_tests;
 mod resolver_dependency_resolution;
 
+mod interface_types;
 mod resolver_test_util;

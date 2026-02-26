@@ -527,7 +527,7 @@ fn overriding_property_in_interface_with_different_datatype_is_not_ok() {
 
     // We extend the property by a SET accessor in this interface, but with the wrong datatype
     INTERFACE intf2 EXTENDS intf1
-        PROPERTY prop : STRING 
+        PROPERTY prop : STRING
             SET END_SET
         END_PROPERTY
     END_INTERFACE
@@ -542,7 +542,7 @@ fn overriding_property_in_interface_with_different_datatype_is_not_ok() {
        ·
      9 │     INTERFACE intf2 EXTENDS intf1
        │               ^^^^^ Property `prop` defined in interface `intf1` and `intf2` have different datatypes
-    10 │         PROPERTY prop : STRING 
+    10 │         PROPERTY prop : STRING
        │                         ------ see also
     ");
 }
@@ -602,12 +602,12 @@ fn multiple_levels() {
         END_PROPERTY
     END_INTERFACE
 
-    INTERFACE D EXTENDS C
+    INTERFACE DD EXTENDS C
         PROPERTY propD : DINT
             GET END_GET
         END_PROPERTY
     END_INTERFACE
-    
+
     // All of these are overrides with different signatures
     INTERFACE E EXTENDS B, C, A
         PROPERTY propA : REAL
@@ -616,7 +616,7 @@ fn multiple_levels() {
         END_PROPERTY
 
         PROPERTY propB : STRING
-            GET END_GET 
+            GET END_GET
             SET END_SET
         END_PROPERTY
 

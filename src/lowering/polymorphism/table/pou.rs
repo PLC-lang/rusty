@@ -57,14 +57,14 @@
 //! example we would generate the following two variables
 //! ```text
 //! VAR_GLOBAL
-//!     __vtable_instance_A: __vtable_A;
-//!     __vtable_instance_B: __vtable_B;
+//!     __vtable_A_instance: __vtable_A;
+//!     __vtable_B_instance: __vtable_B;
 //! END_VAR
 //! ```
 //! These global variables will later be assigned in the [`crate::lowering::initializers`] module.
 //!
 //! Note that the actual lowering of method calls to make use of these virtual tables will happen in the
-//! [`crate::lowering::polymorphism`] module.
+//! [`crate::lowering::polymorphism::dispatch`] module.
 
 use plc_ast::{
     ast::{
@@ -294,7 +294,9 @@ mod tests {
     use itertools::Itertools;
     use plc_ast::{ast::DataType, provider::IdProvider};
 
-    use crate::{lowering::vtable::VirtualTableGenerator, test_utils::tests::index_with_ids};
+    use crate::{
+        lowering::polymorphism::table::pou::VirtualTableGenerator, test_utils::tests::index_with_ids,
+    };
 
     #[test]
     fn root_pou_has_vtable_member_field() {

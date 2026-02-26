@@ -591,17 +591,21 @@ impl<'ink> DebugBuilder<'ink> {
             return Ok(self.create_forward_declaration(dt_name));
         }
 
-        // Try to register the type. If it fails or doesn't get added to the types map,
-        // return a forward declaration instead of erroring. This makes the debug info
-        // resilient to synthetic/compiler-generated types that may not have full debug info.
+        // Try to register the type.
         let _ = self.register_debug_type(dt_name, dt, index, types_index);
 
-        // If the type was registered, return it; otherwise return a forward declaration
+        // If the type was registered, return it; otherwise report it as unavailable.
+        // This can happen for compiler-internal / synthetic types (e.g. __FATPOINTER)
+        // whose source location is internal and are therefore intentionally excluded
+        // from debug info.
         if let Some(debug_type) = self.types.get(&key) {
             Ok(*debug_type)
         } else {
-            log::trace!("Type {dt_name} not found in debug types, using forward declaration");
-            Ok(self.create_forward_declaration(dt_name))
+            log::trace!("Type {dt_name} has no debug info, skipping");
+            Err(Diagnostic::codegen_error(
+                format!("No debug type registered for internal type {dt_name}"),
+                SourceLocation::internal(),
+            ))
         }
     }
 
@@ -758,14 +762,7 @@ impl<'ink> DebugBuilder<'ink> {
 
         let parameter_types = parameter_types
             .iter()
-            .map(|dt| {
-                self.types
-                    .get(dt.get_name().to_lowercase().as_str())
-                    .copied()
-                    .map(Into::into)
-                    .unwrap_or_else(|| panic!("Cound not find debug type information for {}", dt.get_name()))
-                //Types should be created by this stage
-            })
+            .filter_map(|dt| self.types.get(dt.get_name().to_lowercase().as_str()).copied().map(Into::into))
             .collect::<Vec<DIType>>();
 
         self.debug_info.create_subroutine_type(file, return_type, &parameter_types, DIFlagsConstants::PUBLIC)

@@ -696,20 +696,20 @@ fn duplicate_interfaces() {
 
     let diagnostics = parse_and_validate_buffered(source);
     assert_snapshot!(diagnostics, @r"
-    error[E004]: foo: Ambiguous interface
+    error[E004]: foo: Ambiguous datatype.
       ┌─ <internal>:2:15
       │
     2 │     INTERFACE foo /* ... */ END_INTERFACE
-      │               ^^^ foo: Ambiguous interface
+      │               ^^^ foo: Ambiguous datatype.
     3 │     INTERFACE foo /* ... */ END_INTERFACE
       │               --- see also
 
-    error[E004]: foo: Ambiguous interface
+    error[E004]: foo: Ambiguous datatype.
       ┌─ <internal>:3:15
       │
     2 │     INTERFACE foo /* ... */ END_INTERFACE
       │               --- see also
     3 │     INTERFACE foo /* ... */ END_INTERFACE
-      │               ^^^ foo: Ambiguous interface
+      │               ^^^ foo: Ambiguous datatype.
     ");
 }

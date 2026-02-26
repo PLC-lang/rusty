@@ -18,7 +18,6 @@ pub mod calls;
 mod initializers;
 pub mod polymorphism;
 pub mod property;
-pub mod vtable;
 
 pub struct InitVisitor {
     index: Index,
