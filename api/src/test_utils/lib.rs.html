@@ -3,7 +3,7 @@
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>driver::{cli, pipelines::BuildPipeline};
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>plc::{linker::LinkerType, DebugLevel};
 <a href=#5 id=5 data-nosnippet>5</a><span class="kw">use </span>plc_ast::ast::CompilationUnit;
-<a href=#6 id=6 data-nosnippet>6</a><span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, reporter::DiagnosticReporter};
+<a href=#6 id=6 data-nosnippet>6</a><span class="kw">use </span>plc_diagnostics::diagnostician::Diagnostician;
 <a href=#7 id=7 data-nosnippet>7</a><span class="kw">use </span>plc_index::GlobalContext;
 <a href=#8 id=8 data-nosnippet>8</a><span class="kw">use </span>plc_source::SourceCode;
 <a href=#9 id=9 data-nosnippet>9</a><span class="kw">use </span>project::project::Project;
@@ -37,7 +37,7 @@
 <a href=#37 id=37 data-nosnippet>37</a>            project.validate(<span class="kw-2">&amp;</span>pipeline.context, <span class="kw-2">&amp;mut </span>pipeline.diagnostician).unwrap();
 <a href=#38 id=38 data-nosnippet>38</a>            project.units.into_iter().map(CompilationUnit::from).collect()
 <a href=#39 id=39 data-nosnippet>39</a>        }
-<a href=#40 id=40 data-nosnippet>40</a>        <span class="prelude-val">Err</span>(diagnostician) =&gt; <span class="macro">panic!</span>(<span class="string">"{}"</span>, diagnostician.buffer().unwrap()),
+<a href=#40 id=40 data-nosnippet>40</a>        <span class="prelude-val">Err</span>(diagnostics) =&gt; <span class="macro">panic!</span>(<span class="string">"{diagnostics}"</span>),
 <a href=#41 id=41 data-nosnippet>41</a>    }
 <a href=#42 id=42 data-nosnippet>42</a>}
 <a href=#43 id=43 data-nosnippet>43</a>

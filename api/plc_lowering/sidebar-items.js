@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["inheritance"]};
+window.SIDEBAR_ITEMS = {"mod":["inheritance","initializer"]};

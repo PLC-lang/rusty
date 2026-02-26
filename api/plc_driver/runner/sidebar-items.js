@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["compile","compile_and_run","compile_and_run_no_params"],"struct":["MainType"]};
+window.SIDEBAR_ITEMS = {"fn":["compile","compile_and_run","compile_and_run_no_params","compile_with_includes"],"struct":["MainType"]};

@@ -116,9 +116,9 @@
 <a href=#116 id=116 data-nosnippet>116</a>                        <span class="bool-val">true</span>,
 <a href=#117 id=117 data-nosnippet>117</a>                    );
 <a href=#118 id=118 data-nosnippet>118</a>
-<a href=#119 id=119 data-nosnippet>119</a>                    <span class="kw">if </span>input.first().is_some_and(|opt| opt.is_assignment()){
-<a href=#120 id=120 data-nosnippet>120</a>                        annotator.annotation_map.annotate_type_hint(actual_input, StatementAnnotation::value(input_type));
-<a href=#121 id=121 data-nosnippet>121</a>                    }
+<a href=#119 id=119 data-nosnippet>119</a>                    annotator
+<a href=#120 id=120 data-nosnippet>120</a>                        .annotation_map
+<a href=#121 id=121 data-nosnippet>121</a>                        .annotate_type_hint(actual_input, StatementAnnotation::value(input_type));
 <a href=#122 id=122 data-nosnippet>122</a>                    annotator.annotate(
 <a href=#123 id=123 data-nosnippet>123</a>                        operator, resolver::StatementAnnotation::Function {
 <a href=#124 id=124 data-nosnippet>124</a>                            return_type: ptr_type, qualified_name: <span class="string">"REF"</span>.to_string(), generic_name: <span class="prelude-val">None</span>, call_name: <span class="prelude-val">None

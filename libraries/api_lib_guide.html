@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-9b2d60f1.js";
+            window.path_to_searchindex_js = "../searchindex-22fcdcb0.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-e2cbc6b4.js"></script>
@@ -473,13 +473,6 @@ pub struct myStruct {
 } myFunctionBlock;
 </code></pre>
 <ol start="2">
-<li>ruSTy expects a default-initializer to be present to initialize instances on the stack
-(<code>VAR_TEMP</code> blocks or <code>VAR</code> blocks in functions or methods)</li>
-</ol>
-<p>This global instance follows the naming scheme of <code>__&lt;FunctionBlockName&gt;__init</code>, below is an example of a zero-initializer:</p>
-<pre><code class="language-c">myFunctionBlock __myFunctionBlock__init = { 0 };
-</code></pre>
-<ol start="3">
 <li>Optionally create an initialization function following the naming pattern <code>&lt;FunctionBlockName&gt;__FB_INIT</code>:</li>
 </ol>
 <pre><code class="language-c">void myFunctionBlock__FB_INIT(myFunctionBlock* fb_instance) {
@@ -490,7 +483,7 @@ pub struct myStruct {
     // ...perform any other needed initialization
 }
 </code></pre>
-<ol start="4">
+<ol start="3">
 <li>In your IEC61131-3 declaration (e.g., in a header file [<code>*.pli</code>]), ensure your <code>FUNCTION_BLOCK</code> includes the <code>FB_INIT</code> method (if present):</li>
 </ol>
 <pre><code>{external}
@@ -504,6 +497,44 @@ END_VAR
 END_FUNCTION_BLOCK
 </code></pre>
 <p>Note that the <code>FB_INIT</code> method doesn’t need implementation details in the IEC61131-3 declaration when using an external implementation - the declaration just signals that initialization is available.</p>
+<h4 id="constructor-flags-for-external-libraries"><a class="header" href="#constructor-flags-for-external-libraries">Constructor flags for external libraries</a></h4>
+<p>ruSTy generates constructor functions (<code>__ctor</code>) for initialization of stateful types.</p>
+<p>Use these flags depending on how you build and link external code:</p>
+<ul>
+<li>
+<p><code>--constructors-only</code></p>
+<ul>
+<li>Use this when building an external library and you only want the compiler-generated constructors.</li>
+<li>This emits ctor symbols without emitting user-defined bodies. Link the resulting object into your C/C++ shared library.</li>
+<li>This flag implies <code>--generate-external-constructors</code>.</li>
+</ul>
+</li>
+<li>
+<p><code>--generate-external-constructors</code></p>
+<ul>
+<li>Use this when compiling the final PLC application and you want constructors for <code>{external}</code> units to be emitted alongside normal code generation.</li>
+<li>This is the typical mode when your project includes external declarations (<code>.pli</code>) and you link a shared library that provides the implementations.</li>
+</ul>
+</li>
+</ul>
+<p>Example workflow:</p>
+<pre><code class="language-bash"># 1) Build constructor object for the external library
+plc --constructors-only -c -o libext_ctor.o -i "stdlib/include/*.st" my_lib.pli
+
+# 2) Build and ship your shared library
+gcc -shared -fPIC -o libext.so my_lib.c libext_ctor.o
+
+# 3) Build the PLC application, generating constructors for externals
+plc -L. -lext -i my_lib.pli --generate-external-constructors app.st
+</code></pre>
+<p>Mixed Rust + ST example (stdlib build):</p>
+<pre><code class="language-bash"># Compile the ST sources into a single object with constructors
+plc iec61131-st/*.st -c --generate-external-constructors -o st.o
+
+# Archive for static linking
+ar crs libst.a st.o
+</code></pre>
+<p>This mirrors <code>libs/stdlib/build.rs</code> and is the recommended approach when your library includes ST implementations (not just external declarations).</p>
 <h4 id="project-wide-initialization"><a class="header" href="#project-wide-initialization">Project-wide initialization</a></h4>
 <p>See <a href="../using_rusty.html#project-wide-initialization">Project-wide initialization</a></p>
 

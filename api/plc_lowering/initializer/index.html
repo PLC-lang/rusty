@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The initializer lowering module generates constructor functions (`__ctor`) for every user-defined type and POU in a compilation unit. It traverses the AST to collect initialization logic and injects it as new POU definitions before code generation."><title>plc_lowering::initializer - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_lowering" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module initializer</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../plc_lowering/index.html">plc_<wbr>lowering</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module initializer</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#constructor-generation" title="Constructor generation">Constructor generation</a></li><li><a href="#global-initialization" title="Global initialization">Global initialization</a></li><li><a href="#stateless-pous" title="Stateless POUs">Stateless POUs</a></li><li><a href="#linkage-behavior" title="Linkage behavior">Linkage behavior</a></li><li><a href="#user-defined-constructors" title="User-defined constructors">User-defined constructors</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate plc_<wbr>lowering</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">plc_lowering</a></div><h1>Module <span>initializer</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/plc_lowering/initializer.rs.html#1-1802">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The initializer lowering module generates constructor functions (<code>__ctor</code>) for every
+user-defined type and POU in a compilation unit. It traverses the AST to collect
+initialization logic and injects it as new POU definitions before code generation.</p>
+<h3 id="constructor-generation"><a class="doc-anchor" href="#constructor-generation">§</a>Constructor generation</h3>
+<ul>
+<li>Every user-defined type and stateful POU gets a constructor named <code>&lt;TypeName&gt;__ctor</code>.
+The constructor body contains assignments for fields with initializers and calls to
+nested type constructors.</li>
+<li>For types defined in other compilation units (sibling files, included or external units),
+constructor calls are emitted but no constructor POU is generated — codegen and the
+linker resolve the actual definition.</li>
+</ul>
+<h3 id="global-initialization"><a class="doc-anchor" href="#global-initialization">§</a>Global initialization</h3>
+<ul>
+<li>Global variables are initialized in a per-module function called <code>__unit_&lt;name&gt;__ctor</code>,
+registered via LLVM’s <code>.init_array</code> for automatic execution at startup.</li>
+</ul>
+<h3 id="stateless-pous"><a class="doc-anchor" href="#stateless-pous">§</a>Stateless POUs</h3>
+<ul>
+<li>Functions and methods do not have persistent state. Their local variables are initialized
+on each call via a “stack constructor” that is prepended to the function body.</li>
+</ul>
+<h3 id="linkage-behavior"><a class="doc-anchor" href="#linkage-behavior">§</a>Linkage behavior</h3>
+<ul>
+<li><strong>Included</strong> (<code>-i</code>) types come from pre-built libraries. Their constructors are generated
+when the library itself is compiled, so this module only emits a declaration (<code>Body::External</code>)
+for them — never a definition.</li>
+<li><strong>External</strong> types are defined in the same project but written in a different language (e.g. C).
+By default they get <code>Body::External</code> (declared). With <code>--generate-external-constructors</code>,
+the compiler generates constructor definitions for them as well.</li>
+<li><strong>Built-in</strong> types get <code>Body::None</code> (no constructor generated).</li>
+<li>External variables are not re-initialized; they are assumed to be initialized externally.</li>
+</ul>
+<h3 id="user-defined-constructors"><a class="doc-anchor" href="#user-defined-constructors">§</a>User-defined constructors</h3>
+<ul>
+<li>Stateful POUs may define an <code>FB_INIT</code> method that is called after the generated
+constructor body, acting as a user-defined initialization hook.</li>
+</ul>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Initializer.html" title="struct plc_lowering::initializer::Initializer">Initializer</a></dt></dl></section></div></main></body></html>

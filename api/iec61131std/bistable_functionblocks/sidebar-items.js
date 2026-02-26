@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["RS","SR"],"static":["__RS__init","__SR__init","__vtable_RS","__vtable_SR"],"struct":["SetResetParams","VTable"]};
+window.SIDEBAR_ITEMS = {"fn":["RS","SR"],"struct":["SetResetParams"]};

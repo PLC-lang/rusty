@@ -5,33 +5,34 @@
 <a href=#5 id=5 data-nosnippet>5</a><span class="kw">use </span>plc_ast::{ast::AstNode, provider::IdProvider};
 <a href=#6 id=6 data-nosnippet>6</a>
 <a href=#7 id=7 data-nosnippet>7</a><span class="kw">pub mod </span>inheritance;
-<a href=#8 id=8 data-nosnippet>8</a><span class="attr">#[cfg(test)]
-<a href=#9 id=9 data-nosnippet>9</a></span><span class="kw">mod </span>tests;
-<a href=#10 id=10 data-nosnippet>10</a>
-<a href=#11 id=11 data-nosnippet>11</a><span class="comment">// TODO: implement `AnnotationMap` trait or create a new one for lowering
-<a href=#12 id=12 data-nosnippet>12</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>LoweringResolver&lt;<span class="lifetime">'rslv</span>&gt; {
-<a href=#13 id=13 data-nosnippet>13</a>    index: <span class="kw-2">&amp;</span><span class="lifetime">'rslv </span>Index,
-<a href=#14 id=14 data-nosnippet>14</a>    ctx: VisitorContext&lt;<span class="lifetime">'rslv</span>&gt;,
-<a href=#15 id=15 data-nosnippet>15</a>}
-<a href=#16 id=16 data-nosnippet>16</a>
-<a href=#17 id=17 data-nosnippet>17</a><span class="kw">impl</span>&lt;<span class="lifetime">'rslv</span>&gt; LoweringResolver&lt;<span class="lifetime">'rslv</span>&gt; {
-<a href=#18 id=18 data-nosnippet>18</a>    <span class="kw">pub fn </span>new(index: <span class="kw-2">&amp;</span><span class="lifetime">'rslv </span>Index, id_provider: IdProvider) -&gt; <span class="self">Self </span>{
-<a href=#19 id=19 data-nosnippet>19</a>        <span class="kw">let </span><span class="kw-2">mut </span>ctx = VisitorContext::default();
-<a href=#20 id=20 data-nosnippet>20</a>        ctx.id_provider = id_provider;
-<a href=#21 id=21 data-nosnippet>21</a>        <span class="kw">let </span>ctx = ctx.with_resolving_strategy(ResolvingStrategy::default_scopes());
-<a href=#22 id=22 data-nosnippet>22</a>        <span class="self">Self </span>{ index, ctx }
-<a href=#23 id=23 data-nosnippet>23</a>    }
-<a href=#24 id=24 data-nosnippet>24</a>
-<a href=#25 id=25 data-nosnippet>25</a>    <span class="kw">pub fn </span>with_pou(<span class="kw-2">mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span><span class="lifetime">'rslv </span>str) -&gt; <span class="self">Self </span>{
-<a href=#26 id=26 data-nosnippet>26</a>        <span class="self">self</span>.ctx = <span class="self">self</span>.ctx.with_pou(pou);
-<a href=#27 id=27 data-nosnippet>27</a>        <span class="self">self
-<a href=#28 id=28 data-nosnippet>28</a>    </span>}
-<a href=#29 id=29 data-nosnippet>29</a>
-<a href=#30 id=30 data-nosnippet>30</a>    <span class="doccomment">/// Resolves and annotates the given statement and returns the annotation map.
-<a href=#31 id=31 data-nosnippet>31</a>    </span><span class="kw">pub fn </span>resolve_statement(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstNode) -&gt; AnnotationMapImpl {
-<a href=#32 id=32 data-nosnippet>32</a>        <span class="kw">let </span><span class="kw-2">mut </span>annotator = TypeAnnotator::new(<span class="self">self</span>.index);
-<a href=#33 id=33 data-nosnippet>33</a>        annotator.visit_statement(<span class="kw-2">&amp;</span><span class="self">self</span>.ctx, stmt);
-<a href=#34 id=34 data-nosnippet>34</a>        std::mem::take(<span class="kw-2">&amp;mut </span>annotator.annotation_map)
-<a href=#35 id=35 data-nosnippet>35</a>    }
-<a href=#36 id=36 data-nosnippet>36</a>}
+<a href=#8 id=8 data-nosnippet>8</a><span class="kw">pub mod </span>initializer;
+<a href=#9 id=9 data-nosnippet>9</a><span class="attr">#[cfg(test)]
+<a href=#10 id=10 data-nosnippet>10</a></span><span class="kw">mod </span>tests;
+<a href=#11 id=11 data-nosnippet>11</a>
+<a href=#12 id=12 data-nosnippet>12</a><span class="comment">// TODO: implement `AnnotationMap` trait or create a new one for lowering
+<a href=#13 id=13 data-nosnippet>13</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>LoweringResolver&lt;<span class="lifetime">'rslv</span>&gt; {
+<a href=#14 id=14 data-nosnippet>14</a>    index: <span class="kw-2">&amp;</span><span class="lifetime">'rslv </span>Index,
+<a href=#15 id=15 data-nosnippet>15</a>    ctx: VisitorContext&lt;<span class="lifetime">'rslv</span>&gt;,
+<a href=#16 id=16 data-nosnippet>16</a>}
+<a href=#17 id=17 data-nosnippet>17</a>
+<a href=#18 id=18 data-nosnippet>18</a><span class="kw">impl</span>&lt;<span class="lifetime">'rslv</span>&gt; LoweringResolver&lt;<span class="lifetime">'rslv</span>&gt; {
+<a href=#19 id=19 data-nosnippet>19</a>    <span class="kw">pub fn </span>new(index: <span class="kw-2">&amp;</span><span class="lifetime">'rslv </span>Index, id_provider: IdProvider) -&gt; <span class="self">Self </span>{
+<a href=#20 id=20 data-nosnippet>20</a>        <span class="kw">let </span><span class="kw-2">mut </span>ctx = VisitorContext::default();
+<a href=#21 id=21 data-nosnippet>21</a>        ctx.id_provider = id_provider;
+<a href=#22 id=22 data-nosnippet>22</a>        <span class="kw">let </span>ctx = ctx.with_resolving_strategy(ResolvingStrategy::default_scopes());
+<a href=#23 id=23 data-nosnippet>23</a>        <span class="self">Self </span>{ index, ctx }
+<a href=#24 id=24 data-nosnippet>24</a>    }
+<a href=#25 id=25 data-nosnippet>25</a>
+<a href=#26 id=26 data-nosnippet>26</a>    <span class="kw">pub fn </span>with_pou(<span class="kw-2">mut </span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span><span class="lifetime">'rslv </span>str) -&gt; <span class="self">Self </span>{
+<a href=#27 id=27 data-nosnippet>27</a>        <span class="self">self</span>.ctx = <span class="self">self</span>.ctx.with_pou(pou);
+<a href=#28 id=28 data-nosnippet>28</a>        <span class="self">self
+<a href=#29 id=29 data-nosnippet>29</a>    </span>}
+<a href=#30 id=30 data-nosnippet>30</a>
+<a href=#31 id=31 data-nosnippet>31</a>    <span class="doccomment">/// Resolves and annotates the given statement and returns the annotation map.
+<a href=#32 id=32 data-nosnippet>32</a>    </span><span class="kw">pub fn </span>resolve_statement(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstNode) -&gt; AnnotationMapImpl {
+<a href=#33 id=33 data-nosnippet>33</a>        <span class="kw">let </span><span class="kw-2">mut </span>annotator = TypeAnnotator::new(<span class="self">self</span>.index);
+<a href=#34 id=34 data-nosnippet>34</a>        annotator.visit_statement(<span class="kw-2">&amp;</span><span class="self">self</span>.ctx, stmt);
+<a href=#35 id=35 data-nosnippet>35</a>        std::mem::take(<span class="kw-2">&amp;mut </span>annotator.annotation_map)
+<a href=#36 id=36 data-nosnippet>36</a>    }
+<a href=#37 id=37 data-nosnippet>37</a>}
 </code></pre></div></section></main></body></html>
