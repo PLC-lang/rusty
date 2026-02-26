@@ -732,13 +732,12 @@ impl Initializer {
     /// registered constructors first, then falls back to the global index for types defined
     /// in other compilation units (stateful POUs or any non-built-in user-defined type).
     fn get_constructor_call(&self, type_name: &str, base: Option<&str>, var_name: &str) -> Option<AstNode> {
-        let should_create_call = if self.constructors.contains_key(type_name) {
-            true
-        } else if self
-            .index
-            .as_ref()
-            .and_then(|idx| idx.find_pou(type_name))
-            .is_some_and(|pou| pou.is_stateful())
+        let should_create_call = if self.constructors.contains_key(type_name)
+            || self
+                .index
+                .as_ref()
+                .and_then(|idx| idx.find_pou(type_name))
+                .is_some_and(|pou| pou.is_stateful())
         {
             true
         } else {
