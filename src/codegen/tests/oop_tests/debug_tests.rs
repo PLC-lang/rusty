@@ -119,13 +119,6 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void, !dbg !35
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !35
-      store ptr %0, ptr %self, align [filtered], !dbg !35
-      ret void, !dbg !35
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !35
@@ -134,6 +127,13 @@ fn members_from_base_class_are_available_in_subclasses() {
     }
 
     define void @____vtable_bar___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !35
+      store ptr %0, ptr %self, align [filtered], !dbg !35
+      ret void, !dbg !35
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !35
       store ptr %0, ptr %self, align [filtered], !dbg !35
@@ -348,20 +348,6 @@ fn write_to_parent_variable_qualified_access() {
       ret void, !dbg !38
     }
 
-    define void @__fb___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !38
-      store ptr %0, ptr %self, align [filtered], !dbg !38
-      ret void, !dbg !38
-    }
-
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !38
-      store ptr %0, ptr %self, align [filtered], !dbg !38
-      ret void, !dbg !38
-    }
-
     define void @____vtable_fb___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !38
@@ -377,6 +363,20 @@ fn write_to_parent_variable_qualified_access() {
     }
 
     define void @____vtable_foo___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !38
+      store ptr %0, ptr %self, align [filtered], !dbg !38
+      ret void, !dbg !38
+    }
+
+    define void @__fb___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !38
+      store ptr %0, ptr %self, align [filtered], !dbg !38
+      ret void, !dbg !38
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !38
       store ptr %0, ptr %self, align [filtered], !dbg !38
@@ -595,13 +595,6 @@ fn write_to_parent_variable_in_instance() {
       ret void, !dbg !45
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !45
-      store ptr %0, ptr %self, align [filtered], !dbg !45
-      ret void, !dbg !45
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !45
@@ -624,6 +617,13 @@ fn write_to_parent_variable_in_instance() {
     }
 
     define void @____vtable_bar_baz__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !45
+      store ptr %0, ptr %self, align [filtered], !dbg !45
+      ret void, !dbg !45
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !45
       store ptr %0, ptr %self, align [filtered], !dbg !45
@@ -941,13 +941,6 @@ fn array_in_parent_generated() {
       ret void, !dbg !56
     }
 
-    define void @__grandparent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !56
-      store ptr %0, ptr %self, align [filtered], !dbg !56
-      ret void, !dbg !56
-    }
-
     define void @____vtable_grandparent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !56
@@ -963,6 +956,13 @@ fn array_in_parent_generated() {
     }
 
     define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !56
+      store ptr %0, ptr %self, align [filtered], !dbg !56
+      ret void, !dbg !56
+    }
+
+    define void @__grandparent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !56
       store ptr %0, ptr %self, align [filtered], !dbg !56
@@ -1263,13 +1263,6 @@ fn complex_array_access_generated() {
       ret void, !dbg !44
     }
 
-    define void @__grandparent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !44
-      store ptr %0, ptr %self, align [filtered], !dbg !44
-      ret void, !dbg !44
-    }
-
     define void @____vtable_grandparent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !44
@@ -1285,6 +1278,13 @@ fn complex_array_access_generated() {
     }
 
     define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !44
+      store ptr %0, ptr %self, align [filtered], !dbg !44
+      ret void, !dbg !44
+    }
+
+    define void @__grandparent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !44
       store ptr %0, ptr %self, align [filtered], !dbg !44
@@ -1473,13 +1473,6 @@ fn function_block_method_debug_info() {
       ret void, !dbg !26
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !26
-      store ptr %0, ptr %self, align [filtered], !dbg !26
-      ret void, !dbg !26
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !26
@@ -1502,6 +1495,13 @@ fn function_block_method_debug_info() {
     }
 
     define void @____vtable_bar_baz__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !26
+      store ptr %0, ptr %self, align [filtered], !dbg !26
+      ret void, !dbg !26
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !26
       store ptr %0, ptr %self, align [filtered], !dbg !26
@@ -1881,13 +1881,6 @@ END_FUNCTION
       ret void, !dbg !83
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !83
-      store ptr %0, ptr %self, align [filtered], !dbg !83
-      ret void, !dbg !83
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !83
@@ -1903,6 +1896,13 @@ END_FUNCTION
     }
 
     define void @____vtable_grandchild___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !83
+      store ptr %0, ptr %self, align [filtered], !dbg !83
+      ret void, !dbg !83
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !83
       store ptr %0, ptr %self, align [filtered], !dbg !83

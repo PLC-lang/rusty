@@ -54,14 +54,14 @@ entry:
   ret void
 }
 
-define void @__conditional_return___vtable__ctor(ptr %0) {
+define void @____vtable_conditional_return___body__ctor(ptr %0) {
 entry:
   %self = alloca ptr, align [filtered]
   store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
-define void @____vtable_conditional_return___body__ctor(ptr %0) {
+define void @__conditional_return___vtable__ctor(ptr %0) {
 entry:
   %self = alloca ptr, align [filtered]
   store ptr %0, ptr %self, align [filtered]

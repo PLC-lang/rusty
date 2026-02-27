@@ -5,7 +5,7 @@ expression: new_type
 UserTypeDeclaration {
     data_type: ArrayType {
         name: Some(
-            "__arr_arr",
+            "arr_arr_",
         ),
         bounds: RangeStatement {
             start: LiteralInteger {

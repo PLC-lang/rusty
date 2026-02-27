@@ -119,13 +119,6 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -134,6 +127,13 @@ fn members_from_base_class_are_available_in_subclasses() {
     }
 
     define void @____vtable_bar___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -305,20 +305,6 @@ fn write_to_parent_variable_qualified_access() {
       ret void
     }
 
-    define void @__fb___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_fb___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -334,6 +320,20 @@ fn write_to_parent_variable_qualified_access() {
     }
 
     define void @____vtable_foo___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__fb___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -504,13 +504,6 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -533,6 +526,13 @@ fn write_to_parent_variable_in_instance() {
     }
 
     define void @____vtable_bar_baz__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -796,13 +796,6 @@ fn array_in_parent_generated() {
       ret void
     }
 
-    define void @__grandparent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_grandparent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -818,6 +811,13 @@ fn array_in_parent_generated() {
     }
 
     define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__grandparent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1054,13 +1054,6 @@ fn complex_array_access_generated() {
       ret void
     }
 
-    define void @__grandparent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_grandparent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1076,6 +1069,13 @@ fn complex_array_access_generated() {
     }
 
     define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__grandparent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1233,13 +1233,6 @@ fn this_in_method_call_chain() {
       ret void
     }
 
-    define void @__FB_Test___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1255,6 +1248,13 @@ fn this_in_method_call_chain() {
     }
 
     define void @____vtable_FB_Test_Increment__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1366,13 +1366,6 @@ fn this_in_method_and_body_in_function_block() {
       ret void
     }
 
-    define void @__FB_Test___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1381,6 +1374,13 @@ fn this_in_method_and_body_in_function_block() {
     }
 
     define void @____vtable_FB_Test_GetVal__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1562,20 +1562,6 @@ fn pass_this_to_method() {
       ret void
     }
 
-    define void @__FB_Test___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__FB_Test2___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1598,6 +1584,20 @@ fn pass_this_to_method() {
     }
 
     define void @____vtable_FB_Test2_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test2___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1716,13 +1716,6 @@ fn this_with_shadowed_variable() {
       ret void
     }
 
-    define void @__FB_Test___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1731,6 +1724,13 @@ fn this_with_shadowed_variable() {
     }
 
     define void @____vtable_FB_Test_shadow_val__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1833,14 +1833,14 @@ fn this_calling_function_and_passing_this() {
       ret void
     }
 
-    define void @__FB_Test___vtable__ctor(ptr %0) {
+    define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_FB_Test___body__ctor(ptr %0) {
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1997,13 +1997,6 @@ fn this_in_property_and_calling_method() {
       ret void
     }
 
-    define void @__FB_Test___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2026,6 +2019,13 @@ fn this_in_property_and_calling_method() {
     }
 
     define void @____vtable_FB_Test___set_Value__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2135,13 +2135,6 @@ fn this_with_self_pointer() {
       ret void
     }
 
-    define void @__FB_Test___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_FB_Test___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2150,6 +2143,13 @@ fn this_with_self_pointer() {
     }
 
     define void @____vtable_FB_Test_InitRef__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__FB_Test___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2241,14 +2241,14 @@ fn this_in_variable_initialization() {
       ret void
     }
 
-    define void @__FB___vtable__ctor(ptr %0) {
+    define void @____vtable_FB___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_FB___body__ctor(ptr %0) {
+    define void @__FB___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2321,14 +2321,14 @@ fn this_in_action_in_functionblock() {
       ret void
     }
 
-    define void @__fb___vtable__ctor(ptr %0) {
+    define void @____vtable_fb___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_fb___body__ctor(ptr %0) {
+    define void @__fb___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2429,13 +2429,6 @@ fn this_calling_functionblock_body_from_method() {
       ret void
     }
 
-    define void @__fb___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_fb___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2444,6 +2437,13 @@ fn this_calling_functionblock_body_from_method() {
     }
 
     define void @____vtable_fb_foo__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__fb___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2606,13 +2606,6 @@ fn fb_extension_with_output() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2635,6 +2628,13 @@ fn fb_extension_with_output() {
     }
 
     define void @____vtable_foo2_met1__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2830,13 +2830,6 @@ fn function_with_output_used_in_main_by_extension() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2859,6 +2852,13 @@ fn function_with_output_used_in_main_by_extension() {
     }
 
     define void @____vtable_foo2_met1__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]

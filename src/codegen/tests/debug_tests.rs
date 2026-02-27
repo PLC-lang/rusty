@@ -702,13 +702,6 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       ret void, !dbg !15
     }
 
-    define void @__fb___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !15
-      store ptr %0, ptr %self, align [filtered], !dbg !15
-      ret void, !dbg !15
-    }
-
     define void @____vtable_fb___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !15
@@ -717,6 +710,13 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     }
 
     define void @____vtable_fb_foo__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !15
+      store ptr %0, ptr %self, align [filtered], !dbg !15
+      ret void, !dbg !15
+    }
+
+    define void @__fb___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !15
       store ptr %0, ptr %self, align [filtered], !dbg !15
@@ -1058,13 +1058,6 @@ END_FUNCTION
       ret void, !dbg !58
     }
 
-    define void @__main_arr__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !58
-      store ptr %0, ptr %self, align [filtered], !dbg !58
-      ret void, !dbg !58
-    }
-
     define void @__struct__inner_arr__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !58
@@ -1080,6 +1073,13 @@ END_FUNCTION
     }
 
     define void @__inner_arr__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !58
+      store ptr %0, ptr %self, align [filtered], !dbg !58
+      ret void, !dbg !58
+    }
+
+    define void @__main_arr__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !58
       store ptr %0, ptr %self, align [filtered], !dbg !58
@@ -1341,13 +1341,6 @@ fn test_debug_info_regular_pointer_types() {
       ret void
     }
 
-    define void @__global_array_ptr___ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @__global_array_ptr__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1363,6 +1356,13 @@ fn test_debug_info_regular_pointer_types() {
     }
 
     define void @__global_string_ptr__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__global_array_ptr___ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1710,6 +1710,20 @@ fn test_debug_info_mixed_pointer_types() {
       ret void, !dbg !43
     }
 
+    define void @__global_regular_ptr__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !43
+      store ptr %0, ptr %self, align [filtered], !dbg !43
+      ret void, !dbg !43
+    }
+
+    define void @__global_alias_var__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !43
+      store ptr %0, ptr %self, align [filtered], !dbg !43
+      ret void, !dbg !43
+    }
+
     define void @__mixed_ptr_local_ptr__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !43
@@ -1724,21 +1738,7 @@ fn test_debug_info_mixed_pointer_types() {
       ret void, !dbg !43
     }
 
-    define void @__global_regular_ptr__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !43
-      store ptr %0, ptr %self, align [filtered], !dbg !43
-      ret void, !dbg !43
-    }
-
     define void @__global_alias_var___ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !43
-      store ptr %0, ptr %self, align [filtered], !dbg !43
-      ret void, !dbg !43
-    }
-
-    define void @__global_alias_var__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !43
       store ptr %0, ptr %self, align [filtered], !dbg !43
@@ -1882,42 +1882,7 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
       ret void, !dbg !56
     }
 
-    define void @__test_with_reference_params_ref_param__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !56
-      store ptr %0, ptr %self, align [filtered], !dbg !56
-      ret void, !dbg !56
-    }
-
-    define void @__test_with_reference_params_array_ref_param___ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !56
-      store ptr %0, ptr %self, align [filtered], !dbg !56
-      ret void, !dbg !56
-    }
-
-    define void @__test_with_reference_params_array_ref_param__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !56
-      store ptr %0, ptr %self, align [filtered], !dbg !56
-      ret void, !dbg !56
-    }
-
-    define void @__test_with_reference_params_local_reference__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !56
-      store ptr %0, ptr %self, align [filtered], !dbg !56
-      ret void, !dbg !56
-    }
-
     define void @__global_basic_reference__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered], !dbg !56
-      store ptr %0, ptr %self, align [filtered], !dbg !56
-      ret void, !dbg !56
-    }
-
-    define void @__global_array_reference___ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !56
       store ptr %0, ptr %self, align [filtered], !dbg !56
@@ -1939,6 +1904,41 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     }
 
     define void @__global_string_reference__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !56
+      store ptr %0, ptr %self, align [filtered], !dbg !56
+      ret void, !dbg !56
+    }
+
+    define void @__test_with_reference_params_ref_param__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !56
+      store ptr %0, ptr %self, align [filtered], !dbg !56
+      ret void, !dbg !56
+    }
+
+    define void @__test_with_reference_params_array_ref_param__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !56
+      store ptr %0, ptr %self, align [filtered], !dbg !56
+      ret void, !dbg !56
+    }
+
+    define void @__test_with_reference_params_local_reference__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !56
+      store ptr %0, ptr %self, align [filtered], !dbg !56
+      ret void, !dbg !56
+    }
+
+    define void @__global_array_reference___ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !56
+      store ptr %0, ptr %self, align [filtered], !dbg !56
+      ret void, !dbg !56
+    }
+
+    define void @__test_with_reference_params_array_ref_param___ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered], !dbg !56
       store ptr %0, ptr %self, align [filtered], !dbg !56
