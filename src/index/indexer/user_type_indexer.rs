@@ -501,8 +501,9 @@ impl UserTypeIndexer<'_, '_> {
                         variable_name: &var.name,
                         variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
                         variable_type_name: member_type,
-                        is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                        is_constant: false, //struct members are not constants (although they can be part of a struct that is in a constant block)
                         is_var_external: false, // see above
+                        is_retain: false, // struct members cannot be retain (although they can be part of a struct that is in a retain block)
                         binding,
                         varargs: None,
                     },

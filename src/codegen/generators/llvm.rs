@@ -20,6 +20,8 @@ use plc_source::source_location::SourceLocation;
 use super::expression_generator::ExpressionCodeGenerator;
 use super::ADDRESS_SPACE_GENERIC;
 
+static RETAIN_SECTION_NAME: &str = ".retain";
+
 /// Holds dependencies required to generate IR-code
 pub struct Llvm<'a> {
     pub context: &'a Context,
@@ -30,6 +32,7 @@ pub trait GlobalValueExt {
     fn make_constant(self) -> Self;
     fn make_private(self) -> Self;
     fn make_external(self) -> Self;
+    fn make_retain(self) -> Self;
     fn set_initial_value(self, initial_value: Option<BasicValueEnum>, data_type: BasicTypeEnum) -> Self;
 }
 
@@ -57,6 +60,11 @@ impl GlobalValueExt for GlobalValue<'_> {
         } else {
             Llvm::set_const_zero_initializer(&self, data_type);
         };
+        self
+    }
+
+    fn make_retain(self) -> Self {
+        self.set_section(Some(RETAIN_SECTION_NAME));
         self
     }
 }

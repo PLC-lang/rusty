@@ -1,6 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::{collections::VecDeque, hash::BuildHasherDefault};
+use std::{
+    collections::{BTreeSet, VecDeque},
+    hash::BuildHasherDefault,
+};
 
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
@@ -75,6 +78,8 @@ pub struct VariableIndexEntry {
     is_constant: bool,
     // true if this variable is in a 'VAR_EXTERNAL' block
     is_var_external: bool,
+    /// Returns true if the variable is in a `RETAIN` block
+    is_retain: bool,
     /// the variable's datatype
     pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
@@ -114,6 +119,7 @@ impl VariableIndexEntry {
             argument_type,
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent,
             linkage: LinkageType::Internal,
@@ -136,6 +142,7 @@ impl VariableIndexEntry {
             argument_type: ArgumentType::ByVal(VariableType::Global),
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
             linkage: LinkageType::Internal,
@@ -172,6 +179,11 @@ impl VariableIndexEntry {
 
     pub fn set_var_external(mut self, var_external: bool) -> Self {
         self.is_var_external = var_external;
+        self
+    }
+
+    pub fn set_retain(mut self, is_retain: bool) -> Self {
+        self.is_retain = is_retain;
         self
     }
 
@@ -290,6 +302,16 @@ impl VariableIndexEntry {
     pub fn get_qualifier(&self) -> Option<&str> {
         self.qualified_name.rsplit_once('.').map(|(x, _)| x)
     }
+
+    pub fn should_retain(&self, index: &Index) -> bool {
+        self.should_retain_recursive(index, BTreeSet::new())
+    }
+
+    pub(crate) fn should_retain_recursive(&self, index: &Index, already_visited: BTreeSet<String>) -> bool {
+        let datatype = index.find_effective_type_by_name(self.get_type_name());
+        // is self retain? otherwise does the datatype contain a retain variable (nested)?
+        self.is_retain || datatype.is_some_and(|dt| dt.should_retain(index, already_visited))
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
@@ -340,6 +362,7 @@ pub struct MemberInfo<'b> {
     binding: Option<HardwareBinding>,
     is_constant: bool,
     is_var_external: bool,
+    is_retain: bool,
     varargs: Option<VarArgs>,
 }
 
@@ -2051,6 +2074,7 @@ impl Index {
         .set_hardware_binding(member_info.binding)
         .set_varargs(member_info.varargs)
         .set_var_external(member_info.is_var_external)
+        .set_retain(member_info.is_retain)
     }
 
     pub fn register_enum_variant(
