@@ -22,7 +22,10 @@ use plc::{
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_lowering::{{inheritance::InheritanceLowerer, initializer::Initializer}, retain::RetainParticipant};
+use plc_lowering::{
+    retain::RetainParticipant,
+    {inheritance::InheritanceLowerer, initializer::Initializer},
+};
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
