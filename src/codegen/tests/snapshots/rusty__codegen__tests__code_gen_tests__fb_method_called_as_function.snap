@@ -9,8 +9,6 @@ target triple = "[filtered]"
 
 %MyClass = type { i16, i16 }
 
-@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
-
 define void @MyClass(ptr %0) {
 entry:
   %this = alloca ptr, align [filtered]

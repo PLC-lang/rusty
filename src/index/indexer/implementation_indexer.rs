@@ -43,6 +43,7 @@ impl<'i> ImplementationIndexer<'i> {
                 },
                 nature: TypeNature::Derived,
                 location: implementation.name_location.clone(),
+                linkage: implementation.linkage,
             };
 
             self.index.register_pou(PouIndexEntry::create_action_entry(

@@ -42,4 +42,5 @@ DataType {
             "<internal>",
         ),
     },
+    linkage: Internal,
 }

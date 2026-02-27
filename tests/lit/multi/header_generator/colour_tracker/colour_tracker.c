@@ -1,7 +1,7 @@
 #include "colour_tracker.h"
 #include <stdio.h>
 
-int16_t globalCounter = 0;
+extern int16_t globalCounter;
 
 void PrintStatistics(int32_t argumentCount, ColourInfo* colours) {
     for (int i = 0; i < argumentCount; i++) {

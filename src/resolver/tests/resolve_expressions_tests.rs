@@ -1407,6 +1407,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
                     "<internal>",
                 ),
             },
+            linkage: Internal,
         },
     )
     "#);
@@ -4094,7 +4095,7 @@ fn multiple_pointer_referencing_annotates_correctly() {
 
     let parameters = parameters.as_ref().unwrap();
 
-    assert_type_and_hint!(&annotations, &index, &parameters, "BYTE", None);
+    assert_type_and_hint!(&annotations, &index, &parameters, "BYTE", Some("BYTE"));
 }
 
 #[test]
@@ -4130,7 +4131,13 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
     let AstStatement::CallStatement(CallStatement { parameters, .. }) = value.get_stmt_peeled() else {
         unreachable!()
     };
-    assert_type_and_hint!(&annotations, &index, parameters.as_ref().unwrap(), "__POINTER_TO_BYTE", None);
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        parameters.as_ref().unwrap(),
+        "__POINTER_TO_BYTE",
+        Some("__POINTER_TO_BYTE")
+    );
 
     // (REF(REF(a)))^
     //          ^
@@ -4139,7 +4146,7 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
     else {
         unreachable!()
     };
-    assert_type_and_hint!(&annotations, &index, parameters.as_ref().unwrap(), "BYTE", None);
+    assert_type_and_hint!(&annotations, &index, parameters.as_ref().unwrap(), "BYTE", Some("BYTE"));
 }
 
 #[test]

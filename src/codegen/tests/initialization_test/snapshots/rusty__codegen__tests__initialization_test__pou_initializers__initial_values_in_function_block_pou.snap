@@ -7,10 +7,9 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%FB = type { i16, i16, i8, i8, float, float }
 %main = type { %FB }
+%FB = type { i16, i16, i8, i8, float, float }
 
-@__FB__init = unnamed_addr constant %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
 @main_instance = global %main { %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }
 
 define void @FB(ptr %0) {

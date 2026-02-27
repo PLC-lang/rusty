@@ -6,8 +6,8 @@ target triple = "[filtered]"
 
 %foo = type { i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
 @foo_instance = global %foo zeroinitializer, !dbg !0
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___cfc__ctor, ptr null }]
 
 define void @foo(ptr %0) !dbg !11 {
 entry:
@@ -25,25 +25,20 @@ else_block:                                       ; preds = %lbl
   ret void, !dbg !20
 }
 
-define void @__init_foo(ptr %0) {
+define void @foo__ctor(ptr %0) {
 entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
-  ret void
+  %self = alloca ptr, align [filtered], !dbg !20
+  store ptr %0, ptr %self, align [filtered], !dbg !20
+  %deref = load ptr, ptr %self, align [filtered], !dbg !20
+  %val = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0, !dbg !20
+  store i32 0, ptr %val, align [filtered], !dbg !20
+  ret void, !dbg !20
 }
 
-define void @__user_init_foo(ptr %0) {
+define void @__unit___internal___cfc__ctor() {
 entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
-  ret void
-}
-
-define void @__init___plc() {
-entry:
-  call void @__init_foo(ptr @foo_instance)
-  call void @__user_init_foo(ptr @foo_instance)
-  ret void
+  call void @foo__ctor(ptr @foo_instance), !dbg !20
+  ret void, !dbg !20
 }
 
 !llvm.module.flags = !{!7, !8}

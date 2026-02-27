@@ -11,7 +11,6 @@ target triple = "[filtered]"
 %prg = type { %MyFB }
 
 @x = global %MyFB { i16 77 }
-@__MyFB__init = unnamed_addr constant %MyFB { i16 77 }
 @prg_instance = global %prg { %MyFB { i16 77 } }
 
 define void @MyFB(ptr %0) {

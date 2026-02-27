@@ -8,7 +8,7 @@ use std::{
 
 use anyhow::{anyhow, Result};
 use plc_ast::{
-    ast::{AstNode, AutoDerefType, Operator, PouType, TypeNature},
+    ast::{AstNode, AutoDerefType, LinkageType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
     provider::IdProvider,
 };
@@ -107,6 +107,7 @@ pub struct DataType {
     pub information: DataTypeInformation,
     pub nature: TypeNature,
     pub location: SourceLocation,
+    pub linkage: LinkageType,
 }
 
 impl Hash for DataType {
@@ -948,6 +949,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Void,
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: "__VLA".into(),
@@ -959,6 +961,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::__VLA,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: U1_TYPE.into(),
@@ -971,6 +974,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: BOOL_TYPE.into(),
@@ -983,6 +987,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Bit,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: BYTE_TYPE.into(),
@@ -995,6 +1000,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Bit,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: SINT_TYPE.into(),
@@ -1007,6 +1013,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Signed,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: USINT_TYPE.into(),
@@ -1019,6 +1026,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Unsigned,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: WORD_TYPE.into(),
@@ -1031,6 +1039,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Bit,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: INT_TYPE.into(),
@@ -1043,6 +1052,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Signed,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: UINT_TYPE.into(),
@@ -1055,6 +1065,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Unsigned,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: DWORD_TYPE.into(),
@@ -1067,6 +1078,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Bit,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: DINT_TYPE.into(),
@@ -1079,6 +1091,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Signed,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: UDINT_TYPE.into(),
@@ -1091,6 +1104,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Unsigned,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LWORD_TYPE.into(),
@@ -1103,6 +1117,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Bit,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LINT_TYPE.into(),
@@ -1115,6 +1130,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Signed,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: DATE_TYPE.into(),
@@ -1127,6 +1143,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: TIME_TYPE.into(),
@@ -1139,6 +1156,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Duration,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: DATE_AND_TIME_TYPE.into(),
@@ -1151,6 +1169,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: TIME_OF_DAY_TYPE.into(),
@@ -1163,6 +1182,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: ULINT_TYPE.into(),
@@ -1175,6 +1195,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Unsigned,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: REAL_TYPE.into(),
@@ -1182,6 +1203,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Float { name: REAL_TYPE.into(), size: REAL_SIZE },
             nature: TypeNature::Real,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LREAL_TYPE.into(),
@@ -1189,6 +1211,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Float { name: LREAL_TYPE.into(), size: LREAL_SIZE },
             nature: TypeNature::Real,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: STRING_TYPE.into(),
@@ -1199,6 +1222,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::String,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: WSTRING_TYPE.into(),
@@ -1209,6 +1233,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::String,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: SHORT_DATE_AND_TIME_TYPE.into(),
@@ -1219,6 +1244,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LONG_DATE_AND_TIME_TYPE_SHORTENED.into(),
@@ -1229,6 +1255,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LONG_DATE_AND_TIME_TYPE.into(),
@@ -1239,6 +1266,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: SHORT_DATE_TYPE.into(),
@@ -1249,6 +1277,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LONG_DATE_TYPE.into(),
@@ -1259,6 +1288,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LONG_DATE_TYPE_SHORTENED.into(),
@@ -1269,6 +1299,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: SHORT_TIME_OF_DAY_TYPE.into(),
@@ -1279,6 +1310,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LONG_TIME_OF_DAY_TYPE.into(),
@@ -1289,6 +1321,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LONG_TIME_OF_DAY_TYPE_SHORTENED.into(),
@@ -1299,6 +1332,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: SHORT_TIME_TYPE.into(),
@@ -1309,6 +1343,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Duration,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LONG_TIME_TYPE.into(),
@@ -1319,6 +1354,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Duration,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: LONG_TIME_TYPE_SHORTENED.into(),
@@ -1329,6 +1365,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Duration,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: CHAR_TYPE.into(),
@@ -1341,6 +1378,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Char,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
         DataType {
             name: WCHAR_TYPE.into(),
@@ -1353,6 +1391,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             },
             nature: TypeNature::Char,
             location: SourceLocation::internal(),
+            linkage: LinkageType::BuiltIn,
         },
     ]
 }

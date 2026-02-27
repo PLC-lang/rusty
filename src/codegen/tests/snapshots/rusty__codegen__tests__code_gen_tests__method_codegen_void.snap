@@ -7,10 +7,6 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%MyClass = type {}
-
-@__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
-
 define void @MyClass(ptr %0) {
 entry:
   ret void

@@ -9,37 +9,42 @@ target triple = "[filtered]"
 
 %mainProg = type {}
 
-@mainProg_instance = external global %mainProg
+@mainProg_instance = external global %mainProg, !dbg !0
 
-define i32 @main() !dbg !4 {
+define i32 @main() !dbg !10 {
 entry:
   %main = alloca i32, align [filtered]
-    #dbg_declare(ptr %main, !9, !DIExpression(), !11)
+    #dbg_declare(ptr %main, !14, !DIExpression(), !16)
   store i32 0, ptr %main, align [filtered]
-  call void @mainProg(ptr @mainProg_instance), !dbg !12
-  %main_ret = load i32, ptr %main, align [filtered], !dbg !13
-  ret i32 %main_ret, !dbg !13
+  call void @mainProg(ptr @mainProg_instance), !dbg !17
+  %main_ret = load i32, ptr %main, align [filtered], !dbg !18
+  ret i32 %main_ret, !dbg !18
 }
 
 declare void @mainProg(ptr)
 
-!llvm.module.flags = !{!0, !1}
-!llvm.dbg.cu = !{!2}
+!llvm.module.flags = !{!5, !6}
+!llvm.dbg.cu = !{!7}
 
-!0 = !{i32 2, !"Dwarf Version", i32 5}
-!1 = !{i32 2, !"Debug Info Version", i32 3}
-!2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-!3 = !DIFile(filename: "file1.st", directory: "root")
-!4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !5, file: !5, line: 2, type: !6, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-!5 = !DIFile(filename: "file1.st", directory: "")
-!6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
-!7 = !{null}
-!8 = !{}
-!9 = !DILocalVariable(name: "main", scope: !4, file: !5, line: 2, type: !10, align [filtered])
-!10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!11 = !DILocation(line: 2, column: 13, scope: !4)
-!12 = !DILocation(line: 10, column: 4, scope: !4)
-!13 = !DILocation(line: 11, column: 4, scope: !4)
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "mainProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+!2 = !DIFile(filename: "file2.st", directory: "")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !2, file: !2, line: 2, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "mainProg")
+!4 = !{}
+!5 = !{i32 2, !"Dwarf Version", i32 5}
+!6 = !{i32 2, !"Debug Info Version", i32 3}
+!7 = distinct !DICompileUnit(language: DW_LANG_C, file: !8, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !9, splitDebugInlining: false)
+!8 = !DIFile(filename: "file1.st", directory: "root")
+!9 = !{!0}
+!10 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !11, file: !11, line: 2, type: !12, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
+!11 = !DIFile(filename: "file1.st", directory: "")
+!12 = !DISubroutineType(flags: DIFlagPublic, types: !13)
+!13 = !{null}
+!14 = !DILocalVariable(name: "main", scope: !10, file: !11, line: 2, type: !15, align [filtered])
+!15 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!16 = !DILocation(line: 2, column: 13, scope: !10)
+!17 = !DILocation(line: 10, column: 4, scope: !10)
+!18 = !DILocation(line: 11, column: 4, scope: !10)
 
 ; ModuleID = 'file2.st'
 source_filename = "file2.st"
@@ -74,51 +79,3 @@ entry:
 !12 = !{null, !3}
 !13 = !DILocalVariable(name: "mainProg", scope: !10, file: !2, line: 5, type: !3)
 !14 = !DILocation(line: 5, column: 4, scope: !10)
-
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-target datalayout = "[filtered]"
-target triple = "[filtered]"
-
-%mainProg = type {}
-
-@mainProg_instance = external global %mainProg
-
-define void @__init_mainprog(ptr %0) {
-entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
-  ret void
-}
-
-declare void @mainProg(ptr)
-
-define void @__user_init_mainProg(ptr %0) {
-entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
-  ret void
-}
-
-; ModuleID = '__init___TestProject'
-source_filename = "__init___TestProject"
-target datalayout = "[filtered]"
-target triple = "[filtered]"
-
-%mainProg = type {}
-
-@mainProg_instance = external global %mainProg
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___TestProject, ptr null }]
-
-define void @__init___TestProject() {
-entry:
-  call void @__init_mainprog(ptr @mainProg_instance)
-  call void @__user_init_mainProg(ptr @mainProg_instance)
-  ret void
-}
-
-declare void @__init_mainprog(ptr)
-
-declare void @mainProg(ptr)
-
-declare void @__user_init_mainProg(ptr)
