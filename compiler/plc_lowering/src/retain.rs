@@ -49,7 +49,9 @@ impl AstVisitorMut for RetainLowerer {
             unit.global_vars
                 .iter_mut()
                 .find(|block| block.retain)
-                .map(|block| block.variables.append(&mut self.context.retain_variables))
+                .map(|block| {
+                    block.variables.append(&mut self.context.retain_variables);
+                })
                 .unwrap_or_else(|| {
                     let retain_block = plc_ast::ast::VariableBlock {
                         variables: self.context.retain_variables.drain(..).collect(),

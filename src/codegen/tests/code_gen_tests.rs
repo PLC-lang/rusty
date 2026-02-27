@@ -4057,7 +4057,6 @@ fn methods_var_output() {
 
         FUNCTION main
         VAR
-        VAR
             s: STRING;
             fb: foo;
         END_VAR
@@ -4316,12 +4315,11 @@ fn nested_retain_variables_are_in_the_retain_section() {
     %fb = type { i16, [81 x i8] }
 
     @fb_instance = global %fb zeroinitializer, section ".retain"
-    @__fb__init = unnamed_addr constant %fb zeroinitializer, section ".retain"
 
     define void @fb(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       %y = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 1
       ret void
