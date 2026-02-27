@@ -218,6 +218,54 @@ mod tests {
                         interfaces: [],
                         properties: [],
                     },
+                    POU {
+                        name: "Test__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "Test",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "__Test_x__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "__Test_x",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "__unit___internal____ctor",
+                        variable_blocks: [],
+                        pou_type: ProjectInit,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
                 ],
                 implementations: [
                     Implementation {
@@ -243,6 +291,154 @@ mod tests {
                             file: Some(
                                 "<internal>",
                             ),
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "Test__ctor",
+                        type_name: "Test__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__Test_x__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "x",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "self",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                            ReferenceAssignment {
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "x",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                                right: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__Test_x__retain",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            },
+                        ],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "__Test_x__ctor",
+                        type_name: "__Test_x__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "__unit___internal____ctor",
+                        type_name: "__unit___internal____ctor",
+                        linkage: Internal,
+                        pou_type: ProjectInit,
+                        statements: [
+                            Assignment {
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__Test_x__retain",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                right: LiteralInteger {
+                                    value: 5,
+                                },
+                            },
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "Test__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "Test",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
                         },
                         overriding: false,
                         generic: false,
@@ -274,6 +470,7 @@ mod tests {
                 file: File(
                     "<internal>",
                 ),
+                linkage: Internal,
             },
             dependencies: {
                 Variable(
@@ -290,6 +487,33 @@ mod tests {
                 ),
                 Datatype(
                     "__Test_x",
+                ),
+                Datatype(
+                    "Test__ctor",
+                ),
+                Datatype(
+                    "__Test_x__ctor",
+                ),
+                Datatype(
+                    "__unit___internal____ctor",
+                ),
+                Datatype(
+                    "__auto_pointer_to_Test",
+                ),
+                Call(
+                    "__Test_x__ctor",
+                ),
+                Datatype(
+                    "__auto_pointer_to___Test_x",
+                ),
+                Datatype(
+                    "__VOID",
+                ),
+                Call(
+                    "Test__ctor",
+                ),
+                Call(
+                    "Test",
                 ),
             },
             literals: StringLiterals {
@@ -422,6 +646,134 @@ mod tests {
                         interfaces: [],
                         properties: [],
                     },
+                    POU {
+                        name: "FB__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "FB",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "Test__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "Test",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "__vtable_FB__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "__vtable_FB",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "__FB___vtable__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "__FB___vtable",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "____vtable_FB___body__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "____vtable_FB___body",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "__Test_x__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "__Test_x",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "__unit___internal____ctor",
+                        variable_blocks: [],
+                        pou_type: ProjectInit,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
                 ],
                 implementations: [
                     Implementation {
@@ -480,6 +832,417 @@ mod tests {
                         generic: false,
                         access: None,
                     },
+                    Implementation {
+                        name: "FB__ctor",
+                        type_name: "FB__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__FB___vtable__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__vtable",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "self",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                            Assignment {
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "a",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                                right: LiteralInteger {
+                                    value: 5,
+                                },
+                            },
+                            Assignment {
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__vtable",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                                right: CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__vtable_FB_instance",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            },
+                        ],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "Test__ctor",
+                        type_name: "Test__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__Test_x__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "x",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "self",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                            ReferenceAssignment {
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "x",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                                right: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__Test_x__retain",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            },
+                        ],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "__vtable_FB__ctor",
+                        type_name: "__vtable_FB__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "____vtable_FB___body__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__body",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "self",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                            Assignment {
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__body",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                                right: CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FB",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            },
+                        ],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "__FB___vtable__ctor",
+                        type_name: "__FB___vtable__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "____vtable_FB___body__ctor",
+                        type_name: "____vtable_FB___body__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "__Test_x__ctor",
+                        type_name: "__Test_x__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "__unit___internal____ctor",
+                        type_name: "__unit___internal____ctor",
+                        linkage: Internal,
+                        pou_type: ProjectInit,
+                        statements: [
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__vtable_FB__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__vtable_FB_instance",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "FB__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__Test_x__retain",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "Test__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "Test",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
                 ],
                 interfaces: [],
                 user_types: [
@@ -494,6 +1257,28 @@ mod tests {
                                     data_type: DataTypeReference {
                                         referenced_type: "____vtable_FB___body",
                                     },
+                                    initializer: Some(
+                                        CallStatement {
+                                            operator: ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "ADR",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                            parameters: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "FB",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                            ),
+                                        },
+                                    ),
                                 },
                             ],
                         },
@@ -553,6 +1338,7 @@ mod tests {
                 file: File(
                     "<internal>",
                 ),
+                linkage: Internal,
             },
             dependencies: {
                 Variable(
@@ -587,6 +1373,78 @@ mod tests {
                 ),
                 Datatype(
                     "__Test_x",
+                ),
+                Datatype(
+                    "FB__ctor",
+                ),
+                Datatype(
+                    "Test__ctor",
+                ),
+                Datatype(
+                    "__vtable_FB__ctor",
+                ),
+                Datatype(
+                    "__FB___vtable__ctor",
+                ),
+                Datatype(
+                    "____vtable_FB___body__ctor",
+                ),
+                Datatype(
+                    "__Test_x__ctor",
+                ),
+                Datatype(
+                    "__unit___internal____ctor",
+                ),
+                Call(
+                    "ADR",
+                ),
+                Datatype(
+                    "ADR",
+                ),
+                Datatype(
+                    "__ADR__U",
+                ),
+                Datatype(
+                    "LWORD",
+                ),
+                Datatype(
+                    "__auto_pointer_to_FB",
+                ),
+                Call(
+                    "__FB___vtable__ctor",
+                ),
+                Datatype(
+                    "__auto_pointer_to___FB___vtable",
+                ),
+                Datatype(
+                    "__auto_pointer_to_Test",
+                ),
+                Call(
+                    "__Test_x__ctor",
+                ),
+                Datatype(
+                    "__auto_pointer_to___Test_x",
+                ),
+                Datatype(
+                    "__auto_pointer_to___vtable_FB",
+                ),
+                Call(
+                    "____vtable_FB___body__ctor",
+                ),
+                Datatype(
+                    "__auto_pointer_to_____vtable_FB___body",
+                ),
+                Call(
+                    "__vtable_FB__ctor",
+                ),
+                Call(
+                    "FB__ctor",
+                ),
+                Call(
+                    "Test__ctor",
+                ),
+                Call(
+                    "Test",
                 ),
             },
             literals: StringLiterals {
@@ -715,6 +1573,94 @@ mod tests {
                         interfaces: [],
                         properties: [],
                     },
+                    POU {
+                        name: "FB__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "FB",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "__vtable_FB__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "__vtable_FB",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "__FB___vtable__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "__FB___vtable",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "____vtable_FB___body__ctor",
+                        variable_blocks: [
+                            VariableBlock {
+                                variables: [
+                                    Variable {
+                                        name: "self",
+                                        data_type: DataTypeReference {
+                                            referenced_type: "____vtable_FB___body",
+                                        },
+                                    },
+                                ],
+                                variable_block_type: InOut,
+                            },
+                        ],
+                        pou_type: Init,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
+                    POU {
+                        name: "__unit___internal____ctor",
+                        variable_blocks: [],
+                        pou_type: ProjectInit,
+                        return_type: None,
+                        interfaces: [],
+                        properties: [],
+                    },
                 ],
                 implementations: [
                     Implementation {
@@ -745,6 +1691,322 @@ mod tests {
                         generic: false,
                         access: None,
                     },
+                    Implementation {
+                        name: "FB__ctor",
+                        type_name: "FB__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__FB___vtable__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__vtable",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "self",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                            Assignment {
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "a",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                                right: LiteralInteger {
+                                    value: 5,
+                                },
+                            },
+                            Assignment {
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__vtable",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                                right: CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__vtable_FB_instance",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            },
+                        ],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "__vtable_FB__ctor",
+                        type_name: "__vtable_FB__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "____vtable_FB___body__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__body",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "self",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                            Assignment {
+                                left: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__body",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                                right: CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FB",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            },
+                        ],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "__FB___vtable__ctor",
+                        type_name: "__FB___vtable__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "____vtable_FB___body__ctor",
+                        type_name: "____vtable_FB___body__ctor",
+                        linkage: Internal,
+                        pou_type: Init,
+                        statements: [],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
+                    Implementation {
+                        name: "__unit___internal____ctor",
+                        type_name: "__unit___internal____ctor",
+                        linkage: Internal,
+                        pou_type: ProjectInit,
+                        statements: [
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "FB__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "explicit_retain",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "FB__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "implicit_retain",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__vtable_FB__ctor",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__vtable_FB_instance",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ],
+                        location: SourceLocation {
+                            span: None,
+                        },
+                        name_location: SourceLocation {
+                            span: None,
+                        },
+                        end_location: SourceLocation {
+                            span: None,
+                        },
+                        overriding: false,
+                        generic: false,
+                        access: None,
+                    },
                 ],
                 interfaces: [],
                 user_types: [
@@ -759,6 +2021,28 @@ mod tests {
                                     data_type: DataTypeReference {
                                         referenced_type: "____vtable_FB___body",
                                     },
+                                    initializer: Some(
+                                        CallStatement {
+                                            operator: ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "ADR",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                            parameters: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "FB",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                            ),
+                                        },
+                                    ),
                                 },
                             ],
                         },
@@ -799,6 +2083,7 @@ mod tests {
                 file: File(
                     "<internal>",
                 ),
+                linkage: Internal,
             },
             dependencies: {
                 Variable(
@@ -836,6 +2121,57 @@ mod tests {
                 ),
                 Datatype(
                     "DINT",
+                ),
+                Datatype(
+                    "FB__ctor",
+                ),
+                Datatype(
+                    "__vtable_FB__ctor",
+                ),
+                Datatype(
+                    "__FB___vtable__ctor",
+                ),
+                Datatype(
+                    "____vtable_FB___body__ctor",
+                ),
+                Datatype(
+                    "__unit___internal____ctor",
+                ),
+                Call(
+                    "ADR",
+                ),
+                Datatype(
+                    "ADR",
+                ),
+                Datatype(
+                    "__ADR__U",
+                ),
+                Datatype(
+                    "LWORD",
+                ),
+                Datatype(
+                    "__auto_pointer_to_FB",
+                ),
+                Call(
+                    "__FB___vtable__ctor",
+                ),
+                Datatype(
+                    "__auto_pointer_to___FB___vtable",
+                ),
+                Datatype(
+                    "__auto_pointer_to___vtable_FB",
+                ),
+                Call(
+                    "____vtable_FB___body__ctor",
+                ),
+                Datatype(
+                    "__auto_pointer_to_____vtable_FB___body",
+                ),
+                Call(
+                    "FB__ctor",
+                ),
+                Call(
+                    "__vtable_FB__ctor",
                 ),
             },
             literals: StringLiterals {
