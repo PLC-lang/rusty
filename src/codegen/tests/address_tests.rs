@@ -127,3 +127,39 @@ fn address_used_in_body() {
     }
     "#);
 }
+
+#[test]
+fn struct_member_with_hardware_address() {
+    let res = codegen(
+        r"
+            TYPE NodeB : STRUCT
+                c AT %IX1.2.3.4 : BOOL;
+            END_STRUCT
+            END_TYPE
+
+            TYPE NodeA : STRUCT
+                b : NodeB;
+            END_STRUCT
+            END_TYPE
+
+            VAR_GLOBAL
+                myNode : NodeA;
+            END_VAR
+        ",
+    );
+
+    // The backing global __PI_1_2_3_4 is created for the hardware address.
+    // NodeB.c becomes a pointer initialized to &__PI_1_2_3_4 in NodeB__ctor (separate module).
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %NodeA = type { %NodeB }
+    %NodeB = type { ptr }
+
+    @myNode = global %NodeA zeroinitializer
+    @__PI_1_2_3_4 = global i8 0
+    "#);
+}

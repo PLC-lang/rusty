@@ -3,12 +3,7 @@ source: src/lowering/calls.rs
 expression: unit
 ---
 CompilationUnit {
-    global_vars: [
-        VariableBlock {
-            variables: [],
-            variable_block_type: Global,
-        },
-    ],
+    global_vars: [],
     var_config: [],
     pous: [
         POU {
