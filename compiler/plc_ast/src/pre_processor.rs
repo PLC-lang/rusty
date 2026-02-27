@@ -1,258 +1,370 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use plc_util::convention::internal_type_name;
 
 use crate::{
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit,
-        ConfigVariable, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, UserTypeDeclaration,
-        Variable, VariableBlock, VariableBlockType,
+        ConfigVariable, DataType, DataTypeDeclaration, Interface, LinkageType, Operator, Pou,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
+    mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     try_from,
 };
 use plc_source::source_location::SourceLocation;
 
-pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
-    //process all local variables from POUs
-    for pou in unit.pous.iter_mut() {
-        //Find all generic types in that pou
-        let generic_types = preprocess_generic_structs(pou);
-        unit.user_types.extend(generic_types);
-
-        process_pou_variables(pou, &mut unit.user_types);
-    }
-
-    for interface in unit.interfaces.iter_mut().flat_map(|it| &mut it.methods) {
-        process_pou_variables(interface, &mut unit.user_types);
-    }
-
-    //process all variables from GVLs
-    process_global_variables(unit, &mut id_provider);
-    process_var_config_variables(unit);
-
-    //process all variables in dataTypes
-    let mut new_types = vec![];
-    for dt in unit.user_types.iter_mut() {
-        {
-            match &mut dt.data_type {
-                DataType::StructType { name, variables, .. } => {
-                    let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
-                    variables.iter_mut().filter(|it| should_generate_implicit_type(it)).for_each(|var| {
-                        pre_process_variable_data_type(name, var, &mut new_types, dt.linkage)
-                    });
-                }
-                DataType::ArrayType { name, referenced_type, .. }
-                | DataType::PointerType { name, referenced_type, .. }
-                    if should_generate_implicit(referenced_type) =>
-                {
-                    let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
-
-                    let type_name = internal_type_name("", name);
-                    let type_ref = DataTypeDeclaration::Reference {
-                        referenced_type: type_name.clone(),
-                        location: SourceLocation::internal(), //return_type.get_location(),
-                    };
-                    let datatype = std::mem::replace(referenced_type, Box::new(type_ref));
-                    if let DataTypeDeclaration::Definition { mut data_type, location, scope } = *datatype {
-                        data_type.set_name(type_name);
-                        add_nested_datatypes(name, &mut data_type, &mut new_types, &location, dt.linkage);
-                        let data_type = UserTypeDeclaration {
-                            data_type: *data_type,
-                            initializer: None,
-                            location,
-                            scope,
-                            linkage: dt.linkage,
-                        };
-                        new_types.push(data_type);
-                    }
-                }
-                DataType::EnumType { elements, .. }
-                    if matches!(elements.stmt, AstStatement::EmptyStatement { .. }) =>
-                {
-                    //avoid empty statements, just use an empty expression list to make it easier to work with
-                    let _ = std::mem::replace(&mut elements.stmt, AstStatement::ExpressionList(vec![]));
-                }
-                DataType::EnumType { elements: original_elements, name: Some(enum_name), .. }
-                    if !matches!(original_elements.stmt, AstStatement::EmptyStatement { .. }) =>
-                {
-                    let mut last_name: Option<String> = None;
-
-                    fn extract_flat_ref_name(statement: &AstNode) -> &str {
-                        statement.get_flat_reference_name().expect("expected assignment")
-                    }
-
-                    let initialized_enum_elements = flatten_expression_list(original_elements)
-                        .iter()
-                        .map(|it| {
-                            try_from!(it, Assignment).map_or_else(
-                                || (extract_flat_ref_name(it), None, it.get_location()),
-                                |Assignment { left, right }| {
-                                    (
-                                        extract_flat_ref_name(left.as_ref()),
-                                        Some(*right.clone()),
-                                        it.get_location(),
-                                    )
-                                },
-                            )
-                        })
-                        .map(|(element_name, initializer, location)| {
-                            let enum_literal = initializer.unwrap_or_else(|| {
-                                build_enum_initializer(&last_name, &location, &mut id_provider, enum_name)
-                            });
-                            last_name = Some(element_name.to_string());
-                            AstFactory::create_assignment(
-                                AstFactory::create_member_reference(
-                                    AstFactory::create_identifier(
-                                        element_name,
-                                        &location,
-                                        id_provider.next_id(),
-                                    ),
-                                    None,
-                                    id_provider.next_id(),
-                                ),
-                                enum_literal,
-                                id_provider.next_id(),
-                            )
-                        })
-                        .collect::<Vec<AstNode>>();
-                    // if the enum is empty, we dont change anything
-                    if !initialized_enum_elements.is_empty() {
-                        // we can safely unwrap because we checked the vec
-                        let start_loc =
-                            initialized_enum_elements.first().expect("non empty vec").get_location();
-                        let end_loc =
-                            initialized_enum_elements.iter().last().expect("non empty vec").get_location();
-                        //swap the expression list with our new Assignments
-                        let expression = AstFactory::create_expression_list(
-                            initialized_enum_elements,
-                            start_loc.span(&end_loc),
-                            id_provider.next_id(),
-                        );
-                        let _ = std::mem::replace(original_elements, expression);
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
-    unit.user_types.append(&mut new_types);
+/// Pre-processes a compilation unit, extracting inline type definitions,
+/// initializing enum elements, and creating backing globals for hardware access.
+pub fn pre_process(unit: &mut CompilationUnit, id_provider: IdProvider) {
+    PreProcessor::new(id_provider).visit_compilation_unit(unit);
 }
 
-fn process_pou_variables(pou: &mut Pou, user_types: &mut Vec<UserTypeDeclaration>) {
-    let local_variables = pou
-        .variable_blocks
-        .iter_mut()
-        .flat_map(|it| it.variables.iter_mut())
-        .filter(|it| should_generate_implicit_type(it));
-
-    for var in local_variables {
-        pre_process_variable_data_type(pou.name.as_str(), var, user_types, pou.linkage)
-    }
-
-    //Generate implicit type for returns
-    preprocess_return_type(pou, user_types);
+/// A mutable AST visitor that performs pre-processing transformations.
+///
+/// Follows the [`AstVisitorMut`] pattern (see also `InheritanceLowerer`, `PropertyLowerer`)
+/// to walk the compilation unit and transform it in place:
+///
+/// - Extracts inline type definitions from variables into named [`UserTypeDeclaration`]s
+/// - Generates types for generic POU parameters
+/// - Creates backing global variables for IEC hardware access declarations (`AT %IX…`)
+/// - Initializes enum elements with auto-incrementing values
+struct PreProcessor {
+    id_provider: IdProvider,
+    /// Tracks which hardware-backing globals have been created to prevent duplicates.
+    known_hw_globals: FxHashSet<String>,
+    /// New types accumulated during the walk, flushed to `unit.user_types` afterward.
+    new_types: Vec<UserTypeDeclaration>,
+    /// Hardware-access backing globals accumulated during the walk.
+    mangled_globals: Vec<Variable>,
+    /// Name of the current containing scope (`"global"`, POU name, or struct name).
+    current_container: String,
+    /// Linkage of the current scope.
+    current_linkage: LinkageType,
+    /// Whether we are inside a POU (suppresses hardware-access processing for local variables).
+    in_pou: bool,
 }
 
-fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProvider) {
-    let mut mangled_globals = Vec::new();
-
-    for (linkage, global_var) in
-        unit.global_vars.iter_mut().flat_map(|block| block.variables.iter_mut().map(|it| (block.linkage, it)))
-    {
-        let ref_ty = global_var.data_type_declaration.get_inner_pointer_ty();
-
-        if should_generate_implicit_type(global_var) {
-            pre_process_variable_data_type("global", global_var, &mut unit.user_types, linkage)
-        }
-
-        // In any case, we have to inject initializers into aliased hardware access variables
-        if let Some(ref node) = global_var.address {
-            if let AstStatement::HardwareAccess(hardware) = &node.stmt {
-                let name = hardware.get_mangled_variable_name();
-
-                // %I*: DWORD; should not be declared at this stage, it is just skipped
-                if hardware.is_template() {
-                    continue;
-                }
-
-                let mangled_initializer = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(&name, SourceLocation::internal(), id_provider.next_id()),
-                    None,
-                    id_provider.next_id(),
-                );
-
-                global_var.initializer = Some(mangled_initializer);
-
-                let internal_mangled_var = Variable {
-                    name,
-                    data_type_declaration: ref_ty.unwrap_or(global_var.data_type_declaration.clone()),
-                    initializer: None,
-                    address: None,
-                    location: node.location.clone(),
-                };
-                mangled_globals.push(internal_mangled_var);
-            }
+impl PreProcessor {
+    fn new(id_provider: IdProvider) -> Self {
+        Self {
+            id_provider,
+            known_hw_globals: FxHashSet::default(),
+            new_types: Vec::new(),
+            mangled_globals: Vec::new(),
+            current_container: "global".to_string(),
+            current_linkage: LinkageType::Internal,
+            in_pou: false,
         }
     }
 
-    update_generated_globals(unit, mangled_globals);
-}
+    /// Registers a [`DataTypeDeclaration::Definition`] as a named user type in [`Self::new_types`].
+    ///
+    /// If `decl` is not a `Definition` (e.g. already a `Reference`), this is a no-op.
+    fn register_extracted_type(&mut self, decl: DataTypeDeclaration, name: String, linkage: LinkageType) {
+        if let DataTypeDeclaration::Definition { mut data_type, location, scope } = decl {
+            data_type.set_name(name);
+            self.new_types.push(UserTypeDeclaration {
+                data_type: *data_type,
+                initializer: None,
+                location,
+                scope,
+                linkage,
+            });
+        }
+    }
 
-fn process_var_config_variables(unit: &mut CompilationUnit) {
-    let variables = unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, .. }| {
-        let AstStatement::HardwareAccess(hardware) = &address.stmt else {
-            unreachable!("Must be parsed as hardware access")
+    /// Extracts the inner type of an array or pointer when it is an inline [`DataTypeDeclaration::Definition`],
+    /// replacing it with a [`DataTypeDeclaration::Reference`] and pushing the extracted type to [`Self::new_types`].
+    fn extract_nested_type(&mut self, name: &Option<String>, referenced_type: &mut Box<DataTypeDeclaration>) {
+        if !should_generate_implicit(referenced_type) {
+            return;
+        }
+        // Convention: nested extracted types are named `{container}_` (matches the old
+        // `add_nested_datatypes` behaviour; see also plc_util/src/convention.rs).
+        let container = name.as_deref().unwrap_or("undefined");
+        let type_name = format!("{container}_");
+        let type_ref = DataTypeDeclaration::Reference {
+            referenced_type: type_name.clone(),
+            location: SourceLocation::internal(),
         };
+        let old = std::mem::replace(referenced_type.as_mut(), type_ref);
+        self.register_extracted_type(old, type_name, self.current_linkage);
+    }
 
-        if hardware.is_template() {
-            return None;
+    /// Initializes enum elements with auto-incrementing values.
+    ///
+    /// Elements without an explicit initializer receive `previous + 1` (or `0` for the first).
+    fn initialize_enum_elements(&mut self, enum_name: &mut str, original_elements: &mut AstNode) {
+        let mut last_name: Option<String> = None;
+
+        fn extract_flat_ref_name(statement: &AstNode) -> &str {
+            statement.get_flat_reference_name().expect("expected assignment")
         }
 
-        // Check if the mangled variable already exists in any of the global variable blocks
-        // XXX: Not a fan of this, we should fix the underlying issue with variable block creation here...
-        let name = hardware.get_mangled_variable_name();
-        if find_mangled_variable(unit, &name) {
-            return None; // Already exists, skip
-        }
+        let id_provider = &mut self.id_provider;
 
-        Some(Variable {
-            name,
-            data_type_declaration: data_type.get_inner_pointer_ty().unwrap_or(data_type.clone()),
-            initializer: None,
-            address: None,
-            location: address.get_location(),
-        })
-    });
+        let initialized_enum_elements = flatten_expression_list(original_elements)
+            .iter()
+            .map(|it| {
+                try_from!(it, Assignment).map_or_else(
+                    || (extract_flat_ref_name(it), None, it.get_location()),
+                    |Assignment { left, right }| {
+                        (extract_flat_ref_name(left.as_ref()), Some(*right.clone()), it.get_location())
+                    },
+                )
+            })
+            .map(|(element_name, initializer, location)| {
+                let enum_literal = initializer.unwrap_or_else(|| {
+                    build_enum_initializer(&last_name, &location, id_provider, enum_name)
+                });
+                last_name = Some(element_name.to_string());
+                AstFactory::create_assignment(
+                    AstFactory::create_member_reference(
+                        AstFactory::create_identifier(element_name, &location, id_provider.next_id()),
+                        None,
+                        id_provider.next_id(),
+                    ),
+                    enum_literal,
+                    id_provider.next_id(),
+                )
+            })
+            .collect::<Vec<AstNode>>();
 
-    update_generated_globals(unit, variables.collect());
-}
-
-fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Variable>) {
-    let mut block = if let Some(index) = unit
-        .global_vars
-        .iter()
-        .position(|block| block.kind == VariableBlockType::Global && block.location.is_builtin_internal())
-    {
-        unit.global_vars.remove(index)
-    } else {
-        VariableBlock::default().with_block_type(VariableBlockType::Global)
-    };
-    for var in mangled_globals {
-        if !block.variables.contains(&var) {
-            block.variables.push(var);
+        if !initialized_enum_elements.is_empty() {
+            let start_loc = initialized_enum_elements.first().expect("non empty vec").get_location();
+            let end_loc = initialized_enum_elements.iter().last().expect("non empty vec").get_location();
+            let expression = AstFactory::create_expression_list(
+                initialized_enum_elements,
+                start_loc.span(&end_loc),
+                id_provider.next_id(),
+            );
+            *original_elements = expression;
         }
     }
 
-    unit.global_vars.push(block);
+    /// Creates backing globals for `VAR_CONFIG` hardware addresses.
+    fn process_var_config(&mut self, unit: &CompilationUnit) {
+        for ConfigVariable { data_type, address, .. } in &unit.var_config {
+            let AstStatement::HardwareAccess(hardware) = &address.stmt else {
+                unreachable!("Must be parsed as hardware access")
+            };
+
+            if hardware.is_template() {
+                continue;
+            }
+
+            let name = hardware.get_mangled_variable_name();
+            if !self.known_hw_globals.insert(name.clone()) {
+                continue;
+            }
+
+            self.mangled_globals.push(Variable {
+                name,
+                data_type_declaration: data_type.get_inner_pointer_ty().unwrap_or(data_type.clone()),
+                initializer: None,
+                address: None,
+                location: address.get_location(),
+            });
+        }
+    }
 }
 
-fn find_mangled_variable(unit: &CompilationUnit, name: &str) -> bool {
-    unit.global_vars.iter().flat_map(|block| &block.variables).any(|var| var.name == name)
+impl AstVisitorMut for PreProcessor {
+    fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
+        // Seed known hardware globals from existing globals so re-runs don't produce duplicates.
+        self.known_hw_globals = unit
+            .global_vars
+            .iter()
+            .flat_map(|block| &block.variables)
+            .filter(|var| {
+                var.name.starts_with("__PI_")
+                    || var.name.starts_with("__M_")
+                    || var.name.starts_with("__G_")
+            })
+            .map(|var| var.name.clone())
+            .collect();
+
+        // Walk the compilation unit: globals → user_types → pous → implementations → interfaces
+        unit.walk(self);
+
+        // Process VAR_CONFIG variables (not part of the default walk)
+        self.process_var_config(unit);
+
+        // Fixup: process any newly generated types that themselves need processing
+        // (e.g. an extracted struct whose members have inline types, or a nested array).
+        // The loop converges because each iteration only generates simpler (flatter) types.
+        while !self.new_types.is_empty() {
+            let mut batch = std::mem::take(&mut self.new_types);
+            for ut in &mut batch {
+                self.visit_user_type_declaration(ut);
+            }
+            unit.user_types.extend(batch);
+        }
+
+        // Flush all accumulated hardware-access backing globals
+        update_generated_globals(unit, std::mem::take(&mut self.mangled_globals));
+    }
+
+    fn visit_pou(&mut self, pou: &mut Pou) {
+        let prev_container = std::mem::replace(&mut self.current_container, pou.name.clone());
+        let prev_linkage = std::mem::replace(&mut self.current_linkage, pou.linkage);
+        let prev_in_pou = std::mem::replace(&mut self.in_pou, true);
+
+        // Generate types for generic parameters and replace generic names in variable types
+        if !pou.generics.is_empty() {
+            let mut generics = FxHashMap::default();
+            for binding in &pou.generics {
+                let new_name = format!("__{}__{}", pou.name, binding.name); // TODO: Naming convention (see plc_util/src/convention.rs)
+                self.new_types.push(UserTypeDeclaration {
+                    data_type: DataType::GenericType {
+                        name: new_name.clone(),
+                        generic_symbol: binding.name.clone(),
+                        nature: binding.nature,
+                    },
+                    initializer: None,
+                    scope: Some(pou.name.clone()),
+                    location: pou.location.clone(),
+                    linkage: pou.linkage,
+                });
+                generics.insert(binding.name.clone(), new_name);
+            }
+            for var in pou.variable_blocks.iter_mut().flat_map(|it| it.variables.iter_mut()) {
+                replace_generic_type_name(&mut var.data_type_declaration, &generics);
+            }
+            if let Some(rt) = pou.return_type.as_mut() {
+                replace_generic_type_name(rt, &generics);
+            }
+        }
+
+        // Walk variable blocks → visit_variable handles implicit type extraction
+        for block in &mut pou.variable_blocks {
+            self.visit_variable_block(block);
+        }
+
+        // Extract implicit return type
+        if let Some(return_type) = &pou.return_type {
+            if should_generate_implicit(return_type) {
+                let type_name = format!("__{}_return", &pou.name);
+                let type_ref = DataTypeDeclaration::Reference {
+                    referenced_type: type_name.clone(),
+                    location: return_type.get_location(),
+                };
+                if let Some(old) = pou.return_type.replace(type_ref) {
+                    self.register_extracted_type(old, type_name, pou.linkage);
+                }
+            }
+        }
+
+        self.current_container = prev_container;
+        self.current_linkage = prev_linkage;
+        self.in_pou = prev_in_pou;
+    }
+
+    fn visit_interface(&mut self, interface: &mut Interface) {
+        for method in &mut interface.methods {
+            self.visit_pou(method);
+        }
+    }
+
+    fn visit_variable_block(&mut self, block: &mut VariableBlock) {
+        // For non-POU blocks (globals), take linkage from the block itself
+        if !self.in_pou {
+            self.current_linkage = block.linkage;
+        }
+        block.walk(self);
+    }
+
+    fn visit_variable(&mut self, variable: &mut Variable) {
+        // Capture inner pointer type before any replacement
+        let ref_ty = variable.data_type_declaration.get_inner_pointer_ty();
+
+        // Extract inline type definitions into named types
+        if should_generate_implicit(&variable.data_type_declaration) {
+            let new_type_name =
+                internal_type_name(&format!("{}_", &self.current_container), &variable.name);
+            let old = variable.replace_data_type_with_reference_to(new_type_name.clone());
+            self.register_extracted_type(old, new_type_name, self.current_linkage);
+        }
+
+        // Create backing globals for hardware-access variables (globals and struct members only).
+        // POU-local variables and template addresses (%I* : DWORD) are skipped.
+        if self.in_pou {
+            return;
+        }
+        let Some(ref node) = variable.address else { return };
+        let AstStatement::HardwareAccess(hardware) = &node.stmt else { return };
+        if hardware.is_template() {
+            return;
+        }
+
+        let name = hardware.get_mangled_variable_name();
+        variable.initializer = Some(AstFactory::create_member_reference(
+            AstFactory::create_identifier(
+                &name,
+                SourceLocation::internal(),
+                self.id_provider.next_id(),
+            ),
+            None,
+            self.id_provider.next_id(),
+        ));
+
+        if self.known_hw_globals.insert(name.clone()) {
+            self.mangled_globals.push(Variable {
+                name,
+                data_type_declaration: ref_ty.unwrap_or(variable.data_type_declaration.clone()),
+                initializer: None,
+                address: None,
+                location: node.location.clone(),
+            });
+        }
+    }
+
+    fn visit_user_type_declaration(&mut self, user_type: &mut UserTypeDeclaration) {
+        // Set context for struct member processing
+        if let DataType::StructType { name, .. } = &user_type.data_type {
+            self.current_container = name.as_deref().unwrap_or("undefined").to_string();
+        }
+        self.current_linkage = user_type.linkage;
+
+        // Walk into data_type → visit_data_type dispatches per variant
+        user_type.walk(self);
+    }
+
+    fn visit_data_type(&mut self, data_type: &mut DataType) {
+        match data_type {
+            // Extract nested inline types from arrays and pointers before walking children.
+            DataType::ArrayType { name, referenced_type, .. }
+            | DataType::PointerType { name, referenced_type, .. } => {
+                self.extract_nested_type(name, referenced_type);
+            }
+
+            // Empty enum: normalize to empty expression list (no walk needed).
+            DataType::EnumType { elements, .. }
+                if matches!(elements.stmt, AstStatement::EmptyStatement { .. }) =>
+            {
+                elements.stmt = AstStatement::ExpressionList(vec![]);
+                return;
+            }
+
+            // Named non-empty enum: generate auto-incrementing initializers (no walk needed).
+            DataType::EnumType { elements, name: Some(enum_name), .. } => {
+                self.initialize_enum_elements(enum_name, elements);
+                return;
+            }
+
+            _ => {}
+        }
+
+        // Walk children: struct members → visit_variable, array bounds, etc.
+        data_type.walk(self);
+    }
 }
+
+// --- Standalone helpers ---
 
 fn build_enum_initializer(
     last_name: &Option<String>,
@@ -279,62 +391,6 @@ fn build_enum_initializer(
     }
 }
 
-fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
-    let mut generic_types = FxHashMap::default();
-    let mut types = vec![];
-    for binding in &pou.generics {
-        let new_name = format!("__{}__{}", pou.name, binding.name); // TODO: Naming convention (see plc_util/src/convention.rs)
-
-        //Generate a type for the generic
-        let data_type = UserTypeDeclaration {
-            data_type: DataType::GenericType {
-                name: new_name.clone(),
-                generic_symbol: binding.name.clone(),
-                nature: binding.nature,
-            },
-            initializer: None,
-            scope: Some(pou.name.clone()),
-            location: pou.location.clone(),
-            linkage: pou.linkage,
-        };
-        types.push(data_type);
-        generic_types.insert(binding.name.clone(), new_name);
-    }
-    for var in pou.variable_blocks.iter_mut().flat_map(|it| it.variables.iter_mut()) {
-        replace_generic_type_name(&mut var.data_type_declaration, &generic_types);
-    }
-    if let Some(datatype) = pou.return_type.as_mut() {
-        replace_generic_type_name(datatype, &generic_types);
-    };
-    types
-}
-
-fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
-    let linkage = pou.linkage;
-    if let Some(return_type) = &pou.return_type {
-        if should_generate_implicit(return_type) {
-            let type_name = format!("__{}_return", &pou.name); // TODO: Naming convention (see plc_util/src/convention.rs)
-            let type_ref = DataTypeDeclaration::Reference {
-                referenced_type: type_name.clone(),
-                location: return_type.get_location(),
-            };
-            let datatype = pou.return_type.replace(type_ref);
-            if let Some(DataTypeDeclaration::Definition { mut data_type, location, scope }) = datatype {
-                data_type.set_name(type_name);
-                add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location, linkage);
-                let data_type = UserTypeDeclaration {
-                    data_type: *data_type,
-                    initializer: None,
-                    location,
-                    scope,
-                    linkage,
-                };
-                types.push(data_type);
-            }
-        }
-    }
-}
-
 fn should_generate_implicit(datatype: &DataTypeDeclaration) -> bool {
     match datatype {
         DataTypeDeclaration::Reference { .. } | DataTypeDeclaration::Aggregate { .. } => false,
@@ -344,64 +400,6 @@ fn should_generate_implicit(datatype: &DataTypeDeclaration) -> bool {
             false
         }
         DataTypeDeclaration::Definition { .. } => true,
-    }
-}
-
-fn should_generate_implicit_type(variable: &Variable) -> bool {
-    should_generate_implicit(&variable.data_type_declaration)
-}
-
-fn pre_process_variable_data_type(
-    container_name: &str,
-    variable: &mut Variable,
-    types: &mut Vec<UserTypeDeclaration>,
-    linkage: LinkageType,
-) {
-    let new_type_name = internal_type_name(&format!("{container_name}_"), &variable.name);
-    if let DataTypeDeclaration::Definition { mut data_type, location, scope } =
-        variable.replace_data_type_with_reference_to(new_type_name.clone())
-    {
-        // create index entry
-        add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location, linkage);
-        data_type.set_name(new_type_name);
-        types.push(UserTypeDeclaration {
-            data_type: *data_type,
-            initializer: None,
-            location,
-            scope,
-            linkage,
-        });
-    }
-    //make sure it gets generated
-}
-
-fn add_nested_datatypes(
-    container_name: &str,
-    datatype: &mut DataType,
-    types: &mut Vec<UserTypeDeclaration>,
-    location: &SourceLocation,
-    linkage: LinkageType,
-) {
-    // TODO: Naming convention (see plc_util/src/convention.rs)
-    let new_type_name = format!("{container_name}_");
-    // FIXME: When processing pointer-to-pointer types (e.g., alias variables pointing to existing pointers),
-    // the inner type is already a DataTypeDeclaration::Reference, so replace_data_type_with_reference_to
-    // returns None and nested type processing is skipped. This results in incomplete names like "__global_alias_var_"
-    // (with trailing underscore but no suffix) when the inner pointer type should be processed.
-    // We need to distinguish between pointer references (which should be processed) and other references
-    // (which should return None) to properly handle nested pointer structures.
-    if let Some(DataTypeDeclaration::Definition { mut data_type, location: inner_location, scope }) =
-        datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
-    {
-        data_type.set_name(new_type_name.clone());
-        add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &inner_location, linkage);
-        types.push(UserTypeDeclaration {
-            data_type: *data_type,
-            initializer: None,
-            location: location.clone(),
-            scope,
-            linkage,
-        });
     }
 }
 
@@ -420,6 +418,28 @@ fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &FxHashMap<
                 referenced_type.clone_from(type_name);
             }
         }
-        DataTypeDeclaration::Aggregate { .. } => {} //todo!(),
+        DataTypeDeclaration::Aggregate { .. } => {}
     }
+}
+
+fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Variable>) {
+    if mangled_globals.is_empty() {
+        return;
+    }
+    let mut block = if let Some(index) = unit
+        .global_vars
+        .iter()
+        .position(|block| block.kind == VariableBlockType::Global && block.location.is_builtin_internal())
+    {
+        unit.global_vars.remove(index)
+    } else {
+        VariableBlock::default().with_block_type(VariableBlockType::Global)
+    };
+    for var in mangled_globals {
+        if !block.variables.contains(&var) {
+            block.variables.push(var);
+        }
+    }
+
+    unit.global_vars.push(block);
 }

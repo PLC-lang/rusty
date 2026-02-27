@@ -18,14 +18,14 @@ entry:
   ret void
 }
 
-define void @__global_b___ctor(ptr %0) {
+define void @__global_b__ctor(ptr %0) {
 entry:
   %self = alloca ptr, align [filtered]
   store ptr %0, ptr %self, align [filtered]
   ret void
 }
 
-define void @__global_b__ctor(ptr %0) {
+define void @__global_b___ctor(ptr %0) {
 entry:
   %self = alloca ptr, align [filtered]
   store ptr %0, ptr %self, align [filtered]

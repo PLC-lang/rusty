@@ -215,13 +215,6 @@ fn simple_overridden_method() {
       ret void
     }
 
-    define void @__A___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_A___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -244,6 +237,13 @@ fn simple_overridden_method() {
     }
 
     define void @____vtable_B_foo__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__A___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -370,13 +370,6 @@ fn method_call_within_method() {
       ret void
     }
 
-    define void @__A___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_A___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -392,6 +385,13 @@ fn method_call_within_method() {
     }
 
     define void @____vtable_A_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__A___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -666,13 +666,6 @@ fn this_is_untouched() {
       ret void
     }
 
-    define void @__A___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_A___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -730,6 +723,13 @@ fn this_is_untouched() {
     }
 
     define void @____vtable_C_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__A___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -937,13 +937,6 @@ fn super_is_untouched() {
       ret void
     }
 
-    define void @__A___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_A___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -980,6 +973,13 @@ fn super_is_untouched() {
     }
 
     define void @____vtable_B_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__A___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]

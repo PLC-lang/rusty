@@ -5,7 +5,7 @@ expression: new_pointer_type
 UserTypeDeclaration {
     data_type: PointerType {
         name: Some(
-            "__pointer_to_pointer",
+            "pointer_to_pointer_",
         ),
         referenced_type: DataTypeReference {
             referenced_type: "INT",
