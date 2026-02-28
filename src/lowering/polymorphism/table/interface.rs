@@ -253,7 +253,7 @@ impl InterfaceTableGenerator {
 
 /// Internal helper functions for itable name generation, method deduplication, and interface
 /// obligation collection.
-mod helper {
+pub mod helper {
     use plc_ast::ast::{DataType, DataTypeDeclaration};
     use plc_source::source_location::SourceLocation;
     use rustc_hash::FxHashSet;

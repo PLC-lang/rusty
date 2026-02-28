@@ -1,4 +1,4 @@
-mod interface;
+pub(crate) mod interface;
 mod pou;
 
 use plc_ast::{ast::CompilationUnit, provider::IdProvider};
