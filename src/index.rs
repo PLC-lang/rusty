@@ -1797,6 +1797,34 @@ impl Index {
         None
     }
 
+    /// Computes the struct GEP index for a position.
+    /// VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the POU struct
+    /// (they are stack-allocated or reference external storage), so they are excluded
+    /// when computing the index.
+    /// Returns None if the variable is not part of the struct (temp/external/return).
+    pub fn get_struct_member_index_by_position(&self, container_name: &str, position: &usize) -> Option<u32> {
+        let members = self.get_pou_members(container_name);
+        let mut actual_index: u32 = 0;
+
+        for (index, member) in members.iter().enumerate() {
+            if index == *position {
+                // VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the struct
+                if member.is_temp() || member.is_var_external() || member.is_return() {
+                    return None;
+                } else {
+                    return Some(actual_index);
+                }
+            }
+
+            // Only count members that are part of the struct
+            if !member.is_temp() && !member.is_var_external() && !member.is_return() {
+                actual_index += 1;
+            }
+        }
+
+        None
+    }
+
     /// returns the effective DataType of the type with the given name if it exists
     pub fn find_effective_type_by_name(&self, type_name: &str) -> Option<&DataType> {
         self.type_index.find_effective_type_by_name(type_name)

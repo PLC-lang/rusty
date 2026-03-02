@@ -8,12 +8,12 @@ FUNCTION_BLOCK baseControl
         inoutVar : BOOL;
     END_VAR
 
-    VAR_OUTPUT
-        a_out :INT;
-    END_VAR
-
     VAR_TEMP
         tempo : INT;
+    END_VAR
+
+    VAR_OUTPUT
+        a_out :INT;
     END_VAR
 
     VAR
@@ -27,6 +27,7 @@ END_FUNCTION_BLOCK
 FUNCTION main
    VAR
        fb : baseControl;
+       fb2 : baseControl;
        dipin : BOOL;
        outVar : INT;
    END_VAR
@@ -34,5 +35,10 @@ FUNCTION main
    fb(a_in := 9, a_out => outVar, inoutVar := dipin);
 
    // CHECK: 10
-   printf('%d$N', fb.a_out);
+   printf('%d$N', outVar);
+
+   fb2(12, dipin, outVar);
+
+   // CHECK: 13
+   printf('%d$N', outVar);
 END_FUNCTION
