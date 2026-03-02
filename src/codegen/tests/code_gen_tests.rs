@@ -4285,8 +4285,6 @@ fn function_block_with_var_temp_should_compile_when_output_is_specified() {
 
     %baseControl = type { i16, ptr, i16 }
 
-    @__baseControl__init = unnamed_addr constant %baseControl zeroinitializer
-
     define void @baseControl(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -4309,7 +4307,7 @@ fn function_block_with_var_temp_should_compile_when_output_is_specified() {
       %fb = alloca %baseControl, align [filtered]
       %dipin = alloca i8, align [filtered]
       %outVar = alloca i16, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__baseControl__init, i64 ptrtoint (ptr getelementptr (%baseControl, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%baseControl, ptr null, i32 1) to i64), i1 false)
       store i8 0, ptr %dipin, align [filtered]
       store i16 0, ptr %outVar, align [filtered]
       %0 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 0
@@ -4323,10 +4321,10 @@ fn function_block_with_var_temp_should_compile_when_output_is_specified() {
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -4379,8 +4377,6 @@ fn function_block_with_var_temp_should_compile_when_implicit_output_is_specified
 
     %baseControl = type { i16, ptr, i16 }
 
-    @__baseControl__init = unnamed_addr constant %baseControl zeroinitializer
-
     define void @baseControl(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -4403,7 +4399,7 @@ fn function_block_with_var_temp_should_compile_when_implicit_output_is_specified
       %fb = alloca %baseControl, align [filtered]
       %dipin = alloca i8, align [filtered]
       %outVar = alloca i16, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__baseControl__init, i64 ptrtoint (ptr getelementptr (%baseControl, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%baseControl, ptr null, i32 1) to i64), i1 false)
       store i8 0, ptr %dipin, align [filtered]
       store i16 0, ptr %outVar, align [filtered]
       %0 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 0
@@ -4417,9 +4413,9 @@ fn function_block_with_var_temp_should_compile_when_implicit_output_is_specified
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
