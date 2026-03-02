@@ -1,4 +1,4 @@
-// RUN: %COMPILE_IR %s --ir -g | %CHECK_IR %s
+// RUN: %COMPILE_IR %s | %CHECK_IR %s
 
 // Test that inline (anonymous) enum variables generate proper debug info
 // These are enums declared directly in VAR blocks without TYPE declaration

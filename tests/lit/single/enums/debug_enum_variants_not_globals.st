@@ -1,4 +1,4 @@
-// RUN: %COMPILE_IR %s --ir -g | %CHECK_IR %s
+// RUN: %COMPILE_IR %s | %CHECK_IR %s
 
 // Test that enum variants are NOT included in global variable debug info
 // but the enum type itself and variables using it ARE included

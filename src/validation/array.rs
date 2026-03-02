@@ -211,7 +211,7 @@ impl<'a> StatementWrapper<'a> {
             StatementWrapper::Variable(variable) => variable
                 .data_type_declaration
                 .get_referenced_type()
-                .and_then(|it| context.index.find_effective_type_info(&it)),
+                .and_then(|it| context.index.find_effective_type_info(it)),
         }?;
 
         match ty {

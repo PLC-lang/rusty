@@ -869,6 +869,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             );
             return;
         }
+
         let file = scope
             .linking_context
             .get_location()
@@ -900,7 +901,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     ) {
         let (index, types_index) = indices;
         let pou = index.find_pou(func.linking_context.get_call_name()).expect("POU is available");
-        if matches!(pou.get_linkage(), LinkageType::External)
+        if pou.get_linkage().is_external_or_included()
             || pou.get_location().is_internal()
             || func.linking_context.is_init()
         {

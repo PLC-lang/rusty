@@ -259,7 +259,7 @@ pub mod tests {
             })?;
 
         code_generator
-            .generate(&context, &unit, &annotations, &index, llvm_index)
+            .generate(&context, &unit, &annotations, &index, llvm_index, false)
             .map(|module| module.persist_to_string())
             .map_err(|err| {
                 reporter.handle(&[err.into()]);
@@ -331,7 +331,7 @@ pub mod tests {
                 )?;
 
                 code_generator
-                    .generate(context, &unit, &annotations, &index, llvm_index)
+                    .generate(context, &unit, &annotations, &index, llvm_index, false)
                     .map_err(Diagnostic::from)
             })
             .collect::<Result<Vec<_>, Diagnostic>>()

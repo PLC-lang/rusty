@@ -1,0 +1,28 @@
+TYPE complex : // Mixed initializer test
+	STRUCT
+		id	: DINT := 123;
+		enabled	: BOOL := TRUE;
+		defaultInt	: INT;
+
+		name	: STRING [16] := 'AXIS1';
+		timeout	: TIME := T#500ms;
+		bigTime	: LTIME := LT#2S500MS;
+
+		state	: enumeration := element1; // Enum initializer overriding implicit enum default
+		stateDefault	: enumeration; // Enum without initializer
+	
+		states	: ARRAY[1..3] OF enumeration := [ element0,element1,element0]; // Array-of-enum literal init
+		statesDefault	: ARRAY[1..3] OF enumeration; // Array-of-enum default
+		
+		simpleDefault	: simpleOverride; // Nested struct -> uses type-level defaults of 'simpleOverride'
+		simple	: simpleOverride := (a := 99, b := FALSE); // Nested struct initializer overriding type defaults
+		partialSimple	: simpleOverride := (a := 7); // Partial init 
+		
+		arrDefault	: ARRAY[1..3] OF simpleOverride; // Array-of-struct initializer implicit struct defaults
+		arr	: ARRAY[1..3] OF simpleOverride := [ (a := 1, b := TRUE),(a := 2, b := FALSE),(a := 3, b := TRUE)]; // Array-of-struct initializer overriding implicit struct defaults
+		partialArr : ARRAY[1..3] OF simpleOverride :=	[ (a := 1), (b:= FALSE), (a := 3) ];	// Partial array-of-struct init 
+		
+		gains	: ARRAY[1..3] OF REAL := [ 1.0,0.0,0.1]; // Array literal initializer inside struct
+		gainsDefault	: ARRAY[1..3] OF REAL;
+	END_STRUCT
+END_TYPE

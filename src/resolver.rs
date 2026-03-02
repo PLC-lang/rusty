@@ -1353,12 +1353,32 @@ impl<'i> TypeAnnotator<'i> {
         annotated_left_side: &AstNode,
         right_side: &AstNode,
     ) {
-        if let AstStatement::ParenExpression(expr) = &right_side.stmt {
+        let (peeled_right, annotation_target) = if let AstStatement::ParenExpression(expr) = &right_side.stmt
+        {
             self.update_right_hand_side_expected_type(ctx, annotated_left_side, expr);
             self.inherit_annotations(right_side, expr);
-        }
+            (expr.as_ref(), right_side)
+        } else {
+            (right_side, right_side)
+        };
 
-        if let Some(expected_type) = self.annotation_map.get_type(annotated_left_side, self.index).cloned() {
+        let expected_type = self.expected_type_for_right_side(annotated_left_side, peeled_right);
+        self.update_right_hand_side_expected_type_with_type(
+            ctx,
+            annotated_left_side,
+            expected_type,
+            annotation_target,
+        );
+    }
+
+    fn update_right_hand_side_expected_type_with_type(
+        &mut self,
+        ctx: &VisitorContext,
+        annotated_left_side: &AstNode,
+        expected_type: Option<typesystem::DataType>,
+        right_side: &AstNode,
+    ) {
+        if let Some(expected_type) = expected_type {
             // for assignments on SubRanges check if there are range type check functions
             if let DataTypeInformation::SubRange { sub_range, referenced_type, .. } =
                 expected_type.get_type_information()
@@ -1398,13 +1418,53 @@ impl<'i> TypeAnnotator<'i> {
                     self.update_right_hand_side(&expected_type, right_side);
                     // Handle arrays of structs in assignment statements (not just variable initializers)
                     self.type_hint_for_array_of_structs(&expected_type, right_side, ctx);
+                    // Handle struct literal assignments where LHS is an alias to a struct
+                    self.type_hint_for_struct_literal(&expected_type, right_side);
                 }
             } else {
                 self.update_right_hand_side(&expected_type, right_side);
                 // Handle arrays of structs in assignment statements (not just variable initializers)
                 self.type_hint_for_array_of_structs(&expected_type, right_side, ctx);
+                // Handle struct literal assignments where LHS is an alias to a struct
+                self.type_hint_for_struct_literal(&expected_type, right_side);
             }
         }
+    }
+
+    fn expected_type_for_right_side(
+        &mut self,
+        annotated_left_side: &AstNode,
+        right_side: &AstNode,
+    ) -> Option<typesystem::DataType> {
+        if self.is_ref_or_adr_call(right_side) {
+            return self.expected_type_for_ref_assignment(annotated_left_side);
+        }
+
+        self.annotation_map.get_type(annotated_left_side, self.index).cloned()
+    }
+
+    fn expected_type_for_ref_assignment(
+        &mut self,
+        annotated_left_side: &AstNode,
+    ) -> Option<typesystem::DataType> {
+        match self.annotation_map.get(annotated_left_side) {
+            Some(StatementAnnotation::Variable {
+                auto_deref: Some(AutoDerefType::Reference(pointer_type)),
+                ..
+            }) => self
+                .index
+                .find_effective_type_by_name(pointer_type)
+                .or_else(|| self.annotation_map.new_index.find_effective_type_by_name(pointer_type))
+                .cloned(),
+            _ => self.annotation_map.get_type(annotated_left_side, self.index).cloned(),
+        }
+    }
+
+    fn is_ref_or_adr_call(&self, statement: &AstNode) -> bool {
+        if let AstStatement::CallStatement(call) = statement.get_stmt_peeled() {
+            return matches!(call.operator.get_flat_reference_name(), Some("REF" | "ADR"));
+        }
+        false
     }
 
     fn update_right_hand_side(&mut self, expected_type: &typesystem::DataType, right_side: &AstNode) {
@@ -1428,12 +1488,7 @@ impl<'i> TypeAnnotator<'i> {
                 //TODO exprssionList and MultipliedExpressions are a mess!
                 // Also annotate ParenExpression with the array type so that codegen can properly
                 // handle array literals with struct initializers like [(a := 1, b := 2)]
-                if matches!(
-                    elements.get_stmt(),
-                    AstStatement::ExpressionList(..)
-                        | AstStatement::MultipliedStatement(..)
-                        | AstStatement::ParenExpression(..)
-                ) {
+                if self.is_expression_list_like(elements) {
                     self.annotation_map
                         .annotate_type_hint(elements, StatementAnnotation::value(expected_type.get_name()));
                 }
@@ -1449,20 +1504,34 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::Assignment(Assignment { left, right }, ..) => {
                 // struct initialization (left := right)
                 // find out left's type and update a type hint for right
+                // Use find_effective_type_info to handle alias types (typedefs) that point to structs
+                let effective_type_info = self.index.find_effective_type_info(expected_type.get_name());
                 if let (
-                    typesystem::DataTypeInformation::Struct { name: qualifier, .. },
+                    Some(typesystem::DataTypeInformation::Struct { name: qualifier, .. }),
                     Some(variable_name),
-                ) = (expected_type.get_type_information(), left.as_ref().get_flat_reference_name())
+                ) = (effective_type_info, left.as_ref().get_flat_reference_name())
                 {
+                    // Annotate the Assignment itself with the effective struct type so codegen can identify
+                    // this as a struct literal initializer (e.g., for typedef initializer chains)
+                    self.annotation_map.annotate_type_hint(statement, StatementAnnotation::value(qualifier));
+
                     if let Some(v) = self.index.find_member(qualifier, variable_name) {
-                        if let Some(target_type) = self.index.find_effective_type_by_name(v.get_type_name()) {
-                            self.annotate(left.as_ref(), to_variable_annotation(v, self.index, false));
-                            self.annotation_map.annotate_type_hint(
-                                right.as_ref(),
-                                StatementAnnotation::value(v.get_type_name()),
-                            );
-                            self.update_expected_types(target_type, right);
-                        }
+                        let declared_type = self.index.get_effective_type_or_void_by_name(v.get_type_name());
+                        // Auto-deref pointer members need pointer-typed expected hints (not inner types).
+                        let (target_type, expected_type_name) = match declared_type.get_type_information() {
+                            DataTypeInformation::Pointer { auto_deref: Some(_), name, .. } => {
+                                let ptr_type = self.index.get_type(name).ok().unwrap_or(declared_type);
+                                (ptr_type.clone(), name.as_str())
+                            }
+                            _ => (declared_type.clone(), v.get_type_name()),
+                        };
+
+                        self.annotate(left.as_ref(), to_variable_annotation(v, self.index, false));
+                        self.annotation_map.annotate_type_hint(
+                            right.as_ref(),
+                            StatementAnnotation::value(expected_type_name),
+                        );
+                        self.update_expected_types(&target_type, right);
                     }
                 }
             }
@@ -1688,6 +1757,54 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
+    /// Handles struct literal assignments where the LHS is a struct type or an alias to a struct.
+    /// For example: `self := (a := 3)` where `self` is of type `mytypedefstruct` (alias to `myStruct`).
+    /// This ensures the struct literal RHS is annotated with the effective struct type.
+    fn type_hint_for_struct_literal(&mut self, expected_type: &typesystem::DataType, statement: &AstNode) {
+        // Get the effective type info, resolving through aliases
+        let Some(effective_type_info) = self.index.find_effective_type_info(expected_type.get_name()) else {
+            return;
+        };
+
+        // Only handle struct types
+        if !effective_type_info.is_struct() {
+            return;
+        }
+
+        // Get the effective struct type name
+        let struct_type_name = effective_type_info.get_name();
+
+        match statement.get_stmt() {
+            AstStatement::ParenExpression(inner) => {
+                // Recursively process the inner expression
+                self.type_hint_for_struct_literal(expected_type, inner);
+
+                // If the inner is a struct literal (Assignment or ExpressionList), annotate with effective type
+                if inner.is_struct_literal_initializer() {
+                    self.annotation_map
+                        .annotate_type_hint(statement, StatementAnnotation::value(struct_type_name));
+                    self.annotation_map
+                        .annotate_type_hint(inner, StatementAnnotation::value(struct_type_name));
+                }
+            }
+            AstStatement::Assignment(_) | AstStatement::ExpressionList(_) => {
+                // Direct struct literal - annotate with effective type
+                self.annotation_map
+                    .annotate_type_hint(statement, StatementAnnotation::value(struct_type_name));
+            }
+            _ => (),
+        }
+    }
+
+    fn is_expression_list_like(&self, node: &AstNode) -> bool {
+        matches!(
+            node.get_stmt(),
+            AstStatement::ExpressionList(..)
+                | AstStatement::MultipliedStatement(..)
+                | AstStatement::ParenExpression(..)
+        )
+    }
+
     fn visit_data_type_declaration(&mut self, ctx: &VisitorContext, declaration: &DataTypeDeclaration) {
         if let Some(name) = declaration.get_name() {
             let deps = self.get_datatype_dependencies(name, FxIndexSet::default());
@@ -1902,6 +2019,7 @@ impl<'i> TypeAnnotator<'i> {
                         information,
                         nature: TypeNature::Any,
                         location: SourceLocation::internal(),
+                        linkage: plc_ast::ast::LinkageType::Internal,
                     };
                     self.annotation_map.new_index.register_type(dt);
                 }
@@ -2052,7 +2170,7 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::RangeStatement(data, ..) => {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
-            AstStatement::Assignment(data, ..) | AstStatement::RefAssignment(data, ..) => {
+            AstStatement::Assignment(data, ..) => {
                 self.visit_statement(&ctx.enter_control(), &data.right);
 
                 // if the LHS of the assignment is a member access, we need to update the context - when trying to resolve
@@ -2067,6 +2185,23 @@ impl<'i> TypeAnnotator<'i> {
                 }
 
                 // give a type hint that we want the right side to be stored in the left's type
+                self.update_right_hand_side_expected_type(&ctx, &data.left, &data.right);
+            }
+            AstStatement::RefAssignment(data, ..) => {
+                self.visit_statement(&ctx.enter_control(), &data.right);
+
+                // if the LHS of the assignment is a member access, we need to update the context - when trying to resolve
+                // a property, this means it must be a setter, not a getter
+                let ctx = ctx.with_property_set(data.left.is_member_access());
+
+                if let Some(lhs) = ctx.lhs {
+                    //special context for left hand side
+                    self.visit_statement(&ctx.with_pou(lhs).with_lhs(lhs), &data.left);
+                } else {
+                    self.visit_statement(&ctx, &data.left);
+                }
+
+                // give a type hint that we want the right side to be stored in the left's reference pointer type
                 self.update_right_hand_side_expected_type(&ctx, &data.left, &data.right);
             }
             AstStatement::OutputAssignment(data, ..) => {
@@ -2433,25 +2568,32 @@ impl<'i> TypeAnnotator<'i> {
                 StatementAnnotation::Function { qualified_name, call_name, .. } => {
                     call_name.as_ref().cloned().or_else(|| Some(qualified_name.clone()))
                 }
-                StatementAnnotation::FunctionPointer { qualified_name, .. } => {
-                    Some(qualified_name.clone())
-                }
+                StatementAnnotation::FunctionPointer { qualified_name, .. } => Some(qualified_name.clone()),
                 StatementAnnotation::Program { qualified_name } => Some(qualified_name.clone()),
-                StatementAnnotation::Variable { resulting_type, .. } => {
-                    self.index
-                        .find_pou(resulting_type.as_str())
-                        .filter(|it| matches!(it, PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. }))
-                        .map(|it| it.get_name().to_string())
-                }
+                StatementAnnotation::Variable { resulting_type, .. } => self
+                    .index
+                    .find_pou(resulting_type.as_str())
+                    .filter(|it| {
+                        matches!(it, PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. })
+                    })
+                    .map(|it| it.get_name().to_string()),
                 // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
                 StatementAnnotation::Value { resulting_type } => {
                     // make sure we come from an array or function_block access
                     match operator.get_stmt() {
-                        AstStatement::ReferenceExpr ( ReferenceExpr{access: ReferenceAccess::Index(_), ..},.. ) => Some(resulting_type.clone()),
-                        AstStatement::ReferenceExpr ( ReferenceExpr{access: ReferenceAccess::Deref, ..}, .. ) =>
+                        AstStatement::ReferenceExpr(
+                            ReferenceExpr { access: ReferenceAccess::Index(_), .. },
+                            ..,
+                        ) => Some(resulting_type.clone()),
+                        AstStatement::ReferenceExpr(
+                            ReferenceExpr { access: ReferenceAccess::Deref, .. },
+                            ..,
+                        ) =>
                         // AstStatement::ArrayAccess { .. } => Some(resulting_type.clone()),
                         // AstStatement::PointerAccess { .. } => {
-                            self.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string()),
+                        {
+                            self.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string())
+                        }
                         // }
                         _ => None,
                     }
@@ -2620,6 +2762,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
             },
             location: SourceLocation::internal(),
+            linkage: plc_ast::ast::LinkageType::Internal,
         });
     }
     new_type_name
@@ -2642,6 +2785,7 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String, type_
                 is_function: false,
             },
             location: SourceLocation::internal(),
+            linkage: plc_ast::ast::LinkageType::Internal,
         });
     }
     new_type_name

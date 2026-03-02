@@ -114,6 +114,26 @@ fn initialized_array_in_function() {
 }
 
 #[test]
+fn ref_initializer_with_array_init_in_function() {
+    let result = codegen(
+        r#"
+        VAR_GLOBAL
+            globalString: STRING := 'Global String';
+        END_VAR
+
+        FUNCTION main : DINT
+        VAR
+            localString: REF_TO STRING := REF(globalString);
+            arr: ARRAY[1..2] OF DINT := [1, 2];
+        END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
 fn initialized_array_type_in_function() {
     let result = codegen(
         "

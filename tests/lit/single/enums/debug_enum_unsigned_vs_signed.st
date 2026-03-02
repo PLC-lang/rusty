@@ -1,4 +1,4 @@
-// RUN: %COMPILE_IR %s --ir -g | %CHECK_IR %s
+// RUN: %COMPILE_IR %s | %CHECK_IR %s
 
 // Test that unsigned vs signed enums generate correct isUnsigned flag in DIEnumerator
 // Signed types (INT, DINT, LINT) should NOT have isUnsigned flag

@@ -713,17 +713,11 @@ fn literal_real_test() {
     LiteralReal {
         value: "1.2e-4",
     },
-    UnaryExpression {
-        operator: Minus,
-        value: LiteralReal {
-            value: "1.5",
-        },
+    LiteralReal {
+        value: "-1.5",
     },
-    UnaryExpression {
-        operator: Minus,
-        value: LiteralReal {
-            value: "1.5e3",
-        },
+    LiteralReal {
+        value: "-1.5e3",
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);

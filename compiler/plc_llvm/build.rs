@@ -38,10 +38,25 @@ fn main() {
         // This flag tells Clang/MSVC not to emit warnings from external headers
         // It should be applied to the compiler invocation overall.
         build.flag("/external:W0");
+    } else {
+        // Treat LLVM headers as system headers on GCC/Clang to suppress warnings.
+        // This keeps third-party diagnostics out of our build output while preserving warnings
+        // from our own sources.
     }
 
     for flag in cxxflags.split_whitespace() {
-        if flag.starts_with("-I") || flag.starts_with("-D") {
+        if let Some(include_path) = flag.strip_prefix("-I") {
+            if is_msvc {
+                build.flag(flag);
+            } else if include_path.contains("/llvm") {
+                build.flag("-isystem");
+                build.flag(include_path);
+            } else {
+                build.flag(flag);
+            }
+            continue;
+        }
+        if flag.starts_with("-D") {
             build.flag(flag);
         }
     }

@@ -28,7 +28,11 @@ fn jumps_annotated_with_label_annoations() {
     let annotations = &annotated_project.annotations;
     let unit = &annotated_project.units[0].get_unit();
     // Get the jump
-    let jump = &unit.implementations[0].statements[1];
+    let jump = unit.implementations[0]
+        .statements
+        .iter()
+        .find(|statement| matches!(statement.get_stmt(), AstStatement::JumpStatement(_)))
+        .expect("expected jump statement");
     assert_debug_snapshot!(annotations.get(jump))
 }
 
@@ -43,7 +47,11 @@ fn unbound_jumps_not_annotated() {
     let annotations = &annotated_project.annotations;
     let unit = &annotated_project.units[0].get_unit();
     // Get the jump
-    let jump = &unit.implementations[0].statements[1];
+    let jump = unit.implementations[0]
+        .statements
+        .iter()
+        .find(|statement| matches!(statement.get_stmt(), AstStatement::JumpStatement(_)))
+        .expect("expected jump statement");
     assert!(annotations.get(jump).is_none())
 }
 

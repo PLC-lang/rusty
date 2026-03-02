@@ -172,6 +172,18 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstNode {
                 AstNode::new_literal(AstLiteral::new_integer(*value), lexer.next_id(), location)
             }
 
+            // Handle negative and positive real literals directly instead of creating UnaryExpressions
+            // This ensures that the minus sign is part of the literal string, which is crucial for
+            // proper constant evaluation (especially for very small numbers like 1e-100)
+            (Operator::Minus, AstStatement::Literal(AstLiteral::Real(value))) => {
+                let negative_value = format!("-{}", value);
+                AstNode::new_literal(AstLiteral::new_real(negative_value), lexer.next_id(), location)
+            }
+
+            (Operator::Plus, AstStatement::Literal(AstLiteral::Real(value))) => {
+                AstNode::new_literal(AstLiteral::new_real(value.clone()), lexer.next_id(), location)
+            }
+
             // Return the reference itself instead of wrapping it inside a `AstStatement::UnaryExpression`
             (Operator::Plus, AstStatement::Identifier(name)) => {
                 AstFactory::create_identifier(name, &location, lexer.next_id())

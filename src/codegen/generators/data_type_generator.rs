@@ -12,13 +12,14 @@ use crate::{
     },
     typesystem::DataType,
 };
+use plc_ast::ast::AstStatement;
 
 use inkwell::types::{AnyType, AnyTypeEnum, BasicTypeEnum};
 use inkwell::{
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
-use plc_ast::ast::{AstNode, AstStatement};
+use plc_ast::ast::AstNode;
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -173,6 +174,18 @@ pub fn generate_data_types<'ink>(
         }
     }
     Ok(generator.types_index)
+}
+
+/// Checks if an initializer is a struct literal wrapped in exactly one ParenExpression,
+/// e.g. `(a := 1, b := 2)`. Unlike [`AstNode::is_struct_literal_initializer`] which peels
+/// through all paren layers, this only checks one level because the parser always produces
+/// exactly one `ParenExpression` wrapper for struct literals. Matching more broadly here
+/// would cause compile-time-evaluable struct constants to be replaced with `zeroinitializer`.
+fn is_paren_struct_literal(node: &AstNode) -> bool {
+    match node.get_stmt() {
+        AstStatement::ParenExpression(inner) => inner.is_struct_literal_initializer(),
+        _ => false,
+    }
 }
 
 impl<'ink> DataTypeGenerator<'ink, '_> {
@@ -353,9 +366,14 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         &mut self,
         variable: &VariableIndexEntry,
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
-        let initializer = variable
-            .initial_value
-            .and_then(|it| self.index.get_const_expressions().get_constant_statement(&it));
+        let initializer = variable.initial_value.and_then(|it| {
+            let const_exprs = self.index.get_const_expressions();
+            if const_exprs.find_const_expression(&it).is_some_and(|expr| expr.is_address_unresolvable()) {
+                None
+            } else {
+                const_exprs.get_resolved_constant_statement(&it)
+            }
+        });
         self.generate_initializer(variable.get_qualified_name(), initializer, variable.get_type_name())
     }
 
@@ -367,11 +385,15 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         data_type: &DataType,
         referenced_type: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
-        self.generate_initializer(
-            data_type.get_name(),
-            self.index.get_const_expressions().maybe_get_constant_statement(&data_type.initial_value),
-            referenced_type,
-        )
+        let initializer = data_type.initial_value.and_then(|it| {
+            let const_exprs = self.index.get_const_expressions();
+            if const_exprs.find_const_expression(&it).is_some_and(|expr| expr.is_address_unresolvable()) {
+                None
+            } else {
+                const_exprs.get_resolved_constant_statement(&it)
+            }
+        });
+        self.generate_initializer(data_type.get_name(), initializer, referenced_type)
     }
 
     /// generates the given initializer-statement if one is present
@@ -393,6 +415,20 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             );
 
             let lhs_type = self.index.get_type_information_or_void(data_type_name);
+            let is_effective_struct =
+                self.index.find_effective_type_info(data_type_name).is_some_and(|ti| ti.is_struct());
+
+            // For struct-literal initializers (ParenExpression containing assignments),
+            // we cannot generate compile-time values. These are handled by constructors at runtime.
+            // Fall back to the effective type's default value (covers alias chains too).
+            if is_paren_struct_literal(initializer) && is_effective_struct {
+                return self
+                    .index
+                    .get_effective_type_by_name(data_type_name)
+                    .map_err(Into::into)
+                    .and_then(|referenced_data_type| self.generate_initial_value(referenced_data_type));
+            }
+
             if !initializer.is_literal() && (lhs_type.is_pointer() || lhs_type.is_alias()) {
                 return Ok(self
                     .types_index
@@ -420,9 +456,15 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         predicate: fn(&AstNode) -> bool,
         expected_ast: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
-        if let Some(initializer) =
-            self.index.get_const_expressions().maybe_get_constant_statement(&data_type.initial_value)
-        {
+        let initializer = data_type.initial_value.and_then(|it| {
+            let const_exprs = self.index.get_const_expressions();
+            if const_exprs.find_const_expression(&it).is_some_and(|expr| expr.is_address_unresolvable()) {
+                None
+            } else {
+                const_exprs.get_resolved_constant_statement(&it)
+            }
+        });
+        if let Some(initializer) = initializer {
             if predicate(initializer) {
                 let generator = ExpressionCodeGenerator::new_context_free(
                     self.llvm,

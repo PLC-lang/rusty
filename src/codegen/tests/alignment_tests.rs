@@ -128,23 +128,21 @@ fn test_struct_alignment() {
 
     %MyStruct = type { i8, i16, i32, i64, i16, i32, i64, float, double, i8 }
 
-    @__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
-
     define void @main() {
     entry:
       %x = alloca %MyStruct, align 8
       %y = alloca %MyStruct, align 8
       %a = alloca i8, align 4
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %x, ptr align 1 @__MyStruct__init, i64 ptrtoint (ptr getelementptr (%MyStruct, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %y, ptr align 1 @__MyStruct__init, i64 ptrtoint (ptr getelementptr (%MyStruct, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %x, i8 0, i64 ptrtoint (ptr getelementptr (%MyStruct, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %y, i8 0, i64 ptrtoint (ptr getelementptr (%MyStruct, ptr null, i32 1) to i64), i1 false)
       store i8 0, ptr %a, align 1
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 
     // x86_64 assertion
@@ -157,22 +155,20 @@ fn test_struct_alignment() {
 
     %MyStruct = type { i8, i16, i32, i64, i16, i32, i64, float, double, i8 }
 
-    @__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
-
     define void @main() {
     entry:
       %x = alloca %MyStruct, align 8
       %y = alloca %MyStruct, align 8
       %a = alloca i8, align 1
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %x, ptr align 1 @__MyStruct__init, i64 ptrtoint (ptr getelementptr (%MyStruct, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %y, ptr align 1 @__MyStruct__init, i64 ptrtoint (ptr getelementptr (%MyStruct, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %x, i8 0, i64 ptrtoint (ptr getelementptr (%MyStruct, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %y, i8 0, i64 ptrtoint (ptr getelementptr (%MyStruct, ptr null, i32 1) to i64), i1 false)
       store i8 0, ptr %a, align 1
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }

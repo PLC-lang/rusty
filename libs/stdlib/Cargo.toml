@@ -11,9 +11,7 @@ glob = "0.3"
 path = "../../compiler/plc_driver"
 
 
-[dev-dependencies.iec61131std]
-path = "."
-features = ["mock_time"]
+
 
 [dev-dependencies.plc_driver]
 path = "../../compiler/plc_driver"
@@ -31,6 +29,11 @@ chrono = "0.4"
 num = "0.4"
 paste = "1.0.8"
 log = "0.4"
+
+[dev-dependencies]
+libloading = "0.9"
+tempfile = "3"
+cc = "1"
 
 [features]
 default = []

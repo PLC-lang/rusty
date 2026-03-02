@@ -32,15 +32,3 @@ target triple = "[filtered]"
 @y = external global i16
 
 declare i32 @external()
-
-; ModuleID = '__init___TestProject'
-source_filename = "__init___TestProject"
-target datalayout = "[filtered]"
-target triple = "[filtered]"
-
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___TestProject, ptr null }]
-
-define void @__init___TestProject() {
-entry:
-  ret void
-}

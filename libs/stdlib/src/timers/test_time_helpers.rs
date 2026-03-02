@@ -1,23 +1,26 @@
 // This module is mostly copied from `https://github.com/museun/mock_instant`
 // The reason is that the repository has not been updated in a while.
 
-use std::{cell::RefCell, time::Duration};
+use std::{
+    sync::{LazyLock, Mutex},
+    time::Duration,
+};
 
-thread_local! {
-    pub static TIME: RefCell<Duration> = RefCell::new(Duration::default());
-}
+pub static TIME: LazyLock<Mutex<Duration>> = LazyLock::new(|| Mutex::new(Duration::default()));
 
 pub fn with_time(d: impl Fn(&mut Duration)) {
-    TIME.with(|t| d(&mut t.borrow_mut()))
+    if let Ok(mut time) = TIME.lock() {
+        d(&mut *time);
+    }
 }
 
 pub fn get_time() -> Duration {
-    TIME.with(|t| *t.borrow())
+    TIME.lock().map(|time| *time).unwrap_or_default()
 }
 
 /// A Mock clock
 ///
-/// This uses thread local state to have a deterministic clock.
+/// This uses shared mutable state to have a deterministic clock.
 #[derive(Copy, Clone)]
 pub struct MockClock;
 
@@ -44,9 +47,21 @@ impl MockClock {
     }
 }
 
+#[cfg(feature = "mock_time")]
+#[no_mangle]
+pub extern "C" fn __mock_time_set_ns(nanos: u64) {
+    MockClock::set_time(Duration::from_nanos(nanos));
+}
+
+#[cfg(feature = "mock_time")]
+#[no_mangle]
+pub extern "C" fn __mock_time_advance_ns(nanos: u64) {
+    MockClock::advance(Duration::from_nanos(nanos));
+}
+
 /// A simple deterministic Instant wrapped around a modifiable Duration
 ///
-/// This used a thread-local state as the 'wall clock' that is configurable via
+/// This uses shared state as the 'wall clock' that is configurable via
 /// the `MockClock`
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct Instant(Duration);

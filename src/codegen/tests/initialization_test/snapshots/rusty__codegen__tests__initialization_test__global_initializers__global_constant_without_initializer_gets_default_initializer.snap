@@ -9,7 +9,6 @@ target triple = "[filtered]"
 
 %commands = type { i8, i8 }
 
-@__commands__init = unnamed_addr constant %commands zeroinitializer
 @__main.myStr1__init = unnamed_addr constant [81 x i8] zeroinitializer
 
 define i32 @main() {
@@ -20,21 +19,21 @@ entry:
   %myArr1 = alloca [4 x i16], align [filtered]
   %cmd2 = alloca %commands, align [filtered]
   %myArr2 = alloca [4 x i16], align [filtered]
-  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %cmd1, ptr align [filtered] @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0.i64(ptr align [filtered] %cmd1, i8 0, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
   call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %myStr1, ptr align [filtered] @__main.myStr1__init, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
   call void @llvm.memset.p0.i64(ptr align [filtered] %myArr1, i8 0, i64 ptrtoint (ptr getelementptr ([4 x i16], ptr null, i32 1) to i64), i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %cmd2, ptr align [filtered] @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0.i64(ptr align [filtered] %cmd2, i8 0, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
   call void @llvm.memset.p0.i64(ptr align [filtered] %myArr2, i8 0, i64 ptrtoint (ptr getelementptr ([4 x i16], ptr null, i32 1) to i64), i1 false)
   store i32 0, ptr %main, align [filtered]
   %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }
 
-; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
-attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #1
+
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

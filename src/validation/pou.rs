@@ -1,7 +1,5 @@
 use itertools::Itertools;
-use plc_ast::ast::{
-    AstId, Identifier, Implementation, Interface, LinkageType, Pou, PouType, VariableBlockType,
-};
+use plc_ast::ast::{AstId, Identifier, Implementation, Interface, Pou, PouType, VariableBlockType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use signature_validation::validate_method_signature;
@@ -13,7 +11,7 @@ use super::{
 use crate::resolver::{AnnotationMap, StatementAnnotation};
 
 pub fn visit_pou<T: AnnotationMap>(validator: &mut Validator, pou: &Pou, context: &ValidationContext<'_, T>) {
-    if pou.linkage != LinkageType::External {
+    if !pou.linkage.is_external_or_included() && !matches!(pou.kind, PouType::Init | PouType::ProjectInit) {
         validate_pou(validator, pou);
         validate_interface_impl(validator, context, pou);
         validate_base_class(validator, context, pou);
@@ -218,7 +216,9 @@ pub fn visit_implementation<T: AnnotationMap>(
                 .with_location(&implementation.location),
         );
     }
-    if implementation.linkage != LinkageType::External {
+    if !implementation.linkage.is_external_or_included()
+        && !matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit)
+    {
         validate_action_container(validator, implementation);
         // Validate the label uniqueness
 

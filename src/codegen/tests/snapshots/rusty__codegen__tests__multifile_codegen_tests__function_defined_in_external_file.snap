@@ -20,10 +20,6 @@ source_filename = "fb.st"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%fb = type {}
-
-@__fb__init = unnamed_addr constant %fb zeroinitializer
-
 define void @fb(ptr %0) {
 entry:
   %this = alloca ptr, align [filtered]
@@ -72,7 +68,6 @@ target triple = "[filtered]"
 %prg2.6 = type { i32 }
 
 @prog_instance = global %prog zeroinitializer
-@__fb__init = external unnamed_addr constant %fb.4
 @prg_instance = external global %prg.5
 @prg2_instance = external global %prg2.6
 

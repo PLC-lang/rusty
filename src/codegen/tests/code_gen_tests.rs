@@ -1113,8 +1113,6 @@ fn fb_method_called_locally() {
 
     %foo = type { i32 }
 
-    @__foo__init = unnamed_addr constant %foo { i32 42 }
-
     define void @foo(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -1148,17 +1146,17 @@ fn fb_method_called_locally() {
     entry:
       %fb = alloca %foo, align [filtered]
       %x = alloca i32, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %x, align [filtered]
       %call = call i32 @foo__addToBar(ptr %fb, i16 3)
       store i32 %call, ptr %x, align [filtered]
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#)
 }
 
@@ -1201,8 +1199,6 @@ fn fb_local_method_var_shadows_parent_var() {
 
     %foo = type { i32 }
 
-    @__foo__init = unnamed_addr constant %foo { i32 42 }
-
     define void @foo(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -1238,17 +1234,17 @@ fn fb_local_method_var_shadows_parent_var() {
     entry:
       %fb = alloca %foo, align [filtered]
       %x = alloca i32, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %x, align [filtered]
       %call = call i32 @foo__addToBar(ptr %fb, i16 3)
       store i32 %call, ptr %x, align [filtered]
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#)
 }
 
@@ -3974,14 +3970,10 @@ fn variables_in_var_external_block_are_not_generated() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %bar = type {}
     %baz = type {}
-    %qux = type {}
 
     @arr = global [101 x i16] zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer
     @baz_instance = global %baz zeroinitializer
-    @__qux__init = unnamed_addr constant %qux zeroinitializer
 
     define void @foo() {
     entry:

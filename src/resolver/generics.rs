@@ -199,6 +199,7 @@ impl TypeAnnotator<'_> {
                 initial_value: old_dataype.initial_value.to_owned(),
                 location: old_dataype.location.to_owned(),
                 nature: old_dataype.nature.to_owned(),
+                linkage: old_dataype.linkage,
             };
 
             self.annotation_map.new_index.register_pou_type(new_datatype);
@@ -246,6 +247,7 @@ impl TypeAnnotator<'_> {
                     name: name.clone(),
                     nature: TypeNature::Any,
                     location: SourceLocation::internal(),
+                    linkage: LinkageType::Internal,
                 });
 
                 name

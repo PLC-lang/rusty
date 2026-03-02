@@ -78,7 +78,6 @@ where
     pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
         //Index
         .index(ctxt.provider())
-        .extend_with_init_units(project.get_init_symbol_name(), ctxt.provider())
         //Resolve
         .annotate(ctxt.provider())
         //Codegen
@@ -165,7 +164,7 @@ where
         module_name: Some("<internal>".to_string()),
     };
 
-    pipeline.register_default_participants();
+    pipeline.register_default_mut_participants();
 
     pipeline
 }
