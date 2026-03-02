@@ -5,10 +5,10 @@ expression: new_pointer_type
 UserTypeDeclaration {
     data_type: PointerType {
         name: Some(
-            "__foo_inline_pointer",
+            "__foo_inline_pointer_",
         ),
         referenced_type: DataTypeReference {
-            referenced_type: "__foo_inline_pointer_",
+            referenced_type: "INT",
         },
         auto_deref: None,
         type_safe: true,

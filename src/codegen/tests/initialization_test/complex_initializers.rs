@@ -351,14 +351,14 @@ fn init_functions_generated_for_function_blocks() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_foo___body__ctor(ptr %0) {
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -665,27 +665,6 @@ fn nested_initializer_pous() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__bar___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__baz___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -701,6 +680,27 @@ fn nested_initializer_pous() {
     }
 
     define void @____vtable_baz___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__bar___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__baz___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -833,14 +833,14 @@ fn local_address() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_foo___body__ctor(ptr %0) {
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -968,13 +968,6 @@ fn user_init_called_for_variables_on_stack() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -983,6 +976,13 @@ fn user_init_called_for_variables_on_stack() {
     }
 
     define void @____vtable_foo_FB_INIT__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1172,14 +1172,14 @@ fn struct_types() {
       ret void
     }
 
-    define void @__myStruct_member2___ctor(ptr %0) {
+    define void @__myStruct_member2__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__myStruct_member2__ctor(ptr %0) {
+    define void @__myStruct_member2___ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1358,20 +1358,6 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__cl___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1387,6 +1373,20 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     }
 
     define void @____vtable_cl_m__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__cl___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1513,14 +1513,14 @@ fn global_instance() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_foo___body__ctor(ptr %0) {
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1657,14 +1657,14 @@ fn aliased_types() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_foo___body__ctor(ptr %0) {
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1858,14 +1858,14 @@ fn var_config_aliased_variables_initialized() {
       ret void
     }
 
-    define void @__FB___vtable__ctor(ptr %0) {
+    define void @____vtable_FB___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_FB___body__ctor(ptr %0) {
+    define void @__FB___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1969,14 +1969,14 @@ fn var_external_blocks_are_ignored_in_init_functions() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_foo___body__ctor(ptr %0) {
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2109,14 +2109,14 @@ fn ref_to_local_member() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_foo___body__ctor(ptr %0) {
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2251,14 +2251,14 @@ fn ref_to_local_member_shadows_global() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_foo___body__ctor(ptr %0) {
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2375,14 +2375,14 @@ fn temporary_variable_ref_to_local_member() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
+    define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_foo___body__ctor(ptr %0) {
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2565,13 +2565,6 @@ fn initializing_method_variables_with_refs() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2580,6 +2573,13 @@ fn initializing_method_variables_with_refs() {
     }
 
     define void @____vtable_foo_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2691,13 +2691,6 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2706,6 +2699,13 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
     }
 
     define void @____vtable_foo_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2813,13 +2813,6 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2828,6 +2821,13 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
     }
 
     define void @____vtable_foo_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2938,13 +2938,6 @@ fn initializing_method_variables_with_refs_shadowing() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2953,6 +2946,13 @@ fn initializing_method_variables_with_refs_shadowing() {
     }
 
     define void @____vtable_foo_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -3059,13 +3059,6 @@ fn initializing_method_variables_with_alias() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -3074,6 +3067,13 @@ fn initializing_method_variables_with_alias() {
     }
 
     define void @____vtable_foo_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -3180,13 +3180,6 @@ fn initializing_method_variables_with_reference_to() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -3195,6 +3188,13 @@ fn initializing_method_variables_with_reference_to() {
     }
 
     define void @____vtable_foo_bar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -3352,20 +3352,6 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__bar___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -3381,6 +3367,20 @@ fn methods_call_init_functions_for_their_members() {
     }
 
     define void @____vtable_bar_baz__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__bar___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -3522,13 +3522,6 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -3537,6 +3530,13 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     }
 
     define void @____vtable_foo_FB_INIT__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -3696,13 +3696,6 @@ fn user_fb_init_in_global_struct() {
       ret void
     }
 
-    define void @__foo___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_foo___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -3711,6 +3704,13 @@ fn user_fb_init_in_global_struct() {
     }
 
     define void @____vtable_foo_FB_INIT__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__foo___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -3793,11 +3793,11 @@ fn user_init_called_when_declared_as_external() {
 
     declare void @__vtable_foo__ctor(ptr)
 
-    declare void @__foo___vtable__ctor(ptr)
-
     declare void @____vtable_foo___body__ctor(ptr)
 
     declare void @____vtable_foo_FB_INIT__ctor(ptr)
+
+    declare void @__foo___vtable__ctor(ptr)
 
     define void @__unit___internal____ctor() {
     entry:
@@ -3907,14 +3907,14 @@ fn constructors_only_emits_only_ctor_definitions() {
       ret void
     }
 
-    define void @__MyFB___vtable__ctor(ptr %0) {
+    define void @____vtable_MyFB___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @____vtable_MyFB___body__ctor(ptr %0) {
+    define void @__MyFB___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]

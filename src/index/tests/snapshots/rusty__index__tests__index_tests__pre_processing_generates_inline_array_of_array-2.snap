@@ -5,7 +5,7 @@ expression: new_array_type
 UserTypeDeclaration {
     data_type: ArrayType {
         name: Some(
-            "__foo_inline_array",
+            "__foo_inline_array_",
         ),
         bounds: RangeStatement {
             start: LiteralInteger {
@@ -16,7 +16,7 @@ UserTypeDeclaration {
             },
         },
         referenced_type: DataTypeReference {
-            referenced_type: "__foo_inline_array_",
+            referenced_type: "INT",
         },
         is_variable_length: false,
     },

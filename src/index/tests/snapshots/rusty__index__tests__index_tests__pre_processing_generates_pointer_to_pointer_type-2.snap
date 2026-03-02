@@ -8,7 +8,7 @@ UserTypeDeclaration {
             "pointer_to_pointer",
         ),
         referenced_type: DataTypeReference {
-            referenced_type: "__pointer_to_pointer",
+            referenced_type: "pointer_to_pointer_",
         },
         auto_deref: None,
         type_safe: true,

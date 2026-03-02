@@ -110,13 +110,6 @@ fn super_keyword_basic_access() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -125,6 +118,13 @@ fn super_keyword_basic_access() {
     }
 
     define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -262,13 +262,6 @@ fn super_without_deref() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -277,6 +270,13 @@ fn super_without_deref() {
     }
 
     define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -474,13 +474,6 @@ fn super_in_method_calls() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -510,6 +503,13 @@ fn super_in_method_calls() {
     }
 
     define void @____vtable_child_test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -654,13 +654,6 @@ fn super_in_complex_expressions() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -669,6 +662,13 @@ fn super_in_complex_expressions() {
     }
 
     define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -816,13 +816,6 @@ fn super_with_array_access() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -831,6 +824,13 @@ fn super_with_array_access() {
     }
 
     define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1106,13 +1106,6 @@ fn super_in_multi_level_inheritance() {
       ret void
     }
 
-    define void @__grandparent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_grandparent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1170,6 +1163,13 @@ fn super_in_multi_level_inheritance() {
     }
 
     define void @____vtable_child_test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__grandparent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1318,13 +1318,6 @@ fn super_with_pointer_operations() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1333,6 +1326,13 @@ fn super_with_pointer_operations() {
     }
 
     define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1529,13 +1529,6 @@ fn super_in_conditionals() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1551,6 +1544,13 @@ fn super_in_conditionals() {
     }
 
     define void @____vtable_child_test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1679,13 +1679,6 @@ fn super_with_const_variables() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1694,6 +1687,13 @@ fn super_with_const_variables() {
     }
 
     define void @____vtable_child___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -1881,13 +1881,6 @@ fn super_as_function_parameter() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -1903,6 +1896,13 @@ fn super_as_function_parameter() {
     }
 
     define void @____vtable_child_test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2120,13 +2120,6 @@ fn super_with_deeply_nested_expressions() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2156,6 +2149,13 @@ fn super_with_deeply_nested_expressions() {
     }
 
     define void @____vtable_child_test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2463,13 +2463,6 @@ fn super_in_loop_constructs() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2499,6 +2492,13 @@ fn super_in_loop_constructs() {
     }
 
     define void @____vtable_child_process__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -2730,13 +2730,6 @@ fn super_with_method_overrides_in_three_levels() {
       ret void
     }
 
-    define void @__grandparent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_grandparent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -2773,6 +2766,13 @@ fn super_with_method_overrides_in_three_levels() {
     }
 
     define void @____vtable_child_calculate__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__grandparent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -3042,13 +3042,6 @@ fn super_with_structured_types() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -3064,6 +3057,13 @@ fn super_with_structured_types() {
     }
 
     define void @____vtable_child_test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
@@ -3225,13 +3225,6 @@ fn super_in_action_blocks() {
       ret void
     }
 
-    define void @__parent___vtable__ctor(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
     define void @____vtable_parent___body__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
@@ -3254,6 +3247,13 @@ fn super_in_action_blocks() {
     }
 
     define void @____vtable_child_increment__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__parent___vtable__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]

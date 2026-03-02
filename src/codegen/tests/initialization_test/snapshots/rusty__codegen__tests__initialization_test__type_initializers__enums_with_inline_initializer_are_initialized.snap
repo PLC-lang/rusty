@@ -11,6 +11,8 @@ target triple = "[filtered]"
 @__main_var1.x1 = unnamed_addr constant i32 1
 @__main_var2.x7 = unnamed_addr constant i32 2
 @__global_x.yellow = unnamed_addr constant i32 1
+@__global_x.red = unnamed_addr constant i32 0
+@__global_x.green = unnamed_addr constant i32 2
 @__main_y.redy = unnamed_addr constant i32 1
 @__main_y.yellowy = unnamed_addr constant i32 2
 @__main_y.greeny = unnamed_addr constant i32 3
@@ -20,8 +22,6 @@ target triple = "[filtered]"
 @__main_var2.x6 = unnamed_addr constant i32 1
 @__main_var3.x8 = unnamed_addr constant i32 0
 @__main_var3.x9 = unnamed_addr constant i32 1
-@__global_x.red = unnamed_addr constant i32 0
-@__global_x.green = unnamed_addr constant i32 2
 
 define i32 @main() {
 entry:

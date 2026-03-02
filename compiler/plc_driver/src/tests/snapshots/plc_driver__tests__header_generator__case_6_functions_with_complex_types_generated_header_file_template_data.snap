@@ -8,16 +8,16 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
       "aliases": [
         {
           "data_type": "int16_t",
-          "name": "__fnThatUsesStructWithComplexTypes_varArrayOfIntArray_",
+          "name": "__StructWithComplexTypes_arrayOfIntArrayField_",
           "variable_type": {
-            "Array": 15
+            "Array": 10
           }
         },
         {
           "data_type": "int16_t",
-          "name": "__StructWithComplexTypes_arrayOfIntArrayField_",
+          "name": "__fnThatUsesStructWithComplexTypes_varArrayOfIntArray_",
           "variable_type": {
-            "Array": 10
+            "Array": 15
           }
         }
       ],

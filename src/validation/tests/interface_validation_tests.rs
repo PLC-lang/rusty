@@ -889,7 +889,7 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
       │                    │      
       │                    see also
 
-    note[E118]: Expected array of type `foo.bar_` but got `STRING`
+    note[E118]: Expected array of type `__foo.bar_return_` but got `STRING`
       ┌─ <internal>:3:20
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
@@ -930,7 +930,7 @@ fn interface_with_aggregate_return_type_nested_arrays_dimension_mismatch() {
       │                          -------------------------------------------------------------------- see also
       ·
     8 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..100] OF ARRAY[-2..5] OF ARRAY[1..5] OF STRING
-      │                          --------------------------------------------------------------------- see also
+      │                                         ------------------------------------------------------ see also
 
     note[E118]: Array range declared as `[1..5]` but implemented as `[-2..5]`
       ┌─ <internal>:3:26
@@ -939,7 +939,7 @@ fn interface_with_aggregate_return_type_nested_arrays_dimension_mismatch() {
       │                          -------------------------------------------------------------------- see also
       ·
     8 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..100] OF ARRAY[-2..5] OF ARRAY[1..5] OF STRING
-      │                                         ------------------------------------------------------ see also
+      │                                                          ------------------------------------- see also
     ");
 }
 
@@ -1379,7 +1379,7 @@ fn pointer_to_pointer_return_indirection_level_mismatch() {
     7 │         FUNCTION_BLOCK fb IMPLEMENTS foo
       │                        ^^ Derived methods with conflicting signatures, return types do not match:
 
-    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `fb.bar_`
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `__fb.bar_return_`
       ┌─ <internal>:3:20
       │
     3 │             METHOD bar : REF_TO DINT

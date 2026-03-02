@@ -22,9 +22,9 @@ extern "C" {
 
 typedef int16_t __global_gVarArrayOfArrayOfIntArray__[12];
 
-typedef __global_gVarArrayOfArrayOfIntArray__ __global_gVarArrayOfArrayOfIntArray_[12];
-
 typedef int16_t __global_gVarArrayOfIntArray_[12];
+
+typedef __global_gVarArrayOfArrayOfIntArray__ __global_gVarArrayOfArrayOfIntArray_[12];
 
 extern char gVarString[256];
 extern int16_t gVarWString[6001];

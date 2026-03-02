@@ -16,7 +16,7 @@ UserTypeDeclaration {
             },
         },
         referenced_type: DataTypeReference {
-            referenced_type: "__arr_arr",
+            referenced_type: "arr_arr_",
         },
         is_variable_length: false,
     },

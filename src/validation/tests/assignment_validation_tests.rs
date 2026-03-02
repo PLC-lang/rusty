@@ -1400,11 +1400,11 @@ fn ref_assignment_with_reference_to_array_variable() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'REFERENCE TO ARRAY[1..5] OF DINT'
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'ARRAY[1..5] OF DINT'
        ┌─ <internal>:10:13
        │
     10 │             arrReferenceDINT REF= arrSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'REFERENCE TO ARRAY[1..5] OF DINT'
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'ARRAY[1..5] OF DINT'
     ");
 }
 
