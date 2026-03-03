@@ -1243,9 +1243,19 @@ fn validate_assignment<T: AnnotationMap>(
         } else if is_output_assignment {
             // If this is an output assignment, then we need to swap the types for type size validation
             // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
-            validate_assignment_type_sizes(validator, right_type, left.unwrap(), context)
+            if validate_assignment_type_sizes(validator, right_type, left.unwrap(), context) {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Assignment from '{}' to '{}' will result in truncation.",
+                        validator.get_type_name_or_slice(left_type),
+                        validator.get_type_name_or_slice(right_type)
+                    ))
+                    .with_error_code("E125")
+                    .with_location(location),
+                );
+            }
         } else {
-            validate_assignment_type_sizes(validator, left_type, right, context)
+            validate_assignment_type_sizes(validator, left_type, right, context);
         }
     }
 }
@@ -1920,7 +1930,7 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
     left: &DataType,
     right: &AstNode,
     context: &ValidationContext<T>,
-) {
+) -> bool {
     fn get_expression_types_and_locations<'b, T: AnnotationMap>(
         expression: &AstNode,
         context: &'b ValidationContext<T>,
@@ -1989,7 +1999,7 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
     }
 
     let lhs = left.get_type_information();
-    let Ok(lhs_size) = lhs.get_size(context.index) else { return };
+    let Ok(lhs_size) = lhs.get_size(context.index) else { return false };
     let results_in_truncation = |rhs: &DataType| {
         let rhs = rhs.get_type_information();
         let Ok(rhs_size) = rhs.get_size(context.index) else { return false };
@@ -1998,6 +2008,7 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                 && ((lhs.is_signed_int() && rhs.is_unsigned_int()) || (lhs.is_int() && rhs.is_float())))
     };
 
+    let mut truncation_occurs = false;
     get_expression_types_and_locations(right, context, lhs.is_signed_int(), false)
         .into_iter()
         .filter(|(dt, _)| !dt.is_aggregate_type() && results_in_truncation(dt))
@@ -2012,8 +2023,12 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                     .with_error_code("E067")
                     .with_location(loc),
                 );
+
+                truncation_occurs = true;
             })
         });
+
+    truncation_occurs
 }
 
 /// Validates if a POU call has the correct number of arguments. Specifically, for functions,
