@@ -1,9 +1,7 @@
-use common::compile_and_run;
+use common::{compile_and_run, get_includes};
 
 // Import common functionality into the integration tests
 mod common;
-
-use common::add_std;
 
 #[derive(Default)]
 struct U64Type {
@@ -72,9 +70,10 @@ fn lword_to_dword() {
         ret.min_overflow := LWORD_TO_DWORD(min-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.positive, 100u32);
     assert_eq!(maintype.negative, 4294967295u32);
@@ -106,9 +105,10 @@ fn lword_to_word() {
         ret.min_overflow := LWORD_TO_WORD(min-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.positive, 100u16);
     assert_eq!(maintype.negative, 65535u16);
@@ -140,9 +140,10 @@ fn lword_to_byte() {
         ret.min_overflow := LWORD_TO_BYTE(min-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.positive, 100u8);
     assert_eq!(maintype.negative, 255u8);
@@ -168,9 +169,10 @@ fn lword_to_bool() {
         ret.min_overflow := LWORD_TO_BOOL(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = BoolType::default();
-    let _res: bool = compile_and_run(sources, &mut maintype);
+    let _res: bool = compile_and_run(sources, includes, &mut maintype);
     assert!(maintype.true_);
     assert!(!maintype.false_);
     assert!(!maintype.max_overflow);
@@ -193,9 +195,10 @@ fn dword_to_lword() {
         ret.negative := DWORD_TO_LWORD(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.positive, 100u64);
     assert_eq!(maintype.negative, 4294967295u64);
@@ -225,9 +228,10 @@ fn dword_to_word() {
         ret.min_overflow := DWORD_TO_WORD(min-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.positive, 100u16);
     assert_eq!(maintype.negative, 65535u16);
@@ -259,9 +263,10 @@ fn dword_to_byte() {
         ret.min_overflow := DWORD_TO_BYTE(min-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.positive, 100u8);
     assert_eq!(maintype.negative, 255u8);
@@ -287,9 +292,10 @@ fn dword_to_bool() {
         ret.min_overflow := DWORD_TO_BOOL(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = BoolType::default();
-    let _res: bool = compile_and_run(sources, &mut maintype);
+    let _res: bool = compile_and_run(sources, includes, &mut maintype);
     assert!(maintype.true_);
     assert!(!maintype.false_);
     assert!(!maintype.max_overflow);
@@ -312,9 +318,10 @@ fn word_to_lword() {
         ret.negative := WORD_TO_LWORD(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.positive, 100u64);
     assert_eq!(maintype.negative, 65535u64);
@@ -336,9 +343,10 @@ fn word_to_dword() {
         ret.negative := WORD_TO_DWORD(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.positive, 100u32);
     assert_eq!(maintype.negative, 65535u32);
@@ -368,9 +376,10 @@ fn word_to_byte() {
         ret.min_overflow := WORD_TO_BYTE(min-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.positive, 100u8);
     assert_eq!(maintype.negative, 255u8);
@@ -396,9 +405,10 @@ fn word_to_bool() {
         ret.min_overflow := WORD_TO_BOOL(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = BoolType::default();
-    let _res: bool = compile_and_run(sources, &mut maintype);
+    let _res: bool = compile_and_run(sources, includes, &mut maintype);
     assert!(maintype.true_);
     assert!(!maintype.false_);
     assert!(!maintype.max_overflow);
@@ -421,9 +431,10 @@ fn byte_to_lword() {
         ret.negative := BYTE_TO_LWORD(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.positive, 100u64);
     assert_eq!(maintype.negative, 255u64);
@@ -445,9 +456,10 @@ fn byte_to_dword() {
         ret.negative := BYTE_TO_DWORD(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.positive, 100u32);
     assert_eq!(maintype.negative, 255u32);
@@ -469,9 +481,10 @@ fn byte_to_word() {
         ret.negative := BYTE_TO_WORD(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.positive, 100u16);
     assert_eq!(maintype.negative, 255u16);
@@ -495,9 +508,10 @@ fn byte_to_bool() {
         ret.min_overflow := BYTE_TO_BOOL(-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = BoolType::default();
-    let _res: bool = compile_and_run(sources, &mut maintype);
+    let _res: bool = compile_and_run(sources, includes, &mut maintype);
     assert!(maintype.true_);
     assert!(!maintype.false_);
     assert!(!maintype.max_overflow);
@@ -525,9 +539,10 @@ fn byte_to_char() {
         c := BYTE_TO_CHAR(BYTE#99);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = Main::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, "a".as_bytes()[0]);
     assert_eq!(maintype.b, "b".as_bytes()[0]);
     assert_eq!(maintype.c, "c".as_bytes()[0]);
@@ -551,9 +566,10 @@ fn bool_to_lword() {
         ret.max_overflow := BOOL_TO_LWORD(10);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.positive, 1u64);
     assert_eq!(maintype.negative, 1u64);
@@ -578,9 +594,10 @@ fn bool_to_dword() {
         ret.max_overflow := BOOL_TO_DWORD(10);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.positive, 1u32);
     assert_eq!(maintype.negative, 1u32);
@@ -605,9 +622,10 @@ fn bool_to_word() {
         ret.max_overflow := BOOL_TO_WORD(10);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.positive, 1u16);
     assert_eq!(maintype.negative, 1u16);
@@ -632,9 +650,10 @@ fn bool_to_byte() {
         ret.max_overflow := BOOL_TO_BYTE(10);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.positive, 1u8);
     assert_eq!(maintype.negative, 1u8);
@@ -662,9 +681,10 @@ fn char_to_byte() {
         c := CHAR_TO_BYTE(CHAR#'c');
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = Main::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, 97u8);
     assert_eq!(maintype.b, 98u8);
     assert_eq!(maintype.c, 99u8);
@@ -691,9 +711,10 @@ fn wchar_to_byte() {
         c := WCHAR_TO_BYTE(WCHAR#"c");
     END_PROGRAM
     "#;
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = Main::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, 97u8);
     assert_eq!(maintype.b, 98u8);
     assert_eq!(maintype.c, 99u8);
@@ -720,9 +741,10 @@ fn char_to_word() {
         c := CHAR_TO_WORD(CHAR#'c');
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = Main::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, 97u16);
     assert_eq!(maintype.b, 98u16);
     assert_eq!(maintype.c, 99u16);
@@ -749,9 +771,10 @@ fn char_to_dword() {
         c := CHAR_TO_DWORD(CHAR#'c');
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = Main::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, 97u32);
     assert_eq!(maintype.b, 98u32);
     assert_eq!(maintype.c, 99u32);
@@ -778,9 +801,10 @@ fn char_to_lword() {
         c := CHAR_TO_LWORD(CHAR#'c');
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = Main::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, 97u64);
     assert_eq!(maintype.b, 98u64);
     assert_eq!(maintype.c, 99u64);
@@ -807,9 +831,10 @@ fn wchar_to_word() {
         c := WCHAR_TO_WORD(WCHAR#'c');
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = Main::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, 97u16);
     assert_eq!(maintype.b, 98u16);
     assert_eq!(maintype.c, 99u16);
@@ -836,9 +861,10 @@ fn wchar_to_dword() {
         c := WCHAR_TO_DWORD(WCHAR#'c');
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = Main::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, 97u32);
     assert_eq!(maintype.b, 98u32);
     assert_eq!(maintype.c, 99u32);
@@ -865,9 +891,10 @@ fn wchar_to_lword() {
         c := WCHAR_TO_LWORD(WCHAR#'c');
     END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_conversion.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_conversion.st"]);
     let mut maintype = Main::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.a, 97u64);
     assert_eq!(maintype.b, 98u64);
     assert_eq!(maintype.c, 99u64);

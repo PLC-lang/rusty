@@ -230,10 +230,6 @@ impl VariableIndexEntry {
         self.is_constant
     }
 
-    pub fn is_external(&self) -> bool {
-        self.linkage == LinkageType::External
-    }
-
     pub fn is_var_external(&self) -> bool {
         self.is_var_external
     }
@@ -1060,14 +1056,14 @@ impl PouIndexEntry {
     }
 
     /// returns the linkage type of this pou
-    pub fn get_linkage(&self) -> &LinkageType {
+    pub fn get_linkage(&self) -> LinkageType {
         match self {
             PouIndexEntry::Program { linkage, .. }
             | PouIndexEntry::FunctionBlock { linkage, .. }
             | PouIndexEntry::Function { linkage, .. }
             | PouIndexEntry::Method { linkage, .. }
             | PouIndexEntry::Action { linkage, .. }
-            | PouIndexEntry::Class { linkage, .. } => linkage,
+            | PouIndexEntry::Class { linkage, .. } => *linkage,
         }
     }
 
@@ -1141,7 +1137,7 @@ impl PouIndexEntry {
     }
 
     pub fn is_builtin(&self) -> bool {
-        self.get_linkage() == &LinkageType::BuiltIn
+        self.get_linkage().is_built_in()
     }
 
     pub(crate) fn is_constant(&self) -> bool {
@@ -1198,6 +1194,7 @@ impl Default for TypeIndex {
                 information: DataTypeInformation::Void,
                 nature: TypeNature::Any,
                 location: SourceLocation::internal(),
+                linkage: LinkageType::Internal,
             },
         }
     }
@@ -1658,6 +1655,11 @@ impl Index {
     /// Returns the index entry of the enum variant or [`None`] if it does not exist.
     pub fn find_enum_variant(&self, name: &str, variant: &str) -> Option<&VariableIndexEntry> {
         self.type_index.find_type(name)?.find_member(variant)
+    }
+
+    /// Returns true if the enum variant with the given qualified name exists.
+    pub fn is_enum_variant(&self, qualified_name: &str) -> bool {
+        self.find_enum_variant_by_qualified_name(qualified_name).is_some()
     }
 
     /// Returns the index entry of the enum variant by its qualified name or [`None`] if it does not exist.

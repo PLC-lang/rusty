@@ -1,0 +1,6 @@
+TYPE simpleDefault : // Explicit field initializers equal the implicit defaults
+	STRUCT
+		a	: INT := 0;
+		b	: BOOL := FALSE;
+	END_STRUCT
+END_TYPE

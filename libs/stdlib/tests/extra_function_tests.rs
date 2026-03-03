@@ -1,7 +1,6 @@
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Timelike, Utc};
 mod common;
-use common::add_std;
-use common::{compile_and_run, compile_and_run_no_params, compile_with_native};
+use common::{compile_and_load, compile_and_run, compile_and_run_no_params, get_includes};
 use num::PrimInt;
 use plc::codegen::CodegenContext;
 
@@ -23,16 +22,15 @@ fn byte_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = 0b01010101.to_string();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -49,15 +47,14 @@ fn dword_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(0xBADF00D.to_string(), res.to_string());
 }
@@ -74,16 +71,15 @@ fn lword_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = 0xDEAD_BEEF_DECA_FBAD_u64.to_string();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res.to_string());
 }
@@ -100,16 +96,15 @@ fn byte_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = 0b01010101.to_string();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -127,15 +122,14 @@ fn dword_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(0xBADF00D.to_string(), res.to_string());
@@ -153,16 +147,15 @@ fn lword_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = 0xDEAD_BEEF_DECA_FBAD_u64.to_string();
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -180,16 +173,15 @@ fn lint_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{}", 7_600_500_400_300_200_100_i64);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -206,16 +198,15 @@ fn lint_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{}", 7_600_500_400_300_200_100_i64);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -233,16 +224,15 @@ fn dint_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{}", 2_000_200_100_i32);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -259,16 +249,15 @@ fn dint_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{}", -1_300_200_100_i32);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -286,16 +275,15 @@ fn usint_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{}", 255);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -312,16 +300,15 @@ fn uint_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{}", 65_535);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -338,16 +325,15 @@ fn udint_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{}", 4_294_967_295_u32);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -364,16 +350,15 @@ fn ulint_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{}", 18_446_744_073_709_551_615u64);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -391,16 +376,15 @@ fn lreal_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{:.6}", 13234.25_f64);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -417,16 +401,15 @@ fn lreal_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{:.6}", 13234.25_f64);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -444,16 +427,15 @@ fn real_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{:.6}", 13234.25_f32);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -470,16 +452,15 @@ fn real_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = format!("{:.6}", 13234.25_f32);
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -497,14 +478,13 @@ fn tod_to_lword_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(1, 59, 59, 2567e5 as u32).unwrap();
     let expected = time.num_seconds_from_midnight() as u64 * 1e9 as u64 + time.nanosecond() as u64;
@@ -522,14 +502,13 @@ fn ltod_to_lword_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(1, 59, 59, 2567e5 as u32).unwrap();
     let expected = time.num_seconds_from_midnight() as u64 * 1e9 as u64 + time.nanosecond() as u64;
@@ -547,14 +526,13 @@ fn dt_to_lword_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_micro_opt(1, 59, 59, 256700).unwrap();
@@ -573,14 +551,13 @@ fn ldt_to_lword_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_micro_opt(1, 59, 59, 256700).unwrap();
@@ -599,14 +576,13 @@ fn date_to_lword_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
@@ -625,14 +601,13 @@ fn ldate_to_lword_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
@@ -651,14 +626,13 @@ fn time_to_lword_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(12, 1, 20, 391e6 as u32 + 10).unwrap();
     let expected = time.num_seconds_from_midnight() as u64 * 1e9 as u64 + time.nanosecond() as u64;
@@ -676,14 +650,13 @@ fn ltime_to_lword_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(12, 1, 20, 391e6 as u32 + 10).unwrap();
     let expected = time.num_seconds_from_midnight() as u64 * 1e9 as u64 + time.nanosecond() as u64;
@@ -722,14 +695,13 @@ fn string_to_lint_conversion() {
     END_PROGRAM
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let _: i32 = compile_and_run(sources, &mut maintype);
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
 
     assert_eq!(123456_i64, maintype.i1);
     assert_eq!(43690_i64, maintype.i2);
@@ -768,14 +740,13 @@ fn wstring_to_lint_conversion() {
     END_PROGRAM
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let _: i32 = compile_and_run(sources, &mut maintype);
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
 
     assert_eq!(-123456_i64, maintype.i1);
     assert_eq!(43690_i64, maintype.i2);
@@ -811,14 +782,13 @@ fn string_to_dint_conversion() {
     END_PROGRAM
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let _: i32 = compile_and_run(sources, &mut maintype);
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
 
     assert_eq!(123456, maintype.i1);
     assert_eq!(43690, maintype.i2);
@@ -852,14 +822,13 @@ fn wstring_to_dint_conversion() {
     END_PROGRAM
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let _: i32 = compile_and_run(sources, &mut maintype);
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
 
     assert_eq!(-123456, maintype.i1);
     assert_eq!(43690, maintype.i2);
@@ -877,15 +846,14 @@ fn time_to_lint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(12, 1, 20, 391e6 as u32 + 10).unwrap();
     let expected = time.num_seconds_from_midnight() as i64 * 1e9 as i64 + time.nanosecond() as i64;
@@ -903,15 +871,14 @@ fn ltime_to_lint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(12, 1, 20, 391e6 as u32 + 10).unwrap();
     let expected = time.num_seconds_from_midnight() as i64 * 1e9 as i64 + time.nanosecond() as i64;
@@ -929,14 +896,13 @@ fn tod_to_lint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: i64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(1, 59, 59, 2567e5 as u32).unwrap();
     let expected = time.num_seconds_from_midnight() as i64 * 1e9 as i64 + time.nanosecond() as i64;
@@ -954,14 +920,13 @@ fn ltod_to_lint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: i64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(1, 59, 59, 2567e5 as u32).unwrap();
     let expected = time.num_seconds_from_midnight() as i64 * 1e9 as i64 + time.nanosecond() as i64;
@@ -979,14 +944,13 @@ fn date_to_lint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
@@ -1005,14 +969,13 @@ fn ldate_to_lint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
@@ -1031,14 +994,13 @@ fn dt_to_lint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: i64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
     let datetime_utc = TimeZone::from_utc_datetime(&Utc, &naivedatetime_utc);
@@ -1057,14 +1019,13 @@ fn ldt_to_lint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: i64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
     let datetime_utc = TimeZone::from_utc_datetime(&Utc, &naivedatetime_utc);
@@ -1084,15 +1045,14 @@ fn time_to_ulint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: u64 = compile_and_run_no_params(sources);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(12, 1, 20, 391e6 as u32 + 10).unwrap();
     let expected = time.num_seconds_from_midnight() as u64 * 1e9 as u64 + time.nanosecond() as u64;
@@ -1110,15 +1070,14 @@ fn ltime_to_ulint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: u64 = compile_and_run_no_params(sources);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(12, 1, 20, 391e6 as u32 + 10).unwrap();
     let expected = time.num_seconds_from_midnight() as u64 * 1e9 as u64 + time.nanosecond() as u64;
@@ -1136,14 +1095,13 @@ fn tod_to_ulint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(1, 59, 59, 2567e5 as u32).unwrap();
     let expected = time.num_seconds_from_midnight() as u64 * 1e9 as u64 + time.nanosecond() as u64;
@@ -1161,14 +1119,13 @@ fn ltod_to_ulint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let time = NaiveTime::from_hms_nano_opt(1, 59, 59, 2567e5 as u32).unwrap();
     let expected = time.num_seconds_from_midnight() as u64 * 1e9 as u64 + time.nanosecond() as u64;
@@ -1186,14 +1143,13 @@ fn date_to_ulint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
@@ -1212,14 +1168,13 @@ fn ldate_to_ulint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let date = NaiveDate::from_ymd_opt(1999, 12, 31).unwrap();
     let time = NaiveTime::from_hms_opt(0, 0, 0).unwrap();
@@ -1238,14 +1193,13 @@ fn dt_to_ulint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
     let datetime_utc = TimeZone::from_utc_datetime(&Utc, &naivedatetime_utc);
@@ -1264,14 +1218,13 @@ fn ldt_to_ulint_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: u64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: u64 = compile_and_run_no_params(vec![src.into()], includes);
 
     let naivedatetime_utc = NaiveDate::from_ymd_opt(2000, 1, 12).unwrap().and_hms_opt(23, 23, 0).unwrap();
     let datetime_utc = TimeZone::from_utc_datetime(&Utc, &naivedatetime_utc);
@@ -1311,14 +1264,13 @@ fn string_to_lreal_conversion() {
     END_PROGRAM
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let _: i32 = compile_and_run(sources, &mut maintype);
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
 
     assert_almost_eq!(12.3456, maintype.f1, 0.0001);
     assert_almost_eq!(1312433.1, maintype.f2, 0.1);
@@ -1357,14 +1309,13 @@ fn wstring_to_lreal_conversion() {
     END_PROGRAM
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let _: i32 = compile_and_run(sources, &mut maintype);
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
 
     assert_almost_eq!(12.3456, maintype.f1, 0.0001);
     assert_almost_eq!(1312433.1, maintype.f2, 0.1);
@@ -1403,14 +1354,13 @@ fn string_to_real_conversion() {
     END_PROGRAM
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let _: i32 = compile_and_run(sources, &mut maintype);
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
 
     assert_almost_eq!(12.3456, maintype.f1, 0.0001);
     assert_almost_eq!(1312433.1, maintype.f2, 0.1);
@@ -1449,14 +1399,13 @@ fn wstring_to_real_conversion() {
     END_PROGRAM
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let _: i32 = compile_and_run(sources, &mut maintype);
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
 
     assert_almost_eq!(12.3456, maintype.f1, 0.0001);
     assert_almost_eq!(1312433.1, maintype.f2, 0.1);
@@ -1475,14 +1424,13 @@ fn ltime_to_lreal_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: f64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: f64 = compile_and_run_no_params(vec![src.into()], includes);
 
     assert_almost_eq!(9.3784005e13, res, 1e7);
 }
@@ -1500,15 +1448,14 @@ fn lword_to_ltime_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     assert_eq!(93784005005005, res);
 }
@@ -1525,14 +1472,13 @@ fn lreal_to_ltime_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
-    let res: i64 = compile_and_run_no_params(sources);
+        "numerical_functions.st",
+    ]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     assert_eq!(93784005, res);
 }
@@ -1548,15 +1494,14 @@ fn lword_to_ldate_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     assert_eq!(123456789000, res);
 }
@@ -1572,15 +1517,14 @@ fn ulint_to_ldate_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(1669244400_i64, res);
 }
 
@@ -1596,15 +1540,14 @@ fn u64_to_ldate_signed_overflow() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
     assert_eq!(-(i64::MAX) - 1, res);
 }
 
@@ -1619,15 +1562,14 @@ fn ulint_to_dt_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     assert_eq!(1669244400000000, res);
 }
@@ -1643,15 +1585,14 @@ fn lword_to_ltod_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     assert_eq!(1669244400000000123, res);
 }
@@ -1667,15 +1608,14 @@ fn lint_to_ltod_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     assert_eq!(1669244400000000123, res);
 }
@@ -1691,15 +1631,14 @@ fn trunc_lreal_to_lint() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     assert_eq!(123, res);
 
@@ -1712,22 +1651,20 @@ fn trunc_lreal_to_lint() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
-    let res: i64 = compile_and_run_no_params(sources);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
 
     assert_eq!(123456789, res);
 }
 
 #[test]
 fn test_time() {
-    use iec61131std::extra_functions::test_time_helpers::MockClock;
     #[derive(Default)]
     struct MainType;
 
@@ -1737,27 +1674,26 @@ fn test_time() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, sources);
+    let module = compile_and_load(&context, vec![src.into()], includes);
 
-    MockClock::set_time(23 * 3600 + 59 * 60 + 30);
+    assert!(module.mock_time_set_u32(23 * 3600 + 59 * 60 + 30));
     let now = module.run::<_, i64>("main", &mut MainType);
     let expected = (23 * 3600 + 59 * 60 + 30) * 1e9 as i64 + 100;
     assert_eq!(expected, now);
 
-    MockClock::advance(29);
+    assert!(module.mock_time_advance_u32(29));
     let later = module.run::<_, i64>("main", &mut MainType);
     let expected = (23 * 3600 + 59 * 60 + 59) * 1e9 as i64 + 100;
     assert_eq!(expected, later);
 
-    MockClock::advance(2);
+    assert!(module.mock_time_advance_u32(2));
     let new_day = module.run::<_, i64>("main", &mut MainType);
     let expected = 1e9 as i64 + 100;
     assert_eq!(expected, new_day);
@@ -1775,16 +1711,15 @@ fn dt_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "1970-01-01-01:10:00";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -1801,16 +1736,15 @@ fn dt_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "1970-01-01-01:10:00";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -1828,16 +1762,15 @@ fn date_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "1970-01-01";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -1854,16 +1787,15 @@ fn date_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "1970-01-01";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -1881,16 +1813,15 @@ fn time_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "6d2m123ms456us789ns";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -1907,16 +1838,15 @@ fn time_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "6d3h2m9ns";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -1934,16 +1864,15 @@ fn tod_ltod_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "15:36:55.123";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -1960,16 +1889,15 @@ fn tod_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "15:36:55.123";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -1987,16 +1915,15 @@ fn ldt_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "1970-01-01-01:10:00";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -2013,16 +1940,15 @@ fn ldt_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "1970-01-01-01:10:00";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -2040,16 +1966,15 @@ fn ldate_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "1970-01-01";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -2066,16 +1991,15 @@ fn ldate_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "1970-01-01";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -2093,16 +2017,15 @@ fn ltime_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "6d3h2m9ns";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -2119,16 +2042,15 @@ fn ltime_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "6d3h2m9ns";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);
@@ -2146,16 +2068,15 @@ fn ltod_to_string_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "15:36:55.123";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
     assert_eq!(expected, res);
 }
@@ -2172,16 +2093,15 @@ fn ltod_to_wstring_conversion() {
     END_FUNCTION
     "#;
 
-    let sources = add_std!(
-        src,
+    let includes = get_includes(&[
         "string_functions.st",
         "string_conversion.st",
         "extra_functions.st",
-        "numerical_functions.st"
-    );
+        "numerical_functions.st",
+    ]);
 
     let expected = "15:36:55.123";
-    let _: i32 = compile_and_run(sources, &mut maintype);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
     let str = String::from_utf16_lossy(&maintype.s);
     let res = str.trim_end_matches('\0');
     assert_eq!(expected, res);

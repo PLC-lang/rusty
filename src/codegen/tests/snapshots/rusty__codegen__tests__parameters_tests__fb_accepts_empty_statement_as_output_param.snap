@@ -7,10 +7,9 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%fb_t = type { i32, i32 }
 %main = type { %fb_t, i32 }
+%fb_t = type { i32, i32 }
 
-@__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
 @main_instance = global %main zeroinitializer
 
 define void @fb_t(ptr %0) {

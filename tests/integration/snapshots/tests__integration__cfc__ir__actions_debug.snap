@@ -6,8 +6,8 @@ target triple = "[filtered]"
 
 %main = type { i32, i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
 @main_instance = global %main zeroinitializer, !dbg !0
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___cfc__ctor, ptr null }]
 
 define void @main(ptr %0) !dbg !12 {
 entry:
@@ -18,6 +18,19 @@ entry:
   call void @main__newAction(ptr %0), !dbg !17
   call void @main__newAction2(ptr %0), !dbg !19
   ret void, !dbg !20
+}
+
+define void @main__ctor(ptr %0) {
+entry:
+  %self = alloca ptr, align [filtered]
+  store ptr %0, ptr %self, align [filtered]
+  ret void
+}
+
+define void @__unit___internal___cfc__ctor() {
+entry:
+  call void @main__ctor(ptr @main_instance)
+  ret void
 }
 
 define void @main__newAction(ptr %0) {
@@ -37,27 +50,6 @@ entry:
   %load_b = load i32, ptr %b, align [filtered]
   %tmpVar = add i32 %load_b, 2
   store i32 %tmpVar, ptr %b, align [filtered]
-  ret void
-}
-
-define void @__init_main(ptr %0) {
-entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
-  ret void
-}
-
-define void @__user_init_main(ptr %0) {
-entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
-  ret void
-}
-
-define void @__init___plc() {
-entry:
-  call void @__init_main(ptr @main_instance)
-  call void @__user_init_main(ptr @main_instance)
   ret void
 }
 

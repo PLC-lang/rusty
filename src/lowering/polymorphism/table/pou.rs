@@ -61,7 +61,7 @@
 //!     __vtable_B_instance: __vtable_B;
 //! END_VAR
 //! ```
-//! These global variables will later be assigned in the [`crate::lowering::initializers`] module.
+//! These global variables will later be assigned in the [`plc_lowering::initializer`] module.
 //!
 //! Note that the actual lowering of method calls to make use of these virtual tables will happen in the
 //! [`crate::lowering::polymorphism::dispatch`] module.
@@ -79,17 +79,19 @@ use crate::{index::Index, typesystem::VOID_INTERNAL_NAME};
 
 pub struct VirtualTableGenerator {
     pub ids: IdProvider,
+    pub generate_external_constructors: bool,
 }
 
 impl VirtualTableGenerator {
-    pub fn new(ids: IdProvider) -> VirtualTableGenerator {
-        VirtualTableGenerator { ids }
+    pub fn new(ids: IdProvider, generate_external_constructors: bool) -> VirtualTableGenerator {
+        VirtualTableGenerator { ids, generate_external_constructors }
     }
 
     pub fn generate(&mut self, index: &Index, units: &mut Vec<CompilationUnit>) {
         for unit in units {
             let mut definitions = Vec::new();
-            let mut instances = Vec::new();
+            let mut internal_instances = Vec::new();
+            let mut external_instances = Vec::new();
 
             for pou in unit.pous.iter_mut().filter(|pou| pou.kind.is_class() | pou.kind.is_function_block()) {
                 self.patch_vtable_member(pou);
@@ -97,11 +99,25 @@ impl VirtualTableGenerator {
                 let instance = self.generate_vtable_instance(pou, &definition);
 
                 definitions.push(definition);
-                instances.push(instance);
+                //When generating vtable instances, if we are generatig external constructors treat the vtable as internal
+                match pou.linkage {
+                    LinkageType::External if self.generate_external_constructors => {
+                        internal_instances.push(instance)
+                    }
+                    LinkageType::External | LinkageType::Include => external_instances.push(instance),
+                    _ => internal_instances.push(instance),
+                }
             }
 
             unit.user_types.extend(definitions);
-            unit.global_vars.push(VariableBlock::global().with_variables(instances));
+            unit.global_vars.push(VariableBlock::global().with_variables(internal_instances));
+            if !external_instances.is_empty() {
+                unit.global_vars.push(
+                    VariableBlock::global()
+                        .with_linkage(LinkageType::External)
+                        .with_variables(external_instances),
+                );
+            }
         }
     }
 
@@ -326,7 +342,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids, false);
         generator.generate(&index, &mut units);
 
         let fb_a = units[0].pous.iter().find(|pou| pou.name == "FbA").unwrap();
@@ -423,7 +439,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids, false);
         generator.generate(&index, &mut units);
 
         let fb_a = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbA");
@@ -512,7 +528,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids, false);
         generator.generate(&index, &mut units);
 
         let fb_a = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbA");
@@ -701,7 +717,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids, false);
         generator.generate(&index, &mut units);
 
         let fb_b = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbB");
@@ -890,7 +906,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids, false);
         generator.generate(&index, &mut units);
 
         let fb_b = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbB");
@@ -1169,7 +1185,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids, false);
         generator.generate(&index, &mut units);
 
         insta::assert_debug_snapshot!(units[0].global_vars, @r#"
@@ -1286,7 +1302,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids, false);
         generator.generate(&index, &mut units);
 
         let mut types = Vec::new();

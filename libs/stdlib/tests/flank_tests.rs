@@ -1,10 +1,11 @@
-use common::compile_with_native;
+use common::compile_and_load;
 
 // Import common functionality into the integration tests
 mod common;
 
-use common::add_std;
 use plc::codegen::CodegenContext;
+
+use crate::common::get_includes;
 
 // Rising and falling edge implementation is tested in the utils class, these are only wiring tests
 
@@ -30,9 +31,10 @@ fn rising_edge_smoke_test() {
             re(CLK := val, Q => out);
         END_PROGRAM
     "#;
-    let source = add_std!(prg, "flanks.st");
+    let source = vec![prg.into()];
+    let includes = get_includes(&["flanks.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = MainType { val: true, ..Default::default() };
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.out);
@@ -54,9 +56,10 @@ fn falling_edge_smoke_test() {
         re(CLK := val, Q => out);
     END_PROGRAM
 "#;
-    let source = add_std!(prg, "flanks.st");
+    let source = vec![prg.into()];
+    let includes = get_includes(&["flanks.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = MainType { val: true, ..Default::default() };
     main_inst.val = true;
     module.run::<_, ()>("main", &mut main_inst);

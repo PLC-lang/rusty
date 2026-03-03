@@ -7,10 +7,9 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%fb = type { i16 }
 %main = type { %fb }
+%fb = type { i16 }
 
-@__fb__init = unnamed_addr constant %fb { i16 9 }
 @main_instance = global %main { %fb { i16 9 } }
 
 define void @fb(ptr %0) {
@@ -25,7 +24,7 @@ entry:
   %in = alloca %fb, align [filtered]
   call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %in, ptr align [filtered] %0, i64 ptrtoint (ptr getelementptr (%fb, ptr null, i32 1) to i64), i1 false)
   %x = alloca %fb, align [filtered]
-  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %x, ptr align [filtered] @__fb__init, i64 ptrtoint (ptr getelementptr (%fb, ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0.i64(ptr align [filtered] %x, i8 0, i64 ptrtoint (ptr getelementptr (%fb, ptr null, i32 1) to i64), i1 false)
   store i32 0, ptr %func, align [filtered]
   %func_ret = load i32, ptr %func, align [filtered]
   ret i32 %func_ret
@@ -41,4 +40,8 @@ entry:
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
 declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
+
 attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }

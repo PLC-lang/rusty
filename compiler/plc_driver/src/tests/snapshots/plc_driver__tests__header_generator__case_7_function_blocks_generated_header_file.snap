@@ -27,8 +27,6 @@ typedef struct {
     int16_t* inOutVarInt;
 } fbThatHasSimpleTypes_type;
 
-void __fbThatHasSimpleTypes__init(fbThatHasSimpleTypes_type* self);
-
 void fbThatHasSimpleTypes(fbThatHasSimpleTypes_type* self);
 
 void fbThatHasSimpleTypes__FB_INIT(fbThatHasSimpleTypes_type* self);

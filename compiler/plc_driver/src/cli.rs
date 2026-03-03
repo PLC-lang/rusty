@@ -127,6 +127,22 @@ pub struct CompileParameters {
     pub no_linker_script: bool,
 
     #[clap(
+        name = "generate-external-constructors",
+        long,
+        global = true,
+        help = "Generate constructor for units marked as {external} but not for any included files (with '-i') or any library. This is useful when compiling external libraries."
+    )]
+    pub generate_external_constructors: bool,
+
+    #[clap(
+        name = "constructors-only",
+        long,
+        global = true,
+        help = "Emit only compiler-generated constructors (no user-defined bodies). Implies --generate-external-constructors."
+    )]
+    pub constructors_only: bool,
+
+    #[clap(
         name = "hardware-conf",
         long,
         global = true,

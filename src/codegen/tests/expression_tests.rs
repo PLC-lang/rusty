@@ -534,7 +534,6 @@ fn builtin_function_call_lower_bound() {
     %__foo_vla = type { ptr, [2 x i32] }
 
     @main_instance = global %main zeroinitializer
-    @____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
     define void @main(ptr %0) {
     entry:
@@ -609,7 +608,6 @@ fn builtin_function_call_upper_bound() {
     %__foo_vla = type { ptr, [2 x i32] }
 
     @main_instance = global %main zeroinitializer
-    @____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
     define void @main(ptr %0) {
     entry:

@@ -7,10 +7,6 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%fb = type {}
-
-@__fb__init = unnamed_addr constant %fb zeroinitializer
-
 define void @fb(ptr %0) {
 entry:
   %this = alloca ptr, align [filtered]

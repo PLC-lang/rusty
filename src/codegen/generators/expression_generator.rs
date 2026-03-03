@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use crate::codegen::generators::data_type_generator::get_default_for;
 use inkwell::{
     builder::Builder,
     types::{BasicType, BasicTypeEnum},
@@ -1525,6 +1526,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(reference_statement).and_then(|it| {
             let v: Result<PointerValue, _> = it.get_basic_value_enum().try_into();
             v.map_err(|err| {
+                log::debug!("Failed to generate lvalue for statement {:?}: {err:?}", reference_statement);
                 CodegenError::GenericError(format!("{err:?}"), reference_statement.get_location().clone())
             })
         })
@@ -2176,6 +2178,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .map(ExpressionValue::RValue),
                 AstLiteral::Null => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },
+            AstStatement::DefaultValue(_) => {
+                let default_type = self.get_type_hint_for(literal_statement)?;
+                if let Some(initial_value) =
+                    self.llvm_index.find_associated_initial_value(default_type.get_name())
+                {
+                    Ok(ExpressionValue::RValue(initial_value))
+                } else {
+                    let llvm_type = self.llvm_index.get_associated_type(default_type.get_name())?;
+                    Ok(ExpressionValue::RValue(get_default_for(llvm_type)))
+                }
+            }
 
             AstStatement::MultipliedStatement { .. } => {
                 self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
@@ -2370,9 +2383,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let ordered_values: Vec<BasicValueEnum<'ink>> =
                     member_values.iter().map(|(_, v)| *v).collect();
 
-                Ok(ExpressionValue::RValue(
-                    struct_type.const_named_struct(ordered_values.as_slice()).as_basic_value_enum(),
-                ))
+                if ordered_values.iter().all(|v| v.is_const()) {
+                    Ok(ExpressionValue::RValue(
+                        struct_type.const_named_struct(ordered_values.as_slice()).as_basic_value_enum(),
+                    ))
+                } else if self.function_context.is_none() {
+                    Err(Diagnostic::codegen_error(
+                        "Non-constant struct literal requires function context",
+                        assignments,
+                    )
+                    .into())
+                } else {
+                    let mut value = struct_type.get_undef();
+                    for (idx, field) in ordered_values.iter().enumerate() {
+                        value = self
+                            .llvm
+                            .builder
+                            .build_insert_value(value, *field, idx as u32, "")?
+                            .into_struct_value();
+                    }
+                    Ok(ExpressionValue::RValue(value.as_basic_value_enum()))
+                }
             } else {
                 Err(Diagnostic::codegen_error(
                     format!(
@@ -2456,9 +2487,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let llvm_type = self.llvm_index.get_associated_type(inner_type.get_name())?;
         let mut v = Vec::new();
+        // For array literal initialization, always generate elements using a context-free generator.
+        // This ensures that all literals (especially strings) are generated as const values (RValues)
+        // rather than pointers to globals (LValues), even when we're inside a constructor function.
+        // The refactor moved initialization into constructors, so we're now in a function_context,
+        // but array literals need const element values, not runtime pointer values.
+        let ctx_free_gen = ExpressionCodeGenerator::new_context_free(
+            self.llvm,
+            self.index,
+            self.annotations,
+            self.llvm_index,
+        );
         for e in elements {
-            //generate with correct type hint
-            let value = self.generate_literal(e)?;
+            //generate with correct type hint using context-free generator
+            let value = ctx_free_gen.generate_literal(e)?;
             v.push(value.get_basic_value_enum());
         }
 

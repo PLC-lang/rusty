@@ -43,7 +43,7 @@ use inkwell::{
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
     types::BasicTypeEnum,
 };
-use plc_ast::ast::{CompilationUnit, LinkageType};
+use plc_ast::ast::{CompilationUnit, LinkageType, PouType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_llvm::TargetMachineExt;
 use plc_source::source_location::{FileMarker, SourceLocation};
@@ -329,6 +329,7 @@ impl<'ink> CodeGen<'ink> {
         annotations: &AstAnnotations,
         global_index: &Index,
         llvm_index: LlvmTypedIndex<'ink>,
+        constructors_only: bool,
     ) -> Result<GeneratedModule<'ink>, CodegenError> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
@@ -339,8 +340,34 @@ impl<'ink> CodeGen<'ink> {
         for implementation in &unit.implementations {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
-                if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
-                    pou_generator.generate_implementation(implementation, &self.debug)?;
+                if !entry.is_generic() && !entry.get_linkage().is_external_or_included() {
+                    if constructors_only
+                        && !matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit)
+                    {
+                        continue;
+                    }
+                    let noop_debug = DebugBuilderEnum::None;
+                    // Use noop debug ONLY for compiler-generated types (Init/ProjectInit POUs)
+                    // User-defined functions should retain full debug info even if they have internal locations
+                    // (internal locations can result from lowering/transformation of user code)
+                    let is_compiler_generated =
+                        matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit);
+                    let debug = if is_compiler_generated {
+                        log::debug!(
+                            "Using noop debug for {} (compiler-generated type: {:?})",
+                            implementation.name,
+                            implementation.pou_type
+                        );
+                        &noop_debug
+                    } else {
+                        log::debug!(
+                            "Using full debug for {} (user-defined, type: {:?})",
+                            implementation.name,
+                            implementation.pou_type
+                        );
+                        &self.debug
+                    };
+                    pou_generator.generate_implementation(implementation, debug)?;
                 }
             }
         }
@@ -579,12 +606,10 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     pub fn run<T, U>(&self, name: &str, params: &mut T) -> U {
         let engine = self.get_execution_engine();
-
+        engine.run_static_constructors();
         unsafe {
             let main: JitFunction<MainFunction<T, U>> = engine.get_function(name).unwrap();
-            let main_t_ptr = &mut *params as *mut _;
-
-            main.call(main_t_ptr)
+            main.call(&mut *params as *mut _)
         }
     }
 
@@ -594,6 +619,7 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     pub fn run_no_param<U>(&self, name: &str) -> U {
         let engine = self.get_execution_engine();
+        engine.run_static_constructors();
         unsafe {
             let main: JitFunction<MainEmptyFunction<U>> = engine.get_function(name).unwrap();
             main.call()
@@ -662,6 +688,7 @@ impl From<Diagnostic> for CodegenError {
 
 impl From<String> for CodegenError {
     fn from(err: String) -> Self {
+        log::debug!("Codegen Error(from): {err}");
         CodegenError::GenericError(err, SourceLocation::undefined())
     }
 }
@@ -672,7 +699,9 @@ impl CodegenError {
         T: Into<String>,
         U: Into<SourceLocation>,
     {
-        CodegenError::GenericError(msg.into(), location.into())
+        let msg = msg.into();
+        log::debug!("Codegen Error(new): {msg}");
+        CodegenError::GenericError(msg, location.into())
     }
 
     fn missing_function(location: SourceLocation) -> Self {
@@ -682,6 +711,7 @@ impl CodegenError {
 
 impl From<LLVMString> for CodegenError {
     fn from(err: LLVMString) -> Self {
+        log::debug!("LLVM Error: {}", err.to_string_lossy());
         CodegenError::GenericError(err.to_string_lossy().to_string(), SourceLocation::undefined())
     }
 }

@@ -6,8 +6,8 @@ target triple = "[filtered]"
 
 %main = type { i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
 @main_instance = global %main zeroinitializer, !dbg !0
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___cfc__ctor, ptr null }]
 
 define void @main(ptr %0) !dbg !11 {
 entry:
@@ -17,25 +17,17 @@ entry:
   ret void, !dbg !18
 }
 
-define void @__init_main(ptr %0) {
+define void @main__ctor(ptr %0) {
 entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
-  ret void
+  %self = alloca ptr, align [filtered], !dbg !18
+  store ptr %0, ptr %self, align [filtered], !dbg !18
+  ret void, !dbg !18
 }
 
-define void @__user_init_main(ptr %0) {
+define void @__unit___internal___cfc__ctor() {
 entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
-  ret void
-}
-
-define void @__init___plc() {
-entry:
-  call void @__init_main(ptr @main_instance)
-  call void @__user_init_main(ptr @main_instance)
-  ret void
+  call void @main__ctor(ptr @main_instance), !dbg !18
+  ret void, !dbg !18
 }
 
 !llvm.module.flags = !{!7, !8}

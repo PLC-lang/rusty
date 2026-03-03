@@ -543,3 +543,32 @@ fn interface_method_declared_in_parent_is_allowed() {
 
     assert_snapshot!(diagnostics, @"");
 }
+
+#[test]
+fn function_input_arguments_are_optional() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : INT := 1;
+        END_VAR
+
+        VAR_OUTPUT
+            c : INT;
+        END_VAR
+        ;
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                myInt : INT;
+            END_VAR
+
+            myfunc(a := 3, c => myInt);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}

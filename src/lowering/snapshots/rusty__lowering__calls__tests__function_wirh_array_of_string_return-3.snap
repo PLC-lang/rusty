@@ -219,4 +219,5 @@ CompilationUnit {
     file: File(
         "<internal>",
     ),
+    linkage: Internal,
 }

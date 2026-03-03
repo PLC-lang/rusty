@@ -9,7 +9,6 @@ target triple = "[filtered]"
 
 %foo = type {}
 
-@__foo__init = unnamed_addr constant %foo zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
 define void @foo(ptr %0) {
@@ -35,7 +34,7 @@ entry:
   %s = alloca [81 x i8], align [filtered]
   %fb = alloca %foo, align [filtered]
   call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fb, ptr align [filtered] @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
   call void @foo__baz(ptr %fb, ptr %s)
   call void @foo__baz(ptr %fb, ptr %s)
   ret void
@@ -46,9 +45,6 @@ declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr no
 
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
 declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
-
-; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
 attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
 attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }

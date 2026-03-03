@@ -29,8 +29,6 @@ fn function_pointer_method_no_parameters() {
 
     %A = type {}
 
-    @__A__init = unnamed_addr constant %A zeroinitializer
-
     define void @A(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -49,17 +47,17 @@ fn function_pointer_method_no_parameters() {
     entry:
       %instanceA = alloca %A, align [filtered]
       %fooPtr = alloca ptr, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %instanceA, ptr align [filtered] @__A__init, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %instanceA, i8 0, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
       store ptr @A__foo, ptr %fooPtr, align [filtered]
       %0 = load ptr, ptr %fooPtr, align [filtered]
       call void %0(ptr %instanceA)
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -91,8 +89,6 @@ fn function_pointer_method_with_return_type() {
 
     %A = type {}
 
-    @__A__init = unnamed_addr constant %A zeroinitializer
-
     define void @A(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -114,17 +110,17 @@ fn function_pointer_method_with_return_type() {
     entry:
       %instanceA = alloca %A, align [filtered]
       %fooPtr = alloca ptr, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %instanceA, ptr align [filtered] @__A__init, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %instanceA, i8 0, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
       store ptr @A__foo, ptr %fooPtr, align [filtered]
       %0 = load ptr, ptr %fooPtr, align [filtered]
       %fnptr_call = call i32 %0(ptr %instanceA)
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -163,7 +159,6 @@ fn function_pointer_method_with_return_type_aggregate() {
 
     %A = type {}
 
-    @__A__init = unnamed_addr constant %A zeroinitializer
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"aaaaa\00"
 
     define void @A(ptr %0) {
@@ -200,7 +195,7 @@ fn function_pointer_method_with_return_type_aggregate() {
       %instanceA = alloca %A, align [filtered]
       %fooPtr = alloca ptr, align [filtered]
       %barPtr = alloca ptr, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %instanceA, ptr align [filtered] @__A__init, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %instanceA, i8 0, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
       store ptr @A__foo, ptr %fooPtr, align [filtered]
       store ptr @A__bar, ptr %barPtr, align [filtered]
       %__0 = alloca [81 x i8], align [filtered]
@@ -218,9 +213,6 @@ fn function_pointer_method_with_return_type_aggregate() {
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
-
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
@@ -274,8 +266,6 @@ fn function_pointer_method_with_all_variable_parameter_types() {
 
     %A = type {}
 
-    @__A__init = unnamed_addr constant %A zeroinitializer
-
     define void @A(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -306,7 +296,7 @@ fn function_pointer_method_with_all_variable_parameter_types() {
       %localIn = alloca i32, align [filtered]
       %localOut = alloca [81 x i8], align [filtered]
       %localInOut = alloca [5 x i32], align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %instanceA, ptr align [filtered] @__A__init, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %instanceA, i8 0, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
       store ptr @A__foo, ptr %fooPtr, align [filtered]
       store i32 0, ptr %localIn, align [filtered]
       call void @llvm.memset.p0.i64(ptr align [filtered] %localOut, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
@@ -317,14 +307,10 @@ fn function_pointer_method_with_all_variable_parameter_types() {
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
-
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
-    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -373,8 +359,6 @@ fn function_block_body() {
 
     %A = type { i32, i16, i32, ptr }
 
-    @__A__init = unnamed_addr constant %A zeroinitializer
-
     define void @A(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
@@ -393,7 +377,7 @@ fn function_block_body() {
       %localIn = alloca i16, align [filtered]
       %localOut = alloca i32, align [filtered]
       %localInout = alloca i64, align [filtered]
-      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %instanceA, ptr align [filtered] @__A__init, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %instanceA, i8 0, i64 ptrtoint (ptr getelementptr (%A, ptr null, i32 1) to i64), i1 false)
       store ptr @A, ptr %bodyPtr, align [filtered]
       store i16 0, ptr %localIn, align [filtered]
       store i32 0, ptr %localOut, align [filtered]
@@ -411,10 +395,10 @@ fn function_block_body() {
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -440,10 +424,6 @@ fn regular_pointers_to_function_blocks_are_called_directly() {
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
-
-    %A = type {}
-
-    @__A__init = unnamed_addr constant %A zeroinitializer
 
     define void @A(ptr %0) {
     entry:

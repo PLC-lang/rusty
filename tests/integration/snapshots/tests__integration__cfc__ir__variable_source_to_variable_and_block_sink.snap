@@ -4,14 +4,13 @@ expression: output_file_content_without_headers
 ---
 target triple = "[filtered]"
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
-
 define i32 @main() {
 entry:
   %main = alloca i32, align [filtered]
   %value = alloca i32, align [filtered]
   store i32 2, ptr %value, align [filtered]
   store i32 0, ptr %main, align [filtered]
+  store i32 2, ptr %value, align [filtered]
   %load_value = load i32, ptr %value, align [filtered]
   %call = call i32 @myConnection(i32 %load_value)
   store i32 %call, ptr %main, align [filtered]
@@ -51,9 +50,4 @@ entry:
   store i32 %call, ptr %myConnection, align [filtered]
   %myConnection_ret = load i32, ptr %myConnection, align [filtered]
   ret i32 %myConnection_ret
-}
-
-define void @__init___plc() {
-entry:
-  ret void
 }

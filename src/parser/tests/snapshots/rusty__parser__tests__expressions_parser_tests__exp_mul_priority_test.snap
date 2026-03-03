@@ -89,4 +89,5 @@ CompilationUnit {
     file: File(
         "test.st",
     ),
+    linkage: Internal,
 }

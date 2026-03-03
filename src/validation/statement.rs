@@ -604,9 +604,11 @@ fn validate_reference<T: AnnotationMap>(
             if alternative_target_type.is_numerical() || alternative_target_type.is_enum() {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
                 validator.push_diagnostic(
-                    Diagnostic::new(format!("If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."))
+                    Diagnostic::new(format!(
+                        "If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."
+                    ))
                     .with_error_code("E060")
-                    .with_location(location)
+                    .with_location(location),
                 );
             }
         }
@@ -1070,8 +1072,16 @@ fn validate_ref_assignment<T: AnnotationMap>(
     }
 
     // If the right side is a reference, validate type mismatches
+    // For REF= semantics: `px REF= x` means "assign the address of x to px"
+    // So if LHS is a pointer type, we need to compare the inner type with the RHS type
     if assignment.right.is_reference() {
-        validate_assignment_mismatch(context, validator, type_lhs, type_rhs, assignment_location);
+        let inner_type_lhs =
+            if let DataTypeInformation::Pointer { inner_type_name, .. } = type_lhs.get_type_information() {
+                context.index.get_type(inner_type_name).unwrap_or(type_lhs)
+            } else {
+                type_lhs
+            };
+        validate_assignment_mismatch(context, validator, inner_type_lhs, type_rhs, assignment_location);
     }
 }
 
@@ -1106,10 +1116,17 @@ fn validate_assignment<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    let mut is_output_assignment = false;
+
     if let Some(left) = left {
         // Check if we are assigning to a...
-        if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
-            context.annotations.get(left)
+        if let Some(StatementAnnotation::Variable {
+            constant,
+            qualified_name,
+            argument_type,
+            auto_deref,
+            ..
+        }) = context.annotations.get(left)
         {
             // ...constant variable
             if *constant {
@@ -1138,8 +1155,10 @@ fn validate_assignment<T: AnnotationMap>(
                     );
             }
 
-            if (matches!(argument_type, ArgumentType::ByRef(VariableType::Output))
-                || matches!(argument_type, ArgumentType::ByVal(VariableType::Output)))
+            is_output_assignment = matches!(argument_type, ArgumentType::ByRef(VariableType::Output))
+                || matches!(argument_type, ArgumentType::ByVal(VariableType::Output));
+
+            if is_output_assignment
                 && !variable_is_in_inherited_or_self_scope(
                     context.qualifier.and_then(|qualifier| context.index.find_pou(qualifier)),
                     context,
@@ -1150,6 +1169,17 @@ fn validate_assignment<T: AnnotationMap>(
             {
                 validator.push_diagnostic(
                     Diagnostic::new("VAR_OUTPUT variables cannot be assigned outside of their scope.")
+                        .with_error_code("E037")
+                        .with_location(location),
+                );
+            }
+
+            // Auto deref in assignment on the left implies that this variable was specified as "REFERENCE TO"
+            // If the right side of the assignment is using the builtin "ADR" we should return an invalid assignment error
+            if auto_deref.is_some() && node_is_builtin_adr(right, context) {
+                validator.push_diagnostic(
+                    Diagnostic::new(
+                        "ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?")
                         .with_error_code("E037")
                         .with_location(location),
                 );
@@ -1183,14 +1213,8 @@ fn validate_assignment<T: AnnotationMap>(
 
     if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
         // implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
-        // we need the inner type
-        let left_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
-            left_type.get_type_information()
-        {
-            context.index.get_effective_type_or_void_by_name(inner_type_name)
-        } else {
-            left_type
-        };
+        // we need the inner type unless the RHS is a reference (e.g. REF(...) or ADR(...))
+        let left_type = normalized_left_type_for_assignment(context, left_type, right);
 
         // VLA <- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
         // are no longer allowed inside a POU body
@@ -1216,10 +1240,56 @@ fn validate_assignment<T: AnnotationMap>(
             } else {
                 validate_assignment_mismatch(context, validator, left_type, right_type, location);
             }
+        } else if is_output_assignment {
+            // If this is an output assignment, then we need to swap the types for type size validation
+            // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
+            validate_assignment_type_sizes(validator, right_type, left.unwrap(), context)
         } else {
             validate_assignment_type_sizes(validator, left_type, right, context)
         }
     }
+}
+
+fn node_is_builtin_adr<T: AnnotationMap>(node: &AstNode, context: &ValidationContext<T>) -> bool {
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = node.get_stmt_peeled() else {
+        return false;
+    };
+
+    let Some(call_name) = context.annotations.get_call_name(operator.as_ref()) else {
+        return false;
+    };
+
+    let Some(adr_builtin) = builtins::get_builtin("ADR") else {
+        return false;
+    };
+
+    context.index.get_builtin_function(call_name).is_some_and(|builtin| std::ptr::eq(builtin, adr_builtin))
+}
+
+fn normalized_left_type_for_assignment<'a, T: AnnotationMap>(
+    context: &'a ValidationContext<'a, T>,
+    left_type: &'a typesystem::DataType,
+    right: &'a AstNode,
+) -> &'a typesystem::DataType {
+    if is_ref_or_adr_call(right) {
+        return left_type;
+    }
+
+    if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
+        left_type.get_type_information()
+    {
+        return context.index.get_effective_type_or_void_by_name(inner_type_name);
+    }
+
+    left_type
+}
+
+fn is_ref_or_adr_call(statement: &AstNode) -> bool {
+    matches!(
+        statement.get_stmt_peeled(),
+        AstStatement::CallStatement(CallStatement { operator, .. })
+            if matches!(operator.get_flat_reference_name(), Some("REF" | "ADR"))
+    )
 }
 
 fn variable_is_in_inherited_or_self_scope<T: AnnotationMap>(
@@ -1495,6 +1565,11 @@ fn is_invalid_pointer_assignment(
     location: &SourceLocation,
     validator: &mut Validator,
 ) -> bool {
+    // Skip validation for internal/builtin code (e.g., generated initializers)
+    if location.is_builtin_internal() {
+        return false;
+    }
+
     if left_type.is_pointer() & right_type.is_pointer() {
         return !typesystem::is_same_type_class(left_type, right_type, index);
     }
@@ -1628,7 +1703,10 @@ fn validate_call<T: AnnotationMap>(
                 // explicit call parameter assignments will be handled by
                 // `visit_statement()` via `Assignment` and `OutputAssignment`
                 if is_implicit {
-                    validate_assignment(validator, right, None, &argument.get_location(), context);
+                    let builtin_name = fn_ident.get_flat_reference_name().unwrap_or_default();
+                    if !matches!(builtin_name, "REF" | "ADR") {
+                        validate_assignment(validator, right, None, &argument.get_location(), context);
+                    }
                 }
 
                 // mixing implicit and explicit arguments is not allowed
@@ -1956,9 +2034,14 @@ fn validate_argument_count<T: AnnotationMap>(
     let argument_count_is_incorrect = match pou {
         PouIndexEntry::Function { .. } => {
             // parameters with default values are optional, so the argument count can be less than
-            // the parameter count. This only works if the parameters with default values are at the end
-            let optional_parameters =
-                parameters.iter().rev().take_while(|p| p.initial_value.is_some()).count();
+            // the parameter count. This only works if the parameters with default values are at the end.
+            // Only input variables are optional (so only they should be treated as such)
+            let optional_parameters = parameters
+                .iter()
+                .rev()
+                .filter(|p| p.is_input())
+                .take_while(|p| p.initial_value.is_some())
+                .count();
             let min_required_parameters = parameters.len() - optional_parameters;
             arguments.len() < min_required_parameters
                 || (!has_variadic_parameter && arguments.len() > parameters.len())

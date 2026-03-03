@@ -9,8 +9,6 @@ target triple = "[filtered]"
 
 %abcdef = type { i8 }
 
-@__abcdef__init = unnamed_addr constant %abcdef zeroinitializer
-
 define void @abcdef(ptr %0) {
 entry:
   %this = alloca ptr, align [filtered]
