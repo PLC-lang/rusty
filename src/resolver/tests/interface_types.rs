@@ -69,6 +69,7 @@ fn interface_as_variable_type() {
                         "<internal>",
                     ),
                 },
+                linkage: Internal,
             },
         ),
     )
@@ -103,6 +104,7 @@ fn interface_as_variable_type() {
                         "<internal>",
                     ),
                 },
+                linkage: Internal,
             },
         ),
     )
@@ -178,6 +180,7 @@ fn interface_as_variable_input_type() {
                         "<internal>",
                     ),
                 },
+                linkage: Internal,
             },
         ),
     )
@@ -212,6 +215,7 @@ fn interface_as_variable_input_type() {
                         "<internal>",
                     ),
                 },
+                linkage: Internal,
             },
         ),
     )
@@ -273,6 +277,7 @@ fn interface_as_array_type() {
                         "<internal>",
                     ),
                 },
+                linkage: Internal,
             },
         ),
     )
@@ -307,6 +312,7 @@ fn interface_as_array_type() {
                         "<internal>",
                     ),
                 },
+                linkage: Internal,
             },
         ),
     )

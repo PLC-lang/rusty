@@ -24,17 +24,18 @@ use self::{dispatch::DispatchLowerer, table::TableGenerator};
 /// Entry point for all polymorphism-related lowering passes.
 pub struct PolymorphismLowerer {
     pub ids: IdProvider,
+    pub generate_external_constructors: bool,
 }
 
 impl PolymorphismLowerer {
-    pub fn new(ids: IdProvider) -> Self {
-        Self { ids }
+    pub fn new(ids: IdProvider, generate_external_constructors: bool) -> Self {
+        Self { ids, generate_external_constructors }
     }
 
     /// Generates vtable and itable struct definitions, `__vtable` member fields on root POUs,
     /// and global table instances. Must be called before [`dispatch`](Self::dispatch).
     pub fn table(&self, index: &Index, units: &mut Vec<CompilationUnit>) {
-        TableGenerator::generate(self.ids.clone(), index, units);
+        TableGenerator::generate(self.ids.clone(), self.generate_external_constructors, index, units);
     }
 
     /// Rewrites call sites and type declarations to route through the generated tables.

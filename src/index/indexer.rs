@@ -1,7 +1,7 @@
 use global_var_indexer::VarGlobalIndexer;
 use implementation_indexer::ImplementationIndexer;
 use plc_ast::{
-    ast::{CompilationUnit, Implementation, Interface, PropertyBlock, VariableBlockType},
+    ast::{CompilationUnit, Implementation, Interface, LinkageType, PropertyBlock, VariableBlockType},
     visitor::{AstVisitor, Walker},
 };
 use pou_indexer::PouIndexer;
@@ -106,6 +106,7 @@ impl AstVisitor for SymbolIndexer {
             information: DataTypeInformation::Interface { name: interface.ident.name.clone() },
             nature: TypeNature::Any,
             location: interface.ident.location.clone(),
+            linkage: LinkageType::Internal,
         });
     }
 

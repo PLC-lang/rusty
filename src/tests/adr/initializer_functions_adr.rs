@@ -1164,12 +1164,12 @@ fn external_initializers_in_fbs() {
 
     %main = type { ptr, %foo }
     %foo = type { ptr, i32 }
-    %__vtable_main = type { ptr }
     %__vtable_foo = type { ptr }
+    %__vtable_main = type { ptr }
 
     @main_inst = global %main { ptr null, %foo { ptr null, i32 5 } }
-    @__vtable_main_instance = global %__vtable_main zeroinitializer
     @__vtable_foo_instance = external global %__vtable_foo
+    @__vtable_main_instance = global %__vtable_main zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @main(ptr %0) {
@@ -1276,14 +1276,16 @@ fn external_inherited_initializers() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_bar = type { ptr }
     %__vtable_foo = type { ptr }
+    %__vtable_bar = type { ptr }
     %bar = type { %foo, i32 }
     %foo = type { ptr, i32 }
 
-    @__vtable_bar_instance = global %__vtable_bar zeroinitializer
     @__vtable_foo_instance = external global %__vtable_foo
+    @__vtable_bar_instance = global %__vtable_bar zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    declare void @foo(ptr)
 
     define void @bar(ptr %0) {
     entry:
@@ -1293,8 +1295,6 @@ fn external_inherited_initializers() {
       %y = getelementptr inbounds nuw %bar, ptr %0, i32 0, i32 1
       ret void
     }
-
-    declare void @foo(ptr)
 
     define i32 @main() {
     entry:

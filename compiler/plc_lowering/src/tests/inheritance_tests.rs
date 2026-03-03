@@ -853,13 +853,17 @@ mod units_tests {
                         base: None,
                     },
                     parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "arr",
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "arr",
+                                        },
+                                    ),
+                                    base: None,
                                 },
-                            ),
-                            base: None,
+                            ],
                         },
                     ),
                 },

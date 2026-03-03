@@ -740,6 +740,26 @@ mod tests {
                     interfaces: [],
                     properties: [],
                 },
+                POU {
+                    name: "__itable_IA__ctor",
+                    variable_blocks: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "self",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "__itable_IA",
+                                    },
+                                },
+                            ],
+                            variable_block_type: InOut,
+                        },
+                    ],
+                    pou_type: Init,
+                    return_type: None,
+                    interfaces: [],
+                    properties: [],
+                },
             ]
             "#);
         }
@@ -1073,8 +1093,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "FbA__ctor(instance)",
                 "reference.data := ADR(instance)",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1109,10 +1128,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_container(fb)",
-                "__init_fba(instance)",
-                "__user_init_Container(fb)",
-                "__user_init_FbA(instance)",
+                "Container__ctor(fb)",
+                "FbA__ctor(instance)",
                 "fb.reference.data := ADR(instance)",
                 "fb.reference.table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1147,8 +1164,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_container(fb)",
-                "__user_init_Container(fb)",
+                "Container__ctor(fb)",
                 "reference.data := ADR(fb.instance)",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1189,10 +1205,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_containera(fb)",
-                "__init_containerb(otherFb)",
-                "__user_init_ContainerA(fb)",
-                "__user_init_ContainerB(otherFb)",
+                "ContainerA__ctor(fb)",
+                "ContainerB__ctor(otherFb)",
                 "fb.reference.data := ADR(otherFb.instance)",
                 "fb.reference.table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1221,8 +1235,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "__main_references__ctor(references)",
+                "FbA__ctor(instance)",
                 "references[1].data := ADR(instance)",
                 "references[1].table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1251,6 +1265,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
+                "__main_instances__ctor(instances)",
                 "reference.data := ADR(instances[1])",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1279,6 +1294,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
+                "__main_references__ctor(references)",
+                "__main_instances__ctor(instances)",
                 "references[1].data := ADR(instances[2])",
                 "references[1].table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1319,10 +1336,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_containera(fb)",
-                "__init_containerb(otherFb)",
-                "__user_init_ContainerA(fb)",
-                "__user_init_ContainerB(otherFb)",
+                "ContainerA__ctor(fb)",
+                "ContainerB__ctor(otherFb)",
                 "fb.references[1].data := ADR(otherFb.instances[2])",
                 "fb.references[1].table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1351,6 +1366,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
+                "__main_pointerToInstance__ctor(pointerToInstance)",
                 "reference.data := ADR(pointerToInstance^)",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1414,8 +1430,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_factory(fb)",
-                "__user_init_Factory(fb)",
+                "Factory__ctor(fb)",
                 "alloca __producer0: FbA, fb.producer(__producer0), reference.data := ADR(__producer0)",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1445,8 +1460,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "__main_references__ctor(references)",
+                "FbA__ctor(instance)",
                 "references[i, j].data := ADR(instance)",
                 "references[i, j].table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1476,8 +1491,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "__main_references__ctor(references)",
+                "FbA__ctor(instance)",
                 "references[i][j].data := ADR(instance)",
                 "references[i][j].table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1509,8 +1524,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "__main_references__ctor(references)",
+                "FbA__ctor(instance)",
                 "references[getIndex()].data := ADR(instance)",
                 "references[getIndex()].table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1543,8 +1558,9 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "__main_references__ctor(references)",
+                "__main_instances__ctor(instances)",
+                "FbA__ctor(instance)",
                 "references[instances[0].id].data := ADR(instance)",
                 "references[instances[0].id].table := ADR(__itable_IA_FbA_instance)",
             ]
@@ -1581,8 +1597,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "FbA__ctor(instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -1624,8 +1639,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "FbA__ctor(instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -1668,10 +1682,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instanceA)",
-                "__init_fba(instanceB)",
-                "__user_init_FbA(instanceA)",
-                "__user_init_FbA(instanceB)",
+                "FbA__ctor(instanceA)",
+                "FbA__ctor(instanceB)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instanceA)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -1726,10 +1738,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instanceA)",
-                "__init_fbb(instanceB)",
-                "__user_init_FbA(instanceA)",
-                "__user_init_FbB(instanceB)",
+                "FbA__ctor(instanceA)",
+                "FbB__ctor(instanceB)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instanceA)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -1782,8 +1792,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_container(fb)",
-                "__user_init_Container(fb)",
+                "Container__ctor(fb)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(fb.instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -1824,6 +1833,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
+                "__main_instances__ctor(instances)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instances[1])",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -1871,8 +1881,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_container(fb)",
-                "__user_init_Container(fb)",
+                "Container__ctor(fb)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(fb.instances[i])",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -1916,10 +1925,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__init_processor(fb)",
-                "__user_init_FbA(instance)",
-                "__user_init_Processor(fb)",
+                "FbA__ctor(instance)",
+                "Processor__ctor(fb)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -1968,8 +1975,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "FbA__ctor(instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -2052,6 +2058,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
+                "__main_ptr__ctor(ptr)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(ptr^)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -2136,8 +2143,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_factory(fb)",
-                "__user_init_Factory(fb)",
+                "Factory__ctor(fb)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "alloca __produce0: FbA, fb.produce(__produce0), __fatpointer_0.data := ADR(__produce0)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -2184,8 +2190,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "FbA__ctor(instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -2227,8 +2232,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "FbA__ctor(instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -2297,8 +2301,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "FbA__ctor(instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -2516,8 +2519,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_container(fb)",
-                "__user_init_Container(fb)",
+                "Container__ctor(fb)",
                 "__itable_IA#(fb.reference.table^).foo^(fb.reference.data^)",
             ]
             "#);
@@ -2549,6 +2551,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
+                "__main_references__ctor(references)",
                 "__itable_IA#(references[i].table^).foo^(references[i].data^)",
             ]
             "#);
@@ -2586,8 +2589,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_container(fb)",
-                "__user_init_Container(fb)",
+                "Container__ctor(fb)",
                 "__itable_IA#(fb.references[i].table^).foo^(fb.references[i].data^)",
             ]
             "#);
@@ -2700,8 +2702,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "FbA__ctor(instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -2911,8 +2912,7 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_fba(instance)",
-                "__user_init_FbA(instance)",
+                "FbA__ctor(instance)",
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
@@ -2960,10 +2960,8 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "__init_container(a)",
-                "__init_container(b)",
-                "__user_init_Container(a)",
-                "__user_init_Container(b)",
+                "Container__ctor(a)",
+                "Container__ctor(b)",
                 "__itable_IA#(a.references[i].table^).foo^(a.references[i].data^, __itable_IA#(b.references[j].table^).foo^(b.references[j].data^, 42))",
             ]
             "#);
@@ -3000,12 +2998,10 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r#"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             // Statements in main
-            __init_fbalpha(alpha)
-            __init_fbbravo(bravo)
-            __user_init_FbAlpha(alpha)
-            __user_init_FbBravo(bravo)
+            FbAlpha__ctor(alpha)
+            FbBravo__ctor(bravo)
             IF selector = 1 THEN
                 reference.data := ADR(alpha)
                 reference.table := ADR(__itable_IA_FbAlpha_instance)
@@ -3013,7 +3009,7 @@ mod tests {
                 reference.data := ADR(bravo)
                 reference.table := ADR(__itable_IA_FbBravo_instance)
             END_IF
-            "#);
+            ");
         }
 
         #[test]
@@ -3049,14 +3045,11 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r#"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             // Statements in main
-            __init_fbalpha(alpha)
-            __init_fbbravo(bravo)
-            __init_fbcharlie(charlie)
-            __user_init_FbAlpha(alpha)
-            __user_init_FbBravo(bravo)
-            __user_init_FbCharlie(charlie)
+            FbAlpha__ctor(alpha)
+            FbBravo__ctor(bravo)
+            FbCharlie__ctor(charlie)
             CASE selector OF
                 1:
                     reference.data := ADR(alpha)
@@ -3068,7 +3061,7 @@ mod tests {
                     reference.data := ADR(charlie)
                     reference.table := ADR(__itable_IA_FbCharlie_instance)
             END_CASE
-            "#);
+            ");
         }
 
         #[test]
@@ -3093,13 +3086,15 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r#"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             // Statements in main
+            __main_instances__ctor(instances)
+            __main_references__ctor(references)
             FOR i := 0 TO 2 DO
                 references[i].data := ADR(instances[i])
                 references[i].table := ADR(__itable_IA_FbA_instance)
             END_FOR
-            "#);
+            ");
         }
 
         #[test]
@@ -3129,17 +3124,16 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r#"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             // Statements in main
-            __init_fba(instance)
-            __user_init_FbA(instance)
+            FbA__ctor(instance)
             IF flag THEN
                 alloca __fatpointer_0: __FATPOINTER
                 __fatpointer_0.data := ADR(instance)
                 __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
                 consumer(__fatpointer_0)
             END_IF
-            "#);
+            ");
         }
 
         #[test]
@@ -3161,10 +3155,10 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r#"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             // Statements in main
             refB := refA
-            "#);
+            ");
         }
 
         #[test]
@@ -3194,17 +3188,16 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r#"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             // Statements in main
-            __init_fba(instance)
-            __user_init_FbA(instance)
+            FbA__ctor(instance)
             alloca __fatpointer_0: __FATPOINTER
             __fatpointer_0.data := ADR(instance)
             __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
             IF consumer(__fatpointer_0) THEN
                 x := 1
             END_IF
-            "#);
+            ");
         }
 
         // FIXME: A dedicated loop desugarer (running before this pass) that rewrites WHILE/FOR

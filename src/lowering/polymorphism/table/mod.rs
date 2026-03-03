@@ -12,8 +12,8 @@ use self::pou::VirtualTableGenerator;
 pub struct TableGenerator;
 
 impl TableGenerator {
-    pub fn generate(ids: IdProvider, index: &Index, units: &mut Vec<CompilationUnit>) {
-        let mut vtable_gen = VirtualTableGenerator::new(ids.clone());
+    pub fn generate(ids: IdProvider, generate_external_constructors: bool, index: &Index, units: &mut Vec<CompilationUnit>) {
+        let mut vtable_gen = VirtualTableGenerator::new(ids.clone(), generate_external_constructors);
         vtable_gen.generate(index, units);
 
         let mut itable_gen = InterfaceTableGenerator::new(ids);
