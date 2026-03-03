@@ -23,9 +23,7 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{
-        calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer,
-    },
+    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
     output::FormatOption,
     parser::parse_file,
     resolver::{

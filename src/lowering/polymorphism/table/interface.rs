@@ -882,7 +882,7 @@ mod tests {
                     // The member's type is a reference to a named pointer type (e.g. "____itable_IA_foo").
                     // Look it up in the index to get the inner referenced type.
                     let ref_name = var.data_type_declaration.get_referenced_type().unwrap_or_default();
-                    let resolved = index.find_type(&ref_name).and_then(|dt| match &dt.information {
+                    let resolved = index.find_type(ref_name).and_then(|dt| match &dt.information {
                         DataTypeInformation::Pointer { inner_type_name, is_function: true, .. } => {
                             Some(inner_type_name.as_str())
                         }
