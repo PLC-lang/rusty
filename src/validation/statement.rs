@@ -1240,8 +1240,8 @@ fn validate_assignment<T: AnnotationMap>(
             } else {
                 validate_assignment_mismatch(context, validator, left_type, right_type, location);
             }
-        } else if is_output_assignment {
-            // If this is an output assignment, then we need to swap the types for type size validation
+        } else if is_output_assignment && context.is_call() {
+            // If this is an output assignment (and the context is a call), then we need to swap the types for type size validation
             // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
             if validate_assignment_type_sizes(validator, right_type, left.unwrap(), context) {
                 validator.push_diagnostic(
