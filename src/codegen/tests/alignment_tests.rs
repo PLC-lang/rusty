@@ -32,16 +32,16 @@ END_FUNCTION
 
     define void @main() {
     entry:
-      %a = alloca i8, align 1
-      %b = alloca i16, align 2
+      %a = alloca i8, align 4
+      %b = alloca i16, align 4
       %c = alloca i32, align 4
       %d = alloca i64, align 8
-      %e = alloca i16, align 2
+      %e = alloca i16, align 4
       %f = alloca i32, align 4
       %g = alloca i64, align 8
       %h = alloca float, align 4
       %i = alloca double, align 8
-      %j = alloca i8, align 1
+      %j = alloca i8, align 4
       store i8 0, ptr %a, align 1
       store i16 0, ptr %b, align 2
       store i32 0, ptr %c, align 4
