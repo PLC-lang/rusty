@@ -1446,7 +1446,7 @@ dependencies = [
 
 [[package]]
 name = "iec61131std"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cc",
  "chrono",
@@ -2297,7 +2297,7 @@ dependencies = [
 
 [[package]]
 name = "plc_driver"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap 3.2.25",
