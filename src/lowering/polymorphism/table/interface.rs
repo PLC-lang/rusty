@@ -807,6 +807,250 @@ mod tests {
         ");
     }
 
+    mod properties {
+        use crate::lowering::polymorphism::table::interface::tests::helper::lower_and_serialize;
+
+        #[test]
+        fn interface_with_property_generates_itable_entries() {
+            // An interface declares a property with both GET and SET.
+            // The itable struct should contain entries for __get_foo and __set_foo.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            ");
+        }
+
+        #[test]
+        fn interface_with_get_only_property_generates_single_entry() {
+            // An interface declares a property with only GET (no SET).
+            // The itable struct should only contain __get_foo.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+            }
+            ");
+        }
+
+        #[test]
+        fn pou_implementing_interface_with_property_generates_instance() {
+            // FbA IMPLEMENTS IA where IA has a property with GET and SET.
+            // The global itable instance should point to FbA's lowered getter/setter methods.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn interface_with_methods_and_properties() {
+            // An interface declares both a regular method and a property.
+            // The itable struct should contain entries for the method and the property accessors.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    METHOD bar END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    METHOD bar END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                bar: __FPOINTER IA.bar;
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (bar := ADR(FbA.bar), __get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn extended_interface_inherits_property_methods() {
+            // IB EXTENDS IA, where IA declares a property. IB adds its own method.
+            // IB's itable should include the inherited __get_foo/__set_foo from IA,
+            // plus its own bar entry.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                    METHOD bar END_METHOD
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IB
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+
+                    METHOD bar END_METHOD
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            __itable_IB {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+                bar: __FPOINTER IB.bar;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IB_FbA_instance: __itable_IB := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo), bar := ADR(FbA.bar))
+            ");
+        }
+
+        #[test]
+        fn overridden_property_in_derived_pou_points_to_child() {
+            // FbB EXTENDS FbA, both implement IA's property. FbB overrides the getter.
+            // FbB's itable should point __get_foo to FbB, while __set_foo still points to FbA.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbB.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn inherited_interface_property_obligation_through_pou_chain() {
+            // FbB EXTENDS FbA. FbA IMPLEMENTS IA (with property). FbB doesn't override.
+            // FbB should still get its own itable instance pointing to FbA's implementations.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            ");
+        }
+    }
+
     mod helper {
         use std::fmt::Write;
 

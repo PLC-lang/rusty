@@ -296,11 +296,11 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
+            Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(PolymorphismLowerer::new(
                 self.context.provider(),
                 self.context.should_generate_external_constructors(),
             )),
-            Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(
