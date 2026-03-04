@@ -313,7 +313,7 @@ impl CycleDetector for CycleInvestigator<InterfaceIndexEntry> {
         path.insert(node_curr);
 
         for node in node_curr
-            .get_extensions()
+            .get_bases()
             .iter()
             .filter_map(|id| index.find_interface(&id.name))
             .collect::<FxIndexSet<_>>()

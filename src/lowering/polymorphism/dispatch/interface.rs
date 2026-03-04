@@ -270,7 +270,8 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             return;
         }
 
-        // Check if this is an interface assignment: LHS is interface-typed, RHS is a concrete POU.
+        // Check if this is an interface assignment: LHS is interface-typed, RHS is a concrete
+        // POU that will be treated as the lhs-interface type (type-hint).
         if !(lhs_type.is_interface() && rhs_type_hint.is_interface()) {
             // Not a valid polymorphic assignment
             return;
@@ -355,17 +356,17 @@ impl InterfaceDispatchLowerer<'_> {
     /// If so, generates a temporary fat pointer (alloca + field assignments) in `self.preamble`
     /// and replaces `arg` in-place with a reference to the temporary.
     fn maybe_wrap_argument(&mut self, arg: &mut AstNode) {
-        let arg_type = self.annotations.get_type_or_void(arg, self.index);
-        let hint_type = self.annotations.get_hint_or_void(arg, self.index);
+        let actual_type = self.annotations.get_type_or_void(arg, self.index);
+        let expected_type = self.annotations.get_hint_or_void(arg, self.index);
 
-        // Only wrap when the expected type is an interface but the actual value is not.
-        // If both are interfaces (e.g. passing an existing fat pointer), no wrapping needed.
-        if !hint_type.is_interface() || arg_type.is_interface() {
+        // Skip if the argument is already interface-typed (i.e. an existing fat pointer that needs no
+        // wrapping) or if the expected type is not an interface.
+        if actual_type.is_interface() || !expected_type.is_interface() {
             return;
         }
 
-        let interface_name = hint_type.get_name();
-        let pou_name = arg_type.get_name();
+        let interface_name = expected_type.get_name();
+        let pou_name = actual_type.get_name();
 
         // Generate a unique name for the temporary fat pointer.
         let fp_name = format!("__fatpointer_{}", self.fp_counter);
@@ -429,6 +430,7 @@ mod helper {
     ) {
         // Clone the base with fresh IDs before any mutation. We need the original for building
         // `.data^` (step 1) while step 2 will consume the in-tree base for `.table^`.
+        // The caller (`visit_call_statement`) already verified that operator has a base ref expression.
         let base = clone_with_new_ids(operator.get_base_ref_expr().unwrap(), ids);
 
         // Step 1: Prepend the data pointer as the implicit first argument.

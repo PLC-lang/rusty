@@ -67,8 +67,8 @@ VAR
     refInstanceA: POINTER TO FbA;
 END_VAR
 
-// All of these assignments are valid, because A, B and C all share a common interface due to inheritance.
-// Put differently, instanceB and instanceC have, at minimum, the same methods as instanceA.
+// All of these assignments are valid, because due to inheritance it is guaranteed that A, B and C
+// all share at least A's methods.
 refInstanceA := ADR(instanceA);
 refInstanceA^.foo(); // Calls FbA::foo
 refInstanceA := ADR(instanceB);
@@ -79,8 +79,9 @@ refInstanceA^.foo(); // Calls FbC::foo (or the closest ancestor that overrides f
 Now, in order to achieve dynamic dispatch, the compiler needs to perform a vtable lookup to execute the correct method. Rusty achieves this by patching any method call like so
 ```diff
 -refInstanceA^.foo();
-+__vtable_FbA#(refInstanceA^.__vtable^).foo^(FbA#(refInstanceA^), /* potentially other arguments */);
++refInstanceA^.__vtable^.foo^(refInstanceA^, /* potentially other arguments */);
 ```
+> **Note**: In practice, casts are needed to reinterpret the void pointers to the correct vtable and POU types (e.g. `__vtable_FbA#(...)` and `FbA#(...)`). These are omitted here for clarity.
 That in turn requires that classes and function blocks have a `__vtable` member field, which the compiler injects into the POU definition like so
 ```diff
 FUNCTION_BLOCK FbA
@@ -275,7 +276,7 @@ For our diamond hierarchy example, the compiler generates the following itable s
 +    END_STRUCT
 +END_TYPE
 ```
-Note how the function pointer types reference the original interface method POU (e.g. `IA.foo`), which already exists in the index as a registered implementation. This avoids the need for separate forward declaration stubs. Also note that inherited methods are included: `__itable_IB` contains both `foo` (from `IA`) and `bar` (from `IB`), with inherited methods appearing first in DFS order.
+Note how the function pointer types reference the original interface method POU (e.g. `IA.foo`), which already exists in the index as a registered implementation. This avoids the need for separate forward declaration stubs. Also note that inherited methods are included: `__itable_IB` contains both `foo` (from `IA`) and `bar` (from `IB`), with inherited methods appearing first. The ordering follows the `EXTENDS` declaration order: for `ID EXTENDS IB, IC`, methods from `IB`'s ancestor chain (`IA.foo`, `IB.bar`) appear before `IC`'s (`IC.baz`), followed by `ID`'s own methods (`ID.qux`).
 
 Then, the compiler generates global instances for every (interface, POU) combination:
 ```diff

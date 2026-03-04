@@ -295,7 +295,7 @@ pub mod helper {
             for iface_name in pou.get_interfaces() {
                 if let Some(iface) = index.find_interface(iface_name) {
                     // Expand to include all ancestor interfaces
-                    for ancestor in iface.get_derived_interfaces_recursive(index) {
+                    for ancestor in iface.get_parent_interfaces_recursive(index) {
                         result.insert(ancestor.get_name());
                     }
                 }
