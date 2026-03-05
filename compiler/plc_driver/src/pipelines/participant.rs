@@ -22,7 +22,9 @@ use plc::{
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_lowering::{inheritance::InheritanceLowerer, initializer::Initializer};
+use plc_lowering::{
+    control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, initializer::Initializer,
+};
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
@@ -330,5 +332,13 @@ impl PipelineParticipantMut for PolymorphicCallLowerer {
         };
 
         indexed_project.annotate(self.ids.clone())
+    }
+}
+
+impl PipelineParticipantMut for ControlStatementParticipant {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        self.lower_control_statements(&mut units);
+        ParsedProject { units }
     }
 }
