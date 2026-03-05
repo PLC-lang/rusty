@@ -63,27 +63,35 @@ use crate::index::{Index, InterfaceIndexEntry, PouIndexEntry};
 /// Generates interface-dispatch tables (itables) for all interfaces and their implementing POUs.
 pub struct InterfaceTableGenerator {
     ids: IdProvider,
+    generate_external_constructors: bool,
 }
 
 impl InterfaceTableGenerator {
-    pub fn new(ids: IdProvider) -> Self {
-        Self { ids }
+    pub fn new(ids: IdProvider, generate_external_constructors: bool) -> Self {
+        Self { ids, generate_external_constructors }
     }
 
     /// Generates itable definitions and instances for every compilation unit.
     pub fn generate(&mut self, index: &Index, units: &mut [CompilationUnit]) {
         for unit in units.iter_mut() {
             let definitions = self.generate_itable_definitions(index, unit);
-            let instances = self.generate_itable_instances(index, unit);
+            let (internal_instances, external_instances) = self.generate_itable_instances(index, unit);
 
             unit.user_types.extend(definitions);
-            if !instances.is_empty() {
-                unit.global_vars.push(VariableBlock::global().with_variables(instances));
+            if !internal_instances.is_empty() {
+                unit.global_vars.push(VariableBlock::global().with_variables(internal_instances));
+            }
+            if !external_instances.is_empty() {
+                unit.global_vars.push(
+                    VariableBlock::global()
+                        .with_linkage(LinkageType::External)
+                        .with_variables(external_instances),
+                );
             }
         }
     }
 
-    /// Creates `__itable_<interface>` struct definitions for every interface declared in this unit
+    /// Creates `__itable_<interface>` struct definitions for every interface declared in this unit.
     fn generate_itable_definitions(
         &mut self,
         index: &Index,
@@ -123,7 +131,7 @@ impl InterfaceTableGenerator {
                 initializer: None,
                 location: location.clone(),
                 scope: None,
-                linkage: LinkageType::Internal,
+                linkage: self.itable_definition_linkage(index, unit, interface.get_name()),
             };
 
             definitions.push(definition);
@@ -132,9 +140,46 @@ impl InterfaceTableGenerator {
         definitions
     }
 
-    /// Creates `__itable_<interface>_<pou>_instance := (...)` variables for each (interface, POU) pair
-    fn generate_itable_instances(&mut self, index: &Index, unit: &CompilationUnit) -> Vec<Variable> {
-        let mut instances = Vec::new();
+    /// Determines whether the itable struct definition for an interface should be Internal or
+    /// External. External only when the library provides all implementors (and thus the struct
+    /// constructor). If no implementors exist in this unit (interface-only file), keep Internal.
+    fn itable_definition_linkage(
+        &self,
+        index: &Index,
+        unit: &CompilationUnit,
+        interface_name: &str,
+    ) -> LinkageType {
+        let mut has_external = false;
+
+        for ast_pou in unit.pous.iter().filter(|p| p.kind.is_class() || p.kind.is_function_block()) {
+            let Some(pou) = index.find_pou(&ast_pou.name) else { continue };
+            if !helper::collect_interfaces_for_pou(index, pou).contains(interface_name) {
+                continue;
+            }
+
+            if super::is_internal_instance(ast_pou.linkage, self.generate_external_constructors) {
+                return LinkageType::Internal;
+            }
+            has_external = true;
+        }
+
+        if has_external {
+            LinkageType::External
+        } else {
+            LinkageType::Internal
+        }
+    }
+
+    /// Creates `__itable_<interface>_<pou>_instance := (...)` variables for each (interface, POU) pair.
+    /// Returns `(internal, external)` — internal instances are defined in this unit, external
+    /// instances are declared here but expected to be provided by a library at link time.
+    fn generate_itable_instances(
+        &mut self,
+        index: &Index,
+        unit: &CompilationUnit,
+    ) -> (Vec<Variable>, Vec<Variable>) {
+        let mut internal_instances = Vec::new();
+        let mut external_instances = Vec::new();
         let unit_file = unit.file.get_name();
 
         // Iterate over POUs defined in this unit that can implement interfaces
@@ -145,12 +190,18 @@ impl InterfaceTableGenerator {
             for iface_name in helper::collect_interfaces_for_pou(index, pou) {
                 let Some(interface) = index.find_interface(iface_name) else { continue };
                 let instance = self.generate_single_itable_instance(index, interface, pou, unit_file);
-                instances.push(instance);
+
+                if super::is_internal_instance(ast_pou.linkage, self.generate_external_constructors) {
+                    internal_instances.push(instance);
+                } else {
+                    external_instances.push(instance);
+                }
             }
         }
 
-        instances.sort_by(|a, b| a.name.cmp(&b.name));
-        instances
+        internal_instances.sort_by(|a, b| a.name.cmp(&b.name));
+        external_instances.sort_by(|a, b| a.name.cmp(&b.name));
+        (internal_instances, external_instances)
     }
 
     /// Creates a single `__itable_<interface>_<pou>_instance := (...)` variable

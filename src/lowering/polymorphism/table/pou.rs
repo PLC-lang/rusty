@@ -99,13 +99,10 @@ impl VirtualTableGenerator {
                 let instance = self.generate_vtable_instance(pou, &definition);
 
                 definitions.push(definition);
-                //When generating vtable instances, if we are generatig external constructors treat the vtable as internal
-                match pou.linkage {
-                    LinkageType::External if self.generate_external_constructors => {
-                        internal_instances.push(instance)
-                    }
-                    LinkageType::External | LinkageType::Include => external_instances.push(instance),
-                    _ => internal_instances.push(instance),
+                if super::is_internal_instance(pou.linkage, self.generate_external_constructors) {
+                    internal_instances.push(instance);
+                } else {
+                    external_instances.push(instance);
                 }
             }
 

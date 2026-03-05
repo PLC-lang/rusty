@@ -1,0 +1,3 @@
+RUN: %COMPILE %S/app.st && %RUN | %CHECK %s
+CHECK: FbA::greet (id=7)
+CHECK: FbA::greet (id=7)
