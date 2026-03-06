@@ -1,71 +1,77 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Scenario: An interface declares both regular methods and properties. Verifies that methods and
-// property accessors coexist and dispatch correctly through the same interface variable.
+// Scenario: An interface declares both a regular method and a property. Two function blocks
+// implement the interface with different behaviors. Both the method and property are dispatched
+// through the same interface variable, verifying they coexist cleanly in the itable.
 
-INTERFACE IA
-    METHOD greet END_METHOD
+INTERFACE IWidget
+    METHOD describe END_METHOD
 
-    PROPERTY name : DINT
+    PROPERTY label : DINT
         GET END_GET
         SET END_SET
     END_PROPERTY
 END_INTERFACE
 
-FUNCTION_BLOCK FbA IMPLEMENTS IA
+FUNCTION_BLOCK FbButton IMPLEMENTS IWidget
     VAR
-        _id : DINT := 1;
+        _label : DINT := 1;
     END_VAR
 
-    METHOD greet
-        printf('Hello from A$N');
+    METHOD describe
+        printf('Button(%d)$N', _label);
     END_METHOD
 
-    PROPERTY name : DINT
+    PROPERTY label : DINT
         GET
-            name := _id;
+            label := _label;
         END_GET
 
         SET
-            _id := name;
+            _label := label;
         END_SET
     END_PROPERTY
 END_FUNCTION_BLOCK
 
-FUNCTION_BLOCK FbB IMPLEMENTS IA
+FUNCTION_BLOCK FbSlider IMPLEMENTS IWidget
     VAR
-        _id : DINT := 2;
+        _label : DINT := 2;
     END_VAR
 
-    METHOD greet
-        printf('Hello from B$N');
+    METHOD describe
+        printf('Slider(%d)$N', _label);
     END_METHOD
 
-    PROPERTY name : DINT
+    PROPERTY label : DINT
         GET
-            name := _id;
+            label := _label * 10;
         END_GET
 
         SET
-            _id := name;
+            _label := label + 100;
         END_SET
     END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION main
     VAR
-        instanceA : FbA;
-        instanceB : FbB;
-        reference : IA;
+        button : FbButton;
+        slider : FbSlider;
+        iface : IWidget;
     END_VAR
 
-    reference := instanceA;
-    reference.greet();                  // CHECK: Hello from A
-    printf('%d$N', reference.name);     // CHECK: 1
+    // FbButton
+    iface := button;
+    iface.describe();                           // CHECK: Button(1)
+    printf('label=%d$N', iface.label);          // CHECK-NEXT: label=1
+    iface.label := 42;
+    iface.describe();                           // CHECK-NEXT: Button(42)
+    printf('label=%d$N', iface.label);          // CHECK-NEXT: label=42
 
-    reference := instanceB;
-    reference.greet();                  // CHECK: Hello from B
-    printf('%d$N', reference.name);     // CHECK: 2
-
-    reference.name := 42;
-    printf('%d$N', reference.name);     // CHECK: 42
+    // FbSlider — getter returns _label * 10, setter stores label + 100
+    iface := slider;
+    iface.describe();                           // CHECK-NEXT: Slider(2)
+    printf('label=%d$N', iface.label);          // CHECK-NEXT: label=20
+    iface.label := 99;
+    iface.describe();                           // CHECK-NEXT: Slider(199)
+    printf('label=%d$N', iface.label);          // CHECK-NEXT: label=1990
 END_FUNCTION

@@ -1049,6 +1049,152 @@ mod tests {
             __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
             ");
         }
+
+        #[test]
+        fn overridden_set_only_property_in_derived_pou_points_to_child() {
+            // FbB EXTENDS FbA, both implement IA's property. FbB overrides only the setter.
+            // FbB's itable should point __set_foo to FbB, while __get_foo still points to FbA.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                    PROPERTY foo : DINT
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbB.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn deep_pou_chain_with_alternating_property_accessor_overrides() {
+            // Three-level POU chain: FbC extends FbB extends FbA which implements IA.
+            // FbB overrides only the getter, FbC overrides only the setter.
+            // Each POU's itable should resolve each accessor to the most-derived override:
+            //   FbA → both point to FbA
+            //   FbB → get to FbB, set to FbA
+            //   FbC → get to FbB (inherited from FbB), set to FbC
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbC EXTENDS FbB
+                    PROPERTY foo : DINT
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbB.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbC_instance: __itable_IA := (__get_foo := ADR(FbB.__get_foo), __set_foo := ADR(FbC.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn extended_interface_with_property_override_in_derived_pou() {
+            // IB EXTENDS IA, where IA declares a property. FbA implements IB with both
+            // accessors, and FbB extends FbA overriding only the setter.
+            // Both IA and IB itables for FbB should pick up the overridden setter from FbB
+            // while the getter stays at FbA.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                    METHOD bar END_METHOD
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IB
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+
+                    METHOD bar END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                    PROPERTY foo : DINT
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            __itable_IB {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+                bar: __FPOINTER IB.bar;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbB.__set_foo))
+            __itable_IB_FbA_instance: __itable_IB := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo), bar := ADR(FbA.bar))
+            __itable_IB_FbB_instance: __itable_IB := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbB.__set_foo), bar := ADR(FbA.bar))
+            ");
+        }
     }
 
     mod helper {
