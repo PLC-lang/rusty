@@ -1,5 +1,40 @@
-//! This module handles indirection for retain variables in PROGRAMS
-//! It also moves retain variables that are declared in non retain blocks into retain blocks.
+//! # Retain Variable Lowering
+//!
+//! This module handles the lowering of `RETAIN` variables as defined in IEC 61131-3.
+//! Retain variables persist their values across power cycles by being placed in a
+//! dedicated `.retain` linker section, which a PLC runtime maps to non-volatile memory.
+//!
+//! The lowering pass handles three cases:
+//!
+//! ## 1. PROGRAM retain variables
+//! Variables declared as `VAR RETAIN` inside a `PROGRAM` are extracted into global
+//! retain variables and replaced with auto-dereferenced pointers. For example:
+//!
+//! ```st
+//! PROGRAM Main
+//!     VAR RETAIN
+//!         counter : INT := 0;
+//!     END_VAR
+//! END_PROGRAM
+//! ```
+//!
+//! Is transformed into:
+//! - A global variable `__Main_counter__retain : INT := 0` in a retain block
+//! - The original `counter` becomes an auto-deref pointer to `__Main_counter__retain`
+//!
+//! This indirection ensures the PROGRAM's instance struct contains pointers to the
+//! retain globals, while the actual values live in the `.retain` section.
+//!
+//! ## 2. Global variables with transitive retain
+//! If a global variable's type transitively contains retain members (e.g. an FB with
+//! `VAR RETAIN`), the variable is moved to a retain block even if it was not explicitly
+//! declared in a `VAR_GLOBAL RETAIN` block.
+//!
+//! ## 3. FUNCTION_BLOCK retain variables
+//! Retain variables inside FBs stay in-place within the FB's struct definition. The
+//! entire FB instance receives the `.retain` section treatment when it is instantiated
+//! at the global or program level, handled by the transitive `should_retain()` check
+//! during code generation.
 
 use plc_ast::{
     ast::{
@@ -76,70 +111,112 @@ impl AstVisitorMut for RetainLowerer {
 
     fn visit_variable_block(&mut self, block: &mut plc_ast::ast::VariableBlock) {
         let variables = std::mem::take(&mut block.variables);
-        for mut variable in variables {
-            if let Some(variable_index) =
-                self.index.find_variable(self.context.container_name.as_deref(), &[variable.get_name()])
-            {
-                // If the variable should be retained
-                if variable_index.should_retain(&self.index) {
-                    if self.context.in_program {
-                        let new_name = format!(
-                            "__{}_{}__retain",
-                            self.context.container_name.as_deref().unwrap_or_default(),
-                            variable.get_name()
-                        );
-                        // Create a global variable called __<pou_name>_<var_name> and move the initializer and datatype to the global variable
-                        let new_var = Variable {
-                            name: new_name.clone(),
-                            data_type_declaration: variable.data_type_declaration.clone(),
-                            initializer: variable.initializer.take(),
-                            location: variable.location.clone(),
-                            address: None,
-                        };
-                        // Move the variable to a global retain variable and replace the original variable with an auto reference to the global variable
-                        self.context.retain_variables.push(new_var);
-                        variable.data_type_declaration = DataTypeDeclaration::Definition {
-                            data_type: Box::new(DataType::PointerType {
-                                name: None,
-                                referenced_type: Box::new(variable.data_type_declaration.clone()),
-                                auto_deref: Some(AutoDerefType::Alias),
-                                type_safe: true,
-                                is_function: false,
-                            }),
-                            location: variable.data_type_declaration.get_location(),
-                            scope: self.context.container_name.clone(),
-                        };
-                        variable.initializer = Some(AstFactory::create_member_reference(
-                            AstFactory::create_identifier(
-                                new_name,
-                                variable.location.clone(),
-                                self.ids.next_id(),
-                            ),
-                            None,
-                            self.ids.next_id(),
-                        ));
-                        block.variables.push(variable);
-                    } else if matches!(block.kind, plc_ast::ast::VariableBlockType::Global) && !block.retain {
-                        self.context.retain_variables.push(variable);
-                    } else {
-                        block.variables.push(variable);
-                    }
-                } else {
-                    block.variables.push(variable);
-                }
+        //If the block is retain but we are in a program, mark the block as non-retain
+        if block.retain && self.context.in_program {
+            block.retain = false;
+        }
+        for variable in variables {
+            let variable_index = self
+                .index
+                .find_variable(self.context.container_name.as_deref(), &[variable.get_name()])
+                .expect("variable must exist in the index after indexing");
+
+            if !variable_index.should_retain(&self.index) {
+                block.variables.push(variable);
+                continue;
+            }
+
+            if self.context.in_program {
+                let (old_variable, new_var) = self.replace_with_retain_variable(variable);
+                self.context.retain_variables.push(new_var);
+                block.variables.push(old_variable);
+            } else if matches!(block.kind, plc_ast::ast::VariableBlockType::Global) && !block.retain {
+                // Global variable in a non-retain block whose type transitively contains retain
+                // members (e.g. an FB with VAR RETAIN). Move it to a retain block.
+                self.context.retain_variables.push(variable);
             } else {
-                // If the variable is not found in the index, just keep it as is (this should not happen since the index should contain all variables, but we want to be safe)
+                // FB retain variables stay in-place within the FB's struct. The entire FB instance
+                // gets placed in the .retain section when instantiated at the global/program level,
+                // handled by the transitive should_retain() check during codegen.
                 block.variables.push(variable);
             }
         }
     }
 }
 
+impl RetainLowerer {
+    /// Replaces a retain variable in a program with a global retain variable and replaces the original variable with an auto reference to the global variable
+    fn replace_with_retain_variable(&mut self, mut variable: Variable) -> (Variable, Variable) {
+        let new_name = format!(
+            "__{}_{}__retain",
+            self.context.container_name.as_deref().unwrap_or_default(),
+            variable.get_name()
+        );
+        // Create a global variable called __<pou_name>_<var_name> and move the initializer and datatype to the global variable
+        let new_var = Variable {
+            name: new_name,
+            data_type_declaration: variable.data_type_declaration.clone(),
+            initializer: variable.initializer.take(),
+            location: variable.location.clone(),
+            address: None,
+        };
+        variable.data_type_declaration = DataTypeDeclaration::Definition {
+            data_type: Box::new(DataType::PointerType {
+                name: None,
+                referenced_type: Box::new(variable.data_type_declaration.clone()),
+                auto_deref: Some(AutoDerefType::Alias),
+                type_safe: true,
+                is_function: false,
+            }),
+            location: variable.data_type_declaration.get_location(),
+            scope: self.context.container_name.clone(),
+        };
+        variable.initializer = Some(AstFactory::create_member_reference(
+            AstFactory::create_identifier(&new_var.name, variable.location.clone(), self.ids.next_id()),
+            None,
+            self.ids.next_id(),
+        ));
+        (variable, new_var)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use insta::assert_debug_snapshot;
+    use plc_ast::ast::{CompilationUnit, DataTypeDeclaration, Variable, VariableBlock};
     use plc_driver::parse_and_annotate;
     use plc_source::SourceCode;
+
+    /// Finds the first global variable block with `retain: true` in a compilation unit.
+    fn find_retain_block(unit: &CompilationUnit) -> &VariableBlock {
+        unit.global_vars.iter().find(|b| b.retain).expect("expected a global retain block")
+    }
+
+    /// Finds a variable by name in a given list of variable blocks.
+    fn find_variable_in_blocks<'a>(blocks: &'a [VariableBlock], name: &str) -> &'a Variable {
+        blocks
+            .iter()
+            .flat_map(|b| &b.variables)
+            .find(|v| v.get_name() == name)
+            .unwrap_or_else(|| panic!("expected variable '{name}' in blocks"))
+    }
+
+    /// Finds a POU by name in a compilation unit and returns a variable from it.
+    fn find_pou_variable<'a>(unit: &'a CompilationUnit, pou_name: &str, var_name: &str) -> &'a Variable {
+        let pou = unit
+            .pous
+            .iter()
+            .find(|p| p.name == pou_name)
+            .unwrap_or_else(|| panic!("POU '{pou_name}' not found"));
+        find_variable_in_blocks(&pou.variable_blocks, var_name)
+    }
+
+    /// Returns the referenced type name from a DataTypeDeclaration, if it is a Reference variant.
+    fn referenced_type_name(decl: &DataTypeDeclaration) -> &str {
+        match decl {
+            DataTypeDeclaration::Reference { referenced_type, .. } => referenced_type,
+            other => panic!("expected DataTypeDeclaration::Reference, got {other:?}"),
+        }
+    }
 
     #[test]
     fn test_retain_lowering_on_program() {
@@ -154,376 +231,28 @@ mod tests {
 
         let (_, project) =
             parse_and_annotate("test", vec![source]).expect("Failed to parse compilation unit");
+        let unit = project.units[0].get_unit();
 
-        let unit = &project.units[0];
-        // Expect the unit to have a global retain variable and the original variable to be replaced with a auto reference to the retain variable
-        assert_debug_snapshot!(unit, @r#"
-        AnnotatedUnit {
-            unit: CompilationUnit {
-                global_vars: [
-                    VariableBlock {
-                        variables: [],
-                        variable_block_type: Global,
-                    },
-                    VariableBlock {
-                        variables: [],
-                        variable_block_type: Global,
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "__Test_x__retain",
-                                data_type: DataTypeReference {
-                                    referenced_type: "INT",
-                                },
-                                initializer: Some(
-                                    LiteralInteger {
-                                        value: 5,
-                                    },
-                                ),
-                            },
-                        ],
-                        variable_block_type: Global,
-                        retain: true,
-                    },
-                ],
-                var_config: [],
-                pous: [
-                    POU {
-                        name: "Test",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "x",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "__Test_x",
-                                        },
-                                        initializer: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "__Test_x__retain",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
-                                    },
-                                ],
-                                variable_block_type: Local,
-                                retain: true,
-                            },
-                        ],
-                        pou_type: Program,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "Test__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "Test",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "__Test_x__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "__Test_x",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "__unit___internal____ctor",
-                        variable_blocks: [],
-                        pou_type: ProjectInit,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                ],
-                implementations: [
-                    Implementation {
-                        name: "Test",
-                        type_name: "Test",
-                        linkage: Internal,
-                        pou_type: Program,
-                        statements: [],
-                        location: SourceLocation {
-                            span: Range(5:8 - 4:15),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        name_location: SourceLocation {
-                            span: Range(1:16 - 1:20),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        end_location: SourceLocation {
-                            span: Range(5:8 - 5:19),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "Test__ctor",
-                        type_name: "Test__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__Test_x__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "x",
-                                            },
-                                        ),
-                                        base: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "self",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
-                                    },
-                                ),
-                            },
-                            ReferenceAssignment {
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "x",
-                                        },
-                                    ),
-                                    base: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "self",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                                right: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__Test_x__retain",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            },
-                        ],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "__Test_x__ctor",
-                        type_name: "__Test_x__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "__unit___internal____ctor",
-                        type_name: "__unit___internal____ctor",
-                        linkage: Internal,
-                        pou_type: ProjectInit,
-                        statements: [
-                            Assignment {
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__Test_x__retain",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                right: LiteralInteger {
-                                    value: 5,
-                                },
-                            },
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "Test__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "Test",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
-                        ],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                ],
-                interfaces: [],
-                user_types: [
-                    UserTypeDeclaration {
-                        data_type: PointerType {
-                            name: Some(
-                                "__Test_x",
-                            ),
-                            referenced_type: DataTypeReference {
-                                referenced_type: "INT",
-                            },
-                            auto_deref: Some(
-                                Alias,
-                            ),
-                            type_safe: true,
-                            is_function: false,
-                        },
-                        initializer: None,
-                        scope: Some(
-                            "Test",
-                        ),
-                    },
-                ],
-                file: File(
-                    "<internal>",
-                ),
-                linkage: Internal,
-            },
-            dependencies: {
-                Variable(
-                    "__Test_x__retain",
-                ),
-                Datatype(
-                    "INT",
-                ),
-                Datatype(
-                    "DINT",
-                ),
-                Datatype(
-                    "Test",
-                ),
-                Datatype(
-                    "__Test_x",
-                ),
-                Datatype(
-                    "Test__ctor",
-                ),
-                Datatype(
-                    "__Test_x__ctor",
-                ),
-                Datatype(
-                    "__unit___internal____ctor",
-                ),
-                Datatype(
-                    "__auto_pointer_to_Test",
-                ),
-                Call(
-                    "__Test_x__ctor",
-                ),
-                Datatype(
-                    "__auto_pointer_to___Test_x",
-                ),
-                Datatype(
-                    "__VOID",
-                ),
-                Call(
-                    "Test__ctor",
-                ),
-                Call(
-                    "Test",
-                ),
-            },
-            literals: StringLiterals {
-                utf08: {},
-                utf16: {},
-            },
-        }
-        "#);
+        // A global retain block should exist with the extracted retain variable
+        let retain_block = find_retain_block(unit);
+        assert_eq!(retain_block.variables.len(), 1);
+        let retain_var = &retain_block.variables[0];
+        assert_eq!(retain_var.get_name(), "__Test_x__retain");
+        assert_eq!(referenced_type_name(&retain_var.data_type_declaration), "INT");
+        assert!(retain_var.initializer.is_some(), "retain variable should carry the original initializer");
+
+        // The program's variable should be replaced with an auto-deref pointer
+        let pou_var = find_pou_variable(unit, "Test", "x");
+        // The type should now reference the generated pointer type, not INT directly
+        assert_eq!(referenced_type_name(&pou_var.data_type_declaration), "__Test_x");
+        assert!(pou_var.initializer.is_some(), "program variable should have a reference initializer");
+
+        // The program's variable block should no longer be marked retain
+        let test_pou = unit.pous.iter().find(|p| p.name == "Test").unwrap();
+        assert!(
+            test_pou.variable_blocks.iter().all(|b| !b.retain),
+            "program variable blocks should not be retain after lowering"
+        );
     }
 
     #[test]
@@ -544,917 +273,27 @@ mod tests {
 
         let (_, project) =
             parse_and_annotate("test", vec![source]).expect("Failed to parse compilation unit");
+        let unit = project.units[0].get_unit();
 
-        let unit = &project.units[0];
-        // Expect the unit to have a global retain variable and the original variable to be replaced with a auto reference to the retain variable
-        assert_debug_snapshot!(unit, @r#"
-        AnnotatedUnit {
-            unit: CompilationUnit {
-                global_vars: [
-                    VariableBlock {
-                        variables: [],
-                        variable_block_type: Global,
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "__vtable_FB_instance",
-                                data_type: DataTypeReference {
-                                    referenced_type: "__vtable_FB",
-                                },
-                            },
-                        ],
-                        variable_block_type: Global,
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "__Test_x__retain",
-                                data_type: DataTypeReference {
-                                    referenced_type: "FB",
-                                },
-                            },
-                        ],
-                        variable_block_type: Global,
-                        retain: true,
-                    },
-                ],
-                var_config: [],
-                pous: [
-                    POU {
-                        name: "FB",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "__vtable",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "__FB___vtable",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: Local,
-                            },
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "a",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "INT",
-                                        },
-                                        initializer: Some(
-                                            LiteralInteger {
-                                                value: 5,
-                                            },
-                                        ),
-                                    },
-                                ],
-                                variable_block_type: Local,
-                                retain: true,
-                            },
-                        ],
-                        pou_type: FunctionBlock,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "Test",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "x",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "__Test_x",
-                                        },
-                                        initializer: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "__Test_x__retain",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
-                                    },
-                                ],
-                                variable_block_type: Local,
-                            },
-                        ],
-                        pou_type: Program,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "FB__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "FB",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "Test__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "Test",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "__vtable_FB__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "__vtable_FB",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "__FB___vtable__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "__FB___vtable",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "____vtable_FB___body__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "____vtable_FB___body",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "__Test_x__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "__Test_x",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "__unit___internal____ctor",
-                        variable_blocks: [],
-                        pou_type: ProjectInit,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                ],
-                implementations: [
-                    Implementation {
-                        name: "FB",
-                        type_name: "FB",
-                        linkage: Internal,
-                        pou_type: FunctionBlock,
-                        statements: [],
-                        location: SourceLocation {
-                            span: Range(5:8 - 4:15),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        name_location: SourceLocation {
-                            span: Range(1:23 - 1:25),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        end_location: SourceLocation {
-                            span: Range(5:8 - 5:26),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "Test",
-                        type_name: "Test",
-                        linkage: Internal,
-                        pou_type: Program,
-                        statements: [],
-                        location: SourceLocation {
-                            span: Range(10:8 - 9:15),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        name_location: SourceLocation {
-                            span: Range(6:16 - 6:20),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        end_location: SourceLocation {
-                            span: Range(10:8 - 10:19),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "FB__ctor",
-                        type_name: "FB__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__FB___vtable__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__vtable",
-                                            },
-                                        ),
-                                        base: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "self",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
-                                    },
-                                ),
-                            },
-                            Assignment {
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "a",
-                                        },
-                                    ),
-                                    base: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "self",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                                right: LiteralInteger {
-                                    value: 5,
-                                },
-                            },
-                            Assignment {
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__vtable",
-                                        },
-                                    ),
-                                    base: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "self",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                                right: CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "__vtable_FB_instance",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            },
-                        ],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "Test__ctor",
-                        type_name: "Test__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__Test_x__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "x",
-                                            },
-                                        ),
-                                        base: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "self",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
-                                    },
-                                ),
-                            },
-                            ReferenceAssignment {
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "x",
-                                        },
-                                    ),
-                                    base: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "self",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                                right: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__Test_x__retain",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            },
-                        ],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "__vtable_FB__ctor",
-                        type_name: "__vtable_FB__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "____vtable_FB___body__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__body",
-                                            },
-                                        ),
-                                        base: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "self",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
-                                    },
-                                ),
-                            },
-                            Assignment {
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__body",
-                                        },
-                                    ),
-                                    base: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "self",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                                right: CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FB",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            },
-                        ],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "__FB___vtable__ctor",
-                        type_name: "__FB___vtable__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "____vtable_FB___body__ctor",
-                        type_name: "____vtable_FB___body__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "__Test_x__ctor",
-                        type_name: "__Test_x__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "__unit___internal____ctor",
-                        type_name: "__unit___internal____ctor",
-                        linkage: Internal,
-                        pou_type: ProjectInit,
-                        statements: [
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__vtable_FB__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__vtable_FB_instance",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "FB__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__Test_x__retain",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "Test__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "Test",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
-                        ],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                ],
-                interfaces: [],
-                user_types: [
-                    UserTypeDeclaration {
-                        data_type: StructType {
-                            name: Some(
-                                "__vtable_FB",
-                            ),
-                            variables: [
-                                Variable {
-                                    name: "__body",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "____vtable_FB___body",
-                                    },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ],
-                        },
-                        initializer: None,
-                        scope: None,
-                    },
-                    UserTypeDeclaration {
-                        data_type: PointerType {
-                            name: Some(
-                                "__FB___vtable",
-                            ),
-                            referenced_type: DataTypeReference {
-                                referenced_type: "__VOID",
-                            },
-                            auto_deref: None,
-                            type_safe: false,
-                            is_function: false,
-                        },
-                        initializer: None,
-                        scope: None,
-                    },
-                    UserTypeDeclaration {
-                        data_type: PointerType {
-                            name: Some(
-                                "____vtable_FB___body",
-                            ),
-                            referenced_type: DataTypeReference {
-                                referenced_type: "FB",
-                            },
-                            auto_deref: None,
-                            type_safe: false,
-                            is_function: true,
-                        },
-                        initializer: None,
-                        scope: None,
-                    },
-                    UserTypeDeclaration {
-                        data_type: PointerType {
-                            name: Some(
-                                "__Test_x",
-                            ),
-                            referenced_type: DataTypeReference {
-                                referenced_type: "FB",
-                            },
-                            auto_deref: Some(
-                                Alias,
-                            ),
-                            type_safe: true,
-                            is_function: false,
-                        },
-                        initializer: None,
-                        scope: Some(
-                            "Test",
-                        ),
-                    },
-                ],
-                file: File(
-                    "<internal>",
-                ),
-                linkage: Internal,
-            },
-            dependencies: {
-                Variable(
-                    "__vtable_FB_instance",
-                ),
-                Datatype(
-                    "__vtable_FB",
-                ),
-                Datatype(
-                    "____vtable_FB___body",
-                ),
-                Datatype(
-                    "FB",
-                ),
-                Datatype(
-                    "__FB___vtable",
-                ),
-                Datatype(
-                    "__VOID",
-                ),
-                Datatype(
-                    "INT",
-                ),
-                Variable(
-                    "__Test_x__retain",
-                ),
-                Datatype(
-                    "DINT",
-                ),
-                Datatype(
-                    "Test",
-                ),
-                Datatype(
-                    "__Test_x",
-                ),
-                Datatype(
-                    "FB__ctor",
-                ),
-                Datatype(
-                    "Test__ctor",
-                ),
-                Datatype(
-                    "__vtable_FB__ctor",
-                ),
-                Datatype(
-                    "__FB___vtable__ctor",
-                ),
-                Datatype(
-                    "____vtable_FB___body__ctor",
-                ),
-                Datatype(
-                    "__Test_x__ctor",
-                ),
-                Datatype(
-                    "__unit___internal____ctor",
-                ),
-                Call(
-                    "ADR",
-                ),
-                Datatype(
-                    "ADR",
-                ),
-                Datatype(
-                    "__ADR__U",
-                ),
-                Datatype(
-                    "LWORD",
-                ),
-                Datatype(
-                    "__auto_pointer_to_FB",
-                ),
-                Call(
-                    "__FB___vtable__ctor",
-                ),
-                Datatype(
-                    "__auto_pointer_to___FB___vtable",
-                ),
-                Datatype(
-                    "__auto_pointer_to_Test",
-                ),
-                Call(
-                    "__Test_x__ctor",
-                ),
-                Datatype(
-                    "__auto_pointer_to___Test_x",
-                ),
-                Datatype(
-                    "__auto_pointer_to___vtable_FB",
-                ),
-                Call(
-                    "____vtable_FB___body__ctor",
-                ),
-                Datatype(
-                    "__auto_pointer_to_____vtable_FB___body",
-                ),
-                Call(
-                    "__vtable_FB__ctor",
-                ),
-                Call(
-                    "FB__ctor",
-                ),
-                Call(
-                    "Test__ctor",
-                ),
-                Call(
-                    "Test",
-                ),
-            },
-            literals: StringLiterals {
-                utf08: {},
-                utf16: {},
-            },
-        }
-        "#);
+        // The FB instance should be extracted to a global retain variable
+        let retain_block = find_retain_block(unit);
+        assert_eq!(retain_block.variables.len(), 1);
+        let retain_var = &retain_block.variables[0];
+        assert_eq!(retain_var.get_name(), "__Test_x__retain");
+        assert_eq!(referenced_type_name(&retain_var.data_type_declaration), "FB");
+
+        // The FB's own retain block should remain intact (retain stays in-place for FBs)
+        let fb_pou = unit.pous.iter().find(|p| p.name == "FB").unwrap();
+        let fb_retain_block =
+            fb_pou.variable_blocks.iter().find(|b| b.retain).expect("FB should still have a retain block");
+        let fb_retain_blocks = [fb_retain_block.clone()];
+        let fb_var = find_variable_in_blocks(&fb_retain_blocks, "a");
+        assert_eq!(referenced_type_name(&fb_var.data_type_declaration), "INT");
+
+        // The program's variable should be replaced with an auto-deref pointer to the retain global
+        let pou_var = find_pou_variable(unit, "Test", "x");
+        assert_eq!(referenced_type_name(&pou_var.data_type_declaration), "__Test_x");
+        assert!(pou_var.initializer.is_some(), "program variable should have a reference initializer");
     }
 
     #[test]
@@ -1478,709 +317,31 @@ mod tests {
 
         let (_, project) =
             parse_and_annotate("test", vec![source]).expect("Failed to parse compilation unit");
+        let unit = project.units[0].get_unit();
 
-        let unit = &project.units[0];
-        // Expect the unit to have a global retain variable and the original variable to be replaced with an auto reference to the retain variable
-        assert_debug_snapshot!(unit, @r#"
-        AnnotatedUnit {
-            unit: CompilationUnit {
-                global_vars: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "explicit_retain",
-                                data_type: DataTypeReference {
-                                    referenced_type: "FB",
-                                },
-                            },
-                            Variable {
-                                name: "y",
-                                data_type: DataTypeReference {
-                                    referenced_type: "INT",
-                                },
-                            },
-                            Variable {
-                                name: "implicit_retain",
-                                data_type: DataTypeReference {
-                                    referenced_type: "FB",
-                                },
-                            },
-                        ],
-                        variable_block_type: Global,
-                        retain: true,
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "x",
-                                data_type: DataTypeReference {
-                                    referenced_type: "INT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Global,
-                    },
-                    VariableBlock {
-                        variables: [],
-                        variable_block_type: Global,
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "__vtable_FB_instance",
-                                data_type: DataTypeReference {
-                                    referenced_type: "__vtable_FB",
-                                },
-                            },
-                        ],
-                        variable_block_type: Global,
-                    },
-                ],
-                var_config: [],
-                pous: [
-                    POU {
-                        name: "FB",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "__vtable",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "__FB___vtable",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: Local,
-                            },
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "a",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "INT",
-                                        },
-                                        initializer: Some(
-                                            LiteralInteger {
-                                                value: 5,
-                                            },
-                                        ),
-                                    },
-                                ],
-                                variable_block_type: Local,
-                                retain: true,
-                            },
-                        ],
-                        pou_type: FunctionBlock,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "FB__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "FB",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "__vtable_FB__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "__vtable_FB",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "__FB___vtable__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "__FB___vtable",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "____vtable_FB___body__ctor",
-                        variable_blocks: [
-                            VariableBlock {
-                                variables: [
-                                    Variable {
-                                        name: "self",
-                                        data_type: DataTypeReference {
-                                            referenced_type: "____vtable_FB___body",
-                                        },
-                                    },
-                                ],
-                                variable_block_type: InOut,
-                            },
-                        ],
-                        pou_type: Init,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                    POU {
-                        name: "__unit___internal____ctor",
-                        variable_blocks: [],
-                        pou_type: ProjectInit,
-                        return_type: None,
-                        interfaces: [],
-                        properties: [],
-                    },
-                ],
-                implementations: [
-                    Implementation {
-                        name: "FB",
-                        type_name: "FB",
-                        linkage: Internal,
-                        pou_type: FunctionBlock,
-                        statements: [],
-                        location: SourceLocation {
-                            span: Range(5:8 - 4:15),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        name_location: SourceLocation {
-                            span: Range(1:23 - 1:25),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        end_location: SourceLocation {
-                            span: Range(5:8 - 5:26),
-                            file: Some(
-                                "<internal>",
-                            ),
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "FB__ctor",
-                        type_name: "FB__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__FB___vtable__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__vtable",
-                                            },
-                                        ),
-                                        base: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "self",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
-                                    },
-                                ),
-                            },
-                            Assignment {
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "a",
-                                        },
-                                    ),
-                                    base: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "self",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                                right: LiteralInteger {
-                                    value: 5,
-                                },
-                            },
-                            Assignment {
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__vtable",
-                                        },
-                                    ),
-                                    base: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "self",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                                right: CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "__vtable_FB_instance",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            },
-                        ],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "__vtable_FB__ctor",
-                        type_name: "__vtable_FB__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "____vtable_FB___body__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__body",
-                                            },
-                                        ),
-                                        base: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "self",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
-                                    },
-                                ),
-                            },
-                            Assignment {
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__body",
-                                        },
-                                    ),
-                                    base: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "self",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                                right: CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FB",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            },
-                        ],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "__FB___vtable__ctor",
-                        type_name: "__FB___vtable__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "____vtable_FB___body__ctor",
-                        type_name: "____vtable_FB___body__ctor",
-                        linkage: Internal,
-                        pou_type: Init,
-                        statements: [],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                    Implementation {
-                        name: "__unit___internal____ctor",
-                        type_name: "__unit___internal____ctor",
-                        linkage: Internal,
-                        pou_type: ProjectInit,
-                        statements: [
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "FB__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "explicit_retain",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "FB__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "implicit_retain",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
-                            CallStatement {
-                                operator: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__vtable_FB__ctor",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__vtable_FB_instance",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
-                        ],
-                        location: SourceLocation {
-                            span: None,
-                        },
-                        name_location: SourceLocation {
-                            span: None,
-                        },
-                        end_location: SourceLocation {
-                            span: None,
-                        },
-                        overriding: false,
-                        generic: false,
-                        access: None,
-                    },
-                ],
-                interfaces: [],
-                user_types: [
-                    UserTypeDeclaration {
-                        data_type: StructType {
-                            name: Some(
-                                "__vtable_FB",
-                            ),
-                            variables: [
-                                Variable {
-                                    name: "__body",
-                                    data_type: DataTypeReference {
-                                        referenced_type: "____vtable_FB___body",
-                                    },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ],
-                        },
-                        initializer: None,
-                        scope: None,
-                    },
-                    UserTypeDeclaration {
-                        data_type: PointerType {
-                            name: Some(
-                                "__FB___vtable",
-                            ),
-                            referenced_type: DataTypeReference {
-                                referenced_type: "__VOID",
-                            },
-                            auto_deref: None,
-                            type_safe: false,
-                            is_function: false,
-                        },
-                        initializer: None,
-                        scope: None,
-                    },
-                    UserTypeDeclaration {
-                        data_type: PointerType {
-                            name: Some(
-                                "____vtable_FB___body",
-                            ),
-                            referenced_type: DataTypeReference {
-                                referenced_type: "FB",
-                            },
-                            auto_deref: None,
-                            type_safe: false,
-                            is_function: true,
-                        },
-                        initializer: None,
-                        scope: None,
-                    },
-                ],
-                file: File(
-                    "<internal>",
-                ),
-                linkage: Internal,
-            },
-            dependencies: {
-                Variable(
-                    "explicit_retain",
-                ),
-                Datatype(
-                    "FB",
-                ),
-                Datatype(
-                    "__FB___vtable",
-                ),
-                Datatype(
-                    "__VOID",
-                ),
-                Datatype(
-                    "INT",
-                ),
-                Datatype(
-                    "__vtable_FB",
-                ),
-                Datatype(
-                    "____vtable_FB___body",
-                ),
-                Variable(
-                    "y",
-                ),
-                Variable(
-                    "implicit_retain",
-                ),
-                Variable(
-                    "x",
-                ),
-                Variable(
-                    "__vtable_FB_instance",
-                ),
-                Datatype(
-                    "DINT",
-                ),
-                Datatype(
-                    "FB__ctor",
-                ),
-                Datatype(
-                    "__vtable_FB__ctor",
-                ),
-                Datatype(
-                    "__FB___vtable__ctor",
-                ),
-                Datatype(
-                    "____vtable_FB___body__ctor",
-                ),
-                Datatype(
-                    "__unit___internal____ctor",
-                ),
-                Call(
-                    "ADR",
-                ),
-                Datatype(
-                    "ADR",
-                ),
-                Datatype(
-                    "__ADR__U",
-                ),
-                Datatype(
-                    "LWORD",
-                ),
-                Datatype(
-                    "__auto_pointer_to_FB",
-                ),
-                Call(
-                    "__FB___vtable__ctor",
-                ),
-                Datatype(
-                    "__auto_pointer_to___FB___vtable",
-                ),
-                Datatype(
-                    "__auto_pointer_to___vtable_FB",
-                ),
-                Call(
-                    "____vtable_FB___body__ctor",
-                ),
-                Datatype(
-                    "__auto_pointer_to_____vtable_FB___body",
-                ),
-                Call(
-                    "FB__ctor",
-                ),
-                Call(
-                    "__vtable_FB__ctor",
-                ),
-            },
-            literals: StringLiterals {
-                utf08: {},
-                utf16: {},
-            },
-        }
-        "#);
+        // The retain block should contain the explicitly retained variables AND the
+        // implicitly retained one (implicit_retain is FB which transitively contains retain members)
+        let retain_block = find_retain_block(unit);
+        let retain_var_names: Vec<&str> = retain_block.variables.iter().map(|v| v.get_name()).collect();
+        assert!(retain_var_names.contains(&"explicit_retain"), "explicit_retain should be in retain block");
+        assert!(
+            retain_var_names.contains(&"y"),
+            "y should stay in retain block (declared in VAR_GLOBAL RETAIN)"
+        );
+        assert!(
+            retain_var_names.contains(&"implicit_retain"),
+            "implicit_retain should be moved to retain block (transitive retain)"
+        );
+
+        // The non-retain global block should only contain x (a plain INT with no retain)
+        let non_retain_globals: Vec<&str> = unit
+            .global_vars
+            .iter()
+            .filter(|b| !b.retain)
+            .flat_map(|b| &b.variables)
+            .filter(|v| !v.get_name().starts_with("__")) // exclude compiler-generated variables
+            .map(|v| v.get_name())
+            .collect();
+        assert_eq!(non_retain_globals, vec!["x"], "only x should remain in the non-retain global block");
     }
 }

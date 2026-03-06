@@ -1,9 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::{
-    collections::{BTreeSet, VecDeque},
-    hash::BuildHasherDefault,
-};
+use std::{collections::VecDeque, hash::BuildHasherDefault};
 
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
@@ -304,13 +301,13 @@ impl VariableIndexEntry {
     }
 
     pub fn should_retain(&self, index: &Index) -> bool {
-        self.should_retain_recursive(index, BTreeSet::new())
+        self.should_retain_recursive(index, &mut FxHashSet::default())
     }
 
-    pub(crate) fn should_retain_recursive(&self, index: &Index, already_visited: BTreeSet<String>) -> bool {
+    pub(crate) fn should_retain_recursive(&self, index: &Index, visited: &mut FxHashSet<String>) -> bool {
         let datatype = index.find_effective_type_by_name(self.get_type_name());
         // is self retain? otherwise does the datatype contain a retain variable (nested)?
-        self.is_retain || datatype.is_some_and(|dt| dt.should_retain(index, already_visited))
+        self.is_retain || datatype.is_some_and(|dt| dt.should_retain(index, visited))
     }
 }
 

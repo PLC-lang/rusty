@@ -16,6 +16,7 @@ mod multifile_codegen_tests;
 mod oop_tests;
 mod parameters_tests;
 mod polymorphism;
+mod retain_tests;
 mod statement_codegen_test;
 mod string_tests;
 #[cfg(feature = "verify")]
