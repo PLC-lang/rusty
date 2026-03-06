@@ -46,7 +46,8 @@ impl AstVisitor for SymbolIndexer {
     fn visit_variable_block(&mut self, block: &plc_ast::ast::VariableBlock) {
         if block.kind == VariableBlockType::Global {
             // let the global var indexer handle the global variables
-            let mut indexer = VarGlobalIndexer::new(block.constant, block.linkage, &mut self.index);
+            let mut indexer =
+                VarGlobalIndexer::new(block.constant, block.retain, block.linkage, &mut self.index);
             for var in &block.variables {
                 indexer.visit_variable(var);
             }
