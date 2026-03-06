@@ -1298,5 +1298,63 @@ mod tests {
                 &StatementAnnotation::Property { name: "__get_foo".to_string() }
             )
         }
+
+        #[test]
+        fn inherited_property_through_child_interface_is_annotated() {
+            let source = r"
+            INTERFACE IA
+                PROPERTY value : DINT
+                    GET END_GET
+                    SET END_SET
+                END_PROPERTY
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD describe END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IB
+                VAR
+                    _val : DINT := 50;
+                END_VAR
+
+                PROPERTY value : DINT
+                    GET value := _val; END_GET
+                    SET _val := value; END_SET
+                END_PROPERTY
+
+                METHOD describe END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                    refA : IA;
+                    refB : IB;
+                END_VAR
+
+                refA := instance;
+                refA.value;
+
+                refB := instance;
+                refB.value;
+            END_FUNCTION
+            ";
+
+            let (unit, annotations) = super::lower_properties_to_pous(source);
+            let statements = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap().statements;
+
+            // refA.value — property on the declaring interface
+            assert_eq!(
+                annotations.get(&statements[1]).unwrap(),
+                &StatementAnnotation::Property { name: "__get_value".to_string() }
+            );
+
+            // refB.value — property inherited through child interface
+            assert_eq!(
+                annotations.get(&statements[3]).unwrap(),
+                &StatementAnnotation::Property { name: "__get_value".to_string() }
+            );
+        }
     }
 }
