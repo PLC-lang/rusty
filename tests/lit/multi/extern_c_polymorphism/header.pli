@@ -1,0 +1,11 @@
+{external}
+FUNCTION_BLOCK ExternalFb IMPLEMENTS IGreeter
+VAR
+    id : DINT;
+END_VAR
+    METHOD FB_INIT
+    END_METHOD
+
+    METHOD greet
+    END_METHOD
+END_FUNCTION_BLOCK
