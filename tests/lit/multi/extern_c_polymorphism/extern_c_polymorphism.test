@@ -1,0 +1,5 @@
+RUN: %COMPILE %S/main.st && %RUN | %CHECK %s
+CHECK: ExternalFb::greet (id=42)
+CHECK: LocalFb::greet (id=99)
+CHECK: ExternalFb::greet (id=42)
+CHECK: LocalFb::greet (id=99)

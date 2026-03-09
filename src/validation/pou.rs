@@ -295,7 +295,7 @@ pub fn visit_interface<T: AnnotationMap>(
 ) {
     let Identifier { name, location } = &interface.ident;
     let entry = context.index.find_interface(name).expect("must exist");
-    entry.get_extensions().iter().for_each(|declaration| {
+    entry.get_bases().iter().for_each(|declaration| {
         if context.index.find_interface(&declaration.name).is_none() {
             validator.push_diagnostic(
                 Diagnostic::new(format!("Interface `{}` does not exist", declaration.name))
