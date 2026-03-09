@@ -584,6 +584,7 @@ impl InterfaceIndexEntry {
             methods.extend(interface.get_declared_methods(index));
             let parents: Vec<_> =
                 interface.get_parent_interfaces(index).into_iter().filter_map(Result::ok).collect();
+            // Reverse so first-declared parent ends up on top of the DFS stack.
             stack.extend(parents.into_iter().rev());
         }
 

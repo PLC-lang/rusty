@@ -1188,10 +1188,6 @@ mod tests {
         insta::assert_debug_snapshot!(units[0].global_vars, @r#"
         [
             VariableBlock {
-                variables: [],
-                variable_block_type: Global,
-            },
-            VariableBlock {
                 variables: [
                     Variable {
                         name: "__vtable_FbA_instance",
