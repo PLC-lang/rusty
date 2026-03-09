@@ -264,10 +264,21 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         let rhs_type = self.annotations.get_type_or_void(right, self.index);
         let rhs_type_hint = self.annotations.get_hint_or_void(right, self.index);
 
-        // Interface-to-interface assignment (e.g. `refB := refA`): both sides are already
-        // `__FATPOINTER` structs, so this is a plain struct copy. No expansion needed.
+        // Interface-to-interface assignment (e.g. `refB := refA`)
         if lhs_type.is_interface() && rhs_type.is_interface() {
-            unimplemented!("not yet supported")
+            if lhs_type == rhs_type {
+                // Simple memcpy, codegen does this for us; to elaborate, the itable layout in this case is
+                // identical with only the data field point to potentially different instances but thats no
+                // problem and solved by a simple memcpy.
+                return;
+            }
+
+            // FIXME:
+            // Trickier, the `.data` field can be copied but the `.table` field needs to be up- or downcasted
+            // to match the lhs interface type. With the current architecture this requires some metadata
+            // about the POU type (name) stored in the rhs so that we can find the correct itable and assign
+            // it to the left side. That metadata table does not exist yet, however.
+            unimplemented!("upcasting of interfaces is not yet supported");
         }
 
         // Check if this is an interface assignment: LHS is interface-typed, RHS is a concrete
@@ -3160,6 +3171,46 @@ mod tests {
             insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             // Statements in main
             refB := refA
+            ");
+        }
+
+        #[test]
+        #[should_panic]
+        fn interface_to_interface_assignment_upcasting() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                END_INTERFACE
+
+                INTERFACE IC EXTENDS IB
+                END_INTERFACE
+
+                INTERFACE ID EXTENDS IB, IC
+                END_INTERFACE
+
+
+                FUNCTION main
+                    VAR
+                        refA: IA;
+                        refB: IB;
+                        refC: IC;
+                        refD: ID;
+
+                        refA2: IA;
+                    END_VAR
+
+                    refA := refA2; // same interface, no cast
+
+                    // Upcasts
+                    refA := refB;
+                    refA := refC;
+                    refA := refD;
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             ");
         }
 
