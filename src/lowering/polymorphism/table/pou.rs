@@ -57,14 +57,14 @@
 //! example we would generate the following two variables
 //! ```text
 //! VAR_GLOBAL
-//!     __vtable_instance_A: __vtable_A;
-//!     __vtable_instance_B: __vtable_B;
+//!     __vtable_A_instance: __vtable_A;
+//!     __vtable_B_instance: __vtable_B;
 //! END_VAR
 //! ```
 //! These global variables will later be assigned in the [`plc_lowering::initializer`] module.
 //!
 //! Note that the actual lowering of method calls to make use of these virtual tables will happen in the
-//! [`crate::lowering::polymorphism`] module.
+//! [`crate::lowering::polymorphism::dispatch`] module.
 
 use plc_ast::{
     ast::{
@@ -99,13 +99,10 @@ impl VirtualTableGenerator {
                 let instance = self.generate_vtable_instance(pou, &definition);
 
                 definitions.push(definition);
-                //When generating vtable instances, if we are generatig external constructors treat the vtable as internal
-                match pou.linkage {
-                    LinkageType::External if self.generate_external_constructors => {
-                        internal_instances.push(instance)
-                    }
-                    LinkageType::External | LinkageType::Include => external_instances.push(instance),
-                    _ => internal_instances.push(instance),
+                if super::is_internal_instance(pou.linkage, self.generate_external_constructors) {
+                    internal_instances.push(instance);
+                } else {
+                    external_instances.push(instance);
                 }
             }
 
@@ -310,7 +307,9 @@ mod tests {
     use itertools::Itertools;
     use plc_ast::{ast::DataType, provider::IdProvider};
 
-    use crate::{lowering::vtable::VirtualTableGenerator, test_utils::tests::index_with_ids};
+    use crate::{
+        lowering::polymorphism::table::pou::VirtualTableGenerator, test_utils::tests::index_with_ids,
+    };
 
     #[test]
     fn root_pou_has_vtable_member_field() {
