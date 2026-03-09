@@ -560,11 +560,11 @@ impl InterfaceIndexEntry {
 
     /// Returns a list of methods this interface inherited
     pub fn get_derived_methods<'idx>(&'idx self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
-        let stack = self.get_derived_interfaces(index).into_iter().filter_map(Result::ok).rev().collect();
+        let stack = self.get_parent_interfaces(index).into_iter().filter_map(Result::ok).rev().collect();
         Self::collect_methods_from(stack, index)
     }
 
-    /// Returns a list of methods defined in this interface, including inherited methods from derived interfaces
+    /// Returns a list of methods defined in this interface, including inherited methods from parent interfaces
     pub fn get_methods<'idx>(&'idx self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
         Self::collect_methods_from(vec![self], index)
     }
@@ -583,29 +583,39 @@ impl InterfaceIndexEntry {
             }
             methods.extend(interface.get_declared_methods(index));
             let parents: Vec<_> =
-                interface.get_derived_interfaces(index).into_iter().filter_map(Result::ok).collect();
+                interface.get_parent_interfaces(index).into_iter().filter_map(Result::ok).collect();
             stack.extend(parents.into_iter().rev());
         }
 
         methods
     }
 
+    /// Returns a list of interfaces this interface implements
+    pub fn get_extensions(&self) -> &[Identifier] {
+        &self.extensions
+    }
+
     /// Returns a list of unique method names in this interface either directly (declared) or
-    /// indirectly (derived), ordered so that ancestor methods appear before descendant methods.
+    /// indirectly (inherited), ordered so that ancestor methods appear before descendant methods.
+    /// The ordering follows the `EXTENDS` declaration order (e.g. for `ID EXTENDS IB, IC`,
+    /// methods from `IB`'s ancestor chain appear before `IC`'s).
     pub fn get_deduplicated_methods<'idx>(&'idx self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
-        // BFS to collect interfaces level by level (self first, then parents, then grandparents, ...)
+        // BFS to collect interfaces level by level (self first, then parents, then grandparents, ...).
+        // Children are enqueued in reverse declaration order so that the first-declared parent
+        // is dequeued first, preserving `EXTENDS` declaration order.
         let mut visited = FxHashSet::default();
         let mut queue = VecDeque::new();
         let mut levels = Vec::new();
 
-        queue.push_back(self as &'idx InterfaceIndexEntry);
+        queue.push_back(self);
         while let Some(interface) = queue.pop_front() {
             if !visited.insert(interface.get_name()) {
                 continue;
             }
             levels.push(interface);
             let parents: Vec<_> =
-                interface.get_derived_interfaces(index).into_iter().filter_map(Result::ok).collect();
+                interface.get_parent_interfaces(index).into_iter().filter_map(Result::ok).collect();
+            // Reverse so first-declared parent is dequeued first from the FIFO queue.
             queue.extend(parents.into_iter().rev());
         }
 
@@ -622,13 +632,14 @@ impl InterfaceIndexEntry {
         methods.into_values().collect()
     }
 
-    /// Returns a list of interfaces this interface implements
-    pub fn get_extensions(&self) -> &[Identifier] {
+    /// Returns the list of interfaces this interface directly extends (its parents/bases).
+    pub fn get_bases(&self) -> &[Identifier] {
         &self.extensions
     }
 
-    /// Returns a list of interfaces this interface inherited directly
-    pub fn get_derived_interfaces<'idx>(
+    /// Returns a list of interfaces this interface directly extends (its parents/bases),
+    /// resolved to their index entries. Returns `Err(Identifier)` for any unresolved name.
+    pub fn get_parent_interfaces<'idx>(
         &self,
         index: &'idx Index,
     ) -> Vec<Result<&'idx InterfaceIndexEntry, Identifier>> {
@@ -638,15 +649,15 @@ impl InterfaceIndexEntry {
             .collect()
     }
 
-    /// Returns a list of ALL existing interfaces this interface inherited directly or indirectly
-    pub fn get_derived_interfaces_recursive<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
+    /// Returns a list of ALL existing interfaces this interface extends directly or indirectly
+    pub fn get_parent_interfaces_recursive<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
         let mut seen: FxHashSet<&Identifier> = FxHashSet::default();
         let mut queue: VecDeque<&InterfaceIndexEntry> = VecDeque::new();
 
         queue.push_back(self);
         while let Some(interface) = queue.pop_front() {
             if seen.insert(&interface.ident) {
-                queue.extend(interface.get_derived_interfaces(index).into_iter().flatten());
+                queue.extend(interface.get_parent_interfaces(index).into_iter().flatten());
             }
         }
 

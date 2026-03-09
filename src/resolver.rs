@@ -766,7 +766,7 @@ impl InheritanceAnnotationConverter for PouIndexEntry {
         let interfaces = match kind {
             ast::DeclarationKind::Abstract => index
                 .find_interface(parent_name)
-                .map(|it| it.get_extensions().iter().map(|it| it.name.as_str()).collect()),
+                .map(|it| it.get_bases().iter().map(|it| it.name.as_str()).collect()),
             ast::DeclarationKind::Concrete => index.find_pou(parent_name).map(|it| it.get_interfaces()),
         }
         .unwrap_or_default();
@@ -2990,7 +2990,7 @@ impl ResolvingStrategy {
         // If the qualifier is an interface, walk its inheritance chain (extensions) to
         // find property methods declared on ancestor interfaces.
         if let Some(interface) = index.find_interface(qualifier) {
-            for ancestor in interface.get_derived_interfaces_recursive(index) {
+            for ancestor in interface.get_parent_interfaces_recursive(index) {
                 if index.find_method(ancestor.get_name(), &name).is_some() {
                     return Some(StatementAnnotation::Property { name });
                 }

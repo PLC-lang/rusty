@@ -264,13 +264,25 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         let rhs_type = self.annotations.get_type_or_void(right, self.index);
         let rhs_type_hint = self.annotations.get_hint_or_void(right, self.index);
 
-        // Interface-to-interface assignment (e.g. `refB := refA`): both sides are already
-        // `__FATPOINTER` structs, so this is a plain struct copy. No expansion needed.
+        // Interface-to-interface assignment (e.g. `refB := refA`)
         if lhs_type.is_interface() && rhs_type.is_interface() {
-            return;
+            if lhs_type == rhs_type {
+                // Simple memcpy, codegen does this for us; to elaborate, the itable layout in this case is
+                // identical with only the data field point to potentially different instances but thats no
+                // problem and solved by a simple memcpy.
+                return;
+            }
+
+            // FIXME:
+            // Trickier, the `.data` field can be copied but the `.table` field needs to be up- or downcasted
+            // to match the lhs interface type. With the current architecture this requires some metadata
+            // about the POU type (name) stored in the rhs so that we can find the correct itable and assign
+            // it to the left side. That metadata table does not exist yet, however.
+            unimplemented!("upcasting of interfaces is not yet supported");
         }
 
-        // Check if this is an interface assignment: LHS is interface-typed, RHS is a concrete POU.
+        // Check if this is an interface assignment: LHS is interface-typed, RHS is a concrete
+        // POU that will be treated as the lhs-interface type (type-hint).
         if !(lhs_type.is_interface() && rhs_type_hint.is_interface()) {
             // Not a valid polymorphic assignment
             return;
@@ -355,17 +367,17 @@ impl InterfaceDispatchLowerer<'_> {
     /// If so, generates a temporary fat pointer (alloca + field assignments) in `self.preamble`
     /// and replaces `arg` in-place with a reference to the temporary.
     fn maybe_wrap_argument(&mut self, arg: &mut AstNode) {
-        let arg_type = self.annotations.get_type_or_void(arg, self.index);
-        let hint_type = self.annotations.get_hint_or_void(arg, self.index);
+        let actual_type = self.annotations.get_type_or_void(arg, self.index);
+        let expected_type = self.annotations.get_hint_or_void(arg, self.index);
 
-        // Only wrap when the expected type is an interface but the actual value is not.
-        // If both are interfaces (e.g. passing an existing fat pointer), no wrapping needed.
-        if !hint_type.is_interface() || arg_type.is_interface() {
+        // Skip if the argument is already interface-typed (i.e. an existing fat pointer that needs no
+        // wrapping) or if the expected type is not an interface.
+        if actual_type.is_interface() || !expected_type.is_interface() {
             return;
         }
 
-        let interface_name = hint_type.get_name();
-        let pou_name = arg_type.get_name();
+        let interface_name = expected_type.get_name();
+        let pou_name = actual_type.get_name();
 
         // Generate a unique name for the temporary fat pointer.
         let fp_name = format!("__fatpointer_{}", self.fp_counter);
@@ -429,6 +441,7 @@ mod helper {
     ) {
         // Clone the base with fresh IDs before any mutation. We need the original for building
         // `.data^` (step 1) while step 2 will consume the in-tree base for `.table^`.
+        // The caller (`visit_call_statement`) already verified that operator has a base ref expression.
         let base = clone_with_new_ids(operator.get_base_ref_expr().unwrap(), ids);
 
         // Step 1: Prepend the data pointer as the implicit first argument.
@@ -3158,6 +3171,46 @@ mod tests {
             insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             // Statements in main
             refB := refA
+            ");
+        }
+
+        #[test]
+        #[should_panic]
+        fn interface_to_interface_assignment_upcasting() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                END_INTERFACE
+
+                INTERFACE IC EXTENDS IB
+                END_INTERFACE
+
+                INTERFACE ID EXTENDS IB, IC
+                END_INTERFACE
+
+
+                FUNCTION main
+                    VAR
+                        refA: IA;
+                        refB: IB;
+                        refC: IC;
+                        refD: ID;
+
+                        refA2: IA;
+                    END_VAR
+
+                    refA := refA2; // same interface, no cast
+
+                    // Upcasts
+                    refA := refB;
+                    refA := refC;
+                    refA := refD;
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             ");
         }
 
