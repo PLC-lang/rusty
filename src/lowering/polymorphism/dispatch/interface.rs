@@ -267,7 +267,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         // Interface-to-interface assignment (e.g. `refB := refA`): both sides are already
         // `__FATPOINTER` structs, so this is a plain struct copy. No expansion needed.
         if lhs_type.is_interface() && rhs_type.is_interface() {
-            return;
+            unimplemented!("not yet supported")
         }
 
         // Check if this is an interface assignment: LHS is interface-typed, RHS is a concrete
