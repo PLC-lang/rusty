@@ -1125,7 +1125,7 @@ fn validate_assignment<T: AnnotationMap>(
             qualified_name,
             argument_type,
             auto_deref,
-            ..
+            resulting_type,
         }) = context.annotations.get(left)
         {
             // ...constant variable
@@ -1185,11 +1185,13 @@ fn validate_assignment<T: AnnotationMap>(
                 );
             }
 
-            if call_is_pointer_to_void(context, right) {
+            if call_returns_void(context, right) {
                 validator.push_diagnostic(
-                    Diagnostic::new("Cannot assign VOID to type.")
-                        .with_error_code("E037")
-                        .with_location(location),
+                    Diagnostic::new(format!(
+                        "Invalid assignment: cannot assign 'VOID' to '{resulting_type}'"
+                    ))
+                    .with_error_code("E037")
+                    .with_location(location),
                 );
             }
         }
@@ -1408,7 +1410,7 @@ where
     false
 }
 
-fn call_is_pointer_to_void<T>(context: &ValidationContext<T>, right: &AstNode) -> bool
+fn call_returns_void<T>(context: &ValidationContext<T>, right: &AstNode) -> bool
 where
     T: AnnotationMap,
 {

@@ -1709,30 +1709,57 @@ fn assigning_void_call_result_to_a_pointer_must_result_in_validation_error() {
         VAR_INPUT
             x : DINT;
         END_VAR
+        METHOD iAlsoDontReturnAValue
+        VAR_INPUT
+            x : DINT;
+        END_VAR
+        END_METHOD
         END_FUNCTION_BLOCK
+
+        FUNCTION iDontReturnAValue
+        VAR_INPUT
+            x : DINT;
+        END_VAR
+        END_FUNCTION
 
         FUNCTION main : DINT
         VAR
             fb : fb_t;
-            y : STRING := 'hello';
+            x : STRING := 'hello';
+            y : STRING := 'there';
+            z : STRING := 'general';
         END_VAR
             fb := fb(1); // panics
-            y := fb(1); // panics
+            x := fb(1); // panics
+            y := fb.iAlsoDontReturnAValue(1); // panics
+            z := iDontReturnAValue(1); // panics
         END_FUNCTION
         ",
     );
 
     assert_snapshot!(diagnostics, @"
-    error[E037]: Cannot assign VOID to type.
-       ┌─ <internal>:13:13
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'fb_t'
+       ┌─ <internal>:26:13
        │
-    13 │             fb := fb(1); // panics
-       │             ^^^^^^^^^^^ Cannot assign VOID to type.
+    26 │             fb := fb(1); // panics
+       │             ^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'fb_t'
 
-    error[E037]: Cannot assign VOID to type.
-       ┌─ <internal>:14:13
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'STRING'
+       ┌─ <internal>:27:13
        │
-    14 │             y := fb(1); // panics
-       │             ^^^^^^^^^^ Cannot assign VOID to type.
+    27 │             x := fb(1); // panics
+       │             ^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'STRING'
+       ┌─ <internal>:28:13
+       │
+    28 │             y := fb.iAlsoDontReturnAValue(1); // panics
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'STRING'
+       ┌─ <internal>:29:13
+       │
+    29 │             z := iDontReturnAValue(1); // panics
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'STRING'
     ");
 }
