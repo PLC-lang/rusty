@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["PolymorphicCallLowerer"]};
+window.SIDEBAR_ITEMS = {"mod":["dispatch","table"],"struct":["PolymorphismLowerer"]};

@@ -766,7 +766,7 @@
 <a href=#766 id=766 data-nosnippet>766</a>        <span class="kw">let </span>interfaces = <span class="kw">match </span>kind {
 <a href=#767 id=767 data-nosnippet>767</a>            ast::DeclarationKind::Abstract =&gt; index
 <a href=#768 id=768 data-nosnippet>768</a>                .find_interface(parent_name)
-<a href=#769 id=769 data-nosnippet>769</a>                .map(|it| it.get_extensions().iter().map(|it| it.name.as_str()).collect()),
+<a href=#769 id=769 data-nosnippet>769</a>                .map(|it| it.get_bases().iter().map(|it| it.name.as_str()).collect()),
 <a href=#770 id=770 data-nosnippet>770</a>            ast::DeclarationKind::Concrete =&gt; index.find_pou(parent_name).map(|it| it.get_interfaces()),
 <a href=#771 id=771 data-nosnippet>771</a>        }
 <a href=#772 id=772 data-nosnippet>772</a>        .unwrap_or_default();
