@@ -11,13 +11,19 @@ git_tag_name = "v{{ version }}"
 name = "rusty"
 release = true
 version_group = "external"
+git_tag_enable = true
+git_release_enable = true
 
 [[package]]
 name = "plc_driver"
 release = true
 version_group = "external"
+git_tag_enable = false
+git_release_enable = false
 
 [[package]]
 name = "iec61131std"
 release = true
 version_group = "external"
+git_tag_enable = false
+git_release_enable = false
