@@ -20,7 +20,10 @@ use plc::{
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_lowering::{inheritance::InheritanceLowerer, initializer::Initializer};
+use plc_lowering::{
+    retain::RetainParticipant,
+    {inheritance::InheritanceLowerer, initializer::Initializer},
+};
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
@@ -305,5 +308,14 @@ impl PipelineParticipantMut for PolymorphismLowerer {
         // dispatch) into the compilation units' `user_types`. Re-indexing from the units ensures
         // these types are present in the index for the subsequent re-annotation.
         project.index(self.ids.clone()).annotate(self.ids.clone())
+    }
+}
+
+impl PipelineParticipantMut for RetainParticipant {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { mut project, index, .. } = indexed_project;
+        self.lower_retain(&mut project.units, index);
+        //Re-index
+        project.index(self.ids.clone())
     }
 }
