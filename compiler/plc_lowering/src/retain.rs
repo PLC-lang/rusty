@@ -116,10 +116,12 @@ impl AstVisitorMut for RetainLowerer {
             block.retain = false;
         }
         for variable in variables {
-            let variable_index = self
-                .index
-                .find_variable(self.context.container_name.as_deref(), &[variable.get_name()])
-                .expect("variable must exist in the index after indexing");
+            let Some(variable_index) =
+                self.index.find_variable(self.context.container_name.as_deref(), &[variable.get_name()])
+            else {
+                block.variables.push(variable);
+                continue;
+            };
 
             if !variable_index.should_retain(&self.index) {
                 block.variables.push(variable);
