@@ -501,35 +501,36 @@
 <a href=#501 id=501 data-nosnippet>501</a>                        variable_name: <span class="kw-2">&amp;</span>var.name,
 <a href=#502 id=502 data-nosnippet>502</a>                        variable_linkage: ArgumentType::ByVal(VariableType::Input), <span class="comment">// struct members act like VAR_INPUT in terms of visibility
 <a href=#503 id=503 data-nosnippet>503</a>                        </span>variable_type_name: member_type,
-<a href=#504 id=504 data-nosnippet>504</a>                        is_constant: <span class="bool-val">false</span>, <span class="comment">//struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+<a href=#504 id=504 data-nosnippet>504</a>                        is_constant: <span class="bool-val">false</span>, <span class="comment">//struct members are not constants (although they can be part of a struct that is in a constant block)
 <a href=#505 id=505 data-nosnippet>505</a>                        </span>is_var_external: <span class="bool-val">false</span>, <span class="comment">// see above
-<a href=#506 id=506 data-nosnippet>506</a>                        </span>binding,
-<a href=#507 id=507 data-nosnippet>507</a>                        varargs: <span class="prelude-val">None</span>,
-<a href=#508 id=508 data-nosnippet>508</a>                    },
-<a href=#509 id=509 data-nosnippet>509</a>                    init,
-<a href=#510 id=510 data-nosnippet>510</a>                    var.location.clone(),
-<a href=#511 id=511 data-nosnippet>511</a>                    count <span class="kw">as </span>u32,
-<a href=#512 id=512 data-nosnippet>512</a>                )
-<a href=#513 id=513 data-nosnippet>513</a>            })
-<a href=#514 id=514 data-nosnippet>514</a>            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-<a href=#515 id=515 data-nosnippet>515</a>
-<a href=#516 id=516 data-nosnippet>516</a>        <span class="kw">let </span>nature = source.get_type_nature();
-<a href=#517 id=517 data-nosnippet>517</a>        <span class="kw">let </span>information = DataTypeInformation::Struct { name: name.to_owned(), members, source };
-<a href=#518 id=518 data-nosnippet>518</a>
-<a href=#519 id=519 data-nosnippet>519</a>        <span class="self">self</span>.register_type(name, information, nature, linkage);
-<a href=#520 id=520 data-nosnippet>520</a>
-<a href=#521 id=521 data-nosnippet>521</a>        <span class="comment">//Generate an initializer for the struct
-<a href=#522 id=522 data-nosnippet>522</a>        </span><span class="kw">let </span>global_struct_name = <span class="kw">crate</span>::index::get_initializer_name(name);
-<a href=#523 id=523 data-nosnippet>523</a>        <span class="kw">let </span>variable = VariableIndexEntry::create_global(
-<a href=#524 id=524 data-nosnippet>524</a>            <span class="kw-2">&amp;</span>global_struct_name,
+<a href=#506 id=506 data-nosnippet>506</a>                        </span>is_retain: <span class="bool-val">false</span>, <span class="comment">// struct members cannot be retain (although they can be part of a struct that is in a retain block)
+<a href=#507 id=507 data-nosnippet>507</a>                        </span>binding,
+<a href=#508 id=508 data-nosnippet>508</a>                        varargs: <span class="prelude-val">None</span>,
+<a href=#509 id=509 data-nosnippet>509</a>                    },
+<a href=#510 id=510 data-nosnippet>510</a>                    init,
+<a href=#511 id=511 data-nosnippet>511</a>                    var.location.clone(),
+<a href=#512 id=512 data-nosnippet>512</a>                    count <span class="kw">as </span>u32,
+<a href=#513 id=513 data-nosnippet>513</a>                )
+<a href=#514 id=514 data-nosnippet>514</a>            })
+<a href=#515 id=515 data-nosnippet>515</a>            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+<a href=#516 id=516 data-nosnippet>516</a>
+<a href=#517 id=517 data-nosnippet>517</a>        <span class="kw">let </span>nature = source.get_type_nature();
+<a href=#518 id=518 data-nosnippet>518</a>        <span class="kw">let </span>information = DataTypeInformation::Struct { name: name.to_owned(), members, source };
+<a href=#519 id=519 data-nosnippet>519</a>
+<a href=#520 id=520 data-nosnippet>520</a>        <span class="self">self</span>.register_type(name, information, nature, linkage);
+<a href=#521 id=521 data-nosnippet>521</a>
+<a href=#522 id=522 data-nosnippet>522</a>        <span class="comment">//Generate an initializer for the struct
+<a href=#523 id=523 data-nosnippet>523</a>        </span><span class="kw">let </span>global_struct_name = <span class="kw">crate</span>::index::get_initializer_name(name);
+<a href=#524 id=524 data-nosnippet>524</a>        <span class="kw">let </span>variable = VariableIndexEntry::create_global(
 <a href=#525 id=525 data-nosnippet>525</a>            <span class="kw-2">&amp;</span>global_struct_name,
-<a href=#526 id=526 data-nosnippet>526</a>            name,
-<a href=#527 id=527 data-nosnippet>527</a>            <span class="self">self</span>.user_type.location.clone(),
-<a href=#528 id=528 data-nosnippet>528</a>        )
-<a href=#529 id=529 data-nosnippet>529</a>        .set_initial_value(<span class="self">self</span>.pending_initializer)
-<a href=#530 id=530 data-nosnippet>530</a>        .set_constant(<span class="bool-val">true</span>);
-<a href=#531 id=531 data-nosnippet>531</a>
-<a href=#532 id=532 data-nosnippet>532</a>        <span class="self">self</span>.index.register_global_initializer(<span class="kw-2">&amp;</span>global_struct_name, variable);
-<a href=#533 id=533 data-nosnippet>533</a>    }
-<a href=#534 id=534 data-nosnippet>534</a>}
+<a href=#526 id=526 data-nosnippet>526</a>            <span class="kw-2">&amp;</span>global_struct_name,
+<a href=#527 id=527 data-nosnippet>527</a>            name,
+<a href=#528 id=528 data-nosnippet>528</a>            <span class="self">self</span>.user_type.location.clone(),
+<a href=#529 id=529 data-nosnippet>529</a>        )
+<a href=#530 id=530 data-nosnippet>530</a>        .set_initial_value(<span class="self">self</span>.pending_initializer)
+<a href=#531 id=531 data-nosnippet>531</a>        .set_constant(<span class="bool-val">true</span>);
+<a href=#532 id=532 data-nosnippet>532</a>
+<a href=#533 id=533 data-nosnippet>533</a>        <span class="self">self</span>.index.register_global_initializer(<span class="kw-2">&amp;</span>global_struct_name, variable);
+<a href=#534 id=534 data-nosnippet>534</a>    }
+<a href=#535 id=535 data-nosnippet>535</a>}
 </code></pre></div></section></main></body></html>

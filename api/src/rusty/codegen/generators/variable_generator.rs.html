@@ -171,26 +171,30 @@
 <a href=#171 id=171 data-nosnippet>171</a>            global_ir_variable = global_ir_variable.make_constant();
 <a href=#172 id=172 data-nosnippet>172</a>        };
 <a href=#173 id=173 data-nosnippet>173</a>
-<a href=#174 id=174 data-nosnippet>174</a>        <span class="kw">let </span>global_name = <span class="kw">if </span>global_variable.get_name().ends_with(<span class="string">"instance"</span>) {
-<a href=#175 id=175 data-nosnippet>175</a>            global_variable.get_name()
-<a href=#176 id=176 data-nosnippet>176</a>        } <span class="kw">else </span>{
-<a href=#177 id=177 data-nosnippet>177</a>            global_variable.get_qualified_name()
-<a href=#178 id=178 data-nosnippet>178</a>        };
-<a href=#179 id=179 data-nosnippet>179</a>        <span class="kw">let </span>global_name = global_name.to_lowercase();
-<a href=#180 id=180 data-nosnippet>180</a>
-<a href=#181 id=181 data-nosnippet>181</a>        <span class="kw">if </span><span class="self">self</span>.online_change.is_enabled() {
-<a href=#182 id=182 data-nosnippet>182</a>            <span class="kw">let </span>section = SectionMangler::variable(
-<a href=#183 id=183 data-nosnippet>183</a>                global_name,
-<a href=#184 id=184 data-nosnippet>184</a>                section_names::mangle_type(
-<a href=#185 id=185 data-nosnippet>185</a>                    <span class="self">self</span>.global_index,
-<a href=#186 id=186 data-nosnippet>186</a>                    <span class="self">self</span>.global_index.get_effective_type_by_name(global_variable.get_type_name())<span class="question-mark">?</span>,
-<a href=#187 id=187 data-nosnippet>187</a>                )<span class="question-mark">?</span>,
-<a href=#188 id=188 data-nosnippet>188</a>            )
-<a href=#189 id=189 data-nosnippet>189</a>            .mangle();
-<a href=#190 id=190 data-nosnippet>190</a>            global_ir_variable.set_section(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>section));
-<a href=#191 id=191 data-nosnippet>191</a>        }
-<a href=#192 id=192 data-nosnippet>192</a>
-<a href=#193 id=193 data-nosnippet>193</a>        <span class="prelude-val">Ok</span>(global_ir_variable)
-<a href=#194 id=194 data-nosnippet>194</a>    }
-<a href=#195 id=195 data-nosnippet>195</a>}
+<a href=#174 id=174 data-nosnippet>174</a>        <span class="kw">if </span>global_variable.should_retain(<span class="self">self</span>.global_index) {
+<a href=#175 id=175 data-nosnippet>175</a>            global_ir_variable = global_ir_variable.make_retain();
+<a href=#176 id=176 data-nosnippet>176</a>        };
+<a href=#177 id=177 data-nosnippet>177</a>
+<a href=#178 id=178 data-nosnippet>178</a>        <span class="kw">let </span>global_name = <span class="kw">if </span>global_variable.get_name().ends_with(<span class="string">"instance"</span>) {
+<a href=#179 id=179 data-nosnippet>179</a>            global_variable.get_name()
+<a href=#180 id=180 data-nosnippet>180</a>        } <span class="kw">else </span>{
+<a href=#181 id=181 data-nosnippet>181</a>            global_variable.get_qualified_name()
+<a href=#182 id=182 data-nosnippet>182</a>        };
+<a href=#183 id=183 data-nosnippet>183</a>        <span class="kw">let </span>global_name = global_name.to_lowercase();
+<a href=#184 id=184 data-nosnippet>184</a>
+<a href=#185 id=185 data-nosnippet>185</a>        <span class="kw">if </span><span class="self">self</span>.online_change.is_enabled() {
+<a href=#186 id=186 data-nosnippet>186</a>            <span class="kw">let </span>section = SectionMangler::variable(
+<a href=#187 id=187 data-nosnippet>187</a>                global_name,
+<a href=#188 id=188 data-nosnippet>188</a>                section_names::mangle_type(
+<a href=#189 id=189 data-nosnippet>189</a>                    <span class="self">self</span>.global_index,
+<a href=#190 id=190 data-nosnippet>190</a>                    <span class="self">self</span>.global_index.get_effective_type_by_name(global_variable.get_type_name())<span class="question-mark">?</span>,
+<a href=#191 id=191 data-nosnippet>191</a>                )<span class="question-mark">?</span>,
+<a href=#192 id=192 data-nosnippet>192</a>            )
+<a href=#193 id=193 data-nosnippet>193</a>            .mangle();
+<a href=#194 id=194 data-nosnippet>194</a>            global_ir_variable.set_section(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>section));
+<a href=#195 id=195 data-nosnippet>195</a>        }
+<a href=#196 id=196 data-nosnippet>196</a>
+<a href=#197 id=197 data-nosnippet>197</a>        <span class="prelude-val">Ok</span>(global_ir_variable)
+<a href=#198 id=198 data-nosnippet>198</a>    }
+<a href=#199 id=199 data-nosnippet>199</a>}
 </code></pre></div></section></main></body></html>
