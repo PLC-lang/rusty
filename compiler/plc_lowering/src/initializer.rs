@@ -189,6 +189,11 @@ impl AstVisitor for Initializer {
         self.context.exit_pou();
     }
 
+    /// Property variable blocks belong to the lowered getter/setter method POUs, not to the
+    /// parent FB. Skip them here to avoid generating spurious `self.<local>` initializers in the
+    /// FB constructor.
+    fn visit_property(&mut self, _property: &plc_ast::ast::PropertyBlock) {}
+
     fn visit_variable_block(&mut self, block: &plc_ast::ast::VariableBlock) {
         if block.constant {
             return;
@@ -768,7 +773,7 @@ impl Initializer {
             self.index
                 .as_ref()
                 .and_then(|idx| idx.find_type(type_name))
-                .is_some_and(|dt| !dt.linkage.is_built_in())
+                .is_some_and(|dt| !dt.linkage.is_built_in() && !dt.is_interface())
         };
 
         if should_create_call {
@@ -828,7 +833,7 @@ impl Initializer {
 mod tests {
     use std::rc::Rc;
 
-    use plc::lowering::vtable::VirtualTableGenerator;
+    use plc::lowering::polymorphism::PolymorphismLowerer;
     use plc_ast::{ast::AstNode, visitor::AstVisitor};
     use plc_diagnostics::diagnostician::Diagnostician;
     use plc_driver::pipelines::{AnnotatedProject, BuildPipeline};
@@ -879,7 +884,7 @@ mod tests {
     fn parse_and_init_internal(sources: Vec<SourceCode>, generate_externals: bool) -> Initializer {
         let diagnostician = Diagnostician::buffered();
         let mut pipeline = BuildPipeline::from_sources("test.st", sources, diagnostician).unwrap();
-        pipeline.register_mut_participants(vec![Box::new(VirtualTableGenerator::new(
+        pipeline.register_mut_participants(vec![Box::new(PolymorphismLowerer::new(
             pipeline.context.provider(),
             generate_externals,
         ))]);
