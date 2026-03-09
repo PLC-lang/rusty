@@ -853,13 +853,17 @@ mod units_tests {
                         base: None,
                     },
                     parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "arr",
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "arr",
+                                        },
+                                    ),
+                                    base: None,
                                 },
-                            ),
-                            base: None,
+                            ],
                         },
                     ),
                 },
@@ -1360,13 +1364,17 @@ mod units_tests {
                         base: None,
                     },
                     parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "fb",
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "fb",
+                                        },
+                                    ),
+                                    base: None,
                                 },
-                            ),
-                            base: None,
+                            ],
                         },
                     ),
                 },
@@ -1854,13 +1862,17 @@ mod units_tests {
                         base: None,
                     },
                     parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo_inst",
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "foo_inst",
+                                        },
+                                    ),
+                                    base: None,
                                 },
-                            ),
-                            base: None,
+                            ],
                         },
                     ),
                 },
@@ -1874,13 +1886,17 @@ mod units_tests {
                         base: None,
                     },
                     parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo2_inst",
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "foo2_inst",
+                                        },
+                                    ),
+                                    base: None,
                                 },
-                            ),
-                            base: None,
+                            ],
                         },
                     ),
                 },

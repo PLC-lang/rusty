@@ -117,6 +117,14 @@ pub trait AstVisitor: Sized {
         node.walk(self)
     }
 
+    /// Called when visiting a list of statements (e.g. implementation bodies, control flow branches).
+    /// Override this to intercept statement-list processing.
+    fn visit_statement_list(&mut self, stmts: &[AstNode]) {
+        for node in stmts {
+            self.visit(node);
+        }
+    }
+
     /// Visits a `CompilationUnit` node.
     /// Make sure to call `walk` on the `CompilationUnit` node to visit its children.
     /// # Arguments
@@ -167,7 +175,10 @@ pub trait AstVisitor: Sized {
     }
 
     /// Visits a `Property`.
-    fn visit_property(&mut self, _property: &PropertyBlock) {}
+    /// Make sure to call `walk` on the `PropertyBlock` to visit its children.
+    fn visit_property(&mut self, property: &PropertyBlock) {
+        property.walk(self);
+    }
 
     /// Visits an enum element `AstNode` node.
     /// Make sure to call `walk` on the `AstNode` node to visit its children.
@@ -437,7 +448,7 @@ where
 {
     for b in blocks {
         visit_nodes!(visitor, &b.condition);
-        visit_all_nodes!(visitor, &b.body);
+        visitor.visit_statement_list(&b.body);
     }
 }
 
@@ -551,21 +562,21 @@ impl Walker for AstControlStatement {
         match self {
             AstControlStatement::If(stmt) => {
                 walk_conditional_blocks(visitor, &stmt.blocks);
-                visit_all_nodes!(visitor, &stmt.else_block);
+                visitor.visit_statement_list(&stmt.else_block);
             }
             AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
                 visit_nodes!(visitor, &stmt.condition);
-                visit_all_nodes!(visitor, &stmt.body);
+                visitor.visit_statement_list(&stmt.body);
             }
             AstControlStatement::ForLoop(stmt) => {
                 visit_nodes!(visitor, &stmt.counter, &stmt.start, &stmt.end);
                 visit_all_nodes!(visitor, &stmt.by_step);
-                visit_all_nodes!(visitor, &stmt.body);
+                visitor.visit_statement_list(&stmt.body);
             }
             AstControlStatement::Case(stmt) => {
                 visit_nodes!(visitor, &stmt.selector);
                 walk_conditional_blocks(visitor, &stmt.case_blocks);
-                visit_all_nodes!(visitor, &stmt.else_block);
+                visitor.visit_statement_list(&stmt.else_block);
             }
         }
     }
@@ -700,11 +711,32 @@ impl Walker for ConfigVariable {
 }
 
 impl Walker for Interface {
-    fn walk<V>(&self, _visitor: &mut V)
+    fn walk<V>(&self, visitor: &mut V)
     where
         V: AstVisitor,
     {
-        // do nothing
+        for method in &self.methods {
+            visitor.visit_pou(method);
+        }
+
+        for property in &self.properties {
+            visitor.visit_property(property);
+        }
+    }
+}
+
+impl Walker for PropertyBlock {
+    fn walk<V>(&self, visitor: &mut V)
+    where
+        V: AstVisitor,
+    {
+        visitor.visit_data_type_declaration(&self.datatype);
+        for implementation in &self.implementations {
+            for block in &implementation.variable_blocks {
+                visitor.visit_variable_block(block);
+            }
+            visitor.visit_statement_list(&implementation.body);
+        }
     }
 }
 
@@ -796,8 +828,6 @@ impl Walker for Implementation {
     where
         V: AstVisitor,
     {
-        for n in &self.statements {
-            visitor.visit(n);
-        }
+        visitor.visit_statement_list(&self.statements);
     }
 }
