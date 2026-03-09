@@ -1700,3 +1700,39 @@ fn assigning_adr_to_reference_to_var_must_result_in_validation_error() {
       │             ^^^^^^^^^^^^^^^^^^^ ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?
     ");
 }
+
+#[test]
+fn assigning_void_call_result_to_a_pointer_must_result_in_validation_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb_t
+        VAR_INPUT
+            x : DINT;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+        VAR
+            fb : fb_t;
+            y : STRING := 'hello';
+        END_VAR
+            fb := fb(1); // panics
+            y := fb(1); // panics
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E037]: Cannot assign VOID to type.
+       ┌─ <internal>:13:13
+       │
+    13 │             fb := fb(1); // panics
+       │             ^^^^^^^^^^^ Cannot assign VOID to type.
+
+    error[E037]: Cannot assign VOID to type.
+       ┌─ <internal>:14:13
+       │
+    14 │             y := fb(1); // panics
+       │             ^^^^^^^^^^ Cannot assign VOID to type.
+    ");
+}

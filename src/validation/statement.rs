@@ -1184,6 +1184,14 @@ fn validate_assignment<T: AnnotationMap>(
                         .with_location(location),
                 );
             }
+
+            if call_is_pointer_to_void(context, right) {
+                validator.push_diagnostic(
+                    Diagnostic::new("Cannot assign VOID to type.")
+                        .with_error_code("E037")
+                        .with_location(location),
+                );
+            }
         }
 
         // ...or if whatever we got is not assignable, output an error
@@ -1398,6 +1406,25 @@ where
     }
 
     false
+}
+
+fn call_is_pointer_to_void<T>(context: &ValidationContext<T>, right: &AstNode) -> bool
+where
+    T: AnnotationMap,
+{
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = right.get_stmt_peeled() else {
+        return false;
+    };
+
+    let Some(call_name) = context.annotations.get_call_name(operator.as_ref()) else {
+        return false;
+    };
+
+    let Some(pou) = context.index.find_pou(call_name) else {
+        return false;
+    };
+
+    pou.get_return_type().is_none()
 }
 
 pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
