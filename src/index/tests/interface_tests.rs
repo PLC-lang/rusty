@@ -74,6 +74,7 @@ fn interface_with_single_method() {
             ),
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: "INT",
             location_in_parent: 0,
             linkage: Internal,
@@ -95,6 +96,7 @@ fn interface_with_single_method() {
             ),
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: "INT",
             location_in_parent: 1,
             linkage: Internal,
@@ -116,6 +118,7 @@ fn interface_with_single_method() {
             ),
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: "INT",
             location_in_parent: 2,
             linkage: Internal,
@@ -231,7 +234,7 @@ fn extended_interfaces() {
 
     let (_, index) = index(source);
     let entry = index.find_interface("bar").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_parent_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -246,7 +249,7 @@ fn extended_interfaces() {
     "#);
 
     let entry = index.find_interface("qux").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_parent_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -294,7 +297,7 @@ fn nested_extended_interfaces() {
 
     let (_, index) = index(source);
     let entry = index.find_interface("bar").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_parent_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -309,7 +312,7 @@ fn nested_extended_interfaces() {
     "#);
 
     let entry = index.find_interface("baz").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_parent_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -334,7 +337,7 @@ fn nested_extended_interfaces() {
     "#);
 
     let entry = index.find_interface("qux").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_parent_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -371,7 +374,7 @@ fn deriving_from_undeclared_interface() {
 
     let (_, index) = index(source);
     let entry = index.find_interface("foo").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_parent_interfaces(&index), @r#"
     [
         Err(
             Identifier {
@@ -388,7 +391,7 @@ fn deriving_from_undeclared_interface() {
     "#);
 
     let entry = index.find_interface("baz").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_parent_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -525,7 +528,7 @@ fn find_all_derived_interfaces_directly_or_indirectly() {
 
     // We expect no failure, even though the relationship is cyclic
     let mut derived =
-        entry.get_derived_interfaces_recursive(&index).iter().map(|it| &it.ident.name).collect_vec();
+        entry.get_parent_interfaces_recursive(&index).iter().map(|it| &it.ident.name).collect_vec();
 
     derived.sort();
     assert_eq!(derived, vec!["a", "b", "c", "d", "e", "f", "g", "h"]);

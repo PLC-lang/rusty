@@ -189,6 +189,11 @@ impl AstVisitor for Initializer {
         self.context.exit_pou();
     }
 
+    /// Property variable blocks belong to the lowered getter/setter method POUs, not to the
+    /// parent FB. Skip them here to avoid generating spurious `self.<local>` initializers in the
+    /// FB constructor.
+    fn visit_property(&mut self, _property: &plc_ast::ast::PropertyBlock) {}
+
     fn visit_variable_block(&mut self, block: &plc_ast::ast::VariableBlock) {
         if block.constant {
             return;
@@ -477,11 +482,14 @@ impl InitLoweringPolicy {
     ///
     /// Resolution order:
     /// 1) Struct literals on struct-typed fields are decomposed.
-    /// 2) Reference-typed fields use `REF=` (unwrapping `REF(...)` if present).
-    /// 3) Otherwise use direct `:=` assignment.
+    /// 2) Alias-typed fields (e.g. hardware-mapped `AT %IX...`) use `REF=`.
+    /// 3) Reference-typed fields use `REF=` (unwrapping `REF(...)` if present).
+    /// 4) Otherwise use direct `:=` assignment.
     fn for_struct_field(variable: &Variable, initializer: &AstNode, index: &Index) -> Self {
         if is_struct_type(variable, index) && initializer.is_struct_literal_initializer() {
             InitLoweringPolicy::StructDecompose
+        } else if is_alias_type(variable, index) {
+            InitLoweringPolicy::RefAssign(Box::new(initializer.clone()))
         } else if is_reference_type(variable, index) {
             let ref_rhs = extract_ref_call_argument(initializer).unwrap_or(initializer).clone();
             InitLoweringPolicy::RefAssign(Box::new(ref_rhs))
@@ -505,6 +513,22 @@ fn is_reference_type(variable: &Variable, index: &Index) -> bool {
         .get_referenced_type()
         .and_then(|tn| index.find_effective_type_info(tn))
         .is_some_and(|ti| ti.is_reference_to())
+}
+
+fn is_alias_type(variable: &Variable, index: &Index) -> bool {
+    // Check inline definition first (before pre-processing resolves the type name)
+    if let DataTypeDeclaration::Definition { data_type, .. } = &variable.data_type_declaration {
+        if let DataType::PointerType { auto_deref: Some(AutoDerefType::Alias), .. } = data_type.as_ref() {
+            return true;
+        }
+    }
+
+    // Fall back to index lookup for pre-processed types
+    variable
+        .data_type_declaration
+        .get_referenced_type()
+        .and_then(|tn| index.find_effective_type_info(tn))
+        .is_some_and(|ti| ti.is_alias())
 }
 
 /// Checks if a variable is an alias or reference variable that needs ADR() wrapping
@@ -749,7 +773,7 @@ impl Initializer {
             self.index
                 .as_ref()
                 .and_then(|idx| idx.find_type(type_name))
-                .is_some_and(|dt| !dt.linkage.is_built_in())
+                .is_some_and(|dt| !dt.linkage.is_built_in() && !dt.is_interface())
         };
 
         if should_create_call {
@@ -809,7 +833,7 @@ impl Initializer {
 mod tests {
     use std::rc::Rc;
 
-    use plc::lowering::vtable::VirtualTableGenerator;
+    use plc::lowering::polymorphism::PolymorphismLowerer;
     use plc_ast::{ast::AstNode, visitor::AstVisitor};
     use plc_diagnostics::diagnostician::Diagnostician;
     use plc_driver::pipelines::{AnnotatedProject, BuildPipeline};
@@ -860,7 +884,7 @@ mod tests {
     fn parse_and_init_internal(sources: Vec<SourceCode>, generate_externals: bool) -> Initializer {
         let diagnostician = Diagnostician::buffered();
         let mut pipeline = BuildPipeline::from_sources("test.st", sources, diagnostician).unwrap();
-        pipeline.register_mut_participants(vec![Box::new(VirtualTableGenerator::new(
+        pipeline.register_mut_participants(vec![Box::new(PolymorphismLowerer::new(
             pipeline.context.provider(),
             generate_externals,
         ))]);
@@ -1798,5 +1822,39 @@ mod tests {
         self.x := 10
         self.FB_INIT()
         ");
+    }
+
+    #[test]
+    fn struct_member_with_hardware_address_initialized_in_constructor() {
+        let src = r#"
+        TYPE NodeB : STRUCT
+            c AT %IX1.2.3.4 : BOOL;
+        END_STRUCT
+        END_TYPE
+
+        TYPE NodeA : STRUCT
+            b : NodeB;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL
+            myNode : NodeA;
+        END_VAR
+        "#;
+
+        let initializer = parse_and_init(src);
+        // NodeB's constructor should initialize its hardware-mapped field with REF=
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("NodeB").unwrap()), @r"
+        intern:
+        __NodeB_c__ctor(self.c)
+        self.c REF= __PI_1_2_3_4
+        ");
+        // NodeA's constructor should call NodeB's constructor for its member
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("NodeA").unwrap()), @r"
+        intern:
+        NodeB__ctor(self.b)
+        ");
+        // Global constructor should call NodeA's constructor
+        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"NodeA__ctor(myNode)");
     }
 }
