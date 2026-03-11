@@ -197,46 +197,6 @@ impl AggregateTypeLowerer {
     fn exit_scope(&mut self) -> (Option<Vec<AstNode>>, Option<Vec<AstNode>>) {
         (self.pre_stmts.pop(), self.post_stmts.pop())
     }
-
-    fn is_output_assignment_and_type_cast_needed(&self, node: &AstNode) -> bool {
-        let Some((annotations, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
-            // This is called from a method where the existence of these has already been verified
-            unreachable!();
-        };
-
-        match &node.stmt {
-            AstStatement::ExpressionList(nodes) => {
-                nodes.iter().any(|node| self.is_output_assignment_and_type_cast_needed(node))
-            }
-            AstStatement::OutputAssignment(assignment) => {
-                // For output assignment in a call these types need to be swapped
-                // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
-                let type_lhs = annotations.get_type_or_void(&assignment.right, index);
-                let type_rhs = annotations.get_type_or_void(&assignment.left, index);
-
-                // If either type is void then this is an empty assignment and casting is not necessary
-                if type_lhs.is_void() || type_rhs.is_void() {
-                    return false;
-                }
-
-                let type_info_lhs = type_lhs.get_type_information();
-                let type_info_rhs = type_rhs.get_type_information();
-
-                let Ok(size_lhs) = type_info_lhs.get_size(index) else {
-                    return false;
-                };
-                let Ok(size_rhs) = type_info_rhs.get_size(index) else {
-                    return false;
-                };
-
-                size_lhs != size_rhs
-                    || (size_lhs == size_rhs
-                        && ((type_info_lhs.is_signed_int() && type_info_rhs.is_unsigned_int())
-                            || (type_info_lhs.is_int() && type_info_rhs.is_float())))
-            }
-            _ => false,
-        }
-    }
 }
 
 impl AstVisitorMut for AggregateTypeLowerer {
@@ -449,7 +409,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
             .parameters
             .as_ref()
             .iter()
-            .any(|param| self.is_output_assignment_and_type_cast_needed(param))
+            .any(|param| is_output_assignment_and_type_cast_needed(param, annotation.as_ref(), index))
             && (function_entry.is_function() || function_entry.is_method())
         {
             let mut pre_statements: Vec<AstNode> = Vec::new();
@@ -462,57 +422,53 @@ impl AstVisitorMut for AggregateTypeLowerer {
             stmt.parameters.as_ref().iter().for_each(|param| {
                 if let AstStatement::ExpressionList(list) = &param.stmt {
                     list.iter().for_each(|item| {
-                        if let AstStatement::OutputAssignment(output_assignment) = &item.stmt {
+                        if !is_output_assignment_and_type_cast_needed(item, annotation.as_ref(), index) {
+                            expressions.push(item.clone());
+                        } else if let AstStatement::OutputAssignment(output_assignment) = &item.stmt {
                             let left_type = annotation.get_type_or_void(&output_assignment.left, index);
-                            let right_type = annotation.get_type_or_void(&output_assignment.right, index);
 
-                            // If the either type is void (i.e. empty assignment) then we don't need to do this work
-                            if !right_type.is_void() && !left_type.is_void() {
-                                // 3. Generate a temporary variable of the type that the function is expecting and pass it by reference to the function
-                                let name = format!(
-                                    "__{}_{}{}",
-                                    &qualified_name,
-                                    output_assignment.left.get_flat_reference_name().unwrap_or_default(),
-                                    self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
-                                );
+                            // 3. Generate a temporary variable of the type that the function is expecting and pass it by reference to the function
+                            let name = format!(
+                                "__{}_{}{}",
+                                &qualified_name,
+                                output_assignment.left.get_flat_reference_name().unwrap_or_default(),
+                                self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+                            );
 
-                                let alloca = AstNode {
-                                    stmt: AstStatement::AllocationStatement(Allocation {
-                                        name: name.clone(),
-                                        reference_type: left_type.get_name().to_string(),
-                                    }),
-                                    id: self.id_provider.next_id(),
-                                    location: item.location.clone(),
-                                    metadata: None,
-                                };
-                                pre_statements.push(alloca);
+                            let alloca = AstNode {
+                                stmt: AstStatement::AllocationStatement(Allocation {
+                                    name: name.clone(),
+                                    reference_type: left_type.get_name().to_string(),
+                                }),
+                                id: self.id_provider.next_id(),
+                                location: item.location.clone(),
+                                metadata: None,
+                            };
+                            pre_statements.push(alloca);
 
-                                // 4. Replace variable in parameters with our new temporary variable that will be passed to the function
-                                expressions.push(AstFactory::create_output_assignment(
-                                    *output_assignment.left.clone(),
-                                    create_member_reference_by_name(
-                                        &name,
-                                        item.location.clone(),
-                                        self.id_provider.next_id(),
-                                        self.id_provider.next_id(),
-                                    ),
+                            // 4. Replace variable in parameters with our new temporary variable that will be passed to the function
+                            expressions.push(AstFactory::create_output_assignment(
+                                *output_assignment.left.clone(),
+                                create_member_reference_by_name(
+                                    &name,
+                                    item.location.clone(),
                                     self.id_provider.next_id(),
-                                ));
-
-                                // 6. After the call is complete, assign the temporary variable that was passed to the function back to the original variable
-                                post_statements.push(AstFactory::create_assignment(
-                                    *output_assignment.right.clone(),
-                                    create_member_reference_by_name(
-                                        &name,
-                                        item.location.clone(),
-                                        self.id_provider.next_id(),
-                                        self.id_provider.next_id(),
-                                    ),
                                     self.id_provider.next_id(),
-                                ));
-                            } else {
-                                expressions.push(item.clone());
-                            }
+                                ),
+                                self.id_provider.next_id(),
+                            ));
+
+                            // 6. After the call is complete, assign the temporary variable that was passed to the function back to the original variable
+                            post_statements.push(AstFactory::create_assignment(
+                                *output_assignment.right.clone(),
+                                create_member_reference_by_name(
+                                    &name,
+                                    item.location.clone(),
+                                    self.id_provider.next_id(),
+                                    self.id_provider.next_id(),
+                                ),
+                                self.id_provider.next_id(),
+                            ));
                         } else {
                             expressions.push(item.clone());
                         }
@@ -576,6 +532,45 @@ fn create_member_reference_by_name(
         None,
         reference_id,
     )
+}
+
+fn is_output_assignment_and_type_cast_needed(
+    node: &AstNode,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) -> bool {
+    match &node.stmt {
+        AstStatement::ExpressionList(nodes) => {
+            nodes.iter().any(|node| is_output_assignment_and_type_cast_needed(node, annotations, index))
+        }
+        AstStatement::OutputAssignment(assignment) => {
+            // For output assignment in a call these types need to be swapped
+            // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
+            let type_lhs = annotations.get_type_or_void(&assignment.right, index);
+            let type_rhs = annotations.get_type_or_void(&assignment.left, index);
+
+            // If either type is void then this is an empty assignment and casting is not necessary
+            if type_lhs.is_void() || type_rhs.is_void() {
+                return false;
+            }
+
+            let type_info_lhs = type_lhs.get_type_information();
+            let type_info_rhs = type_rhs.get_type_information();
+
+            let Ok(size_lhs) = type_info_lhs.get_size(index) else {
+                return false;
+            };
+            let Ok(size_rhs) = type_info_rhs.get_size(index) else {
+                return false;
+            };
+
+            size_lhs != size_rhs
+                || (size_lhs == size_rhs
+                    && ((type_info_lhs.is_signed_int() && type_info_rhs.is_unsigned_int())
+                        || (type_info_lhs.is_int() && type_info_rhs.is_float())))
+        }
+        _ => false,
+    }
 }
 
 #[cfg(test)]
