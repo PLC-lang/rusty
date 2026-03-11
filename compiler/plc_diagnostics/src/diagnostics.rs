@@ -290,6 +290,17 @@ impl Diagnostic {
             .with_location(location)
     }
 
+    pub fn invalid_polymorphic_assignment<T>(right_type: &str, left_type: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!(
+            "Invalid assignment: '{left_type}' and '{right_type}' are not related and cannot be used polymorphically"
+        ))
+        .with_error_code("E125")
+        .with_location(location)
+    }
+
     pub fn cannot_generate_initializer<T>(variable_name: &str, location: T) -> Diagnostic
     where
         T: Into<SourceLocation>,
