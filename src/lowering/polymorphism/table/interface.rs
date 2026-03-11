@@ -92,6 +92,10 @@ impl InterfaceTableGenerator {
     }
 
     /// Creates `__itable_<interface>` struct definitions for every interface declared in this unit.
+    ///
+    /// Each itable struct contains:
+    /// 1. `__upcast_<ancestor>` pointer fields for every ancestor interface (enabling O(1) upcasting)
+    /// 2. Function pointer fields for each method declared or inherited by the interface
     fn generate_itable_definitions(
         &mut self,
         index: &Index,
@@ -104,6 +108,17 @@ impl InterfaceTableGenerator {
             let location = SourceLocation::internal_in_unit(unit.file.get_name());
             let mut members = Vec::new();
 
+            // Add upcast pointer fields for each ancestor interface (excluding self).
+            // These enable O(1) interface-to-interface upcasting at runtime by embedding
+            // a typed pointer to the corresponding ancestor itable for the same POU.
+            let mut ancestors = helper::collect_ancestor_interfaces(index, interface);
+            ancestors.sort(); // deterministic field order
+            for ancestor_name in &ancestors {
+                let upcast_field = helper::create_upcast_pointer_field(ancestor_name, &location);
+                members.push(upcast_field);
+            }
+
+            // Add function pointer fields for each method (inherited + own).
             for method in interface.get_deduplicated_methods(index) {
                 let member = Variable {
                     name: method.get_call_name().to_string(),
@@ -204,7 +219,11 @@ impl InterfaceTableGenerator {
         (internal_instances, external_instances)
     }
 
-    /// Creates a single `__itable_<interface>_<pou>_instance := (...)` variable
+    /// Creates a single `__itable_<interface>_<pou>_instance := (...)` variable.
+    ///
+    /// The initializer populates:
+    /// 1. `__upcast_<ancestor>` fields pointing to the corresponding ancestor itable for this POU
+    /// 2. Method function pointer fields with `ADR(<ConcreteMethod>)`
     fn generate_single_itable_instance(
         &mut self,
         index: &Index,
@@ -216,6 +235,25 @@ impl InterfaceTableGenerator {
         let pou_name = pou.get_name();
 
         let mut assignments = Vec::new();
+
+        // Populate upcast pointer fields: __upcast_<ancestor> := ADR(__itable_<ancestor>_<pou>_instance)
+        let mut ancestors = helper::collect_ancestor_interfaces(index, interface);
+        ancestors.sort(); // must match field order in struct definition
+        for ancestor_name in &ancestors {
+            let field_name = helper::get_upcast_field_name(ancestor_name);
+            let left = AstFactory::create_member_reference(
+                AstFactory::create_identifier(&field_name, SourceLocation::internal(), self.ids.next_id()),
+                None,
+                self.ids.next_id(),
+            );
+
+            let ancestor_instance_name = helper::get_itable_instance_name(ancestor_name, pou_name);
+            let right = self.generate_adr_call(&ancestor_instance_name);
+            let assignment = AstFactory::create_assignment(left, right, self.ids.next_id());
+            assignments.push(assignment);
+        }
+
+        // Populate method function pointer fields.
         for method in interface.get_deduplicated_methods(index) {
             let method_call_name = method.get_call_name();
 
@@ -305,11 +343,11 @@ impl InterfaceTableGenerator {
 /// Internal helper functions for itable name generation, method deduplication, and interface
 /// obligation collection.
 pub mod helper {
-    use plc_ast::ast::{DataType, DataTypeDeclaration};
+    use plc_ast::ast::{DataType, DataTypeDeclaration, Variable};
     use plc_source::source_location::SourceLocation;
     use rustc_hash::FxHashSet;
 
-    use crate::index::{Index, PouIndexEntry};
+    use crate::index::{Index, InterfaceIndexEntry, PouIndexEntry};
 
     pub fn get_itable_name(interface_name: &str) -> String {
         format!("__itable_{interface_name}")
@@ -317,6 +355,50 @@ pub mod helper {
 
     pub fn get_itable_instance_name(interface_name: &str, pou_name: &str) -> String {
         format!("__itable_{interface_name}_{pou_name}_instance")
+    }
+
+    /// Returns the field name for an upcast pointer to an ancestor interface: `__upcast_<ancestor>`.
+    pub fn get_upcast_field_name(ancestor_interface_name: &str) -> String {
+        format!("__upcast_{ancestor_interface_name}")
+    }
+
+    /// Collects the names of all ancestor interfaces for the given interface (excluding self).
+    /// Used to generate `__upcast_<ancestor>` pointer fields in itable structs.
+    pub fn collect_ancestor_interfaces<'a>(
+        index: &'a Index,
+        interface: &'a InterfaceIndexEntry,
+    ) -> Vec<&'a str> {
+        interface
+            .get_parent_interfaces_recursive(index)
+            .into_iter()
+            .filter(|ancestor| ancestor.get_name() != interface.get_name())
+            .map(|ancestor| ancestor.get_name())
+            .collect()
+    }
+
+    /// Creates a `POINTER TO __itable_<ancestor>` struct field for upcast support.
+    pub fn create_upcast_pointer_field(ancestor_interface_name: &str, location: &SourceLocation) -> Variable {
+        let itable_type_name = get_itable_name(ancestor_interface_name);
+        Variable {
+            name: get_upcast_field_name(ancestor_interface_name),
+            data_type_declaration: DataTypeDeclaration::Definition {
+                data_type: Box::new(DataType::PointerType {
+                    name: None,
+                    referenced_type: Box::new(DataTypeDeclaration::Reference {
+                        referenced_type: itable_type_name,
+                        location: location.clone(),
+                    }),
+                    auto_deref: None,
+                    type_safe: false,
+                    is_function: false,
+                }),
+                location: location.clone(),
+                scope: None,
+            },
+            initializer: None,
+            address: None,
+            location: location.clone(),
+        }
     }
 
     pub fn create_function_pointer(referenced_type: String, location: SourceLocation) -> DataType {
@@ -454,12 +536,13 @@ mod tests {
             foo: __FPOINTER IA.foo;
         }
         __itable_IB {
+            __upcast_IA: POINTER TO __itable_IA;
             foo: __FPOINTER IA.foo;
             bar: __FPOINTER IB.bar;
         }
         // Globals
         __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
-        __itable_IB_FbA_instance: __itable_IB := (foo := ADR(FbA.foo), bar := ADR(FbA.bar))
+        __itable_IB_FbA_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbA_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar))
         ");
     }
 
@@ -594,14 +677,15 @@ mod tests {
             foo: __FPOINTER IA.foo;
         }
         __itable_IB {
+            __upcast_IA: POINTER TO __itable_IA;
             foo: __FPOINTER IA.foo;
             bar: __FPOINTER IB.bar;
         }
         // Globals
         __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
         __itable_IA_FbB_instance: __itable_IA := (foo := ADR(FbA.foo))
-        __itable_IB_FbA_instance: __itable_IB := (foo := ADR(FbA.foo), bar := ADR(FbA.bar))
-        __itable_IB_FbB_instance: __itable_IB := (foo := ADR(FbA.foo), bar := ADR(FbA.bar))
+        __itable_IB_FbA_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbA_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar))
+        __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar))
         ");
     }
 
@@ -689,6 +773,7 @@ mod tests {
             foo: __FPOINTER IA.foo;
         }
         __itable_IB {
+            __upcast_IA: POINTER TO __itable_IA;
             foo: __FPOINTER IA.foo;
             bar: __FPOINTER IB.bar;
         }
@@ -699,8 +784,8 @@ mod tests {
         __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
         __itable_IA_FbB_instance: __itable_IA := (foo := ADR(FbB.foo))
         __itable_IA_FbC_instance: __itable_IA := (foo := ADR(FbB.foo))
-        __itable_IB_FbB_instance: __itable_IB := (foo := ADR(FbB.foo), bar := ADR(FbB.bar))
-        __itable_IB_FbC_instance: __itable_IB := (foo := ADR(FbB.foo), bar := ADR(FbC.bar))
+        __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbB.foo), bar := ADR(FbB.bar))
+        __itable_IB_FbC_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbC_instance), foo := ADR(FbB.foo), bar := ADR(FbC.bar))
         __itable_IC_FbC_instance: __itable_IC := (baz := ADR(FbC.baz))
         ");
     }
@@ -797,14 +882,19 @@ mod tests {
             foo: __FPOINTER IA.foo;
         }
         __itable_IB {
+            __upcast_IA: POINTER TO __itable_IA;
             foo: __FPOINTER IA.foo;
             bar: __FPOINTER IB.bar;
         }
         __itable_IC {
+            __upcast_IA: POINTER TO __itable_IA;
             foo: __FPOINTER IA.foo;
             baz: __FPOINTER IC.baz;
         }
         __itable_ID {
+            __upcast_IA: POINTER TO __itable_IA;
+            __upcast_IB: POINTER TO __itable_IB;
+            __upcast_IC: POINTER TO __itable_IC;
             foo: __FPOINTER IA.foo;
             bar: __FPOINTER IB.bar;
             baz: __FPOINTER IC.baz;
@@ -815,11 +905,11 @@ mod tests {
         __itable_IA_FbB_instance: __itable_IA := (foo := ADR(FbB.foo))
         __itable_IA_FbC_instance: __itable_IA := (foo := ADR(FbC.foo))
         __itable_IA_FbD_instance: __itable_IA := (foo := ADR(FbD.foo))
-        __itable_IB_FbB_instance: __itable_IB := (foo := ADR(FbB.foo), bar := ADR(FbB.bar))
-        __itable_IB_FbD_instance: __itable_IB := (foo := ADR(FbD.foo), bar := ADR(FbD.bar))
-        __itable_IC_FbC_instance: __itable_IC := (foo := ADR(FbC.foo), baz := ADR(FbC.baz))
-        __itable_IC_FbD_instance: __itable_IC := (foo := ADR(FbD.foo), baz := ADR(FbD.baz))
-        __itable_ID_FbD_instance: __itable_ID := (foo := ADR(FbD.foo), bar := ADR(FbD.bar), baz := ADR(FbD.baz), qux := ADR(FbD.qux))
+        __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbB.foo), bar := ADR(FbB.bar))
+        __itable_IB_FbD_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbD_instance), foo := ADR(FbD.foo), bar := ADR(FbD.bar))
+        __itable_IC_FbC_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbC_instance), foo := ADR(FbC.foo), baz := ADR(FbC.baz))
+        __itable_IC_FbD_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbD_instance), foo := ADR(FbD.foo), baz := ADR(FbD.baz))
+        __itable_ID_FbD_instance: __itable_ID := (__upcast_IA := ADR(__itable_IA_FbD_instance), __upcast_IB := ADR(__itable_IB_FbD_instance), __upcast_IC := ADR(__itable_IC_FbD_instance), foo := ADR(FbD.foo), bar := ADR(FbD.bar), baz := ADR(FbD.baz), qux := ADR(FbD.qux))
         ");
     }
 
@@ -930,8 +1020,43 @@ mod tests {
 
                 writeln!(&mut structs_buf, "{name} {{").unwrap();
                 for var in variables {
-                    // The member's type is a reference to a named pointer type (e.g. "____itable_IA_foo").
-                    // Look it up in the index to get the inner referenced type.
+                    if var.name.starts_with("__upcast_") {
+                        // Upcast pointer field: extract the target itable type name.
+                        // After the pre-processor, inline pointer types get extracted into named
+                        // types. We first try to get the inner pointer type from the inline
+                        // definition, then fall back to resolving through the index.
+                        let target =
+                            if let plc_ast::ast::DataTypeDeclaration::Definition { data_type, .. } =
+                                &var.data_type_declaration
+                            {
+                                // Still inline definition (before pre-processing)
+                                if let plc_ast::ast::DataType::PointerType { referenced_type, .. } =
+                                    data_type.as_ref()
+                                {
+                                    referenced_type.get_referenced_type().unwrap_or("???").to_string()
+                                } else {
+                                    "???".to_string()
+                                }
+                            } else {
+                                // After pre-processing: the type has been extracted into a named
+                                // reference. Resolve through the index to find the inner pointer target.
+                                let ref_name =
+                                    var.data_type_declaration.get_referenced_type().unwrap_or_default();
+                                index
+                                    .find_type(ref_name)
+                                    .and_then(|dt| match &dt.information {
+                                        DataTypeInformation::Pointer { inner_type_name, .. } => {
+                                            Some(inner_type_name.clone())
+                                        }
+                                        _ => None,
+                                    })
+                                    .unwrap_or_else(|| "???".to_string())
+                            };
+                        writeln!(&mut structs_buf, "    {}: POINTER TO {target};", var.name).unwrap();
+                        continue;
+                    }
+
+                    // Function pointer field: resolve via the index to get the inner referenced type.
                     let ref_name = var.data_type_declaration.get_referenced_type().unwrap_or_default();
                     let resolved = index.find_type(ref_name).and_then(|dt| match &dt.information {
                         DataTypeInformation::Pointer { inner_type_name, is_function: true, .. } => {
