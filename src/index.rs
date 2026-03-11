@@ -75,6 +75,8 @@ pub struct VariableIndexEntry {
     is_constant: bool,
     // true if this variable is in a 'VAR_EXTERNAL' block
     is_var_external: bool,
+    /// Returns true if the variable is in a `RETAIN` block
+    is_retain: bool,
     /// the variable's datatype
     pub data_type_name: String,
     /// the index of the member-variable in it's container (e.g. struct). defautls to 0 (Single variables)
@@ -114,6 +116,7 @@ impl VariableIndexEntry {
             argument_type,
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent,
             linkage: LinkageType::Internal,
@@ -136,6 +139,7 @@ impl VariableIndexEntry {
             argument_type: ArgumentType::ByVal(VariableType::Global),
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: data_type_name.to_string(),
             location_in_parent: 0,
             linkage: LinkageType::Internal,
@@ -172,6 +176,11 @@ impl VariableIndexEntry {
 
     pub fn set_var_external(mut self, var_external: bool) -> Self {
         self.is_var_external = var_external;
+        self
+    }
+
+    pub fn set_retain(mut self, is_retain: bool) -> Self {
+        self.is_retain = is_retain;
         self
     }
 
@@ -290,6 +299,16 @@ impl VariableIndexEntry {
     pub fn get_qualifier(&self) -> Option<&str> {
         self.qualified_name.rsplit_once('.').map(|(x, _)| x)
     }
+
+    pub fn should_retain(&self, index: &Index) -> bool {
+        self.should_retain_recursive(index, &mut FxHashSet::default())
+    }
+
+    pub(crate) fn should_retain_recursive(&self, index: &Index, visited: &mut FxHashSet<String>) -> bool {
+        let datatype = index.find_effective_type_by_name(self.get_type_name());
+        // is self retain? otherwise does the datatype contain a retain variable (nested)?
+        self.is_retain || datatype.is_some_and(|dt| dt.should_retain(index, visited))
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
@@ -340,6 +359,7 @@ pub struct MemberInfo<'b> {
     binding: Option<HardwareBinding>,
     is_constant: bool,
     is_var_external: bool,
+    is_retain: bool,
     varargs: Option<VarArgs>,
 }
 
@@ -560,21 +580,82 @@ impl InterfaceIndexEntry {
 
     /// Returns a list of methods this interface inherited
     pub fn get_derived_methods<'idx>(&'idx self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
-        self.get_derived_methods_recursive(index, &mut FxHashSet::default())
+        let stack = self.get_parent_interfaces(index).into_iter().filter_map(Result::ok).rev().collect();
+        Self::collect_methods_from(stack, index)
     }
 
-    /// Returns a list of methods defined in this interface, including inherited methods from derived interfaces
+    /// Returns a list of methods defined in this interface, including inherited methods from parent interfaces
     pub fn get_methods<'idx>(&'idx self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
-        self.get_methods_recursive(index, &mut FxHashSet::default())
+        Self::collect_methods_from(vec![self], index)
     }
 
-    /// Returns a list of interfaces this interface implements
-    pub fn get_extensions(&self) -> Vec<&Identifier> {
-        self.extensions.iter().collect()
+    /// Collects declared methods from each interface reachable via a DFS from the given starting entries.
+    fn collect_methods_from<'idx>(
+        mut stack: Vec<&'idx InterfaceIndexEntry>,
+        index: &'idx Index,
+    ) -> Vec<&'idx PouIndexEntry> {
+        let mut seen = FxHashSet::default();
+        let mut methods = Vec::new();
+
+        while let Some(interface) = stack.pop() {
+            if !seen.insert(interface.get_name()) {
+                continue;
+            }
+            methods.extend(interface.get_declared_methods(index));
+            let parents: Vec<_> =
+                interface.get_parent_interfaces(index).into_iter().filter_map(Result::ok).collect();
+            // Reverse so first-declared parent ends up on top of the DFS stack.
+            stack.extend(parents.into_iter().rev());
+        }
+
+        methods
     }
 
-    /// Returns a list of interfaces this interface inherited directly
-    pub fn get_derived_interfaces<'idx>(
+    /// Returns a list of unique method names in this interface either directly (declared) or
+    /// indirectly (inherited), ordered so that ancestor methods appear before descendant methods.
+    /// The ordering follows the `EXTENDS` declaration order (e.g. for `ID EXTENDS IB, IC`,
+    /// methods from `IB`'s ancestor chain appear before `IC`'s).
+    pub fn get_deduplicated_methods<'idx>(&'idx self, index: &'idx Index) -> Vec<&'idx PouIndexEntry> {
+        // BFS to collect interfaces level by level (self first, then parents, then grandparents, ...).
+        // Children are enqueued in reverse declaration order so that the first-declared parent
+        // is dequeued first, preserving `EXTENDS` declaration order.
+        let mut visited = FxHashSet::default();
+        let mut queue = VecDeque::new();
+        let mut levels = Vec::new();
+
+        queue.push_back(self);
+        while let Some(interface) = queue.pop_front() {
+            if !visited.insert(interface.get_name()) {
+                continue;
+            }
+            levels.push(interface);
+            let parents: Vec<_> =
+                interface.get_parent_interfaces(index).into_iter().filter_map(Result::ok).collect();
+            // Reverse so first-declared parent is dequeued first from the FIFO queue.
+            queue.extend(parents.into_iter().rev());
+        }
+
+        // Process in reverse (ancestors first) so the deepest ancestor's methods get the
+        // earliest slots; `or_insert` keeps the original declaration when a descendant
+        // re-declares the same method name.
+        let mut methods = FxIndexMap::default();
+        for interface in levels.into_iter().rev() {
+            for method in interface.get_declared_methods(index) {
+                methods.entry(method.get_call_name()).or_insert(method);
+            }
+        }
+
+        methods.into_values().collect()
+    }
+
+    /// Returns the list of interfaces this interface directly extends (its parents/bases).
+    pub fn get_bases(&self) -> &[Identifier] {
+        &self.extensions
+    }
+
+    /// Returns a list of interfaces this interface directly extends (its parents/bases),
+    /// resolved to their index entries. Returns `Err(Identifier)` for any unresolved name.
+    pub fn get_parent_interfaces<'idx>(
         &self,
         index: &'idx Index,
     ) -> Vec<Result<&'idx InterfaceIndexEntry, Identifier>> {
@@ -584,49 +665,19 @@ impl InterfaceIndexEntry {
             .collect()
     }
 
-    /// Returns a list of ALL existing interfaces this interface inherited directly or indirectly
-    pub fn get_derived_interfaces_recursive<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
+    /// Returns a list of ALL existing interfaces this interface extends directly or indirectly
+    pub fn get_parent_interfaces_recursive<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
         let mut seen: FxHashSet<&Identifier> = FxHashSet::default();
         let mut queue: VecDeque<&InterfaceIndexEntry> = VecDeque::new();
 
         queue.push_back(self);
         while let Some(interface) = queue.pop_front() {
             if seen.insert(&interface.ident) {
-                queue.extend(interface.get_derived_interfaces(index).into_iter().flatten());
+                queue.extend(interface.get_parent_interfaces(index).into_iter().flatten());
             }
         }
 
         seen.into_iter().filter_map(|ident| index.find_interface(&ident.name)).collect()
-    }
-
-    fn get_methods_recursive<'idx>(
-        &'idx self,
-        index: &'idx Index,
-        seen: &mut FxHashSet<&'idx str>,
-    ) -> Vec<&'idx PouIndexEntry> {
-        seen.insert(self.get_name());
-        self.get_declared_methods(index)
-            .into_iter()
-            .chain(self.get_derived_methods_recursive(index, seen))
-            .collect_vec()
-    }
-
-    fn get_derived_methods_recursive<'idx>(
-        &'idx self,
-        index: &'idx Index,
-        seen: &mut FxHashSet<&'idx str>,
-    ) -> Vec<&'idx PouIndexEntry> {
-        self.get_derived_interfaces(index)
-            .iter()
-            .filter_map(|it| it.as_ref().ok())
-            .flat_map(|it| {
-                if !seen.contains(it.get_name()) {
-                    it.get_methods_recursive(index, seen)
-                } else {
-                    vec![]
-                }
-            })
-            .collect()
     }
 }
 
@@ -2051,6 +2102,7 @@ impl Index {
         .set_hardware_binding(member_info.binding)
         .set_varargs(member_info.varargs)
         .set_var_external(member_info.is_var_external)
+        .set_retain(member_info.is_retain)
     }
 
     pub fn register_enum_variant(

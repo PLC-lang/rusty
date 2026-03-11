@@ -1,13 +1,16 @@
 use global_var_indexer::VarGlobalIndexer;
 use implementation_indexer::ImplementationIndexer;
 use plc_ast::{
-    ast::{CompilationUnit, Implementation, Interface, PropertyBlock, VariableBlockType},
+    ast::{CompilationUnit, Implementation, Interface, LinkageType, PropertyBlock, VariableBlockType},
     visitor::{AstVisitor, Walker},
 };
 use pou_indexer::PouIndexer;
 use user_type_indexer::UserTypeIndexer;
 
-use super::{Index, InterfaceIndexEntry};
+use plc_ast::ast::TypeNature;
+
+use super::{ImplementationType, Index, InterfaceIndexEntry};
+use crate::typesystem::{DataType, DataTypeInformation};
 
 mod global_var_indexer;
 mod implementation_indexer;
@@ -46,7 +49,8 @@ impl AstVisitor for SymbolIndexer {
     fn visit_variable_block(&mut self, block: &plc_ast::ast::VariableBlock) {
         if block.kind == VariableBlockType::Global {
             // let the global var indexer handle the global variables
-            let mut indexer = VarGlobalIndexer::new(block.constant, block.linkage, &mut self.index);
+            let mut indexer =
+                VarGlobalIndexer::new(block.constant, block.retain, block.linkage, &mut self.index);
             for var in &block.variables {
                 indexer.visit_variable(var);
             }
@@ -80,9 +84,31 @@ impl AstVisitor for SymbolIndexer {
     fn visit_interface(&mut self, interface: &Interface) {
         for method in &interface.methods {
             self.visit_pou(method);
+
+            // Register an implementation entry for each interface method so that codegen
+            // can look up the function signature when generating indirect (itable) calls.
+            // Interface methods have no body, but their LLVM function stubs are needed as
+            // type templates for `build_indirect_call`.
+            self.index.register_implementation(
+                &method.name,
+                &method.name,
+                Some(&interface.ident.name.to_string()),
+                ImplementationType::Method,
+                false,
+                method.location.clone(),
+            );
         }
 
         self.index.interfaces.insert(interface.ident.name.to_owned(), InterfaceIndexEntry::from(interface));
+
+        self.index.register_type(DataType {
+            name: interface.ident.name.clone(),
+            initial_value: None,
+            information: DataTypeInformation::Interface { name: interface.ident.name.clone() },
+            nature: TypeNature::Any,
+            location: interface.ident.location.clone(),
+            linkage: LinkageType::Internal,
+        });
     }
 
     fn visit_property(&mut self, property: &PropertyBlock) {

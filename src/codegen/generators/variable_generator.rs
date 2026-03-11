@@ -171,6 +171,10 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             global_ir_variable = global_ir_variable.make_constant();
         };
 
+        if global_variable.should_retain(self.global_index) {
+            global_ir_variable = global_ir_variable.make_retain();
+        };
+
         let global_name = if global_variable.get_name().ends_with("instance") {
             global_variable.get_name()
         } else {

@@ -17,6 +17,7 @@ DataType {
                 ),
                 is_constant: false,
                 is_var_external: false,
+                is_retain: false,
                 data_type_name: "__auto_pointer_to___foo_return",
                 location_in_parent: 0,
                 linkage: Internal,
