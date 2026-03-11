@@ -18,4 +18,5 @@ mod statement_validation_tests;
 mod super_keyword_validation_tests;
 mod this_keyword_validation_tests;
 mod variable_length_array_test;
+mod polymorphism_validation_tests;
 mod variable_validation_tests;
