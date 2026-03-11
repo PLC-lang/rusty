@@ -23,8 +23,9 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
     retain::RetainParticipant,
     {
-    control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, initializer::Initializer},
-,
+        control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
+        initializer::Initializer,
+    },
 };
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;

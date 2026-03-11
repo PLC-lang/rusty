@@ -42,7 +42,10 @@ use plc_header_generator::{
     GenerateHeaderOptions,
 };
 use plc_index::GlobalContext;
-use plc_lowering::{{control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, retain::RetainParticipant}};
+use plc_lowering::{
+    control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
+    retain::RetainParticipant,
+};
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
