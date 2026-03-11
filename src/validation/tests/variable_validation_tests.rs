@@ -1491,11 +1491,5 @@ fn function_output_with_mismatched_type_assignment_must_produce_a_friendly_error
        │
     20 │                 result => i1
        │                 ^^^^^^ Implicit downcast from 'REAL' to 'INT'.
-
-    error[E125]: Assignment from 'REAL' to 'INT' will result in truncation.
-       ┌─ <internal>:20:17
-       │
-    20 │                 result => i1
-       │                 ^^^^^^^^^^^^ Assignment from 'REAL' to 'INT' will result in truncation.
     ");
 }

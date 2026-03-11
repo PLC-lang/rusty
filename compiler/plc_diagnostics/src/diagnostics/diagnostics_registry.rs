@@ -226,7 +226,6 @@ lazy_static! {
         E122,   Error,      include_str!("./error_codes/E122.md"),  // Invalid enum base type
         E123,   Error,      include_str!("./error_codes/E123.md"),  // Division by zero
         E124,   Error,      include_str!("./error_codes/E124.md"),  // Invalid escape sequence in string literal
-        E125,   Error,      include_str!("./error_codes/E125.md"),  // Assignment will result in truncation
     );
 }
 
