@@ -525,7 +525,7 @@ fn find_all_derived_interfaces_directly_or_indirectly() {
 
     // We expect no failure, even though the relationship is cyclic
     let mut derived =
-        entry.get_parent_interfaces_recursive(&index).iter().map(|it| &it.ident.name).collect_vec();
+        entry.get_interface_hierarchy(&index).iter().map(|it| &it.ident.name).collect_vec();
 
     derived.sort();
     assert_eq!(derived, vec!["a", "b", "c", "d", "e", "f", "g", "h"]);

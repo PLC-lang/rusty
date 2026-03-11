@@ -591,10 +591,6 @@ impl InterfaceIndexEntry {
         methods
     }
 
-    /// Returns a list of interfaces this interface implements
-    pub fn get_extensions(&self) -> &[Identifier] {
-        &self.extensions
-    }
 
     /// Returns a list of unique method names in this interface either directly (declared) or
     /// indirectly (inherited), ordered so that ancestor methods appear before descendant methods.
@@ -650,8 +646,9 @@ impl InterfaceIndexEntry {
             .collect()
     }
 
-    /// Returns a list of ALL existing interfaces this interface extends directly or indirectly
-    pub fn get_parent_interfaces_recursive<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
+    /// Returns a list of ALL interfaces in this interface's hierarchy, **including `self`**,
+    /// as well as all interfaces it extends directly or indirectly.
+    pub fn get_interface_hierarchy<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
         let mut seen: FxHashSet<&Identifier> = FxHashSet::default();
         let mut queue: VecDeque<&InterfaceIndexEntry> = VecDeque::new();
 

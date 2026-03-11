@@ -2990,7 +2990,11 @@ impl ResolvingStrategy {
         // If the qualifier is an interface, walk its inheritance chain (extensions) to
         // find property methods declared on ancestor interfaces.
         if let Some(interface) = index.find_interface(qualifier) {
-            for ancestor in interface.get_parent_interfaces_recursive(index) {
+            for ancestor in interface.get_interface_hierarchy(index) {
+                // Skip self — already checked above via `find_method(qualifier, &name)`.
+                if ancestor.get_name() == qualifier {
+                    continue;
+                }
                 if index.find_method(ancestor.get_name(), &name).is_some() {
                     return Some(StatementAnnotation::Property { name });
                 }

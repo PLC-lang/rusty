@@ -4,7 +4,7 @@
 // through a pointer-to-base should dispatch to the overridden getter via the vtable.
 
 FUNCTION_BLOCK A
-    VAR_INPUT
+    VAR
         _val : DINT := 10;
     END_VAR
 
@@ -63,6 +63,15 @@ FUNCTION setViaPtr
     refInstance^.setValue(x);
 END_FUNCTION
 
+FUNCTION setDirectViaPtr
+    VAR_INPUT
+        refInstance : POINTER TO A;
+        x : DINT;
+    END_VAR
+
+    refInstance^.value := x;
+END_FUNCTION
+
 FUNCTION main
     VAR
         instanceA : A;
@@ -91,4 +100,14 @@ FUNCTION main
     printf('value=%d$N', instanceA.value);  // CHECK-NEXT: value=10
     printf('value=%d$N', instanceB.value);  // CHECK-NEXT: value=1042
     printf('value=%d$N', instanceC.value);  // CHECK-NEXT: value=2099
+
+    // Direct property setter through pointer (not via method)
+    setDirectViaPtr(ADR(instanceA), 77);
+    printViaPtr(ADR(instanceA));            // CHECK-NEXT: value=77
+
+    setDirectViaPtr(ADR(instanceB), 55);
+    printViaPtr(ADR(instanceB));            // CHECK-NEXT: value=1055
+
+    setDirectViaPtr(ADR(instanceC), 33);
+    printViaPtr(ADR(instanceC));            // CHECK-NEXT: value=2033
 END_FUNCTION
