@@ -124,6 +124,7 @@ use plc_ast::{
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
@@ -131,6 +132,8 @@ use crate::{
     resolver::{AnnotationMap, AnnotationMapImpl},
     typesystem::{DataType, VOID_INTERNAL_NAME},
 };
+
+use super::validation;
 
 const FATPOINTER_TYPE_NAME: &str = "__FATPOINTER";
 const FATPOINTER_DATA_FIELD_NAME: &str = "data";
@@ -147,6 +150,11 @@ pub struct InterfaceDispatchLowerer<'a> {
 
     /// Tracks call-argument nesting depth, if any.
     in_call_args: usize,
+
+    /// Diagnostics collected during traversal. Validation checks that must run during lowering
+    /// (before interface types are rewritten) push errors here instead of into the normal
+    /// validation pipeline.
+    diagnostics: Vec<Diagnostic>,
 
     /// Statements to insert *before* the current statement in the drain loop. Cleared at the
     /// start of each iteration. Used when a call argument needs wrapping: the temporary fat
@@ -193,6 +201,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             annotations,
             needs_fatpointer: false,
             in_call_args: 0,
+            diagnostics: Vec::new(),
             preamble: Vec::new(),
             replacement: None,
             fp_counter: 0,
@@ -200,7 +209,8 @@ impl<'a> InterfaceDispatchLowerer<'a> {
     }
 
     /// Entry point into the interface dispatch lowering pass.
-    pub fn lower(&mut self, units: &mut [CompilationUnit]) {
+    /// Returns any diagnostics produced by interface validation checks.
+    pub fn lower(&mut self, units: &mut [CompilationUnit]) -> Vec<Diagnostic> {
         for unit in units.iter_mut() {
             self.visit_compilation_unit(unit);
         }
@@ -212,6 +222,8 @@ impl<'a> InterfaceDispatchLowerer<'a> {
                 unit.user_types.push(helper::create_fat_pointer_struct());
             }
         }
+
+        std::mem::take(&mut self.diagnostics)
     }
 }
 
@@ -293,10 +305,26 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
                 return;
             }
 
-            // Upcast: copy .data directly and read the target itable pointer through __upcast_*.
             let rhs_interface_name = rhs_type.get_name();
             let lhs_interface_name = lhs_type.get_name();
-            let data_copy = helper::create_data_copy(&mut self.ids, left, right);
+
+            if let Some(diagnostic) = validation::validate_interface_assignment(
+                self.index,
+                rhs_interface_name,
+                lhs_interface_name,
+                &node.location,
+            ) {
+                self.diagnostics.push(diagnostic);
+
+                // Drop the invalid statement so downstream validation doesn't see a
+                // confusing `__FATPOINTER` type mismatch after interface types are rewritten.
+                self.replacement = Some(vec![]);
+                return;
+            }
+
+            // Upcasting: RHS is a child interface, LHS is an ancestor interface.
+            // Expand into: lhs.data := rhs.data; lhs.table := __itable_<rhs>#(rhs.table^).__upcast_<lhs>
+            let data_assign = helper::create_data_copy(&mut self.ids, left, right);
             let table_assign = helper::create_upcast_table_assignment(
                 &mut self.ids,
                 left,
@@ -304,8 +332,7 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
                 rhs_interface_name,
                 lhs_interface_name,
             );
-
-            self.replacement = Some(vec![data_copy, table_assign]);
+            self.replacement = Some(vec![data_assign, table_assign]);
             return;
         }
 
@@ -318,6 +345,20 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 
         let interface_name = lhs_type.get_name();
         let pou_name = rhs_type.get_name();
+
+        if let Some(diagnostic) = validation::validate_pou_implements_interface(
+            self.index,
+            pou_name,
+            interface_name,
+            &node.location,
+        ) {
+            self.diagnostics.push(diagnostic);
+
+            // Drop the invalid statement so downstream validation doesn't see a
+            // confusing `__FATPOINTER` type mismatch after interface types are rewritten.
+            self.replacement = Some(vec![]);
+            return;
+        }
 
         // Replace the original assignment with the two fat-pointer field assignments.
         let data_assign = helper::create_data_assignment(&mut self.ids, left, right);
@@ -398,13 +439,47 @@ impl InterfaceDispatchLowerer<'_> {
         let actual_type = self.annotations.get_type_or_void(arg, self.index);
         let expected_type = self.annotations.get_hint_or_void(arg, self.index);
 
-        // Not an interface parameter, nothing to do.
+        // Not an interface-related argument — nothing to do.
         if !expected_type.is_interface() {
             return;
         }
 
+        // Argument is already interface-typed — validate compatibility before upcasting.
+        if actual_type.is_interface() {
+            let source_iface = actual_type.get_name();
+            let target_iface = expected_type.get_name();
+
+            if let Some(diagnostic) = validation::validate_interface_assignment(
+                self.index,
+                source_iface,
+                target_iface,
+                &arg.location,
+            ) {
+                self.diagnostics.push(diagnostic);
+                return;
+            }
+        }
+
         // Already the right interface type (or same concrete type), no wrapping needed.
         if actual_type == expected_type {
+            return;
+        }
+
+        let pou_name = actual_type.get_name();
+        let interface_name = expected_type.get_name();
+
+        if let Some(diagnostic) =
+            validation::validate_pou_implements_interface(self.index, pou_name, interface_name, &arg.location)
+        {
+            self.diagnostics.push(diagnostic);
+
+            // Replace the argument with a dummy fat pointer so the call remains structurally
+            // valid and doesn't trigger confusing `__FATPOINTER` type errors downstream.
+            let fp_name = format!("__fatpointer_{}", self.fp_counter);
+            self.fp_counter += 1;
+            self.preamble.push(helper::create_alloca(&mut self.ids, &fp_name));
+            *arg = helper::create_identifier_ref(&mut self.ids, &fp_name);
+
             return;
         }
 

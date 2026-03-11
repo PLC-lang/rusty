@@ -863,3 +863,941 @@ mod pou {
         ");
     }
 }
+
+mod interface {
+    use test_utils::parse_and_validate_buffered;
+
+    #[test]
+    fn assign_implementor_to_interface_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                    ref      : IA;
+                END_VAR
+                ref := instance;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn assign_child_implementor_to_interface_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB EXTENDS FbA
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : FbB;
+                    ref      : IA;
+                END_VAR
+                ref := instance;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn assign_non_implementor_to_interface_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbX
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : FbX;
+                    ref      : IA;
+                END_VAR
+                ref := instance;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E126]: Invalid assignment: 'FbX' does not implement interface 'IA'
+           ┌─ <internal>:15:17
+           │
+        15 │                 ref := instance;
+           │                 ^^^^^^^^^^^^^^^ Invalid assignment: 'FbX' does not implement interface 'IA'
+        ");
+    }
+
+    #[test]
+    fn assign_unrelated_implementor_to_wrong_interface_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                    ref      : IB;
+                END_VAR
+                ref := instance;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E126]: Invalid assignment: 'FbA' does not implement interface 'IB'
+           ┌─ <internal>:22:17
+           │
+        22 │                 ref := instance;
+           │                 ^^^^^^^^^^^^^^^ Invalid assignment: 'FbA' does not implement interface 'IB'
+        ");
+    }
+
+    #[test]
+    fn assign_pou_implementing_child_interface_to_parent_interface_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IB
+                METHOD foo
+                END_METHOD
+
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                    refIA    : IA;
+                    refIB    : IB;
+                END_VAR
+                refIA := instance;
+                refIB := instance;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn assign_same_interface_type() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    ref1 : IA;
+                    ref2 : IA;
+                END_VAR
+                ref1 := ref2;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn assign_child_interface_to_parent_interface_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IB
+                METHOD foo
+                END_METHOD
+
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                    refIB : IB;
+                END_VAR
+                refIA := refIB;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn assign_grandchild_interface_to_grandparent_interface_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IC EXTENDS IB
+                METHOD baz
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IC
+                METHOD foo
+                END_METHOD
+
+                METHOD bar
+                END_METHOD
+
+                METHOD baz
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                    refIC : IC;
+                END_VAR
+                refIA := refIC;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn assign_parent_interface_to_child_interface_ref_downcast() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IB
+                METHOD foo
+                END_METHOD
+
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                    refIB : IB;
+                END_VAR
+                refIB := refIA;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E126]: Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically
+           ┌─ <internal>:25:17
+           │
+        25 │                 refIB := refIA;
+           │                 ^^^^^^^^^^^^^^ Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically
+        ");
+    }
+
+    #[test]
+    fn assign_unrelated_interface_to_interface_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB IMPLEMENTS IB
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                    refIB : IB;
+                END_VAR
+                refIA := refIB;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E126]: Invalid assignment: 'IA' and 'IB' are not related and cannot be used polymorphically
+           ┌─ <internal>:27:17
+           │
+        27 │                 refIA := refIB;
+           │                 ^^^^^^^^^^^^^^ Invalid assignment: 'IA' and 'IB' are not related and cannot be used polymorphically
+        ");
+    }
+
+    #[test]
+    fn assign_sibling_interface_to_interface_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IC EXTENDS IA
+                METHOD baz
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbB IMPLEMENTS IB
+                METHOD foo
+                END_METHOD
+
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbC IMPLEMENTS IC
+                METHOD foo
+                END_METHOD
+
+                METHOD baz
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIB : IB;
+                    refIC : IC;
+                END_VAR
+                refIB := refIC;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E126]: Invalid assignment: 'IB' and 'IC' are not related and cannot be used polymorphically
+           ┌─ <internal>:38:17
+           │
+        38 │                 refIB := refIC;
+           │                 ^^^^^^^^^^^^^^ Invalid assignment: 'IB' and 'IC' are not related and cannot be used polymorphically
+        ");
+    }
+
+    #[test]
+    fn call_arg_implementor_to_interface_param() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                END_VAR
+                consumer(instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn call_arg_named_implementor_to_interface_param() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                END_VAR
+                consumer(in1 := instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn call_arg_non_implementor_to_interface_param() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbX
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance : FbX;
+                END_VAR
+                consumer(instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E126]: Invalid assignment: 'FbX' does not implement interface 'IA'
+           ┌─ <internal>:20:26
+           │
+        20 │                 consumer(instance);
+           │                          ^^^^^^^^ Invalid assignment: 'FbX' does not implement interface 'IA'
+        ");
+    }
+
+    #[test]
+    fn call_arg_named_non_implementor_to_interface_param() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbX
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance : FbX;
+                END_VAR
+                consumer(in1 := instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E126]: Invalid assignment: 'FbX' does not implement interface 'IA'
+           ┌─ <internal>:20:33
+           │
+        20 │                 consumer(in1 := instance);
+           │                                 ^^^^^^^^ Invalid assignment: 'FbX' does not implement interface 'IA'
+        ");
+    }
+
+    #[test]
+    fn call_arg_child_implementor_to_interface_param() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB EXTENDS FbA
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance : FbB;
+                END_VAR
+                consumer(instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn call_arg_wrong_interface_to_param() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IB;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                END_VAR
+                consumer(instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E126]: Invalid assignment: 'FbA' does not implement interface 'IB'
+           ┌─ <internal>:27:26
+           │
+        27 │                 consumer(instance);
+           │                          ^^^^^^^^ Invalid assignment: 'FbA' does not implement interface 'IB'
+        ");
+    }
+
+    #[test]
+    fn call_arg_interface_to_interface_param_upcast() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IB
+                METHOD foo
+                END_METHOD
+
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IA;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    refIB : IB;
+                END_VAR
+                consumer(refIB);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn call_arg_interface_to_interface_param_downcast() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IB
+                METHOD foo
+                END_METHOD
+
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IB;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                END_VAR
+                consumer(refIA);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E126]: Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically
+           ┌─ <internal>:30:26
+           │
+        30 │                 consumer(refIA);
+           │                          ^^^^^ Invalid assignment: 'IB' and 'IA' are not related and cannot be used polymorphically
+        ");
+    }
+
+    #[test]
+    fn call_arg_multiple_interfaces_mixed_validity() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION consumer
+                VAR_INPUT
+                    in1 : IA;
+                    in2 : IB;
+                END_VAR
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    instance : FbA;
+                END_VAR
+                consumer(in1 := instance, in2 := instance);
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E126]: Invalid assignment: 'FbA' does not implement interface 'IB'
+           ┌─ <internal>:28:50
+           │
+        28 │                 consumer(in1 := instance, in2 := instance);
+           │                                                  ^^^^^^^^ Invalid assignment: 'FbA' does not implement interface 'IB'
+        ");
+    }
+
+    #[test]
+    fn call_method_declared_on_interface() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                END_VAR
+                refIA.foo();
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn call_inherited_method_on_child_interface() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IB
+                METHOD foo
+                END_METHOD
+
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIB : IB;
+                END_VAR
+                refIB.foo();
+                refIB.bar();
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @"");
+    }
+
+    #[test]
+    fn call_method_not_on_interface() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+
+                METHOD onlyOnFbA
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                END_VAR
+                refIA.onlyOnFbA();
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E048]: Could not resolve reference to onlyOnFbA
+           ┌─ <internal>:19:23
+           │
+        19 │                 refIA.onlyOnFbA();
+           │                       ^^^^^^^^^ Could not resolve reference to onlyOnFbA
+        ");
+    }
+
+    #[test]
+    fn call_child_interface_method_through_parent_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IB
+                METHOD foo
+                END_METHOD
+
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                END_VAR
+                refIA.bar();
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E048]: Could not resolve reference to bar
+           ┌─ <internal>:24:23
+           │
+        24 │                 refIA.bar();
+           │                       ^^^ Could not resolve reference to bar
+        ");
+    }
+
+    #[test]
+    fn access_field_through_interface_ref() {
+        // Interfaces only expose methods — field access is invalid
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                VAR
+                    someField : DINT;
+                END_VAR
+
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                    x     : DINT;
+                END_VAR
+                x := refIA.someField;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E048]: Could not resolve reference to someField
+           ┌─ <internal>:21:28
+           │
+        21 │                 x := refIA.someField;
+           │                            ^^^^^^^^^ Could not resolve reference to someField
+        ");
+    }
+
+    #[test]
+    fn assign_to_field_through_interface_ref() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                VAR
+                    someField : DINT;
+                END_VAR
+
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                END_VAR
+                refIA.someField := 42;
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E048]: Could not resolve reference to someField
+           ┌─ <internal>:20:23
+           │
+        20 │                 refIA.someField := 42;
+           │                       ^^^^^^^^^ Could not resolve reference to someField
+        ");
+    }
+}
