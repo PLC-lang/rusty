@@ -5,12 +5,18 @@ use crate::index::{HardwareBinding, Index, VariableIndexEntry};
 pub struct VarGlobalIndexer<'i> {
     constant: bool,
     linkage: LinkageType,
+    retain: bool,
     index: &'i mut Index,
 }
 
 impl VarGlobalIndexer<'_> {
-    pub fn new(constant: bool, linkage: LinkageType, index: &mut Index) -> VarGlobalIndexer<'_> {
-        VarGlobalIndexer { constant, linkage, index }
+    pub fn new(
+        constant: bool,
+        retain: bool,
+        linkage: LinkageType,
+        index: &mut Index,
+    ) -> VarGlobalIndexer<'_> {
+        VarGlobalIndexer { constant, retain, linkage, index }
     }
 
     pub fn visit_variable(&mut self, var: &plc_ast::ast::Variable) {
@@ -29,6 +35,7 @@ impl VarGlobalIndexer<'_> {
         )
         .set_initial_value(initializer)
         .set_constant(self.constant)
+        .set_retain(self.retain)
         .set_linkage(self.linkage)
         .set_hardware_binding(
             var.address.as_ref().and_then(|it| HardwareBinding::from_statement(self.index, it, None)),

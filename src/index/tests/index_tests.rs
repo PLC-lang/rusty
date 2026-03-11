@@ -1372,6 +1372,7 @@ fn a_program_pou_is_indexed() {
                 argument_type: ArgumentType::ByVal(VariableType::Global),
                 is_constant: false,
                 is_var_external: false,
+                is_retain: false,
                 data_type_name: "myProgram".into(),
                 location_in_parent: 0,
                 linkage: LinkageType::Internal,
@@ -1648,6 +1649,7 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     argument_type: ArgumentType::ByVal(VariableType::Input),
                     is_constant: false,
                     is_var_external: false,
+                    is_retain: false,
                     data_type_name: "__ptr_to___foo_arr_vla_1_int".to_string(),
                     location_in_parent: 0,
                     linkage: LinkageType::Internal,
@@ -1662,6 +1664,7 @@ fn internal_vla_struct_type_is_indexed_correctly() {
                     argument_type: ArgumentType::ByVal(VariableType::Input),
                     is_constant: false,
                     is_var_external: false,
+                    is_retain: false,
                     data_type_name: "__bounds___foo_arr_vla_1_int".to_string(),
                     location_in_parent: 1,
                     linkage: LinkageType::Internal,
@@ -1731,6 +1734,7 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
         ),
         is_constant: false,
         is_var_external: false,
+        is_retain: false,
         data_type_name: "__global_foo",
         location_in_parent: 0,
         linkage: Internal,
@@ -1798,6 +1802,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
         ),
         is_constant: false,
         is_var_external: false,
+        is_retain: false,
         data_type_name: "BOOL",
         location_in_parent: 0,
         linkage: Internal,
@@ -1935,6 +1940,7 @@ fn address_used_in_2_aliases_only_created_once() {
             ),
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: "BOOL",
             location_in_parent: 0,
             linkage: Internal,
@@ -1978,6 +1984,7 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
             ),
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: "BOOL",
             location_in_parent: 0,
             linkage: Internal,
@@ -2003,6 +2010,7 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
             ),
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: "WORD",
             location_in_parent: 0,
             linkage: Internal,
@@ -2044,6 +2052,7 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
             ),
             is_constant: false,
             is_var_external: false,
+            is_retain: false,
             data_type_name: "BOOL",
             location_in_parent: 0,
             linkage: Internal,
@@ -2082,6 +2091,7 @@ fn var_config_hardware_address_creates_global_variable() {
         ),
         is_constant: false,
         is_var_external: false,
+        is_retain: false,
         data_type_name: "BOOL",
         location_in_parent: 0,
         linkage: Internal,
@@ -2608,4 +2618,167 @@ fn declared_parameters() {
 
     let members = index.get_available_parameters("FbB.methB").iter().map(|var| &var.name).collect::<Vec<_>>();
     assert_eq!(members, vec!["inB_meth"]);
+}
+
+#[test]
+fn var_retain_in_global() {
+    let (_, index) = index(
+        r#"
+        VAR_GLOBAL
+            x : INT;
+            y : INT;
+        END_VAR
+
+        VAR_GLOBAL RETAIN
+            z : INT;
+        END_VAR
+        "#,
+    );
+
+    let x = index.find_global_variable("x").unwrap();
+    assert!(!x.is_retain);
+
+    let y = index.find_global_variable("y").unwrap();
+    assert!(!y.is_retain);
+
+    let z = index.find_global_variable("z").unwrap();
+    assert!(z.is_retain);
+}
+
+#[test]
+fn var_retain_in_function_block() {
+    let (_, index) = index(
+        r#"
+        FUNCTION_BLOCK Fb
+            VAR
+                x : INT;
+                y : INT;
+            END_VAR
+            VAR RETAIN
+                z : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    let x = index.find_local_member("Fb", "x").unwrap();
+    assert!(!x.is_retain);
+
+    let y = index.find_local_member("Fb", "y").unwrap();
+    assert!(!y.is_retain);
+
+    let z = index.find_local_member("Fb", "z").unwrap();
+    assert!(z.is_retain);
+}
+
+#[test]
+fn var_retain_in_program() {
+    let (_, index) = index(
+        r#"
+        PROGRAM P
+            VAR
+                x : INT;
+                y : INT;
+            END_VAR
+            VAR RETAIN
+                z : INT;
+            END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    let x = index.find_local_member("P", "x").unwrap();
+    assert!(!x.is_retain);
+
+    let y = index.find_local_member("P", "y").unwrap();
+    assert!(!y.is_retain);
+
+    let z = index.find_local_member("P", "z").unwrap();
+    assert!(z.is_retain);
+}
+
+#[test]
+fn var_nested_retain_in_program() {
+    let (_, index) = index(
+        r#"
+        FUNCTION_BLOCK nested
+            VAR RETAIN
+            a : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        FUNCTION_BLOCK nested2
+            VAR
+            a : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        TYPE deepNested : STRUCT
+            fb: nested;
+        END_STRUCT
+        END_TYPE
+        TYPE aliasForDeepNested : deepNested; END_TYPE
+
+        PROGRAM P
+            VAR
+                fb: nested;
+                fb2: nested2;
+                str: deepNested;
+                str2: aliasForDeepNested;
+                arr: ARRAY[0..10] OF nested;
+            END_VAR
+        END_PROGRAM
+        "#,
+    );
+
+    let fb = index.find_local_member("P", "fb").unwrap();
+    assert!(fb.should_retain(&index));
+    let fb2 = index.find_local_member("P", "fb2").unwrap();
+    assert!(!fb2.should_retain(&index));
+    let str = index.find_local_member("P", "str").unwrap();
+    assert!(str.should_retain(&index));
+    let str2 = index.find_local_member("P", "str2").unwrap();
+    assert!(str2.should_retain(&index));
+    let arr = index.find_local_member("P", "arr").unwrap();
+    assert!(arr.should_retain(&index));
+}
+
+#[test]
+fn var_nested_retain_in_global() {
+    let (_, index) = index(
+        r#"
+        FUNCTION_BLOCK nested
+            VAR RETAIN
+            a : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        FUNCTION_BLOCK nested2
+            VAR
+            a : INT;
+            END_VAR
+        END_FUNCTION_BLOCK
+        TYPE deepNested : STRUCT
+            fb: nested;
+        END_STRUCT
+        END_TYPE
+        TYPE aliasForDeepNested : deepNested; END_TYPE
+
+        VAR_GLOBAL
+            fb: nested;
+            fb2: nested2;
+            str: deepNested;
+            str2: aliasForDeepNested;
+            arr: ARRAY[0..10] OF nested;
+        END_VAR
+        "#,
+    );
+
+    let fb = index.find_global_variable("fb").unwrap();
+    assert!(fb.should_retain(&index));
+    let fb2 = index.find_global_variable("fb2").unwrap();
+    assert!(!fb2.should_retain(&index));
+    let str = index.find_global_variable("str").unwrap();
+    assert!(str.should_retain(&index));
+    let str2 = index.find_global_variable("str2").unwrap();
+    assert!(str2.should_retain(&index));
+    let arr = index.find_global_variable("arr").unwrap();
+    assert!(arr.should_retain(&index));
 }

@@ -42,7 +42,7 @@ use plc_header_generator::{
     GenerateHeaderOptions,
 };
 use plc_index::GlobalContext;
-use plc_lowering::inheritance::InheritanceLowerer;
+use plc_lowering::{inheritance::InheritanceLowerer, retain::RetainParticipant};
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -301,6 +301,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 self.context.should_generate_external_constructors(),
             )),
             Box::new(PropertyLowerer::new(self.context.provider())),
+            Box::new(RetainParticipant::new(self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(
