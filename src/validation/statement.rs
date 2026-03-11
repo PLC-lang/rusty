@@ -1125,7 +1125,7 @@ fn validate_assignment<T: AnnotationMap>(
             qualified_name,
             argument_type,
             auto_deref,
-            ..
+            resulting_type,
         }) = context.annotations.get(left)
         {
             // ...constant variable
@@ -1182,6 +1182,16 @@ fn validate_assignment<T: AnnotationMap>(
                         "ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?")
                         .with_error_code("E037")
                         .with_location(location),
+                );
+            }
+
+            if call_returns_void(context, right) {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Invalid assignment: cannot assign 'VOID' to '{resulting_type}'"
+                    ))
+                    .with_error_code("E037")
+                    .with_location(location),
                 );
             }
         }
@@ -1398,6 +1408,25 @@ where
     }
 
     false
+}
+
+fn call_returns_void<T>(context: &ValidationContext<T>, right: &AstNode) -> bool
+where
+    T: AnnotationMap,
+{
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = right.get_stmt_peeled() else {
+        return false;
+    };
+
+    let Some(call_name) = context.annotations.get_call_name(operator.as_ref()) else {
+        return false;
+    };
+
+    let Some(pou) = context.index.find_pou(call_name) else {
+        return false;
+    };
+
+    pou.get_return_type().is_none()
 }
 
 pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
