@@ -611,7 +611,6 @@ impl InterfaceIndexEntry {
         methods
     }
 
-
     /// Returns a list of unique method names in this interface either directly (declared) or
     /// indirectly (inherited), ordered so that ancestor methods appear before descendant methods.
     /// The ordering follows the `EXTENDS` declaration order (e.g. for `ID EXTENDS IB, IC`,
