@@ -301,6 +301,32 @@ impl Diagnostic {
         .with_location(location)
     }
 
+    pub fn invalid_interface_pou_assignment<T>(
+        pou_name: &str,
+        interface_name: &str,
+        location: T,
+    ) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!(
+            "Invalid assignment: '{pou_name}' does not implement interface '{interface_name}'"
+        ))
+        .with_error_code("E126")
+        .with_location(location)
+    }
+
+    pub fn invalid_interface_assignment<T>(source_iface: &str, target_iface: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!(
+            "Invalid assignment: '{target_iface}' and '{source_iface}' are not related and cannot be used polymorphically"
+        ))
+        .with_error_code("E126")
+        .with_location(location)
+    }
+
     pub fn cannot_generate_initializer<T>(variable_name: &str, location: T) -> Diagnostic
     where
         T: Into<SourceLocation>,
