@@ -317,9 +317,13 @@ impl AstVisitor for AstSerializer {
         child.walk(self)
     }
 
-    fn visit_exit_statement(&mut self, _node: &AstNode) {}
+    fn visit_exit_statement(&mut self, _node: &AstNode) {
+        self.result.push_str("EXIT;");
+    }
 
-    fn visit_continue_statement(&mut self, _node: &AstNode) {}
+    fn visit_continue_statement(&mut self, _node: &AstNode) {
+        self.result.push_str("CONTINUE;");
+    }
 
     fn visit_return_statement(&mut self, stmt: &ReturnStatement, _node: &AstNode) {
         stmt.walk(self)
