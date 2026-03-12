@@ -103,6 +103,7 @@ use plc_ast::{
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
@@ -110,6 +111,8 @@ use crate::{
     resolver::{AnnotationMap, AnnotationMapImpl},
     typesystem::{DataType, VOID_INTERNAL_NAME},
 };
+
+use super::validation;
 
 const FATPOINTER_TYPE_NAME: &str = "__FATPOINTER";
 const FATPOINTER_DATA_FIELD_NAME: &str = "data";
@@ -126,6 +129,11 @@ pub struct InterfaceDispatchLowerer<'a> {
 
     /// Tracks call-argument nesting depth, if any.
     in_call_args: usize,
+
+    /// Diagnostics collected during traversal. Validation checks that must run during lowering
+    /// (before interface types are rewritten) push errors here instead of into the normal
+    /// validation pipeline.
+    diagnostics: Vec<Diagnostic>,
 
     /// Statements to insert *before* the current statement in the drain loop. Cleared at the
     /// start of each iteration. Used when a call argument needs wrapping: the temporary fat
@@ -172,6 +180,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             annotations,
             needs_fatpointer: false,
             in_call_args: 0,
+            diagnostics: Vec::new(),
             preamble: Vec::new(),
             replacement: None,
             fp_counter: 0,
@@ -179,7 +188,8 @@ impl<'a> InterfaceDispatchLowerer<'a> {
     }
 
     /// Entry point into the interface dispatch lowering pass.
-    pub fn lower(&mut self, units: &mut [CompilationUnit]) {
+    /// Returns any diagnostics produced by interface validation checks.
+    pub fn lower(&mut self, units: &mut [CompilationUnit]) -> Vec<Diagnostic> {
         for unit in units.iter_mut() {
             self.visit_compilation_unit(unit);
         }
@@ -191,6 +201,8 @@ impl<'a> InterfaceDispatchLowerer<'a> {
                 unit.user_types.push(helper::create_fat_pointer_struct());
             }
         }
+
+        std::mem::take(&mut self.diagnostics)
     }
 }
 
@@ -264,21 +276,34 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         let rhs_type = self.annotations.get_type_or_void(right, self.index);
         let rhs_type_hint = self.annotations.get_hint_or_void(right, self.index);
 
-        // Interface-to-interface assignment (e.g. `refB := refA`)
+        // Interface-to-interface assignment: both sides are interface-typed.
         if lhs_type.is_interface() && rhs_type.is_interface() {
-            if lhs_type == rhs_type {
-                // Simple memcpy, codegen does this for us; to elaborate, the itable layout in this case is
-                // identical with only the data field point to potentially different instances but thats no
-                // problem and solved by a simple memcpy.
+            let lhs_iface = lhs_type.get_name();
+            let rhs_iface = rhs_type.get_name();
+
+            if lhs_iface == rhs_iface {
+                // Same interface type: plain struct copy, no expansion needed.
                 return;
             }
 
-            // FIXME:
-            // Trickier, the `.data` field can be copied but the `.table` field needs to be up- or downcasted
-            // to match the lhs interface type. With the current architecture this requires some metadata
-            // about the POU type (name) stored in the rhs so that we can find the correct itable and assign
-            // it to the left side. That metadata table does not exist yet, however.
-            unimplemented!("upcasting of interfaces is not yet supported");
+            if let Some(diagnostic) =
+                validation::validate_interface_assignment(self.index, rhs_iface, lhs_iface, &node.location)
+            {
+                self.diagnostics.push(diagnostic);
+
+                // Drop the invalid statement so downstream validation doesn't see a
+                // confusing `__FATPOINTER` type mismatch after interface types are rewritten.
+                self.replacement = Some(vec![]);
+                return;
+            }
+
+            // Upcasting: RHS is a child interface, LHS is an ancestor interface.
+            // Expand into: lhs.data := rhs.data; lhs.table := __itable_<rhs>#(rhs.table^).__upcast_<lhs>
+            let data_assign = helper::create_interface_data_copy(&mut self.ids, left, right);
+            let table_assign =
+                helper::create_upcast_table_assignment(&mut self.ids, left, right, rhs_iface, lhs_iface);
+            self.replacement = Some(vec![data_assign, table_assign]);
+            return;
         }
 
         // Check if this is an interface assignment: LHS is interface-typed, RHS is a concrete
@@ -290,6 +315,20 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 
         let interface_name = lhs_type.get_name();
         let pou_name = rhs_type.get_name();
+
+        if let Some(diagnostic) = validation::validate_pou_implements_interface(
+            self.index,
+            pou_name,
+            interface_name,
+            &node.location,
+        ) {
+            self.diagnostics.push(diagnostic);
+
+            // Drop the invalid statement so downstream validation doesn't see a
+            // confusing `__FATPOINTER` type mismatch after interface types are rewritten.
+            self.replacement = Some(vec![]);
+            return;
+        }
 
         // Replace the original assignment with the two fat-pointer field assignments.
         let data_assign = helper::create_data_assignment(&mut self.ids, left, right);
@@ -370,14 +409,44 @@ impl InterfaceDispatchLowerer<'_> {
         let actual_type = self.annotations.get_type_or_void(arg, self.index);
         let expected_type = self.annotations.get_hint_or_void(arg, self.index);
 
-        // Skip if the argument is already interface-typed (i.e. an existing fat pointer that needs no
-        // wrapping) or if the expected type is not an interface.
-        if actual_type.is_interface() || !expected_type.is_interface() {
+        // Not an interface-related argument — nothing to do.
+        if !expected_type.is_interface() {
+            return;
+        }
+
+        // Argument is already interface-typed — no wrapping needed, but validate compatibility.
+        if actual_type.is_interface() {
+            let source_iface = actual_type.get_name();
+            let target_iface = expected_type.get_name();
+
+            if let Some(diagnostic) = validation::validate_interface_assignment(
+                self.index,
+                source_iface,
+                target_iface,
+                &arg.location,
+            ) {
+                self.diagnostics.push(diagnostic);
+            }
             return;
         }
 
         let interface_name = expected_type.get_name();
         let pou_name = actual_type.get_name();
+
+        if let Some(diagnostic) =
+            validation::validate_pou_implements_interface(self.index, pou_name, interface_name, &arg.location)
+        {
+            self.diagnostics.push(diagnostic);
+
+            // Replace the argument with a dummy fat pointer so the call remains structurally
+            // valid and doesn't trigger confusing `__FATPOINTER` type errors downstream.
+            let fp_name = format!("__fatpointer_{}", self.fp_counter);
+            self.fp_counter += 1;
+            self.preamble.push(helper::create_alloca(&mut self.ids, &fp_name));
+            *arg = helper::create_identifier_ref(&mut self.ids, &fp_name);
+
+            return;
+        }
 
         // Generate a unique name for the temporary fat pointer.
         let fp_name = format!("__fatpointer_{}", self.fp_counter);
@@ -560,6 +629,62 @@ mod helper {
         );
         let adr_itable = create_adr_call(ids, itable_ref);
         AstFactory::create_assignment(lhs_table, adr_itable, ids.next_id())
+    }
+
+    /// Builds `lhs.data := rhs.data` for interface-to-interface assignment.
+    ///
+    /// Both sides are interface-typed fat pointers; this copies the data pointer from one to the other.
+    pub fn create_interface_data_copy(ids: &mut IdProvider, lhs: &AstNode, rhs: &AstNode) -> AstNode {
+        let lhs_data = create_member_access(ids, lhs, FATPOINTER_DATA_FIELD_NAME);
+        let rhs_data = create_member_access(ids, rhs, FATPOINTER_DATA_FIELD_NAME);
+        AstFactory::create_assignment(lhs_data, rhs_data, ids.next_id())
+    }
+
+    /// Builds `lhs.table := __itable_<rhs_iface>#(rhs.table^).__upcast_<lhs_iface>` for upcasting.
+    ///
+    /// This generates an O(1) upcast by reading the ancestor itable pointer embedded in the
+    /// source interface's itable struct. The compiler knows both interface types statically,
+    /// so it can emit the correct cast and field access.
+    pub fn create_upcast_table_assignment(
+        ids: &mut IdProvider,
+        lhs: &AstNode,
+        rhs: &AstNode,
+        rhs_interface_name: &str,
+        lhs_interface_name: &str,
+    ) -> AstNode {
+        let lhs_table = create_member_access(ids, lhs, FATPOINTER_TABLE_FIELD_NAME);
+
+        // Build: __itable_<rhs_iface>#(rhs.table^).__upcast_<lhs_iface>
+        // Step 1: rhs.table
+        let rhs_table = create_member_access(ids, rhs, FATPOINTER_TABLE_FIELD_NAME);
+
+        // Step 2: rhs.table^
+        let rhs_table_deref =
+            AstFactory::create_deref_reference(rhs_table, ids.next_id(), SourceLocation::internal());
+
+        // Step 3: __itable_<rhs_iface>#(rhs.table^)
+        let itable_name = itable_helper::get_itable_name(rhs_interface_name);
+        let cast_target = AstFactory::create_member_reference(
+            AstFactory::create_identifier(itable_name, SourceLocation::internal(), ids.next_id()),
+            None,
+            ids.next_id(),
+        );
+        let casted = AstFactory::create_cast_statement(
+            cast_target,
+            AstFactory::create_paren_expression(rhs_table_deref, SourceLocation::internal(), ids.next_id()),
+            &SourceLocation::internal(),
+            ids.next_id(),
+        );
+
+        // Step 4: __itable_<rhs_iface>#(rhs.table^).__upcast_<lhs_iface>
+        let upcast_field_name = itable_helper::get_upcast_field_name(lhs_interface_name);
+        let upcast_access = AstFactory::create_member_reference(
+            AstFactory::create_identifier(upcast_field_name, SourceLocation::internal(), ids.next_id()),
+            Some(casted),
+            ids.next_id(),
+        );
+
+        AstFactory::create_assignment(lhs_table, upcast_access, ids.next_id())
     }
 
     /// Appends a member access to a base expression: `base.field_name`.
@@ -2981,6 +3106,215 @@ mod tests {
         }
     }
 
+    /// Tests for interface-to-interface upcasting (e.g. `refIA := refIB` where IB extends IA).
+    mod upcast {
+        #[test]
+        fn same_type_assignment() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        refA: IA;
+                        refB: IA;
+                    END_VAR
+
+                    refB := refA;
+                END_FUNCTION
+            "#;
+
+            // Same interface type: plain struct copy, no expansion needed.
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
+            // Statements in main
+            refB := refA
+            ");
+        }
+
+        #[test]
+        fn simple() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo END_METHOD
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                    METHOD bar END_METHOD
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IB
+                    METHOD foo END_METHOD
+                    METHOD bar END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                        refIA: IA;
+                        refIB: IB;
+                    END_VAR
+
+                    refIB := instance;
+                    refIA := refIB;
+                END_FUNCTION
+            "#;
+
+            // Upcasting: IB → IA via the __upcast_IA field in the IB itable.
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
+            // Statements in main
+            FbA__ctor(instance)
+            refIB.data := ADR(instance)
+            refIB.table := ADR(__itable_IB_FbA_instance)
+            refIA.data := refIB.data
+            refIA.table := __itable_IB#(refIB.table^).__upcast_IA
+            ");
+        }
+
+        #[test]
+        fn diamond() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo END_METHOD
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                    METHOD bar END_METHOD
+                END_INTERFACE
+
+                INTERFACE IC EXTENDS IA
+                    METHOD baz END_METHOD
+                END_INTERFACE
+
+                INTERFACE ID EXTENDS IB, IC
+                    METHOD qux END_METHOD
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbD IMPLEMENTS ID
+                    METHOD foo END_METHOD
+                    METHOD bar END_METHOD
+                    METHOD baz END_METHOD
+                    METHOD qux END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        instance: FbD;
+                        refIA: IA;
+                        refIB: IB;
+                        refIC: IC;
+                        refID: ID;
+                    END_VAR
+
+                    refID := instance;
+                    refIB := refID;
+                    refIC := refID;
+                    refIA := refIB;
+                END_FUNCTION
+            "#;
+
+            // Diamond upcasting: ID→IB, ID→IC, IB→IA all via __upcast_ fields.
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
+            // Statements in main
+            FbD__ctor(instance)
+            refID.data := ADR(instance)
+            refID.table := ADR(__itable_ID_FbD_instance)
+            refIB.data := refID.data
+            refIB.table := __itable_ID#(refID.table^).__upcast_IB
+            refIC.data := refID.data
+            refIC.table := __itable_ID#(refID.table^).__upcast_IC
+            refIA.data := refIB.data
+            refIA.table := __itable_IB#(refIB.table^).__upcast_IA
+            ");
+        }
+
+        #[test]
+        fn in_if_body() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo END_METHOD
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                    METHOD bar END_METHOD
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IB
+                    METHOD foo END_METHOD
+                    METHOD bar END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                        refIA: IA;
+                        refIB: IB;
+                        flag: BOOL;
+                    END_VAR
+
+                    refIB := instance;
+                    IF flag THEN
+                        refIA := refIB;
+                    END_IF;
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
+            // Statements in main
+            FbA__ctor(instance)
+            refIB.data := ADR(instance)
+            refIB.table := ADR(__itable_IB_FbA_instance)
+            IF flag THEN
+                refIA.data := refIB.data
+                refIA.table := __itable_IB#(refIB.table^).__upcast_IA
+            END_IF
+            ");
+        }
+
+        #[test]
+        fn upcast_then_dispatch() {
+            let source = r#"
+                INTERFACE IA
+                    METHOD foo END_METHOD
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                    METHOD bar END_METHOD
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IB
+                    METHOD foo END_METHOD
+                    METHOD bar END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        instance: FbA;
+                        refIA: IA;
+                        refIB: IB;
+                    END_VAR
+
+                    refIB := instance;
+                    refIA := refIB;
+                    refIA.foo();
+                END_FUNCTION
+            "#;
+
+            // After upcasting IB → IA, method dispatch through IA should still work.
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
+            // Statements in main
+            FbA__ctor(instance)
+            refIB.data := ADR(instance)
+            refIB.table := ADR(__itable_IB_FbA_instance)
+            refIA.data := refIB.data
+            refIA.table := __itable_IB#(refIB.table^).__upcast_IA
+            __itable_IA#(refIA.table^).foo^(refIA.data^)
+            ");
+        }
+    }
+
     /// Tests for interface dispatch lowering inside control flow bodies (IF, CASE, FOR, etc.).
     mod control {
         #[test]
@@ -3146,71 +3480,6 @@ mod tests {
                 __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
                 consumer(__fatpointer_0)
             END_IF
-            ");
-        }
-
-        #[test]
-        fn interface_to_interface_assignment() {
-            let source = r#"
-                INTERFACE IA
-                END_INTERFACE
-
-                FUNCTION_BLOCK FbA IMPLEMENTS IA
-                END_FUNCTION_BLOCK
-
-                FUNCTION main
-                    VAR
-                        refA: IA;
-                        refB: IA;
-                    END_VAR
-
-                    refB := refA;
-                END_FUNCTION
-            "#;
-
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
-            // Statements in main
-            refB := refA
-            ");
-        }
-
-        #[test]
-        #[should_panic]
-        fn interface_to_interface_assignment_upcasting() {
-            let source = r#"
-                INTERFACE IA
-                END_INTERFACE
-
-                INTERFACE IB EXTENDS IA
-                END_INTERFACE
-
-                INTERFACE IC EXTENDS IB
-                END_INTERFACE
-
-                INTERFACE ID EXTENDS IB, IC
-                END_INTERFACE
-
-
-                FUNCTION main
-                    VAR
-                        refA: IA;
-                        refB: IB;
-                        refC: IC;
-                        refD: ID;
-
-                        refA2: IA;
-                    END_VAR
-
-                    refA := refA2; // same interface, no cast
-
-                    // Upcasts
-                    refA := refB;
-                    refA := refC;
-                    refA := refD;
-                END_FUNCTION
-            "#;
-
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             ");
         }
 

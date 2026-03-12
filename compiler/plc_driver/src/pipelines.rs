@@ -437,6 +437,15 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             .mutable_participants
             .iter_mut()
             .fold(annotated_project, |project, p| p.post_annotate(project));
+
+        // Collect diagnostics from participants that validated during lowering.
+        for p in &mut self.mutable_participants {
+            let diags = p.diagnostics();
+            if !diags.is_empty() {
+                self.diagnostician.handle(&diags);
+            }
+        }
+
         Ok(annotated_project)
     }
 
