@@ -5,15 +5,15 @@ pub mod tests {
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
+        mut_visitor::AstVisitorMut,
         provider::IdProvider,
-        mut_visitor::AstVisitorMut
     };
     use plc_diagnostics::{
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use plc_index::GlobalContext;
-    use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
     use plc_lowering::control_statement::ControlStatementLowerer;
+    use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
         builtins,
