@@ -2842,6 +2842,7 @@ dependencies = [
  "plc_driver",
  "plc_index",
  "plc_llvm",
+ "plc_lowering",
  "plc_project",
  "plc_source",
  "plc_util",
