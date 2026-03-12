@@ -1144,3 +1144,165 @@ fn unary_plus_expression_test() {
     }
     "#)
 }
+
+#[test]
+fn division_of_signed_types_should_use_sdiv() {
+    let result = codegen(
+        "
+        FUNCTION main : DINT
+            VAR
+                // SINT
+                varSIntX: SINT := 4;
+                varSIntY: SINT := 2;
+                varSIntR: SINT := 0;
+
+                // INT
+                varIntX: INT := 9;
+                varIntY: INT := 3;
+                varIntR: INT := 0;
+
+                // DINT
+                varDIntX: DINT := 16;
+                varDIntY: DINT := 4;
+                varDIntR: DINT := 0;
+            END_VAR
+
+            varSIntR := varSIntX / varSIntY;
+            varIntR := varIntX / varIntY;
+            varDIntR := varDIntX / varDIntY;
+        END_FUNCTION
+    ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %varSIntX = alloca i8, align [filtered]
+      %varSIntY = alloca i8, align [filtered]
+      %varSIntR = alloca i8, align [filtered]
+      %varIntX = alloca i16, align [filtered]
+      %varIntY = alloca i16, align [filtered]
+      %varIntR = alloca i16, align [filtered]
+      %varDIntX = alloca i32, align [filtered]
+      %varDIntY = alloca i32, align [filtered]
+      %varDIntR = alloca i32, align [filtered]
+      store i8 4, ptr %varSIntX, align [filtered]
+      store i8 2, ptr %varSIntY, align [filtered]
+      store i8 0, ptr %varSIntR, align [filtered]
+      store i16 9, ptr %varIntX, align [filtered]
+      store i16 3, ptr %varIntY, align [filtered]
+      store i16 0, ptr %varIntR, align [filtered]
+      store i32 16, ptr %varDIntX, align [filtered]
+      store i32 4, ptr %varDIntY, align [filtered]
+      store i32 0, ptr %varDIntR, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      %load_varSIntX = load i8, ptr %varSIntX, align [filtered]
+      %0 = sext i8 %load_varSIntX to i32
+      %load_varSIntY = load i8, ptr %varSIntY, align [filtered]
+      %1 = sext i8 %load_varSIntY to i32
+      %tmpVar = sdiv i32 %0, %1
+      %2 = trunc i32 %tmpVar to i8
+      store i8 %2, ptr %varSIntR, align [filtered]
+      %load_varIntX = load i16, ptr %varIntX, align [filtered]
+      %3 = sext i16 %load_varIntX to i32
+      %load_varIntY = load i16, ptr %varIntY, align [filtered]
+      %4 = sext i16 %load_varIntY to i32
+      %tmpVar1 = sdiv i32 %3, %4
+      %5 = trunc i32 %tmpVar1 to i16
+      store i16 %5, ptr %varIntR, align [filtered]
+      %load_varDIntX = load i32, ptr %varDIntX, align [filtered]
+      %load_varDIntY = load i32, ptr %varDIntY, align [filtered]
+      %tmpVar2 = sdiv i32 %load_varDIntX, %load_varDIntY
+      store i32 %tmpVar2, ptr %varDIntR, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+    "#)
+}
+
+#[test]
+fn division_of_unsigned_types_should_use_udiv() {
+    let result = codegen(
+        "
+        FUNCTION main : DINT
+            VAR
+                // USINT
+                varUSIntX: USINT := 4;
+                varUSIntY: USINT := 2;
+                varUSIntR: USINT := 0;
+
+                // UINT
+                varUIntX: UINT := 9;
+                varUIntY: UINT := 3;
+                varUIntR: UINT := 0;
+
+                // UDINT
+                varUDIntX: UDINT := 16;
+                varUDIntY: UDINT := 4;
+                varUDIntR: UDINT := 0;
+            END_VAR
+
+            varUSIntR := varUSIntX / varUSIntY;
+            varUIntR := varUIntX / varUIntY;
+            varUDIntR := varUDIntX / varUDIntY;
+        END_FUNCTION
+    ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %varUSIntX = alloca i8, align [filtered]
+      %varUSIntY = alloca i8, align [filtered]
+      %varUSIntR = alloca i8, align [filtered]
+      %varUIntX = alloca i16, align [filtered]
+      %varUIntY = alloca i16, align [filtered]
+      %varUIntR = alloca i16, align [filtered]
+      %varUDIntX = alloca i32, align [filtered]
+      %varUDIntY = alloca i32, align [filtered]
+      %varUDIntR = alloca i32, align [filtered]
+      store i8 4, ptr %varUSIntX, align [filtered]
+      store i8 2, ptr %varUSIntY, align [filtered]
+      store i8 0, ptr %varUSIntR, align [filtered]
+      store i16 9, ptr %varUIntX, align [filtered]
+      store i16 3, ptr %varUIntY, align [filtered]
+      store i16 0, ptr %varUIntR, align [filtered]
+      store i32 16, ptr %varUDIntX, align [filtered]
+      store i32 4, ptr %varUDIntY, align [filtered]
+      store i32 0, ptr %varUDIntR, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      %load_varUSIntX = load i8, ptr %varUSIntX, align [filtered]
+      %0 = zext i8 %load_varUSIntX to i32
+      %load_varUSIntY = load i8, ptr %varUSIntY, align [filtered]
+      %1 = zext i8 %load_varUSIntY to i32
+      %tmpVar = udiv i32 %0, %1
+      %2 = trunc i32 %tmpVar to i8
+      store i8 %2, ptr %varUSIntR, align [filtered]
+      %load_varUIntX = load i16, ptr %varUIntX, align [filtered]
+      %3 = zext i16 %load_varUIntX to i32
+      %load_varUIntY = load i16, ptr %varUIntY, align [filtered]
+      %4 = zext i16 %load_varUIntY to i32
+      %tmpVar1 = udiv i32 %3, %4
+      %5 = trunc i32 %tmpVar1 to i16
+      store i16 %5, ptr %varUIntR, align [filtered]
+      %load_varUDIntX = load i32, ptr %varUDIntX, align [filtered]
+      %load_varUDIntY = load i32, ptr %varUDIntY, align [filtered]
+      %tmpVar2 = udiv i32 %load_varUDIntX, %load_varUDIntY
+      store i32 %tmpVar2, ptr %varUDIntR, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+    "#)
+}

@@ -1693,11 +1693,11 @@ fn mul_div_mod_parse_tree_priority_test() {
                         ref_to("b"),
                         0
                     ),
-                    Operator::Division,
+                    Operator::Division(None),
                     ref_to("c"),
                     0
                 ),
-                Operator::Modulo,
+                Operator::Modulo(None),
                 ref_to("d"),
                 0
             )

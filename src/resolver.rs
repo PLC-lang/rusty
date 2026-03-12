@@ -24,7 +24,6 @@ use plc_ast::{
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
 
-use crate::index::{FxIndexMap, FxIndexSet, InterfaceIndexEntry};
 use crate::typesystem::VOID_INTERNAL_NAME;
 use crate::{
     builtins::{self, BuiltIn},
@@ -34,6 +33,10 @@ use crate::{
         BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
         REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
+};
+use crate::{
+    index::{FxIndexMap, FxIndexSet, InterfaceIndexEntry},
+    typesystem::UDINT_TYPE,
 };
 
 pub mod const_evaluator;
@@ -2064,6 +2067,9 @@ impl<'i> TypeAnnotator<'i> {
                         } else {
                             let ty = if left_type.is_bit() && right_type.is_bit() {
                                 right_type
+                            } else if l_intrinsic_type.is_unsigned_int() && r_intrinsic_type.is_unsigned_int()
+                            {
+                                self.index.get_type_or_panic(UDINT_TYPE)
                             } else {
                                 self.index.get_type_or_panic(DINT_TYPE)
                             };
