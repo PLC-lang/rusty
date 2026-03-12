@@ -12,27 +12,30 @@ entry:
   %myFunc = alloca i32, align [filtered]
     #dbg_declare(ptr %myFunc, !9, !DIExpression(), !11)
   store i32 0, ptr %myFunc, align [filtered]
-  br i1 true, label %condition_body, label %branch, !dbg !12
+  br i1 true, label %condition_body, label %else, !dbg !12
 
 condition_body:                                   ; preds = %entry
   store i32 1, ptr %myFunc, align [filtered], !dbg !13
   br label %continue, !dbg !14
 
-branch:                                           ; preds = %entry
-  br i1 false, label %condition_body1, label %else, !dbg !15
+else:                                             ; preds = %entry
+  br i1 false, label %condition_body3, label %else1, !dbg !15
 
-condition_body1:                                  ; preds = %branch
+continue:                                         ; preds = %continue2, %condition_body
   store i32 1, ptr %myFunc, align [filtered], !dbg !16
-  br label %continue, !dbg !14
+  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
+  ret i32 %myFunc_ret, !dbg !17
 
-else:                                             ; preds = %branch
-  store i32 1, ptr %myFunc, align [filtered], !dbg !17
-  br label %continue, !dbg !14
-
-continue:                                         ; preds = %else, %condition_body1, %condition_body
+condition_body3:                                  ; preds = %else
   store i32 1, ptr %myFunc, align [filtered], !dbg !18
-  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !19
-  ret i32 %myFunc_ret, !dbg !19
+  br label %continue2, !dbg !14
+
+else1:                                            ; preds = %else
+  store i32 1, ptr %myFunc, align [filtered], !dbg !19
+  br label %continue2, !dbg !14
+
+continue2:                                        ; preds = %else1, %condition_body3
+  br label %continue, !dbg !14
 }
 
 !llvm.module.flags = !{!0, !1}
@@ -54,7 +57,7 @@ continue:                                         ; preds = %else, %condition_bo
 !13 = !DILocation(line: 4, column: 16, scope: !4)
 !14 = !DILocation(line: 9, column: 12, scope: !4)
 !15 = !DILocation(line: 5, column: 18, scope: !4)
-!16 = !DILocation(line: 6, column: 16, scope: !4)
-!17 = !DILocation(line: 8, column: 16, scope: !4)
-!18 = !DILocation(line: 10, column: 12, scope: !4)
-!19 = !DILocation(line: 11, column: 8, scope: !4)
+!16 = !DILocation(line: 10, column: 12, scope: !4)
+!17 = !DILocation(line: 11, column: 8, scope: !4)
+!18 = !DILocation(line: 6, column: 16, scope: !4)
+!19 = !DILocation(line: 8, column: 16, scope: !4)
