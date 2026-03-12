@@ -450,16 +450,16 @@ fn evaluate_with_target_hint(
                     Operator::Plus => arithmetic_expression!(left, +, right, "+", id)?,
                     Operator::Minus => arithmetic_expression!(left, -, right, "-", id)?,
                     Operator::Multiplication => arithmetic_expression!(left, *, right, "*", id)?,
-                    Operator::Division if !(right.is_real() || left.is_real()) && right.is_zero() => {
+                    Operator::Division(_) if !(right.is_real() || left.is_real()) && right.is_zero() => {
                         return Err(UnresolvableKind::Misc("Attempt to divide by zero".to_string()))
                     }
-                    Operator::Division => arithmetic_expression!(left, /, right, "/", id)?,
-                    Operator::Modulo if right.is_zero() => {
+                    Operator::Division(_) => arithmetic_expression!(left, /, right, "/", id)?,
+                    Operator::Modulo(_) if right.is_zero() => {
                         return Err(UnresolvableKind::Misc(
                             "Attempt to calculate the remainder with a divisor of zero".to_string(),
                         ))
                     }
-                    Operator::Modulo => arithmetic_expression!(left, %, right, "MOD", id)?,
+                    Operator::Modulo(_) => arithmetic_expression!(left, %, right, "MOD", id)?,
                     Operator::Equal => compare_expression!(left, ==, right, "=", id)?,
                     Operator::NotEqual => compare_expression!(left, !=, right, "<>", id)?,
                     Operator::Greater => compare_expression!(left, >, right, ">", id)?,

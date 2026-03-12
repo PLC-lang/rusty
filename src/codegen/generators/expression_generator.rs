@@ -376,6 +376,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return self.generate_bool_binary_expression(operator, left, right);
         }
         if ltype.is_int() && rtype.is_int() {
+            let is_signed = ltype.is_signed_int() || rtype.is_signed_int();
+
+            let operator = match operator {
+                Operator::Division(_) => &Operator::Division(Some(is_signed)),
+                Operator::Modulo(_) => &Operator::Modulo(Some(is_signed)),
+                _ => operator,
+            };
+
             self.create_llvm_int_binary_expression(
                 operator,
                 self.generate_expression(left)?,
@@ -2007,8 +2015,34 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::Plus => self.llvm.builder.build_int_add(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::Minus => self.llvm.builder.build_int_sub(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::Multiplication => self.llvm.builder.build_int_mul(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::Division => self.llvm.builder.build_int_signed_div(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::Modulo => self.llvm.builder.build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar")?,
+            Operator::Division(is_signed) => {
+                let Some(is_signed) = is_signed else {
+                    return Err(CodegenError::GenericError(
+                        "Sign information is required for integer division!".to_string(),
+                        SourceLocation::undefined(),
+                    ));
+                };
+
+                if *is_signed {
+                    self.llvm.builder.build_int_signed_div(int_lvalue, int_rvalue, "tmpVar")?
+                } else {
+                    self.llvm.builder.build_int_unsigned_div(int_lvalue, int_rvalue, "tmpVar")?
+                }
+            }
+            Operator::Modulo(is_signed) => {
+                let Some(is_signed) = is_signed else {
+                    return Err(CodegenError::GenericError(
+                        "Sign information is required for integer modulus!".to_string(),
+                        SourceLocation::undefined(),
+                    ));
+                };
+
+                if *is_signed {
+                    self.llvm.builder.build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar")?
+                } else {
+                    self.llvm.builder.build_int_unsigned_rem(int_lvalue, int_rvalue, "tmpVar")?
+                }
+            }
             Operator::Equal => {
                 self.llvm.builder.build_int_compare(IntPredicate::EQ, int_lvalue, int_rvalue, "tmpVar")?
             }
@@ -2066,10 +2100,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::Multiplication => {
                 self.llvm.builder.build_float_mul(float_lvalue, float_rvalue, "tmpVar")?.into()
             }
-            Operator::Division => {
+            Operator::Division(_) => {
                 self.llvm.builder.build_float_div(float_lvalue, float_rvalue, "tmpVar")?.into()
             }
-            Operator::Modulo => {
+            Operator::Modulo(_) => {
                 self.llvm.builder.build_float_rem(float_lvalue, float_rvalue, "tmpVar")?.into()
             }
 

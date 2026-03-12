@@ -3,7 +3,9 @@ source: src/parser/tests/expressions_parser_tests.rs
 expression: statement
 ---
 BinaryExpression {
-    operator: Division,
+    operator: Division(
+        None,
+    ),
     left: BinaryExpression {
         operator: Multiplication,
         left: LiteralInteger {

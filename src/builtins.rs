@@ -456,11 +456,11 @@ lazy_static! {
                     let Some(params) = parameters else {
                         return;
                     };
-                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division, Some(&["IN1", "IN2"]))
+                    annotate_arithmetic_function(annotator, statement, operator, params, ctx, Operator::Division(None), Some(&["IN1", "IN2"]))
                 }),
                 validation:Some(|validator, operator, parameters, annotations, index| {
                     validate_types(validator, &parameters, annotations, index);
-                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division)
+                    validate_builtin_symbol_parameter_count(validator, operator, parameters, Operator::Division(None))
                 }),
                 generic_name_resolver,
                 code: |_, _, _| {
@@ -727,7 +727,7 @@ fn validate_builtin_symbol_parameter_count(
     let count = flatten_expression_list(params).len();
     match operation {
         // non-extensible operators
-        Operator::Minus | Operator::Division | Operator::NotEqual => {
+        Operator::Minus | Operator::Division(_) | Operator::NotEqual => {
             if count != 2 {
                 validator.push_diagnostic(Diagnostic::invalid_argument_count(2, count, operator));
             }
