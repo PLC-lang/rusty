@@ -1026,9 +1026,18 @@ END_FUNCTION
       call void @__struct__arr__ctor(ptr %arr), !dbg !58
       %deref6 = load ptr, ptr %self, align [filtered], !dbg !58
       %arr7 = getelementptr inbounds nuw %struct_, ptr %deref6, i32 0, i32 5, !dbg !58
-      store [3 x [81 x i8]] [[81 x i8] c"aa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], ptr %arr7, align [filtered], !dbg !58
+      %tmpVar = getelementptr inbounds [3 x [81 x i8]], ptr %arr7, i32 0, i32 0, !dbg !58
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar, ptr align [filtered] @utf08_literal_1, i32 3, i1 false), !dbg !58
       %deref8 = load ptr, ptr %self, align [filtered], !dbg !58
-      %i = getelementptr inbounds nuw %struct_, ptr %deref8, i32 0, i32 6, !dbg !58
+      %arr9 = getelementptr inbounds nuw %struct_, ptr %deref8, i32 0, i32 5, !dbg !58
+      %tmpVar10 = getelementptr inbounds [3 x [81 x i8]], ptr %arr9, i32 0, i32 1, !dbg !58
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar10, ptr align [filtered] @utf08_literal_3, i32 3, i1 false), !dbg !58
+      %deref11 = load ptr, ptr %self, align [filtered], !dbg !58
+      %arr12 = getelementptr inbounds nuw %struct_, ptr %deref11, i32 0, i32 5, !dbg !58
+      %tmpVar13 = getelementptr inbounds [3 x [81 x i8]], ptr %arr12, i32 0, i32 2, !dbg !58
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar13, ptr align [filtered] @utf08_literal_5, i32 3, i1 false), !dbg !58
+      %deref14 = load ptr, ptr %self, align [filtered], !dbg !58
+      %i = getelementptr inbounds nuw %struct_, ptr %deref14, i32 0, i32 6, !dbg !58
       store i16 42, ptr %i, align [filtered], !dbg !58
       ret void, !dbg !58
     }
@@ -1051,9 +1060,18 @@ END_FUNCTION
       call void @__inner_arr__ctor(ptr %arr), !dbg !58
       %deref4 = load ptr, ptr %self, align [filtered], !dbg !58
       %arr5 = getelementptr inbounds nuw %inner, ptr %deref4, i32 0, i32 3, !dbg !58
-      store [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], ptr %arr5, align [filtered], !dbg !58
+      %tmpVar = getelementptr inbounds [3 x [81 x i8]], ptr %arr5, i32 0, i32 0, !dbg !58
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar, ptr align [filtered] @utf08_literal_2, i32 5, i1 false), !dbg !58
       %deref6 = load ptr, ptr %self, align [filtered], !dbg !58
-      %i = getelementptr inbounds nuw %inner, ptr %deref6, i32 0, i32 4, !dbg !58
+      %arr7 = getelementptr inbounds nuw %inner, ptr %deref6, i32 0, i32 3, !dbg !58
+      %tmpVar8 = getelementptr inbounds [3 x [81 x i8]], ptr %arr7, i32 0, i32 1, !dbg !58
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar8, ptr align [filtered] @utf08_literal_4, i32 5, i1 false), !dbg !58
+      %deref9 = load ptr, ptr %self, align [filtered], !dbg !58
+      %arr10 = getelementptr inbounds nuw %inner, ptr %deref9, i32 0, i32 3, !dbg !58
+      %tmpVar11 = getelementptr inbounds [3 x [81 x i8]], ptr %arr10, i32 0, i32 2, !dbg !58
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %tmpVar11, ptr align [filtered] @utf08_literal_6, i32 5, i1 false), !dbg !58
+      %deref12 = load ptr, ptr %self, align [filtered], !dbg !58
+      %i = getelementptr inbounds nuw %inner, ptr %deref12, i32 0, i32 4, !dbg !58
       store i16 42, ptr %i, align [filtered], !dbg !58
       ret void, !dbg !58
     }

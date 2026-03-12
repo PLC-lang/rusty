@@ -58,7 +58,7 @@ fn initializing_an_array() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
+    @d = global [10 x i32] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @Data__ctor(ptr %0) {
@@ -66,7 +66,35 @@ fn initializing_an_array() {
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
-      store [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], ptr %deref, align [filtered]
+      %tmpVar = getelementptr inbounds [10 x i32], ptr %deref, i32 0, i32 0
+      store i32 0, ptr %tmpVar, align [filtered]
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %tmpVar2 = getelementptr inbounds [10 x i32], ptr %deref1, i32 0, i32 1
+      store i32 1, ptr %tmpVar2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %tmpVar4 = getelementptr inbounds [10 x i32], ptr %deref3, i32 0, i32 2
+      store i32 2, ptr %tmpVar4, align [filtered]
+      %deref5 = load ptr, ptr %self, align [filtered]
+      %tmpVar6 = getelementptr inbounds [10 x i32], ptr %deref5, i32 0, i32 3
+      store i32 3, ptr %tmpVar6, align [filtered]
+      %deref7 = load ptr, ptr %self, align [filtered]
+      %tmpVar8 = getelementptr inbounds [10 x i32], ptr %deref7, i32 0, i32 4
+      store i32 4, ptr %tmpVar8, align [filtered]
+      %deref9 = load ptr, ptr %self, align [filtered]
+      %tmpVar10 = getelementptr inbounds [10 x i32], ptr %deref9, i32 0, i32 5
+      store i32 5, ptr %tmpVar10, align [filtered]
+      %deref11 = load ptr, ptr %self, align [filtered]
+      %tmpVar12 = getelementptr inbounds [10 x i32], ptr %deref11, i32 0, i32 6
+      store i32 6, ptr %tmpVar12, align [filtered]
+      %deref13 = load ptr, ptr %self, align [filtered]
+      %tmpVar14 = getelementptr inbounds [10 x i32], ptr %deref13, i32 0, i32 7
+      store i32 7, ptr %tmpVar14, align [filtered]
+      %deref15 = load ptr, ptr %self, align [filtered]
+      %tmpVar16 = getelementptr inbounds [10 x i32], ptr %deref15, i32 0, i32 8
+      store i32 8, ptr %tmpVar16, align [filtered]
+      %deref17 = load ptr, ptr %self, align [filtered]
+      %tmpVar18 = getelementptr inbounds [10 x i32], ptr %deref17, i32 0, i32 9
+      store i32 9, ptr %tmpVar18, align [filtered]
       ret void
     }
 
@@ -105,7 +133,7 @@ fn assigning_full_arrays() {
 
     %prg = type { [10 x i32], [10 x i32] }
 
-    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }
+    @prg_instance = global %prg zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
 
     define void @prg(ptr %0) {
@@ -134,7 +162,35 @@ fn assigning_full_arrays() {
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
-      store [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], ptr %deref, align [filtered]
+      %tmpVar = getelementptr inbounds [10 x i32], ptr %deref, i32 0, i32 0
+      store i32 0, ptr %tmpVar, align [filtered]
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %tmpVar2 = getelementptr inbounds [10 x i32], ptr %deref1, i32 0, i32 1
+      store i32 1, ptr %tmpVar2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %tmpVar4 = getelementptr inbounds [10 x i32], ptr %deref3, i32 0, i32 2
+      store i32 2, ptr %tmpVar4, align [filtered]
+      %deref5 = load ptr, ptr %self, align [filtered]
+      %tmpVar6 = getelementptr inbounds [10 x i32], ptr %deref5, i32 0, i32 3
+      store i32 3, ptr %tmpVar6, align [filtered]
+      %deref7 = load ptr, ptr %self, align [filtered]
+      %tmpVar8 = getelementptr inbounds [10 x i32], ptr %deref7, i32 0, i32 4
+      store i32 4, ptr %tmpVar8, align [filtered]
+      %deref9 = load ptr, ptr %self, align [filtered]
+      %tmpVar10 = getelementptr inbounds [10 x i32], ptr %deref9, i32 0, i32 5
+      store i32 5, ptr %tmpVar10, align [filtered]
+      %deref11 = load ptr, ptr %self, align [filtered]
+      %tmpVar12 = getelementptr inbounds [10 x i32], ptr %deref11, i32 0, i32 6
+      store i32 6, ptr %tmpVar12, align [filtered]
+      %deref13 = load ptr, ptr %self, align [filtered]
+      %tmpVar14 = getelementptr inbounds [10 x i32], ptr %deref13, i32 0, i32 7
+      store i32 7, ptr %tmpVar14, align [filtered]
+      %deref15 = load ptr, ptr %self, align [filtered]
+      %tmpVar16 = getelementptr inbounds [10 x i32], ptr %deref15, i32 0, i32 8
+      store i32 8, ptr %tmpVar16, align [filtered]
+      %deref17 = load ptr, ptr %self, align [filtered]
+      %tmpVar18 = getelementptr inbounds [10 x i32], ptr %deref17, i32 0, i32 9
+      store i32 9, ptr %tmpVar18, align [filtered]
       ret void
     }
 
@@ -185,10 +241,8 @@ fn accessing_array_elements() {
 
     %prg = type { [10 x i32], [3 x i32] }
 
-    @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }
+    @prg_instance = global %prg zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
-    @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
-    @__prg.b__init.1 = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
 
     define void @prg(ptr %0) {
     entry:
@@ -213,7 +267,16 @@ fn accessing_array_elements() {
       call void @__prg_b__ctor(ptr %b)
       %deref2 = load ptr, ptr %self, align [filtered]
       %b3 = getelementptr inbounds nuw %prg, ptr %deref2, i32 0, i32 1
-      store [3 x i32] [i32 3, i32 4, i32 5], ptr %b3, align [filtered]
+      %tmpVar = getelementptr inbounds [3 x i32], ptr %b3, i32 0, i32 0
+      store i32 3, ptr %tmpVar, align [filtered]
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %b5 = getelementptr inbounds nuw %prg, ptr %deref4, i32 0, i32 1
+      %tmpVar6 = getelementptr inbounds [3 x i32], ptr %b5, i32 0, i32 1
+      store i32 4, ptr %tmpVar6, align [filtered]
+      %deref7 = load ptr, ptr %self, align [filtered]
+      %b8 = getelementptr inbounds nuw %prg, ptr %deref7, i32 0, i32 1
+      %tmpVar9 = getelementptr inbounds [3 x i32], ptr %b8, i32 0, i32 2
+      store i32 5, ptr %tmpVar9, align [filtered]
       ret void
     }
 
@@ -222,7 +285,35 @@ fn accessing_array_elements() {
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
-      store [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], ptr %deref, align [filtered]
+      %tmpVar = getelementptr inbounds [10 x i32], ptr %deref, i32 0, i32 0
+      store i32 0, ptr %tmpVar, align [filtered]
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %tmpVar2 = getelementptr inbounds [10 x i32], ptr %deref1, i32 0, i32 1
+      store i32 1, ptr %tmpVar2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %tmpVar4 = getelementptr inbounds [10 x i32], ptr %deref3, i32 0, i32 2
+      store i32 2, ptr %tmpVar4, align [filtered]
+      %deref5 = load ptr, ptr %self, align [filtered]
+      %tmpVar6 = getelementptr inbounds [10 x i32], ptr %deref5, i32 0, i32 3
+      store i32 3, ptr %tmpVar6, align [filtered]
+      %deref7 = load ptr, ptr %self, align [filtered]
+      %tmpVar8 = getelementptr inbounds [10 x i32], ptr %deref7, i32 0, i32 4
+      store i32 4, ptr %tmpVar8, align [filtered]
+      %deref9 = load ptr, ptr %self, align [filtered]
+      %tmpVar10 = getelementptr inbounds [10 x i32], ptr %deref9, i32 0, i32 5
+      store i32 5, ptr %tmpVar10, align [filtered]
+      %deref11 = load ptr, ptr %self, align [filtered]
+      %tmpVar12 = getelementptr inbounds [10 x i32], ptr %deref11, i32 0, i32 6
+      store i32 6, ptr %tmpVar12, align [filtered]
+      %deref13 = load ptr, ptr %self, align [filtered]
+      %tmpVar14 = getelementptr inbounds [10 x i32], ptr %deref13, i32 0, i32 7
+      store i32 7, ptr %tmpVar14, align [filtered]
+      %deref15 = load ptr, ptr %self, align [filtered]
+      %tmpVar16 = getelementptr inbounds [10 x i32], ptr %deref15, i32 0, i32 8
+      store i32 8, ptr %tmpVar16, align [filtered]
+      %deref17 = load ptr, ptr %self, align [filtered]
+      %tmpVar18 = getelementptr inbounds [10 x i32], ptr %deref17, i32 0, i32 9
+      store i32 9, ptr %tmpVar18, align [filtered]
       ret void
     }
 
