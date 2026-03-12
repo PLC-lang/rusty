@@ -424,3 +424,69 @@ fn function_call_with_array_access() {
 
     filtered_assert_snapshot!(result)
 }
+
+#[test]
+fn function_output_should_be_cast_if_needed() {
+    let result = codegen(
+        "
+        FUNCTION libFunction : INT
+        VAR_INPUT
+            inVar1 : INT;
+            inVar2 : REAL;
+        END_VAR
+        VAR_OUTPUT
+            result : REAL;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                i1 : INT;
+            END_VAR
+
+            libFunction(
+                inVar1 := 0,
+                inVar2 := 0.0,
+                result => i1
+            );
+        END_PROGRAM
+       ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type { i16 }
+
+    @mainProg_instance = global %mainProg zeroinitializer
+
+    define i16 @libFunction(i16 %0, float %1, ptr %2) {
+    entry:
+      %libFunction = alloca i16, align [filtered]
+      %inVar1 = alloca i16, align [filtered]
+      store i16 %0, ptr %inVar1, align [filtered]
+      %inVar2 = alloca float, align [filtered]
+      store float %1, ptr %inVar2, align [filtered]
+      %result = alloca ptr, align [filtered]
+      store ptr %2, ptr %result, align [filtered]
+      store i16 0, ptr %libFunction, align [filtered]
+      %libFunction_ret = load i16, ptr %libFunction, align [filtered]
+      ret i16 %libFunction_ret
+    }
+
+    define void @mainProg(ptr %0) {
+    entry:
+      %i1 = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
+      %__libFunction_result0 = alloca float, align [filtered]
+      store float 0.000000e+00, ptr %__libFunction_result0, align [filtered]
+      %call = call i16 @libFunction(i16 0, float 0.000000e+00, ptr %__libFunction_result0)
+      %load___libFunction_result0 = load float, ptr %__libFunction_result0, align [filtered]
+      %1 = fptosi float %load___libFunction_result0 to i16
+      store i16 %1, ptr %i1, align [filtered]
+      ret void
+    }
+    "#)
+}
