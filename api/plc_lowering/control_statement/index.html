@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Control Statement Lowering"><title>plc_lowering::control_statement - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_lowering" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module control_statement</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../plc_lowering/index.html">plc_<wbr>lowering</a><span class="version">0.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module control_<wbr>statement</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#control-statement-lowering" title="Control Statement Lowering">Control Statement Lowering</a><ul><li><a href="#current-use-cases-for-lowering-control-statements" title="Current use-cases for lowering control statements">Current use-cases for lowering control statements</a></li></ul></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate plc_<wbr>lowering</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">plc_lowering</a></div><h1>Module <span>control_<wbr>statement</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/plc_lowering/control_statement.rs.html#1-439">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="control-statement-lowering"><a class="doc-anchor" href="#control-statement-lowering">§</a>Control Statement Lowering</h2>
+<p>This module handles the lowering of control statements in an effort to ensure that the control statements are
+processed without any side-effects that the user might not expect.</p>
+<h3 id="current-use-cases-for-lowering-control-statements"><a class="doc-anchor" href="#current-use-cases-for-lowering-control-statements">§</a>Current use-cases for lowering control statements</h3><h4 id="1-elseif-statements"><a class="doc-anchor" href="#1-elseif-statements">§</a>1. else/if statements</h4>
+<p>Due to the existing way that the AST was lowered, if a function call returned an aggregate type
+and that function call was part of the condition of an else/if, then that function would always be evaluated.
+This would result in some cases where an operation in the function could process when the user never intended
+it to.</p>
+<p>For example:</p>
+<div class="example-wrap"><pre class="language-st"><code>FUNCTION foo : STRING[10]
+    VAR
+        result : STRING[10];
+    END_VAR
+    VAR_IN_OUT
+        counter : INT;
+    END_VAR
+    result := &#39;Hello&#39;;
+    counter := counter + 1;
+    foo := result;
+END_FUNCTION
+
+FUNCTION main
+    VAR
+        counterVar: INT;
+    END_VAR
+
+    counterVar := 0;
+
+    IF foo(counterVar) = &#39;Hello&#39; THEN
+        // Do nothing
+    ELSIF foo(counterVar) = &#39;Goodbye&#39; THEN
+        // Do nothing
+    END_IF
+END_FUNCTION</code></pre></div>
+<p>In the above example, the <code>foo()</code> method would be called a second time and increment the <code>counter</code> variable to 2.
+This is obviously incorrect as the statement evaluation should have ended after the IF returned true.</p>
+<p>Thus, the statement is now lowered to prevent this evaluation from occuring, the resulting lowered code
+would look like this:</p>
+<div class="example-wrap"><pre class="language-st"><code>    ...
+    IF foo(counterVar) = &#39;Hello&#39; THEN
+        // Do nothing
+    ELSE
+        IF foo(counterVar) = &#39;Goodbye&#39; THEN
+            // Do nothing
+        END_IF
+    END_IF
+    ...</code></pre></div></div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.ControlStatementLowerer.html" title="struct plc_lowering::control_statement::ControlStatementLowerer">Control<wbr>Statement<wbr>Lowerer</a></dt><dt><a class="struct" href="struct.ControlStatementParticipant.html" title="struct plc_lowering::control_statement::ControlStatementParticipant">Control<wbr>Statement<wbr>Participant</a></dt></dl></section></div></main></body></html>
