@@ -1,3 +1,60 @@
+//! # Control Statement Lowering
+//!
+//! This module handles the lowering of control statements in an effort to ensure that the control statements are
+//! processed without any side-effects that the user might not expect.
+//!
+//! ## Current use-cases for lowering control statements
+//! ### 1. else/if statements
+//! Due to the existing way that the AST was lowered, if a function call returned an aggregate type
+//! and that function call was part of the condition of an else/if, then that function would always be evaluated.
+//! This would result in some cases where an operation in the function could process when the user never intended
+//! it to.
+//!
+//! For example:
+//! ```st
+//! FUNCTION foo : STRING[10]
+//!     VAR
+//!         result : STRING[10];
+//!     END_VAR
+//!     VAR_IN_OUT
+//!         counter : INT;
+//!     END_VAR
+//!     result := 'Hello';
+//!     counter := counter + 1;
+//!     foo := result;
+//! END_FUNCTION
+//!
+//! FUNCTION main
+//!     VAR
+//!         counterVar: INT;
+//!     END_VAR
+//!
+//!     counterVar := 0;
+//!
+//!     IF foo(counterVar) = 'Hello' THEN
+//!         // Do nothing
+//!     ELSIF foo(counterVar) = 'Goodbye' THEN
+//!         // Do nothing
+//!     END_IF
+//! END_FUNCTION
+//! ```
+//!
+//! In the above example, the `foo()` method would be called a second time and increment the `counter` variable to 2.
+//! This is obviously incorrect as the statement evaluation should have ended after the IF returned true.
+//!
+//! Thus, the statement is now lowered to prevent this evaluation from occuring, the resulting lowered code
+//! would look like this:
+//! ```st
+//!     ...
+//!     IF foo(counterVar) = 'Hello' THEN
+//!         // Do nothing
+//!     ELSE
+//!         IF foo(counterVar) = 'Goodbye' THEN
+//!             // Do nothing
+//!         END_IF
+//!     END_IF
+//!     ...
+//! ```
 use plc_ast::{
     ast::{AstFactory, AstNode, CompilationUnit},
     control_statements::{AstControlStatement, ConditionalBlock, IfStatement},
@@ -24,7 +81,7 @@ impl ControlStatementParticipant {
     }
 }
 
-struct ControlStatementLowerer {
+pub struct ControlStatementLowerer {
     ids: IdProvider,
 }
 
@@ -50,11 +107,17 @@ impl AstVisitorMut for ControlStatementLowerer {
 
             self.walk_conditional_blocks(&mut stmt.blocks);
             self.steal_and_walk_list(&mut stmt.else_block);
+        } else {
+            ctrl_stmt.walk(self);
         }
     }
 }
 
 impl ControlStatementLowerer {
+    pub fn new(ids: IdProvider) -> Self {
+        Self { ids }
+    }
+
     fn steal_and_walk_list(&mut self, list: &mut Vec<AstNode>) {
         //Enter new scope
         let mut new_stmts = vec![];
@@ -103,6 +166,7 @@ impl ControlStatementLowerer {
 #[cfg(test)]
 mod tests {
     use insta::assert_snapshot;
+    use plc_ast::ser::AstSerializer;
     use plc_driver::parse_and_annotate;
     use plc_source::SourceCode;
 
@@ -111,7 +175,7 @@ mod tests {
         let src: SourceCode = r#"
             PROGRAM mainProg
             VAR
-                iVar : INT;
+                val : INT;
                 cVar : CHAR;
             END_VAR
 
@@ -131,23 +195,51 @@ mod tests {
             "#
         .into();
 
-        /*
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
 
-            The above control statement should result in a compilation unit that has the following structure:
+        let implementations = &project.units[0].get_unit().implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        let control_statement = &implementation.statements[2];
+        assert_snapshot!(AstSerializer::format(control_statement), @"
+        IF val = 3 THEN
+            cVar := 'f'
+        ELSE
+            IF val = 5 THEN
+                cVar := 'b'
+            ELSE
+                cVar := 'x'
+            END_IF
+        END_IF
+        ");
+    }
+
+    #[test]
+    fn elseif_is_lowered_to_else_with_nested_if_even_if_no_else_is_present() {
+        let src: SourceCode = r#"
+            PROGRAM mainProg
+            VAR
+                val : INT;
+                cVar : CHAR;
+            END_VAR
+
+            val := 5;
+            cVar := '';
 
             IF val = 3 THEN
                 // Fizz
                 cVar := 'f';
-            ELSE
-                IF val = 5 THEN
-                    // Buzz
-                    cVar := 'b';
-                ELSE
-                    cVar := 'x';
-                END_IF
+            ELSIF val = 5 THEN
+                // Buzz
+                cVar := 'b';
             END_IF
-
-        */
+            END_PROGRAM
+            "#
+        .into();
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
 
@@ -159,97 +251,189 @@ mod tests {
         assert_eq!(implementation.name, "mainProg");
 
         let control_statement = &implementation.statements[2];
-        assert_snapshot!(format!("{:#?}", control_statement), @r#"
-        IfStatement {
-            blocks: [
-                ConditionalBlock {
-                    condition: BinaryExpression {
-                        operator: Equal,
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "val",
-                                },
-                            ),
-                            base: None,
-                        },
-                        right: LiteralInteger {
-                            value: 3,
-                        },
-                    },
-                    body: [
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "cVar",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: LiteralString {
-                                value: "f",
-                                is_wide: false,
-                            },
-                        },
-                    ],
-                },
-            ],
-            else_block: [
-                IfStatement {
-                    blocks: [
-                        ConditionalBlock {
-                            condition: BinaryExpression {
-                                operator: Equal,
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "val",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                right: LiteralInteger {
-                                    value: 5,
-                                },
-                            },
-                            body: [
-                                Assignment {
-                                    left: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "cVar",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    right: LiteralString {
-                                        value: "b",
-                                        is_wide: false,
-                                    },
-                                },
-                            ],
-                        },
-                    ],
-                    else_block: [
-                        Assignment {
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "cVar",
-                                    },
-                                ),
-                                base: None,
-                            },
-                            right: LiteralString {
-                                value: "x",
-                                is_wide: false,
-                            },
-                        },
-                    ],
-                },
-            ],
-        }
-        "#);
+        assert_snapshot!(AstSerializer::format(control_statement), @"
+        IF val = 3 THEN
+            cVar := 'f'
+        ELSE
+            IF val = 5 THEN
+                cVar := 'b'
+            END_IF
+        END_IF
+        ");
+    }
+
+    #[test]
+    fn elseif_is_lowered_to_else_with_nested_if_when_prenested_in_if() {
+        let src: SourceCode = r#"
+            PROGRAM mainProg
+            VAR
+                val : INT;
+                cVar : CHAR;
+            END_VAR
+
+            val := 5;
+            cVar := '';
+
+            IF val = 4 THEN
+                cVar := 'a';
+            ELSE
+                IF val = 3 THEN
+                    cVar := 'f';
+                ELSIF val = 5 THEN
+                    cVar := 'b';
+                ELSE
+                    cVar := 'x';
+                END_IF
+            END_IF
+            END_PROGRAM
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+
+        let implementations = &project.units[0].get_unit().implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        let control_statement = &implementation.statements[2];
+        assert_snapshot!(AstSerializer::format(control_statement), @"
+        IF val = 4 THEN
+            cVar := 'a'
+        ELSE
+            IF val = 3 THEN
+                cVar := 'f'
+            ELSE
+                IF val = 5 THEN
+                    cVar := 'b'
+                ELSE
+                    cVar := 'x'
+                END_IF
+            END_IF
+        END_IF
+        ");
+    }
+
+    #[test]
+    fn elseif_is_lowered_to_else_with_nested_if_inside_for_loop() {
+        let src: SourceCode = r#"
+            PROGRAM mainProg
+            VAR
+                i : INT;
+                val : INT;
+                cVar : CHAR;
+            END_VAR
+
+            val := 5;
+            cVar := '';
+
+            FOR i := 0 TO 10 DO
+                IF val = 3 THEN
+                    cVar := 'f';
+                ELSIF val = 5 THEN
+                    cVar := 'b';
+                ELSE
+                    cVar := 'x';
+                END_IF
+            END_FOR
+            END_PROGRAM
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+
+        let implementations = &project.units[0].get_unit().implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        let control_statement = &implementation.statements[2];
+        assert_snapshot!(AstSerializer::format(control_statement), @"
+        FOR i := 0 TO 10 DO
+            IF val = 3 THEN
+                cVar := 'f'
+            ELSE
+                IF val = 5 THEN
+                    cVar := 'b'
+                ELSE
+                    cVar := 'x'
+                END_IF
+            END_IF
+        END_FOR
+        ");
+    }
+
+    #[test]
+    fn elseif_is_lowered_to_else_with_nested_if_inside_while_loop() {
+        let src: SourceCode = r#"
+            PROGRAM mainProg
+            VAR
+                i : INT;
+                breakOut: INT;
+                val : INT;
+                cVar : CHAR;
+                someCon : BOOL;
+            END_VAR
+
+            val := 5;
+            cVar := '';
+            someCon := TRUE;
+            breakOut := 0;
+
+            WHILE someCon DO
+                IF val = 3 THEN
+                    cVar := 'f';
+                    someCon := FALSE;
+                ELSIF val = 5 THEN
+                    cVar := 'b';
+                    someCon := FALSE;
+                ELSE
+                    cVar := 'x';
+                    IF breakOut = 10 THEN
+                        someCon := FALSE;
+                    END_IF
+                    breakOut := breakOut + 1;
+                END_IF
+            END_WHILE
+            END_PROGRAM
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+
+        let implementations = &project.units[0].get_unit().implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        let control_statement = &implementation.statements[4];
+        assert_snapshot!(AstSerializer::format(control_statement), @"
+        WHILE TRUE DO
+            IF NOT someCon THEN
+                EXIT;
+            END_IF
+            IF val = 3 THEN
+                cVar := 'f'
+                someCon := FALSE
+            ELSE
+                IF val = 5 THEN
+                    cVar := 'b'
+                    someCon := FALSE
+                ELSE
+                    cVar := 'x'
+                    IF breakOut = 10 THEN
+                        someCon := FALSE
+                    END_IF
+                    breakOut := breakOut + 1
+                END_IF
+            END_IF
+        END_WHILE
+        ");
     }
 }
