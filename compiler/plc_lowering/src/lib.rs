@@ -4,9 +4,9 @@ use plc::{
 };
 use plc_ast::{ast::AstNode, provider::IdProvider};
 
+pub mod array_lowering;
 pub mod inheritance;
 pub mod initializer;
-pub mod literals;
 pub mod retain;
 #[cfg(test)]
 mod tests;

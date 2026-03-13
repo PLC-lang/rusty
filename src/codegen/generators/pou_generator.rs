@@ -114,10 +114,15 @@ pub fn generate_global_constants_for_pou_members<'ink>(
             _ => None,
         })
         .filter(|(_, it)| it.is_in_unit(location));
-    for (_pou, implementation) in implementations {
+    for (pou, implementation) in implementations {
         let type_name = implementation.get_type_name();
         if implementation.is_init() {
             // initializer functions don't need global constants to initialize members
+            continue;
+        }
+        if pou.get_linkage().is_external_or_included() {
+            // external POUs don't need __init globals — those are generated
+            // when compiling with --generate-external-constructors
             continue;
         }
         let pou_members = index.get_pou_members(type_name);

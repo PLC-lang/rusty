@@ -1,26 +1,82 @@
-//! This module is responsible for lowering literal statements into easier to compile instructions.
-//! For example, an array of 10000 elements repeating would become a for loop.
-//! An array of non repeating elements will become single assignments.
+//! # Array Initializer Lowering
+//!
+//! This pass rewrites array initializer assignments whose elements cannot be
+//! evaluated at compile time into sequences of indexed assignments and/or FOR
+//! loops that the codegen backend can handle.
+//!
+//! ## Why this exists
+//!
+//! The initializer pass (`initializer.rs`) emits constructor bodies that assign
+//! array literals to their targets: `self.arr := [init];`.  When every element
+//! of the literal is a compile-time constant (integers, reals, bools, …) codegen
+//! materializes the whole array as an anonymous global constant and copies it
+//! with `memcpy` — no lowering needed.
+//!
+//! However, some element expressions are **not** compile-time constants:
+//!
+//! - **Function calls** such as `ADR(x)` produce addresses that depend on
+//!   runtime memory layout.  These can never appear in a global constant.
+//!
+//! - **Struct literal initializers** like `(a := 5, b := 10)` are semantically
+//!   constant but codegen's `generate_literal_array_value` currently cannot
+//!   evaluate them inside an array context (it stack-overflows in the
+//!   context-free expression generator).  This is a codegen limitation, not a
+//!   fundamental one — once fixed, struct literals can be removed from the
+//!   trigger list.
+//!
+//! For these cases the assignment must be decomposed into individual element
+//! stores that the expression generator can handle one at a time.
+//!
+//! ## When this pass triggers
+//!
+//! The pass walks every implementation body looking for assignments whose RHS
+//! is a `LiteralArray`.  It checks the array's element tree for non-constant
+//! expressions via [`contains_non_constant_expression`]:
+//!
+//! | Element kind             | Constant? | Triggers lowering?                   |
+//! |--------------------------|-----------|--------------------------------------|
+//! | Literal (int, real, …)   | yes       | no                                   |
+//! | String literal           | yes       | no                                   |
+//! | Variable reference       | **no**    | **yes** — runtime value              |
+//! | Function call (`ADR(x)`) | **no**    | **yes** — runtime value              |
+//! | Struct literal `(a:=1)`  | **no***   | **yes** — codegen limitation         |
+//!
+//! *Struct literals are semantically constant but are treated as non-constant
+//! because codegen's `generate_literal_array_value` cannot currently evaluate
+//! them inside an array context.
+//!
+//! If no non-constant expression is found, the literal is left as-is for
+//! codegen's memcpy path.
 //!
 //! ## Lowering rules
 //!
-//! Given `arr : ARRAY[start..end] OF T := [init];`, the assignment `arr := [init]` is
-//! rewritten depending on the shape of `init`:
+//! Given `arr : ARRAY[start..end] OF T := [init];` where `init` contains
+//! non-constant expressions:
 //!
 //! | Pattern                      | Lowered form                                            |
 //! |------------------------------|---------------------------------------------------------|
 //! | `[N(val)]`  (N ≥ threshold)  | `FOR __idx := start TO start+N-1 DO arr[__idx] := val`  |
 //! | `[N(val)]`  (N < threshold)  | `arr[start] := val; arr[start+1] := val; …`             |
 //! | `[v1, v2, v3]`               | `arr[start] := v1; arr[start+1] := v2; …`               |
-//! | `[3(v1), v2, 2(v3)]`         | three segments – loops and/or individual assignments     |
+//! | `[3(v1), v2, 2(v3)]`         | mixed — each segment lowered independently              |
 //!
 //! Multi-dimensional arrays are also handled:
-//! - Individual assignments use computed multi-dimensional indices
-//!   (e.g. flat index 5 on `ARRAY[0..2, 0..2]` → `arr[1, 2]`).
-//! - A single `MultipliedStatement` filling the entire array uses nested FOR loops
-//!   (one per dimension).
+//! - Individual assignments use computed multi-dimensional indices via
+//!   [`ArrayInfo::flat_to_indices`] (e.g. flat index 5 on `ARRAY[0..2, 0..2]`
+//!   becomes `arr[1, 2]`).
+//! - A single `MultipliedStatement` filling the entire array uses nested FOR
+//!   loops (one per dimension).
 //! - Partial multiplied segments on multi-dim arrays are unrolled to individual
 //!   assignments with computed indices.
+//!
+//! ## Side effects
+//!
+//! After lowering, the pass:
+//! 1. **Strips the original initializer** from the variable / user-type
+//!    declaration so the data-type generator does not attempt to create a
+//!    `__init` global for an expression it cannot evaluate.
+//! 2. **Adds `VAR_TEMP` counter variables** (e.g. `__literal_idx`) to POUs
+//!    that contain generated FOR loops.
 
 use std::collections::{BTreeSet, HashMap};
 
@@ -218,6 +274,10 @@ fn is_lowered_type(var: &Variable, lowered_type_names: &[String]) -> bool {
 
 /// Checks whether `stmt` is an assignment whose RHS is a `LiteralArray`. If so,
 /// returns the resolved array type name and the lowered statements.
+///
+/// Only arrays whose elements contain non-constant expressions (e.g. function calls)
+/// are lowered. Constant array literals are handled efficiently at codegen level via
+/// memcpy from a materialized global constant.
 fn try_lower_array_assignment(
     stmt: &AstNode,
     index: &Index,
@@ -232,6 +292,12 @@ fn try_lower_array_assignment(
     else {
         return None;
     };
+
+    // Only lower if the array contains non-constant expressions (function calls).
+    // Constant array literals are handled at codegen via memcpy from a global.
+    if !contains_non_constant_expression(elements) {
+        return None;
+    }
 
     // Look up the LHS variable type to get array dimensions.
     let lhs_type_name = find_lhs_type_name(data.left.as_ref(), index, pou_type_name)?;
@@ -256,6 +322,30 @@ fn try_lower_array_assignment(
     let array_info = ArrayInfo { dims };
     let lowered = lower_array_elements(data.left.as_ref(), elements, &array_info, id_provider);
     Some((lhs_type_name, lowered))
+}
+
+/// Returns `true` if the expression tree contains any non-constant expression
+/// that cannot be evaluated at compile time, such as function calls or struct
+/// literal initializers `(a := 1, b := 2)`.
+fn contains_non_constant_expression(node: &AstNode) -> bool {
+    !is_constant_expression(node)
+}
+
+/// Returns `true` if every leaf in the expression tree is a compile-time constant
+/// (literal integer, real, bool, string, etc.).  Anything else — variable references,
+/// function calls, struct literal assignments — is considered non-constant.
+fn is_constant_expression(node: &AstNode) -> bool {
+    match node.get_stmt() {
+        AstStatement::Literal(..) => true,
+        AstStatement::ExpressionList(exprs) => exprs.iter().all(is_constant_expression),
+        AstStatement::MultipliedStatement(MultipliedStatement { element, .. }) => {
+            is_constant_expression(element)
+        }
+        AstStatement::ParenExpression(inner) => is_constant_expression(inner),
+        // Everything else: variable references, function calls, struct literal
+        // assignments, etc. — not a compile-time constant.
+        _ => false,
+    }
 }
 
 /// Determines the type name of the LHS of an assignment by consulting the index.

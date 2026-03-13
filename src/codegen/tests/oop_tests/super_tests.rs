@@ -717,6 +717,8 @@ fn super_with_array_access() {
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
+    @.const_init = private unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
 
     define void @parent(ptr %0) {
     entry:
@@ -755,31 +757,10 @@ fn super_with_array_access() {
       call void @__parent_arr__ctor(ptr %arr)
       %deref2 = load ptr, ptr %self, align [filtered]
       %arr3 = getelementptr inbounds nuw %parent, ptr %deref2, i32 0, i32 1
-      %tmpVar = getelementptr inbounds [6 x i16], ptr %arr3, i32 0, i32 0
-      store i16 1, ptr %tmpVar, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr3, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([6 x i16], ptr null, i32 1) to i64), i1 false)
       %deref4 = load ptr, ptr %self, align [filtered]
-      %arr5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 1
-      %tmpVar6 = getelementptr inbounds [6 x i16], ptr %arr5, i32 0, i32 1
-      store i16 2, ptr %tmpVar6, align [filtered]
-      %deref7 = load ptr, ptr %self, align [filtered]
-      %arr8 = getelementptr inbounds nuw %parent, ptr %deref7, i32 0, i32 1
-      %tmpVar9 = getelementptr inbounds [6 x i16], ptr %arr8, i32 0, i32 2
-      store i16 3, ptr %tmpVar9, align [filtered]
-      %deref10 = load ptr, ptr %self, align [filtered]
-      %arr11 = getelementptr inbounds nuw %parent, ptr %deref10, i32 0, i32 1
-      %tmpVar12 = getelementptr inbounds [6 x i16], ptr %arr11, i32 0, i32 3
-      store i16 4, ptr %tmpVar12, align [filtered]
-      %deref13 = load ptr, ptr %self, align [filtered]
-      %arr14 = getelementptr inbounds nuw %parent, ptr %deref13, i32 0, i32 1
-      %tmpVar15 = getelementptr inbounds [6 x i16], ptr %arr14, i32 0, i32 4
-      store i16 5, ptr %tmpVar15, align [filtered]
-      %deref16 = load ptr, ptr %self, align [filtered]
-      %arr17 = getelementptr inbounds nuw %parent, ptr %deref16, i32 0, i32 1
-      %tmpVar18 = getelementptr inbounds [6 x i16], ptr %arr17, i32 0, i32 5
-      store i16 6, ptr %tmpVar18, align [filtered]
-      %deref19 = load ptr, ptr %self, align [filtered]
-      %__vtable20 = getelementptr inbounds nuw %parent, ptr %deref19, i32 0, i32 0
-      store ptr @__vtable_parent_instance, ptr %__vtable20, align [filtered]
+      %__vtable5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0
+      store ptr @__vtable_parent_instance, ptr %__vtable5, align [filtered]
       ret void
     }
 
@@ -863,6 +844,11 @@ fn super_with_array_access() {
       call void @__vtable_child__ctor(ptr @__vtable_child_instance)
       ret void
     }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -2247,6 +2233,8 @@ fn super_in_loop_constructs() {
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
+    @.const_init = private unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
 
     define void @parent(ptr %0) {
     entry:
@@ -2407,31 +2395,10 @@ fn super_in_loop_constructs() {
       call void @__parent_arr__ctor(ptr %arr)
       %deref3 = load ptr, ptr %self, align [filtered]
       %arr4 = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 2
-      %tmpVar = getelementptr inbounds [6 x i16], ptr %arr4, i32 0, i32 0
-      store i16 1, ptr %tmpVar, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr4, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([6 x i16], ptr null, i32 1) to i64), i1 false)
       %deref5 = load ptr, ptr %self, align [filtered]
-      %arr6 = getelementptr inbounds nuw %parent, ptr %deref5, i32 0, i32 2
-      %tmpVar7 = getelementptr inbounds [6 x i16], ptr %arr6, i32 0, i32 1
-      store i16 2, ptr %tmpVar7, align [filtered]
-      %deref8 = load ptr, ptr %self, align [filtered]
-      %arr9 = getelementptr inbounds nuw %parent, ptr %deref8, i32 0, i32 2
-      %tmpVar10 = getelementptr inbounds [6 x i16], ptr %arr9, i32 0, i32 2
-      store i16 3, ptr %tmpVar10, align [filtered]
-      %deref11 = load ptr, ptr %self, align [filtered]
-      %arr12 = getelementptr inbounds nuw %parent, ptr %deref11, i32 0, i32 2
-      %tmpVar13 = getelementptr inbounds [6 x i16], ptr %arr12, i32 0, i32 3
-      store i16 4, ptr %tmpVar13, align [filtered]
-      %deref14 = load ptr, ptr %self, align [filtered]
-      %arr15 = getelementptr inbounds nuw %parent, ptr %deref14, i32 0, i32 2
-      %tmpVar16 = getelementptr inbounds [6 x i16], ptr %arr15, i32 0, i32 4
-      store i16 5, ptr %tmpVar16, align [filtered]
-      %deref17 = load ptr, ptr %self, align [filtered]
-      %arr18 = getelementptr inbounds nuw %parent, ptr %deref17, i32 0, i32 2
-      %tmpVar19 = getelementptr inbounds [6 x i16], ptr %arr18, i32 0, i32 5
-      store i16 6, ptr %tmpVar19, align [filtered]
-      %deref20 = load ptr, ptr %self, align [filtered]
-      %__vtable21 = getelementptr inbounds nuw %parent, ptr %deref20, i32 0, i32 0
-      store ptr @__vtable_parent_instance, ptr %__vtable21, align [filtered]
+      %__vtable6 = getelementptr inbounds nuw %parent, ptr %deref5, i32 0, i32 0
+      store ptr @__vtable_parent_instance, ptr %__vtable6, align [filtered]
       ret void
     }
 
@@ -2551,6 +2518,11 @@ fn super_in_loop_constructs() {
       call void @__vtable_child__ctor(ptr @__vtable_child_instance)
       ret void
     }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -2924,6 +2896,8 @@ fn super_with_structured_types() {
     @__vtable_child_instance = global %__vtable_child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
     @__parent.data__init = unnamed_addr constant %Complex_Type { i16 10, i16 20, float 3.050000e+01 }
+    @.const_init = private unnamed_addr constant %Complex_Type { i16 1, i16 2, float 3.500000e+00 }
+    @.const_init.1 = private unnamed_addr constant %Complex_Type { i16 4, i16 5, float 6.500000e+00 }
 
     define void @parent(ptr %0) {
     entry:
@@ -3012,11 +2986,11 @@ fn super_with_structured_types() {
       %deref9 = load ptr, ptr %self, align [filtered]
       %arr_data10 = getelementptr inbounds nuw %parent, ptr %deref9, i32 0, i32 2
       %tmpVar = getelementptr inbounds [2 x %Complex_Type], ptr %arr_data10, i32 0, i32 0
-      store %Complex_Type { i16 1, i16 2, float 3.500000e+00 }, ptr %tmpVar, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %tmpVar, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr (%Complex_Type, ptr null, i32 1) to i64), i1 false)
       %deref11 = load ptr, ptr %self, align [filtered]
       %arr_data12 = getelementptr inbounds nuw %parent, ptr %deref11, i32 0, i32 2
       %tmpVar13 = getelementptr inbounds [2 x %Complex_Type], ptr %arr_data12, i32 0, i32 1
-      store %Complex_Type { i16 4, i16 5, float 6.500000e+00 }, ptr %tmpVar13, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %tmpVar13, ptr align [filtered] @.const_init.1, i64 ptrtoint (ptr getelementptr (%Complex_Type, ptr null, i32 1) to i64), i1 false)
       %deref14 = load ptr, ptr %self, align [filtered]
       %__vtable15 = getelementptr inbounds nuw %parent, ptr %deref14, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable15, align [filtered]
@@ -3124,7 +3098,11 @@ fn super_with_structured_types() {
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #1
+
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
