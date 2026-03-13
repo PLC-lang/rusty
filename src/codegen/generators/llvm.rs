@@ -10,7 +10,7 @@ use inkwell::{
     context::Context,
     module::{Linkage, Module},
     types::{BasicTypeEnum, StringRadix},
-    values::{AnyValue, BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
+    values::{AnyValue, AsValueRef, BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
     AddressSpace,
 };
 use plc_ast::ast::{AstNode, AstStatement};
@@ -20,13 +20,13 @@ use plc_source::source_location::SourceLocation;
 use super::expression_generator::ExpressionCodeGenerator;
 use super::ADDRESS_SPACE_GENERIC;
 
-static RETAIN_SECTION_NAME: &str = ".retain";
-
 /// Holds dependencies required to generate IR-code
 pub struct Llvm<'a> {
     pub context: &'a Context,
     pub builder: Builder<'a>,
 }
+
+static RETAIN_SECTION_NAME: &str = ".retain";
 
 pub trait GlobalValueExt {
     fn make_constant(self) -> Self;
@@ -53,6 +53,11 @@ impl GlobalValueExt for GlobalValue<'_> {
         self
     }
 
+    fn make_retain(self) -> Self {
+        self.set_section(Some(RETAIN_SECTION_NAME));
+        self
+    }
+
     fn set_initial_value(self, initial_value: Option<BasicValueEnum>, data_type: BasicTypeEnum) -> Self {
         if let Some(initializer) = initial_value {
             let v = &initializer as &dyn BasicValue;
@@ -60,11 +65,6 @@ impl GlobalValueExt for GlobalValue<'_> {
         } else {
             Llvm::set_const_zero_initializer(&self, data_type);
         };
-        self
-    }
-
-    fn make_retain(self) -> Self {
-        self.set_section(Some(RETAIN_SECTION_NAME));
         self
     }
 }
@@ -92,6 +92,40 @@ impl<'a> Llvm<'a> {
         let global = module.add_global(data_type, None, name);
         global.set_thread_local_mode(None);
         global
+    }
+
+    /// Materializes an aggregate constant (array or struct) as an anonymous, unnamed-addr
+    /// global constant in the current module and returns a pointer to it. This avoids
+    /// emitting bloated inline `store` instructions for large literal values.
+    ///
+    /// The module is obtained from the builder's current insert position.
+    pub fn materialize_as_global(
+        &self,
+        value: &BasicValueEnum<'a>,
+    ) -> Result<PointerValue<'a>, CodegenError> {
+        let block = self.builder.get_insert_block().ok_or_else(|| {
+            CodegenError::new(
+                "No insert block when materializing global constant",
+                SourceLocation::internal(),
+            )
+        })?;
+        let function = block.get_parent().ok_or_else(|| {
+            CodegenError::new("No parent function for insert block", SourceLocation::internal())
+        })?;
+        // SAFETY: We obtain the module from the current function's parent via LLVM C API.
+        // The module lifetime is tied to the context ('a) which outlives this operation.
+        let module = unsafe {
+            let module_ref = inkwell::llvm_sys::core::LLVMGetGlobalParent(function.as_value_ref());
+            Module::new(module_ref)
+        };
+        let global = module.add_global(value.get_type(), None, ".const_init");
+        global.set_initializer(value);
+        global.set_constant(true);
+        global.set_unnamed_addr(true);
+        global.set_linkage(Linkage::Private);
+        // Prevent Module::drop from disposing the module we don't own
+        std::mem::forget(module);
+        Ok(global.as_pointer_value())
     }
 
     /// creates a local variable at the builder's location
