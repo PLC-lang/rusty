@@ -23,7 +23,10 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
     array_lowering,
     retain::RetainParticipant,
-    {inheritance::InheritanceLowerer, initializer::Initializer},
+    {
+        control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
+        initializer::Initializer,
+    },
 };
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
@@ -340,5 +343,13 @@ impl PipelineParticipantMut for RetainParticipant {
         self.lower_retain(&mut project.units, index);
         //Re-index
         project.index(self.ids.clone())
+    }
+}
+
+impl PipelineParticipantMut for ControlStatementParticipant {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        self.lower_control_statements(&mut units);
+        ParsedProject { units }
     }
 }

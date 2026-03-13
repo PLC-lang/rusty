@@ -22,34 +22,40 @@ entry:
   %b3 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 6
   %load_b1 = load i8, ptr %b1, align [filtered]
   %1 = icmp ne i8 %load_b1, 0
-  br i1 %1, label %condition_body, label %branch
+  br i1 %1, label %condition_body, label %else
 
 condition_body:                                   ; preds = %entry
   %load_x = load i32, ptr %x, align [filtered]
   br label %continue
 
-branch:                                           ; preds = %entry
+else:                                             ; preds = %entry
   %load_b2 = load i8, ptr %b2, align [filtered]
   %2 = icmp ne i8 %load_b2, 0
-  br i1 %2, label %condition_body2, label %branch1
+  br i1 %2, label %condition_body3, label %else1
 
-condition_body2:                                  ; preds = %branch
+continue:                                         ; preds = %continue2, %condition_body
+  ret void
+
+condition_body3:                                  ; preds = %else
   %load_y = load i32, ptr %y, align [filtered]
-  br label %continue
+  br label %continue2
 
-branch1:                                          ; preds = %branch
+else1:                                            ; preds = %else
   %load_b3 = load i8, ptr %b3, align [filtered]
   %3 = icmp ne i8 %load_b3, 0
-  br i1 %3, label %condition_body3, label %else
+  br i1 %3, label %condition_body6, label %else4
 
-condition_body3:                                  ; preds = %branch1
+continue2:                                        ; preds = %continue5, %condition_body3
+  br label %continue
+
+condition_body6:                                  ; preds = %else1
   %load_z = load i32, ptr %z, align [filtered]
-  br label %continue
+  br label %continue5
 
-else:                                             ; preds = %branch1
+else4:                                            ; preds = %else1
   %load_u = load i32, ptr %u, align [filtered]
-  br label %continue
+  br label %continue5
 
-continue:                                         ; preds = %else, %condition_body3, %condition_body2, %condition_body
-  ret void
+continue5:                                        ; preds = %else4, %condition_body6
+  br label %continue2
 }
