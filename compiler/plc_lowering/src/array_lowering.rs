@@ -149,6 +149,12 @@ struct LoweredResult {
     counter_names: BTreeSet<String>,
 }
 
+struct LoweredAssignment {
+    type_name: String,
+    variable_name: Option<String>,
+    lowered: LoweredResult,
+}
+
 // ── Public entry point ──────────────────────────────────────────────────────
 
 /// Walks every implementation in the compilation unit and rewrites assignments whose
@@ -157,11 +163,11 @@ struct LoweredResult {
 /// from variable declarations so that the data-type generator does not attempt
 /// to codegen the (possibly problematic) literal constant.
 pub fn lower_literal_arrays(unit: &mut CompilationUnit, index: &Index, id_provider: &mut IdProvider) {
-    // Collect the array type names whose body assignments were successfully
-    // lowered (e.g. "__main_arr", "tarr").  We strip the corresponding
-    // initializer from variable and user-type declarations so the
-    // data-type generator doesn't try to codegen the literal constant.
-    let mut lowered_type_names: Vec<String> = Vec::new();
+    // Track variable declarations whose initializers were lowered in body code.
+    // Keyed by POU/type name -> variable names.
+    let mut lowered_variables: HashMap<String, BTreeSet<String>> = HashMap::new();
+    // Track user-type declarations whose type-level initializer was lowered.
+    let mut lowered_user_types: BTreeSet<String> = BTreeSet::new();
     // Track which POUs need which counter variables for FOR loops.
     let mut pou_counters: HashMap<String, BTreeSet<String>> = HashMap::new();
 
@@ -170,12 +176,20 @@ pub fn lower_literal_arrays(unit: &mut CompilationUnit, index: &Index, id_provid
         let mut counters: BTreeSet<String> = BTreeSet::new();
 
         for stmt in std::mem::take(&mut implementation.statements) {
-            if let Some((type_name, lowered)) =
+            if let Some(lowered_assignment) =
                 try_lower_array_assignment(&stmt, index, &implementation.type_name, id_provider)
             {
-                counters.extend(lowered.counter_names);
-                new_statements.extend(lowered.statements);
-                lowered_type_names.push(type_name);
+                counters.extend(lowered_assignment.lowered.counter_names);
+                new_statements.extend(lowered_assignment.lowered.statements);
+
+                if let Some(variable_name) = lowered_assignment.variable_name {
+                    lowered_variables
+                        .entry(implementation.type_name.clone())
+                        .or_default()
+                        .insert(variable_name);
+                } else {
+                    lowered_user_types.insert(lowered_assignment.type_name);
+                }
             } else {
                 new_statements.push(stmt);
             }
@@ -192,8 +206,8 @@ pub fn lower_literal_arrays(unit: &mut CompilationUnit, index: &Index, id_provid
     // assignments were lowered.  This prevents the data-type generator from
     // trying to codegen the literal as a const (which can cause infinite
     // recursion for struct-of-array patterns or O(n²) scaling for large arrays).
-    if !lowered_type_names.is_empty() {
-        strip_initializers(unit, &lowered_type_names);
+    if !lowered_variables.is_empty() || !lowered_user_types.is_empty() {
+        strip_initializers(unit, &lowered_variables, &lowered_user_types);
     }
 
     // Add VAR_TEMP counter variables to POUs that need them for FOR loops.
@@ -234,13 +248,21 @@ fn add_counter_variables(unit: &mut CompilationUnit, pou_counters: &HashMap<Stri
 // ── Strip initializers ──────────────────────────────────────────────────────
 
 /// Removes array-literal initializers from POU variable declarations and
-/// user-type declarations whose array type was lowered into body statements.
-fn strip_initializers(unit: &mut CompilationUnit, lowered_type_names: &[String]) {
-    // Strip from POU variable declarations.
+/// user-type declarations that were specifically lowered.
+fn strip_initializers(
+    unit: &mut CompilationUnit,
+    lowered_variables: &HashMap<String, BTreeSet<String>>,
+    lowered_user_types: &BTreeSet<String>,
+) {
+    // Strip from specific POU variable declarations.
     for pou in &mut unit.pous {
+        let Some(lowered_names) = lowered_variables.get(&pou.name) else {
+            continue;
+        };
+
         for block in &mut pou.variable_blocks {
             for var in &mut block.variables {
-                if has_array_literal_initializer(var) && is_lowered_type(var, lowered_type_names) {
+                if has_array_literal_initializer(var) && lowered_names.contains(&var.name) {
                     var.initializer = None;
                 }
             }
@@ -251,7 +273,7 @@ fn strip_initializers(unit: &mut CompilationUnit, lowered_type_names: &[String])
     for udt in &mut unit.user_types {
         if udt.initializer.as_ref().is_some_and(is_literal_array_node) {
             let type_name = udt.data_type.get_name();
-            if type_name.is_some_and(|n| lowered_type_names.iter().any(|lt| lt == n)) {
+            if type_name.is_some_and(|n| lowered_user_types.contains(n)) {
                 udt.initializer = None;
             }
         }
@@ -264,10 +286,6 @@ fn has_array_literal_initializer(var: &Variable) -> bool {
 
 fn is_literal_array_node(node: &AstNode) -> bool {
     matches!(node.get_stmt(), AstStatement::Literal(AstLiteral::Array(_)))
-}
-
-fn is_lowered_type(var: &Variable, lowered_type_names: &[String]) -> bool {
-    var.data_type_declaration.get_name().is_some_and(|name| lowered_type_names.iter().any(|lt| lt == name))
 }
 
 // ── Core lowering ───────────────────────────────────────────────────────────
@@ -283,7 +301,7 @@ fn try_lower_array_assignment(
     index: &Index,
     pou_type_name: &str,
     id_provider: &mut IdProvider,
-) -> Option<(String, LoweredResult)> {
+) -> Option<LoweredAssignment> {
     let AstStatement::Assignment(data) = stmt.get_stmt() else {
         return None;
     };
@@ -321,7 +339,9 @@ fn try_lower_array_assignment(
 
     let array_info = ArrayInfo { dims };
     let lowered = lower_array_elements(data.left.as_ref(), elements, &array_info, id_provider);
-    Some((lhs_type_name, lowered))
+    let variable_name = find_lhs_variable_name(data.left.as_ref());
+
+    Some(LoweredAssignment { type_name: lhs_type_name, variable_name, lowered })
 }
 
 /// Returns `true` if the expression tree contains any non-constant expression
@@ -399,6 +419,34 @@ fn find_lhs_type_name(lhs: &AstNode, index: &Index, pou_type_name: &str) -> Opti
                     .or_else(|| index.find_effective_type_info(name).map(|_| name.clone()))
             }
         }
+        _ => None,
+    }
+}
+
+/// Best-effort extraction of the variable/member name assigned on the LHS.
+/// Returns `None` for `self := ...` assignments (type-level ctor init).
+fn find_lhs_variable_name(lhs: &AstNode) -> Option<String> {
+    match lhs.get_stmt() {
+        AstStatement::ReferenceExpr(plc_ast::ast::ReferenceExpr {
+            access: plc_ast::ast::ReferenceAccess::Member(member),
+            base,
+        }) => {
+            let member_name = member.get_flat_reference_name()?.to_string();
+            if member_name == "self" {
+                return None;
+            }
+
+            if let Some(base) = base {
+                // `self.arr` (or any member access ending in a member name) -> `arr`
+                if base.get_flat_reference_name().is_some() {
+                    return Some(member_name);
+                }
+                None
+            } else {
+                Some(member_name)
+            }
+        }
+        AstStatement::Identifier(name) if name != "self" => Some(name.clone()),
         _ => None,
     }
 }

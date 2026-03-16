@@ -2709,7 +2709,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // For aggregate constant values (array/struct literals), avoid emitting a giant
             // inline `store` instruction. Instead, materialize the constant as an anonymous
             // global and memcpy from it — this is O(1) in IR size regardless of array length.
-            if (expression.is_array_value() || expression.is_struct_value()) && left_type.is_aggregate() {
+            if expression.is_const()
+                && (expression.is_array_value() || expression.is_struct_value())
+                && left_type.is_aggregate()
+            {
                 self.store_aggregate_via_memcpy(left, left_type, expression, right_statement)?;
             } else {
                 self.llvm.builder.build_store(left, expression)?;

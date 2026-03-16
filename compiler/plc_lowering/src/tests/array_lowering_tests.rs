@@ -256,11 +256,10 @@ fn variable_as_element_value_is_lowered() {
 }
 
 #[test]
-fn variable_as_multiplier_count_with_literal_value_is_lowered() {
-    // The multiplier in `(a)(40)` is syntactically a variable reference,
-    // but more importantly the expression tree has a non-literal multiplier.
-    // The element `40` is constant but the overall construct is non-constant
-    // because the repetition count is runtime.
+fn variable_elements_in_expression_list_are_lowered() {
+    // The array uses an expression list where each element is a variable
+    // reference (`[a, a, a]`), so the initializer is non-constant and must
+    // be lowered into indexed runtime assignments.
     let project = lower(
         "
         FUNCTION main : DINT
@@ -276,6 +275,44 @@ fn variable_as_multiplier_count_with_literal_value_is_lowered() {
     assert!(!has_literal_array(stmts), "Variable-element expression list should be lowered");
     // 3 indexed assignments + `a := 42` + `main := 0`
     assert_eq!(count_assignments(stmts), 5);
+}
+
+#[test]
+fn only_lowered_variable_initializer_is_stripped_for_shared_type() {
+    let project = lower(
+        "
+        TYPE tarr : ARRAY[0..2] OF DINT; END_TYPE
+
+        FUNCTION main : DINT
+        VAR
+            seed : DINT := 42;
+            lowered_arr : tarr := [3(seed)];
+            const_arr : tarr := [3(7)];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+
+    let pou = project.units[0].get_unit().pous.iter().find(|p| p.name == "main").unwrap();
+    let lowered_arr = pou
+        .variable_blocks
+        .iter()
+        .flat_map(|b| &b.variables)
+        .find(|v| v.name == "lowered_arr")
+        .expect("lowered_arr variable should exist");
+    let const_arr = pou
+        .variable_blocks
+        .iter()
+        .flat_map(|b| &b.variables)
+        .find(|v| v.name == "const_arr")
+        .expect("const_arr variable should exist");
+
+    assert!(lowered_arr.initializer.is_none(), "Lowered initializer should be stripped");
+    assert!(
+        const_arr.initializer.is_some(),
+        "Initializer for same-type variable without lowering must be preserved"
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

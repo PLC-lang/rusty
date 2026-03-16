@@ -112,18 +112,23 @@ impl<'a> Llvm<'a> {
         let function = block.get_parent().ok_or_else(|| {
             CodegenError::new("No parent function for insert block", SourceLocation::internal())
         })?;
-        // SAFETY: We obtain the module from the current function's parent via LLVM C API.
-        // The module lifetime is tied to the context ('a) which outlives this operation.
-        let module = unsafe {
-            let module_ref = inkwell::llvm_sys::core::LLVMGetGlobalParent(function.as_value_ref());
-            Module::new(module_ref)
-        };
+        // SAFETY: inkwell does not expose a safe API to get a function's parent
+        // module, so we query it via LLVM C API. We only wrap a non-null module
+        // ref and must not drop the wrapper because we do not own module lifetime.
+        let module_ref = unsafe { inkwell::llvm_sys::core::LLVMGetGlobalParent(function.as_value_ref()) };
+        if module_ref.is_null() {
+            return Err(CodegenError::new(
+                "No parent module for insert function",
+                SourceLocation::internal(),
+            ));
+        }
+        let module = unsafe { Module::new(module_ref) };
         let global = module.add_global(value.get_type(), None, ".const_init");
         global.set_initializer(value);
         global.set_constant(true);
         global.set_unnamed_addr(true);
         global.set_linkage(Linkage::Private);
-        // Prevent Module::drop from disposing the module we don't own
+        // Prevent Module::drop from disposing the module we don't own.
         std::mem::forget(module);
         Ok(global.as_pointer_value())
     }
