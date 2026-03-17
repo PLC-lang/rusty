@@ -5,12 +5,14 @@ pub mod tests {
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
+        mut_visitor::AstVisitorMut,
         provider::IdProvider,
     };
     use plc_diagnostics::{
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use plc_index::GlobalContext;
+    use plc_lowering::control_statement::ControlStatementLowerer;
     use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
@@ -146,6 +148,11 @@ pub mod tests {
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
         all_annotations.import(annotations);
+
+        // TODO: Added the control statement lowerer for now... but maybe we should be using the pipeline participants for codegen as well
+        // so that we can get a "true" representation of what would be generated when the compiler is run.
+        let mut control_statement_lowerer = ControlStatementLowerer::new(id_provider.clone());
+        control_statement_lowerer.visit_compilation_unit(&mut unit);
 
         let mut aggregate_lowerer = AggregateTypeLowerer::new(id_provider.clone());
         aggregate_lowerer.index.replace(index);
