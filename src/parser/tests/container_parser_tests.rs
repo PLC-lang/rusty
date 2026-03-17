@@ -1,6 +1,6 @@
 use crate::test_utils::tests::parse;
 use insta::assert_debug_snapshot;
-use pretty_assertions::*;
+use pretty_assertions::{assert_eq, assert_ne};
 
 #[test]
 fn action_container_parsed() {

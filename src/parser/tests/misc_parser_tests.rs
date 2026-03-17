@@ -10,7 +10,7 @@ use plc_ast::{
     },
     control_statements::{AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement},
 };
-use pretty_assertions::*;
+use pretty_assertions::{assert_eq, assert_ne};
 use rustc_hash::FxHashSet;
 
 #[test]
