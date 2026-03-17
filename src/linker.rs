@@ -147,7 +147,10 @@ fn resolve_internal_linker(target: &str) -> Result<CcLinker, LinkerError> {
             log::debug!("cc rejected for target `{target}`: {err:?}");
             if which("clang").is_ok() {
                 log::trace!("Falling back to clang");
-                resolve_driver_linker("clang", target)
+                resolve_driver_linker("clang", target).or_else(|err| {
+                    log::debug!("clang rejected for target `{target}`: {err:?}");
+                    resolve_direct_linker_fallback()
+                })
             } else {
                 log::trace!("clang unavailable, falling back to direct linker resolution");
                 resolve_direct_linker_fallback()
@@ -249,17 +252,32 @@ fn default_driver_pre_args() -> Vec<String> {
     args
 }
 
-/// Probe whether a driver linker accepts `--target=<triple>`.
+/// Probe whether a driver linker can actually compile **and link** for `target`.
+///
+/// We feed a minimal C program through the driver with `-nostdlib` so no sysroot
+/// libraries are required — but the driver still needs a working linker backend
+/// for the target architecture.  This catches cases where `--target=` is accepted
+/// by the compiler front-end (e.g. clang) but the host lacks cross-linker support.
 fn supports_target_flag(linker: &str, target: &str) -> bool {
     let null_output = if cfg!(windows) { "NUL" } else { "/dev/null" };
 
+    // Tiny C program that provides its own entry point so we don't need crt*.o.
+    let probe_src = "void _start(){}";
+
     let supported = Command::new(linker)
         .arg(format!("--target={target}"))
-        .args(["-x", "c", "-c", "-o", null_output, "-"])
-        .stdin(Stdio::null())
+        .args(["-x", "c", "-nostdlib", "-o", null_output, "-"])
+        .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
-        .status()
+        .spawn()
+        .and_then(|mut child| {
+            use std::io::Write;
+            if let Some(ref mut stdin) = child.stdin {
+                let _ = stdin.write_all(probe_src.as_bytes());
+            }
+            child.wait()
+        })
         .map(|status| status.success())
         .unwrap_or(false);
 
