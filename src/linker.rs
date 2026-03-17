@@ -223,7 +223,7 @@ fn resolve_driver_linker(linker: &str, target: &str) -> Result<CcLinker, LinkerE
     let cross_target = !target_matches_host(target);
     log::trace!("Driver linker `{linker}` cross-target={cross_target} target=`{target}`");
 
-    if supports_target_flag(linker, target) {
+    if supports_target_flag(linker, target, &pre_args) {
         pre_args.push(format!("--target={target}"));
         log::trace!("Driver linker `{linker}` supports --target; added target flag");
     } else if cross_target {
@@ -254,11 +254,11 @@ fn default_driver_pre_args() -> Vec<String> {
 
 /// Probe whether a driver linker can actually compile **and link** for `target`.
 ///
-/// We feed a minimal C program through the driver with `-nostdlib` so no sysroot
-/// libraries are required — but the driver still needs a working linker backend
-/// for the target architecture.  This catches cases where `--target=` is accepted
-/// by the compiler front-end (e.g. clang) but the host lacks cross-linker support.
-fn supports_target_flag(linker: &str, target: &str) -> bool {
+/// The probe includes `pre_args` (e.g. `-fuse-ld=lld`) so that it tests the same
+/// linker backend the driver will actually use.  We compile+link a minimal C
+/// program with `-nostdlib` so no sysroot libraries are required — but the driver
+/// still needs a working linker backend for the target architecture.
+fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool {
     let null_output = if cfg!(windows) { "NUL" } else { "/dev/null" };
 
     // Tiny C program that provides its own entry point so we don't need crt*.o.
@@ -266,6 +266,7 @@ fn supports_target_flag(linker: &str, target: &str) -> bool {
 
     let supported = Command::new(linker)
         .arg(format!("--target={target}"))
+        .args(pre_args)
         .args(["-x", "c", "-nostdlib", "-o", null_output, "-"])
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
@@ -281,7 +282,7 @@ fn supports_target_flag(linker: &str, target: &str) -> bool {
         .map(|status| status.success())
         .unwrap_or(false);
 
-    log::trace!("supports_target_flag(linker=`{linker}`, target=`{target}`) => {supported}");
+    log::trace!("supports_target_flag(linker=`{linker}`, target=`{target}`, pre_args={pre_args:?}) => {supported}");
     supported
 }
 
