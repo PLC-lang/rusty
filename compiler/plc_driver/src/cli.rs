@@ -1,13 +1,13 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
-use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
+use plc_diagnostics::diagnostics::{Diagnostic, diagnostics_registry::DiagnosticsConfiguration};
 use plc_header_generator::GenerateLanguage;
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
 use plc::output::FormatOption;
-use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
+use plc::{ConfigFormat, DEFAULT_GOT_LAYOUT_FILE, DebugLevel, ErrorFormat, Target, Threads};
 
 pub type ParameterError = clap::Error;
 
@@ -190,6 +190,39 @@ pub struct CompileParameters {
 
     #[clap(name = "linker", long, help = "Define a custom (cc compatible) linker command", global = true)]
     pub linker: Option<String>,
+
+    #[clap(
+        name = "linker-arg",
+        long = "linker-arg",
+        help = "Pass a single argument directly to the linker (repeatable)",
+        global = true
+    )]
+    pub linker_args: Vec<String>,
+
+    #[clap(
+        name = "fuse-ld",
+        long = "fuse-ld",
+        alias = "fuse",
+        help = "When using cc/clang-style drivers, pass a custom backend linker (maps to -fuse-ld=<value>)",
+        global = true
+    )]
+    pub fuse_linker: Option<String>,
+
+    #[clap(
+        name = "nocrt",
+        long = "nocrt",
+        help = "Do not link C runtime startup files (for cc/clang driver mode)",
+        global = true
+    )]
+    pub no_crt: bool,
+
+    #[clap(
+        name = "nolibc",
+        long = "nolibc",
+        help = "Do not link default C libraries (for cc/clang driver mode)",
+        global = true
+    )]
+    pub no_libc: bool,
 
     #[clap(
         name = "debug",
@@ -591,7 +624,7 @@ mod cli_tests {
 
     use super::{CompileParameters, SubCommands};
     use clap::ErrorKind;
-    use plc::{output::FormatOption, ConfigFormat, ErrorFormat, OptimizationLevel};
+    use plc::{ConfigFormat, ErrorFormat, OptimizationLevel, output::FormatOption};
     use pretty_assertions::assert_eq;
     use std::ffi::OsStr;
     use std::fmt::Debug;
@@ -875,6 +908,28 @@ mod cli_tests {
     }
 
     #[test]
+    fn fuse_ld_is_parsed() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--fuse-ld", "mold")).unwrap();
+        assert_eq!(parameters.fuse_linker, Some("mold".to_string()));
+    }
+
+    #[test]
+    fn no_crt_and_no_libc_are_parsed() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--nocrt", "--nolibc")).unwrap();
+        assert!(parameters.no_crt);
+        assert!(parameters.no_libc);
+    }
+
+    #[test]
+    fn linker_args_are_parsed() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--linker-arg=-z", "--linker-arg=defs"))
+                .unwrap();
+        assert_eq!(parameters.linker_args, vec!["-z", "defs"]);
+    }
+
+    #[test]
     fn cli_supports_version() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
             Ok(version) => assert!(version.build_info),
@@ -1063,13 +1118,15 @@ mod cli_tests {
     fn test_gdwarf_and_debug_mutually_exclusive() {
         assert!(CompileParameters::parse(vec_of_strings!("input.st", "--debug", "--gdwarf", "2")).is_err());
         assert!(CompileParameters::parse(vec_of_strings!("input.st", "-g", "--gdwarf", "4")).is_err());
-        assert!(CompileParameters::parse(vec_of_strings!(
-            "input.st",
-            "--debug-variables",
-            "--gdwarf-variables",
-            "3"
-        ))
-        .is_err());
+        assert!(
+            CompileParameters::parse(vec_of_strings!(
+                "input.st",
+                "--debug-variables",
+                "--gdwarf-variables",
+                "3"
+            ))
+            .is_err()
+        );
     }
 
     #[test]

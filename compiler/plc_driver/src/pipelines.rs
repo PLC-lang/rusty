@@ -9,37 +9,38 @@ use std::{
 };
 
 use crate::{
+    CompileOptions, LinkOptions, LinkerScript,
     cli::{self, CompileParameters, ConfigOption, GenerateOption, SubCommands},
-    get_project, CompileOptions, LinkOptions, LinkerScript,
+    get_project,
 };
 use ast::{
-    ast::{pre_process, CompilationUnit, LinkageType},
+    ast::{CompilationUnit, LinkageType, pre_process},
     provider::IdProvider,
 };
 
 use itertools::Itertools;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
+    ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
     codegen::{CodegenContext, GeneratedModule},
-    index::{indexer, FxIndexSet, Index},
+    index::{FxIndexSet, Index, indexer},
     linker::LinkerType,
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
     output::FormatOption,
     parser::parse_file,
     resolver::{
-        const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
-        TypeAnnotator,
+        AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator,
+        const_evaluator::UnresolvableConstant,
     },
     validation::Validator,
-    ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
 };
 use plc_header_generator::{
-    header_generator::{combine_generated_headers, get_generated_header, GeneratedHeader},
     GenerateHeaderOptions,
+    header_generator::{GeneratedHeader, combine_generated_headers, get_generated_header},
 };
 use plc_index::GlobalContext;
 use plc_lowering::{
@@ -52,7 +53,7 @@ use project::{
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use source_code::{source_location::SourceLocation, SourceContainer};
+use source_code::{SourceContainer, source_location::SourceLocation};
 
 use serde_json;
 use toml;
@@ -227,6 +228,10 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 library_paths,
                 format: output_format,
                 linker: self.linker.clone(),
+                fuse_linker: params.fuse_linker.clone(),
+                linker_args: params.linker_args.clone(),
+                no_crt: params.no_crt,
+                no_libc: params.no_libc,
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
                 linker_script,
@@ -1061,6 +1066,22 @@ impl GeneratedProject {
                 let target_triple = self.target.get_target_triple();
                 let mut linker =
                     plc::linker::Linker::new(&target_triple.as_str().to_string_lossy(), link_options.linker)?;
+                if let Some(fuse) = &link_options.fuse_linker {
+                    log::debug!("Applying --fuse-ld={fuse}");
+                    linker.set_fuse_ld(fuse);
+                }
+                if link_options.no_crt {
+                    log::debug!("Applying --nocrt to linker invocation");
+                    linker.set_no_crt();
+                }
+                if link_options.no_libc {
+                    log::debug!("Applying --nolibc to linker invocation");
+                    linker.set_no_libc();
+                }
+                for arg in &link_options.linker_args {
+                    log::trace!("Applying --linker-arg={arg}");
+                    linker.add_linker_arg(arg);
+                }
                 for obj in &self.objects {
                     linker.add_obj(&obj.get_path().to_string_lossy());
                 }

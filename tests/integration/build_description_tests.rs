@@ -78,6 +78,26 @@ fn build_with_separate_lib_folder() {
 
 #[test]
 #[serial]
+fn build_with_library_link_path() {
+    let dir = tempfile::tempdir().unwrap();
+    let parameters = &[
+        "plc",
+        "build",
+        &get_test_file("json/build_with_link_path.json"),
+        "--target",
+        "x86_64-linux-gnu",
+        "--build-location",
+        dir.path().to_str().unwrap(),
+    ];
+    compile(parameters).unwrap();
+
+    assert!(dir.path().join("x86_64-linux-gnu").join("proj_link_path.so").is_file());
+    // Copy behavior remains directory based and should still include library payloads.
+    assert!(dir.path().join("libcopy.so").is_file());
+}
+
+#[test]
+#[serial]
 #[cfg_attr(target_os = "windows", ignore = "linker is not available for windows")]
 fn build_with_target_but_without_sysroot() {
     let dir = tempfile::tempdir().unwrap();

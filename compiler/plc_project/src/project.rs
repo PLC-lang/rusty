@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use glob::glob;
 use regex::Regex;
 
@@ -130,8 +130,28 @@ impl Project<PathBuf> {
             .libraries
             .into_iter()
             .map(|conf| {
-                let lib_path = config.parent().map(|it| it.join(&conf.path)).unwrap_or_else(|| conf.path);
+                let lib_path = config.parent().map(|it| it.join(&conf.path)).unwrap_or_else(|| conf.path.clone());
                 let linkage: Linkage = conf.package.into();
+
+                let link_name = if let Some(link_path) = conf.link_path.as_ref() {
+                    let resolved = if link_path.is_absolute() {
+                        link_path.clone()
+                    } else {
+                        lib_path.join(link_path)
+                    };
+
+                    if !resolved.is_file() {
+                        return Err(anyhow!(
+                            "configured link_path '{}' does not exist or is not a file",
+                            resolved.display()
+                        ));
+                    }
+
+                    resolved.to_string_lossy().to_string()
+                } else {
+                    conf.name.clone()
+                };
+
                 // Use the linkage type to find the library from the given name
                 // TODO: We should allow for a fix name in the configuration if the library does not follow the unix convention
                 // TODO: We should also allow a way to define objects based on the architecture
@@ -156,7 +176,7 @@ impl Project<PathBuf> {
                 };
 
                 Ok(LibraryInformation {
-                    name: conf.name,
+                    name: link_name,
                     location: Some(lib_path),
                     linkage: conf.package.into(),
                     library: Library::Compiled(compiled_library),
