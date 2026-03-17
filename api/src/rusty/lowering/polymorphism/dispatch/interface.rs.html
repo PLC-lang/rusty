@@ -3302,5 +3302,474 @@
 <a href=#3302 id=3302 data-nosnippet>3302</a>            "</span>);
 <a href=#3303 id=3303 data-nosnippet>3303</a>        }
 <a href=#3304 id=3304 data-nosnippet>3304</a>    }
-<a href=#3305 id=3305 data-nosnippet>3305</a>}
+<a href=#3305 id=3305 data-nosnippet>3305</a>
+<a href=#3306 id=3306 data-nosnippet>3306</a>    <span class="kw">mod </span>properties {
+<a href=#3307 id=3307 data-nosnippet>3307</a>        <span class="attr">#[test]
+<a href=#3308 id=3308 data-nosnippet>3308</a>        </span><span class="kw">fn </span>property_get_through_interface() {
+<a href=#3309 id=3309 data-nosnippet>3309</a>            <span class="comment">// A standalone property get through an interface reference.
+<a href=#3310 id=3310 data-nosnippet>3310</a>            // Should lower to an itable indirect call to __get_foo.
+<a href=#3311 id=3311 data-nosnippet>3311</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3312 id=3312 data-nosnippet>3312</a>                INTERFACE IA
+<a href=#3313 id=3313 data-nosnippet>3313</a>                    PROPERTY foo : DINT
+<a href=#3314 id=3314 data-nosnippet>3314</a>                        GET END_GET
+<a href=#3315 id=3315 data-nosnippet>3315</a>                    END_PROPERTY
+<a href=#3316 id=3316 data-nosnippet>3316</a>                END_INTERFACE
+<a href=#3317 id=3317 data-nosnippet>3317</a>
+<a href=#3318 id=3318 data-nosnippet>3318</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3319 id=3319 data-nosnippet>3319</a>                    PROPERTY foo : DINT
+<a href=#3320 id=3320 data-nosnippet>3320</a>                        GET END_GET
+<a href=#3321 id=3321 data-nosnippet>3321</a>                    END_PROPERTY
+<a href=#3322 id=3322 data-nosnippet>3322</a>                END_FUNCTION_BLOCK
+<a href=#3323 id=3323 data-nosnippet>3323</a>
+<a href=#3324 id=3324 data-nosnippet>3324</a>                FUNCTION main
+<a href=#3325 id=3325 data-nosnippet>3325</a>                    VAR
+<a href=#3326 id=3326 data-nosnippet>3326</a>                        reference : IA;
+<a href=#3327 id=3327 data-nosnippet>3327</a>                    END_VAR
+<a href=#3328 id=3328 data-nosnippet>3328</a>
+<a href=#3329 id=3329 data-nosnippet>3329</a>                    reference.foo;
+<a href=#3330 id=3330 data-nosnippet>3330</a>                END_FUNCTION
+<a href=#3331 id=3331 data-nosnippet>3331</a>            "#</span>;
+<a href=#3332 id=3332 data-nosnippet>3332</a>
+<a href=#3333 id=3333 data-nosnippet>3333</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3334 id=3334 data-nosnippet>3334</a>            [
+<a href=#3335 id=3335 data-nosnippet>3335</a>                "// Statements in main",
+<a href=#3336 id=3336 data-nosnippet>3336</a>                "__itable_IA#(reference.table^).__get_foo^(reference.data^)",
+<a href=#3337 id=3337 data-nosnippet>3337</a>            ]
+<a href=#3338 id=3338 data-nosnippet>3338</a>            "#</span>);
+<a href=#3339 id=3339 data-nosnippet>3339</a>        }
+<a href=#3340 id=3340 data-nosnippet>3340</a>
+<a href=#3341 id=3341 data-nosnippet>3341</a>        <span class="attr">#[test]
+<a href=#3342 id=3342 data-nosnippet>3342</a>        </span><span class="kw">fn </span>property_set_through_interface() {
+<a href=#3343 id=3343 data-nosnippet>3343</a>            <span class="comment">// Setting a property through an interface reference.
+<a href=#3344 id=3344 data-nosnippet>3344</a>            // Should lower to an itable indirect call to __set_foo with the value as argument.
+<a href=#3345 id=3345 data-nosnippet>3345</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3346 id=3346 data-nosnippet>3346</a>                INTERFACE IA
+<a href=#3347 id=3347 data-nosnippet>3347</a>                    PROPERTY foo : DINT
+<a href=#3348 id=3348 data-nosnippet>3348</a>                        GET END_GET
+<a href=#3349 id=3349 data-nosnippet>3349</a>                        SET END_SET
+<a href=#3350 id=3350 data-nosnippet>3350</a>                    END_PROPERTY
+<a href=#3351 id=3351 data-nosnippet>3351</a>                END_INTERFACE
+<a href=#3352 id=3352 data-nosnippet>3352</a>
+<a href=#3353 id=3353 data-nosnippet>3353</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3354 id=3354 data-nosnippet>3354</a>                    PROPERTY foo : DINT
+<a href=#3355 id=3355 data-nosnippet>3355</a>                        GET END_GET
+<a href=#3356 id=3356 data-nosnippet>3356</a>                        SET END_SET
+<a href=#3357 id=3357 data-nosnippet>3357</a>                    END_PROPERTY
+<a href=#3358 id=3358 data-nosnippet>3358</a>                END_FUNCTION_BLOCK
+<a href=#3359 id=3359 data-nosnippet>3359</a>
+<a href=#3360 id=3360 data-nosnippet>3360</a>                FUNCTION main
+<a href=#3361 id=3361 data-nosnippet>3361</a>                    VAR
+<a href=#3362 id=3362 data-nosnippet>3362</a>                        reference : IA;
+<a href=#3363 id=3363 data-nosnippet>3363</a>                    END_VAR
+<a href=#3364 id=3364 data-nosnippet>3364</a>
+<a href=#3365 id=3365 data-nosnippet>3365</a>                    reference.foo := 5;
+<a href=#3366 id=3366 data-nosnippet>3366</a>                END_FUNCTION
+<a href=#3367 id=3367 data-nosnippet>3367</a>            "#</span>;
+<a href=#3368 id=3368 data-nosnippet>3368</a>
+<a href=#3369 id=3369 data-nosnippet>3369</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3370 id=3370 data-nosnippet>3370</a>            [
+<a href=#3371 id=3371 data-nosnippet>3371</a>                "// Statements in main",
+<a href=#3372 id=3372 data-nosnippet>3372</a>                "__itable_IA#(reference.table^).__set_foo^(reference.data^, 5)",
+<a href=#3373 id=3373 data-nosnippet>3373</a>            ]
+<a href=#3374 id=3374 data-nosnippet>3374</a>            "#</span>);
+<a href=#3375 id=3375 data-nosnippet>3375</a>        }
+<a href=#3376 id=3376 data-nosnippet>3376</a>
+<a href=#3377 id=3377 data-nosnippet>3377</a>        <span class="attr">#[test]
+<a href=#3378 id=3378 data-nosnippet>3378</a>        </span><span class="kw">fn </span>property_get_in_assignment() {
+<a href=#3379 id=3379 data-nosnippet>3379</a>            <span class="comment">// Getting a property through an interface and assigning it to a local variable.
+<a href=#3380 id=3380 data-nosnippet>3380</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3381 id=3381 data-nosnippet>3381</a>                INTERFACE IA
+<a href=#3382 id=3382 data-nosnippet>3382</a>                    PROPERTY foo : DINT
+<a href=#3383 id=3383 data-nosnippet>3383</a>                        GET END_GET
+<a href=#3384 id=3384 data-nosnippet>3384</a>                    END_PROPERTY
+<a href=#3385 id=3385 data-nosnippet>3385</a>                END_INTERFACE
+<a href=#3386 id=3386 data-nosnippet>3386</a>
+<a href=#3387 id=3387 data-nosnippet>3387</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3388 id=3388 data-nosnippet>3388</a>                    PROPERTY foo : DINT
+<a href=#3389 id=3389 data-nosnippet>3389</a>                        GET END_GET
+<a href=#3390 id=3390 data-nosnippet>3390</a>                    END_PROPERTY
+<a href=#3391 id=3391 data-nosnippet>3391</a>                END_FUNCTION_BLOCK
+<a href=#3392 id=3392 data-nosnippet>3392</a>
+<a href=#3393 id=3393 data-nosnippet>3393</a>                FUNCTION main
+<a href=#3394 id=3394 data-nosnippet>3394</a>                    VAR
+<a href=#3395 id=3395 data-nosnippet>3395</a>                        reference : IA;
+<a href=#3396 id=3396 data-nosnippet>3396</a>                        result : DINT;
+<a href=#3397 id=3397 data-nosnippet>3397</a>                    END_VAR
+<a href=#3398 id=3398 data-nosnippet>3398</a>
+<a href=#3399 id=3399 data-nosnippet>3399</a>                    result := reference.foo;
+<a href=#3400 id=3400 data-nosnippet>3400</a>                END_FUNCTION
+<a href=#3401 id=3401 data-nosnippet>3401</a>            "#</span>;
+<a href=#3402 id=3402 data-nosnippet>3402</a>
+<a href=#3403 id=3403 data-nosnippet>3403</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3404 id=3404 data-nosnippet>3404</a>            [
+<a href=#3405 id=3405 data-nosnippet>3405</a>                "// Statements in main",
+<a href=#3406 id=3406 data-nosnippet>3406</a>                "result := __itable_IA#(reference.table^).__get_foo^(reference.data^)",
+<a href=#3407 id=3407 data-nosnippet>3407</a>            ]
+<a href=#3408 id=3408 data-nosnippet>3408</a>            "#</span>);
+<a href=#3409 id=3409 data-nosnippet>3409</a>        }
+<a href=#3410 id=3410 data-nosnippet>3410</a>
+<a href=#3411 id=3411 data-nosnippet>3411</a>        <span class="attr">#[test]
+<a href=#3412 id=3412 data-nosnippet>3412</a>        </span><span class="kw">fn </span>property_get_in_expression() {
+<a href=#3413 id=3413 data-nosnippet>3413</a>            <span class="comment">// Using a property getter in a binary expression.
+<a href=#3414 id=3414 data-nosnippet>3414</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3415 id=3415 data-nosnippet>3415</a>                INTERFACE IA
+<a href=#3416 id=3416 data-nosnippet>3416</a>                    PROPERTY foo : DINT
+<a href=#3417 id=3417 data-nosnippet>3417</a>                        GET END_GET
+<a href=#3418 id=3418 data-nosnippet>3418</a>                    END_PROPERTY
+<a href=#3419 id=3419 data-nosnippet>3419</a>                END_INTERFACE
+<a href=#3420 id=3420 data-nosnippet>3420</a>
+<a href=#3421 id=3421 data-nosnippet>3421</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3422 id=3422 data-nosnippet>3422</a>                    PROPERTY foo : DINT
+<a href=#3423 id=3423 data-nosnippet>3423</a>                        GET END_GET
+<a href=#3424 id=3424 data-nosnippet>3424</a>                    END_PROPERTY
+<a href=#3425 id=3425 data-nosnippet>3425</a>                END_FUNCTION_BLOCK
+<a href=#3426 id=3426 data-nosnippet>3426</a>
+<a href=#3427 id=3427 data-nosnippet>3427</a>                FUNCTION main
+<a href=#3428 id=3428 data-nosnippet>3428</a>                    VAR
+<a href=#3429 id=3429 data-nosnippet>3429</a>                        reference : IA;
+<a href=#3430 id=3430 data-nosnippet>3430</a>                        result : DINT;
+<a href=#3431 id=3431 data-nosnippet>3431</a>                    END_VAR
+<a href=#3432 id=3432 data-nosnippet>3432</a>
+<a href=#3433 id=3433 data-nosnippet>3433</a>                    result := reference.foo + 1;
+<a href=#3434 id=3434 data-nosnippet>3434</a>                END_FUNCTION
+<a href=#3435 id=3435 data-nosnippet>3435</a>            "#</span>;
+<a href=#3436 id=3436 data-nosnippet>3436</a>
+<a href=#3437 id=3437 data-nosnippet>3437</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3438 id=3438 data-nosnippet>3438</a>            [
+<a href=#3439 id=3439 data-nosnippet>3439</a>                "// Statements in main",
+<a href=#3440 id=3440 data-nosnippet>3440</a>                "result := __itable_IA#(reference.table^).__get_foo^(reference.data^) + 1",
+<a href=#3441 id=3441 data-nosnippet>3441</a>            ]
+<a href=#3442 id=3442 data-nosnippet>3442</a>            "#</span>);
+<a href=#3443 id=3443 data-nosnippet>3443</a>        }
+<a href=#3444 id=3444 data-nosnippet>3444</a>
+<a href=#3445 id=3445 data-nosnippet>3445</a>        <span class="attr">#[test]
+<a href=#3446 id=3446 data-nosnippet>3446</a>        </span><span class="kw">fn </span>property_self_assignment_through_interface() {
+<a href=#3447 id=3447 data-nosnippet>3447</a>            <span class="comment">// Self-assignment: reference.foo := reference.foo
+<a href=#3448 id=3448 data-nosnippet>3448</a>            // Should produce a setter whose argument is the getter, both through the itable.
+<a href=#3449 id=3449 data-nosnippet>3449</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3450 id=3450 data-nosnippet>3450</a>                INTERFACE IA
+<a href=#3451 id=3451 data-nosnippet>3451</a>                    PROPERTY foo : DINT
+<a href=#3452 id=3452 data-nosnippet>3452</a>                        GET END_GET
+<a href=#3453 id=3453 data-nosnippet>3453</a>                        SET END_SET
+<a href=#3454 id=3454 data-nosnippet>3454</a>                    END_PROPERTY
+<a href=#3455 id=3455 data-nosnippet>3455</a>                END_INTERFACE
+<a href=#3456 id=3456 data-nosnippet>3456</a>
+<a href=#3457 id=3457 data-nosnippet>3457</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3458 id=3458 data-nosnippet>3458</a>                    PROPERTY foo : DINT
+<a href=#3459 id=3459 data-nosnippet>3459</a>                        GET END_GET
+<a href=#3460 id=3460 data-nosnippet>3460</a>                        SET END_SET
+<a href=#3461 id=3461 data-nosnippet>3461</a>                    END_PROPERTY
+<a href=#3462 id=3462 data-nosnippet>3462</a>                END_FUNCTION_BLOCK
+<a href=#3463 id=3463 data-nosnippet>3463</a>
+<a href=#3464 id=3464 data-nosnippet>3464</a>                FUNCTION main
+<a href=#3465 id=3465 data-nosnippet>3465</a>                    VAR
+<a href=#3466 id=3466 data-nosnippet>3466</a>                        reference : IA;
+<a href=#3467 id=3467 data-nosnippet>3467</a>                    END_VAR
+<a href=#3468 id=3468 data-nosnippet>3468</a>
+<a href=#3469 id=3469 data-nosnippet>3469</a>                    reference.foo := reference.foo;
+<a href=#3470 id=3470 data-nosnippet>3470</a>                END_FUNCTION
+<a href=#3471 id=3471 data-nosnippet>3471</a>            "#</span>;
+<a href=#3472 id=3472 data-nosnippet>3472</a>
+<a href=#3473 id=3473 data-nosnippet>3473</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3474 id=3474 data-nosnippet>3474</a>            [
+<a href=#3475 id=3475 data-nosnippet>3475</a>                "// Statements in main",
+<a href=#3476 id=3476 data-nosnippet>3476</a>                "__itable_IA#(reference.table^).__set_foo^(reference.data^, __itable_IA#(reference.table^).__get_foo^(reference.data^))",
+<a href=#3477 id=3477 data-nosnippet>3477</a>            ]
+<a href=#3478 id=3478 data-nosnippet>3478</a>            "#</span>);
+<a href=#3479 id=3479 data-nosnippet>3479</a>        }
+<a href=#3480 id=3480 data-nosnippet>3480</a>
+<a href=#3481 id=3481 data-nosnippet>3481</a>        <span class="attr">#[test]
+<a href=#3482 id=3482 data-nosnippet>3482</a>        </span><span class="kw">fn </span>property_get_as_function_argument() {
+<a href=#3483 id=3483 data-nosnippet>3483</a>            <span class="comment">// Passing a property getter result as an argument to a function.
+<a href=#3484 id=3484 data-nosnippet>3484</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3485 id=3485 data-nosnippet>3485</a>                INTERFACE IA
+<a href=#3486 id=3486 data-nosnippet>3486</a>                    PROPERTY foo : DINT
+<a href=#3487 id=3487 data-nosnippet>3487</a>                        GET END_GET
+<a href=#3488 id=3488 data-nosnippet>3488</a>                    END_PROPERTY
+<a href=#3489 id=3489 data-nosnippet>3489</a>                END_INTERFACE
+<a href=#3490 id=3490 data-nosnippet>3490</a>
+<a href=#3491 id=3491 data-nosnippet>3491</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3492 id=3492 data-nosnippet>3492</a>                    PROPERTY foo : DINT
+<a href=#3493 id=3493 data-nosnippet>3493</a>                        GET END_GET
+<a href=#3494 id=3494 data-nosnippet>3494</a>                    END_PROPERTY
+<a href=#3495 id=3495 data-nosnippet>3495</a>                END_FUNCTION_BLOCK
+<a href=#3496 id=3496 data-nosnippet>3496</a>
+<a href=#3497 id=3497 data-nosnippet>3497</a>                FUNCTION consumer
+<a href=#3498 id=3498 data-nosnippet>3498</a>                    VAR_INPUT
+<a href=#3499 id=3499 data-nosnippet>3499</a>                        x : DINT;
+<a href=#3500 id=3500 data-nosnippet>3500</a>                    END_VAR
+<a href=#3501 id=3501 data-nosnippet>3501</a>                END_FUNCTION
+<a href=#3502 id=3502 data-nosnippet>3502</a>
+<a href=#3503 id=3503 data-nosnippet>3503</a>                FUNCTION main
+<a href=#3504 id=3504 data-nosnippet>3504</a>                    VAR
+<a href=#3505 id=3505 data-nosnippet>3505</a>                        reference : IA;
+<a href=#3506 id=3506 data-nosnippet>3506</a>                    END_VAR
+<a href=#3507 id=3507 data-nosnippet>3507</a>
+<a href=#3508 id=3508 data-nosnippet>3508</a>                    consumer(reference.foo);
+<a href=#3509 id=3509 data-nosnippet>3509</a>                END_FUNCTION
+<a href=#3510 id=3510 data-nosnippet>3510</a>            "#</span>;
+<a href=#3511 id=3511 data-nosnippet>3511</a>
+<a href=#3512 id=3512 data-nosnippet>3512</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3513 id=3513 data-nosnippet>3513</a>            [
+<a href=#3514 id=3514 data-nosnippet>3514</a>                "// Statements in main",
+<a href=#3515 id=3515 data-nosnippet>3515</a>                "consumer(__itable_IA#(reference.table^).__get_foo^(reference.data^))",
+<a href=#3516 id=3516 data-nosnippet>3516</a>            ]
+<a href=#3517 id=3517 data-nosnippet>3517</a>            "#</span>);
+<a href=#3518 id=3518 data-nosnippet>3518</a>        }
+<a href=#3519 id=3519 data-nosnippet>3519</a>
+<a href=#3520 id=3520 data-nosnippet>3520</a>        <span class="attr">#[test]
+<a href=#3521 id=3521 data-nosnippet>3521</a>        </span><span class="kw">fn </span>property_and_method_calls_mixed() {
+<a href=#3522 id=3522 data-nosnippet>3522</a>            <span class="comment">// An interface has both a method and a property. Both are called through the
+<a href=#3523 id=3523 data-nosnippet>3523</a>            // interface reference and should dispatch through the same itable.
+<a href=#3524 id=3524 data-nosnippet>3524</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3525 id=3525 data-nosnippet>3525</a>                INTERFACE IA
+<a href=#3526 id=3526 data-nosnippet>3526</a>                    METHOD bar : DINT END_METHOD
+<a href=#3527 id=3527 data-nosnippet>3527</a>
+<a href=#3528 id=3528 data-nosnippet>3528</a>                    PROPERTY foo : DINT
+<a href=#3529 id=3529 data-nosnippet>3529</a>                        GET END_GET
+<a href=#3530 id=3530 data-nosnippet>3530</a>                    END_PROPERTY
+<a href=#3531 id=3531 data-nosnippet>3531</a>                END_INTERFACE
+<a href=#3532 id=3532 data-nosnippet>3532</a>
+<a href=#3533 id=3533 data-nosnippet>3533</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3534 id=3534 data-nosnippet>3534</a>                    METHOD bar : DINT END_METHOD
+<a href=#3535 id=3535 data-nosnippet>3535</a>
+<a href=#3536 id=3536 data-nosnippet>3536</a>                    PROPERTY foo : DINT
+<a href=#3537 id=3537 data-nosnippet>3537</a>                        GET END_GET
+<a href=#3538 id=3538 data-nosnippet>3538</a>                    END_PROPERTY
+<a href=#3539 id=3539 data-nosnippet>3539</a>                END_FUNCTION_BLOCK
+<a href=#3540 id=3540 data-nosnippet>3540</a>
+<a href=#3541 id=3541 data-nosnippet>3541</a>                FUNCTION main
+<a href=#3542 id=3542 data-nosnippet>3542</a>                    VAR
+<a href=#3543 id=3543 data-nosnippet>3543</a>                        reference : IA;
+<a href=#3544 id=3544 data-nosnippet>3544</a>                        result : DINT;
+<a href=#3545 id=3545 data-nosnippet>3545</a>                    END_VAR
+<a href=#3546 id=3546 data-nosnippet>3546</a>
+<a href=#3547 id=3547 data-nosnippet>3547</a>                    reference.bar();
+<a href=#3548 id=3548 data-nosnippet>3548</a>                    result := reference.foo;
+<a href=#3549 id=3549 data-nosnippet>3549</a>                END_FUNCTION
+<a href=#3550 id=3550 data-nosnippet>3550</a>            "#</span>;
+<a href=#3551 id=3551 data-nosnippet>3551</a>
+<a href=#3552 id=3552 data-nosnippet>3552</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3553 id=3553 data-nosnippet>3553</a>            [
+<a href=#3554 id=3554 data-nosnippet>3554</a>                "// Statements in main",
+<a href=#3555 id=3555 data-nosnippet>3555</a>                "__itable_IA#(reference.table^).bar^(reference.data^)",
+<a href=#3556 id=3556 data-nosnippet>3556</a>                "result := __itable_IA#(reference.table^).__get_foo^(reference.data^)",
+<a href=#3557 id=3557 data-nosnippet>3557</a>            ]
+<a href=#3558 id=3558 data-nosnippet>3558</a>            "#</span>);
+<a href=#3559 id=3559 data-nosnippet>3559</a>        }
+<a href=#3560 id=3560 data-nosnippet>3560</a>
+<a href=#3561 id=3561 data-nosnippet>3561</a>        <span class="attr">#[test]
+<a href=#3562 id=3562 data-nosnippet>3562</a>        </span><span class="kw">fn </span>property_through_qualified_interface() {
+<a href=#3563 id=3563 data-nosnippet>3563</a>            <span class="comment">// Accessing a property through a qualified path: container.reference.foo
+<a href=#3564 id=3564 data-nosnippet>3564</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3565 id=3565 data-nosnippet>3565</a>                INTERFACE IA
+<a href=#3566 id=3566 data-nosnippet>3566</a>                    PROPERTY foo : DINT
+<a href=#3567 id=3567 data-nosnippet>3567</a>                        GET END_GET
+<a href=#3568 id=3568 data-nosnippet>3568</a>                    END_PROPERTY
+<a href=#3569 id=3569 data-nosnippet>3569</a>                END_INTERFACE
+<a href=#3570 id=3570 data-nosnippet>3570</a>
+<a href=#3571 id=3571 data-nosnippet>3571</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3572 id=3572 data-nosnippet>3572</a>                    PROPERTY foo : DINT
+<a href=#3573 id=3573 data-nosnippet>3573</a>                        GET END_GET
+<a href=#3574 id=3574 data-nosnippet>3574</a>                    END_PROPERTY
+<a href=#3575 id=3575 data-nosnippet>3575</a>                END_FUNCTION_BLOCK
+<a href=#3576 id=3576 data-nosnippet>3576</a>
+<a href=#3577 id=3577 data-nosnippet>3577</a>                FUNCTION_BLOCK Container
+<a href=#3578 id=3578 data-nosnippet>3578</a>                    VAR
+<a href=#3579 id=3579 data-nosnippet>3579</a>                        reference : IA;
+<a href=#3580 id=3580 data-nosnippet>3580</a>                    END_VAR
+<a href=#3581 id=3581 data-nosnippet>3581</a>                END_FUNCTION_BLOCK
+<a href=#3582 id=3582 data-nosnippet>3582</a>
+<a href=#3583 id=3583 data-nosnippet>3583</a>                FUNCTION main
+<a href=#3584 id=3584 data-nosnippet>3584</a>                    VAR
+<a href=#3585 id=3585 data-nosnippet>3585</a>                        container : Container;
+<a href=#3586 id=3586 data-nosnippet>3586</a>                        result : DINT;
+<a href=#3587 id=3587 data-nosnippet>3587</a>                    END_VAR
+<a href=#3588 id=3588 data-nosnippet>3588</a>
+<a href=#3589 id=3589 data-nosnippet>3589</a>                    result := container.reference.foo;
+<a href=#3590 id=3590 data-nosnippet>3590</a>                END_FUNCTION
+<a href=#3591 id=3591 data-nosnippet>3591</a>            "#</span>;
+<a href=#3592 id=3592 data-nosnippet>3592</a>
+<a href=#3593 id=3593 data-nosnippet>3593</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3594 id=3594 data-nosnippet>3594</a>            [
+<a href=#3595 id=3595 data-nosnippet>3595</a>                "// Statements in main",
+<a href=#3596 id=3596 data-nosnippet>3596</a>                "Container__ctor(container)",
+<a href=#3597 id=3597 data-nosnippet>3597</a>                "result := __itable_IA#(container.reference.table^).__get_foo^(container.reference.data^)",
+<a href=#3598 id=3598 data-nosnippet>3598</a>            ]
+<a href=#3599 id=3599 data-nosnippet>3599</a>            "#</span>);
+<a href=#3600 id=3600 data-nosnippet>3600</a>        }
+<a href=#3601 id=3601 data-nosnippet>3601</a>
+<a href=#3602 id=3602 data-nosnippet>3602</a>        <span class="attr">#[test]
+<a href=#3603 id=3603 data-nosnippet>3603</a>        </span><span class="kw">fn </span>property_through_array_of_interfaces() {
+<a href=#3604 id=3604 data-nosnippet>3604</a>            <span class="comment">// Accessing a property through an array of interface references.
+<a href=#3605 id=3605 data-nosnippet>3605</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3606 id=3606 data-nosnippet>3606</a>                INTERFACE IA
+<a href=#3607 id=3607 data-nosnippet>3607</a>                    PROPERTY foo : DINT
+<a href=#3608 id=3608 data-nosnippet>3608</a>                        GET END_GET
+<a href=#3609 id=3609 data-nosnippet>3609</a>                    END_PROPERTY
+<a href=#3610 id=3610 data-nosnippet>3610</a>                END_INTERFACE
+<a href=#3611 id=3611 data-nosnippet>3611</a>
+<a href=#3612 id=3612 data-nosnippet>3612</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3613 id=3613 data-nosnippet>3613</a>                    PROPERTY foo : DINT
+<a href=#3614 id=3614 data-nosnippet>3614</a>                        GET END_GET
+<a href=#3615 id=3615 data-nosnippet>3615</a>                    END_PROPERTY
+<a href=#3616 id=3616 data-nosnippet>3616</a>                END_FUNCTION_BLOCK
+<a href=#3617 id=3617 data-nosnippet>3617</a>
+<a href=#3618 id=3618 data-nosnippet>3618</a>                FUNCTION main
+<a href=#3619 id=3619 data-nosnippet>3619</a>                    VAR
+<a href=#3620 id=3620 data-nosnippet>3620</a>                        references : ARRAY[0..10] OF IA;
+<a href=#3621 id=3621 data-nosnippet>3621</a>                        i : DINT;
+<a href=#3622 id=3622 data-nosnippet>3622</a>                        result : DINT;
+<a href=#3623 id=3623 data-nosnippet>3623</a>                    END_VAR
+<a href=#3624 id=3624 data-nosnippet>3624</a>
+<a href=#3625 id=3625 data-nosnippet>3625</a>                    result := references[i].foo;
+<a href=#3626 id=3626 data-nosnippet>3626</a>                END_FUNCTION
+<a href=#3627 id=3627 data-nosnippet>3627</a>            "#</span>;
+<a href=#3628 id=3628 data-nosnippet>3628</a>
+<a href=#3629 id=3629 data-nosnippet>3629</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3630 id=3630 data-nosnippet>3630</a>            [
+<a href=#3631 id=3631 data-nosnippet>3631</a>                "// Statements in main",
+<a href=#3632 id=3632 data-nosnippet>3632</a>                "__main_references__ctor(references)",
+<a href=#3633 id=3633 data-nosnippet>3633</a>                "result := __itable_IA#(references[i].table^).__get_foo^(references[i].data^)",
+<a href=#3634 id=3634 data-nosnippet>3634</a>            ]
+<a href=#3635 id=3635 data-nosnippet>3635</a>            "#</span>);
+<a href=#3636 id=3636 data-nosnippet>3636</a>        }
+<a href=#3637 id=3637 data-nosnippet>3637</a>
+<a href=#3638 id=3638 data-nosnippet>3638</a>        <span class="attr">#[test]
+<a href=#3639 id=3639 data-nosnippet>3639</a>        </span><span class="kw">fn </span>property_assignment_expands_for_interface_variable() {
+<a href=#3640 id=3640 data-nosnippet>3640</a>            <span class="comment">// Assigning a concrete POU instance (that has properties) to an interface variable.
+<a href=#3641 id=3641 data-nosnippet>3641</a>            // Verifies normal fat-pointer expansion still works when the POU has properties.
+<a href=#3642 id=3642 data-nosnippet>3642</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3643 id=3643 data-nosnippet>3643</a>                INTERFACE IA
+<a href=#3644 id=3644 data-nosnippet>3644</a>                    PROPERTY foo : DINT
+<a href=#3645 id=3645 data-nosnippet>3645</a>                        GET END_GET
+<a href=#3646 id=3646 data-nosnippet>3646</a>                        SET END_SET
+<a href=#3647 id=3647 data-nosnippet>3647</a>                    END_PROPERTY
+<a href=#3648 id=3648 data-nosnippet>3648</a>                END_INTERFACE
+<a href=#3649 id=3649 data-nosnippet>3649</a>
+<a href=#3650 id=3650 data-nosnippet>3650</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3651 id=3651 data-nosnippet>3651</a>                    PROPERTY foo : DINT
+<a href=#3652 id=3652 data-nosnippet>3652</a>                        GET END_GET
+<a href=#3653 id=3653 data-nosnippet>3653</a>                        SET END_SET
+<a href=#3654 id=3654 data-nosnippet>3654</a>                    END_PROPERTY
+<a href=#3655 id=3655 data-nosnippet>3655</a>                END_FUNCTION_BLOCK
+<a href=#3656 id=3656 data-nosnippet>3656</a>
+<a href=#3657 id=3657 data-nosnippet>3657</a>                FUNCTION main
+<a href=#3658 id=3658 data-nosnippet>3658</a>                    VAR
+<a href=#3659 id=3659 data-nosnippet>3659</a>                        reference : IA;
+<a href=#3660 id=3660 data-nosnippet>3660</a>                        instance : FbA;
+<a href=#3661 id=3661 data-nosnippet>3661</a>                    END_VAR
+<a href=#3662 id=3662 data-nosnippet>3662</a>
+<a href=#3663 id=3663 data-nosnippet>3663</a>                    reference := instance;
+<a href=#3664 id=3664 data-nosnippet>3664</a>                END_FUNCTION
+<a href=#3665 id=3665 data-nosnippet>3665</a>            "#</span>;
+<a href=#3666 id=3666 data-nosnippet>3666</a>
+<a href=#3667 id=3667 data-nosnippet>3667</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3668 id=3668 data-nosnippet>3668</a>            [
+<a href=#3669 id=3669 data-nosnippet>3669</a>                "// Statements in main",
+<a href=#3670 id=3670 data-nosnippet>3670</a>                "FbA__ctor(instance)",
+<a href=#3671 id=3671 data-nosnippet>3671</a>                "reference.data := ADR(instance)",
+<a href=#3672 id=3672 data-nosnippet>3672</a>                "reference.table := ADR(__itable_IA_FbA_instance)",
+<a href=#3673 id=3673 data-nosnippet>3673</a>            ]
+<a href=#3674 id=3674 data-nosnippet>3674</a>            "#</span>);
+<a href=#3675 id=3675 data-nosnippet>3675</a>        }
+<a href=#3676 id=3676 data-nosnippet>3676</a>
+<a href=#3677 id=3677 data-nosnippet>3677</a>        <span class="attr">#[test]
+<a href=#3678 id=3678 data-nosnippet>3678</a>        </span><span class="kw">fn </span>property_assignment_uses_correct_itable_for_overridden_pou() {
+<a href=#3679 id=3679 data-nosnippet>3679</a>            <span class="comment">// Assigning different concrete POU instances to the same interface variable.
+<a href=#3680 id=3680 data-nosnippet>3680</a>            // FbB extends FbA and overrides the getter. Each assignment should use the
+<a href=#3681 id=3681 data-nosnippet>3681</a>            // correct itable instance for the .table field.
+<a href=#3682 id=3682 data-nosnippet>3682</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3683 id=3683 data-nosnippet>3683</a>                INTERFACE IA
+<a href=#3684 id=3684 data-nosnippet>3684</a>                    PROPERTY foo : DINT
+<a href=#3685 id=3685 data-nosnippet>3685</a>                        GET END_GET
+<a href=#3686 id=3686 data-nosnippet>3686</a>                        SET END_SET
+<a href=#3687 id=3687 data-nosnippet>3687</a>                    END_PROPERTY
+<a href=#3688 id=3688 data-nosnippet>3688</a>                END_INTERFACE
+<a href=#3689 id=3689 data-nosnippet>3689</a>
+<a href=#3690 id=3690 data-nosnippet>3690</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3691 id=3691 data-nosnippet>3691</a>                    PROPERTY foo : DINT
+<a href=#3692 id=3692 data-nosnippet>3692</a>                        GET END_GET
+<a href=#3693 id=3693 data-nosnippet>3693</a>                        SET END_SET
+<a href=#3694 id=3694 data-nosnippet>3694</a>                    END_PROPERTY
+<a href=#3695 id=3695 data-nosnippet>3695</a>                END_FUNCTION_BLOCK
+<a href=#3696 id=3696 data-nosnippet>3696</a>
+<a href=#3697 id=3697 data-nosnippet>3697</a>                FUNCTION_BLOCK FbB EXTENDS FbA
+<a href=#3698 id=3698 data-nosnippet>3698</a>                    PROPERTY foo : DINT
+<a href=#3699 id=3699 data-nosnippet>3699</a>                        GET END_GET
+<a href=#3700 id=3700 data-nosnippet>3700</a>                    END_PROPERTY
+<a href=#3701 id=3701 data-nosnippet>3701</a>                END_FUNCTION_BLOCK
+<a href=#3702 id=3702 data-nosnippet>3702</a>
+<a href=#3703 id=3703 data-nosnippet>3703</a>                FUNCTION main
+<a href=#3704 id=3704 data-nosnippet>3704</a>                    VAR
+<a href=#3705 id=3705 data-nosnippet>3705</a>                        reference : IA;
+<a href=#3706 id=3706 data-nosnippet>3706</a>                        instanceA : FbA;
+<a href=#3707 id=3707 data-nosnippet>3707</a>                        instanceB : FbB;
+<a href=#3708 id=3708 data-nosnippet>3708</a>                    END_VAR
+<a href=#3709 id=3709 data-nosnippet>3709</a>
+<a href=#3710 id=3710 data-nosnippet>3710</a>                    reference := instanceA;
+<a href=#3711 id=3711 data-nosnippet>3711</a>                    reference := instanceB;
+<a href=#3712 id=3712 data-nosnippet>3712</a>                END_FUNCTION
+<a href=#3713 id=3713 data-nosnippet>3713</a>            "#</span>;
+<a href=#3714 id=3714 data-nosnippet>3714</a>
+<a href=#3715 id=3715 data-nosnippet>3715</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3716 id=3716 data-nosnippet>3716</a>            [
+<a href=#3717 id=3717 data-nosnippet>3717</a>                "// Statements in main",
+<a href=#3718 id=3718 data-nosnippet>3718</a>                "FbA__ctor(instanceA)",
+<a href=#3719 id=3719 data-nosnippet>3719</a>                "FbB__ctor(instanceB)",
+<a href=#3720 id=3720 data-nosnippet>3720</a>                "reference.data := ADR(instanceA)",
+<a href=#3721 id=3721 data-nosnippet>3721</a>                "reference.table := ADR(__itable_IA_FbA_instance)",
+<a href=#3722 id=3722 data-nosnippet>3722</a>                "reference.data := ADR(instanceB)",
+<a href=#3723 id=3723 data-nosnippet>3723</a>                "reference.table := ADR(__itable_IA_FbB_instance)",
+<a href=#3724 id=3724 data-nosnippet>3724</a>            ]
+<a href=#3725 id=3725 data-nosnippet>3725</a>            "#</span>);
+<a href=#3726 id=3726 data-nosnippet>3726</a>        }
+<a href=#3727 id=3727 data-nosnippet>3727</a>
+<a href=#3728 id=3728 data-nosnippet>3728</a>        <span class="attr">#[test]
+<a href=#3729 id=3729 data-nosnippet>3729</a>        </span><span class="kw">fn </span>property_get_nested_in_interface_method_call() {
+<a href=#3730 id=3730 data-nosnippet>3730</a>            <span class="comment">// Using a property getter as an argument to an interface method call.
+<a href=#3731 id=3731 data-nosnippet>3731</a>            // reference.bar(reference.foo) where bar is a method and foo is a property.
+<a href=#3732 id=3732 data-nosnippet>3732</a>            </span><span class="kw">let </span>source = <span class="string">r#"
+<a href=#3733 id=3733 data-nosnippet>3733</a>                INTERFACE IA
+<a href=#3734 id=3734 data-nosnippet>3734</a>                    METHOD bar
+<a href=#3735 id=3735 data-nosnippet>3735</a>                        VAR_INPUT
+<a href=#3736 id=3736 data-nosnippet>3736</a>                            x : DINT;
+<a href=#3737 id=3737 data-nosnippet>3737</a>                        END_VAR
+<a href=#3738 id=3738 data-nosnippet>3738</a>                    END_METHOD
+<a href=#3739 id=3739 data-nosnippet>3739</a>
+<a href=#3740 id=3740 data-nosnippet>3740</a>                    PROPERTY foo : DINT
+<a href=#3741 id=3741 data-nosnippet>3741</a>                        GET END_GET
+<a href=#3742 id=3742 data-nosnippet>3742</a>                    END_PROPERTY
+<a href=#3743 id=3743 data-nosnippet>3743</a>                END_INTERFACE
+<a href=#3744 id=3744 data-nosnippet>3744</a>
+<a href=#3745 id=3745 data-nosnippet>3745</a>                FUNCTION_BLOCK FbA IMPLEMENTS IA
+<a href=#3746 id=3746 data-nosnippet>3746</a>                    METHOD bar
+<a href=#3747 id=3747 data-nosnippet>3747</a>                        VAR_INPUT
+<a href=#3748 id=3748 data-nosnippet>3748</a>                            x : DINT;
+<a href=#3749 id=3749 data-nosnippet>3749</a>                        END_VAR
+<a href=#3750 id=3750 data-nosnippet>3750</a>                    END_METHOD
+<a href=#3751 id=3751 data-nosnippet>3751</a>
+<a href=#3752 id=3752 data-nosnippet>3752</a>                    PROPERTY foo : DINT
+<a href=#3753 id=3753 data-nosnippet>3753</a>                        GET END_GET
+<a href=#3754 id=3754 data-nosnippet>3754</a>                    END_PROPERTY
+<a href=#3755 id=3755 data-nosnippet>3755</a>                END_FUNCTION_BLOCK
+<a href=#3756 id=3756 data-nosnippet>3756</a>
+<a href=#3757 id=3757 data-nosnippet>3757</a>                FUNCTION main
+<a href=#3758 id=3758 data-nosnippet>3758</a>                    VAR
+<a href=#3759 id=3759 data-nosnippet>3759</a>                        reference : IA;
+<a href=#3760 id=3760 data-nosnippet>3760</a>                    END_VAR
+<a href=#3761 id=3761 data-nosnippet>3761</a>
+<a href=#3762 id=3762 data-nosnippet>3762</a>                    reference.bar(reference.foo);
+<a href=#3763 id=3763 data-nosnippet>3763</a>                END_FUNCTION
+<a href=#3764 id=3764 data-nosnippet>3764</a>            "#</span>;
+<a href=#3765 id=3765 data-nosnippet>3765</a>
+<a href=#3766 id=3766 data-nosnippet>3766</a>            <span class="macro">insta::assert_debug_snapshot!</span>(<span class="kw">super</span>::lower_and_serialize_statements(source, <span class="kw-2">&amp;</span>[<span class="string">"main"</span>]), @<span class="string">r#"
+<a href=#3767 id=3767 data-nosnippet>3767</a>            [
+<a href=#3768 id=3768 data-nosnippet>3768</a>                "// Statements in main",
+<a href=#3769 id=3769 data-nosnippet>3769</a>                "__itable_IA#(reference.table^).bar^(reference.data^, __itable_IA#(reference.table^).__get_foo^(reference.data^))",
+<a href=#3770 id=3770 data-nosnippet>3770</a>            ]
+<a href=#3771 id=3771 data-nosnippet>3771</a>            "#</span>);
+<a href=#3772 id=3772 data-nosnippet>3772</a>        }
+<a href=#3773 id=3773 data-nosnippet>3773</a>    }
+<a href=#3774 id=3774 data-nosnippet>3774</a>}
 </code></pre></div></section></main></body></html>

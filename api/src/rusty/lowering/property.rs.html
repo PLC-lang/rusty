@@ -1298,6 +1298,64 @@
 <a href=#1298 id=1298 data-nosnippet>1298</a>                <span class="kw-2">&amp;</span>StatementAnnotation::Property { name: <span class="string">"__get_foo"</span>.to_string() }
 <a href=#1299 id=1299 data-nosnippet>1299</a>            )
 <a href=#1300 id=1300 data-nosnippet>1300</a>        }
-<a href=#1301 id=1301 data-nosnippet>1301</a>    }
-<a href=#1302 id=1302 data-nosnippet>1302</a>}
+<a href=#1301 id=1301 data-nosnippet>1301</a>
+<a href=#1302 id=1302 data-nosnippet>1302</a>        <span class="attr">#[test]
+<a href=#1303 id=1303 data-nosnippet>1303</a>        </span><span class="kw">fn </span>inherited_property_through_child_interface_is_annotated() {
+<a href=#1304 id=1304 data-nosnippet>1304</a>            <span class="kw">let </span>source = <span class="string">r"
+<a href=#1305 id=1305 data-nosnippet>1305</a>            INTERFACE IA
+<a href=#1306 id=1306 data-nosnippet>1306</a>                PROPERTY value : DINT
+<a href=#1307 id=1307 data-nosnippet>1307</a>                    GET END_GET
+<a href=#1308 id=1308 data-nosnippet>1308</a>                    SET END_SET
+<a href=#1309 id=1309 data-nosnippet>1309</a>                END_PROPERTY
+<a href=#1310 id=1310 data-nosnippet>1310</a>            END_INTERFACE
+<a href=#1311 id=1311 data-nosnippet>1311</a>
+<a href=#1312 id=1312 data-nosnippet>1312</a>            INTERFACE IB EXTENDS IA
+<a href=#1313 id=1313 data-nosnippet>1313</a>                METHOD describe END_METHOD
+<a href=#1314 id=1314 data-nosnippet>1314</a>            END_INTERFACE
+<a href=#1315 id=1315 data-nosnippet>1315</a>
+<a href=#1316 id=1316 data-nosnippet>1316</a>            FUNCTION_BLOCK FbA IMPLEMENTS IB
+<a href=#1317 id=1317 data-nosnippet>1317</a>                VAR
+<a href=#1318 id=1318 data-nosnippet>1318</a>                    _val : DINT := 50;
+<a href=#1319 id=1319 data-nosnippet>1319</a>                END_VAR
+<a href=#1320 id=1320 data-nosnippet>1320</a>
+<a href=#1321 id=1321 data-nosnippet>1321</a>                PROPERTY value : DINT
+<a href=#1322 id=1322 data-nosnippet>1322</a>                    GET value := _val; END_GET
+<a href=#1323 id=1323 data-nosnippet>1323</a>                    SET _val := value; END_SET
+<a href=#1324 id=1324 data-nosnippet>1324</a>                END_PROPERTY
+<a href=#1325 id=1325 data-nosnippet>1325</a>
+<a href=#1326 id=1326 data-nosnippet>1326</a>                METHOD describe END_METHOD
+<a href=#1327 id=1327 data-nosnippet>1327</a>            END_FUNCTION_BLOCK
+<a href=#1328 id=1328 data-nosnippet>1328</a>
+<a href=#1329 id=1329 data-nosnippet>1329</a>            FUNCTION main
+<a href=#1330 id=1330 data-nosnippet>1330</a>                VAR
+<a href=#1331 id=1331 data-nosnippet>1331</a>                    instance : FbA;
+<a href=#1332 id=1332 data-nosnippet>1332</a>                    refA : IA;
+<a href=#1333 id=1333 data-nosnippet>1333</a>                    refB : IB;
+<a href=#1334 id=1334 data-nosnippet>1334</a>                END_VAR
+<a href=#1335 id=1335 data-nosnippet>1335</a>
+<a href=#1336 id=1336 data-nosnippet>1336</a>                refA := instance;
+<a href=#1337 id=1337 data-nosnippet>1337</a>                refA.value;
+<a href=#1338 id=1338 data-nosnippet>1338</a>
+<a href=#1339 id=1339 data-nosnippet>1339</a>                refB := instance;
+<a href=#1340 id=1340 data-nosnippet>1340</a>                refB.value;
+<a href=#1341 id=1341 data-nosnippet>1341</a>            END_FUNCTION
+<a href=#1342 id=1342 data-nosnippet>1342</a>            "</span>;
+<a href=#1343 id=1343 data-nosnippet>1343</a>
+<a href=#1344 id=1344 data-nosnippet>1344</a>            <span class="kw">let </span>(unit, annotations) = <span class="kw">super</span>::lower_properties_to_pous(source);
+<a href=#1345 id=1345 data-nosnippet>1345</a>            <span class="kw">let </span>statements = <span class="kw-2">&amp;</span>unit.implementations.iter().find(|imp| imp.name == <span class="string">"main"</span>).unwrap().statements;
+<a href=#1346 id=1346 data-nosnippet>1346</a>
+<a href=#1347 id=1347 data-nosnippet>1347</a>            <span class="comment">// refA.value — property on the declaring interface
+<a href=#1348 id=1348 data-nosnippet>1348</a>            </span><span class="macro">assert_eq!</span>(
+<a href=#1349 id=1349 data-nosnippet>1349</a>                annotations.get(<span class="kw-2">&amp;</span>statements[<span class="number">1</span>]).unwrap(),
+<a href=#1350 id=1350 data-nosnippet>1350</a>                <span class="kw-2">&amp;</span>StatementAnnotation::Property { name: <span class="string">"__get_value"</span>.to_string() }
+<a href=#1351 id=1351 data-nosnippet>1351</a>            );
+<a href=#1352 id=1352 data-nosnippet>1352</a>
+<a href=#1353 id=1353 data-nosnippet>1353</a>            <span class="comment">// refB.value — property inherited through child interface
+<a href=#1354 id=1354 data-nosnippet>1354</a>            </span><span class="macro">assert_eq!</span>(
+<a href=#1355 id=1355 data-nosnippet>1355</a>                annotations.get(<span class="kw-2">&amp;</span>statements[<span class="number">3</span>]).unwrap(),
+<a href=#1356 id=1356 data-nosnippet>1356</a>                <span class="kw-2">&amp;</span>StatementAnnotation::Property { name: <span class="string">"__get_value"</span>.to_string() }
+<a href=#1357 id=1357 data-nosnippet>1357</a>            );
+<a href=#1358 id=1358 data-nosnippet>1358</a>        }
+<a href=#1359 id=1359 data-nosnippet>1359</a>    }
+<a href=#1360 id=1360 data-nosnippet>1360</a>}
 </code></pre></div></section></main></body></html>

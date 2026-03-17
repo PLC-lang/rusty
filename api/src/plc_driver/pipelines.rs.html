@@ -299,12 +299,12 @@
 <a href=#299 id=299 data-nosnippet>299</a>
 <a href=#300 id=300 data-nosnippet>300</a>        <span class="comment">// XXX: should we use a static array of participants?
 <a href=#301 id=301 data-nosnippet>301</a>        </span><span class="kw">let </span>mut_participants: Vec&lt;Box&lt;<span class="kw">dyn </span>PipelineParticipantMut&gt;&gt; = <span class="macro">vec!</span>[
-<a href=#302 id=302 data-nosnippet>302</a>            Box::new(PolymorphismLowerer::new(
-<a href=#303 id=303 data-nosnippet>303</a>                <span class="self">self</span>.context.provider(),
-<a href=#304 id=304 data-nosnippet>304</a>                <span class="self">self</span>.context.should_generate_external_constructors(),
-<a href=#305 id=305 data-nosnippet>305</a>            )),
-<a href=#306 id=306 data-nosnippet>306</a>            Box::new(ControlStatementParticipant::new(<span class="self">self</span>.context.provider())),
-<a href=#307 id=307 data-nosnippet>307</a>            Box::new(PropertyLowerer::new(<span class="self">self</span>.context.provider())),
+<a href=#302 id=302 data-nosnippet>302</a>            Box::new(PropertyLowerer::new(<span class="self">self</span>.context.provider())),
+<a href=#303 id=303 data-nosnippet>303</a>            Box::new(PolymorphismLowerer::new(
+<a href=#304 id=304 data-nosnippet>304</a>                <span class="self">self</span>.context.provider(),
+<a href=#305 id=305 data-nosnippet>305</a>                <span class="self">self</span>.context.should_generate_external_constructors(),
+<a href=#306 id=306 data-nosnippet>306</a>            )),
+<a href=#307 id=307 data-nosnippet>307</a>            Box::new(ControlStatementParticipant::new(<span class="self">self</span>.context.provider())),
 <a href=#308 id=308 data-nosnippet>308</a>            Box::new(RetainParticipant::new(<span class="self">self</span>.context.provider())),
 <a href=#309 id=309 data-nosnippet>309</a>            Box::new(AggregateTypeLowerer::new(<span class="self">self</span>.context.provider())),
 <a href=#310 id=310 data-nosnippet>310</a>            Box::new(InheritanceLowerer::new(<span class="self">self</span>.context.provider())),
