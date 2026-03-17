@@ -6,7 +6,7 @@ use plc_ast::ast::{
     VariableBlock, VariableBlockType,
 };
 use plc_source::source_location::SourceLocation;
-use pretty_assertions::{assert_eq, assert_ne};
+use pretty_assertions::assert_eq;
 
 /*
  * These tests deal with parsing-behavior in the expressions: ()  expressions: ()  presence of errors.
