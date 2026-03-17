@@ -262,7 +262,7 @@ fn default_driver_pre_args() -> Vec<String> {
 /// Probe whether a driver linker can actually compile **and link** for `target`.
 ///
 /// The probe includes `pre_args` (e.g. `-fuse-ld=lld`) so that it tests the same
-/// linker backend the driver will actually use.  We compile+link a minimal C
+/// linker backend the driver will actually use. We compile+link a minimal C
 /// program *without* `-nostdlib` so the probe also verifies that the target's
 /// sysroot (crt files, libc, etc.) is available — matching what a real link will
 /// need.
@@ -283,7 +283,7 @@ fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool
         .spawn()
         .and_then(|mut child| {
             use std::io::Write;
-            // Write the source then drop stdin so the child sees EOF.
+            // Write the source then drop stdin so the child sees EOF and doesn't hang.
             if let Some(mut stdin) = child.stdin.take() {
                 let _ = stdin.write_all(probe_src.as_bytes());
             }
