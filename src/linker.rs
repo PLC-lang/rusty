@@ -282,7 +282,9 @@ fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool
         .map(|status| status.success())
         .unwrap_or(false);
 
-    log::trace!("supports_target_flag(linker=`{linker}`, target=`{target}`, pre_args={pre_args:?}) => {supported}");
+    log::trace!(
+        "supports_target_flag(linker=`{linker}`, target=`{target}`, pre_args={pre_args:?}) => {supported}"
+    );
     supported
 }
 
