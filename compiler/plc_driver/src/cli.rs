@@ -6,7 +6,7 @@ use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguratio
 use plc_header_generator::GenerateLanguage;
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
-use plc::output::FormatOption;
+use plc::output::{FormatOption, RelocationPreference};
 use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
 
 pub type ParameterError = clap::Error;
@@ -14,6 +14,7 @@ pub type ParameterError = clap::Error;
 #[derive(Parser, Debug)]
 #[clap(
     group = ArgGroup::new("format"),
+    group = ArgGroup::new("relocation-model").args(&["fpic", "fno-pic"]),
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
 )]
 #[clap(subcommand_negates_reqs = true)]
@@ -52,10 +53,20 @@ pub struct CompileParameters {
     #[clap(long = "shared", group = "format", global = true, help = "Emit a shared object as output")]
     pub output_shared_obj: bool,
 
-    #[clap(long = "pic", group = "format", global = true, help = "Equivalent to --shared")]
+    #[clap(
+        long = "pic",
+        group = "format",
+        global = true,
+        help = "[deprecated: use --shared --fpic] Emit a PIC shared object"
+    )]
     pub output_pic_obj: bool,
 
-    #[clap(long = "no-pic", group = "format", global = true, help = "Emit a no PIC shared object")]
+    #[clap(
+        long = "no-pic",
+        group = "format",
+        global = true,
+        help = "[deprecated: use --shared --fno-pic] Emit a no-PIC shared object"
+    )]
     pub output_no_pic_obj: bool,
 
     #[clap(long = "static", group = "format", global = true, help = "Emit an object as output")]
@@ -74,6 +85,12 @@ pub struct CompileParameters {
 
     #[clap(short = 'c', global = true, help = "Do not link after compiling object code")]
     pub compile_only: bool,
+
+    #[clap(long = "fpic", global = true, help = "Generate position-independent code where applicable")]
+    pub fpic: bool,
+
+    #[clap(long = "fno-pic", global = true, help = "Generate non-PIC code where applicable")]
+    pub fno_pic: bool,
 
     #[clap(long, name = "target-triple", global = true, help = "A target-triple supported by LLVM")]
     pub target: Option<Target>,
@@ -489,6 +506,16 @@ impl CompileParameters {
         DebugLevel::None
     }
 
+    pub fn relocation_preference(&self) -> RelocationPreference {
+        if self.fpic || self.output_pic_obj {
+            RelocationPreference::Pic
+        } else if self.fno_pic || self.output_no_pic_obj {
+            RelocationPreference::NoPic
+        } else {
+            RelocationPreference::Default
+        }
+    }
+
     // convert the scattered bools from structopt into an enum
     pub fn output_format(&self) -> Option<FormatOption> {
         if self.output_bit_code {
@@ -496,11 +523,13 @@ impl CompileParameters {
         } else if self.output_ir {
             Some(FormatOption::IR)
         } else if self.output_pic_obj {
-            Some(FormatOption::PIC)
+            log::warn!("--pic is deprecated, use --shared --fpic instead");
+            Some(FormatOption::Shared)
         } else if self.output_shared_obj {
             Some(FormatOption::Shared)
         } else if self.output_no_pic_obj {
-            Some(FormatOption::NoPIC)
+            log::warn!("--no-pic is deprecated, use --shared --fno-pic instead");
+            Some(FormatOption::Shared)
         } else if self.compile_only {
             Some(FormatOption::Object)
         } else if self.output_obj_code {
@@ -624,7 +653,10 @@ mod cli_tests {
 
     use super::{CompileParameters, SubCommands};
     use clap::ErrorKind;
-    use plc::{output::FormatOption, ConfigFormat, ErrorFormat, OptimizationLevel};
+    use plc::{
+        output::{FormatOption, RelocationPreference},
+        ConfigFormat, ErrorFormat, OptimizationLevel,
+    };
     use pretty_assertions::assert_eq;
     use std::ffi::OsStr;
     use std::fmt::Debug;
@@ -758,8 +790,9 @@ mod cli_tests {
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
         assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
 
+        // --pic is deprecated, maps to Shared
         let parameters = CompileParameters::parse(vec_of_strings!("charlie", "--pic")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::PIC);
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static")).unwrap();
@@ -927,6 +960,37 @@ mod cli_tests {
             CompileParameters::parse(vec_of_strings!("input.st", "--linker-arg=-z", "--linker-arg=defs"))
                 .unwrap();
         assert_eq!(parameters.linker_args, vec!["-z", "defs"]);
+    }
+
+    #[test]
+    fn relocation_preference_flags_are_parsed() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--fpic")).unwrap();
+        assert_eq!(parameters.relocation_preference(), RelocationPreference::Pic);
+
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--fno-pic")).unwrap();
+        assert_eq!(parameters.relocation_preference(), RelocationPreference::NoPic);
+    }
+
+    #[test]
+    fn relocation_preference_flags_conflict() {
+        expect_argument_error(
+            vec_of_strings!("input.st", "--fpic", "--fno-pic"),
+            ErrorKind::ArgumentConflict,
+        );
+    }
+
+    #[test]
+    fn deprecated_pic_maps_to_shared_with_pic_reloc() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--pic")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
+        assert_eq!(parameters.relocation_preference(), RelocationPreference::Pic);
+    }
+
+    #[test]
+    fn deprecated_no_pic_maps_to_shared_with_nopic_reloc() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--no-pic")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
+        assert_eq!(parameters.relocation_preference(), RelocationPreference::NoPic);
     }
 
     #[test]

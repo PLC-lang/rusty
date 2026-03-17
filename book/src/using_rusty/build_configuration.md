@@ -145,6 +145,7 @@ All regular linker options from `plc` can also be used with the `build` subcomma
 - `--linker-arg=<arg>` (repeatable)
 - `--nocrt`
 - `--nolibc`
+- `--fpic` / `--fno-pic` (relocation model)
 
 ## Environment Variables
 

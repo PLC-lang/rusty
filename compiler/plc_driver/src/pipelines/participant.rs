@@ -183,6 +183,7 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
                 Some(compile_directory),
                 &output_name,
                 self.compile_options.output_format,
+                self.compile_options.relocation_preference,
                 target,
                 self.compile_options.optimization,
             )

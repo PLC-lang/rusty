@@ -184,6 +184,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 output: self.project.get_output_name(),
                 output_format,
                 optimization: params.optimization,
+                relocation_preference: params.relocation_preference(),
                 error_format: params.error_format,
                 debug_level: params.debug_level(),
                 single_module: params.single_module,
@@ -231,6 +232,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 linker_args: params.linker_args.clone(),
                 no_crt: params.no_crt,
                 no_libc: params.no_libc,
+                relocation_preference: params.relocation_preference(),
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
                 linker_script,
@@ -916,6 +918,7 @@ impl AnnotatedProject {
                     Some(&compile_directory),
                     &compile_options.output,
                     compile_options.output_format,
+                    compile_options.relocation_preference,
                     target,
                     compile_options.optimization,
                 )
@@ -1114,6 +1117,15 @@ impl GeneratedProject {
                     #[allow(deprecated)]
                     LinkerScript::Builtin => {}
                 };
+
+                // When building an executable with --fno-pic, forward -no-pie
+                // so the linker does not reject non-PIC relocations.
+                if link_options.relocation_preference == plc::output::RelocationPreference::NoPic
+                    && matches!(link_options.format, FormatOption::Static)
+                {
+                    log::debug!("Applying -no-pie for --fno-pic executable link");
+                    linker.add_linker_arg("-no-pie");
+                }
 
                 match link_options.format {
                     FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),

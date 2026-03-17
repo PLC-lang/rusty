@@ -6,10 +6,13 @@
 `plc` takes one output-format parameter and any number of input-files.
 The input files can also be written as [glob patterns](https://en.wikipedia.org/wiki/Glob_(programming)).
 
-`plc [OPTIONS] <input-files>... <--ir|--shared|--pic|--static|--bc>`
+`plc [OPTIONS] <input-files>... <--ir|--shared|--static|--bc>`
 
 Note that you can only specify at most one output format.
 In the case that no output format switch has been specified, the compiler will select `--static` by default.
+
+> **Deprecated:** `--pic` is equivalent to `--shared --fpic`. `--no-pic` is equivalent to `--shared --fno-pic`.
+> Both flags will be removed in a future release.
 
 Similarly, if you do not specify an output filename via the `-o` or `--output` options,
 the output filename will consist of the first input filename, but with an appropriate
@@ -90,6 +93,39 @@ Please note that RuSTy will attempt to link the generated object file by default
 - The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.
 - For executable links with compiler drivers, startup/runtime defaults can be controlled explicitly with `--nocrt` and `--nolibc`.
 - `-l` also supports exact filenames (`-l:libfoo.so.1`) and direct full paths (`-l/path/to/libfoo.so.1`).
+
+### Relocation model (PIC / no-PIC)
+
+By default, RuSTy generates position-independent code (PIC) when building shared libraries, and uses the
+platform default relocation mode for object files and executables.
+
+You can override this with:
+
+- `--fpic` — Force PIC code generation. Required for shared libraries on most platforms.
+- `--fno-pic` — Force non-PIC code generation. Produces code without the overhead of PIC
+  relocations, which can be useful for bare-metal or static-only targets.
+
+These flags apply to **all** output modes:
+
+| Command | Effect |
+|---|---|
+| `plc -c --fpic file.st` | Compile to PIC object file |
+| `plc -c --fno-pic file.st` | Compile to non-PIC object file |
+| `plc --shared --fpic file.st` | Build PIC shared library (default for `--shared`) |
+| `plc --shared --fno-pic file.st` | Build non-PIC shared library (may fail on some targets) |
+| `plc --fno-pic file.st --linker=cc` | Build non-PIE executable (forwards `-no-pie` to linker) |
+
+> **Note:** On x86_64, LLVM's code generator produces position-independent code by default regardless
+> of relocation mode (the small code model uses RIP-relative addressing). The `--fpic` / `--fno-pic`
+> flags are passed through to LLVM and **will** produce different code on targets where the distinction
+> matters (e.g. 32-bit x86, certain ARM configurations).
+>
+> On x86_64 Linux, the primary observable effect is at **link time**: most toolchains default to PIE
+> executables. When `--fno-pic` is used for executable output, RuSTy automatically passes `-no-pie`
+> to the linker. Building a non-PIC shared library will fail on targets that require PIC for shared
+> objects — this matches the behavior of `gcc`/`clang`.
+
+> `--fpic` and `--fno-pic` are mutually exclusive and cannot be combined.
 
 ### Building for separate targets
 
