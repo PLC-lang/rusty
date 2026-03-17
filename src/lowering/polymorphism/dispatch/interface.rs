@@ -3604,4 +3604,473 @@ mod tests {
             }
         }
     }
+
+    mod properties {
+        #[test]
+        fn property_get_through_interface() {
+            // A standalone property get through an interface reference.
+            // Should lower to an itable indirect call to __get_foo.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                    END_VAR
+
+                    reference.foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__itable_IA#(reference.table^).__get_foo^(reference.data^)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_set_through_interface() {
+            // Setting a property through an interface reference.
+            // Should lower to an itable indirect call to __set_foo with the value as argument.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                    END_VAR
+
+                    reference.foo := 5;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__itable_IA#(reference.table^).__set_foo^(reference.data^, 5)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_get_in_assignment() {
+            // Getting a property through an interface and assigning it to a local variable.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                        result : DINT;
+                    END_VAR
+
+                    result := reference.foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "result := __itable_IA#(reference.table^).__get_foo^(reference.data^)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_get_in_expression() {
+            // Using a property getter in a binary expression.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                        result : DINT;
+                    END_VAR
+
+                    result := reference.foo + 1;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "result := __itable_IA#(reference.table^).__get_foo^(reference.data^) + 1",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_self_assignment_through_interface() {
+            // Self-assignment: reference.foo := reference.foo
+            // Should produce a setter whose argument is the getter, both through the itable.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                    END_VAR
+
+                    reference.foo := reference.foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__itable_IA#(reference.table^).__set_foo^(reference.data^, __itable_IA#(reference.table^).__get_foo^(reference.data^))",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_get_as_function_argument() {
+            // Passing a property getter result as an argument to a function.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        x : DINT;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                    END_VAR
+
+                    consumer(reference.foo);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "consumer(__itable_IA#(reference.table^).__get_foo^(reference.data^))",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_and_method_calls_mixed() {
+            // An interface has both a method and a property. Both are called through the
+            // interface reference and should dispatch through the same itable.
+            let source = r#"
+                INTERFACE IA
+                    METHOD bar : DINT END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    METHOD bar : DINT END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                        result : DINT;
+                    END_VAR
+
+                    reference.bar();
+                    result := reference.foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__itable_IA#(reference.table^).bar^(reference.data^)",
+                "result := __itable_IA#(reference.table^).__get_foo^(reference.data^)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_through_qualified_interface() {
+            // Accessing a property through a qualified path: container.reference.foo
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK Container
+                    VAR
+                        reference : IA;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        container : Container;
+                        result : DINT;
+                    END_VAR
+
+                    result := container.reference.foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "Container__ctor(container)",
+                "result := __itable_IA#(container.reference.table^).__get_foo^(container.reference.data^)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_through_array_of_interfaces() {
+            // Accessing a property through an array of interface references.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        references : ARRAY[0..10] OF IA;
+                        i : DINT;
+                        result : DINT;
+                    END_VAR
+
+                    result := references[i].foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__main_references__ctor(references)",
+                "result := __itable_IA#(references[i].table^).__get_foo^(references[i].data^)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_assignment_expands_for_interface_variable() {
+            // Assigning a concrete POU instance (that has properties) to an interface variable.
+            // Verifies normal fat-pointer expansion still works when the POU has properties.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                        instance : FbA;
+                    END_VAR
+
+                    reference := instance;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "reference.data := ADR(instance)",
+                "reference.table := ADR(__itable_IA_FbA_instance)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_assignment_uses_correct_itable_for_overridden_pou() {
+            // Assigning different concrete POU instances to the same interface variable.
+            // FbB extends FbA and overrides the getter. Each assignment should use the
+            // correct itable instance for the .table field.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                        instanceA : FbA;
+                        instanceB : FbB;
+                    END_VAR
+
+                    reference := instanceA;
+                    reference := instanceB;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instanceA)",
+                "FbB__ctor(instanceB)",
+                "reference.data := ADR(instanceA)",
+                "reference.table := ADR(__itable_IA_FbA_instance)",
+                "reference.data := ADR(instanceB)",
+                "reference.table := ADR(__itable_IA_FbB_instance)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_get_nested_in_interface_method_call() {
+            // Using a property getter as an argument to an interface method call.
+            // reference.bar(reference.foo) where bar is a method and foo is a property.
+            let source = r#"
+                INTERFACE IA
+                    METHOD bar
+                        VAR_INPUT
+                            x : DINT;
+                        END_VAR
+                    END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    METHOD bar
+                        VAR_INPUT
+                            x : DINT;
+                        END_VAR
+                    END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                    END_VAR
+
+                    reference.bar(reference.foo);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__itable_IA#(reference.table^).bar^(reference.data^, __itable_IA#(reference.table^).__get_foo^(reference.data^))",
+            ]
+            "#);
+        }
+    }
 }

@@ -423,6 +423,7 @@ mod tests {
     use insta::assert_debug_snapshot;
     use plc_ast::mut_visitor::AstVisitorMut;
     use plc_ast::provider::IdProvider;
+    use plc_lowering::control_statement::ControlStatementLowerer;
     use pretty_assertions::assert_eq;
 
     use crate::index::indexer;
@@ -972,7 +973,7 @@ mod tests {
         VAR a : STRING; END_VAR
         IF TRUE THEN
             // do nothing
-        ELSIF complexFunc() = 'hello' THEN // FIXME: currently has side-effects, is always evaluated
+        ELSIF complexFunc() = 'hello' THEN
             // do nothing
         END_IF
 
@@ -982,6 +983,9 @@ mod tests {
         "#,
             id_provider.clone(),
         );
+
+        let mut control_statement_lowerer = ControlStatementLowerer::new(id_provider.clone());
+        control_statement_lowerer.visit_compilation_unit(&mut unit);
 
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),
