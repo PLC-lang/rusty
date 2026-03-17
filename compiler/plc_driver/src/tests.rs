@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 use source_code::SourceContainer;
 
 use crate::{
-    CompileOptions,
     pipelines::{self, AnnotatedProject, BuildPipeline, IndexedProject, ParsedProject, Pipeline},
+    CompileOptions,
 };
 
 mod external_files;

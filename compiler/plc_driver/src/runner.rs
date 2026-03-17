@@ -1,6 +1,6 @@
 use crate::{
-    CompileOptions,
     pipelines::{BuildPipeline, Pipeline},
+    CompileOptions,
 };
 
 use log::trace;

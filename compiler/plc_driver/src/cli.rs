@@ -1,13 +1,13 @@
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
-use plc_diagnostics::diagnostics::{Diagnostic, diagnostics_registry::DiagnosticsConfiguration};
+use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
 use plc_header_generator::GenerateLanguage;
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
 use plc::output::FormatOption;
-use plc::{ConfigFormat, DEFAULT_GOT_LAYOUT_FILE, DebugLevel, ErrorFormat, Target, Threads};
+use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
 
 pub type ParameterError = clap::Error;
 
@@ -624,7 +624,7 @@ mod cli_tests {
 
     use super::{CompileParameters, SubCommands};
     use clap::ErrorKind;
-    use plc::{ConfigFormat, ErrorFormat, OptimizationLevel, output::FormatOption};
+    use plc::{output::FormatOption, ConfigFormat, ErrorFormat, OptimizationLevel};
     use pretty_assertions::assert_eq;
     use std::ffi::OsStr;
     use std::fmt::Debug;
@@ -1118,15 +1118,13 @@ mod cli_tests {
     fn test_gdwarf_and_debug_mutually_exclusive() {
         assert!(CompileParameters::parse(vec_of_strings!("input.st", "--debug", "--gdwarf", "2")).is_err());
         assert!(CompileParameters::parse(vec_of_strings!("input.st", "-g", "--gdwarf", "4")).is_err());
-        assert!(
-            CompileParameters::parse(vec_of_strings!(
-                "input.st",
-                "--debug-variables",
-                "--gdwarf-variables",
-                "3"
-            ))
-            .is_err()
-        );
+        assert!(CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--debug-variables",
+            "--gdwarf-variables",
+            "3"
+        ))
+        .is_err());
     }
 
     #[test]

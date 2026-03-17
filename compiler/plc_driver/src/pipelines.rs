@@ -9,38 +9,37 @@ use std::{
 };
 
 use crate::{
-    CompileOptions, LinkOptions, LinkerScript,
     cli::{self, CompileParameters, ConfigOption, GenerateOption, SubCommands},
-    get_project,
+    get_project, CompileOptions, LinkOptions, LinkerScript,
 };
 use ast::{
-    ast::{CompilationUnit, LinkageType, pre_process},
+    ast::{pre_process, CompilationUnit, LinkageType},
     provider::IdProvider,
 };
 
 use itertools::Itertools;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
-    ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
     codegen::{CodegenContext, GeneratedModule},
-    index::{FxIndexSet, Index, indexer},
+    index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
     output::FormatOption,
     parser::parse_file,
     resolver::{
-        AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator,
-        const_evaluator::UnresolvableConstant,
+        const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
+        TypeAnnotator,
     },
     validation::Validator,
+    ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
 };
 use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
 };
 use plc_header_generator::{
+    header_generator::{combine_generated_headers, get_generated_header, GeneratedHeader},
     GenerateHeaderOptions,
-    header_generator::{GeneratedHeader, combine_generated_headers, get_generated_header},
 };
 use plc_index::GlobalContext;
 use plc_lowering::{
@@ -53,7 +52,7 @@ use project::{
 };
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use source_code::{SourceContainer, source_location::SourceLocation};
+use source_code::{source_location::SourceLocation, SourceContainer};
 
 use serde_json;
 use toml;

@@ -14,10 +14,10 @@ use std::{
 
 use ast::provider::IdProvider;
 use plc::{
-    ConfigFormat, OnlineChange, Target,
     codegen::GeneratedModule,
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
+    ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{

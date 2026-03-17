@@ -1,16 +1,16 @@
 use std::path::{Path, PathBuf};
 
 use ast::ast::CompilationUnit;
-use insta::{Snapshot, assert_snapshot, internals::SnapshotContents};
+use insta::{assert_snapshot, internals::SnapshotContents, Snapshot};
 use serde::{Deserialize, Serialize};
 use source_code::SourceCode;
 
 use plc_header_generator::{
-    GenerateHeaderOptions, GenerateLanguage,
     header_generator::{
-        GeneratedHeader, get_empty_generated_header_from_options,
-        prepare_template_data_for_header_generation, template_helper::TemplateData,
+        get_empty_generated_header_from_options, prepare_template_data_for_header_generation,
+        template_helper::TemplateData, GeneratedHeader,
     },
+    GenerateHeaderOptions, GenerateLanguage,
 };
 
 use crate::tests::{

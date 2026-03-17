@@ -130,15 +130,13 @@ impl Project<PathBuf> {
             .libraries
             .into_iter()
             .map(|conf| {
-                let lib_path = config.parent().map(|it| it.join(&conf.path)).unwrap_or_else(|| conf.path.clone());
+                let lib_path =
+                    config.parent().map(|it| it.join(&conf.path)).unwrap_or_else(|| conf.path.clone());
                 let linkage: Linkage = conf.package.into();
 
                 let link_name = if let Some(link_path) = conf.link_path.as_ref() {
-                    let resolved = if link_path.is_absolute() {
-                        link_path.clone()
-                    } else {
-                        lib_path.join(link_path)
-                    };
+                    let resolved =
+                        if link_path.is_absolute() { link_path.clone() } else { lib_path.join(link_path) };
 
                     if !resolved.is_file() {
                         return Err(anyhow!(

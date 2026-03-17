@@ -8,9 +8,9 @@
 //!  - Shared Objects
 //!  - Executables
 
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use pipelines::{
-    AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline, participant::CodegenParticipant,
+    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
 };
 use std::{
     ffi::OsStr,
@@ -21,8 +21,8 @@ use std::{
 
 use cli::{CompileParameters, ParameterError};
 use plc::{
-    DebugLevel, ErrorFormat, OnlineChange, OptimizationLevel, codegen::CodegenContext, linker::LinkerType,
-    output::FormatOption,
+    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
+    OptimizationLevel,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter};

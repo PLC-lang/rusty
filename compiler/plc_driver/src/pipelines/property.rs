@@ -3,7 +3,7 @@
 use plc::lowering::property::PropertyLowerer;
 
 use super::{
-    AnnotatedProject, AnnotatedUnit, IndexedProject, ParsedProject, participant::PipelineParticipantMut,
+    participant::PipelineParticipantMut, AnnotatedProject, AnnotatedUnit, IndexedProject, ParsedProject,
 };
 
 impl PipelineParticipantMut for PropertyLowerer {
