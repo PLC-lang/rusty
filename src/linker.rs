@@ -219,7 +219,7 @@ fn resolve_driver_linker(linker: &str, target: &str) -> Result<CcLinker, LinkerE
         return Err(LinkerError::Link(format!("Linker not found: {linker}")));
     }
 
-    let mut pre_args = default_driver_pre_args();
+    let mut pre_args = default_driver_pre_args(target);
     let cross_target = !target_matches_host(target);
     log::trace!("Driver linker `{linker}` cross-target={cross_target} target=`{target}`");
 
@@ -239,10 +239,9 @@ fn resolve_driver_linker(linker: &str, target: &str) -> Result<CcLinker, LinkerE
 
 /// Default pre-arguments for compiler drivers.
 ///
-/// - Enforce `--no-as-needed` to keep transitive shared-library dependencies.
 /// - Prefer lld backend when available.
-fn default_driver_pre_args() -> Vec<String> {
-    let mut args = vec!["-Wl,--no-as-needed".to_string()];
+fn default_driver_pre_args(_target: &str) -> Vec<String> {
+    let mut args = Vec::new();
     if which("ld.lld").is_ok() {
         args.push("-fuse-ld=lld".to_string());
         log::trace!("Driver default pre-args include -fuse-ld=lld");
@@ -274,7 +273,8 @@ fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool
         .spawn()
         .and_then(|mut child| {
             use std::io::Write;
-            if let Some(ref mut stdin) = child.stdin {
+            // Write the source then drop stdin so the child sees EOF and doesn't hang.
+            if let Some(mut stdin) = child.stdin.take() {
                 let _ = stdin.write_all(probe_src.as_bytes());
             }
             child.wait()
