@@ -147,7 +147,10 @@ fn resolve_internal_linker(target: &str) -> Result<CcLinker, LinkerError> {
             log::debug!("cc rejected for target `{target}`: {err:?}");
             if which("clang").is_ok() {
                 log::trace!("Falling back to clang");
-                resolve_driver_linker("clang", target)
+                resolve_driver_linker("clang", target).or_else(|err| {
+                    log::debug!("clang rejected for target `{target}`: {err:?}");
+                    resolve_direct_linker_fallback()
+                })
             } else {
                 log::trace!("clang unavailable, falling back to direct linker resolution");
                 resolve_direct_linker_fallback()
@@ -220,7 +223,7 @@ fn resolve_driver_linker(linker: &str, target: &str) -> Result<CcLinker, LinkerE
     let cross_target = !target_matches_host(target);
     log::trace!("Driver linker `{linker}` cross-target={cross_target} target=`{target}`");
 
-    if supports_target_flag(linker, target) {
+    if supports_target_flag(linker, target, &pre_args) {
         pre_args.push(format!("--target={target}"));
         log::trace!("Driver linker `{linker}` supports --target; added target flag");
     } else if cross_target {
@@ -249,21 +252,39 @@ fn default_driver_pre_args() -> Vec<String> {
     args
 }
 
-/// Probe whether a driver linker accepts `--target=<triple>`.
-fn supports_target_flag(linker: &str, target: &str) -> bool {
+/// Probe whether a driver linker can actually compile **and link** for `target`.
+///
+/// The probe includes `pre_args` (e.g. `-fuse-ld=lld`) so that it tests the same
+/// linker backend the driver will actually use.  We compile+link a minimal C
+/// program *without* `-nostdlib` so the probe also verifies that the target's
+/// sysroot (crt files, libc, etc.) is available — matching what a real link will
+/// need.
+fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool {
     let null_output = if cfg!(windows) { "NUL" } else { "/dev/null" };
+
+    let probe_src = "int main(){return 0;}";
 
     let supported = Command::new(linker)
         .arg(format!("--target={target}"))
-        .args(["-x", "c", "-c", "-o", null_output, "-"])
-        .stdin(Stdio::null())
+        .args(pre_args)
+        .args(["-x", "c", "-o", null_output, "-"])
+        .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
-        .status()
+        .spawn()
+        .and_then(|mut child| {
+            use std::io::Write;
+            if let Some(ref mut stdin) = child.stdin {
+                let _ = stdin.write_all(probe_src.as_bytes());
+            }
+            child.wait()
+        })
         .map(|status| status.success())
         .unwrap_or(false);
 
-    log::trace!("supports_target_flag(linker=`{linker}`, target=`{target}`) => {supported}");
+    log::trace!(
+        "supports_target_flag(linker=`{linker}`, target=`{target}`, pre_args={pre_args:?}) => {supported}"
+    );
     supported
 }
 
