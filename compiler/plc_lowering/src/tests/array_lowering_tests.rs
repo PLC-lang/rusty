@@ -193,6 +193,52 @@ fn local_const_variable_as_multiplier_with_non_constant_element_is_lowered() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Non-constant variable multipliers — lowered to FOR loops
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn non_constant_variable_multiplier_is_lowered_to_for_loop() {
+    // `[(n)(42)]` where n is a non-constant variable — the multiplier cannot
+    // be resolved at compile time so it must be lowered to a FOR loop.
+    let project = lower(
+        "
+        FUNCTION main : DINT
+        VAR
+            n : DINT := 5;
+            arr : ARRAY[0..4] OF DINT := [(n)(42)];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    let stmts = find_impl_stmts(&project, "main");
+    assert!(!has_literal_array(stmts), "Variable multiplier should be lowered");
+    assert!(has_for_loop(stmts), "Variable multiplier should produce a FOR loop");
+}
+
+#[test]
+fn non_constant_variable_multiplier_mixed_segments_lowered() {
+    // `[(n)(10), 20, 30]` — variable multiplier followed by individual values.
+    // The subsequent elements should use expression-based offsets.
+    let project = lower(
+        "
+        FUNCTION main : DINT
+        VAR
+            n : DINT := 3;
+            arr : ARRAY[0..4] OF DINT := [(n)(10), 20, 30];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    let stmts = find_impl_stmts(&project, "main");
+    assert!(!has_literal_array(stmts), "Mixed variable multiplier should be lowered");
+    assert!(has_for_loop(stmts), "Variable multiplier segment should produce a FOR loop");
+    // n := 5 init + 2 individual element assignments + return assignment = 4
+    assert_eq!(count_assignments(stmts), 4);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Function calls (ADR, etc.) — runtime values, must be lowered
 // ═══════════════════════════════════════════════════════════════════════════
 

@@ -1691,7 +1691,13 @@ pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
             expressions.iter().by_ref().flat_map(flatten_expression_list).collect()
         }
         AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => {
-            std::iter::repeat_n(flatten_expression_list(element), *multiplier as usize).flatten().collect()
+            if let Some(count) = multiplier.get_literal_integer_value() {
+                std::iter::repeat_n(flatten_expression_list(element), count as usize).flatten().collect()
+            } else {
+                // Non-literal multiplier (e.g. variable reference) — cannot flatten
+                // at this stage; the array lowering pass will handle it.
+                vec![list]
+            }
         }
         AstStatement::ParenExpression(expression) => flatten_expression_list(expression),
         _ => vec![list],
@@ -2100,13 +2106,16 @@ impl AstFactory {
     }
 
     pub fn create_multiplied_statement(
-        multiplier: u32,
+        multiplier: AstNode,
         element: AstNode,
         location: SourceLocation,
         id: AstId,
     ) -> AstNode {
         AstNode::new(
-            AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element: Box::new(element) }),
+            AstStatement::MultipliedStatement(MultipliedStatement {
+                multiplier: Box::new(multiplier),
+                element: Box::new(element),
+            }),
             id,
             location,
         )
@@ -2190,7 +2199,7 @@ pub struct CastStatement {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(bound(deserialize = "'de: 'static"))]
 pub struct MultipliedStatement {
-    pub multiplier: u32,
+    pub multiplier: Box<AstNode>,
     pub element: Box<AstNode>,
 }
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

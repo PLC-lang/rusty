@@ -389,6 +389,25 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Option<AstNode> {
         return Some(reference);
     }
 
+    // `(expr)(value)` — a ParenExpression followed by `(` is the IEC 61131-3 syntax
+    // for a multiplied array initializer, e.g. `[(NB_BOOL)(0.0033)]`.  The inner
+    // expression is the multiplier (resolved later by lowering) and the parenthesized
+    // value is the repeated element.  A ParenExpression is never a valid call operator
+    // (functions are called by name, pointers via `^`), so this is unambiguous.
+    if let AstStatement::ParenExpression(inner) = reference.get_stmt() {
+        let multiplier_node = *inner.clone();
+        let element = parse_expression(lexer);
+        expect_token!(lexer, KeywordParensClose, None);
+        let end_location = lexer.location();
+        lexer.advance();
+        return Some(AstFactory::create_multiplied_statement(
+            multiplier_node,
+            element,
+            reference_loc.span(&end_location),
+            lexer.next_id(),
+        ));
+    }
+
     let call = if lexer.try_consume(KeywordParensClose) {
         AstFactory::create_call_statement(
             reference,
@@ -588,24 +607,29 @@ fn parse_literal_number(lexer: &mut ParseSession, is_negative: bool) -> Option<A
         return parse_literal_real(lexer, result, location, is_negative);
     } else if lexer.try_consume(KeywordParensOpen) {
         let start = location.start;
-        let multiplier = match result.parse::<u32>() {
+        let multiplier_value = match result.parse::<i128>() {
             Ok(v) => Some(v),
             Err(e) => {
                 lexer.accept_diagnostic(
                     Diagnostic::new(format!("Failed to parse number {result}"))
                         .with_error_code("E011")
-                        .with_location(lexer.source_range_factory.create_range(location))
+                        .with_location(lexer.source_range_factory.create_range(location.clone()))
                         .with_internal_error(e.into()),
                 );
                 None
             }
         }?;
+        let multiplier_node = AstNode::new_literal(
+            AstLiteral::new_integer(multiplier_value),
+            lexer.next_id(),
+            lexer.source_range_factory.create_range(location),
+        );
         let element = parse_expression(lexer);
         expect_token!(lexer, KeywordParensClose, None);
         let end = lexer.range().end;
         lexer.advance();
         return Some(AstFactory::create_multiplied_statement(
-            multiplier,
+            multiplier_node,
             element,
             lexer.source_range_factory.create_range(start..end),
             lexer.next_id(),

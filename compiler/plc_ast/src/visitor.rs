@@ -466,7 +466,8 @@ impl Walker for MultipliedStatement {
     where
         V: AstVisitor,
     {
-        visitor.visit(&self.element)
+        visitor.visit(&self.multiplier);
+        visitor.visit(&self.element);
     }
 }
 
