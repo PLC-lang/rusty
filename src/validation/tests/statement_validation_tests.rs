@@ -2712,3 +2712,36 @@ fn division_by_zero_variable_must_not_result_in_error() {
 
     assert_snapshot!(diagnostics, @"");
 }
+
+#[test]
+fn function_call_with_variadics_should_not_produce_downcast_warnings() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE LogLevel :
+        (
+            LOG_LEVEL_INFO := 0,
+        );
+        END_TYPE
+
+        FUNCTION Log_Print : ErrorCode
+        VAR_INPUT
+            Priority : LogLevel;
+            Format : STRING[1023];
+            Args : ...;
+        END_VAR
+            // Do nothing
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                x : UDINT := 21;
+                y : LREAL := 42;
+            END_VAR
+
+            Log_Print(LOG_LEVEL_INFO, 'X(%u): Y = %f', x, y);
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}

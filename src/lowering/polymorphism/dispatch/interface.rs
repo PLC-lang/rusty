@@ -439,7 +439,7 @@ impl InterfaceDispatchLowerer<'_> {
         let actual_type = self.annotations.get_type_or_void(arg, self.index);
         let expected_type = self.annotations.get_hint_or_void(arg, self.index);
 
-        // Not an interface-related argument — nothing to do.
+        // Not an interface parameter, nothing to do.
         if !expected_type.is_interface() {
             return;
         }
