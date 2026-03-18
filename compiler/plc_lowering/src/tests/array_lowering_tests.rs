@@ -79,6 +79,119 @@ fn constant_expression_list_is_not_lowered() {
     assert!(has_literal_array(stmts), "Constant expression list array should NOT be lowered");
 }
 
+#[test]
+fn const_variable_as_multiplier_is_rewritten_and_not_lowered() {
+    // `[(NB_BOOL)(0.0033)]` is parsed as a CallStatement but should be rewritten
+    // into a MultipliedStatement when NB_BOOL is a constant integer. Since all
+    // elements are constant REALs, the result should NOT be lowered further.
+    let project = lower(
+        "
+        VAR_GLOBAL CONSTANT
+            NB_BOOL : DINT := 12;
+        END_VAR
+
+        FUNCTION main : DINT
+        VAR
+            MAX_TIME_BOOL : ARRAY [1..NB_BOOL] OF REAL := [(NB_BOOL)(0.0033)];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    let stmts = find_impl_stmts(&project, "main");
+    assert!(has_literal_array(stmts), "Constant multiplied array should NOT be lowered");
+}
+
+#[test]
+fn const_variable_as_multiplier_in_global_is_rewritten() {
+    // Same rewrite for global constant arrays with `[(CONST)(value)]` syntax.
+    let project = lower(
+        "
+        VAR_GLOBAL CONSTANT
+            NB_BOOL : DINT := 12;
+            MAX_TIME_BOOL : ARRAY [1..NB_BOOL] OF REAL := [(NB_BOOL)(0.0033)];
+        END_VAR
+
+        FUNCTION main : DINT
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    let stmts = find_impl_stmts(&project, "main");
+    assert_eq!(count_assignments(stmts), 1);
+}
+
+#[test]
+fn const_variable_as_multiplier_with_non_constant_element_is_lowered() {
+    // `[(N)(ADR(x))]` — the multiplier is a constant but the element is a runtime
+    // value (function call).  The CallStatement should be rewritten to a
+    // MultipliedStatement, then lowered into individual assignments.
+    let project = lower(
+        "
+        VAR_GLOBAL CONSTANT
+            N : DINT := 3;
+        END_VAR
+
+        FUNCTION main : DINT
+        VAR
+            x : DINT;
+            arr : ARRAY[0..2] OF REF_TO DINT := [(N)(ADR(x))];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    let stmts = find_impl_stmts(&project, "main");
+    assert!(!has_literal_array(stmts), "Non-constant elements should be lowered");
+    assert_eq!(count_assignments(stmts), 3 + 1); // 3 element assignments + return assignment
+}
+
+#[test]
+fn local_const_variable_as_multiplier_is_rewritten_and_not_lowered() {
+    // `[(N)(42)]` where N is a POU-local `VAR CONSTANT` should be rewritten
+    // into a MultipliedStatement.  Since all elements are constant, the result
+    // should NOT be lowered further.
+    let project = lower(
+        "
+        FUNCTION main : DINT
+        VAR CONSTANT
+            N : DINT := 5;
+        END_VAR
+        VAR
+            arr : ARRAY [0..4] OF DINT := [(N)(42)];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    let stmts = find_impl_stmts(&project, "main");
+    assert!(has_literal_array(stmts), "Local constant multiplied array should NOT be lowered");
+}
+
+#[test]
+fn local_const_variable_as_multiplier_with_non_constant_element_is_lowered() {
+    // `[(N)(ADR(x))]` where N is a POU-local `VAR CONSTANT` — the multiplier
+    // resolves to a constant but the element is a runtime value, so the array
+    // should be lowered into individual assignments.
+    let project = lower(
+        "
+        FUNCTION main : DINT
+        VAR CONSTANT
+            N : DINT := 3;
+        END_VAR
+        VAR
+            x : DINT;
+            arr : ARRAY[0..2] OF REF_TO DINT := [(N)(ADR(x))];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    let stmts = find_impl_stmts(&project, "main");
+    assert!(!has_literal_array(stmts), "Non-constant elements should be lowered");
+    assert_eq!(count_assignments(stmts), 3 + 1); // 3 element assignments + return assignment
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Function calls (ADR, etc.) — runtime values, must be lowered
 // ═══════════════════════════════════════════════════════════════════════════
