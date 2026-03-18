@@ -2987,7 +2987,27 @@ impl ResolvingStrategy {
         let qualifier =
             index.find_pou(qualifier).and_then(|pou| pou.get_parent_pou_name()).unwrap_or(qualifier);
 
-        index.find_method(qualifier, &name).map(|_| StatementAnnotation::Property { name })
+        // Try to find the property method directly on the qualifier (works for POUs and
+        // for the interface that originally declared the property).
+        if index.find_method(qualifier, &name).is_some() {
+            return Some(StatementAnnotation::Property { name });
+        }
+
+        // If the qualifier is an interface, walk its inheritance chain (extensions) to
+        // find property methods declared on ancestor interfaces.
+        if let Some(interface) = index.find_interface(qualifier) {
+            for ancestor in interface.get_interface_hierarchy(index) {
+                // Skip self — already checked above via `find_method(qualifier, &name)`.
+                if ancestor.get_name() == qualifier {
+                    continue;
+                }
+                if index.find_method(ancestor.get_name(), &name).is_some() {
+                    return Some(StatementAnnotation::Property { name });
+                }
+            }
+        }
+
+        None
     }
 
     /// tries to resolve the given name using the reprsented scope
