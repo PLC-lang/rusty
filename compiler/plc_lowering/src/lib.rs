@@ -7,7 +7,9 @@ use plc_ast::{ast::AstNode, provider::IdProvider};
 pub mod control_statement;
 pub mod inheritance;
 pub mod initializer;
+pub mod reference_to_return;
 pub mod retain;
+
 #[cfg(test)]
 mod tests;
 

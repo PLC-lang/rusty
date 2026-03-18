@@ -1,10 +1,6 @@
 use crate::{
     ast::{
-        Allocation, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement, CompilationUnit,
-        ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
-        HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement, MultipliedStatement, Pou,
-        PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration,
-        Variable, VariableBlock,
+        Allocation, Assignment, AstNode, AstStatement, AutoDerefType, BinaryExpression, CallStatement, CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement, MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::AstLiteral,
@@ -20,6 +16,13 @@ impl AstSerializer {
     pub fn format(node: &AstNode) -> String {
         let mut serializer = AstSerializer { result: String::new(), indent: 0 };
         serializer.visit(node);
+
+        serializer.result
+    }
+
+    pub fn format_variable_block(variable_block: &VariableBlock) -> String {
+        let mut serializer = AstSerializer { result: String::new(), indent: 0 };
+        serializer.visit_variable_block(variable_block);
 
         serializer.result
     }
@@ -56,12 +59,31 @@ impl AstVisitor for AstSerializer {
         unimplemented!("for now only interested in individual nodes located in a POU body")
     }
 
-    fn visit_variable_block(&mut self, _: &VariableBlock) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_variable_block(&mut self, variable_block: &VariableBlock) {
+        let var_start = match variable_block.kind {
+            VariableBlockType::InOut => "VAR_IN_OUT",
+            VariableBlockType::Input(_) => "VAR_INPUT",
+            VariableBlockType::Output => "VAR_OUTPUT",
+            VariableBlockType::Temp => "VAR_TEMP",
+            VariableBlockType::Global => "VAR_GLOBAL",
+            _ => "VAR",
+        };
+        let var_end: &str = "END_VAR";
+
+        self.result.push_str(var_start);
+        self.indent += 1;
+        variable_block.variables.iter().for_each(|v| {
+            self.push_indent();
+            v.walk(self);
+            self.result.push(';');
+        });
+        self.indent -= 1;
+        self.result.push_str(&format!("\n{var_end}"));
     }
 
-    fn visit_variable(&mut self, _: &Variable) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_variable(&mut self, variable: &Variable) {
+        self.result.push_str(&format!("{} : ", variable.name));
+        variable.data_type_declaration.walk(self);
     }
 
     fn visit_config_variable(&mut self, _: &ConfigVariable) {
@@ -80,16 +102,45 @@ impl AstVisitor for AstSerializer {
         element.walk(self);
     }
 
-    fn visit_data_type_declaration(&mut self, _: &DataTypeDeclaration) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_data_type_declaration(&mut self, data_type_declaration: &DataTypeDeclaration) {
+        match data_type_declaration {
+            DataTypeDeclaration::Reference { referenced_type, .. } => {
+                self.result.push_str(referenced_type);
+            },
+            DataTypeDeclaration::Definition { data_type, .. } => {
+                data_type.as_ref().walk(self);
+            },
+            DataTypeDeclaration::Aggregate { referenced_type, .. } => {
+                self.result.push_str(referenced_type);
+            }
+        }
     }
 
     fn visit_user_type_declaration(&mut self, _: &UserTypeDeclaration) {
         unimplemented!("for now only interested in individual nodes located in a POU body")
     }
 
-    fn visit_data_type(&mut self, _: &DataType) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_data_type(&mut self, data_type: &DataType) {
+        if let DataType::PointerType { referenced_type, auto_deref, type_safe, .. } = data_type {
+            match auto_deref {
+                Some(AutoDerefType::Reference) => {
+                    self.result.push_str("REFERENCE TO ");
+                },
+                // TODO: We also want to handle these cases at some point
+                Some(AutoDerefType::Alias) | Some(AutoDerefType::Default) => (),
+                _ => {
+                    if *type_safe {
+                        self.result.push_str("REF_TO ");
+                    } else {
+                        self.result.push_str("POINTER TO ");
+                    }
+                }
+            }
+
+            referenced_type.as_ref().walk(self);
+        }
+
+        // TODO: For now we aren't interested in non-pointer types, but this should be expanded
     }
 
     fn visit_pou(&mut self, _: &Pou) {

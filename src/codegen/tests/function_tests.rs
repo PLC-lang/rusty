@@ -424,3 +424,77 @@ fn function_call_with_array_access() {
 
     filtered_assert_snapshot!(result)
 }
+
+
+#[test]
+fn function_call_with_with_references_to_references() {
+    let result = codegen(
+        "
+        FUNCTION referenceFunc
+            VAR_INPUT
+                __referenceFunc_return_val : REFERENCE TO INT;
+                in	: REFERENCE TO INT;
+            END_VAR
+
+            __referenceFunc_return_val REF= in;
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                refVal : REFERENCE TO INT;
+                conVal : INT;
+            END_VAR
+
+            VAR_TEMP
+                __referenceFunc_return_val : REFERENCE TO INT;
+            END_VAR
+
+            refVal := 11;
+            referenceFunc(__referenceFunc_return_val, refVal);
+            refVal REF= __referenceFunc_return_val;
+            conVal := refVal;
+        END_FUNCTION
+    ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define void @referenceFunc(ptr %0, ptr %1) {
+    entry:
+      %__referenceFunc_return_val = alloca ptr, align [filtered]
+      store ptr %0, ptr %__referenceFunc_return_val, align [filtered]
+      %in = alloca ptr, align [filtered]
+      store ptr %1, ptr %in, align [filtered]
+      %deref = load ptr, ptr %in, align [filtered]
+      store ptr %deref, ptr %__referenceFunc_return_val, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %refVal = alloca ptr, align [filtered]
+      %conVal = alloca i16, align [filtered]
+      %__referenceFunc_return_val = alloca ptr, align [filtered]
+      store ptr null, ptr %refVal, align [filtered]
+      store i16 0, ptr %conVal, align [filtered]
+      store ptr null, ptr %__referenceFunc_return_val, align [filtered]
+      %deref = load ptr, ptr %refVal, align [filtered]
+      store i16 11, ptr %deref, align [filtered]
+      %deref1 = load ptr, ptr %__referenceFunc_return_val, align [filtered]
+      %load___referenceFunc_return_val = load i16, ptr %deref1, align [filtered]
+      %deref2 = load ptr, ptr %refVal, align [filtered]
+      %load_refVal = load i16, ptr %deref2, align [filtered]
+      call void @referenceFunc(i16 %load___referenceFunc_return_val, i16 %load_refVal)
+      %deref3 = load ptr, ptr %__referenceFunc_return_val, align [filtered]
+      store ptr %deref3, ptr %refVal, align [filtered]
+      %deref4 = load ptr, ptr %refVal, align [filtered]
+      %load_refVal5 = load i16, ptr %deref4, align [filtered]
+      store i16 %load_refVal5, ptr %conVal, align [filtered]
+      ret void
+    }
+    "#)
+}
