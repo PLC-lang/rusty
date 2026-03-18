@@ -6,7 +6,7 @@ use plc_ast::{
     control_statements::{AstControlStatement, ForLoopStatement, IfStatement},
 };
 
-use pretty_assertions::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn if_statement() {
