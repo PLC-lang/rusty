@@ -2,6 +2,7 @@ use anyhow::{bail, Result};
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
+use log::LevelFilter;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
 use plc_header_generator::GenerateLanguage;
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
@@ -10,6 +11,29 @@ use plc::output::FormatOption;
 use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
 
 pub type ParameterError = clap::Error;
+
+#[derive(clap::ArgEnum, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LogLevel {
+    Off,
+    Error,
+    Warn,
+    Info,
+    Debug,
+    Trace,
+}
+
+impl From<LogLevel> for LevelFilter {
+    fn from(level: LogLevel) -> Self {
+        match level {
+            LogLevel::Off => LevelFilter::Off,
+            LogLevel::Error => LevelFilter::Error,
+            LogLevel::Warn => LevelFilter::Warn,
+            LogLevel::Info => LevelFilter::Info,
+            LogLevel::Debug => LevelFilter::Debug,
+            LogLevel::Trace => LevelFilter::Trace,
+        }
+    }
+}
 
 #[derive(Parser, Debug)]
 #[clap(
@@ -21,6 +45,24 @@ pub type ParameterError = clap::Error;
 pub struct CompileParameters {
     #[clap(short, long, global = true, name = "output-file", help = "Write output to <output-file>")]
     pub output: Option<String>,
+
+    #[clap(
+        long = "log-level",
+        name = "log-level",
+        global = true,
+        help = "Set log verbosity (off, error, warn, info, debug, trace)",
+        conflicts_with = "verbose",
+        arg_enum
+    )]
+    pub log_level: Option<LogLevel>,
+
+    #[clap(
+        short = 'v',
+        long = "verbose",
+        global = true,
+        help = "Enable verbose output (equivalent to --log-level=debug)"
+    )]
+    pub verbose: bool,
 
     #[clap(
         long = "ast",
@@ -470,6 +512,16 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
 impl CompileParameters {
     pub fn parse<T: AsRef<OsStr> + AsRef<str>>(args: &[T]) -> Result<CompileParameters, ParameterError> {
         CompileParameters::try_parse_from(args)
+    }
+
+    /// Returns the log level filter resolved from `--verbose` / `--log-level`.
+    /// Returns `None` if neither flag is set (caller should fall back to `RUST_LOG`).
+    pub fn log_level_filter(&self) -> Option<LevelFilter> {
+        if self.verbose {
+            Some(LevelFilter::Debug)
+        } else {
+            self.log_level.map(LevelFilter::from)
+        }
     }
 
     pub fn debug_level(&self) -> DebugLevel {
@@ -943,6 +995,48 @@ mod cli_tests {
             Ok(_) => panic!("expected help output, but found OK"),
             Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayHelp),
         }
+    }
+
+    #[test]
+    fn verbose_flag_sets_debug_level() {
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--verbose")).unwrap();
+        assert!(params.verbose);
+        assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Debug));
+    }
+
+    #[test]
+    fn short_verbose_flag() {
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "-v")).unwrap();
+        assert!(params.verbose);
+        assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Debug));
+    }
+
+    #[test]
+    fn log_level_flag() {
+        let params =
+            CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "trace")).unwrap();
+        assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Trace));
+
+        let params =
+            CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "error")).unwrap();
+        assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Error));
+
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "off")).unwrap();
+        assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Off));
+    }
+
+    #[test]
+    fn no_log_flags_returns_none() {
+        let params = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
+        assert_eq!(params.log_level_filter(), None);
+    }
+
+    #[test]
+    fn verbose_and_log_level_conflict() {
+        expect_argument_error(
+            vec_of_strings!("input.st", "--verbose", "--log-level", "trace"),
+            ErrorKind::ArgumentConflict,
+        );
     }
 
     #[test]

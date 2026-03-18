@@ -256,18 +256,18 @@ fn default_driver_pre_args() -> Vec<String> {
 ///
 /// The probe includes `pre_args` (e.g. `-fuse-ld=lld`) so that it tests the same
 /// linker backend the driver will actually use.  We compile+link a minimal C
-/// program with `-nostdlib` so no sysroot libraries are required — but the driver
-/// still needs a working linker backend for the target architecture.
+/// program *without* `-nostdlib` so the probe also verifies that the target's
+/// sysroot (crt files, libc, etc.) is available — matching what a real link will
+/// need.
 fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool {
     let null_output = if cfg!(windows) { "NUL" } else { "/dev/null" };
 
-    // Tiny C program that provides its own entry point so we don't need crt*.o.
-    let probe_src = "void _start(){}";
+    let probe_src = "int main(){return 0;}";
 
     let supported = Command::new(linker)
         .arg(format!("--target={target}"))
         .args(pre_args)
-        .args(["-x", "c", "-nostdlib", "-o", null_output, "-"])
+        .args(["-x", "c", "-o", null_output, "-"])
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
