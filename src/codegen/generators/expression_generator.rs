@@ -899,7 +899,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             depth: _,
             declaring_pou,
             parameter_struct,
-            non_temp_position: _,
+            non_temp_position: non_temp_index,
         } = context;
 
         let builder = &self.llvm.builder;
@@ -938,8 +938,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let lhs_type = self.annotations.get_type(base, self.index).unwrap();
 
                     let pointee = self.llvm_index.get_associated_pou_type(function_name).unwrap();
-                    let rhs =
-                        self.llvm.builder.build_struct_gep(pointee, parameter_struct, index, "").unwrap();
+                    let rhs = self
+                        .llvm
+                        .builder
+                        .build_struct_gep(pointee, parameter_struct, non_temp_index, "")
+                        .unwrap();
 
                     // func(outVar => foo.bar.baz.%W3)
                     //      ^^^^^^    ^^^^^^^^^^^^^^^
@@ -1352,6 +1355,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 panic!()
             };
 
+            let Some(non_temp_position) = self.index.get_struct_member_index_by_position(pou, position)
+            else {
+                unreachable!("must have a struct member index")
+            };
+
             let parameter = self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment: argument,
                 function_name: pou_name,
@@ -1359,7 +1367,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 depth: *depth as u32,
                 declaring_pou: pou,
                 parameter_struct,
-                non_temp_position: *position as u32,
+                non_temp_position,
             })?;
             if let Some(parameter) = parameter {
                 result.push(parameter.into());
