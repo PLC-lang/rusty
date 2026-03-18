@@ -1013,12 +1013,10 @@ mod cli_tests {
 
     #[test]
     fn log_level_flag() {
-        let params =
-            CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "trace")).unwrap();
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "trace")).unwrap();
         assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Trace));
 
-        let params =
-            CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "error")).unwrap();
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "error")).unwrap();
         assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Error));
 
         let params = CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "off")).unwrap();
