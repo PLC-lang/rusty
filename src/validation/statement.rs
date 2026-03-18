@@ -836,7 +836,7 @@ fn visit_binary_expression<T: AnnotationMap>(
             // check for the = operator
             validate_binary_expression(validator, statement, &Operator::Equal, left, right, context);
         }
-        Operator::Division(_) => {
+        Operator::Division => {
             validate_binary_expression(validator, statement, operator, left, right, context);
             validate_zero_diviser(context, validator, right, &statement.location);
         }
@@ -1965,7 +1965,7 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
                     .into_iter()
                     .for_each(|(k, v)| map.entry(k).or_default().extend(v));
                 // the RHS type in a MOD expression has no impact on the resulting value type
-                if matches!(operator, Operator::Modulo(_)) {
+                if matches!(operator, Operator::Modulo) {
                     return map
                 };
                 get_expression_types_and_locations(right, context, lhs_is_signed_int, false)

@@ -3,9 +3,7 @@ source: src/parser/tests/expressions_parser_tests.rs
 expression: statement
 ---
 BinaryExpression {
-    operator: Modulo(
-        None,
-    ),
+    operator: Modulo,
     left: LiteralInteger {
         value: 5,
     },

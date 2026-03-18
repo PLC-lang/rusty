@@ -378,16 +378,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if ltype.is_int() && rtype.is_int() {
             let is_signed = ltype.is_signed_int() || rtype.is_signed_int();
 
-            let operator = match operator {
-                Operator::Division(_) => &Operator::Division(Some(is_signed)),
-                Operator::Modulo(_) => &Operator::Modulo(Some(is_signed)),
-                _ => operator,
-            };
-
             self.create_llvm_int_binary_expression(
                 operator,
                 self.generate_expression(left)?,
                 self.generate_expression(right)?,
+                Some(is_signed),
             )
         } else if ltype.is_float() && rtype.is_float() {
             self.create_llvm_float_binary_expression(
@@ -1765,10 +1760,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                         &Operator::Multiplication,
                                         current_portion_value,
                                         v,
+                                        None,
                                     )?;
                                     // take the sum of the mulitlication and the previous accumulated_value
                                     // this now becomes the new accumulated value
-                                    self.create_llvm_int_binary_expression(&Operator::Plus, m_v, last_v)
+                                    self.create_llvm_int_binary_expression(&Operator::Plus, m_v, last_v, None)
                                 })?
                             });
                             (result, 0 /* the 0 will be ignored */)
@@ -2007,6 +2003,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &Operator,
         left_value: BasicValueEnum<'ink>,
         right_value: BasicValueEnum<'ink>,
+        is_signed: Option<bool>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let int_lvalue = left_value.into_int_value();
         let int_rvalue = right_value.into_int_value();
@@ -2015,7 +2012,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::Plus => self.llvm.builder.build_int_add(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::Minus => self.llvm.builder.build_int_sub(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::Multiplication => self.llvm.builder.build_int_mul(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::Division(is_signed) => {
+            Operator::Division => {
                 let Some(is_signed) = is_signed else {
                     return Err(CodegenError::GenericError(
                         "Sign information is required for integer division!".to_string(),
@@ -2023,13 +2020,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     ));
                 };
 
-                if *is_signed {
+                if is_signed {
                     self.llvm.builder.build_int_signed_div(int_lvalue, int_rvalue, "tmpVar")?
                 } else {
                     self.llvm.builder.build_int_unsigned_div(int_lvalue, int_rvalue, "tmpVar")?
                 }
             }
-            Operator::Modulo(is_signed) => {
+            Operator::Modulo => {
                 let Some(is_signed) = is_signed else {
                     return Err(CodegenError::GenericError(
                         "Sign information is required for integer modulus!".to_string(),
@@ -2037,7 +2034,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     ));
                 };
 
-                if *is_signed {
+                if is_signed {
                     self.llvm.builder.build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar")?
                 } else {
                     self.llvm.builder.build_int_unsigned_rem(int_lvalue, int_rvalue, "tmpVar")?
@@ -2100,10 +2097,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::Multiplication => {
                 self.llvm.builder.build_float_mul(float_lvalue, float_rvalue, "tmpVar")?.into()
             }
-            Operator::Division(_) => {
+            Operator::Division => {
                 self.llvm.builder.build_float_div(float_lvalue, float_rvalue, "tmpVar")?.into()
             }
-            Operator::Modulo(_) => {
+            Operator::Modulo => {
                 self.llvm.builder.build_float_rem(float_lvalue, float_rvalue, "tmpVar")?.into()
             }
 
@@ -2856,7 +2853,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let Some(start_offset) = index_offsets.first().map(|(start, _)| *start) else {
                 unreachable!("VLA must have information about dimension offsets")
             };
-            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into())?
+            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into(), None)?
                 .into_int_value()
         } else {
             let accessors = access_statements
