@@ -1,3 +1,5 @@
+// REQUIRES: system-linux
+
 // === Part 1: Compile multi-file objects with PIC and no-PIC, link to executables ===
 
 // Compile PIC object and link to executable with cc
@@ -21,7 +23,7 @@ RUN: %COMPILE --shared --fpic %S/helper.st && mv %T/%basename_t.out %T/libhelper
 
 // Compile and link C runner against the shared library using -l
 RUN: cc %S/c_runner.c -L%T -lhelper_pic -o %T/c_linked_exe
-RUN: LD_LIBRARY_PATH=%T %T/c_linked_exe | FileCheck-21 --check-prefix=EXE %s
+RUN: LD_LIBRARY_PATH=%T:%STDLIBDIR %T/c_linked_exe | FileCheck-21 --check-prefix=EXE %s
 
 // === Part 3: Build no-PIC static executable (no shared lib for no-PIC on x86_64) ===
 
@@ -34,12 +36,12 @@ RUN: %COMPILE --fno-pic %S/main.st %S/helper.st && %RUN | FileCheck-21 --check-p
 RUN: cc %S/so_runner.c -ldl -o %T/so_runner
 
 // Load PIC shared lib via dlopen and call helper()/doubler()
-RUN: LD_LIBRARY_PATH=%T %T/so_runner %T/libhelper_pic.so | FileCheck-21 --check-prefix=EXE %s
+RUN: LD_LIBRARY_PATH=%T:%STDLIBDIR %T/so_runner %T/libhelper_pic.so | FileCheck-21 --check-prefix=EXE %s
 
 // === Part 5: Deprecated --pic still works (maps to --shared --fpic) ===
 
 RUN: %COMPILE --pic %S/helper.st && mv %T/%basename_t.out %T/libhelper_compat.so
-RUN: LD_LIBRARY_PATH=%T %T/so_runner %T/libhelper_compat.so | FileCheck-21 --check-prefix=EXE %s
+RUN: LD_LIBRARY_PATH=%T:%STDLIBDIR %T/so_runner %T/libhelper_compat.so | FileCheck-21 --check-prefix=EXE %s
 
 // EXE: 42
 // EXE-NEXT: 84

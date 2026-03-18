@@ -98,6 +98,7 @@ pub struct CompileParameters {
     #[clap(
         long = "pic",
         group = "format",
+        conflicts_with = "fno-pic",
         global = true,
         help = "[deprecated: use --shared --fpic] Emit a PIC shared object"
     )]
@@ -106,6 +107,7 @@ pub struct CompileParameters {
     #[clap(
         long = "no-pic",
         group = "format",
+        conflicts_with = "fpic",
         global = true,
         help = "[deprecated: use --shared --fno-pic] Emit a no-PIC shared object"
     )]
@@ -1029,6 +1031,16 @@ mod cli_tests {
             vec_of_strings!("input.st", "--fpic", "--fno-pic"),
             ErrorKind::ArgumentConflict,
         );
+    }
+
+    #[test]
+    fn deprecated_pic_conflicts_with_fno_pic() {
+        expect_argument_error(vec_of_strings!("input.st", "--pic", "--fno-pic"), ErrorKind::ArgumentConflict);
+    }
+
+    #[test]
+    fn deprecated_no_pic_conflicts_with_fpic() {
+        expect_argument_error(vec_of_strings!("input.st", "--no-pic", "--fpic"), ErrorKind::ArgumentConflict);
     }
 
     #[test]
