@@ -16,6 +16,7 @@ pub struct CompiledModule {
     library: Library,
 }
 
+#[allow(dead_code)]
 impl CompiledModule {
     pub fn get_function<T>(&'_ self, name: &str) -> Symbol<'_, T> {
         unsafe { self.library.get(name.as_bytes()).expect("Function not found") }

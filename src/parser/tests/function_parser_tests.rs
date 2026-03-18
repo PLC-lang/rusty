@@ -2,7 +2,7 @@ use crate::test_utils::tests::{parse, parse_and_validate_buffered, parse_buffere
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::PouType;
 use plc_diagnostics::diagnostics::Diagnostic;
-use pretty_assertions::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn simple_foo_function_can_be_parsed() {
