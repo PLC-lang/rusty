@@ -1,4 +1,5 @@
 **TODO**: Replace ASCII diagrams with tldraw SVG images (color support, easier to visualize vtable/itable relations)
+Note: Initially this was written by a human but later received some touch-ups by LLMs. Before refining / publishing this as an official page in the book, re-read the complete file for correctness.
 
 # Polymorphism in Structured Text
 
@@ -255,6 +256,7 @@ For our diamond hierarchy example, the compiler generates the following itable s
 +
 +TYPE __itable_IB:
 +    STRUCT
++        __upcast_IA: POINTER TO __VOID;
 +        foo: __FPOINTER TO IA.foo;
 +        bar: __FPOINTER TO IB.bar;
 +    END_STRUCT
@@ -262,6 +264,7 @@ For our diamond hierarchy example, the compiler generates the following itable s
 +
 +TYPE __itable_IC:
 +    STRUCT
++        __upcast_IA: POINTER TO __VOID;
 +        foo: __FPOINTER TO IA.foo;
 +        baz: __FPOINTER TO IC.baz;
 +    END_STRUCT
@@ -269,6 +272,9 @@ For our diamond hierarchy example, the compiler generates the following itable s
 +
 +TYPE __itable_ID:
 +    STRUCT
++        __upcast_IA: POINTER TO __VOID;
++        __upcast_IB: POINTER TO __VOID;
++        __upcast_IC: POINTER TO __VOID;
 +        foo: __FPOINTER TO IA.foo;
 +        bar: __FPOINTER TO IB.bar;
 +        baz: __FPOINTER TO IC.baz;
@@ -276,6 +282,7 @@ For our diamond hierarchy example, the compiler generates the following itable s
 +    END_STRUCT
 +END_TYPE
 ```
+Each itable struct includes `__upcast_<ancestor>` pointer fields for every proper ancestor interface in its hierarchy (sorted alphabetically, excluding self). Root interfaces like `IA` have none. These fields enable O(1) interface upcasting at runtime (see Section 2.4.4).
 Note how the function pointer types reference the original interface method POU (e.g. `IA.foo`), which already exists in the index as a registered implementation. This avoids the need for separate forward declaration stubs. Also note that inherited methods are included: `__itable_IB` contains both `foo` (from `IA`) and `bar` (from `IB`), with inherited methods appearing first. The ordering follows the `EXTENDS` declaration order: for `ID EXTENDS IB, IC`, methods from `IB`'s ancestor chain (`IA.foo`, `IB.bar`) appear before `IC`'s (`IC.baz`), followed by `ID`'s own methods (`ID.qux`).
 
 Then, the compiler generates global instances for every (interface, POU) combination:
@@ -456,6 +463,28 @@ Multiple interface arguments in a single call each get their own temporary:
 ```
 
 The preamble (allocas and assignments) is hoisted before the call. When the call is nested inside an assignment (e.g. `result := consumer(instance)`), the preamble is hoisted above the entire assignment so that the fat pointer is fully constructed before the call executes.
+
+#### 2.4.4 Interface Upcasting
+
+When a child interface variable is assigned to a parent interface variable (e.g. `refIA := refIB` where `IB EXTENDS IA`), both sides are already fat pointers. The `.data` field can be copied directly — it still points to the same concrete POU instance. However, the `.table` field points to an `__itable_IB_*` instance but needs to point to the corresponding `__itable_IA_*` for the same POU. Since the concrete POU is only known at runtime, we cannot statically determine which itable instance to use.
+
+The solution uses the `__upcast_<ancestor>` pointer fields embedded in each itable struct (see Section 2.2). Each itable instance initializes these fields to point directly to the ancestor itable instance for the same POU, giving O(1) resolution via a single field read regardless of hierarchy depth:
+```diff
+-refIA := refIB;
++refIA.data  := refIB.data;
++refIA.table := __itable_IB#(refIB.table^).__upcast_IA;
+```
+
+The same transformation applies when passing a child interface as a call argument where a parent interface is expected:
+```diff
+-consumer(refIB);
++alloca __fatpointer_0: __FATPOINTER;
++__fatpointer_0.data  := refIB.data;
++__fatpointer_0.table := __itable_IB#(refIB.table^).__upcast_IA;
++consumer(__fatpointer_0);
+```
+
+Same-interface assignments (e.g. `refIA1 := refIA2`) remain simple memcpies since the itable layout is identical.
 
 ### 2.5 Interaction with Aggregate Return Lowering
 
