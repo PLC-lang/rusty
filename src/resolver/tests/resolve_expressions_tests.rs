@@ -886,8 +886,9 @@ fn resolve_binary_expressions() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
+    // We expect promoted unsigned types to hold sign information
     let expected_types = vec![
-        "BYTE", "WORD", "DWORD", "LWORD", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT", "ULINT",
+        "BYTE", "WORD", "DWORD", "LWORD", "DINT", "UDINT", "DINT", "UDINT", "DINT", "UDINT", "LINT", "ULINT",
     ];
     let type_names: Vec<&str> =
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
