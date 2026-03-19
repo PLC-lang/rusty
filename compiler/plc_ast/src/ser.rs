@@ -1,6 +1,10 @@
 use crate::{
     ast::{
-        Allocation, Assignment, AstNode, AstStatement, AutoDerefType, BinaryExpression, CallStatement, CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement, MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType
+        Allocation, Assignment, AstNode, AstStatement, AutoDerefType, BinaryExpression, CallStatement,
+        CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess,
+        EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement,
+        MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr,
+        UnaryExpression, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::AstLiteral,
@@ -106,10 +110,10 @@ impl AstVisitor for AstSerializer {
         match data_type_declaration {
             DataTypeDeclaration::Reference { referenced_type, .. } => {
                 self.result.push_str(referenced_type);
-            },
+            }
             DataTypeDeclaration::Definition { data_type, .. } => {
                 data_type.as_ref().walk(self);
-            },
+            }
             DataTypeDeclaration::Aggregate { referenced_type, .. } => {
                 self.result.push_str(referenced_type);
             }
@@ -125,7 +129,7 @@ impl AstVisitor for AstSerializer {
             match auto_deref {
                 Some(AutoDerefType::Reference) => {
                     self.result.push_str("REFERENCE TO ");
-                },
+                }
                 // TODO: We also want to handle these cases at some point
                 Some(AutoDerefType::Alias) | Some(AutoDerefType::Default) => (),
                 _ => {

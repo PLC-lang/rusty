@@ -4,19 +4,22 @@ FUNCTION referenceFunc : REFERENCE TO INT
         in	: REFERENCE TO INT;
     END_VAR
 
+    in := in + 1;
     referenceFunc REF= in;
 END_FUNCTION
 
-FUNCTION main
+FUNCTION main : DINT
     VAR
         refVal : REFERENCE TO INT;
         conVal : INT;
+        tmpVal : INT;
     END_VAR
 
-    refVal := 11;
+    tmpVal := 11;
+    refVal REF= tmpVal;
     refVal REF= referenceFunc(refVal);
     conVal := refVal;
 
-    // CHECK: 11
+    // CHECK: 12
     printf('%d$N', conVal);
 END_FUNCTION

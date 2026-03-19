@@ -210,6 +210,29 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         cast_if_needed!(self, target_type, actual_type, v, self.annotations.get(expression))
     }
 
+    pub fn generate_expression_for_reference_to_reference(
+        &self,
+        expression: &AstNode,
+    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
+        // generate the expression
+        match expression.get_stmt() {
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) => {
+                let base = base.as_deref();
+                let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
+                let member_name = member.get_flat_reference_name().unwrap_or("unknown");
+
+                let value = self.create_llvm_pointer_value_for_reference(
+                    base_value.map(|it| (base.unwrap(), it.get_basic_value_enum().into_pointer_value())),
+                    self.get_load_name(member).as_deref().unwrap_or(member_name),
+                    expression,
+                )?;
+
+                Ok(value.into())
+            }
+            _ => self.generate_expression(expression),
+        }
+    }
+
     pub fn generate_expression_with_cast_to_type_of_secondary_expression(
         &self,
         expression: &AstNode,
@@ -1046,21 +1069,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut passed_param_indices = Vec::new();
         for (i, argument) in arguments.iter().enumerate() {
             let (i, argument, _) = get_implicit_call_parameter(argument, &declared_parameters, i)?;
+            let argument_is_reference_to = self.is_member_reference_to_reference_to(argument);
 
             // parameter_info includes the declaration type and type name
             let parameter_info = declared_parameters
                 .get(i)
                 .map(|it| {
                     let name = it.get_type_name();
+                    let parameter_is_reference_to = if let Some(parameter_type) = self.index.find_type(name) {
+                        parameter_type.get_type_information().is_reference_to()
+                    } else {
+                        false
+                    };
+                    let both_sides_are_reference_to = argument_is_reference_to && parameter_is_reference_to;
+
                     if let Some(DataTypeInformation::Pointer {
                         inner_type_name, auto_deref: Some(_), ..
                     }) = self.index.find_effective_type_info(name)
                     {
                         // for auto_deref pointers (VAR_INPUT {ref}, VAR_IN_OUT) we call generate_argument_by_ref()
                         // we need the inner_type and not pointer to type otherwise we would generate a double pointer
-                        Some((it.get_declaration_type(), inner_type_name.as_str()))
+                        Some((
+                            it.get_declaration_type(),
+                            inner_type_name.as_str(),
+                            both_sides_are_reference_to,
+                        ))
                     } else {
-                        Some((it.get_declaration_type(), name))
+                        Some((it.get_declaration_type(), name, both_sides_are_reference_to))
                     }
                 })
                 // TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
@@ -1077,8 +1112,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 })?;
 
-            if let Some((declaration_type, type_name)) = parameter_info {
-                let argument: BasicValueEnum = if declaration_type.is_by_ref()
+            if let Some((declaration_type, type_name, both_sides_are_reference_to)) = parameter_info {
+                let argument: BasicValueEnum = if both_sides_are_reference_to {
+                    self.generate_expression_for_reference_to_reference(argument)?
+                } else if declaration_type.is_by_ref()
                     || (self.index.get_effective_type_or_void_by_name(type_name).is_aggregate_type()
                         && declaration_type.is_input())
                 {
@@ -1122,6 +1159,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
+    }
+
+    fn is_member_reference_to_reference_to(&self, node: &AstNode) -> bool {
+        match node.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(_), .. }) => {
+                self.is_reference_to(node)
+            }
+            _ => false,
+        }
+    }
+
+    fn is_reference_to(&self, node: &AstNode) -> bool {
+        self.annotations.get(node).is_some_and(|stmt_anno| stmt_anno.is_reference_to())
     }
 
     /// generates a value that is passed by reference
