@@ -430,10 +430,16 @@ impl TypeAnnotator<'_> {
                     get_bigger_type(data_type, self.index.get_type_or_panic(LREAL_TYPE), self.index)
                         .get_name()
                 }
-                DataTypeInformation::Integer { .. }
+                DataTypeInformation::Integer { signed, .. }
                     if !data_type.information.is_bool() && !data_type.information.is_character() =>
                 {
-                    get_bigger_type(data_type, self.index.get_type_or_panic(DINT_TYPE), self.index).get_name()
+                    let right_type = if *signed {
+                        self.index.get_type_or_panic(DINT_TYPE)
+                    } else {
+                        self.index.get_type_or_panic(UDINT_TYPE)
+                    };
+
+                    get_bigger_type(data_type, right_type, self.index).get_name()
                 }
                 // Enum types need to be promoted based on their underlying integer type
                 DataTypeInformation::Enum { referenced_type, .. } => self
