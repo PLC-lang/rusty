@@ -90,6 +90,10 @@ struct CallParameterAssignment<'a, 'b> {
 
     /// The pointer to the struct instance that carries the call's arguments
     parameter_struct: PointerValue<'a>,
+
+    /// The position of the parameter in the POUs variable declaration list if temp variables are present.
+    /// It will be a duplicate of the position value if no temp variables are present.
+    non_temp_position: u32,
 }
 
 #[derive(Debug)]
@@ -376,10 +380,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return self.generate_bool_binary_expression(operator, left, right);
         }
         if ltype.is_int() && rtype.is_int() {
+            let is_signed = ltype.is_signed_int() || rtype.is_signed_int();
+
             self.create_llvm_int_binary_expression(
                 operator,
                 self.generate_expression(left)?,
                 self.generate_expression(right)?,
+                Some(is_signed),
             )
         } else if ltype.is_float() && rtype.is_float() {
             self.create_llvm_float_binary_expression(
@@ -684,17 +691,49 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         parameters: Vec<&AstNode>,
     ) -> Result<(), CodegenError> {
-        let pou_info = self.index.get_available_parameters(function_name);
+        let pou_info = &self.index.get_available_parameters(function_name);
         let implicit = arguments_are_implicit(&parameters);
 
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
-            let is_output = pou_info.get(index).is_some_and(|param| param.get_variable_type().is_output());
+            // If this is implicit, then we can load the pou information based on the index (in other words, parameters will be in order)
+            let is_output = if implicit {
+                pou_info
+                    .get(index)
+                    .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
+            }
+            // else, the parameters are named and may not be in order, so we need to retrieve the information about the parameter from the assignment
+            else {
+                // Now we can fetch the identifier for the assignment statement and extract the name
+                let variable_name = match assignment_statement.get_stmt() {
+                    AstStatement::OutputAssignment(assignment) | AstStatement::Assignment(assignment) => {
+                        if let Some(identifier) = assignment.left.get_identifier() {
+                            match identifier.get_stmt() {
+                                AstStatement::Identifier(value) => value,
+                                _ => unreachable!("this is definitely an identifier"),
+                            }
+                        } else {
+                            unreachable!("assignment must have an identifier")
+                        }
+                    }
+                    _ => unreachable!("non-implicit statement must be an assignment"),
+                };
+
+                pou_info
+                    .iter()
+                    .find(|variable_index_entry| variable_index_entry.get_name() == variable_name)
+                    .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
+            };
 
             if assignment_statement.is_output_assignment() || (implicit && is_output) {
                 let Some(StatementAnnotation::Argument { position, depth, pou, .. }) =
                     self.annotations.get_hint(assignment_statement)
                 else {
                     unreachable!("must have an annotation")
+                };
+
+                let Some(non_temp_position) = self.index.get_struct_member_index_by_position(pou, position)
+                else {
+                    unreachable!("must have a struct member index")
                 };
 
                 self.assign_output_value(&CallParameterAssignment {
@@ -704,6 +743,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     depth: *depth as u32,
                     declaring_pou: pou,
                     parameter_struct,
+                    non_temp_position,
                 })?
             }
         }
@@ -844,7 +884,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // can simply generate a GEP with indices `0` and repeat that `depth` times followed by the
         // actual position of the parameter. So `objC.__B.__A.inA` becomes `GEP objC, 0, 0, 0, <inA pos>`
         let mut gep_index = vec![0; (context.depth + 1) as usize];
-        gep_index.push(context.position as u64);
+        gep_index.push(context.non_temp_position as u64);
 
         let i32_type = self.llvm.context.i32_type();
         let gep_index = gep_index.into_iter().map(|idx| i32_type.const_int(idx, false)).collect::<Vec<_>>();
@@ -862,6 +902,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             depth: _,
             declaring_pou,
             parameter_struct,
+            non_temp_position: non_temp_index,
         } = context;
 
         let builder = &self.llvm.builder;
@@ -900,8 +941,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let lhs_type = self.annotations.get_type(base, self.index).unwrap();
 
                     let pointee = self.llvm_index.get_associated_pou_type(function_name).unwrap();
-                    let rhs =
-                        self.llvm.builder.build_struct_gep(pointee, parameter_struct, index, "").unwrap();
+                    let rhs = self
+                        .llvm
+                        .builder
+                        .build_struct_gep(pointee, parameter_struct, non_temp_index, "")
+                        .unwrap();
 
                     // func(outVar => foo.bar.baz.%W3)
                     //      ^^^^^^    ^^^^^^^^^^^^^^^
@@ -968,6 +1012,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 depth: param_context.depth,
                 parameter_struct,
                 declaring_pou: param_context.declaring_pou,
+                non_temp_position: param_context.non_temp_position,
             })?
         };
 
@@ -1313,6 +1358,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 panic!()
             };
 
+            let Some(non_temp_position) = self.index.get_struct_member_index_by_position(pou, position)
+            else {
+                unreachable!("must have a struct member index")
+            };
+
             let parameter = self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment: argument,
                 function_name: pou_name,
@@ -1320,6 +1370,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 depth: *depth as u32,
                 declaring_pou: pou,
                 parameter_struct,
+                non_temp_position,
             })?;
             if let Some(parameter) = parameter {
                 result.push(parameter.into());
@@ -1513,6 +1564,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     depth: param_context.depth,
                     declaring_pou: param_context.declaring_pou,
                     parameter_struct,
+                    non_temp_position: param_context.non_temp_position,
                 })?;
             };
         }
@@ -1757,10 +1809,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                         &Operator::Multiplication,
                                         current_portion_value,
                                         v,
+                                        None,
                                     )?;
                                     // take the sum of the mulitlication and the previous accumulated_value
                                     // this now becomes the new accumulated value
-                                    self.create_llvm_int_binary_expression(&Operator::Plus, m_v, last_v)
+                                    self.create_llvm_int_binary_expression(&Operator::Plus, m_v, last_v, None)
                                 })?
                             });
                             (result, 0 /* the 0 will be ignored */)
@@ -1999,6 +2052,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &Operator,
         left_value: BasicValueEnum<'ink>,
         right_value: BasicValueEnum<'ink>,
+        is_signed: Option<bool>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let int_lvalue = left_value.into_int_value();
         let int_rvalue = right_value.into_int_value();
@@ -2007,8 +2061,34 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::Plus => self.llvm.builder.build_int_add(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::Minus => self.llvm.builder.build_int_sub(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::Multiplication => self.llvm.builder.build_int_mul(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::Division => self.llvm.builder.build_int_signed_div(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::Modulo => self.llvm.builder.build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar")?,
+            Operator::Division => {
+                let Some(is_signed) = is_signed else {
+                    return Err(CodegenError::GenericError(
+                        "Sign information is required for integer division!".to_string(),
+                        SourceLocation::undefined(),
+                    ));
+                };
+
+                if is_signed {
+                    self.llvm.builder.build_int_signed_div(int_lvalue, int_rvalue, "tmpVar")?
+                } else {
+                    self.llvm.builder.build_int_unsigned_div(int_lvalue, int_rvalue, "tmpVar")?
+                }
+            }
+            Operator::Modulo => {
+                let Some(is_signed) = is_signed else {
+                    return Err(CodegenError::GenericError(
+                        "Sign information is required for integer modulus!".to_string(),
+                        SourceLocation::undefined(),
+                    ));
+                };
+
+                if is_signed {
+                    self.llvm.builder.build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar")?
+                } else {
+                    self.llvm.builder.build_int_unsigned_rem(int_lvalue, int_rvalue, "tmpVar")?
+                }
+            }
             Operator::Equal => {
                 self.llvm.builder.build_int_compare(IntPredicate::EQ, int_lvalue, int_rvalue, "tmpVar")?
             }
@@ -2851,7 +2931,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let Some(start_offset) = index_offsets.first().map(|(start, _)| *start) else {
                 unreachable!("VLA must have information about dimension offsets")
             };
-            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into())?
+            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into(), None)?
                 .into_int_value()
         } else {
             let accessors = access_statements

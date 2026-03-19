@@ -4235,3 +4235,263 @@ fn function_block_member_access_is_case_insensitive() {
     // "Could not resolve reference to FB_Test.OUT" due to case-sensitive comparison
     filtered_assert_snapshot!(res);
 }
+
+#[test]
+fn function_block_with_var_temp_should_compile_when_output_is_specified() {
+    let res = codegen(
+        "
+        FUNCTION_BLOCK baseControl
+            VAR_INPUT
+                a_in : INT;
+            END_VAR
+
+            VAR_IN_OUT
+                inoutVar : BOOL;
+            END_VAR
+
+            VAR_TEMP
+                tempo : INT;
+            END_VAR
+
+            VAR_OUTPUT
+                a_out :INT;
+            END_VAR
+
+            VAR
+
+            END_VAR
+
+            a_out := a_in + 1;
+
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        VAR
+            fb : baseControl;
+            dipin : BOOL;
+            outVar : INT;
+        END_VAR
+
+        fb(a_in := 9, a_out => outVar, inoutVar := dipin);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %baseControl = type { i16, ptr, i16 }
+
+    define void @baseControl(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %a_in = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 0
+      %inoutVar = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 1
+      %tempo = alloca i16, align [filtered]
+      %a_out = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 2
+      store i16 0, ptr %tempo, align [filtered]
+      %load_a_in = load i16, ptr %a_in, align [filtered]
+      %1 = sext i16 %load_a_in to i32
+      %tmpVar = add i32 %1, 1
+      %2 = trunc i32 %tmpVar to i16
+      store i16 %2, ptr %a_out, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %fb = alloca %baseControl, align [filtered]
+      %dipin = alloca i8, align [filtered]
+      %outVar = alloca i16, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%baseControl, ptr null, i32 1) to i64), i1 false)
+      store i8 0, ptr %dipin, align [filtered]
+      store i16 0, ptr %outVar, align [filtered]
+      %0 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 0
+      store i16 9, ptr %0, align [filtered]
+      %1 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 1
+      store ptr %dipin, ptr %1, align [filtered]
+      call void @baseControl(ptr %fb)
+      %2 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 2
+      %3 = load i16, ptr %2, align [filtered]
+      store i16 %3, ptr %outVar, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    "#);
+}
+
+#[test]
+fn function_block_with_var_temp_before_input_should_compile() {
+    // Regression test for the remaining bug in `generate_stateful_pou_arguments`:
+    // `non_temp_position` is set to `*position as u32` without calling
+    // `get_struct_member_index_by_position`, so VAR_TEMP variables declared before VAR_INPUT
+    // are not accounted for. Here `x` has pou_members position 1 (after VAR_TEMP `tmp` at 0)
+    // but struct index 0. The GEP must use i32 0, not i32 1. Using i32 1 on a 1-member
+    // struct produces invalid IR.
+    let res = codegen(
+        "
+        FUNCTION_BLOCK Foo
+            VAR_TEMP
+                tmp : INT;
+            END_VAR
+
+            VAR_INPUT
+                x : INT;
+            END_VAR
+
+            x := x + 1;
+
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+        VAR
+            fb : Foo;
+        END_VAR
+
+        fb(5);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %Foo = type { i16 }
+
+    define void @Foo(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %tmp = alloca i16, align [filtered]
+      %x = getelementptr inbounds nuw %Foo, ptr %0, i32 0, i32 0
+      store i16 0, ptr %tmp, align [filtered]
+      %load_x = load i16, ptr %x, align [filtered]
+      %1 = sext i16 %load_x to i32
+      %tmpVar = add i32 %1, 1
+      %2 = trunc i32 %tmpVar to i16
+      store i16 %2, ptr %x, align [filtered]
+      ret void
+    }
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %fb = alloca %Foo, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%Foo, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
+      %0 = getelementptr inbounds %Foo, ptr %fb, i32 0, i32 0
+      store i16 5, ptr %0, align [filtered]
+      call void @Foo(ptr %fb)
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    "#);
+}
+
+#[test]
+fn function_block_with_var_temp_should_compile_when_implicit_output_is_specified() {
+    let res = codegen(
+        "
+        FUNCTION_BLOCK baseControl
+            VAR_INPUT
+                a_in : INT;
+            END_VAR
+
+            VAR_IN_OUT
+                inoutVar : BOOL;
+            END_VAR
+
+            VAR_TEMP
+                tempo : INT;
+            END_VAR
+
+            VAR_OUTPUT
+                a_out :INT;
+            END_VAR
+
+            VAR
+
+            END_VAR
+
+            a_out := a_in + 1;
+
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        VAR
+            fb : baseControl;
+            dipin : BOOL;
+            outVar : INT;
+        END_VAR
+
+        fb(9, dipin, outVar);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %baseControl = type { i16, ptr, i16 }
+
+    define void @baseControl(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %a_in = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 0
+      %inoutVar = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 1
+      %tempo = alloca i16, align [filtered]
+      %a_out = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 2
+      store i16 0, ptr %tempo, align [filtered]
+      %load_a_in = load i16, ptr %a_in, align [filtered]
+      %1 = sext i16 %load_a_in to i32
+      %tmpVar = add i32 %1, 1
+      %2 = trunc i32 %tmpVar to i16
+      store i16 %2, ptr %a_out, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %fb = alloca %baseControl, align [filtered]
+      %dipin = alloca i8, align [filtered]
+      %outVar = alloca i16, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%baseControl, ptr null, i32 1) to i64), i1 false)
+      store i8 0, ptr %dipin, align [filtered]
+      store i16 0, ptr %outVar, align [filtered]
+      %0 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 0
+      store i16 9, ptr %0, align [filtered]
+      %1 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 1
+      store ptr %dipin, ptr %1, align [filtered]
+      call void @baseControl(ptr %fb)
+      %2 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 2
+      %3 = load i16, ptr %2, align [filtered]
+      store i16 %3, ptr %outVar, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    "#);
+}
