@@ -29,6 +29,10 @@ FUNCTION main : DINT
 
     tmpVal := 11;
     refVal REF= tmpVal;
+
+    refVal := refVal + 1;
+    printf('refVal 1: %d$N', refVal);
+
     referenceFunc(__referenceFunc_return_val, refVal);
     // Segfaults here... why??
     refVal REF= __referenceFunc_return_val;
