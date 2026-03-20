@@ -1,7 +1,9 @@
 [package]
 name = "section_mangler"
-version = "0.0.1"
+version = "0.3.0"
 edition = "2021"
+license = "LGPL-3.0"
+description = "ELF section name mangling for the PLC Structured Text compiler"
 
 [dependencies]
 nom = "7.1"
