@@ -257,6 +257,33 @@ fn adr_expression_list_is_lowered() {
     assert_eq!(count_assignments(stmts), 4);
 }
 
+/// `strip_initializers` keys by `implementation.type_name`, but
+/// for a FUNCTION_BLOCK's member array the assignment lives in `Foo__ctor`
+/// whose `type_name` is `"Foo__ctor"`, while the variable declaration sits in
+/// the `Foo` POU (keyed by `pou.name == "Foo"`). The mismatch means the
+/// initializer is never stripped from `Foo`'s variable block.
+#[test]
+fn fb_member_array_non_const_initializer_is_stripped() {
+    let project = lower(
+        "
+        FUNCTION_BLOCK Foo
+        VAR
+            x : DINT;
+            arr : ARRAY[0..2] OF REF_TO DINT := [3(ADR(x))];
+        END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+    let pou = project.units[0].get_unit().pous.iter().find(|p| p.name == "Foo").unwrap();
+    let arr_var = pou
+        .variable_blocks
+        .iter()
+        .flat_map(|b| &b.variables)
+        .find(|v| v.name == "arr")
+        .expect("arr variable should exist");
+    assert!(arr_var.initializer.is_none(), "Lowered FB member array initializer should be stripped");
+}
+
 #[test]
 fn adr_variable_initializer_is_stripped() {
     let project = lower(
@@ -584,4 +611,34 @@ fn flat_to_indices_3d() {
     assert_eq!(info.flat_to_indices(3), vec![0, 1, 0]);
     assert_eq!(info.flat_to_indices(9), vec![1, 0, 0]);
     assert_eq!(info.flat_to_indices(26), vec![2, 2, 2]);
+}
+
+/// `FOR_LOOP_THRESHOLD` (32) is checked per `MultipliedStatement`
+/// segment, not against the total element count. An initializer split into
+/// multiple sub-threshold segments - e.g. `[10(v), 10(v), 10(v), 10(v)]`
+/// totalling 40 elements - is fully unrolled into 40 individual assignments
+/// instead of emitting a FOR loop, because each segment's count (10) is below
+/// the threshold. This documents the current behaviour so that
+/// any future fix is intentional.
+#[test]
+fn multi_segment_above_threshold_is_unrolled_per_segment() {
+    let project = lower(
+        "
+        FUNCTION main : DINT
+        VAR
+            v : DINT := 1;
+            arr : ARRAY[0..39] OF DINT := [10(v), 10(v), 10(v), 10(v)];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    let stmts = find_impl_stmts(&project, "main");
+    assert!(!has_literal_array(stmts));
+    // Each of the 4 segments (count=10, below threshold=32) is unrolled
+    // individually, producing 40 assignments rather than a FOR loop.
+    // A fix would need to apply the threshold to the *total* element count.
+    assert!(!has_for_loop(stmts), "Each segment is below threshold so no FOR loop is emitted");
+    // 40 indexed assignments + `v := 1` + `main := 0`
+    assert_eq!(count_assignments(stmts), 42);
 }
