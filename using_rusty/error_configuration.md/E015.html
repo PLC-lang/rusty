@@ -35,10 +35,10 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-22fcdcb0.js";
+            window.path_to_searchindex_js = "../../searchindex-c1da54f3.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-e2cbc6b4.js"></script>
+        <script src="../../toc-2b8c6dc7.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -175,17 +175,20 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="pointer-to-is-type-unsafe"><a class="header" href="#pointer-to-is-type-unsafe">POINTER TO is type-unsafe</a></h1>
-<p>Variables defined as a <code>POINTER TO</code> data-type are considered type-unsafe in the sense that no validation will
-trigger when assigning incorrect types. For example the following code, while incorrect, will not return any
-diagnostics when compiling:</p>
+<p>Variables defined as a <code>POINTER TO</code> data-type are considered type-unsafe in the sense that
+assigning between incompatible types will not be caught. For example the following
+code, while incorrect, will not return any diagnostics when compiling:</p>
 <pre><code>VAR
     stringVar : STRING;
     unsafePtrA : POINTER TO DINT := ADR(stringVar);
     unsafePtrB : POINTER TO DINT := REF(stringVar);
 END_VAR
 </code></pre>
-<p><strong>For best practices, consider using <code>REF_TO</code> instead of <code>POINTER TO</code>, which is a type-safe alternative and <em>should</em> catch
-type-mismatches early on</strong></p>
+<p>Note that for class and function block hierarchies, <code>POINTER TO</code> assignments <strong>are</strong> validated —
+the compiler checks that the pointee types are related via <code>EXTENDS</code> (see <a href="E125.html">E125</a>).
+<code>POINTER TO</code> is the recommended mechanism for polymorphism per IEC 61131-3.</p>
+<p>For other types, consider using <code>REF_TO</code> instead of <code>POINTER TO</code>, which is a type-safe
+alternative and <em>should</em> catch type-mismatches early on.</p>
 
                     </main>
 

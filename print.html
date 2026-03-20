@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-22fcdcb0.js";
+            window.path_to_searchindex_js = "searchindex-c1da54f3.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-e2cbc6b4.js"></script>
+        <script src="toc-2b8c6dc7.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -629,17 +629,20 @@ END_PROGRAM
 <h1 id="wrong-paranthese-for-string-delimiter"><a class="header" href="#wrong-paranthese-for-string-delimiter">Wrong paranthese for String delimiter</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="pointer-to-is-type-unsafe"><a class="header" href="#pointer-to-is-type-unsafe">POINTER TO is type-unsafe</a></h1>
-<p>Variables defined as a <code>POINTER TO</code> data-type are considered type-unsafe in the sense that no validation will
-trigger when assigning incorrect types. For example the following code, while incorrect, will not return any
-diagnostics when compiling:</p>
+<p>Variables defined as a <code>POINTER TO</code> data-type are considered type-unsafe in the sense that
+assigning between incompatible types will not be caught. For example the following
+code, while incorrect, will not return any diagnostics when compiling:</p>
 <pre><code>VAR
     stringVar : STRING;
     unsafePtrA : POINTER TO DINT := ADR(stringVar);
     unsafePtrB : POINTER TO DINT := REF(stringVar);
 END_VAR
 </code></pre>
-<p><strong>For best practices, consider using <code>REF_TO</code> instead of <code>POINTER TO</code>, which is a type-safe alternative and <em>should</em> catch
-type-mismatches early on</strong></p>
+<p>Note that for class and function block hierarchies, <code>POINTER TO</code> assignments <strong>are</strong> validated —
+the compiler checks that the pointee types are related via <code>EXTENDS</code> (see <a href="#incompatible-pointer-to-types-in-classfunction-block-hierarchy">E125</a>).
+<code>POINTER TO</code> is the recommended mechanism for polymorphism per IEC 61131-3.</p>
+<p>For other types, consider using <code>REF_TO</code> instead of <code>POINTER TO</code>, which is a type-safe
+alternative and <em>should</em> catch type-mismatches early on.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="return-types-cannot-have-a-default-value"><a class="header" href="#return-types-cannot-have-a-default-value">Return types cannot have a default value</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -1570,6 +1573,206 @@ VAR
     s : STRING[10] := 'hello$';   (* '$' at end of literal has nothing to escape *)
 END_VAR
     main := 0;
+END_FUNCTION
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="incompatible-pointer-to-types-in-classfunction-block-hierarchy"><a class="header" href="#incompatible-pointer-to-types-in-classfunction-block-hierarchy">Incompatible POINTER TO types in class/function block hierarchy</a></h1>
+<p>This error occurs when a <code>POINTER TO</code> assignment involves two class or function block types
+that are not in a valid inheritance relationship. Only upcasts (child to parent) and same-type
+assignments are allowed.</p>
+<p><code>POINTER TO</code> is the recommended mechanism for polymorphism per IEC 61131-3. When working with
+class or function block hierarchies, the compiler checks that pointer assignments respect the
+<code>EXTENDS</code> chain: the right-hand side must be the same type as, or a subtype of, the left-hand
+side’s pointee type.</p>
+<h2 id="invalid-examples"><a class="header" href="#invalid-examples">Invalid examples</a></h2>
+<h3 id="unrelated-types"><a class="header" href="#unrelated-types">Unrelated types</a></h3>
+<pre><code class="language-st">FUNCTION_BLOCK FbA
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK FbX
+END_FUNCTION_BLOCK
+
+FUNCTION main
+    VAR
+        instance : FbX;
+        ptr      : POINTER TO FbA;
+    END_VAR
+    ptr := ADR(instance);  // Error: FbX is not a subtype of FbA
+END_FUNCTION
+</code></pre>
+<h3 id="downcast-parent-assigned-to-child-pointer"><a class="header" href="#downcast-parent-assigned-to-child-pointer">Downcast (parent assigned to child pointer)</a></h3>
+<pre><code class="language-st">FUNCTION_BLOCK FbA
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK FbB EXTENDS FbA
+END_FUNCTION_BLOCK
+
+FUNCTION main
+    VAR
+        instance : FbA;
+        ptr      : POINTER TO FbB;
+    END_VAR
+    ptr := ADR(instance);  // Error: FbA is not a subtype of FbB
+END_FUNCTION
+</code></pre>
+<h3 id="sibling-types"><a class="header" href="#sibling-types">Sibling types</a></h3>
+<pre><code class="language-st">FUNCTION_BLOCK FbA
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK FbB EXTENDS FbA
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK FbC EXTENDS FbA
+END_FUNCTION_BLOCK
+
+FUNCTION main
+    VAR
+        instance : FbC;
+        ptr      : POINTER TO FbB;
+    END_VAR
+    ptr := ADR(instance);  // Error: FbC is not a subtype of FbB
+END_FUNCTION
+</code></pre>
+<h2 id="valid-examples"><a class="header" href="#valid-examples">Valid examples</a></h2>
+<h3 id="same-type"><a class="header" href="#same-type">Same type</a></h3>
+<pre><code class="language-st">FUNCTION_BLOCK FbA
+END_FUNCTION_BLOCK
+
+FUNCTION main
+    VAR
+        instance : FbA;
+        ptr      : POINTER TO FbA;
+    END_VAR
+    ptr := ADR(instance);  // OK
+END_FUNCTION
+</code></pre>
+<h3 id="upcast-child-assigned-to-parent-pointer"><a class="header" href="#upcast-child-assigned-to-parent-pointer">Upcast (child assigned to parent pointer)</a></h3>
+<pre><code class="language-st">FUNCTION_BLOCK FbA
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK FbB EXTENDS FbA
+END_FUNCTION_BLOCK
+
+FUNCTION main
+    VAR
+        instanceB : FbB;
+        ptrA      : POINTER TO FbA;
+        ptrB      : POINTER TO FbB;
+    END_VAR
+    ptrA := ADR(instanceB);  // OK: FbB extends FbA
+    ptrA := ptrB;            // OK: same relationship
+END_FUNCTION
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="incompatible-types-in-interface-polymorphism"><a class="header" href="#incompatible-types-in-interface-polymorphism">Incompatible types in interface polymorphism</a></h1>
+<p>This error occurs when an assignment or call argument involves an interface type but the
+source type does not satisfy the interface contract. There are two cases:</p>
+<h2 id="case-1-pou-does-not-implement-the-interface"><a class="header" href="#case-1-pou-does-not-implement-the-interface">Case 1: POU does not implement the interface</a></h2>
+<p>When assigning a concrete function block or class instance to an interface-typed variable
+(or passing it as an argument), the POU must implement that interface — either directly
+via <code>IMPLEMENTS</code> or transitively through its <code>EXTENDS</code> chain.</p>
+<h3 id="invalid"><a class="header" href="#invalid">Invalid</a></h3>
+<pre><code class="language-st">INTERFACE IA
+    METHOD foo END_METHOD
+END_INTERFACE
+
+FUNCTION_BLOCK FbX
+END_FUNCTION_BLOCK
+
+FUNCTION main
+    VAR
+        instance : FbX;
+        ref      : IA;
+    END_VAR
+    ref := instance;  // Error: FbX does not implement IA
+END_FUNCTION
+</code></pre>
+<h3 id="valid"><a class="header" href="#valid">Valid</a></h3>
+<pre><code class="language-st">INTERFACE IA
+    METHOD foo END_METHOD
+END_INTERFACE
+
+FUNCTION_BLOCK FbA IMPLEMENTS IA
+    METHOD foo END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION main
+    VAR
+        instance : FbA;
+        ref      : IA;
+    END_VAR
+    ref := instance;  // OK: FbA implements IA
+END_FUNCTION
+</code></pre>
+<p>Implementation is also satisfied transitively through inheritance:</p>
+<pre><code class="language-st">FUNCTION_BLOCK FbA IMPLEMENTS IA
+    METHOD foo END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK FbB EXTENDS FbA
+END_FUNCTION_BLOCK
+
+FUNCTION main
+    VAR
+        instance : FbB;
+        ref      : IA;
+    END_VAR
+    ref := instance;  // OK: FbB inherits IA implementation from FbA
+END_FUNCTION
+</code></pre>
+<h2 id="case-2-interfaces-are-not-related"><a class="header" href="#case-2-interfaces-are-not-related">Case 2: Interfaces are not related</a></h2>
+<p>When assigning one interface-typed variable to another, the source interface must be the
+same as or extend the target interface. Downcasts (parent to child) and assignments between
+unrelated interfaces are rejected.</p>
+<h3 id="invalid--downcast"><a class="header" href="#invalid--downcast">Invalid — downcast</a></h3>
+<pre><code class="language-st">INTERFACE IA
+    METHOD foo END_METHOD
+END_INTERFACE
+
+INTERFACE IB EXTENDS IA
+    METHOD bar END_METHOD
+END_INTERFACE
+
+FUNCTION main
+    VAR
+        refIA : IA;
+        refIB : IB;
+    END_VAR
+    refIB := refIA;  // Error: cannot downcast IA to IB
+END_FUNCTION
+</code></pre>
+<h3 id="invalid--unrelated-interfaces"><a class="header" href="#invalid--unrelated-interfaces">Invalid — unrelated interfaces</a></h3>
+<pre><code class="language-st">INTERFACE IA
+    METHOD foo END_METHOD
+END_INTERFACE
+
+INTERFACE IB
+    METHOD bar END_METHOD
+END_INTERFACE
+
+FUNCTION main
+    VAR
+        refIA : IA;
+        refIB : IB;
+    END_VAR
+    refIA := refIB;  // Error: IB and IA are not related
+END_FUNCTION
+</code></pre>
+<h3 id="valid--upcast"><a class="header" href="#valid--upcast">Valid — upcast</a></h3>
+<pre><code class="language-st">INTERFACE IA
+    METHOD foo END_METHOD
+END_INTERFACE
+
+INTERFACE IB EXTENDS IA
+    METHOD bar END_METHOD
+END_INTERFACE
+
+FUNCTION main
+    VAR
+        refIA : IA;
+        refIB : IB;
+    END_VAR
+    refIA := refIB;  // OK: IB extends IA
 END_FUNCTION
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>

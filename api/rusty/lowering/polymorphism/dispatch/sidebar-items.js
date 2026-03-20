@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["interface","pou"],"struct":["DispatchLowerer"]};
+window.SIDEBAR_ITEMS = {"mod":["interface","pou","validation"],"struct":["DispatchLowerer"]};
