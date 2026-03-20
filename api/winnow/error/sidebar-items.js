@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ErrMode","Needed","StrContext","StrContextValue"],"struct":["ContextError","EmptyError","InputError","ParseError"],"trait":["AddContext","ErrorConvert","FromExternalError","ModalError","ParserError"],"type":["ModalResult","Result"]};

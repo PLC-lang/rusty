@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.49.0/src/runtime/blocking/pool.rs`."><title>pool.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/runtime/blocking/</div>pool.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Thread pool for blocking operations
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/runtime/blocking/pool.rs`."><title>pool.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/runtime/blocking/</div>pool.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Thread pool for blocking operations
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span><span class="kw">crate</span>::loom::sync::{Arc, Condvar, Mutex};
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::loom::thread;
@@ -507,101 +507,105 @@
 <a href=#507 id=507 data-nosnippet>507</a>
 <a href=#508 id=508 data-nosnippet>508</a>        <span class="kw">let </span><span class="kw-2">mut </span>shared = <span class="self">self</span>.shared.lock();
 <a href=#509 id=509 data-nosnippet>509</a>        <span class="kw">let </span><span class="kw-2">mut </span>join_on_thread = <span class="prelude-val">None</span>;
-<a href=#510 id=510 data-nosnippet>510</a>
-<a href=#511 id=511 data-nosnippet>511</a>        <span class="lifetime">'main</span>: <span class="kw">loop </span>{
-<a href=#512 id=512 data-nosnippet>512</a>            <span class="comment">// BUSY
-<a href=#513 id=513 data-nosnippet>513</a>            </span><span class="kw">while let </span><span class="prelude-val">Some</span>(task) = shared.queue.pop_front() {
-<a href=#514 id=514 data-nosnippet>514</a>                <span class="self">self</span>.metrics.dec_queue_depth();
-<a href=#515 id=515 data-nosnippet>515</a>                drop(shared);
-<a href=#516 id=516 data-nosnippet>516</a>                task.run();
-<a href=#517 id=517 data-nosnippet>517</a>
-<a href=#518 id=518 data-nosnippet>518</a>                shared = <span class="self">self</span>.shared.lock();
-<a href=#519 id=519 data-nosnippet>519</a>            }
-<a href=#520 id=520 data-nosnippet>520</a>
-<a href=#521 id=521 data-nosnippet>521</a>            <span class="comment">// IDLE
-<a href=#522 id=522 data-nosnippet>522</a>            </span><span class="self">self</span>.metrics.inc_num_idle_threads();
-<a href=#523 id=523 data-nosnippet>523</a>
-<a href=#524 id=524 data-nosnippet>524</a>            <span class="kw">while </span>!shared.shutdown {
-<a href=#525 id=525 data-nosnippet>525</a>                <span class="kw">let </span>lock_result = <span class="self">self</span>.condvar.wait_timeout(shared, <span class="self">self</span>.keep_alive).unwrap();
-<a href=#526 id=526 data-nosnippet>526</a>
-<a href=#527 id=527 data-nosnippet>527</a>                shared = lock_result.<span class="number">0</span>;
-<a href=#528 id=528 data-nosnippet>528</a>                <span class="kw">let </span>timeout_result = lock_result.<span class="number">1</span>;
-<a href=#529 id=529 data-nosnippet>529</a>
-<a href=#530 id=530 data-nosnippet>530</a>                <span class="kw">if </span>shared.<span class="macro">num_notify !</span>= <span class="number">0 </span>{
-<a href=#531 id=531 data-nosnippet>531</a>                    <span class="comment">// We have received a legitimate wakeup,
-<a href=#532 id=532 data-nosnippet>532</a>                    // acknowledge it by decrementing the counter
-<a href=#533 id=533 data-nosnippet>533</a>                    // and transition to the BUSY state.
-<a href=#534 id=534 data-nosnippet>534</a>                    </span>shared.num_notify -= <span class="number">1</span>;
-<a href=#535 id=535 data-nosnippet>535</a>                    <span class="kw">break</span>;
-<a href=#536 id=536 data-nosnippet>536</a>                }
-<a href=#537 id=537 data-nosnippet>537</a>
-<a href=#538 id=538 data-nosnippet>538</a>                <span class="comment">// Even if the condvar "timed out", if the pool is entering the
-<a href=#539 id=539 data-nosnippet>539</a>                // shutdown phase, we want to perform the cleanup logic.
-<a href=#540 id=540 data-nosnippet>540</a>                </span><span class="kw">if </span>!shared.shutdown &amp;&amp; timeout_result.timed_out() {
-<a href=#541 id=541 data-nosnippet>541</a>                    <span class="comment">// We'll join the prior timed-out thread's JoinHandle after dropping the lock.
-<a href=#542 id=542 data-nosnippet>542</a>                    // This isn't done when shutting down, because the thread calling shutdown will
-<a href=#543 id=543 data-nosnippet>543</a>                    // handle joining everything.
-<a href=#544 id=544 data-nosnippet>544</a>                    </span><span class="kw">let </span>my_handle = shared.worker_threads.remove(<span class="kw-2">&amp;</span>worker_thread_id);
-<a href=#545 id=545 data-nosnippet>545</a>                    join_on_thread = std::mem::replace(<span class="kw-2">&amp;mut </span>shared.last_exiting_thread, my_handle);
-<a href=#546 id=546 data-nosnippet>546</a>
-<a href=#547 id=547 data-nosnippet>547</a>                    <span class="kw">break </span><span class="lifetime">'main</span>;
-<a href=#548 id=548 data-nosnippet>548</a>                }
-<a href=#549 id=549 data-nosnippet>549</a>
-<a href=#550 id=550 data-nosnippet>550</a>                <span class="comment">// Spurious wakeup detected, go back to sleep.
-<a href=#551 id=551 data-nosnippet>551</a>            </span>}
-<a href=#552 id=552 data-nosnippet>552</a>
-<a href=#553 id=553 data-nosnippet>553</a>            <span class="kw">if </span>shared.shutdown {
-<a href=#554 id=554 data-nosnippet>554</a>                <span class="comment">// Drain the queue
-<a href=#555 id=555 data-nosnippet>555</a>                </span><span class="kw">while let </span><span class="prelude-val">Some</span>(task) = shared.queue.pop_front() {
-<a href=#556 id=556 data-nosnippet>556</a>                    <span class="self">self</span>.metrics.dec_queue_depth();
-<a href=#557 id=557 data-nosnippet>557</a>                    drop(shared);
-<a href=#558 id=558 data-nosnippet>558</a>
-<a href=#559 id=559 data-nosnippet>559</a>                    task.shutdown_or_run_if_mandatory();
-<a href=#560 id=560 data-nosnippet>560</a>
-<a href=#561 id=561 data-nosnippet>561</a>                    shared = <span class="self">self</span>.shared.lock();
-<a href=#562 id=562 data-nosnippet>562</a>                }
-<a href=#563 id=563 data-nosnippet>563</a>
-<a href=#564 id=564 data-nosnippet>564</a>                <span class="comment">// Work was produced, and we "took" it (by decrementing num_notify).
-<a href=#565 id=565 data-nosnippet>565</a>                // This means that num_idle was decremented once for our wakeup.
-<a href=#566 id=566 data-nosnippet>566</a>                // But, since we are exiting, we need to "undo" that, as we'll stay idle.
-<a href=#567 id=567 data-nosnippet>567</a>                </span><span class="self">self</span>.metrics.inc_num_idle_threads();
-<a href=#568 id=568 data-nosnippet>568</a>                <span class="comment">// NOTE: Technically we should also do num_notify++ and notify again,
-<a href=#569 id=569 data-nosnippet>569</a>                // but since we're shutting down anyway, that won't be necessary.
-<a href=#570 id=570 data-nosnippet>570</a>                </span><span class="kw">break</span>;
-<a href=#571 id=571 data-nosnippet>571</a>            }
-<a href=#572 id=572 data-nosnippet>572</a>        }
-<a href=#573 id=573 data-nosnippet>573</a>
-<a href=#574 id=574 data-nosnippet>574</a>        <span class="comment">// Thread exit
-<a href=#575 id=575 data-nosnippet>575</a>        </span><span class="self">self</span>.metrics.dec_num_threads();
-<a href=#576 id=576 data-nosnippet>576</a>
-<a href=#577 id=577 data-nosnippet>577</a>        <span class="comment">// num_idle should now be tracked exactly, panic
-<a href=#578 id=578 data-nosnippet>578</a>        // with a descriptive message if it is not the
-<a href=#579 id=579 data-nosnippet>579</a>        // case.
-<a href=#580 id=580 data-nosnippet>580</a>        </span><span class="kw">let </span>prev_idle = <span class="self">self</span>.metrics.dec_num_idle_threads();
-<a href=#581 id=581 data-nosnippet>581</a>        <span class="macro">assert!</span>(
-<a href=#582 id=582 data-nosnippet>582</a>            prev_idle &gt;= <span class="self">self</span>.metrics.num_idle_threads(),
-<a href=#583 id=583 data-nosnippet>583</a>            <span class="string">"num_idle_threads underflowed on thread exit"
-<a href=#584 id=584 data-nosnippet>584</a>        </span>);
-<a href=#585 id=585 data-nosnippet>585</a>
-<a href=#586 id=586 data-nosnippet>586</a>        <span class="kw">if </span>shared.shutdown &amp;&amp; <span class="self">self</span>.metrics.num_threads() == <span class="number">0 </span>{
-<a href=#587 id=587 data-nosnippet>587</a>            <span class="self">self</span>.condvar.notify_one();
+<a href=#510 id=510 data-nosnippet>510</a>        <span class="comment">// is this thread currently counted in `num_idle_threads`?
+<a href=#511 id=511 data-nosnippet>511</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>is_counted_idle;
+<a href=#512 id=512 data-nosnippet>512</a>
+<a href=#513 id=513 data-nosnippet>513</a>        <span class="lifetime">'main</span>: <span class="kw">loop </span>{
+<a href=#514 id=514 data-nosnippet>514</a>            <span class="comment">// BUSY
+<a href=#515 id=515 data-nosnippet>515</a>            </span><span class="kw">while let </span><span class="prelude-val">Some</span>(task) = shared.queue.pop_front() {
+<a href=#516 id=516 data-nosnippet>516</a>                <span class="self">self</span>.metrics.dec_queue_depth();
+<a href=#517 id=517 data-nosnippet>517</a>                drop(shared);
+<a href=#518 id=518 data-nosnippet>518</a>                task.run();
+<a href=#519 id=519 data-nosnippet>519</a>
+<a href=#520 id=520 data-nosnippet>520</a>                shared = <span class="self">self</span>.shared.lock();
+<a href=#521 id=521 data-nosnippet>521</a>            }
+<a href=#522 id=522 data-nosnippet>522</a>
+<a href=#523 id=523 data-nosnippet>523</a>            <span class="comment">// IDLE
+<a href=#524 id=524 data-nosnippet>524</a>            </span><span class="self">self</span>.metrics.inc_num_idle_threads();
+<a href=#525 id=525 data-nosnippet>525</a>            <span class="comment">// mark this thread as currently counted in `num_idle_threads`.
+<a href=#526 id=526 data-nosnippet>526</a>            </span>is_counted_idle = <span class="bool-val">true</span>;
+<a href=#527 id=527 data-nosnippet>527</a>
+<a href=#528 id=528 data-nosnippet>528</a>            <span class="kw">while </span>!shared.shutdown {
+<a href=#529 id=529 data-nosnippet>529</a>                <span class="kw">let </span>lock_result = <span class="self">self</span>.condvar.wait_timeout(shared, <span class="self">self</span>.keep_alive).unwrap();
+<a href=#530 id=530 data-nosnippet>530</a>
+<a href=#531 id=531 data-nosnippet>531</a>                shared = lock_result.<span class="number">0</span>;
+<a href=#532 id=532 data-nosnippet>532</a>                <span class="kw">let </span>timeout_result = lock_result.<span class="number">1</span>;
+<a href=#533 id=533 data-nosnippet>533</a>
+<a href=#534 id=534 data-nosnippet>534</a>                <span class="kw">if </span>shared.<span class="macro">num_notify !</span>= <span class="number">0 </span>{
+<a href=#535 id=535 data-nosnippet>535</a>                    <span class="comment">// We have received a legitimate wakeup,
+<a href=#536 id=536 data-nosnippet>536</a>                    // acknowledge it by decrementing the counter
+<a href=#537 id=537 data-nosnippet>537</a>                    // and transition to the BUSY state.
+<a href=#538 id=538 data-nosnippet>538</a>                    </span>shared.num_notify -= <span class="number">1</span>;
+<a href=#539 id=539 data-nosnippet>539</a>                    <span class="comment">// since this is a legitimate wakeup,
+<a href=#540 id=540 data-nosnippet>540</a>                    // the `Spawner::spawn_task` has already decremented `num_idle_threads`.
+<a href=#541 id=541 data-nosnippet>541</a>                    </span>is_counted_idle = <span class="bool-val">false</span>;
+<a href=#542 id=542 data-nosnippet>542</a>                    <span class="kw">break</span>;
+<a href=#543 id=543 data-nosnippet>543</a>                }
+<a href=#544 id=544 data-nosnippet>544</a>
+<a href=#545 id=545 data-nosnippet>545</a>                <span class="comment">// Even if the condvar "timed out", if the pool is entering the
+<a href=#546 id=546 data-nosnippet>546</a>                // shutdown phase, we want to perform the cleanup logic.
+<a href=#547 id=547 data-nosnippet>547</a>                </span><span class="kw">if </span>!shared.shutdown &amp;&amp; timeout_result.timed_out() {
+<a href=#548 id=548 data-nosnippet>548</a>                    <span class="comment">// We'll join the prior timed-out thread's JoinHandle after dropping the lock.
+<a href=#549 id=549 data-nosnippet>549</a>                    // This isn't done when shutting down, because the thread calling shutdown will
+<a href=#550 id=550 data-nosnippet>550</a>                    // handle joining everything.
+<a href=#551 id=551 data-nosnippet>551</a>                    </span><span class="kw">let </span>my_handle = shared.worker_threads.remove(<span class="kw-2">&amp;</span>worker_thread_id);
+<a href=#552 id=552 data-nosnippet>552</a>                    join_on_thread = std::mem::replace(<span class="kw-2">&amp;mut </span>shared.last_exiting_thread, my_handle);
+<a href=#553 id=553 data-nosnippet>553</a>
+<a href=#554 id=554 data-nosnippet>554</a>                    <span class="kw">break </span><span class="lifetime">'main</span>;
+<a href=#555 id=555 data-nosnippet>555</a>                }
+<a href=#556 id=556 data-nosnippet>556</a>
+<a href=#557 id=557 data-nosnippet>557</a>                <span class="comment">// Spurious wakeup detected, go back to sleep.
+<a href=#558 id=558 data-nosnippet>558</a>            </span>}
+<a href=#559 id=559 data-nosnippet>559</a>
+<a href=#560 id=560 data-nosnippet>560</a>            <span class="kw">if </span>shared.shutdown {
+<a href=#561 id=561 data-nosnippet>561</a>                <span class="comment">// Drain the queue
+<a href=#562 id=562 data-nosnippet>562</a>                </span><span class="kw">while let </span><span class="prelude-val">Some</span>(task) = shared.queue.pop_front() {
+<a href=#563 id=563 data-nosnippet>563</a>                    <span class="self">self</span>.metrics.dec_queue_depth();
+<a href=#564 id=564 data-nosnippet>564</a>                    drop(shared);
+<a href=#565 id=565 data-nosnippet>565</a>
+<a href=#566 id=566 data-nosnippet>566</a>                    task.shutdown_or_run_if_mandatory();
+<a href=#567 id=567 data-nosnippet>567</a>
+<a href=#568 id=568 data-nosnippet>568</a>                    shared = <span class="self">self</span>.shared.lock();
+<a href=#569 id=569 data-nosnippet>569</a>                }
+<a href=#570 id=570 data-nosnippet>570</a>
+<a href=#571 id=571 data-nosnippet>571</a>                <span class="kw">break</span>;
+<a href=#572 id=572 data-nosnippet>572</a>            }
+<a href=#573 id=573 data-nosnippet>573</a>        }
+<a href=#574 id=574 data-nosnippet>574</a>
+<a href=#575 id=575 data-nosnippet>575</a>        <span class="comment">// Thread exit
+<a href=#576 id=576 data-nosnippet>576</a>        </span><span class="self">self</span>.metrics.dec_num_threads();
+<a href=#577 id=577 data-nosnippet>577</a>
+<a href=#578 id=578 data-nosnippet>578</a>        <span class="comment">// Is this thread currently counted in `num_idle_threads`?
+<a href=#579 id=579 data-nosnippet>579</a>        </span><span class="kw">if </span>is_counted_idle {
+<a href=#580 id=580 data-nosnippet>580</a>            <span class="comment">// `num_idle_threads` should now be tracked exactly, panic
+<a href=#581 id=581 data-nosnippet>581</a>            // with a descriptive message if it is not the
+<a href=#582 id=582 data-nosnippet>582</a>            // case.
+<a href=#583 id=583 data-nosnippet>583</a>            </span><span class="kw">let </span>prev_idle = <span class="self">self</span>.metrics.dec_num_idle_threads();
+<a href=#584 id=584 data-nosnippet>584</a>            <span class="macro">assert_ne!</span>(
+<a href=#585 id=585 data-nosnippet>585</a>                prev_idle, <span class="number">0</span>,
+<a href=#586 id=586 data-nosnippet>586</a>                <span class="string">"`num_idle_threads` underflowed on thread exit"
+<a href=#587 id=587 data-nosnippet>587</a>            </span>);
 <a href=#588 id=588 data-nosnippet>588</a>        }
 <a href=#589 id=589 data-nosnippet>589</a>
-<a href=#590 id=590 data-nosnippet>590</a>        drop(shared);
-<a href=#591 id=591 data-nosnippet>591</a>
-<a href=#592 id=592 data-nosnippet>592</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = <span class="kw-2">&amp;</span><span class="self">self</span>.before_stop {
-<a href=#593 id=593 data-nosnippet>593</a>            f();
-<a href=#594 id=594 data-nosnippet>594</a>        }
+<a href=#590 id=590 data-nosnippet>590</a>        <span class="kw">if </span>shared.shutdown &amp;&amp; <span class="self">self</span>.metrics.num_threads() == <span class="number">0 </span>{
+<a href=#591 id=591 data-nosnippet>591</a>            <span class="self">self</span>.condvar.notify_one();
+<a href=#592 id=592 data-nosnippet>592</a>        }
+<a href=#593 id=593 data-nosnippet>593</a>
+<a href=#594 id=594 data-nosnippet>594</a>        drop(shared);
 <a href=#595 id=595 data-nosnippet>595</a>
-<a href=#596 id=596 data-nosnippet>596</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = join_on_thread {
-<a href=#597 id=597 data-nosnippet>597</a>            <span class="kw">let _ </span>= handle.join();
+<a href=#596 id=596 data-nosnippet>596</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(f) = <span class="kw-2">&amp;</span><span class="self">self</span>.before_stop {
+<a href=#597 id=597 data-nosnippet>597</a>            f();
 <a href=#598 id=598 data-nosnippet>598</a>        }
-<a href=#599 id=599 data-nosnippet>599</a>    }
-<a href=#600 id=600 data-nosnippet>600</a>}
-<a href=#601 id=601 data-nosnippet>601</a>
-<a href=#602 id=602 data-nosnippet>602</a><span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Spawner {
-<a href=#603 id=603 data-nosnippet>603</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#604 id=604 data-nosnippet>604</a>        fmt.debug_struct(<span class="string">"blocking::Spawner"</span>).finish()
-<a href=#605 id=605 data-nosnippet>605</a>    }
-<a href=#606 id=606 data-nosnippet>606</a>}
+<a href=#599 id=599 data-nosnippet>599</a>
+<a href=#600 id=600 data-nosnippet>600</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = join_on_thread {
+<a href=#601 id=601 data-nosnippet>601</a>            <span class="kw">let _ </span>= handle.join();
+<a href=#602 id=602 data-nosnippet>602</a>        }
+<a href=#603 id=603 data-nosnippet>603</a>    }
+<a href=#604 id=604 data-nosnippet>604</a>}
+<a href=#605 id=605 data-nosnippet>605</a>
+<a href=#606 id=606 data-nosnippet>606</a><span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Spawner {
+<a href=#607 id=607 data-nosnippet>607</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#608 id=608 data-nosnippet>608</a>        fmt.debug_struct(<span class="string">"blocking::Spawner"</span>).finish()
+<a href=#609 id=609 data-nosnippet>609</a>    }
+<a href=#610 id=610 data-nosnippet>610</a>}
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.49.0/src/sync/oneshot.rs`."><title>oneshot.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/sync/</div>oneshot.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="attr">#![cfg_attr(not(feature = <span class="string">"sync"</span>), allow(dead_code, unreachable_pub))]
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.50.0/src/sync/oneshot.rs`."><title>oneshot.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/sync/</div>oneshot.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="attr">#![cfg_attr(not(feature = <span class="string">"sync"</span>), allow(dead_code, unreachable_pub))]
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="doccomment">//! A one-shot channel is used for sending a single message between
 <a href=#4 id=4 data-nosnippet>4</a>//! asynchronous tasks. The [`channel`] function is used to create a
@@ -1391,23 +1391,23 @@
 <a href=#1391 id=1391 data-nosnippet>1391</a>            }
 <a href=#1392 id=1392 data-nosnippet>1392</a>        }
 <a href=#1393 id=1393 data-nosnippet>1393</a>
-<a href=#1394 id=1394 data-nosnippet>1394</a>        prev
-<a href=#1395 id=1395 data-nosnippet>1395</a>    }
-<a href=#1396 id=1396 data-nosnippet>1396</a>
-<a href=#1397 id=1397 data-nosnippet>1397</a>    <span class="doccomment">/// Consumes the value. This function does not check `state`.
-<a href=#1398 id=1398 data-nosnippet>1398</a>    ///
-<a href=#1399 id=1399 data-nosnippet>1399</a>    /// # Safety
-<a href=#1400 id=1400 data-nosnippet>1400</a>    ///
-<a href=#1401 id=1401 data-nosnippet>1401</a>    /// Calling this method concurrently on multiple threads will result in a
-<a href=#1402 id=1402 data-nosnippet>1402</a>    /// data race. The `VALUE_SENT` state bit is used to ensure that only the
-<a href=#1403 id=1403 data-nosnippet>1403</a>    /// sender *or* the receiver will call this method at a given point in time.
-<a href=#1404 id=1404 data-nosnippet>1404</a>    /// If `VALUE_SENT` is not set, then only the sender may call this method;
-<a href=#1405 id=1405 data-nosnippet>1405</a>    /// if it is set, then only the receiver may call this method.
-<a href=#1406 id=1406 data-nosnippet>1406</a>    </span><span class="kw">unsafe fn </span>consume_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-<a href=#1407 id=1407 data-nosnippet>1407</a>        <span class="self">self</span>.value.with_mut(|ptr| <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr).take() })
+<a href=#1394 id=1394 data-nosnippet>1394</a>        <span class="kw">if </span>prev.is_rx_task_set() &amp;&amp; !prev.is_complete() {
+<a href=#1395 id=1395 data-nosnippet>1395</a>            State::unset_rx_task(<span class="kw-2">&amp;</span><span class="self">self</span>.state);
+<a href=#1396 id=1396 data-nosnippet>1396</a>            <span class="comment">// SAFETY: The sender only accesses `rx_task` (via
+<a href=#1397 id=1397 data-nosnippet>1397</a>            // `wake_by_ref`) in `complete()` after successfully setting
+<a href=#1398 id=1398 data-nosnippet>1398</a>            // `VALUE_SENT`. But `set_complete` will not set `VALUE_SENT`
+<a href=#1399 id=1399 data-nosnippet>1399</a>            // if `CLOSED` is already set (its CAS loop breaks early).
+<a href=#1400 id=1400 data-nosnippet>1400</a>            // Since `prev` shows that `VALUE_SENT` was not set before we
+<a href=#1401 id=1401 data-nosnippet>1401</a>            // set `CLOSED`, the sender can no longer set `VALUE_SENT` and
+<a href=#1402 id=1402 data-nosnippet>1402</a>            // will never access `rx_task`. Therefore, we have exclusive
+<a href=#1403 id=1403 data-nosnippet>1403</a>            // access here.
+<a href=#1404 id=1404 data-nosnippet>1404</a>            </span><span class="kw">unsafe </span>{ <span class="self">self</span>.rx_task.drop_task() };
+<a href=#1405 id=1405 data-nosnippet>1405</a>        }
+<a href=#1406 id=1406 data-nosnippet>1406</a>
+<a href=#1407 id=1407 data-nosnippet>1407</a>        prev
 <a href=#1408 id=1408 data-nosnippet>1408</a>    }
 <a href=#1409 id=1409 data-nosnippet>1409</a>
-<a href=#1410 id=1410 data-nosnippet>1410</a>    <span class="doccomment">/// Returns true if there is a value. This function does not check `state`.
+<a href=#1410 id=1410 data-nosnippet>1410</a>    <span class="doccomment">/// Consumes the value. This function does not check `state`.
 <a href=#1411 id=1411 data-nosnippet>1411</a>    ///
 <a href=#1412 id=1412 data-nosnippet>1412</a>    /// # Safety
 <a href=#1413 id=1413 data-nosnippet>1413</a>    ///
@@ -1416,180 +1416,193 @@
 <a href=#1416 id=1416 data-nosnippet>1416</a>    /// sender *or* the receiver will call this method at a given point in time.
 <a href=#1417 id=1417 data-nosnippet>1417</a>    /// If `VALUE_SENT` is not set, then only the sender may call this method;
 <a href=#1418 id=1418 data-nosnippet>1418</a>    /// if it is set, then only the receiver may call this method.
-<a href=#1419 id=1419 data-nosnippet>1419</a>    </span><span class="kw">unsafe fn </span>has_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-<a href=#1420 id=1420 data-nosnippet>1420</a>        <span class="self">self</span>.value.with(|ptr| <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr).is_some() })
+<a href=#1419 id=1419 data-nosnippet>1419</a>    </span><span class="kw">unsafe fn </span>consume_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+<a href=#1420 id=1420 data-nosnippet>1420</a>        <span class="self">self</span>.value.with_mut(|ptr| <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr).take() })
 <a href=#1421 id=1421 data-nosnippet>1421</a>    }
-<a href=#1422 id=1422 data-nosnippet>1422</a>}
-<a href=#1423 id=1423 data-nosnippet>1423</a>
-<a href=#1424 id=1424 data-nosnippet>1424</a><span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>Inner&lt;T&gt; {}
-<a href=#1425 id=1425 data-nosnippet>1425</a><span class="kw">unsafe impl</span>&lt;T: Send&gt; Sync <span class="kw">for </span>Inner&lt;T&gt; {}
-<a href=#1426 id=1426 data-nosnippet>1426</a>
-<a href=#1427 id=1427 data-nosnippet>1427</a><span class="kw">fn </span>mut_load(this: <span class="kw-2">&amp;mut </span>AtomicUsize) -&gt; usize {
-<a href=#1428 id=1428 data-nosnippet>1428</a>    this.with_mut(|v| <span class="kw-2">*</span>v)
-<a href=#1429 id=1429 data-nosnippet>1429</a>}
-<a href=#1430 id=1430 data-nosnippet>1430</a>
-<a href=#1431 id=1431 data-nosnippet>1431</a><span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Inner&lt;T&gt; {
-<a href=#1432 id=1432 data-nosnippet>1432</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#1433 id=1433 data-nosnippet>1433</a>        <span class="kw">let </span>state = State(mut_load(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state));
-<a href=#1434 id=1434 data-nosnippet>1434</a>
-<a href=#1435 id=1435 data-nosnippet>1435</a>        <span class="kw">if </span>state.is_rx_task_set() {
-<a href=#1436 id=1436 data-nosnippet>1436</a>            <span class="kw">unsafe </span>{
-<a href=#1437 id=1437 data-nosnippet>1437</a>                <span class="self">self</span>.rx_task.drop_task();
-<a href=#1438 id=1438 data-nosnippet>1438</a>            }
-<a href=#1439 id=1439 data-nosnippet>1439</a>        }
-<a href=#1440 id=1440 data-nosnippet>1440</a>
-<a href=#1441 id=1441 data-nosnippet>1441</a>        <span class="kw">if </span>state.is_tx_task_set() {
-<a href=#1442 id=1442 data-nosnippet>1442</a>            <span class="kw">unsafe </span>{
-<a href=#1443 id=1443 data-nosnippet>1443</a>                <span class="self">self</span>.tx_task.drop_task();
-<a href=#1444 id=1444 data-nosnippet>1444</a>            }
-<a href=#1445 id=1445 data-nosnippet>1445</a>        }
-<a href=#1446 id=1446 data-nosnippet>1446</a>
-<a href=#1447 id=1447 data-nosnippet>1447</a>        <span class="comment">// SAFETY: we have `&amp;mut self`, and therefore we have
-<a href=#1448 id=1448 data-nosnippet>1448</a>        // exclusive access to the value.
-<a href=#1449 id=1449 data-nosnippet>1449</a>        </span><span class="kw">unsafe </span>{
-<a href=#1450 id=1450 data-nosnippet>1450</a>            <span class="comment">// Note: the assertion holds because if the value has been sent by sender,
-<a href=#1451 id=1451 data-nosnippet>1451</a>            // we must ensure that the value must have been consumed by the receiver before
-<a href=#1452 id=1452 data-nosnippet>1452</a>            // dropping the `Inner`.
-<a href=#1453 id=1453 data-nosnippet>1453</a>            </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.consume_value().is_none());
-<a href=#1454 id=1454 data-nosnippet>1454</a>        }
-<a href=#1455 id=1455 data-nosnippet>1455</a>    }
-<a href=#1456 id=1456 data-nosnippet>1456</a>}
-<a href=#1457 id=1457 data-nosnippet>1457</a>
-<a href=#1458 id=1458 data-nosnippet>1458</a><span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Inner&lt;T&gt; {
-<a href=#1459 id=1459 data-nosnippet>1459</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#1460 id=1460 data-nosnippet>1460</a>        <span class="kw">use </span>std::sync::atomic::Ordering::Relaxed;
-<a href=#1461 id=1461 data-nosnippet>1461</a>
-<a href=#1462 id=1462 data-nosnippet>1462</a>        fmt.debug_struct(<span class="string">"Inner"</span>)
-<a href=#1463 id=1463 data-nosnippet>1463</a>            .field(<span class="string">"state"</span>, <span class="kw-2">&amp;</span>State::load(<span class="kw-2">&amp;</span><span class="self">self</span>.state, Relaxed))
-<a href=#1464 id=1464 data-nosnippet>1464</a>            .finish()
-<a href=#1465 id=1465 data-nosnippet>1465</a>    }
-<a href=#1466 id=1466 data-nosnippet>1466</a>}
-<a href=#1467 id=1467 data-nosnippet>1467</a>
-<a href=#1468 id=1468 data-nosnippet>1468</a><span class="doccomment">/// Indicates that a waker for the receiving task has been set.
-<a href=#1469 id=1469 data-nosnippet>1469</a>///
-<a href=#1470 id=1470 data-nosnippet>1470</a>/// # Safety
-<a href=#1471 id=1471 data-nosnippet>1471</a>///
-<a href=#1472 id=1472 data-nosnippet>1472</a>/// If this bit is not set, the `rx_task` field may be uninitialized.
-<a href=#1473 id=1473 data-nosnippet>1473</a></span><span class="kw">const </span>RX_TASK_SET: usize = <span class="number">0b00001</span>;
-<a href=#1474 id=1474 data-nosnippet>1474</a><span class="doccomment">/// Indicates that a value has been stored in the channel's inner `UnsafeCell`.
-<a href=#1475 id=1475 data-nosnippet>1475</a>///
-<a href=#1476 id=1476 data-nosnippet>1476</a>/// # Safety
-<a href=#1477 id=1477 data-nosnippet>1477</a>///
-<a href=#1478 id=1478 data-nosnippet>1478</a>/// This bit controls which side of the channel is permitted to access the
-<a href=#1479 id=1479 data-nosnippet>1479</a>/// `UnsafeCell`. If it is set, the `UnsafeCell` may ONLY be accessed by the
-<a href=#1480 id=1480 data-nosnippet>1480</a>/// receiver. If this bit is NOT set, the `UnsafeCell` may ONLY be accessed by
-<a href=#1481 id=1481 data-nosnippet>1481</a>/// the sender.
-<a href=#1482 id=1482 data-nosnippet>1482</a></span><span class="kw">const </span>VALUE_SENT: usize = <span class="number">0b00010</span>;
-<a href=#1483 id=1483 data-nosnippet>1483</a><span class="kw">const </span>CLOSED: usize = <span class="number">0b00100</span>;
-<a href=#1484 id=1484 data-nosnippet>1484</a>
-<a href=#1485 id=1485 data-nosnippet>1485</a><span class="doccomment">/// Indicates that a waker for the sending task has been set.
-<a href=#1486 id=1486 data-nosnippet>1486</a>///
-<a href=#1487 id=1487 data-nosnippet>1487</a>/// # Safety
+<a href=#1422 id=1422 data-nosnippet>1422</a>
+<a href=#1423 id=1423 data-nosnippet>1423</a>    <span class="doccomment">/// Returns true if there is a value. This function does not check `state`.
+<a href=#1424 id=1424 data-nosnippet>1424</a>    ///
+<a href=#1425 id=1425 data-nosnippet>1425</a>    /// # Safety
+<a href=#1426 id=1426 data-nosnippet>1426</a>    ///
+<a href=#1427 id=1427 data-nosnippet>1427</a>    /// Calling this method concurrently on multiple threads will result in a
+<a href=#1428 id=1428 data-nosnippet>1428</a>    /// data race. The `VALUE_SENT` state bit is used to ensure that only the
+<a href=#1429 id=1429 data-nosnippet>1429</a>    /// sender *or* the receiver will call this method at a given point in time.
+<a href=#1430 id=1430 data-nosnippet>1430</a>    /// If `VALUE_SENT` is not set, then only the sender may call this method;
+<a href=#1431 id=1431 data-nosnippet>1431</a>    /// if it is set, then only the receiver may call this method.
+<a href=#1432 id=1432 data-nosnippet>1432</a>    </span><span class="kw">unsafe fn </span>has_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+<a href=#1433 id=1433 data-nosnippet>1433</a>        <span class="self">self</span>.value.with(|ptr| <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr).is_some() })
+<a href=#1434 id=1434 data-nosnippet>1434</a>    }
+<a href=#1435 id=1435 data-nosnippet>1435</a>}
+<a href=#1436 id=1436 data-nosnippet>1436</a>
+<a href=#1437 id=1437 data-nosnippet>1437</a><span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>Inner&lt;T&gt; {}
+<a href=#1438 id=1438 data-nosnippet>1438</a><span class="kw">unsafe impl</span>&lt;T: Send&gt; Sync <span class="kw">for </span>Inner&lt;T&gt; {}
+<a href=#1439 id=1439 data-nosnippet>1439</a>
+<a href=#1440 id=1440 data-nosnippet>1440</a><span class="kw">fn </span>mut_load(this: <span class="kw-2">&amp;mut </span>AtomicUsize) -&gt; usize {
+<a href=#1441 id=1441 data-nosnippet>1441</a>    this.with_mut(|v| <span class="kw-2">*</span>v)
+<a href=#1442 id=1442 data-nosnippet>1442</a>}
+<a href=#1443 id=1443 data-nosnippet>1443</a>
+<a href=#1444 id=1444 data-nosnippet>1444</a><span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Inner&lt;T&gt; {
+<a href=#1445 id=1445 data-nosnippet>1445</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#1446 id=1446 data-nosnippet>1446</a>        <span class="kw">let </span>state = State(mut_load(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state));
+<a href=#1447 id=1447 data-nosnippet>1447</a>
+<a href=#1448 id=1448 data-nosnippet>1448</a>        <span class="kw">if </span>state.is_rx_task_set() {
+<a href=#1449 id=1449 data-nosnippet>1449</a>            <span class="kw">unsafe </span>{
+<a href=#1450 id=1450 data-nosnippet>1450</a>                <span class="self">self</span>.rx_task.drop_task();
+<a href=#1451 id=1451 data-nosnippet>1451</a>            }
+<a href=#1452 id=1452 data-nosnippet>1452</a>        }
+<a href=#1453 id=1453 data-nosnippet>1453</a>
+<a href=#1454 id=1454 data-nosnippet>1454</a>        <span class="kw">if </span>state.is_tx_task_set() {
+<a href=#1455 id=1455 data-nosnippet>1455</a>            <span class="kw">unsafe </span>{
+<a href=#1456 id=1456 data-nosnippet>1456</a>                <span class="self">self</span>.tx_task.drop_task();
+<a href=#1457 id=1457 data-nosnippet>1457</a>            }
+<a href=#1458 id=1458 data-nosnippet>1458</a>        }
+<a href=#1459 id=1459 data-nosnippet>1459</a>
+<a href=#1460 id=1460 data-nosnippet>1460</a>        <span class="comment">// SAFETY: we have `&amp;mut self`, and therefore we have
+<a href=#1461 id=1461 data-nosnippet>1461</a>        // exclusive access to the value.
+<a href=#1462 id=1462 data-nosnippet>1462</a>        </span><span class="kw">unsafe </span>{
+<a href=#1463 id=1463 data-nosnippet>1463</a>            <span class="comment">// Note: the assertion holds because if the value has been sent by sender,
+<a href=#1464 id=1464 data-nosnippet>1464</a>            // we must ensure that the value must have been consumed by the receiver before
+<a href=#1465 id=1465 data-nosnippet>1465</a>            // dropping the `Inner`.
+<a href=#1466 id=1466 data-nosnippet>1466</a>            </span><span class="macro">debug_assert!</span>(<span class="self">self</span>.consume_value().is_none());
+<a href=#1467 id=1467 data-nosnippet>1467</a>        }
+<a href=#1468 id=1468 data-nosnippet>1468</a>    }
+<a href=#1469 id=1469 data-nosnippet>1469</a>}
+<a href=#1470 id=1470 data-nosnippet>1470</a>
+<a href=#1471 id=1471 data-nosnippet>1471</a><span class="kw">impl</span>&lt;T: fmt::Debug&gt; fmt::Debug <span class="kw">for </span>Inner&lt;T&gt; {
+<a href=#1472 id=1472 data-nosnippet>1472</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#1473 id=1473 data-nosnippet>1473</a>        <span class="kw">use </span>std::sync::atomic::Ordering::Relaxed;
+<a href=#1474 id=1474 data-nosnippet>1474</a>
+<a href=#1475 id=1475 data-nosnippet>1475</a>        fmt.debug_struct(<span class="string">"Inner"</span>)
+<a href=#1476 id=1476 data-nosnippet>1476</a>            .field(<span class="string">"state"</span>, <span class="kw-2">&amp;</span>State::load(<span class="kw-2">&amp;</span><span class="self">self</span>.state, Relaxed))
+<a href=#1477 id=1477 data-nosnippet>1477</a>            .finish()
+<a href=#1478 id=1478 data-nosnippet>1478</a>    }
+<a href=#1479 id=1479 data-nosnippet>1479</a>}
+<a href=#1480 id=1480 data-nosnippet>1480</a>
+<a href=#1481 id=1481 data-nosnippet>1481</a><span class="doccomment">/// Indicates that a waker for the receiving task has been set.
+<a href=#1482 id=1482 data-nosnippet>1482</a>///
+<a href=#1483 id=1483 data-nosnippet>1483</a>/// # Safety
+<a href=#1484 id=1484 data-nosnippet>1484</a>///
+<a href=#1485 id=1485 data-nosnippet>1485</a>/// If this bit is not set, the `rx_task` field may be uninitialized.
+<a href=#1486 id=1486 data-nosnippet>1486</a></span><span class="kw">const </span>RX_TASK_SET: usize = <span class="number">0b00001</span>;
+<a href=#1487 id=1487 data-nosnippet>1487</a><span class="doccomment">/// Indicates that a value has been stored in the channel's inner `UnsafeCell`.
 <a href=#1488 id=1488 data-nosnippet>1488</a>///
-<a href=#1489 id=1489 data-nosnippet>1489</a>/// If this bit is not set, the `tx_task` field may be uninitialized.
-<a href=#1490 id=1490 data-nosnippet>1490</a></span><span class="kw">const </span>TX_TASK_SET: usize = <span class="number">0b01000</span>;
-<a href=#1491 id=1491 data-nosnippet>1491</a>
-<a href=#1492 id=1492 data-nosnippet>1492</a><span class="kw">impl </span>State {
-<a href=#1493 id=1493 data-nosnippet>1493</a>    <span class="kw">fn </span>new() -&gt; State {
-<a href=#1494 id=1494 data-nosnippet>1494</a>        State(<span class="number">0</span>)
-<a href=#1495 id=1495 data-nosnippet>1495</a>    }
-<a href=#1496 id=1496 data-nosnippet>1496</a>
-<a href=#1497 id=1497 data-nosnippet>1497</a>    <span class="kw">fn </span>is_complete(<span class="self">self</span>) -&gt; bool {
-<a href=#1498 id=1498 data-nosnippet>1498</a>        <span class="self">self</span>.<span class="number">0 </span>&amp; VALUE_SENT == VALUE_SENT
-<a href=#1499 id=1499 data-nosnippet>1499</a>    }
-<a href=#1500 id=1500 data-nosnippet>1500</a>
-<a href=#1501 id=1501 data-nosnippet>1501</a>    <span class="kw">fn </span>set_complete(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
-<a href=#1502 id=1502 data-nosnippet>1502</a>        <span class="comment">// This method is a compare-and-swap loop rather than a fetch-or like
-<a href=#1503 id=1503 data-nosnippet>1503</a>        // other `set_$WHATEVER` methods on `State`. This is because we must
-<a href=#1504 id=1504 data-nosnippet>1504</a>        // check if the state has been closed before setting the `VALUE_SENT`
-<a href=#1505 id=1505 data-nosnippet>1505</a>        // bit.
-<a href=#1506 id=1506 data-nosnippet>1506</a>        //
-<a href=#1507 id=1507 data-nosnippet>1507</a>        // We don't want to set both the `VALUE_SENT` bit if the `CLOSED`
-<a href=#1508 id=1508 data-nosnippet>1508</a>        // bit is already set, because `VALUE_SENT` will tell the receiver that
-<a href=#1509 id=1509 data-nosnippet>1509</a>        // it's okay to access the inner `UnsafeCell`. Immediately after calling
-<a href=#1510 id=1510 data-nosnippet>1510</a>        // `set_complete`, if the channel was closed, the sender will _also_
-<a href=#1511 id=1511 data-nosnippet>1511</a>        // access the `UnsafeCell` to take the value back out, so if a
-<a href=#1512 id=1512 data-nosnippet>1512</a>        // `poll_recv` or `try_recv` call is occurring concurrently, both
-<a href=#1513 id=1513 data-nosnippet>1513</a>        // threads may try to access the `UnsafeCell` if we were to set the
-<a href=#1514 id=1514 data-nosnippet>1514</a>        // `VALUE_SENT` bit on a closed channel.
-<a href=#1515 id=1515 data-nosnippet>1515</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>state = cell.load(Ordering::Relaxed);
-<a href=#1516 id=1516 data-nosnippet>1516</a>        <span class="kw">loop </span>{
-<a href=#1517 id=1517 data-nosnippet>1517</a>            <span class="kw">if </span>State(state).is_closed() {
-<a href=#1518 id=1518 data-nosnippet>1518</a>                <span class="kw">break</span>;
-<a href=#1519 id=1519 data-nosnippet>1519</a>            }
-<a href=#1520 id=1520 data-nosnippet>1520</a>            <span class="comment">// TODO: This could be `Release`, followed by an `Acquire` fence *if*
-<a href=#1521 id=1521 data-nosnippet>1521</a>            // the `RX_TASK_SET` flag is set. However, `loom` does not support
-<a href=#1522 id=1522 data-nosnippet>1522</a>            // fences yet.
-<a href=#1523 id=1523 data-nosnippet>1523</a>            </span><span class="kw">match </span>cell.compare_exchange_weak(
-<a href=#1524 id=1524 data-nosnippet>1524</a>                state,
-<a href=#1525 id=1525 data-nosnippet>1525</a>                state | VALUE_SENT,
-<a href=#1526 id=1526 data-nosnippet>1526</a>                Ordering::AcqRel,
-<a href=#1527 id=1527 data-nosnippet>1527</a>                Ordering::Acquire,
-<a href=#1528 id=1528 data-nosnippet>1528</a>            ) {
-<a href=#1529 id=1529 data-nosnippet>1529</a>                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
-<a href=#1530 id=1530 data-nosnippet>1530</a>                <span class="prelude-val">Err</span>(actual) =&gt; state = actual,
-<a href=#1531 id=1531 data-nosnippet>1531</a>            }
-<a href=#1532 id=1532 data-nosnippet>1532</a>        }
-<a href=#1533 id=1533 data-nosnippet>1533</a>        State(state)
-<a href=#1534 id=1534 data-nosnippet>1534</a>    }
-<a href=#1535 id=1535 data-nosnippet>1535</a>
-<a href=#1536 id=1536 data-nosnippet>1536</a>    <span class="kw">fn </span>is_rx_task_set(<span class="self">self</span>) -&gt; bool {
-<a href=#1537 id=1537 data-nosnippet>1537</a>        <span class="self">self</span>.<span class="number">0 </span>&amp; RX_TASK_SET == RX_TASK_SET
-<a href=#1538 id=1538 data-nosnippet>1538</a>    }
-<a href=#1539 id=1539 data-nosnippet>1539</a>
-<a href=#1540 id=1540 data-nosnippet>1540</a>    <span class="kw">fn </span>set_rx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
-<a href=#1541 id=1541 data-nosnippet>1541</a>        <span class="kw">let </span>val = cell.fetch_or(RX_TASK_SET, AcqRel);
-<a href=#1542 id=1542 data-nosnippet>1542</a>        State(val | RX_TASK_SET)
-<a href=#1543 id=1543 data-nosnippet>1543</a>    }
-<a href=#1544 id=1544 data-nosnippet>1544</a>
-<a href=#1545 id=1545 data-nosnippet>1545</a>    <span class="kw">fn </span>unset_rx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
-<a href=#1546 id=1546 data-nosnippet>1546</a>        <span class="kw">let </span>val = cell.fetch_and(!RX_TASK_SET, AcqRel);
-<a href=#1547 id=1547 data-nosnippet>1547</a>        State(val &amp; !RX_TASK_SET)
-<a href=#1548 id=1548 data-nosnippet>1548</a>    }
-<a href=#1549 id=1549 data-nosnippet>1549</a>
-<a href=#1550 id=1550 data-nosnippet>1550</a>    <span class="kw">fn </span>is_closed(<span class="self">self</span>) -&gt; bool {
-<a href=#1551 id=1551 data-nosnippet>1551</a>        <span class="self">self</span>.<span class="number">0 </span>&amp; CLOSED == CLOSED
-<a href=#1552 id=1552 data-nosnippet>1552</a>    }
-<a href=#1553 id=1553 data-nosnippet>1553</a>
-<a href=#1554 id=1554 data-nosnippet>1554</a>    <span class="kw">fn </span>set_closed(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
-<a href=#1555 id=1555 data-nosnippet>1555</a>        <span class="comment">// Acquire because we want all later writes (attempting to poll) to be
-<a href=#1556 id=1556 data-nosnippet>1556</a>        // ordered after this.
-<a href=#1557 id=1557 data-nosnippet>1557</a>        </span><span class="kw">let </span>val = cell.fetch_or(CLOSED, Acquire);
-<a href=#1558 id=1558 data-nosnippet>1558</a>        State(val)
-<a href=#1559 id=1559 data-nosnippet>1559</a>    }
-<a href=#1560 id=1560 data-nosnippet>1560</a>
-<a href=#1561 id=1561 data-nosnippet>1561</a>    <span class="kw">fn </span>set_tx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
-<a href=#1562 id=1562 data-nosnippet>1562</a>        <span class="kw">let </span>val = cell.fetch_or(TX_TASK_SET, AcqRel);
-<a href=#1563 id=1563 data-nosnippet>1563</a>        State(val | TX_TASK_SET)
-<a href=#1564 id=1564 data-nosnippet>1564</a>    }
-<a href=#1565 id=1565 data-nosnippet>1565</a>
-<a href=#1566 id=1566 data-nosnippet>1566</a>    <span class="kw">fn </span>unset_tx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
-<a href=#1567 id=1567 data-nosnippet>1567</a>        <span class="kw">let </span>val = cell.fetch_and(!TX_TASK_SET, AcqRel);
-<a href=#1568 id=1568 data-nosnippet>1568</a>        State(val &amp; !TX_TASK_SET)
-<a href=#1569 id=1569 data-nosnippet>1569</a>    }
-<a href=#1570 id=1570 data-nosnippet>1570</a>
-<a href=#1571 id=1571 data-nosnippet>1571</a>    <span class="kw">fn </span>is_tx_task_set(<span class="self">self</span>) -&gt; bool {
-<a href=#1572 id=1572 data-nosnippet>1572</a>        <span class="self">self</span>.<span class="number">0 </span>&amp; TX_TASK_SET == TX_TASK_SET
-<a href=#1573 id=1573 data-nosnippet>1573</a>    }
-<a href=#1574 id=1574 data-nosnippet>1574</a>
-<a href=#1575 id=1575 data-nosnippet>1575</a>    <span class="kw">fn </span>as_usize(<span class="self">self</span>) -&gt; usize {
-<a href=#1576 id=1576 data-nosnippet>1576</a>        <span class="self">self</span>.<span class="number">0
-<a href=#1577 id=1577 data-nosnippet>1577</a>    </span>}
+<a href=#1489 id=1489 data-nosnippet>1489</a>/// # Safety
+<a href=#1490 id=1490 data-nosnippet>1490</a>///
+<a href=#1491 id=1491 data-nosnippet>1491</a>/// This bit controls which side of the channel is permitted to access the
+<a href=#1492 id=1492 data-nosnippet>1492</a>/// `UnsafeCell`. If it is set, the `UnsafeCell` may ONLY be accessed by the
+<a href=#1493 id=1493 data-nosnippet>1493</a>/// receiver. If this bit is NOT set, the `UnsafeCell` may ONLY be accessed by
+<a href=#1494 id=1494 data-nosnippet>1494</a>/// the sender.
+<a href=#1495 id=1495 data-nosnippet>1495</a></span><span class="kw">const </span>VALUE_SENT: usize = <span class="number">0b00010</span>;
+<a href=#1496 id=1496 data-nosnippet>1496</a><span class="kw">const </span>CLOSED: usize = <span class="number">0b00100</span>;
+<a href=#1497 id=1497 data-nosnippet>1497</a>
+<a href=#1498 id=1498 data-nosnippet>1498</a><span class="doccomment">/// Indicates that a waker for the sending task has been set.
+<a href=#1499 id=1499 data-nosnippet>1499</a>///
+<a href=#1500 id=1500 data-nosnippet>1500</a>/// # Safety
+<a href=#1501 id=1501 data-nosnippet>1501</a>///
+<a href=#1502 id=1502 data-nosnippet>1502</a>/// If this bit is not set, the `tx_task` field may be uninitialized.
+<a href=#1503 id=1503 data-nosnippet>1503</a></span><span class="kw">const </span>TX_TASK_SET: usize = <span class="number">0b01000</span>;
+<a href=#1504 id=1504 data-nosnippet>1504</a>
+<a href=#1505 id=1505 data-nosnippet>1505</a><span class="kw">impl </span>State {
+<a href=#1506 id=1506 data-nosnippet>1506</a>    <span class="kw">fn </span>new() -&gt; State {
+<a href=#1507 id=1507 data-nosnippet>1507</a>        State(<span class="number">0</span>)
+<a href=#1508 id=1508 data-nosnippet>1508</a>    }
+<a href=#1509 id=1509 data-nosnippet>1509</a>
+<a href=#1510 id=1510 data-nosnippet>1510</a>    <span class="kw">fn </span>is_complete(<span class="self">self</span>) -&gt; bool {
+<a href=#1511 id=1511 data-nosnippet>1511</a>        <span class="self">self</span>.<span class="number">0 </span>&amp; VALUE_SENT == VALUE_SENT
+<a href=#1512 id=1512 data-nosnippet>1512</a>    }
+<a href=#1513 id=1513 data-nosnippet>1513</a>
+<a href=#1514 id=1514 data-nosnippet>1514</a>    <span class="kw">fn </span>set_complete(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
+<a href=#1515 id=1515 data-nosnippet>1515</a>        <span class="comment">// This method is a compare-and-swap loop rather than a fetch-or like
+<a href=#1516 id=1516 data-nosnippet>1516</a>        // other `set_$WHATEVER` methods on `State`. This is because we must
+<a href=#1517 id=1517 data-nosnippet>1517</a>        // check if the state has been closed before setting the `VALUE_SENT`
+<a href=#1518 id=1518 data-nosnippet>1518</a>        // bit.
+<a href=#1519 id=1519 data-nosnippet>1519</a>        //
+<a href=#1520 id=1520 data-nosnippet>1520</a>        // We don't want to set both the `VALUE_SENT` bit if the `CLOSED`
+<a href=#1521 id=1521 data-nosnippet>1521</a>        // bit is already set, because `VALUE_SENT` will tell the receiver that
+<a href=#1522 id=1522 data-nosnippet>1522</a>        // it's okay to access the inner `UnsafeCell`. Immediately after calling
+<a href=#1523 id=1523 data-nosnippet>1523</a>        // `set_complete`, if the channel was closed, the sender will _also_
+<a href=#1524 id=1524 data-nosnippet>1524</a>        // access the `UnsafeCell` to take the value back out, so if a
+<a href=#1525 id=1525 data-nosnippet>1525</a>        // `poll_recv` or `try_recv` call is occurring concurrently, both
+<a href=#1526 id=1526 data-nosnippet>1526</a>        // threads may try to access the `UnsafeCell` if we were to set the
+<a href=#1527 id=1527 data-nosnippet>1527</a>        // `VALUE_SENT` bit on a closed channel.
+<a href=#1528 id=1528 data-nosnippet>1528</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>state = cell.load(Ordering::Relaxed);
+<a href=#1529 id=1529 data-nosnippet>1529</a>        <span class="kw">loop </span>{
+<a href=#1530 id=1530 data-nosnippet>1530</a>            <span class="kw">if </span>State(state).is_closed() {
+<a href=#1531 id=1531 data-nosnippet>1531</a>                <span class="kw">break</span>;
+<a href=#1532 id=1532 data-nosnippet>1532</a>            }
+<a href=#1533 id=1533 data-nosnippet>1533</a>            <span class="comment">// TODO: This could be `Release`, followed by an `Acquire` fence *if*
+<a href=#1534 id=1534 data-nosnippet>1534</a>            // the `RX_TASK_SET` flag is set. However, `loom` does not support
+<a href=#1535 id=1535 data-nosnippet>1535</a>            // fences yet.
+<a href=#1536 id=1536 data-nosnippet>1536</a>            </span><span class="kw">match </span>cell.compare_exchange_weak(
+<a href=#1537 id=1537 data-nosnippet>1537</a>                state,
+<a href=#1538 id=1538 data-nosnippet>1538</a>                state | VALUE_SENT,
+<a href=#1539 id=1539 data-nosnippet>1539</a>                Ordering::AcqRel,
+<a href=#1540 id=1540 data-nosnippet>1540</a>                Ordering::Acquire,
+<a href=#1541 id=1541 data-nosnippet>1541</a>            ) {
+<a href=#1542 id=1542 data-nosnippet>1542</a>                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
+<a href=#1543 id=1543 data-nosnippet>1543</a>                <span class="prelude-val">Err</span>(actual) =&gt; state = actual,
+<a href=#1544 id=1544 data-nosnippet>1544</a>            }
+<a href=#1545 id=1545 data-nosnippet>1545</a>        }
+<a href=#1546 id=1546 data-nosnippet>1546</a>        State(state)
+<a href=#1547 id=1547 data-nosnippet>1547</a>    }
+<a href=#1548 id=1548 data-nosnippet>1548</a>
+<a href=#1549 id=1549 data-nosnippet>1549</a>    <span class="kw">fn </span>is_rx_task_set(<span class="self">self</span>) -&gt; bool {
+<a href=#1550 id=1550 data-nosnippet>1550</a>        <span class="self">self</span>.<span class="number">0 </span>&amp; RX_TASK_SET == RX_TASK_SET
+<a href=#1551 id=1551 data-nosnippet>1551</a>    }
+<a href=#1552 id=1552 data-nosnippet>1552</a>
+<a href=#1553 id=1553 data-nosnippet>1553</a>    <span class="kw">fn </span>set_rx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
+<a href=#1554 id=1554 data-nosnippet>1554</a>        <span class="kw">let </span>val = cell.fetch_or(RX_TASK_SET, AcqRel);
+<a href=#1555 id=1555 data-nosnippet>1555</a>        State(val | RX_TASK_SET)
+<a href=#1556 id=1556 data-nosnippet>1556</a>    }
+<a href=#1557 id=1557 data-nosnippet>1557</a>
+<a href=#1558 id=1558 data-nosnippet>1558</a>    <span class="kw">fn </span>unset_rx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
+<a href=#1559 id=1559 data-nosnippet>1559</a>        <span class="kw">let </span>val = cell.fetch_and(!RX_TASK_SET, AcqRel);
+<a href=#1560 id=1560 data-nosnippet>1560</a>        State(val &amp; !RX_TASK_SET)
+<a href=#1561 id=1561 data-nosnippet>1561</a>    }
+<a href=#1562 id=1562 data-nosnippet>1562</a>
+<a href=#1563 id=1563 data-nosnippet>1563</a>    <span class="kw">fn </span>is_closed(<span class="self">self</span>) -&gt; bool {
+<a href=#1564 id=1564 data-nosnippet>1564</a>        <span class="self">self</span>.<span class="number">0 </span>&amp; CLOSED == CLOSED
+<a href=#1565 id=1565 data-nosnippet>1565</a>    }
+<a href=#1566 id=1566 data-nosnippet>1566</a>
+<a href=#1567 id=1567 data-nosnippet>1567</a>    <span class="kw">fn </span>set_closed(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
+<a href=#1568 id=1568 data-nosnippet>1568</a>        <span class="comment">// Acquire because we want all later writes (attempting to poll) to be
+<a href=#1569 id=1569 data-nosnippet>1569</a>        // ordered after this.
+<a href=#1570 id=1570 data-nosnippet>1570</a>        </span><span class="kw">let </span>val = cell.fetch_or(CLOSED, Acquire);
+<a href=#1571 id=1571 data-nosnippet>1571</a>        State(val)
+<a href=#1572 id=1572 data-nosnippet>1572</a>    }
+<a href=#1573 id=1573 data-nosnippet>1573</a>
+<a href=#1574 id=1574 data-nosnippet>1574</a>    <span class="kw">fn </span>set_tx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
+<a href=#1575 id=1575 data-nosnippet>1575</a>        <span class="kw">let </span>val = cell.fetch_or(TX_TASK_SET, AcqRel);
+<a href=#1576 id=1576 data-nosnippet>1576</a>        State(val | TX_TASK_SET)
+<a href=#1577 id=1577 data-nosnippet>1577</a>    }
 <a href=#1578 id=1578 data-nosnippet>1578</a>
-<a href=#1579 id=1579 data-nosnippet>1579</a>    <span class="kw">fn </span>load(cell: <span class="kw-2">&amp;</span>AtomicUsize, order: Ordering) -&gt; State {
-<a href=#1580 id=1580 data-nosnippet>1580</a>        <span class="kw">let </span>val = cell.load(order);
-<a href=#1581 id=1581 data-nosnippet>1581</a>        State(val)
+<a href=#1579 id=1579 data-nosnippet>1579</a>    <span class="kw">fn </span>unset_tx_task(cell: <span class="kw-2">&amp;</span>AtomicUsize) -&gt; State {
+<a href=#1580 id=1580 data-nosnippet>1580</a>        <span class="kw">let </span>val = cell.fetch_and(!TX_TASK_SET, AcqRel);
+<a href=#1581 id=1581 data-nosnippet>1581</a>        State(val &amp; !TX_TASK_SET)
 <a href=#1582 id=1582 data-nosnippet>1582</a>    }
-<a href=#1583 id=1583 data-nosnippet>1583</a>}
-<a href=#1584 id=1584 data-nosnippet>1584</a>
-<a href=#1585 id=1585 data-nosnippet>1585</a><span class="kw">impl </span>fmt::Debug <span class="kw">for </span>State {
-<a href=#1586 id=1586 data-nosnippet>1586</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#1587 id=1587 data-nosnippet>1587</a>        fmt.debug_struct(<span class="string">"State"</span>)
-<a href=#1588 id=1588 data-nosnippet>1588</a>            .field(<span class="string">"is_complete"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_complete())
-<a href=#1589 id=1589 data-nosnippet>1589</a>            .field(<span class="string">"is_closed"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_closed())
-<a href=#1590 id=1590 data-nosnippet>1590</a>            .field(<span class="string">"is_rx_task_set"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_rx_task_set())
-<a href=#1591 id=1591 data-nosnippet>1591</a>            .field(<span class="string">"is_tx_task_set"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_tx_task_set())
-<a href=#1592 id=1592 data-nosnippet>1592</a>            .finish()
-<a href=#1593 id=1593 data-nosnippet>1593</a>    }
-<a href=#1594 id=1594 data-nosnippet>1594</a>}
+<a href=#1583 id=1583 data-nosnippet>1583</a>
+<a href=#1584 id=1584 data-nosnippet>1584</a>    <span class="kw">fn </span>is_tx_task_set(<span class="self">self</span>) -&gt; bool {
+<a href=#1585 id=1585 data-nosnippet>1585</a>        <span class="self">self</span>.<span class="number">0 </span>&amp; TX_TASK_SET == TX_TASK_SET
+<a href=#1586 id=1586 data-nosnippet>1586</a>    }
+<a href=#1587 id=1587 data-nosnippet>1587</a>
+<a href=#1588 id=1588 data-nosnippet>1588</a>    <span class="kw">fn </span>as_usize(<span class="self">self</span>) -&gt; usize {
+<a href=#1589 id=1589 data-nosnippet>1589</a>        <span class="self">self</span>.<span class="number">0
+<a href=#1590 id=1590 data-nosnippet>1590</a>    </span>}
+<a href=#1591 id=1591 data-nosnippet>1591</a>
+<a href=#1592 id=1592 data-nosnippet>1592</a>    <span class="kw">fn </span>load(cell: <span class="kw-2">&amp;</span>AtomicUsize, order: Ordering) -&gt; State {
+<a href=#1593 id=1593 data-nosnippet>1593</a>        <span class="kw">let </span>val = cell.load(order);
+<a href=#1594 id=1594 data-nosnippet>1594</a>        State(val)
+<a href=#1595 id=1595 data-nosnippet>1595</a>    }
+<a href=#1596 id=1596 data-nosnippet>1596</a>}
+<a href=#1597 id=1597 data-nosnippet>1597</a>
+<a href=#1598 id=1598 data-nosnippet>1598</a><span class="kw">impl </span>fmt::Debug <span class="kw">for </span>State {
+<a href=#1599 id=1599 data-nosnippet>1599</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#1600 id=1600 data-nosnippet>1600</a>        fmt.debug_struct(<span class="string">"State"</span>)
+<a href=#1601 id=1601 data-nosnippet>1601</a>            .field(<span class="string">"is_complete"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_complete())
+<a href=#1602 id=1602 data-nosnippet>1602</a>            .field(<span class="string">"is_closed"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_closed())
+<a href=#1603 id=1603 data-nosnippet>1603</a>            .field(<span class="string">"is_rx_task_set"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_rx_task_set())
+<a href=#1604 id=1604 data-nosnippet>1604</a>            .field(<span class="string">"is_tx_task_set"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_tx_task_set())
+<a href=#1605 id=1605 data-nosnippet>1605</a>            .finish()
+<a href=#1606 id=1606 data-nosnippet>1606</a>    }
+<a href=#1607 id=1607 data-nosnippet>1607</a>}
 </code></pre></div></section></main></body></html>
