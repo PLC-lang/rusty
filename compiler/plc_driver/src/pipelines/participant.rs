@@ -91,6 +91,12 @@ pub trait PipelineParticipantMut {
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         annotated_project
     }
+
+    /// Returns any diagnostics accumulated during this participant's pipeline stages.
+    /// The default implementation returns an empty vec.
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        Vec::new()
+    }
 }
 
 pub struct CodegenParticipant<T: SourceContainer> {
@@ -304,13 +310,18 @@ impl PipelineParticipantMut for PolymorphismLowerer {
         let AnnotatedProject { units, index, annotations } = annotated_project;
         let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
 
-        self.dispatch(index, annotations.annotation_map, &mut units);
+        let diagnostics = self.dispatch(index, annotations.annotation_map, &mut units);
+        self.stash_diagnostics(diagnostics);
         let project = ParsedProject { units };
 
         // Dispatch lowering may inject new types (e.g. `__FATPOINTER` and itables for interface
         // dispatch) into the compilation units' `user_types`. Re-indexing from the units ensures
         // these types are present in the index for the subsequent re-annotation.
         project.index(self.ids.clone()).annotate(self.ids.clone())
+    }
+
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        self.take_diagnostics()
     }
 }
 
