@@ -1121,6 +1121,7 @@ fn struct_types() {
     @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"Hello world!\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_2 = private unnamed_addr constant [6 x i8] c"world\00"
+    @.const_init = private unnamed_addr constant [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"]
 
     define void @prog(ptr %0) {
     entry:
@@ -1190,13 +1191,16 @@ fn struct_types() {
     entry:
       call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] @s, ptr align [filtered] @utf08_literal_0, i32 13, i1 false)
       call void @__global_s2__ctor(ptr @s2)
-      store [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], ptr @s2, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] @s2, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([2 x [81 x i8]], ptr null, i32 1) to i64), i1 false)
       call void @prog__ctor(ptr @prog_instance)
       ret void
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);

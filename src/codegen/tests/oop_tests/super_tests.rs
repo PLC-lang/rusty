@@ -718,6 +718,7 @@ fn super_with_array_access() {
     @__vtable_child_instance = global %__vtable_child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
+    @.const_init = private unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
 
     define void @parent(ptr %0) {
     entry:
@@ -756,7 +757,7 @@ fn super_with_array_access() {
       call void @__parent_arr__ctor(ptr %arr)
       %deref2 = load ptr, ptr %self, align [filtered]
       %arr3 = getelementptr inbounds nuw %parent, ptr %deref2, i32 0, i32 1
-      store [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6], ptr %arr3, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr3, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([6 x i16], ptr null, i32 1) to i64), i1 false)
       %deref4 = load ptr, ptr %self, align [filtered]
       %__vtable5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable5, align [filtered]
@@ -843,6 +844,11 @@ fn super_with_array_access() {
       call void @__vtable_child__ctor(ptr @__vtable_child_instance)
       ret void
     }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -2228,6 +2234,7 @@ fn super_in_loop_constructs() {
     @__vtable_child_instance = global %__vtable_child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
+    @.const_init = private unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
 
     define void @parent(ptr %0) {
     entry:
@@ -2388,7 +2395,7 @@ fn super_in_loop_constructs() {
       call void @__parent_arr__ctor(ptr %arr)
       %deref3 = load ptr, ptr %self, align [filtered]
       %arr4 = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 2
-      store [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6], ptr %arr4, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr4, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([6 x i16], ptr null, i32 1) to i64), i1 false)
       %deref5 = load ptr, ptr %self, align [filtered]
       %__vtable6 = getelementptr inbounds nuw %parent, ptr %deref5, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable6, align [filtered]
@@ -2511,6 +2518,11 @@ fn super_in_loop_constructs() {
       call void @__vtable_child__ctor(ptr @__vtable_child_instance)
       ret void
     }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -2884,7 +2896,8 @@ fn super_with_structured_types() {
     @__vtable_child_instance = global %__vtable_child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
     @__parent.data__init = unnamed_addr constant %Complex_Type { i16 10, i16 20, float 3.050000e+01 }
-    @__parent.arr_data__init = unnamed_addr constant [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }]
+    @.const_init = private unnamed_addr constant %Complex_Type { i16 1, i16 2, float 3.500000e+00 }
+    @.const_init.1 = private unnamed_addr constant %Complex_Type { i16 4, i16 5, float 6.500000e+00 }
 
     define void @parent(ptr %0) {
     entry:
@@ -2972,10 +2985,15 @@ fn super_with_structured_types() {
       call void @__parent_arr_data__ctor(ptr %arr_data)
       %deref9 = load ptr, ptr %self, align [filtered]
       %arr_data10 = getelementptr inbounds nuw %parent, ptr %deref9, i32 0, i32 2
-      store [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }], ptr %arr_data10, align [filtered]
+      %tmpVar = getelementptr inbounds [2 x %Complex_Type], ptr %arr_data10, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %tmpVar, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr (%Complex_Type, ptr null, i32 1) to i64), i1 false)
       %deref11 = load ptr, ptr %self, align [filtered]
-      %__vtable12 = getelementptr inbounds nuw %parent, ptr %deref11, i32 0, i32 0
-      store ptr @__vtable_parent_instance, ptr %__vtable12, align [filtered]
+      %arr_data12 = getelementptr inbounds nuw %parent, ptr %deref11, i32 0, i32 2
+      %tmpVar13 = getelementptr inbounds [2 x %Complex_Type], ptr %arr_data12, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %tmpVar13, ptr align [filtered] @.const_init.1, i64 ptrtoint (ptr getelementptr (%Complex_Type, ptr null, i32 1) to i64), i1 false)
+      %deref14 = load ptr, ptr %self, align [filtered]
+      %__vtable15 = getelementptr inbounds nuw %parent, ptr %deref14, i32 0, i32 0
+      store ptr @__vtable_parent_instance, ptr %__vtable15, align [filtered]
       ret void
     }
 
@@ -3080,7 +3098,11 @@ fn super_with_structured_types() {
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #1
+
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
