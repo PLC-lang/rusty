@@ -18,16 +18,12 @@ use ast::{
 };
 
 use itertools::Itertools;
-use log::debug;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{
-        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, property::PropertyLowerer,
-        vtable::VirtualTableGenerator, InitVisitor,
-    },
+    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -46,7 +42,10 @@ use plc_header_generator::{
     GenerateHeaderOptions,
 };
 use plc_index::GlobalContext;
-use plc_lowering::inheritance::InheritanceLowerer;
+use plc_lowering::{
+    control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
+    retain::RetainParticipant,
+};
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
@@ -56,7 +55,6 @@ use serde::{Deserialize, Serialize};
 use source_code::{source_location::SourceLocation, SourceContainer};
 
 use serde_json;
-use tempfile::NamedTempFile;
 use toml;
 
 pub mod participant;
@@ -91,17 +89,23 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
         let location = project.get_location().map(|it| it.to_path_buf());
         if let Some(location) = &location {
             log::debug!("PROJECT_ROOT={}", location.to_string_lossy());
-            env::set_var("PROJECT_ROOT", location);
+            unsafe {
+                env::set_var("PROJECT_ROOT", location);
+            }
         }
         let build_location = compile_parameters.get_build_location();
         if let Some(location) = &build_location {
             log::debug!("BUILD_LOCATION={}", location.to_string_lossy());
-            env::set_var("BUILD_LOCATION", location);
+            unsafe {
+                env::set_var("BUILD_LOCATION", location);
+            }
         }
         let lib_location = compile_parameters.get_lib_location();
         if let Some(location) = &lib_location {
             log::debug!("LIB_LOCATION={}", location.to_string_lossy());
-            env::set_var("LIB_LOCATION", location);
+            unsafe {
+                env::set_var("LIB_LOCATION", location);
+            }
         }
         //Create diagnostics registry
         //Create a diagnostican with the specified registry
@@ -131,6 +135,12 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
                     .as_slice(),
                 None,
             )?;
+        let context =
+            if compile_parameters.generate_external_constructors || compile_parameters.constructors_only {
+                context.generate_external_constructors()
+            } else {
+                context
+            };
 
         let linker = compile_parameters.linker.as_deref().into();
         Ok(BuildPipeline {
@@ -185,6 +195,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 } else {
                     OnlineChange::Disabled
                 },
+                constructors_only: params.constructors_only,
             }
         })
     }
@@ -209,11 +220,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
             library_paths.extend_from_slice(self.project.get_library_paths());
             //Get the specified linker script or load the default linker script in a temp file
-            let linker_script = if params.no_linker_script {
-                LinkerScript::None
-            } else {
-                params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
-            };
+            let linker_script = params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default();
 
             LinkOptions {
                 libraries,
@@ -286,21 +293,38 @@ impl<T: SourceContainer> BuildPipeline<T> {
             log::info!("{err}")
         }
     }
-    /// Register all default participants (excluding codegen/linking)
-    pub fn register_default_participants(&mut self) {
-        use participant::InitParticipant;
+
+    pub fn get_default_mut_participants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
+        use participant::{ArrayLowerer, InitParticipant};
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
-            Box::new(VirtualTableGenerator::new(self.context.provider())),
-            Box::new(PolymorphicCallLowerer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
-            Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
+            Box::new(PolymorphismLowerer::new(
+                self.context.provider(),
+                self.context.should_generate_external_constructors(),
+            )),
+            Box::new(ControlStatementParticipant::new(self.context.provider())),
+            Box::new(RetainParticipant::new(self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
+            Box::new(InitParticipant::new(
+                self.context.provider(),
+                self.context.should_generate_external_constructors(),
+            )),
+            Box::new(ArrayLowerer::new(self.context.provider())),
         ];
+        mut_participants
+    }
+    /// Register all default participants (excluding codegen/linking)
+    pub fn register_default_mut_participants(&mut self) {
+        // XXX: should we use a static array of participants?
+        let mut_participants = self.get_default_mut_participants();
+        self.register_mut_participants(mut_participants);
+    }
 
-        for participant in mut_participants {
+    pub fn register_mut_participants(&mut self, participants: Vec<Box<dyn PipelineParticipantMut>>) {
+        for participant in participants {
             self.register_mut_participant(participant)
         }
     }
@@ -414,6 +438,15 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             .mutable_participants
             .iter_mut()
             .fold(annotated_project, |project, p| p.post_annotate(project));
+
+        // Collect diagnostics from participants that validated during lowering.
+        for p in &mut self.mutable_participants {
+            let diags = p.diagnostics();
+            if !diags.is_empty() {
+                self.diagnostician.handle(&diags);
+            }
+        }
+
         Ok(annotated_project)
     }
 
@@ -589,7 +622,7 @@ impl ParsedProject {
             .iter()
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
-                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
+                parse_file(source, LinkageType::Include, ctxt.provider(), diagnostician)
             })
             .collect::<Vec<_>>();
         units.extend(includes);
@@ -601,7 +634,7 @@ impl ParsedProject {
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
-                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
+                parse_file(source, LinkageType::Include, ctxt.provider(), diagnostician)
             })
             .collect::<Vec<_>>();
         units.extend(lib_includes);
@@ -643,9 +676,9 @@ impl ParsedProject {
         global_index.import(indexer::index(&builtins));
 
         //TODO: evaluate constants should probably be a participant
-        let (index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
+        let (index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
 
-        IndexedProject { project: ParsedProject { units }, index, unresolvables }
+        IndexedProject { project: ParsedProject { units }, index, _unresolvables }
     }
 }
 
@@ -656,7 +689,8 @@ impl ParsedProject {
 pub struct IndexedProject {
     project: ParsedProject,
     index: Index,
-    unresolvables: Vec<UnresolvableConstant>,
+    //TODO: do we still need this
+    _unresolvables: Vec<UnresolvableConstant>,
 }
 
 impl IndexedProject {
@@ -687,21 +721,6 @@ impl IndexedProject {
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
         AnnotatedProject { units: annotated_units, index, annotations }
-    }
-
-    /// Adds additional, internally generated units to provide functions to be called by a runtime
-    /// in order to initialize pointers before first cycle.
-    ///
-    /// This method will consume the provided indexed project, modify the AST and re-index each unit
-    pub fn extend_with_init_units(
-        self,
-        symbol_name: &'static str,
-        id_provider: IdProvider,
-    ) -> IndexedProject {
-        let units = self.project.units;
-        let lowered =
-            InitVisitor::visit(units, self.index, self.unresolvables, id_provider.clone(), symbol_name);
-        ParsedProject { units: lowered }.index(id_provider.clone())
     }
 }
 
@@ -869,7 +888,16 @@ impl AnnotatedProject {
             &self.index,
             got_layout,
         )?;
-        code_generator.generate(context, unit, &self.annotations, &self.index, llvm_index).map_err(Into::into)
+        code_generator
+            .generate(
+                context,
+                unit,
+                &self.annotations,
+                &self.index,
+                llvm_index,
+                compile_options.constructors_only,
+            )
+            .map_err(Into::into)
     }
 
     pub fn codegen_single_module<'ctx>(
@@ -1070,29 +1098,11 @@ impl GeneratedProject {
                 //HACK: Create a temp file that would contain the bultin linker script
                 //FIXME: This has to be done regardless if the file is used or not because it has
                 //to be in scope by the time we call the linker
-                let mut file = NamedTempFile::new()?;
                 match link_options.linker_script {
-                    LinkerScript::Builtin => {
-                        let target = self.target.get_target_triple().to_string();
-                        //Only do this on linux systems
-                        if target.contains("linux") {
-                            if target.contains("x86_64") {
-                                let content = include_str!("../../../scripts/linker/x86_64.script");
-                                writeln!(file, "{content}")?;
-                                linker.set_linker_script(file.get_location_str().to_string());
-                            } else if target.contains("aarch64") {
-                                let content = include_str!("../../../scripts/linker/aarch64.script");
-                                writeln!(file, "{content}")?;
-                                linker.set_linker_script(file.get_location_str().to_string());
-                            } else {
-                                debug!("No script for target : {target}");
-                            }
-                        } else {
-                            debug!("No script for target : {target}");
-                        }
-                    }
                     LinkerScript::Path(script) => linker.set_linker_script(script),
                     LinkerScript::None => {}
+                    #[allow(deprecated)]
+                    LinkerScript::Builtin => {}
                 };
 
                 match link_options.format {

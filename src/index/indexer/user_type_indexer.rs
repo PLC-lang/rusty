@@ -1,8 +1,8 @@
 use plc_ast::{
     ast::{
         flatten_expression_list, get_enum_element_name, Assignment, AstFactory, AstNode, AstStatement,
-        AutoDerefType, DataType, DataTypeDeclaration, RangeStatement, TypeNature, UserTypeDeclaration,
-        Variable,
+        AutoDerefType, DataType, DataTypeDeclaration, LinkageType, RangeStatement, TypeNature,
+        UserTypeDeclaration, Variable,
     },
     literals::AstLiteral,
     visitor::{AstVisitor, Walker},
@@ -58,9 +58,12 @@ impl AstVisitor for UserTypeIndexer<'_, '_> {
 
     fn visit_data_type(&mut self, data_type: &DataType) {
         match &data_type {
-            DataType::StructType { name: Some(name), variables } => {
-                self.index_struct_type(name, variables, StructSource::OriginalDeclaration)
-            }
+            DataType::StructType { name: Some(name), variables } => self.index_struct_type(
+                name,
+                variables,
+                StructSource::OriginalDeclaration,
+                self.user_type.linkage,
+            ),
             DataType::EnumType { name: Some(name), numeric_type, elements } => {
                 self.index_enum_type(name, numeric_type, elements)
             }
@@ -142,6 +145,7 @@ impl UserTypeIndexer<'_, '_> {
                     },
                     nature: TypeNature::__VLA,
                     location: SourceLocation::internal(),
+                    linkage: plc_ast::ast::LinkageType::BuiltIn,
                 });
 
                 // define internal vla members
@@ -225,6 +229,7 @@ impl UserTypeIndexer<'_, '_> {
                 inner_type_name: referenced_type,
                 ndims,
             }),
+            LinkageType::Internal,
         );
     }
 
@@ -267,7 +272,7 @@ impl UserTypeIndexer<'_, '_> {
             dimensions,
         };
 
-        self.register_type(name, information, TypeNature::Any);
+        self.register_type(name, information, TypeNature::Any, LinkageType::Internal);
         let global_init_name = crate::index::get_initializer_name(name);
 
         // TODO unfortunately we cannot share const-expressions between multiple
@@ -321,7 +326,7 @@ impl UserTypeIndexer<'_, '_> {
             referenced_type: numeric_type.to_string(),
         };
 
-        self.register_type(name, information, TypeNature::Int);
+        self.register_type(name, information, TypeNature::Int, LinkageType::Internal);
     }
 
     fn index_sub_range_type(&mut self, name: &str, referenced_type: &str, bounds: Option<&AstNode>) {
@@ -341,7 +346,7 @@ impl UserTypeIndexer<'_, '_> {
             DataTypeInformation::Alias { name: name.into(), referenced_type: referenced_type.into() }
         };
 
-        self.register_type(name, information, TypeNature::Int);
+        self.register_type(name, information, TypeNature::Int, LinkageType::Internal);
     }
 
     /// Converts an AstNode to a TypeSize, either as a literal or a const expression
@@ -357,13 +362,20 @@ impl UserTypeIndexer<'_, '_> {
         }
     }
 
-    fn register_type(&mut self, name: &str, information: DataTypeInformation, nature: TypeNature) {
+    fn register_type(
+        &mut self,
+        name: &str,
+        information: DataTypeInformation,
+        nature: TypeNature,
+        linkage: LinkageType,
+    ) {
         self.index.register_type(typesystem::DataType {
             name: name.into(),
             initial_value: self.pending_initializer,
             information,
             nature,
             location: self.user_type.location.clone(),
+            linkage,
         });
     }
 
@@ -374,7 +386,7 @@ impl UserTypeIndexer<'_, '_> {
             nature: *nature,
         };
 
-        self.register_type(name, information, TypeNature::Any);
+        self.register_type(name, information, TypeNature::Any, LinkageType::Internal);
     }
 
     fn index_string_type(&mut self, name: &str, is_wide: bool, size: Option<&AstNode>) {
@@ -405,7 +417,7 @@ impl UserTypeIndexer<'_, '_> {
             None => TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
         };
         let information = DataTypeInformation::String { size, encoding };
-        self.register_type(name, information, TypeNature::String);
+        self.register_type(name, information, TypeNature::String, LinkageType::Internal);
 
         //TODO: can we reuse this?
         if let Some(init) = self.pending_initializer {
@@ -451,10 +463,17 @@ impl UserTypeIndexer<'_, '_> {
             information,
             nature: TypeNature::Any,
             location: self.user_type.location.clone(),
+            linkage: plc_ast::ast::LinkageType::Internal,
         });
     }
 
-    fn index_struct_type(&mut self, name: &str, variables: &[Variable], source: StructSource) {
+    fn index_struct_type(
+        &mut self,
+        name: &str,
+        variables: &[Variable],
+        source: StructSource,
+        linkage: LinkageType,
+    ) {
         let scope = Some(name.to_string());
         let members = variables
             .iter()
@@ -482,8 +501,9 @@ impl UserTypeIndexer<'_, '_> {
                         variable_name: &var.name,
                         variable_linkage: ArgumentType::ByVal(VariableType::Input), // struct members act like VAR_INPUT in terms of visibility
                         variable_type_name: member_type,
-                        is_constant: false, //struct members are not constants //TODO thats probably not true (you can define a struct in an CONST-block?!)
+                        is_constant: false, //struct members are not constants (although they can be part of a struct that is in a constant block)
                         is_var_external: false, // see above
+                        is_retain: false, // struct members cannot be retain (although they can be part of a struct that is in a retain block)
                         binding,
                         varargs: None,
                     },
@@ -497,7 +517,7 @@ impl UserTypeIndexer<'_, '_> {
         let nature = source.get_type_nature();
         let information = DataTypeInformation::Struct { name: name.to_owned(), members, source };
 
-        self.register_type(name, information, nature);
+        self.register_type(name, information, nature, linkage);
 
         //Generate an initializer for the struct
         let global_struct_name = crate::index::get_initializer_name(name);

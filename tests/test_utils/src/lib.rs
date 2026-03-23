@@ -3,7 +3,7 @@ use std::io::Read;
 use driver::{cli, pipelines::BuildPipeline};
 use plc::{linker::LinkerType, DebugLevel};
 use plc_ast::ast::CompilationUnit;
-use plc_diagnostics::{diagnostician::Diagnostician, reporter::DiagnosticReporter};
+use plc_diagnostics::diagnostician::Diagnostician;
 use plc_index::GlobalContext;
 use plc_source::SourceCode;
 use project::project::Project;
@@ -37,7 +37,7 @@ pub fn parse_and_validate_buffered_ast(src: &str) -> Vec<CompilationUnit> {
             project.validate(&pipeline.context, &mut pipeline.diagnostician).unwrap();
             project.units.into_iter().map(CompilationUnit::from).collect()
         }
-        Err(diagnostician) => panic!("{}", diagnostician.buffer().unwrap()),
+        Err(diagnostics) => panic!("{diagnostics}"),
     }
 }
 

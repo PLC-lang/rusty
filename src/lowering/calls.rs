@@ -62,6 +62,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::Index,
+    lowering::helper::create_member_reference_with_location,
     resolver::{AnnotationMap, StatementAnnotation},
 };
 
@@ -316,7 +317,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
             self.push_statement(alloca);
             let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
             let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
-            let reference = super::create_member_reference_with_location(
+            let reference = create_member_reference_with_location(
                 &name,
                 self.id_provider.clone(),
                 None,
@@ -368,7 +369,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
             };
             stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
             //steal parameters, add one to the start, return parameters
-            let mut reference = super::create_member_reference_with_location(
+            let mut reference = create_member_reference_with_location(
                 &name,
                 self.id_provider.clone(),
                 None,
@@ -422,6 +423,7 @@ mod tests {
     use insta::assert_debug_snapshot;
     use plc_ast::mut_visitor::AstVisitorMut;
     use plc_ast::provider::IdProvider;
+    use plc_lowering::control_statement::ControlStatementLowerer;
     use pretty_assertions::assert_eq;
 
     use crate::index::indexer;
@@ -971,7 +973,7 @@ mod tests {
         VAR a : STRING; END_VAR
         IF TRUE THEN
             // do nothing
-        ELSIF complexFunc() = 'hello' THEN // FIXME: currently has side-effects, is always evaluated
+        ELSIF complexFunc() = 'hello' THEN
             // do nothing
         END_IF
 
@@ -981,6 +983,9 @@ mod tests {
         "#,
             id_provider.clone(),
         );
+
+        let mut control_statement_lowerer = ControlStatementLowerer::new(id_provider.clone());
+        control_statement_lowerer.visit_compilation_unit(&mut unit);
 
         let mut lowerer = AggregateTypeLowerer {
             index: Some(index),

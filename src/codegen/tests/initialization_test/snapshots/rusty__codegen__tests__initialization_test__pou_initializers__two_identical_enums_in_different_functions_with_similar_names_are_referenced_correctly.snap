@@ -18,40 +18,40 @@ target triple = "[filtered]"
 
 define i32 @a() {
 entry:
-  %a = alloca i32, align 4
-  %position = alloca i32, align 4
-  store i32 1, ptr %position, align 4
-  store i32 0, ptr %a, align 4
-  %a_ret = load i32, ptr %a, align 4
+  %a = alloca i32, align [filtered]
+  %position = alloca i32, align [filtered]
+  store i32 1, ptr %position, align [filtered]
+  store i32 0, ptr %a, align [filtered]
+  %a_ret = load i32, ptr %a, align [filtered]
   ret i32 %a_ret
 }
 
 define i32 @aa() {
 entry:
-  %aa = alloca i32, align 4
-  %position = alloca i32, align 4
-  store i32 2, ptr %position, align 4
-  store i32 0, ptr %aa, align 4
-  %aa_ret = load i32, ptr %aa, align 4
+  %aa = alloca i32, align [filtered]
+  %position = alloca i32, align [filtered]
+  store i32 2, ptr %position, align [filtered]
+  store i32 0, ptr %aa, align [filtered]
+  %aa_ret = load i32, ptr %aa, align [filtered]
   ret i32 %aa_ret
 }
 
 define i32 @bb() {
 entry:
-  %bb = alloca i32, align 4
-  %position = alloca i32, align 4
-  store i32 3, ptr %position, align 4
-  store i32 0, ptr %bb, align 4
-  %bb_ret = load i32, ptr %bb, align 4
+  %bb = alloca i32, align [filtered]
+  %position = alloca i32, align [filtered]
+  store i32 3, ptr %position, align [filtered]
+  store i32 0, ptr %bb, align [filtered]
+  %bb_ret = load i32, ptr %bb, align [filtered]
   ret i32 %bb_ret
 }
 
 define i32 @b() {
 entry:
-  %b = alloca i32, align 4
-  %position = alloca i32, align 4
-  store i32 4, ptr %position, align 4
-  store i32 0, ptr %b, align 4
-  %b_ret = load i32, ptr %b, align 4
+  %b = alloca i32, align [filtered]
+  %position = alloca i32, align [filtered]
+  store i32 4, ptr %position, align [filtered]
+  store i32 0, ptr %b, align [filtered]
+  %b_ret = load i32, ptr %b, align [filtered]
   ret i32 %b_ret
 }

@@ -9,15 +9,15 @@ target triple = "[filtered]"
 
 define i32 @myFunc(i32 %0) !dbg !4 {
 entry:
-  %myFunc = alloca i32, align 4
-  %x = alloca i32, align 4
+  %myFunc = alloca i32, align [filtered]
+  %x = alloca i32, align [filtered]
     #dbg_declare(ptr %x, !10, !DIExpression(), !11)
-  store i32 %0, ptr %x, align 4
+  store i32 %0, ptr %x, align [filtered]
     #dbg_declare(ptr %myFunc, !12, !DIExpression(), !13)
-  store i32 0, ptr %myFunc, align 4
+  store i32 0, ptr %myFunc, align [filtered]
   %call = call i32 @myFunc(i32 1), !dbg !14
   %call1 = call i32 @myFunc(i32 %call), !dbg !15
-  %myFunc_ret = load i32, ptr %myFunc, align 4, !dbg !16
+  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !16
   ret i32 %myFunc_ret, !dbg !16
 }
 
@@ -36,7 +36,7 @@ entry:
 !9 = !{}
 !10 = !DILocalVariable(name: "x", scope: !4, file: !5, line: 3, type: !8)
 !11 = !DILocation(line: 3, column: 18, scope: !4)
-!12 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !8, align: 32)
+!12 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !8, align [filtered])
 !13 = !DILocation(line: 2, column: 17, scope: !4)
 !14 = !DILocation(line: 4, column: 19, scope: !4)
 !15 = !DILocation(line: 4, column: 12, scope: !4)

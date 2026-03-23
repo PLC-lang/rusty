@@ -13,17 +13,17 @@ target triple = "[filtered]"
 
 define void @foo(i32 %0, i32 %1) {
 entry:
-  %in1 = alloca i32, align 4
-  store i32 %0, ptr %in1, align 4
-  %in2 = alloca i32, align 4
-  store i32 %1, ptr %in2, align 4
+  %in1 = alloca i32, align [filtered]
+  store i32 %0, ptr %in1, align [filtered]
+  %in2 = alloca i32, align [filtered]
+  store i32 %1, ptr %in2, align [filtered]
   ret void
 }
 
 define void @main(ptr %0) {
 entry:
-  %1 = alloca i32, align 4
-  %2 = load i32, ptr %1, align 4
+  %1 = alloca i32, align [filtered]
+  %2 = load i32, ptr %1, align [filtered]
   call void @foo(i32 1, i32 %2)
   ret void
 }

@@ -16,10 +16,10 @@ entry:
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %c = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
-  %load_b = load i32, ptr %b, align 4
-  %load_c = load i32, ptr %c, align 4
+  %load_b = load i32, ptr %b, align [filtered]
+  %load_c = load i32, ptr %c, align [filtered]
   %1 = select i1 true, i32 %load_c, i32 %load_b
   %tmpVar = add i32 %1, 10
-  store i32 %tmpVar, ptr %a, align 4
+  store i32 %tmpVar, ptr %a, align [filtered]
   ret void
 }

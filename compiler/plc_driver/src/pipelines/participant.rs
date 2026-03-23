@@ -8,20 +8,26 @@ use std::{
     collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
+    rc::Rc,
     sync::{Arc, Mutex, RwLock},
 };
 
 use ast::provider::IdProvider;
 use plc::{
     codegen::GeneratedModule,
-    lowering::{
-        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, vtable::VirtualTableGenerator,
-    },
+    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_lowering::inheritance::InheritanceLowerer;
+use plc_lowering::{
+    array_lowering,
+    retain::RetainParticipant,
+    {
+        control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
+        initializer::Initializer,
+    },
+};
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
@@ -85,6 +91,12 @@ pub trait PipelineParticipantMut {
     /// This happens directly after annotations
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         annotated_project
+    }
+
+    /// Returns any diagnostics accumulated during this participant's pipeline stages.
+    /// The default implementation returns an empty vec.
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        Vec::new()
     }
 }
 
@@ -213,19 +225,52 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
 }
 
 pub struct InitParticipant {
-    symbol_name: &'static str,
     id_provider: IdProvider,
+    generate_externals: bool,
 }
 
 impl InitParticipant {
-    pub fn new(symbol_name: &'static str, id_provider: IdProvider) -> Self {
-        Self { symbol_name, id_provider }
+    pub fn new(id_provider: IdProvider, generate_externals: bool) -> Self {
+        Self { id_provider, generate_externals }
     }
 }
 
 impl PipelineParticipantMut for InitParticipant {
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        indexed_project.extend_with_init_units(self.symbol_name, self.id_provider.clone())
+        // Create a new init lowerer
+        let IndexedProject { project: ParsedProject { units }, index, .. } = indexed_project;
+        let mut resulting_units = vec![];
+        let index = Rc::new(index);
+        for unit in units {
+            let initializer = Initializer::new(self.id_provider.clone(), self.generate_externals);
+            let unit = initializer.apply_initialization(unit, index.clone());
+            resulting_units.push(unit);
+        }
+        // Append new units and constructor to the ast and re-index
+        let project = ParsedProject { units: resulting_units };
+        project.index(self.id_provider.clone())
+    }
+}
+
+pub struct ArrayLowerer {
+    id_provider: IdProvider,
+}
+
+impl ArrayLowerer {
+    pub fn new(id_provider: IdProvider) -> Self {
+        Self { id_provider }
+    }
+}
+
+impl PipelineParticipantMut for ArrayLowerer {
+    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { project: ParsedProject { mut units }, index, .. } = indexed_project;
+        for unit in &mut units {
+            array_lowering::lower_literal_arrays(unit, &index, &mut self.id_provider);
+        }
+        // Re-index since we modified the AST (new statements, possible new alloca variables)
+        let project = ParsedProject { units };
+        project.index(self.id_provider.clone())
     }
 }
 
@@ -248,23 +293,13 @@ impl PipelineParticipantMut for InheritanceLowerer {
                 units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
             },
             index,
-            unresolvables: vec![],
+            _unresolvables: vec![],
         }
         .annotate(self.provider())
     }
 }
 
 impl PipelineParticipantMut for AggregateTypeLowerer {
-    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, index, .. } = indexed_project;
-        self.index = Some(index);
-        self.visit(&mut project.units);
-
-        //Re-index
-        //TODO: it would be nice if we could unimport
-        project.index(self.id_provider.clone())
-    }
-
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         let AnnotatedProject { units, index, annotations } = annotated_project;
         self.index = Some(index);
@@ -277,46 +312,55 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
                 unit
             })
             .collect();
-        let indexed_project = IndexedProject {
-            project: ParsedProject { units },
-            index: self.index.take().expect("Index"),
-            unresolvables: vec![],
-        };
-        indexed_project.annotate(self.id_provider.clone())
+
+        // Re-index from modified units so the index reflects POU signature
+        // changes (e.g. aggregate returns converted to VAR_IN_OUT parameters).
+        let project = ParsedProject { units };
+        project.index(self.id_provider.clone()).annotate(self.id_provider.clone())
     }
 }
 
-impl PipelineParticipantMut for VirtualTableGenerator {
+impl PipelineParticipantMut for PolymorphismLowerer {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         let IndexedProject { mut project, index, .. } = indexed_project;
 
-        let mut gen = VirtualTableGenerator::new(self.ids.clone());
-        gen.generate(&index, &mut project.units);
+        self.table(&index, &mut project.units);
 
+        project.index(self.ids.clone())
+    }
+
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { units, index, annotations } = annotated_project;
+        let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
+
+        let diagnostics = self.dispatch(index, annotations.annotation_map, &mut units);
+        self.stash_diagnostics(diagnostics);
+        let project = ParsedProject { units };
+
+        // Dispatch lowering may inject new types (e.g. `__FATPOINTER` and itables for interface
+        // dispatch) into the compilation units' `user_types`. Re-indexing from the units ensures
+        // these types are present in the index for the subsequent re-annotation.
+        project.index(self.ids.clone()).annotate(self.ids.clone())
+    }
+
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        self.take_diagnostics()
+    }
+}
+
+impl PipelineParticipantMut for RetainParticipant {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { mut project, index, .. } = indexed_project;
+        self.lower_retain(&mut project.units, index);
+        //Re-index
         project.index(self.ids.clone())
     }
 }
 
-impl PipelineParticipantMut for PolymorphicCallLowerer {
-    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        let AnnotatedProject { units, index, annotations } = annotated_project;
-        self.index = Some(index);
-        self.annotations = Some(annotations.annotation_map);
-
-        let units = units
-            .into_iter()
-            .map(|AnnotatedUnit { mut unit, .. }| {
-                self.lower_unit(&mut unit);
-                unit
-            })
-            .collect();
-
-        let indexed_project = IndexedProject {
-            project: ParsedProject { units },
-            index: self.index.take().expect("Index"),
-            unresolvables: vec![],
-        };
-
-        indexed_project.annotate(self.ids.clone())
+impl PipelineParticipantMut for ControlStatementParticipant {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        self.lower_control_statements(&mut units);
+        ParsedProject { units }
     }
 }

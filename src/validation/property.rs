@@ -213,7 +213,7 @@ pub(crate) fn validate_properties_in_interfaces<T>(
     // Retrieve all properties an interface inherits directly or indirectly and map them into tuples of
     // (<interface name>, <property defined in that interface>)
     let derived_properties = interface
-        .get_derived_interfaces_recursive(context.index)
+        .get_interface_hierarchy(context.index)
         .iter()
         .map(|it| (&it.ident, &it.properties))
         .flat_map(|(name, properties)| properties.iter().map(|property| (name.clone(), property)))

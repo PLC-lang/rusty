@@ -13,19 +13,19 @@ target triple = "[filtered]"
 
 define void @prg(ptr %0) {
 entry:
-  %t1 = alloca i32, align 4
-  %t2 = alloca i32, align 4
-  %t3 = alloca i32, align 4
+  %t1 = alloca i32, align [filtered]
+  %t2 = alloca i32, align [filtered]
+  %t3 = alloca i32, align [filtered]
   %v1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %v2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  store i32 0, ptr %t1, align 4
-  store i32 0, ptr %t2, align 4
-  store i32 0, ptr %t3, align 4
-  %load_t1 = load i32, ptr %t1, align 4
-  %load_t2 = load i32, ptr %t2, align 4
+  store i32 0, ptr %t1, align [filtered]
+  store i32 0, ptr %t2, align [filtered]
+  store i32 0, ptr %t3, align [filtered]
+  %load_t1 = load i32, ptr %t1, align [filtered]
+  %load_t2 = load i32, ptr %t2, align [filtered]
   %tmpVar = add i32 %load_t1, %load_t2
-  store i32 %tmpVar, ptr %v1, align 4
-  %load_t3 = load i32, ptr %t3, align 4
-  store i32 %load_t3, ptr %v2, align 4
+  store i32 %tmpVar, ptr %v1, align [filtered]
+  %load_t3 = load i32, ptr %t3, align [filtered]
+  store i32 %load_t3, ptr %v2, align [filtered]
   ret void
 }

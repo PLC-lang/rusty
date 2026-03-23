@@ -1,5 +1,5 @@
-use crate::test_utils::tests::codegen;
 use plc_util::filtered_assert_snapshot;
+use test_utils::codegen;
 /// # Architecture Design Record: Arrays
 /// ST supports C-like arrays
 #[test]
@@ -21,6 +21,20 @@ fn declaring_an_array() {
     target triple = "[filtered]"
 
     @d = global [10 x i32] zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @Data__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @Data__ctor(ptr @d)
+      ret void
+    }
     "#);
 }
 
@@ -45,7 +59,28 @@ fn initializing_an_array() {
     target triple = "[filtered]"
 
     @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @.const_init = private unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
+
+    define void @Data__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %deref, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @Data__ctor(ptr @d)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -77,13 +112,42 @@ fn assigning_full_arrays() {
     %prg = type { [10 x i32], [10 x i32] }
 
     @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @.const_init = private unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 
     define void @prg(ptr %0) {
     entry:
       %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
       %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %a, ptr align 1 %b, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %a, ptr align [filtered] %b, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
+      ret void
+    }
+
+    define void @prg__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %a = getelementptr inbounds nuw %prg, ptr %deref, i32 0, i32 0
+      call void @Data__ctor(ptr %a)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %b = getelementptr inbounds nuw %prg, ptr %deref1, i32 0, i32 1
+      call void @Data__ctor(ptr %b)
+      ret void
+    }
+
+    define void @Data__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %deref, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @prg__ctor(ptr @prg_instance)
       ret void
     }
 
@@ -129,8 +193,11 @@ fn accessing_array_elements() {
     %prg = type { [10 x i32], [3 x i32] }
 
     @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }
-    @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
     @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
+    @__prg.b__init.1 = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
+    @.const_init = private unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
+    @.const_init.2 = private unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 
     define void @prg(ptr %0) {
     entry:
@@ -138,9 +205,52 @@ fn accessing_array_elements() {
       %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       %tmpVar = getelementptr inbounds [10 x i32], ptr %a, i32 0, i32 2
       %tmpVar1 = getelementptr inbounds [3 x i32], ptr %b, i32 0, i32 1
-      %load_tmpVar = load i32, ptr %tmpVar1, align 4
-      store i32 %load_tmpVar, ptr %tmpVar, align 4
+      %load_tmpVar = load i32, ptr %tmpVar1, align [filtered]
+      store i32 %load_tmpVar, ptr %tmpVar, align [filtered]
       ret void
     }
+
+    define void @prg__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %a = getelementptr inbounds nuw %prg, ptr %deref, i32 0, i32 0
+      call void @Data__ctor(ptr %a)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %b = getelementptr inbounds nuw %prg, ptr %deref1, i32 0, i32 1
+      call void @__prg_b__ctor(ptr %b)
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %b3 = getelementptr inbounds nuw %prg, ptr %deref2, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %b3, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([3 x i32], ptr null, i32 1) to i64), i1 false)
+      ret void
+    }
+
+    define void @Data__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %deref, ptr align [filtered] @.const_init.2, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
+      ret void
+    }
+
+    define void @__prg_b__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @prg__ctor(ptr @prg_instance)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }

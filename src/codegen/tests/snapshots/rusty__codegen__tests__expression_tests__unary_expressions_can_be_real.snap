@@ -15,9 +15,9 @@ define void @prg(ptr %0) {
 entry:
   %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  store float -2.000000e+00, ptr %b, align 4
-  %load_b = load float, ptr %b, align 4
+  store float -2.000000e+00, ptr %b, align [filtered]
+  %load_b = load float, ptr %b, align [filtered]
   %tmpVar = fneg float %load_b
-  store float %tmpVar, ptr %a, align 4
+  store float %tmpVar, ptr %a, align [filtered]
   ret void
 }

@@ -7,8 +7,8 @@ use plc_util::convention::internal_type_name;
 use crate::{
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit,
-        ConfigVariable, DataType, DataTypeDeclaration, Operator, Pou, UserTypeDeclaration, Variable,
-        VariableBlock, VariableBlockType,
+        ConfigVariable, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, UserTypeDeclaration,
+        Variable, VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -30,9 +30,27 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         process_pou_variables(interface, &mut unit.user_types);
     }
 
+    // XXX: Track which hardware-backing globals (__PI_*, __M_*, __G_*) have already been created.
+    // Seeded from existing globals so re-runs of the pipeline (e.g. lowering re-indexes) don't
+    // produce duplicates. This is a workaround for the fact that pre_process is called multiple
+    // times during the pipeline and should be removed when the lowering phase is refactored.
+    let mut known_hw_globals: rustc_hash::FxHashSet<String> = unit
+        .global_vars
+        .iter()
+        .flat_map(|block| &block.variables)
+        .filter(|var| {
+            var.name.starts_with("__PI_") || var.name.starts_with("__M_") || var.name.starts_with("__G_")
+        })
+        .map(|var| var.name.clone())
+        .collect();
+
     //process all variables from GVLs
-    process_global_variables(unit, &mut id_provider);
-    process_var_config_variables(unit);
+    process_global_variables(unit, &mut id_provider, &mut known_hw_globals);
+    process_var_config_variables(unit, &mut known_hw_globals);
+
+    // Same as above but for struct members with hardware addresses (e.g. `c AT %IX1.2 : BOOL`
+    // inside a STRUCT). Creates the backing __PI_* global and sets the member's initializer.
+    process_struct_hardware_variables(unit, &mut id_provider, &mut known_hw_globals);
 
     //process all variables in dataTypes
     let mut new_types = vec![];
@@ -41,10 +59,9 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
             match &mut dt.data_type {
                 DataType::StructType { name, variables, .. } => {
                     let name: &str = name.as_ref().map(|it| it.as_str()).unwrap_or("undefined");
-                    variables
-                        .iter_mut()
-                        .filter(|it| should_generate_implicit_type(it))
-                        .for_each(|var| pre_process_variable_data_type(name, var, &mut new_types));
+                    variables.iter_mut().filter(|it| should_generate_implicit_type(it)).for_each(|var| {
+                        pre_process_variable_data_type(name, var, &mut new_types, dt.linkage)
+                    });
                 }
                 DataType::ArrayType { name, referenced_type, .. }
                 | DataType::PointerType { name, referenced_type, .. }
@@ -60,13 +77,13 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     let datatype = std::mem::replace(referenced_type, Box::new(type_ref));
                     if let DataTypeDeclaration::Definition { mut data_type, location, scope } = *datatype {
                         data_type.set_name(type_name);
-                        add_nested_datatypes(name, &mut data_type, &mut new_types, &location);
+                        add_nested_datatypes(name, &mut data_type, &mut new_types, &location, dt.linkage);
                         let data_type = UserTypeDeclaration {
                             data_type: *data_type,
                             initializer: None,
                             location,
                             scope,
-                            linkage: crate::ast::LinkageType::Internal,
+                            linkage: dt.linkage,
                         };
                         new_types.push(data_type);
                     }
@@ -151,21 +168,27 @@ fn process_pou_variables(pou: &mut Pou, user_types: &mut Vec<UserTypeDeclaration
         .filter(|it| should_generate_implicit_type(it));
 
     for var in local_variables {
-        pre_process_variable_data_type(pou.name.as_str(), var, user_types)
+        pre_process_variable_data_type(pou.name.as_str(), var, user_types, pou.linkage)
     }
 
     //Generate implicit type for returns
     preprocess_return_type(pou, user_types);
 }
 
-fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProvider) {
+fn process_global_variables(
+    unit: &mut CompilationUnit,
+    id_provider: &mut IdProvider,
+    known_hw_globals: &mut rustc_hash::FxHashSet<String>,
+) {
     let mut mangled_globals = Vec::new();
 
-    for global_var in unit.global_vars.iter_mut().flat_map(|block| block.variables.iter_mut()) {
+    for (linkage, global_var) in
+        unit.global_vars.iter_mut().flat_map(|block| block.variables.iter_mut().map(|it| (block.linkage, it)))
+    {
         let ref_ty = global_var.data_type_declaration.get_inner_pointer_ty();
 
         if should_generate_implicit_type(global_var) {
-            pre_process_variable_data_type("global", global_var, &mut unit.user_types)
+            pre_process_variable_data_type("global", global_var, &mut unit.user_types, linkage)
         }
 
         // In any case, we have to inject initializers into aliased hardware access variables
@@ -186,14 +209,16 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
 
                 global_var.initializer = Some(mangled_initializer);
 
-                let internal_mangled_var = Variable {
-                    name,
-                    data_type_declaration: ref_ty.unwrap_or(global_var.data_type_declaration.clone()),
-                    initializer: None,
-                    address: None,
-                    location: node.location.clone(),
-                };
-                mangled_globals.push(internal_mangled_var);
+                if known_hw_globals.insert(name.clone()) {
+                    let internal_mangled_var = Variable {
+                        name,
+                        data_type_declaration: ref_ty.unwrap_or(global_var.data_type_declaration.clone()),
+                        initializer: None,
+                        address: None,
+                        location: node.location.clone(),
+                    };
+                    mangled_globals.push(internal_mangled_var);
+                }
             }
         }
     }
@@ -201,7 +226,10 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
     update_generated_globals(unit, mangled_globals);
 }
 
-fn process_var_config_variables(unit: &mut CompilationUnit) {
+fn process_var_config_variables(
+    unit: &mut CompilationUnit,
+    known_hw_globals: &mut rustc_hash::FxHashSet<String>,
+) {
     let variables = unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, .. }| {
         let AstStatement::HardwareAccess(hardware) = &address.stmt else {
             unreachable!("Must be parsed as hardware access")
@@ -211,10 +239,8 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
             return None;
         }
 
-        // Check if the mangled variable already exists in any of the global variable blocks
-        // XXX: Not a fan of this, we should fix the underlying issue with variable block creation here...
         let name = hardware.get_mangled_variable_name();
-        if find_mangled_variable(unit, &name) {
+        if !known_hw_globals.insert(name.clone()) {
             return None; // Already exists, skip
         }
 
@@ -230,7 +256,63 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
     update_generated_globals(unit, variables.collect());
 }
 
+/// Processes struct members declared with IEC hardware addresses (e.g. `c AT %IX1.2 : BOOL`).
+/// For each such member, creates a backing global variable (`__PI_1_2`) and sets the member's
+/// initializer to reference it so the lowering emits a `REF=` assignment in the struct's constructor.
+fn process_struct_hardware_variables(
+    unit: &mut CompilationUnit,
+    id_provider: &mut IdProvider,
+    known_hw_globals: &mut rustc_hash::FxHashSet<String>,
+) {
+    let mut mangled_globals = Vec::new();
+
+    for dt in unit.user_types.iter_mut() {
+        if let DataType::StructType { variables, .. } = &mut dt.data_type {
+            for var in variables.iter_mut() {
+                if let Some(ref node) = var.address {
+                    if let AstStatement::HardwareAccess(hardware) = &node.stmt {
+                        if hardware.is_template() {
+                            continue;
+                        }
+
+                        let name = hardware.get_mangled_variable_name();
+                        let ref_ty = var.data_type_declaration.get_inner_pointer_ty();
+
+                        let mangled_initializer = AstFactory::create_member_reference(
+                            AstFactory::create_identifier(
+                                &name,
+                                SourceLocation::internal(),
+                                id_provider.next_id(),
+                            ),
+                            None,
+                            id_provider.next_id(),
+                        );
+
+                        var.initializer = Some(mangled_initializer);
+
+                        if known_hw_globals.insert(name.clone()) {
+                            let internal_mangled_var = Variable {
+                                name,
+                                data_type_declaration: ref_ty.unwrap_or(var.data_type_declaration.clone()),
+                                initializer: None,
+                                address: None,
+                                location: node.location.clone(),
+                            };
+                            mangled_globals.push(internal_mangled_var);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    update_generated_globals(unit, mangled_globals);
+}
+
 fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Variable>) {
+    if mangled_globals.is_empty() {
+        return;
+    }
     let mut block = if let Some(index) = unit
         .global_vars
         .iter()
@@ -247,10 +329,6 @@ fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Var
     }
 
     unit.global_vars.push(block);
-}
-
-fn find_mangled_variable(unit: &CompilationUnit, name: &str) -> bool {
-    unit.global_vars.iter().flat_map(|block| &block.variables).any(|var| var.name == name)
 }
 
 fn build_enum_initializer(
@@ -294,7 +372,7 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
             initializer: None,
             scope: Some(pou.name.clone()),
             location: pou.location.clone(),
-            linkage: crate::ast::LinkageType::Internal,
+            linkage: pou.linkage,
         };
         types.push(data_type);
         generic_types.insert(binding.name.clone(), new_name);
@@ -309,6 +387,7 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
 }
 
 fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
+    let linkage = pou.linkage;
     if let Some(return_type) = &pou.return_type {
         if should_generate_implicit(return_type) {
             let type_name = format!("__{}_return", &pou.name); // TODO: Naming convention (see plc_util/src/convention.rs)
@@ -319,13 +398,13 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
             let datatype = pou.return_type.replace(type_ref);
             if let Some(DataTypeDeclaration::Definition { mut data_type, location, scope }) = datatype {
                 data_type.set_name(type_name);
-                add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location);
+                add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location, linkage);
                 let data_type = UserTypeDeclaration {
                     data_type: *data_type,
                     initializer: None,
                     location,
                     scope,
-                    linkage: crate::ast::LinkageType::Internal,
+                    linkage,
                 };
                 types.push(data_type);
             }
@@ -353,20 +432,21 @@ fn pre_process_variable_data_type(
     container_name: &str,
     variable: &mut Variable,
     types: &mut Vec<UserTypeDeclaration>,
+    linkage: LinkageType,
 ) {
     let new_type_name = internal_type_name(&format!("{container_name}_"), &variable.name);
     if let DataTypeDeclaration::Definition { mut data_type, location, scope } =
         variable.replace_data_type_with_reference_to(new_type_name.clone())
     {
         // create index entry
-        add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location);
+        add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location, linkage);
         data_type.set_name(new_type_name);
         types.push(UserTypeDeclaration {
             data_type: *data_type,
             initializer: None,
             location,
             scope,
-            linkage: crate::ast::LinkageType::Internal,
+            linkage,
         });
     }
     //make sure it gets generated
@@ -377,6 +457,7 @@ fn add_nested_datatypes(
     datatype: &mut DataType,
     types: &mut Vec<UserTypeDeclaration>,
     location: &SourceLocation,
+    linkage: LinkageType,
 ) {
     // TODO: Naming convention (see plc_util/src/convention.rs)
     let new_type_name = format!("{container_name}_");
@@ -390,13 +471,13 @@ fn add_nested_datatypes(
         datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
     {
         data_type.set_name(new_type_name.clone());
-        add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &inner_location);
+        add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &inner_location, linkage);
         types.push(UserTypeDeclaration {
             data_type: *data_type,
             initializer: None,
             location: location.clone(),
             scope,
-            linkage: crate::ast::LinkageType::Internal,
+            linkage,
         });
     }
 }

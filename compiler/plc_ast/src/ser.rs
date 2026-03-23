@@ -13,14 +13,33 @@ use crate::{
 
 pub struct AstSerializer {
     result: String,
+    indent: usize,
 }
 
 impl AstSerializer {
     pub fn format(node: &AstNode) -> String {
-        let mut serializer = AstSerializer { result: String::new() };
+        let mut serializer = AstSerializer { result: String::new(), indent: 0 };
         serializer.visit(node);
 
         serializer.result
+    }
+
+    /// Serializes a list of statements, each on its own indented line.
+    fn serialize_statement_list(&mut self, stmts: &[AstNode]) {
+        self.indent += 1;
+        for stmt in stmts {
+            self.push_indent();
+            stmt.walk(self);
+        }
+        self.indent -= 1;
+    }
+
+    /// Pushes a newline followed by the current indentation.
+    fn push_indent(&mut self) {
+        self.result.push('\n');
+        for _ in 0..self.indent {
+            self.result.push_str("    ");
+        }
     }
 }
 
@@ -159,7 +178,12 @@ impl AstVisitor for AstSerializer {
     }
 
     fn visit_unary_expression(&mut self, stmt: &UnaryExpression, _node: &AstNode) {
-        self.result.push_str(&stmt.operator.to_string());
+        let op = stmt.operator.to_string();
+        self.result.push_str(&op);
+        // Word-based operators (NOT, MINUS as identifier) need a trailing space.
+        if op.chars().next().is_some_and(|c| c.is_alphabetic()) {
+            self.result.push(' ');
+        }
         stmt.value.walk(self);
     }
 
@@ -212,16 +236,94 @@ impl AstVisitor for AstSerializer {
     }
 
     fn visit_control_statement(&mut self, stmt: &AstControlStatement, _node: &AstNode) {
-        stmt.walk(self)
+        match stmt {
+            AstControlStatement::If(if_stmt) => {
+                for (i, block) in if_stmt.blocks.iter().enumerate() {
+                    if i == 0 {
+                        self.result.push_str("IF ");
+                    } else {
+                        self.push_indent();
+                        self.result.push_str("ELSIF ");
+                    }
+                    block.condition.walk(self);
+                    self.result.push_str(" THEN");
+                    self.serialize_statement_list(&block.body);
+                }
+                if !if_stmt.else_block.is_empty() {
+                    self.push_indent();
+                    self.result.push_str("ELSE");
+                    self.serialize_statement_list(&if_stmt.else_block);
+                }
+                self.push_indent();
+                self.result.push_str("END_IF");
+            }
+            AstControlStatement::ForLoop(for_stmt) => {
+                self.result.push_str("FOR ");
+                for_stmt.counter.walk(self);
+                self.result.push_str(" := ");
+                for_stmt.start.walk(self);
+                self.result.push_str(" TO ");
+                for_stmt.end.walk(self);
+                if let Some(step) = &for_stmt.by_step {
+                    self.result.push_str(" BY ");
+                    step.walk(self);
+                }
+                self.result.push_str(" DO");
+                self.serialize_statement_list(&for_stmt.body);
+                self.push_indent();
+                self.result.push_str("END_FOR");
+            }
+            AstControlStatement::WhileLoop(loop_stmt) => {
+                self.result.push_str("WHILE ");
+                loop_stmt.condition.walk(self);
+                self.result.push_str(" DO");
+                self.serialize_statement_list(&loop_stmt.body);
+                self.push_indent();
+                self.result.push_str("END_WHILE");
+            }
+            AstControlStatement::RepeatLoop(loop_stmt) => {
+                self.result.push_str("REPEAT");
+                self.serialize_statement_list(&loop_stmt.body);
+                self.push_indent();
+                self.result.push_str("UNTIL ");
+                loop_stmt.condition.walk(self);
+                self.push_indent();
+                self.result.push_str("END_REPEAT");
+            }
+            AstControlStatement::Case(case_stmt) => {
+                self.result.push_str("CASE ");
+                case_stmt.selector.walk(self);
+                self.result.push_str(" OF");
+                self.indent += 1;
+                for block in &case_stmt.case_blocks {
+                    self.push_indent();
+                    block.condition.walk(self);
+                    self.result.push(':');
+                    self.serialize_statement_list(&block.body);
+                }
+                if !case_stmt.else_block.is_empty() {
+                    self.push_indent();
+                    self.result.push_str("ELSE");
+                    self.serialize_statement_list(&case_stmt.else_block);
+                }
+                self.indent -= 1;
+                self.push_indent();
+                self.result.push_str("END_CASE");
+            }
+        }
     }
 
     fn visit_case_condition(&mut self, child: &AstNode, _node: &AstNode) {
         child.walk(self)
     }
 
-    fn visit_exit_statement(&mut self, _node: &AstNode) {}
+    fn visit_exit_statement(&mut self, _node: &AstNode) {
+        self.result.push_str("EXIT;");
+    }
 
-    fn visit_continue_statement(&mut self, _node: &AstNode) {}
+    fn visit_continue_statement(&mut self, _node: &AstNode) {
+        self.result.push_str("CONTINUE;");
+    }
 
     fn visit_return_statement(&mut self, stmt: &ReturnStatement, _node: &AstNode) {
         stmt.walk(self)
@@ -233,7 +335,9 @@ impl AstVisitor for AstSerializer {
 
     fn visit_label_statement(&mut self, _stmt: &LabelStatement, _node: &AstNode) {}
 
-    fn visit_allocation(&mut self, _stmt: &Allocation, _node: &AstNode) {}
+    fn visit_allocation(&mut self, stmt: &Allocation, _node: &AstNode) {
+        self.result.push_str(&format!("alloca {}: {}", stmt.name, stmt.reference_type));
+    }
 
     fn visit_super(&mut self, _stmt: &AstStatement, _node: &AstNode) {
         self.result.push_str("SUPER");

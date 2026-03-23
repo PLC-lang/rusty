@@ -36,7 +36,7 @@ use inkwell::{
     AddressSpace,
 };
 use inkwell::{types::StructType, values::PointerValue};
-use plc_ast::ast::{AstNode, Implementation, PouType};
+use plc_ast::ast::{AstNode, AstStatement, Implementation, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
@@ -63,6 +63,7 @@ pub fn generate_implementation_stubs<'ink>(
     types_index: &LlvmTypedIndex<'ink>,
     debug: &mut DebugBuilderEnum<'ink>,
     online_change: &OnlineChange,
+    file_name: &str,
 ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
     let mut llvm_index = LlvmTypedIndex::default();
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index, online_change);
@@ -76,8 +77,13 @@ pub fn generate_implementation_stubs<'ink>(
         .collect::<FxIndexMap<_, _>>();
     for (name, implementation) in implementations {
         if !implementation.is_generic() {
-            let curr_f =
-                pou_generator.generate_implementation_stub(implementation, module, debug, &mut llvm_index)?;
+            let curr_f = pou_generator.generate_implementation_stub(
+                implementation,
+                module,
+                debug,
+                &mut llvm_index,
+                file_name,
+            )?;
             llvm_index.associate_implementation(name, curr_f)?;
         }
     }
@@ -102,14 +108,21 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     let implementations = dependencies
         .into_iter()
         .filter_map(|it| match it {
-            Dependency::Call(name) | Dependency::Datatype(name) => index.find_implementation_by_name(name),
+            Dependency::Call(name) | Dependency::Datatype(name) => {
+                index.find_pou(name).zip(index.find_implementation_by_name(name))
+            }
             _ => None,
         })
-        .filter(|it| it.is_in_unit(location));
-    for implementation in implementations {
+        .filter(|(_, it)| it.is_in_unit(location));
+    for (pou, implementation) in implementations {
         let type_name = implementation.get_type_name();
         if implementation.is_init() {
             // initializer functions don't need global constants to initialize members
+            continue;
+        }
+        if pou.get_linkage().is_external_or_included() {
+            // external POUs don't need __init globals — those are generated
+            // when compiling with --generate-external-constructors
             continue;
         }
         let pou_members = index.get_pou_members(type_name);
@@ -121,8 +134,10 @@ pub fn generate_global_constants_for_pou_members<'ink>(
         let exp_gen = ExpressionCodeGenerator::new_context_free(llvm, index, annotations, llvm_index);
         for variable in variables {
             let name = index::get_initializer_name(variable.get_qualified_name());
-            let right_stmt =
-                index.get_const_expressions().maybe_get_constant_statement(&variable.initial_value);
+            let right_stmt = variable
+                .initial_value
+                .and_then(|it| index.get_const_expressions().get_resolved_constant_statement(&it))
+                .filter(|stmt| !matches!(stmt.get_stmt(), AstStatement::DefaultValue(_)));
 
             if right_stmt.is_some() && llvm_index.find_global_value(&name).is_none() {
                 let variable_type = llvm_index.get_associated_type(variable.get_type_name())?;
@@ -198,8 +213,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         implementation: &ImplementationIndexEntry,
         module: &Module<'ink>,
         debug: &mut DebugBuilderEnum<'ink>,
-        new_llvm_index: &mut LlvmTypedIndex<'ink>,
+        llvm_index: &mut LlvmTypedIndex<'ink>,
+        file_name: &str,
     ) -> Result<FunctionValue<'ink>, CodegenError> {
+        log::trace!(
+            "generating implementation stub for {} in {file_name}. Implementation Type : {:?}",
+            implementation.get_call_name(),
+            implementation.implementation_type
+        );
         let declared_parameters = self.index.get_available_parameters(implementation.get_call_name());
         let mut parameters = self.collect_parameters_for_implementation(implementation)?;
         // if we are handling a method, take the first parameter as the instance
@@ -213,7 +234,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 match param {
                     Some(v) if v.is_in_parameter_by_ref() => {
                         let ty = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
-                        let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
+                        let _ = llvm_index.associate_type(v.get_type_name(), ty.into());
                         ty.into()
                     }
                     _ => {
@@ -280,9 +301,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(|v| self.index.get_effective_type_or_void_by_name(v.get_type_name()))
             .collect::<Vec<&DataType>>();
 
-        // If the implementation is a method, the first parameter is the instance
+        // If the implementation is a method, the first parameter is the instance.
+        // Interface methods are excluded because interfaces don't have struct types;
+        // their "self" parameter is a void pointer passed through the fat pointer.
         if let Some(class_name) = implementation.get_associated_class_name() {
-            if let Some(class_type) = self.index.find_type(class_name) {
+            if let Some(class_type) = self.index.find_type(class_name).filter(|ty| !ty.is_interface()) {
                 parameter_types.insert(0, class_type);
             }
         } else if !implementation.get_implementation_type().is_function_method_or_init() {
@@ -299,14 +322,22 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             function: curr_f,
             blocks: FxHashMap::default(),
         };
-        debug.register_function(
-            (self.index, self.llvm_index),
-            &function_context,
-            return_type,
-            parent_function,
-            parameter_types.as_slice(),
-            implementation.get_location().get_line(),
-        );
+        // Register debug info only for functions that belong to this compilation unit.
+        // - is_in_unit filters out cross-module declarations (e.g. stdlib functions included via -i),
+        //   preventing duplicate !dbg metadata when modules are linked together.
+        // - Init/ProjectInit are compiler-generated and should never carry user-facing debug info.
+        // Note: is_in_unit returns true when the implementation has no file (e.g. lowered code),
+        // which is correct — lowered user code should still get debug info.
+        if implementation.is_in_unit(file_name) && !implementation.is_init() {
+            debug.register_function(
+                (self.index, self.llvm_index),
+                &function_context,
+                return_type,
+                parent_function,
+                parameter_types.as_slice(),
+                implementation.get_location().get_line(),
+            );
+        }
         Ok(curr_f)
     }
 
@@ -318,6 +349,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         curr_f: FunctionValue<'ink>,
     ) -> Result<(), CodegenError> {
         //Create a constructor struct
+        log::trace!("Adding global constructor for module {}", module.get_name().to_string_lossy());
         let ctor_str = self.llvm.context.struct_type(
             &[
                 //Priority
@@ -332,7 +364,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         //Create an entry for the global constructor of the project
         let str_value = ctor_str.const_named_struct(&[
-            self.llvm.context.i32_type().const_zero().as_basic_value_enum(),
+            self.llvm.context.i32_type().const_int(65535, false).as_basic_value_enum(),
             curr_f.as_global_value().as_basic_value_enum(),
             self.llvm.context.ptr_type(AddressSpace::default()).const_zero().as_basic_value_enum(),
         ]);
@@ -341,11 +373,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         //Create the global constructors variable or fetch it and append to it if already
         //availabe
         let global_ctors = module.get_global("llvm.global_ctors").unwrap_or_else(|| {
+            log::trace!("Adding a global constructor to module {}", module.get_name().to_string_lossy());
             module.add_global(arr.get_type().as_basic_type_enum(), None, "llvm.global_ctors")
         });
 
         global_ctors.set_initializer(&arr);
         global_ctors.set_linkage(Linkage::Appending);
+
         Ok(())
     }
     /// creates and returns all parameters for the given implementation
@@ -372,10 +406,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 .collect::<Result<Vec<BasicMetadataTypeEnum>, _>>()?;
 
             if implementation.get_implementation_type() == &ImplementationType::Method {
-                let class_name =
-                    implementation.get_associated_class_name().expect("Method needs to have a class-name");
-                let _instance_members_struct_type: StructType =
-                    self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
                 parameters
                     .insert(0, self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
             }

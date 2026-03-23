@@ -5,7 +5,7 @@ use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{Assignment, AstFactory, AstNode, AstStatement, Operator};
 use plc_ast::literals::AstLiteral;
 use plc_source::source_location::SourceLocation;
-use pretty_assertions::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn single_statement_parsed() {
@@ -713,17 +713,11 @@ fn literal_real_test() {
     LiteralReal {
         value: "1.2e-4",
     },
-    UnaryExpression {
-        operator: Minus,
-        value: LiteralReal {
-            value: "1.5",
-        },
+    LiteralReal {
+        value: "-1.5",
     },
-    UnaryExpression {
-        operator: Minus,
-        value: LiteralReal {
-            value: "1.5e3",
-        },
+    LiteralReal {
+        value: "-1.5e3",
     },
 ]"#;
     assert_eq!(ast_string, expected_ast);

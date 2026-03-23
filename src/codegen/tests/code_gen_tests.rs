@@ -1113,12 +1113,10 @@ fn fb_method_called_locally() {
 
     %foo = type { i32 }
 
-    @__foo__init = unnamed_addr constant %foo { i32 42 }
-
     define void @foo(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
@@ -1126,39 +1124,39 @@ fn fb_method_called_locally() {
 
     define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %foo.addToBar = alloca i32, align 4
-      %in = alloca i16, align 2
-      store i16 %1, ptr %in, align 2
-      store i32 0, ptr %foo.addToBar, align 4
-      %load_in = load i16, ptr %in, align 2
+      %foo.addToBar = alloca i32, align [filtered]
+      %in = alloca i16, align [filtered]
+      store i16 %1, ptr %in, align [filtered]
+      store i32 0, ptr %foo.addToBar, align [filtered]
+      %load_in = load i16, ptr %in, align [filtered]
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, ptr %bar, align 4
+      %load_bar = load i32, ptr %bar, align [filtered]
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, ptr %bar, align 4
-      %load_bar1 = load i32, ptr %bar, align 4
-      store i32 %load_bar1, ptr %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar, align [filtered]
+      %load_bar1 = load i32, ptr %bar, align [filtered]
+      store i32 %load_bar1, ptr %foo.addToBar, align [filtered]
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align [filtered]
       ret i32 %foo__addToBar_ret
     }
 
     define void @main() {
     entry:
-      %fb = alloca %foo, align 8
-      %x = alloca i32, align 4
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %x, align 4
+      %fb = alloca %foo, align [filtered]
+      %x = alloca i32, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %x, align [filtered]
       %call = call i32 @foo__addToBar(ptr %fb, i16 3)
-      store i32 %call, ptr %x, align 4
+      store i32 %call, ptr %x, align [filtered]
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#)
 }
 
@@ -1201,12 +1199,10 @@ fn fb_local_method_var_shadows_parent_var() {
 
     %foo = type { i32 }
 
-    @__foo__init = unnamed_addr constant %foo { i32 42 }
-
     define void @foo(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
@@ -1214,41 +1210,41 @@ fn fb_local_method_var_shadows_parent_var() {
 
     define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %foo.addToBar = alloca i32, align 4
-      %in = alloca i16, align 2
-      store i16 %1, ptr %in, align 2
-      %bar1 = alloca i32, align 4
-      store i32 69, ptr %bar1, align 4
-      store i32 0, ptr %foo.addToBar, align 4
-      %load_in = load i16, ptr %in, align 2
+      %foo.addToBar = alloca i32, align [filtered]
+      %in = alloca i16, align [filtered]
+      store i16 %1, ptr %in, align [filtered]
+      %bar1 = alloca i32, align [filtered]
+      store i32 69, ptr %bar1, align [filtered]
+      store i32 0, ptr %foo.addToBar, align [filtered]
+      %load_in = load i16, ptr %in, align [filtered]
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, ptr %bar1, align 4
+      %load_bar = load i32, ptr %bar1, align [filtered]
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, ptr %bar1, align 4
-      %load_bar2 = load i32, ptr %bar1, align 4
-      store i32 %load_bar2, ptr %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar1, align [filtered]
+      %load_bar2 = load i32, ptr %bar1, align [filtered]
+      store i32 %load_bar2, ptr %foo.addToBar, align [filtered]
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align [filtered]
       ret i32 %foo__addToBar_ret
     }
 
     define void @main() {
     entry:
-      %fb = alloca %foo, align 8
-      %x = alloca i32, align 4
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %x, align 4
+      %fb = alloca %foo, align [filtered]
+      %x = alloca i32, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %x, align [filtered]
       %call = call i32 @foo__addToBar(ptr %fb, i16 3)
-      store i32 %call, ptr %x, align 4
+      store i32 %call, ptr %x, align [filtered]
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#)
 }
 
@@ -1300,27 +1296,27 @@ fn prog_method_called_locally() {
     define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %foo.addToBar = alloca i32, align 4
-      %in = alloca i16, align 2
-      store i16 %1, ptr %in, align 2
-      store i32 0, ptr %foo.addToBar, align 4
-      %load_in = load i16, ptr %in, align 2
+      %foo.addToBar = alloca i32, align [filtered]
+      %in = alloca i16, align [filtered]
+      store i16 %1, ptr %in, align [filtered]
+      store i32 0, ptr %foo.addToBar, align [filtered]
+      %load_in = load i16, ptr %in, align [filtered]
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, ptr %bar, align 4
+      %load_bar = load i32, ptr %bar, align [filtered]
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, ptr %bar, align 4
-      %load_bar1 = load i32, ptr %bar, align 4
-      store i32 %load_bar1, ptr %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar, align [filtered]
+      %load_bar1 = load i32, ptr %bar, align [filtered]
+      store i32 %load_bar1, ptr %foo.addToBar, align [filtered]
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align [filtered]
       ret i32 %foo__addToBar_ret
     }
 
     define void @main() {
     entry:
-      %x = alloca i32, align 4
-      store i32 0, ptr %x, align 4
+      %x = alloca i32, align [filtered]
+      store i32 0, ptr %x, align [filtered]
       %call = call i32 @foo__addToBar(ptr @foo_instance, i16 3)
-      store i32 %call, ptr %x, align 4
+      store i32 %call, ptr %x, align [filtered]
       ret void
     }
     "#)
@@ -1376,29 +1372,29 @@ fn prog_local_method_var_shadows_parent_var() {
     define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %foo.addToBar = alloca i32, align 4
-      %in = alloca i16, align 2
-      store i16 %1, ptr %in, align 2
-      %bar1 = alloca i32, align 4
-      store i32 69, ptr %bar1, align 4
-      store i32 0, ptr %foo.addToBar, align 4
-      %load_in = load i16, ptr %in, align 2
+      %foo.addToBar = alloca i32, align [filtered]
+      %in = alloca i16, align [filtered]
+      store i16 %1, ptr %in, align [filtered]
+      %bar1 = alloca i32, align [filtered]
+      store i32 69, ptr %bar1, align [filtered]
+      store i32 0, ptr %foo.addToBar, align [filtered]
+      %load_in = load i16, ptr %in, align [filtered]
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, ptr %bar1, align 4
+      %load_bar = load i32, ptr %bar1, align [filtered]
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, ptr %bar1, align 4
-      %load_bar2 = load i32, ptr %bar1, align 4
-      store i32 %load_bar2, ptr %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar1, align [filtered]
+      %load_bar2 = load i32, ptr %bar1, align [filtered]
+      store i32 %load_bar2, ptr %foo.addToBar, align [filtered]
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align [filtered]
       ret i32 %foo__addToBar_ret
     }
 
     define void @main() {
     entry:
-      %x = alloca i32, align 4
-      store i32 0, ptr %x, align 4
+      %x = alloca i32, align [filtered]
+      store i32 0, ptr %x, align [filtered]
       %call = call i32 @foo__addToBar(ptr @foo_instance, i16 3)
-      store i32 %call, ptr %x, align 4
+      store i32 %call, ptr %x, align [filtered]
       ret void
     }
     "#)
@@ -1627,38 +1623,38 @@ fn for_statement_with_binary_expressions() {
       %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
       %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
-      %load_y = load i32, ptr %y, align 4
+      %load_y = load i32, ptr %y, align [filtered]
       %tmpVar = add i32 %load_y, 1
-      store i32 %tmpVar, ptr %x, align 4
-      %load_step = load i32, ptr %step, align 4
+      store i32 %tmpVar, ptr %x, align [filtered]
+      %load_step = load i32, ptr %step, align [filtered]
       %tmpVar1 = mul i32 %load_step, 3
       %is_incrementing = icmp sgt i32 %tmpVar1, 0
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     predicate_sle:                                    ; preds = %increment, %entry
-      %load_z = load i32, ptr %z, align 4
+      %load_z = load i32, ptr %z, align [filtered]
       %tmpVar2 = sub i32 %load_z, 2
-      %1 = load i32, ptr %x, align 4
+      %1 = load i32, ptr %x, align [filtered]
       %condition = icmp sle i32 %1, %tmpVar2
       br i1 %condition, label %loop, label %continue
 
     predicate_sge:                                    ; preds = %increment, %entry
-      %load_z3 = load i32, ptr %z, align 4
+      %load_z3 = load i32, ptr %z, align [filtered]
       %tmpVar4 = sub i32 %load_z3, 2
-      %2 = load i32, ptr %x, align 4
+      %2 = load i32, ptr %x, align [filtered]
       %condition5 = icmp sge i32 %2, %tmpVar4
       br i1 %condition5, label %loop, label %continue
 
     loop:                                             ; preds = %predicate_sge, %predicate_sle
-      %load_x = load i32, ptr %x, align 4
+      %load_x = load i32, ptr %x, align [filtered]
       br label %increment
 
     increment:                                        ; preds = %loop
-      %3 = load i32, ptr %x, align 4
-      %load_step6 = load i32, ptr %step, align 4
+      %3 = load i32, ptr %x, align [filtered]
+      %load_step6 = load i32, ptr %step, align [filtered]
       %tmpVar7 = mul i32 %load_step6, 3
       %next = add i32 %tmpVar7, %3
-      store i32 %next, ptr %x, align 4
+      store i32 %next, ptr %x, align [filtered]
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     continue:                                         ; preds = %predicate_sge, %predicate_sle
@@ -1688,46 +1684,46 @@ fn for_statement_type_casting() {
 
     define void @main() {
     entry:
-      %a = alloca i8, align 1
-      %b = alloca i16, align 2
-      store i8 0, ptr %a, align 1
-      store i16 1, ptr %b, align 2
-      store i8 0, ptr %a, align 1
-      %load_b = load i16, ptr %b, align 2
+      %a = alloca i8, align [filtered]
+      %b = alloca i16, align [filtered]
+      store i8 0, ptr %a, align [filtered]
+      store i16 1, ptr %b, align [filtered]
+      store i8 0, ptr %a, align [filtered]
+      %load_b = load i16, ptr %b, align [filtered]
       %0 = trunc i16 %load_b to i8
       %1 = sext i8 %0 to i32
       %is_incrementing = icmp sgt i32 %1, 0
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     predicate_sle:                                    ; preds = %increment, %entry
-      %2 = load i8, ptr %a, align 1
+      %2 = load i8, ptr %a, align [filtered]
       %3 = zext i8 %2 to i32
       %condition = icmp sle i32 %3, 10
       br i1 %condition, label %loop, label %continue
 
     predicate_sge:                                    ; preds = %increment, %entry
-      %4 = load i8, ptr %a, align 1
+      %4 = load i8, ptr %a, align [filtered]
       %5 = zext i8 %4 to i32
       %condition1 = icmp sge i32 %5, 10
       br i1 %condition1, label %loop, label %continue
 
     loop:                                             ; preds = %predicate_sge, %predicate_sle
-      %load_b2 = load i16, ptr %b, align 2
+      %load_b2 = load i16, ptr %b, align [filtered]
       %6 = sext i16 %load_b2 to i32
       %tmpVar = mul i32 %6, 3
       %7 = trunc i32 %tmpVar to i16
-      store i16 %7, ptr %b, align 2
+      store i16 %7, ptr %b, align [filtered]
       br label %increment
 
     increment:                                        ; preds = %loop
-      %8 = load i8, ptr %a, align 1
-      %load_b3 = load i16, ptr %b, align 2
+      %8 = load i8, ptr %a, align [filtered]
+      %load_b3 = load i16, ptr %b, align [filtered]
       %9 = trunc i16 %load_b3 to i8
       %10 = sext i8 %9 to i32
       %11 = zext i8 %8 to i32
       %next = add i32 %10, %11
       %12 = trunc i32 %next to i8
-      store i8 %12, ptr %a, align 1
+      store i8 %12, ptr %a, align [filtered]
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     continue:                                         ; preds = %predicate_sge, %predicate_sle
@@ -3974,14 +3970,10 @@ fn variables_in_var_external_block_are_not_generated() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %bar = type {}
     %baz = type {}
-    %qux = type {}
 
     @arr = global [101 x i16] zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer
     @baz_instance = global %baz zeroinitializer
-    @__qux__init = unnamed_addr constant %qux zeroinitializer
 
     define void @foo() {
     entry:
@@ -3990,8 +3982,8 @@ fn variables_in_var_external_block_are_not_generated() {
 
     define void @bar(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       ret void
     }
 
@@ -4242,4 +4234,264 @@ fn function_block_member_access_is_case_insensitive() {
     // The test passes if codegen succeeds - previously this would fail with
     // "Could not resolve reference to FB_Test.OUT" due to case-sensitive comparison
     filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn function_block_with_var_temp_should_compile_when_output_is_specified() {
+    let res = codegen(
+        "
+        FUNCTION_BLOCK baseControl
+            VAR_INPUT
+                a_in : INT;
+            END_VAR
+
+            VAR_IN_OUT
+                inoutVar : BOOL;
+            END_VAR
+
+            VAR_TEMP
+                tempo : INT;
+            END_VAR
+
+            VAR_OUTPUT
+                a_out :INT;
+            END_VAR
+
+            VAR
+
+            END_VAR
+
+            a_out := a_in + 1;
+
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        VAR
+            fb : baseControl;
+            dipin : BOOL;
+            outVar : INT;
+        END_VAR
+
+        fb(a_in := 9, a_out => outVar, inoutVar := dipin);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %baseControl = type { i16, ptr, i16 }
+
+    define void @baseControl(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %a_in = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 0
+      %inoutVar = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 1
+      %tempo = alloca i16, align [filtered]
+      %a_out = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 2
+      store i16 0, ptr %tempo, align [filtered]
+      %load_a_in = load i16, ptr %a_in, align [filtered]
+      %1 = sext i16 %load_a_in to i32
+      %tmpVar = add i32 %1, 1
+      %2 = trunc i32 %tmpVar to i16
+      store i16 %2, ptr %a_out, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %fb = alloca %baseControl, align [filtered]
+      %dipin = alloca i8, align [filtered]
+      %outVar = alloca i16, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%baseControl, ptr null, i32 1) to i64), i1 false)
+      store i8 0, ptr %dipin, align [filtered]
+      store i16 0, ptr %outVar, align [filtered]
+      %0 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 0
+      store i16 9, ptr %0, align [filtered]
+      %1 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 1
+      store ptr %dipin, ptr %1, align [filtered]
+      call void @baseControl(ptr %fb)
+      %2 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 2
+      %3 = load i16, ptr %2, align [filtered]
+      store i16 %3, ptr %outVar, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    "#);
+}
+
+#[test]
+fn function_block_with_var_temp_before_input_should_compile() {
+    // Regression test for the remaining bug in `generate_stateful_pou_arguments`:
+    // `non_temp_position` is set to `*position as u32` without calling
+    // `get_struct_member_index_by_position`, so VAR_TEMP variables declared before VAR_INPUT
+    // are not accounted for. Here `x` has pou_members position 1 (after VAR_TEMP `tmp` at 0)
+    // but struct index 0. The GEP must use i32 0, not i32 1. Using i32 1 on a 1-member
+    // struct produces invalid IR.
+    let res = codegen(
+        "
+        FUNCTION_BLOCK Foo
+            VAR_TEMP
+                tmp : INT;
+            END_VAR
+
+            VAR_INPUT
+                x : INT;
+            END_VAR
+
+            x := x + 1;
+
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+        VAR
+            fb : Foo;
+        END_VAR
+
+        fb(5);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %Foo = type { i16 }
+
+    define void @Foo(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %tmp = alloca i16, align [filtered]
+      %x = getelementptr inbounds nuw %Foo, ptr %0, i32 0, i32 0
+      store i16 0, ptr %tmp, align [filtered]
+      %load_x = load i16, ptr %x, align [filtered]
+      %1 = sext i16 %load_x to i32
+      %tmpVar = add i32 %1, 1
+      %2 = trunc i32 %tmpVar to i16
+      store i16 %2, ptr %x, align [filtered]
+      ret void
+    }
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %fb = alloca %Foo, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%Foo, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
+      %0 = getelementptr inbounds %Foo, ptr %fb, i32 0, i32 0
+      store i16 5, ptr %0, align [filtered]
+      call void @Foo(ptr %fb)
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    "#);
+}
+
+#[test]
+fn function_block_with_var_temp_should_compile_when_implicit_output_is_specified() {
+    let res = codegen(
+        "
+        FUNCTION_BLOCK baseControl
+            VAR_INPUT
+                a_in : INT;
+            END_VAR
+
+            VAR_IN_OUT
+                inoutVar : BOOL;
+            END_VAR
+
+            VAR_TEMP
+                tempo : INT;
+            END_VAR
+
+            VAR_OUTPUT
+                a_out :INT;
+            END_VAR
+
+            VAR
+
+            END_VAR
+
+            a_out := a_in + 1;
+
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        VAR
+            fb : baseControl;
+            dipin : BOOL;
+            outVar : INT;
+        END_VAR
+
+        fb(9, dipin, outVar);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %baseControl = type { i16, ptr, i16 }
+
+    define void @baseControl(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %a_in = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 0
+      %inoutVar = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 1
+      %tempo = alloca i16, align [filtered]
+      %a_out = getelementptr inbounds nuw %baseControl, ptr %0, i32 0, i32 2
+      store i16 0, ptr %tempo, align [filtered]
+      %load_a_in = load i16, ptr %a_in, align [filtered]
+      %1 = sext i16 %load_a_in to i32
+      %tmpVar = add i32 %1, 1
+      %2 = trunc i32 %tmpVar to i16
+      store i16 %2, ptr %a_out, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %fb = alloca %baseControl, align [filtered]
+      %dipin = alloca i8, align [filtered]
+      %outVar = alloca i16, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%baseControl, ptr null, i32 1) to i64), i1 false)
+      store i8 0, ptr %dipin, align [filtered]
+      store i16 0, ptr %outVar, align [filtered]
+      %0 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 0
+      store i16 9, ptr %0, align [filtered]
+      %1 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 1
+      store ptr %dipin, ptr %1, align [filtered]
+      call void @baseControl(ptr %fb)
+      %2 = getelementptr inbounds %baseControl, ptr %fb, i32 0, i32 2
+      %3 = load i16, ptr %2, align [filtered]
+      store i16 %3, ptr %outVar, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    "#);
 }

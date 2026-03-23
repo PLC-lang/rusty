@@ -21,6 +21,6 @@ entry:
 define void @prg__foo(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-  store i32 2, ptr %x, align 4
+  store i32 2, ptr %x, align [filtered]
   ret void
 }

@@ -332,9 +332,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         let exp_gen = self.create_expr_generator(llvm_index);
         let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
-            it.get_basic_value_enum()
-                .try_into()
-                .map_err(|err| CodegenError::new(format!("{err:?}").as_str(), left_statement))
+            it.get_basic_value_enum().try_into().map_err(|_| {
+                CodegenError::new(
+                    format!("Error getting a basic value enum from {it:?}. Statement: {left_statement:?}")
+                        .as_str(),
+                    left_statement,
+                )
+            })
         })?;
 
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
@@ -628,7 +632,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let start_val = exp_gen.generate_expression(start)?;
             self.register_debug_location(selector);
             let selector_val = exp_gen.generate_expression(selector)?;
-            exp_gen.create_llvm_int_binary_expression(&Operator::GreaterOrEqual, selector_val, start_val)?
+            exp_gen.create_llvm_int_binary_expression(
+                &Operator::GreaterOrEqual,
+                selector_val,
+                start_val,
+                None,
+            )?
         };
 
         //jmp to continue if the value is smaller than start
@@ -643,7 +652,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let end_val = exp_gen.generate_expression(end)?;
             self.register_debug_location(selector);
             let selector_val = exp_gen.generate_expression(selector)?;
-            exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val)?
+            exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val, None)?
         };
         builder.build_conditional_branch(
             to_i1(upper_bound.into_int_value(), builder)?,

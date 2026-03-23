@@ -7,37 +7,31 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%MyStrct = type { i32, i32, i32 }
-
-@__MyStr__init = unnamed_addr constant [11 x i8] c"init\00\00\00\00\00\00\00"
-@__MyArr__init = unnamed_addr constant [10 x float] [float 0.000000e+00, float 0x3FF19999A0000000, float 0x40019999A0000000, float 0x400A666660000000, float 0x40119999A0000000, float 5.500000e+00, float 0x401A666660000000, float 0x401ECCCCC0000000, float 0x40219999A0000000, float 0x4023CCCCC0000000]
-@__MyStrct__init = unnamed_addr constant %MyStrct { i32 1, i32 2, i32 3 }
-
 define i16 @foo_int() {
 entry:
-  %foo_int = alloca i16, align 2
-  store i16 7, ptr %foo_int, align 2
-  %foo_int_ret = load i16, ptr %foo_int, align 2
+  %foo_int = alloca i16, align [filtered]
+  store i16 7, ptr %foo_int, align [filtered]
+  %foo_int_ret = load i16, ptr %foo_int, align [filtered]
   ret i16 %foo_int_ret
 }
 
 define void @foo_str(ptr %0) {
 entry:
-  %foo_str = alloca ptr, align 8
-  store ptr %0, ptr %foo_str, align 8
+  %foo_str = alloca ptr, align [filtered]
+  store ptr %0, ptr %foo_str, align [filtered]
   ret void
 }
 
 define void @foo_arr(ptr %0) {
 entry:
-  %foo_arr = alloca ptr, align 8
-  store ptr %0, ptr %foo_arr, align 8
+  %foo_arr = alloca ptr, align [filtered]
+  store ptr %0, ptr %foo_arr, align [filtered]
   ret void
 }
 
 define void @foo_strct(ptr %0) {
 entry:
-  %foo_strct = alloca ptr, align 8
-  store ptr %0, ptr %foo_strct, align 8
+  %foo_strct = alloca ptr, align [filtered]
+  store ptr %0, ptr %foo_strct, align [filtered]
   ret void
 }

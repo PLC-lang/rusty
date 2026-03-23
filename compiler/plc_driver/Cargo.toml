@@ -1,21 +1,23 @@
 [package]
 name = "plc_driver"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
 build = "build.rs"
+license = "LGPL-3.0"
+description = "IEC 61131-3 Structured Text compiler"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-plc = { path = "../..", package = "rusty" }
-ast = { path = "../plc_ast/", package = "plc_ast" }
-project = { path = "../plc_project/", package = "plc_project" }
-source_code = { path = "../plc_source/", package = "plc_source" }
-cfc = { path = "../plc_xml/", package = "plc_xml" }
-plc_diagnostics = { path = "../plc_diagnostics/" }
-plc_index = { path = "../plc_index" }
-plc_lowering = { path = "../plc_lowering" }
-plc_header_generator = { path = "../plc_header_generator" }
+plc = { path = "../..", package = "plc-compiler", version = "0.3.0" }
+ast = { path = "../plc_ast/", package = "plc_ast", version = "0.3.0" }
+project = { path = "../plc_project/", package = "plc_project", version = "0.3.0" }
+source_code = { path = "../plc_source/", package = "plc_source", version = "0.3.0" }
+cfc = { path = "../plc_xml/", package = "plc_xml", version = "0.3.0" }
+plc_diagnostics = { path = "../plc_diagnostics/", version = "0.3.0" }
+plc_index = { path = "../plc_index", version = "0.3.0" }
+plc_lowering = { path = "../plc_lowering", version = "0.3.0" }
+plc_header_generator = { path = "../plc_header_generator", version = "0.3.0" }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
@@ -34,7 +36,7 @@ itertools.workspace = true
 [dev-dependencies]
 pretty_assertions = "1.3.0"
 insta.workspace = true
-plc_util = { path = "../plc_util" }
+plc_util = { path = "../plc_util", version = "0.3.0" }
 
 
 [lib]
@@ -44,3 +46,19 @@ path = "./src/lib.rs"
 [[bin]]
 name = "plc"
 path = "./src/main.rs"
+
+[package.metadata.deb]
+name = "plc"
+maintainer = "PLC-lang Project"
+extended-description = """\
+PLC is an IEC 61131-3 Structured Text compiler targeting LLVM. \
+It compiles ST programs to native machine code for multiple platforms."""
+section = "devel"
+priority = "optional"
+depends = "libc6"
+recommends = "libiec61131std"
+assets = [
+    ["target/release/plc", "usr/bin/", "755"],
+    ["../../compiler/plc_project/schema/plc-json.schema", "usr/share/plc/schema/", "644"],
+    ["../../scripts/debian/plc/copyright", "usr/share/doc/plc/", "644"],
+]

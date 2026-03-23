@@ -11,6 +11,4 @@ target triple = "[filtered]"
 %__global_y = type { i8, i8 }
 
 @x = global %MyStruct zeroinitializer
-@__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 @y = global %__global_y zeroinitializer
-@____global_y__init = unnamed_addr constant %__global_y zeroinitializer

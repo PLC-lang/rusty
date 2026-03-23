@@ -10,10 +10,10 @@ use inkwell::{
     context::Context,
     module::{Linkage, Module},
     types::{BasicTypeEnum, StringRadix},
-    values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
+    values::{AnyValue, AsValueRef, BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
     AddressSpace,
 };
-use plc_ast::ast::AstNode;
+use plc_ast::ast::{AstNode, AstStatement};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
@@ -26,10 +26,13 @@ pub struct Llvm<'a> {
     pub builder: Builder<'a>,
 }
 
+static RETAIN_SECTION_NAME: &str = ".retain";
+
 pub trait GlobalValueExt {
     fn make_constant(self) -> Self;
     fn make_private(self) -> Self;
     fn make_external(self) -> Self;
+    fn make_retain(self) -> Self;
     fn set_initial_value(self, initial_value: Option<BasicValueEnum>, data_type: BasicTypeEnum) -> Self;
 }
 
@@ -59,6 +62,11 @@ impl GlobalValueExt for GlobalValue<'_> {
         };
         self
     }
+
+    fn make_retain(self) -> Self {
+        self.set_section(Some(RETAIN_SECTION_NAME));
+        self
+    }
 }
 
 type Variable<'a> = (&'a str, &'a str, &'a SourceLocation);
@@ -84,6 +92,49 @@ impl<'a> Llvm<'a> {
         let global = module.add_global(data_type, None, name);
         global.set_thread_local_mode(None);
         global
+    }
+
+    /// Materializes an aggregate constant (array or struct) as an anonymous, unnamed-addr
+    /// global constant in the current module and returns a pointer to it along with the
+    /// preferred alignment (in bytes). This avoids emitting bloated inline `store`
+    /// instructions for large literal values.
+    ///
+    /// The module is obtained from the builder's current insert position.
+    pub fn materialize_as_global(
+        &self,
+        value: &BasicValueEnum<'a>,
+    ) -> Result<(PointerValue<'a>, u32), CodegenError> {
+        let block = self.builder.get_insert_block().ok_or_else(|| {
+            CodegenError::new(
+                "No insert block when materializing global constant",
+                SourceLocation::internal(),
+            )
+        })?;
+        let function = block.get_parent().ok_or_else(|| {
+            CodegenError::new("No parent function for insert block", SourceLocation::internal())
+        })?;
+        // SAFETY: inkwell does not expose a safe API to get a function's parent
+        // module, so we query it via LLVM C API. We only wrap a non-null module
+        // ref and must not drop the wrapper because we do not own module lifetime.
+        let module_ref = unsafe { inkwell::llvm_sys::core::LLVMGetGlobalParent(function.as_value_ref()) };
+        if module_ref.is_null() {
+            return Err(CodegenError::new(
+                "No parent module for insert function",
+                SourceLocation::internal(),
+            ));
+        }
+        let module = unsafe { Module::new(module_ref) };
+        let global = module.add_global(value.get_type(), None, ".const_init");
+        global.set_initializer(value);
+        global.set_constant(true);
+        global.set_unnamed_addr(true);
+        global.set_linkage(Linkage::Private);
+        // get_alignment() returns 0 when no explicit alignment is set; default to 1
+        // since build_memcpy requires a non-zero alignment value.
+        let alignment = global.get_alignment().max(1);
+        // Prevent Module::drop from disposing the module we don't own.
+        std::mem::forget(module);
+        Ok((global.as_pointer_value(), alignment))
     }
 
     /// creates a local variable at the builder's location
@@ -130,7 +181,16 @@ impl<'a> Llvm<'a> {
         unsafe {
             self.builder
                 .build_in_bounds_gep(pointee, pointer_to_array_instance, accessor_sequence, name)
-                .map_err(Into::into)
+                .map_err(|err| {
+                    CodegenError::new(
+                        format!(
+                            "{err} (pointee: {}, indices: {})",
+                            pointee.print_to_string(),
+                            accessor_sequence.len()
+                        ),
+                        SourceLocation::undefined(),
+                    )
+                })
         }
     }
 
@@ -147,9 +207,14 @@ impl<'a> Llvm<'a> {
         member_index: u32,
         name: &str,
     ) -> Result<PointerValue<'a>, CodegenError> {
-        self.builder
-            .build_struct_gep(pointee, pointer_to_struct_instance, member_index, name)
-            .map_err(Into::into)
+        self.builder.build_struct_gep(pointee, pointer_to_struct_instance, member_index, name).map_err(
+            |err| {
+                CodegenError::new(
+                    format!("{err} (pointee: {}, index: {})", pointee.print_to_string(), member_index),
+                    SourceLocation::undefined(),
+                )
+            },
+        )
     }
 
     /// loads the value behind the given pointer
@@ -212,8 +277,19 @@ impl<'a> Llvm<'a> {
                 })
                 .map(BasicValueEnum::IntValue),
             BasicTypeEnum::FloatType { 0: float_type } => {
-                let value = unsafe { float_type.const_float_from_string(value) };
-                Ok(BasicValueEnum::FloatValue(value))
+                // LLVM's const_float_from_string doesn't handle very small numbers correctly.
+                // We parse with Rust's parser which is more accurate, then convert the bits
+                // back to a decimal string in a format LLVM can handle.
+                if let Ok(parsed_f64) = value.parse::<f64>() {
+                    // Format using scientific notation which LLVM handles better
+                    let formatted = format!("{:e}", parsed_f64);
+                    let const_val = unsafe { float_type.const_float_from_string(&formatted) };
+                    Ok(BasicValueEnum::FloatValue(const_val))
+                } else {
+                    // Fallback to LLVM's const_float_from_string for non-standard formats
+                    let const_val = unsafe { float_type.const_float_from_string(value) };
+                    Ok(BasicValueEnum::FloatValue(const_val))
+                }
             }
             _ => Err(Diagnostic::codegen_error("expected numeric type", location).into()),
         }
@@ -352,6 +428,13 @@ impl<'a> Llvm<'a> {
         let v_type_info = variable_data_type.get_type_information();
 
         const DEFAULT_ALIGNMENT: u32 = 1;
+        let initializer_statement = initializer_statement.and_then(|stmt| {
+            if matches!(stmt.get_stmt(), AstStatement::DefaultValue(_)) {
+                None
+            } else {
+                Some(stmt)
+            }
+        });
         let (value, alignment) =
         // 1st try: see if there is a global variable with the right name - naming convention :-(
         if let Some(global_variable) =  llvm_index.find_global_value(&crate::index::get_initializer_name(qualified_name)) {
@@ -393,6 +476,23 @@ impl<'a> Llvm<'a> {
                     variable_to_initialize,
                     std::cmp::max(1, alignment),
                     value.into_int_value(),
+                    type_size?,
+                )?;
+            } else if value.is_array_value() || value.is_struct_value() {
+                // After the initializer refactor, aggregate initialization happens through
+                // constructor calls. However, constructors only initialize fields with explicit
+                // initializers. We need to zero-initialize the memory first to ensure all fields
+                // start with a known value (0), then the constructor will set the explicit values.
+                log::trace!(
+                    "Discarding aggregate initial value for `{qualified_name}` (type `{type_name}`) \
+                     in favor of zero-init + constructor. If no constructor runs, this variable will be \
+                     zero-initialized instead of receiving its computed default. Value: {}",
+                    value.print_to_string().to_string_lossy()
+                );
+                self.builder.build_memset(
+                    variable_to_initialize,
+                    std::cmp::max(1, alignment),
+                    self.context.i8_type().const_zero(),
                     type_size?,
                 )?;
             } else {

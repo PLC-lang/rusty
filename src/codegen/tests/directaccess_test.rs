@@ -149,12 +149,10 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     %FOO = type { i8, i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO zeroinitializer
-
     define void @FOO(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %X = getelementptr inbounds nuw %FOO, ptr %0, i32 0, i32 0
       %Y = getelementptr inbounds nuw %FOO, ptr %0, i32 0, i32 1
       ret void
@@ -162,65 +160,65 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %error_bits = alloca i8, align 1
-      %f = alloca %FOO, align 8
-      store i8 0, ptr %error_bits, align 1
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %main, align 4
+      %main = alloca i32, align [filtered]
+      %error_bits = alloca i8, align [filtered]
+      %f = alloca %FOO, align [filtered]
+      store i8 0, ptr %error_bits, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %f, i8 0, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
       %0 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
-      %load_error_bits = load i8, ptr %error_bits, align 1
+      %load_error_bits = load i8, ptr %error_bits, align [filtered]
       %shift = lshr i8 %load_error_bits, 0
       %1 = and i8 %shift, 1
-      store i8 %1, ptr %0, align 1
+      store i8 %1, ptr %0, align [filtered]
       call void @FOO(ptr %f)
       %2 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 1
-      %3 = load i8, ptr %error_bits, align 1
-      %4 = load i8, ptr %2, align 1
+      %3 = load i8, ptr %error_bits, align [filtered]
+      %4 = load i8, ptr %2, align [filtered]
       %erase = and i8 %3, -2
       %value = shl i8 %4, 0
       %or = or i8 %erase, %value
-      store i8 %or, ptr %error_bits, align 1
+      store i8 %or, ptr %error_bits, align [filtered]
       %5 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
-      %load_error_bits1 = load i8, ptr %error_bits, align 1
+      %load_error_bits1 = load i8, ptr %error_bits, align [filtered]
       %shift2 = lshr i8 %load_error_bits1, 0
       %6 = and i8 %shift2, 1
-      store i8 %6, ptr %5, align 1
+      store i8 %6, ptr %5, align [filtered]
       call void @FOO(ptr %f)
       %7 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 1
-      %8 = load i8, ptr %error_bits, align 1
-      %9 = load i8, ptr %7, align 1
+      %8 = load i8, ptr %error_bits, align [filtered]
+      %9 = load i8, ptr %7, align [filtered]
       %erase3 = and i8 %8, -2
       %value4 = shl i8 %9, 0
       %or5 = or i8 %erase3, %value4
-      store i8 %or5, ptr %error_bits, align 1
+      store i8 %or5, ptr %error_bits, align [filtered]
       %10 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
-      %load_error_bits6 = load i8, ptr %error_bits, align 1
+      %load_error_bits6 = load i8, ptr %error_bits, align [filtered]
       %shift7 = lshr i8 %load_error_bits6, 0
       %11 = and i8 %shift7, 1
-      store i8 %11, ptr %10, align 1
+      store i8 %11, ptr %10, align [filtered]
       call void @FOO(ptr %f)
       %12 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 1
-      %13 = load i8, ptr %error_bits, align 1
-      %14 = load i8, ptr %12, align 1
+      %13 = load i8, ptr %error_bits, align [filtered]
+      %14 = load i8, ptr %12, align [filtered]
       %erase8 = and i8 %13, -2
       %value9 = shl i8 %14, 0
       %or10 = or i8 %erase8, %value9
-      store i8 %or10, ptr %error_bits, align 1
+      store i8 %or10, ptr %error_bits, align [filtered]
       %15 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
-      %load_error_bits11 = load i8, ptr %error_bits, align 1
+      %load_error_bits11 = load i8, ptr %error_bits, align [filtered]
       %shift12 = lshr i8 %load_error_bits11, 0
       %16 = and i8 %shift12, 1
-      store i8 %16, ptr %15, align 1
+      store i8 %16, ptr %15, align [filtered]
       call void @FOO(ptr %f)
-      %main_ret = load i32, ptr %main, align 4
+      %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -253,40 +251,38 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
-
     define void @FOO(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %Q = getelementptr inbounds nuw %FOO, ptr %0, i32 0, i32 0
       ret void
     }
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %error_bits = alloca i8, align 1
-      %f = alloca %FOO, align 8
-      store i8 -17, ptr %error_bits, align 1
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %main, align 4
+      %main = alloca i32, align [filtered]
+      %error_bits = alloca i8, align [filtered]
+      %f = alloca %FOO, align [filtered]
+      store i8 -17, ptr %error_bits, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %f, i8 0, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
       call void @FOO(ptr %f)
       %0 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 0
-      %1 = load i8, ptr %error_bits, align 1
-      %2 = load i8, ptr %0, align 1
+      %1 = load i8, ptr %error_bits, align [filtered]
+      %2 = load i8, ptr %0, align [filtered]
       %erase = and i8 %1, -17
       %value = shl i8 %2, 4
       %or = or i8 %erase, %value
-      store i8 %or, ptr %error_bits, align 1
-      %main_ret = load i32, ptr %main, align 4
+      store i8 %or, ptr %error_bits, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -319,40 +315,113 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     %FOO = type { i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
-
     define void @FOO(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %Q = getelementptr inbounds nuw %FOO, ptr %0, i32 0, i32 0
       ret void
     }
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %error_bits = alloca i8, align 1
-      %f = alloca %FOO, align 8
-      store i8 -17, ptr %error_bits, align 1
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %main, align 4
+      %main = alloca i32, align [filtered]
+      %error_bits = alloca i8, align [filtered]
+      %f = alloca %FOO, align [filtered]
+      store i8 -17, ptr %error_bits, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %f, i8 0, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
       call void @FOO(ptr %f)
       %0 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 0
-      %1 = load i8, ptr %error_bits, align 1
-      %2 = load i8, ptr %0, align 1
+      %1 = load i8, ptr %error_bits, align [filtered]
+      %2 = load i8, ptr %0, align [filtered]
       %erase = and i8 %1, -17
       %value = shl i8 %2, 4
       %or = or i8 %erase, %value
-      store i8 %or, ptr %error_bits, align 1
-      %main_ret = load i32, ptr %main, align 4
+      store i8 %or, ptr %error_bits, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    "#);
+}
+
+#[test]
+fn function_block_with_var_temp_should_compile_when_output_has_direct_access() {
+    // Regression test for the remaining bug in `generate_output_assignment`:
+    // `build_struct_gep` uses the raw `position` (index in all pou_members, including
+    // VAR_TEMP) instead of the adjusted struct field index. Here `q` has pou_members
+    // position 1 but struct index 0 (tmp is not in the struct), so the GEP must use
+    // i32 0, not i32 1. Using i32 1 on a 1-member struct panics in inkwell.
+    let ir = codegen(
+        r"
+        FUNCTION_BLOCK Foo
+            VAR_TEMP
+                tmp : INT;
+            END_VAR
+
+            VAR_OUTPUT
+                q : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+        VAR
+            fb : Foo;
+            result : BYTE;
+        END_VAR
+
+        fb(q => result.0);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(ir, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %Foo = type { i8 }
+
+    define void @Foo(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %tmp = alloca i16, align [filtered]
+      %q = getelementptr inbounds nuw %Foo, ptr %0, i32 0, i32 0
+      store i16 0, ptr %tmp, align [filtered]
+      ret void
+    }
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %fb = alloca %Foo, align [filtered]
+      %result = alloca i8, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%Foo, ptr null, i32 1) to i64), i1 false)
+      store i8 0, ptr %result, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      call void @Foo(ptr %fb)
+      %0 = getelementptr inbounds nuw %Foo, ptr %fb, i32 0, i32 0
+      %1 = load i8, ptr %result, align [filtered]
+      %2 = load i8, ptr %0, align [filtered]
+      %erase = and i8 %1, -2
+      %value = shl i8 %2, 0
+      %or = or i8 %erase, %value
+      store i8 %or, ptr %result, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -363,7 +432,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
         TYPE foo_struct : STRUCT
             bar : bar_struct;
         END_STRUCT END_TYPE
-        
+
         TYPE bar_struct : STRUCT
             baz : LWORD;
         END_STRUCT END_TYPE
@@ -379,7 +448,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
                 foo : foo_struct;
                 f : QUUX;
             END_VAR
-            
+
             f(Q => foo.bar.baz.%W3);
             f(Q => foo.bar.baz.%W3.%B0.%X2);
         END_FUNCTION
@@ -396,55 +465,51 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     %foo_struct = type { %bar_struct }
     %bar_struct = type { i64 }
 
-    @__QUUX__init = unnamed_addr constant %QUUX zeroinitializer
-    @__foo_struct__init = unnamed_addr constant %foo_struct zeroinitializer
-    @__bar_struct__init = unnamed_addr constant %bar_struct zeroinitializer
-
     define void @QUUX(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %Q = getelementptr inbounds nuw %QUUX, ptr %0, i32 0, i32 0
       ret void
     }
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %foo = alloca %foo_struct, align 8
-      %f = alloca %QUUX, align 8
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %foo, ptr align 1 @__foo_struct__init, i64 ptrtoint (ptr getelementptr (%foo_struct, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__QUUX__init, i64 ptrtoint (ptr getelementptr (%QUUX, ptr null, i32 1) to i64), i1 false)
-      store i32 0, ptr %main, align 4
+      %main = alloca i32, align [filtered]
+      %foo = alloca %foo_struct, align [filtered]
+      %f = alloca %QUUX, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %foo, i8 0, i64 ptrtoint (ptr getelementptr (%foo_struct, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %f, i8 0, i64 ptrtoint (ptr getelementptr (%QUUX, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align [filtered]
       call void @QUUX(ptr %f)
       %bar = getelementptr inbounds nuw %foo_struct, ptr %foo, i32 0, i32 0
       %baz = getelementptr inbounds nuw %bar_struct, ptr %bar, i32 0, i32 0
       %0 = getelementptr inbounds nuw %QUUX, ptr %f, i32 0, i32 0
-      %1 = load i64, ptr %baz, align 8
-      %2 = load i8, ptr %0, align 1
+      %1 = load i64, ptr %baz, align [filtered]
+      %2 = load i8, ptr %0, align [filtered]
       %erase = and i64 %1, -281474976710657
       %3 = zext i8 %2 to i64
       %value = shl i64 %3, 48
       %or = or i64 %erase, %value
-      store i64 %or, ptr %baz, align 8
+      store i64 %or, ptr %baz, align [filtered]
       call void @QUUX(ptr %f)
       %bar1 = getelementptr inbounds nuw %foo_struct, ptr %foo, i32 0, i32 0
       %baz2 = getelementptr inbounds nuw %bar_struct, ptr %bar1, i32 0, i32 0
       %4 = getelementptr inbounds nuw %QUUX, ptr %f, i32 0, i32 0
-      %5 = load i64, ptr %baz2, align 8
-      %6 = load i8, ptr %4, align 1
+      %5 = load i64, ptr %baz2, align [filtered]
+      %6 = load i8, ptr %4, align [filtered]
       %erase3 = and i64 %5, -1125899906842625
       %7 = zext i8 %6 to i64
       %value4 = shl i64 %7, 50
       %or5 = or i64 %erase3, %value4
-      store i64 %or5, ptr %baz2, align 8
-      %main_ret = load i32, ptr %main, align 4
+      store i64 %or5, ptr %baz2, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }

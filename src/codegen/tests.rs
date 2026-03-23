@@ -1,9 +1,11 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 mod address_tests;
+mod alignment_tests;
 mod code_gen_tests;
 mod codegen_error_messages_tests;
 mod compare_instructions_tests;
 mod constants_tests;
+mod control_statement_tests;
 mod debug_tests;
 mod directaccess_test;
 mod expression_tests;
@@ -15,6 +17,7 @@ mod multifile_codegen_tests;
 mod oop_tests;
 mod parameters_tests;
 mod polymorphism;
+mod retain_tests;
 mod statement_codegen_test;
 mod string_tests;
 #[cfg(feature = "verify")]
