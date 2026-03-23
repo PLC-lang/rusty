@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c1da54f3.js";
+            window.path_to_searchindex_js = "searchindex-548805b4.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-2b8c6dc7.js"></script>
@@ -261,11 +261,11 @@ uv tool install lit
 <p>Follow the Ubuntu 24.04 instructions, but omit <code>software-properties-common</code> which is not available on Debian.</p>
 <h2 id="macos"><a class="header" href="#macos">macOS</a></h2>
 <p>Install the <a href="https://developer.apple.com/downloads/">Xcode Command Line Tools</a> and the LLVM toolchain using <a href="https://brew.sh">Homebrew</a>:</p>
-<pre><code class="language-bash">brew install llvm@21 gnu-getopt lit
+<pre><code class="language-bash">brew install llvm@21 lld gnu-getopt lit
 </code></pre>
 <p>After installation, ensure the Homebrew binaries are in your PATH:</p>
-<pre><code class="language-bash">echo 'export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"' &gt;&gt; ~/.zshrc
-echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' &gt;&gt; ~/.zshrc
+<pre><code class="language-bash">echo 'export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"' &gt;&gt; ~/.zprofile
+echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' &gt;&gt; ~/.zprofile
 </code></pre>
 <p>The <code>lit</code> test suite expects <code>FileCheck-21</code> to be available. If not present, create a symlink:</p>
 <pre><code class="language-bash">ln -svf /opt/homebrew/opt/llvm@21/bin/FileCheck /opt/homebrew/opt/llvm@21/bin/FileCheck-21
