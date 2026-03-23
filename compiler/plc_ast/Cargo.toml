@@ -1,13 +1,13 @@
 [package]
 name = "plc_ast"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "LGPL-3.0"
+description = "AST types for the PLC Structured Text compiler"
 
 [dependencies]
-plc_util = { path = "../plc_util" }
-plc_source = { path = "../plc_source" }
+plc_util = { path = "../plc_util", version = "0.3.0" }
+plc_source = { path = "../plc_source", version = "0.3.0" }
 chrono = { version = "0.4", default-features = false }
 # Enabled the RC feature (for Arc<T>) see: https://serde.rs/feature-flags.html#-features-rc
 serde = { version = "1.0", features = ["derive", "rc"] }

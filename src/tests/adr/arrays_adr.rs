@@ -60,13 +60,14 @@ fn initializing_an_array() {
 
     @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @.const_init = private unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 
     define void @Data__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
-      store [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], ptr %deref, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %deref, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
@@ -75,6 +76,11 @@ fn initializing_an_array() {
       call void @Data__ctor(ptr @d)
       ret void
     }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -107,6 +113,7 @@ fn assigning_full_arrays() {
 
     @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @.const_init = private unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 
     define void @prg(ptr %0) {
     entry:
@@ -134,7 +141,7 @@ fn assigning_full_arrays() {
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
-      store [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], ptr %deref, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %deref, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
@@ -189,6 +196,8 @@ fn accessing_array_elements() {
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
     @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
     @__prg.b__init.1 = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
+    @.const_init = private unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
+    @.const_init.2 = private unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 
     define void @prg(ptr %0) {
     entry:
@@ -213,7 +222,7 @@ fn accessing_array_elements() {
       call void @__prg_b__ctor(ptr %b)
       %deref2 = load ptr, ptr %self, align [filtered]
       %b3 = getelementptr inbounds nuw %prg, ptr %deref2, i32 0, i32 1
-      store [3 x i32] [i32 3, i32 4, i32 5], ptr %b3, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %b3, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([3 x i32], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
@@ -222,7 +231,7 @@ fn accessing_array_elements() {
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       %deref = load ptr, ptr %self, align [filtered]
-      store [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], ptr %deref, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %deref, ptr align [filtered] @.const_init.2, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
@@ -238,5 +247,10 @@ fn accessing_array_elements() {
       call void @prg__ctor(ptr @prg_instance)
       ret void
     }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }

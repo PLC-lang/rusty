@@ -351,13 +351,88 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 }
 
 #[test]
+fn function_block_with_var_temp_should_compile_when_output_has_direct_access() {
+    // Regression test for the remaining bug in `generate_output_assignment`:
+    // `build_struct_gep` uses the raw `position` (index in all pou_members, including
+    // VAR_TEMP) instead of the adjusted struct field index. Here `q` has pou_members
+    // position 1 but struct index 0 (tmp is not in the struct), so the GEP must use
+    // i32 0, not i32 1. Using i32 1 on a 1-member struct panics in inkwell.
+    let ir = codegen(
+        r"
+        FUNCTION_BLOCK Foo
+            VAR_TEMP
+                tmp : INT;
+            END_VAR
+
+            VAR_OUTPUT
+                q : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+        VAR
+            fb : Foo;
+            result : BYTE;
+        END_VAR
+
+        fb(q => result.0);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(ir, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %Foo = type { i8 }
+
+    define void @Foo(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %tmp = alloca i16, align [filtered]
+      %q = getelementptr inbounds nuw %Foo, ptr %0, i32 0, i32 0
+      store i16 0, ptr %tmp, align [filtered]
+      ret void
+    }
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %fb = alloca %Foo, align [filtered]
+      %result = alloca i8, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%Foo, ptr null, i32 1) to i64), i1 false)
+      store i8 0, ptr %result, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      call void @Foo(ptr %fb)
+      %0 = getelementptr inbounds nuw %Foo, ptr %fb, i32 0, i32 0
+      %1 = load i8, ptr %result, align [filtered]
+      %2 = load i8, ptr %0, align [filtered]
+      %erase = and i8 %1, -2
+      %value = shl i8 %2, 0
+      %or = or i8 %erase, %value
+      store i8 %or, ptr %result, align [filtered]
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    "#);
+}
+
+#[test]
 fn direct_acess_in_output_assignment_with_complexe_expression() {
     let ir = codegen(
         r"
         TYPE foo_struct : STRUCT
             bar : bar_struct;
         END_STRUCT END_TYPE
-        
+
         TYPE bar_struct : STRUCT
             baz : LWORD;
         END_STRUCT END_TYPE
@@ -373,7 +448,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
                 foo : foo_struct;
                 f : QUUX;
             END_VAR
-            
+
             f(Q => foo.bar.baz.%W3);
             f(Q => foo.bar.baz.%W3.%B0.%X2);
         END_FUNCTION
