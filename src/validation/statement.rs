@@ -1038,6 +1038,82 @@ where
     }
 }
 
+/// For `POINTER TO` assignments involving classes/function blocks, validates that
+/// the pointee types are in a valid inheritance relationship (child→parent only).
+/// Returns `true` if this was a POU pointer case (handled), `false` otherwise
+/// (meaning the caller should fall through to existing validation).
+/// For `POINTER TO` assignments involving classes/function blocks, validates that
+/// the pointee types are in a valid inheritance relationship (child→parent only).
+/// Returns `true` if this was a POU pointer case (handled), `false` otherwise
+/// (meaning the caller should fall through to existing validation).
+fn validate_pou_pointer_assignment<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    left_type: &DataType,
+    right_type: &DataType,
+    right: &AstNode,
+    location: &SourceLocation,
+) -> bool {
+    // Only applies to non-type-safe POINTER TO on the LHS; type-safe pointers have their own rules and should
+    // be unaffected by this validation
+    if !left_type.is_pointer() || left_type.is_type_safe_pointer() {
+        return false;
+    }
+
+    let Some(lhs_inner) = left_type.get_type_information().get_inner_pointer_type_name() else {
+        return false;
+    };
+
+    let is_class_or_fb = |name: &str| {
+        context.index.find_pou(name).is_some_and(|opt| opt.is_function_block() || opt.is_class())
+    };
+
+    if !is_class_or_fb(lhs_inner) {
+        return false;
+    }
+
+    let Some(rhs_inner) = get_pointee_type_name(context, right_type, right) else {
+        return false;
+    };
+
+    if !is_class_or_fb(rhs_inner) {
+        return false;
+    }
+
+    // Same type or valid upcast (child→parent) — no error
+    if is_related_to(context, lhs_inner, rhs_inner) || lhs_inner.eq_ignore_ascii_case(rhs_inner) {
+        return true;
+    }
+
+    validator.push_diagnostic(Diagnostic::invalid_polymorphic_assignment(rhs_inner, lhs_inner, location));
+    true
+}
+
+/// Returns the pointee type name for the right-hand side of a pointer assignment.
+/// For pointer types (`POINTER TO X`), returns the inner type name directly.
+/// For `ADR(instance)` / `REF(instance)` calls, extracts the argument's type name.
+fn get_pointee_type_name<'a, T: AnnotationMap>(
+    context: &'a ValidationContext<'a, T>,
+    right_type: &'a DataType,
+    right: &AstNode,
+) -> Option<&'a str> {
+    if let DataTypeInformation::Pointer { inner_type_name, .. } = right_type.get_type_information() {
+        return Some(inner_type_name.as_str());
+    }
+
+    // ADR/REF returns LWORD, so the pointer's inner type is lost — recover it from the call argument
+    if !is_ref_or_adr_call(right) {
+        return None;
+    }
+
+    let AstStatement::CallStatement(CallStatement { parameters, .. }) = right.get_stmt_peeled() else {
+        return None;
+    };
+
+    let arg = flatten_expression_list(parameters.as_ref()?).first().copied()?;
+    Some(context.annotations.get_type_or_void(arg, context.index).get_type_information().get_name())
+}
+
 /// Checks if `REF=` assignments are correct, specifically if the left-hand side is a reference declared
 /// as `REFERENCE TO` and the right hand side is a lvalue of the same type that is being referenced.
 fn validate_ref_assignment<T: AnnotationMap>(
@@ -1233,7 +1309,10 @@ fn validate_assignment<T: AnnotationMap>(
             return;
         }
 
-        if !(left_type.is_compatible_with_type(right_type)
+        // Validate POU pointer assignments (POINTER TO class/FB) for inheritance compatibility
+        if validate_pou_pointer_assignment(context, validator, left_type, right_type, right, location) {
+            // Handled — either a valid upcast or an error was already emitted
+        } else if !(left_type.is_compatible_with_type(right_type)
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             // TODO: #THIS && !left_type.is_this()

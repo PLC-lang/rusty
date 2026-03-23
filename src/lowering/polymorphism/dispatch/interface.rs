@@ -90,6 +90,27 @@
 //! consumer(__fatpointer_0);
 //! ```
 //!
+//! # Interface upcasting
+//!
+//! When assigning a child interface to a parent interface variable (e.g. `refIA := refIB` where `IB EXTENDS
+//! IA`), the `.data` pointer can be copied directly but the `.table` pointer must change — it points to an
+//! `__itable_IB_*` but needs to point to the corresponding `__itable_IA_*` for the same POU. Since the
+//! concrete POU is only known at runtime, each itable struct embeds `__upcast_<ancestor>` pointer fields
+//! (one per ancestor interface, see [`crate::lowering::polymorphism::table::interface`]) that point directly
+//! to the correct ancestor itable instance. This gives O(1) upcast resolution via a single field read:
+//!
+//! ```text
+//! // Before:
+//! refIA := refIB;
+//!
+//! // After:
+//! refIA.data  := refIB.data;
+//! refIA.table := __itable_IB#(refIB.table^).__upcast_IA;
+//! ```
+//!
+//! The same transformation applies when passing a child interface as a call argument where a parent interface
+//! is expected — a temporary fat pointer is allocated with the upcasted table.
+//!
 // TODO: Consider switching from `log` to the `tracing` crate for structured, span-based logging. This would
 // give us automatic indentation and hierarchical span nesting, making the visitor call flow much easier to
 // follow.
@@ -103,6 +124,7 @@ use plc_ast::{
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
@@ -110,6 +132,8 @@ use crate::{
     resolver::{AnnotationMap, AnnotationMapImpl},
     typesystem::{DataType, VOID_INTERNAL_NAME},
 };
+
+use super::validation;
 
 const FATPOINTER_TYPE_NAME: &str = "__FATPOINTER";
 const FATPOINTER_DATA_FIELD_NAME: &str = "data";
@@ -126,6 +150,11 @@ pub struct InterfaceDispatchLowerer<'a> {
 
     /// Tracks call-argument nesting depth, if any.
     in_call_args: usize,
+
+    /// Diagnostics collected during traversal. Validation checks that must run during lowering
+    /// (before interface types are rewritten) push errors here instead of into the normal
+    /// validation pipeline.
+    diagnostics: Vec<Diagnostic>,
 
     /// Statements to insert *before* the current statement in the drain loop. Cleared at the
     /// start of each iteration. Used when a call argument needs wrapping: the temporary fat
@@ -172,6 +201,7 @@ impl<'a> InterfaceDispatchLowerer<'a> {
             annotations,
             needs_fatpointer: false,
             in_call_args: 0,
+            diagnostics: Vec::new(),
             preamble: Vec::new(),
             replacement: None,
             fp_counter: 0,
@@ -179,7 +209,8 @@ impl<'a> InterfaceDispatchLowerer<'a> {
     }
 
     /// Entry point into the interface dispatch lowering pass.
-    pub fn lower(&mut self, units: &mut [CompilationUnit]) {
+    /// Returns any diagnostics produced by interface validation checks.
+    pub fn lower(&mut self, units: &mut [CompilationUnit]) -> Vec<Diagnostic> {
         for unit in units.iter_mut() {
             self.visit_compilation_unit(unit);
         }
@@ -191,6 +222,8 @@ impl<'a> InterfaceDispatchLowerer<'a> {
                 unit.user_types.push(helper::create_fat_pointer_struct());
             }
         }
+
+        std::mem::take(&mut self.diagnostics)
     }
 }
 
@@ -264,21 +297,43 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
         let rhs_type = self.annotations.get_type_or_void(right, self.index);
         let rhs_type_hint = self.annotations.get_hint_or_void(right, self.index);
 
-        // Interface-to-interface assignment (e.g. `refB := refA`)
+        // Interface-to-interface assignment (e.g. `refIA := refIB` where IB extends IA)
         if lhs_type.is_interface() && rhs_type.is_interface() {
             if lhs_type == rhs_type {
-                // Simple memcpy, codegen does this for us; to elaborate, the itable layout in this case is
-                // identical with only the data field point to potentially different instances but thats no
-                // problem and solved by a simple memcpy.
+                // Simple memcpy, codegen does this for us; the itable layout is identical,
+                // only the data field points to potentially different instances.
                 return;
             }
 
-            // FIXME:
-            // Trickier, the `.data` field can be copied but the `.table` field needs to be up- or downcasted
-            // to match the lhs interface type. With the current architecture this requires some metadata
-            // about the POU type (name) stored in the rhs so that we can find the correct itable and assign
-            // it to the left side. That metadata table does not exist yet, however.
-            unimplemented!("upcasting of interfaces is not yet supported");
+            let rhs_interface_name = rhs_type.get_name();
+            let lhs_interface_name = lhs_type.get_name();
+
+            if let Some(diagnostic) = validation::validate_interface_assignment(
+                self.index,
+                rhs_interface_name,
+                lhs_interface_name,
+                &node.location,
+            ) {
+                self.diagnostics.push(diagnostic);
+
+                // Drop the invalid statement so downstream validation doesn't see a
+                // confusing `__FATPOINTER` type mismatch after interface types are rewritten.
+                self.replacement = Some(vec![]);
+                return;
+            }
+
+            // Upcasting: RHS is a child interface, LHS is an ancestor interface.
+            // Expand into: lhs.data := rhs.data; lhs.table := __itable_<rhs>#(rhs.table^).__upcast_<lhs>
+            let data_assign = helper::create_data_copy(&mut self.ids, left, right);
+            let table_assign = helper::create_upcast_table_assignment(
+                &mut self.ids,
+                left,
+                right,
+                rhs_interface_name,
+                lhs_interface_name,
+            );
+            self.replacement = Some(vec![data_assign, table_assign]);
+            return;
         }
 
         // Check if this is an interface assignment: LHS is interface-typed, RHS is a concrete
@@ -290,6 +345,20 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
 
         let interface_name = lhs_type.get_name();
         let pou_name = rhs_type.get_name();
+
+        if let Some(diagnostic) = validation::validate_pou_implements_interface(
+            self.index,
+            pou_name,
+            interface_name,
+            &node.location,
+        ) {
+            self.diagnostics.push(diagnostic);
+
+            // Drop the invalid statement so downstream validation doesn't see a
+            // confusing `__FATPOINTER` type mismatch after interface types are rewritten.
+            self.replacement = Some(vec![]);
+            return;
+        }
 
         // Replace the original assignment with the two fat-pointer field assignments.
         let data_assign = helper::create_data_assignment(&mut self.ids, left, right);
@@ -370,14 +439,49 @@ impl InterfaceDispatchLowerer<'_> {
         let actual_type = self.annotations.get_type_or_void(arg, self.index);
         let expected_type = self.annotations.get_hint_or_void(arg, self.index);
 
-        // Skip if the argument is already interface-typed (i.e. an existing fat pointer that needs no
-        // wrapping) or if the expected type is not an interface.
-        if actual_type.is_interface() || !expected_type.is_interface() {
+        // Not an interface parameter, nothing to do.
+        if !expected_type.is_interface() {
             return;
         }
 
-        let interface_name = expected_type.get_name();
+        // Argument is already interface-typed — validate compatibility before upcasting.
+        if actual_type.is_interface() {
+            let source_iface = actual_type.get_name();
+            let target_iface = expected_type.get_name();
+
+            if let Some(diagnostic) = validation::validate_interface_assignment(
+                self.index,
+                source_iface,
+                target_iface,
+                &arg.location,
+            ) {
+                self.diagnostics.push(diagnostic);
+                return;
+            }
+        }
+
+        // Already the right interface type (or same concrete type), no wrapping needed.
+        if actual_type == expected_type {
+            return;
+        }
+
         let pou_name = actual_type.get_name();
+        let interface_name = expected_type.get_name();
+
+        if let Some(diagnostic) =
+            validation::validate_pou_implements_interface(self.index, pou_name, interface_name, &arg.location)
+        {
+            self.diagnostics.push(diagnostic);
+
+            // Replace the argument with a dummy fat pointer so the call remains structurally
+            // valid and doesn't trigger confusing `__FATPOINTER` type errors downstream.
+            let fp_name = format!("__fatpointer_{}", self.fp_counter);
+            self.fp_counter += 1;
+            self.preamble.push(helper::create_alloca(&mut self.ids, &fp_name));
+            *arg = helper::create_identifier_ref(&mut self.ids, &fp_name);
+
+            return;
+        }
 
         // Generate a unique name for the temporary fat pointer.
         let fp_name = format!("__fatpointer_{}", self.fp_counter);
@@ -385,15 +489,35 @@ impl InterfaceDispatchLowerer<'_> {
 
         // Build the reference node that will replace the original argument.
         let fp_ref = helper::create_identifier_ref(&mut self.ids, &fp_name);
-
-        // Emit preamble: alloca + .data + .table assignments.
         let alloca = helper::create_alloca(&mut self.ids, &fp_name);
-        let data_assign = helper::create_data_assignment(&mut self.ids, &fp_ref, arg);
-        let table_assign = helper::create_table_assignment(&mut self.ids, &fp_ref, interface_name, pou_name);
-
         self.preamble.push(alloca);
-        self.preamble.push(data_assign);
-        self.preamble.push(table_assign);
+
+        if actual_type.is_interface() {
+            // Upcast: actual is a different (child) interface, copy .data and read __upcast_* for .table.
+            let rhs_interface_name = actual_type.get_name();
+            let lhs_interface_name = expected_type.get_name();
+            let data_copy = helper::create_data_copy(&mut self.ids, &fp_ref, arg);
+            let table_assign = helper::create_upcast_table_assignment(
+                &mut self.ids,
+                &fp_ref,
+                arg,
+                rhs_interface_name,
+                lhs_interface_name,
+            );
+
+            self.preamble.push(data_copy);
+            self.preamble.push(table_assign);
+        } else {
+            // POU-to-interface: wrap concrete instance in a fat pointer with ADR() + itable instance.
+            let interface_name = expected_type.get_name();
+            let pou_name = actual_type.get_name();
+            let data_assign = helper::create_data_assignment(&mut self.ids, &fp_ref, arg);
+            let table_assign =
+                helper::create_table_assignment(&mut self.ids, &fp_ref, interface_name, pou_name);
+
+            self.preamble.push(data_assign);
+            self.preamble.push(table_assign);
+        }
 
         // Replace the argument in-place with the fat pointer reference.
         *arg = fp_ref;
@@ -560,6 +684,60 @@ mod helper {
         );
         let adr_itable = create_adr_call(ids, itable_ref);
         AstFactory::create_assignment(lhs_table, adr_itable, ids.next_id())
+    }
+
+    /// Builds `lhs.data := rhs.data` — a direct member-to-member copy used for interface upcasting
+    /// where both sides are already fat pointers.
+    pub fn create_data_copy(ids: &mut IdProvider, lhs: &AstNode, rhs: &AstNode) -> AstNode {
+        let lhs_data = create_member_access(ids, lhs, FATPOINTER_DATA_FIELD_NAME);
+        let rhs_data = create_member_access(ids, rhs, FATPOINTER_DATA_FIELD_NAME);
+
+        AstFactory::create_assignment(lhs_data, rhs_data, ids.next_id())
+    }
+
+    /// Builds `lhs.table := __itable_<rhs_interface>#(rhs.table^).__upcast_<lhs_interface>`.
+    ///
+    /// Used for interface upcasting: reads the upcast pointer from the RHS itable to get the
+    /// correct parent itable pointer for the LHS interface type.
+    pub fn create_upcast_table_assignment(
+        ids: &mut IdProvider,
+        lhs: &AstNode,
+        rhs: &AstNode,
+        rhs_interface_name: &str,
+        lhs_interface_name: &str,
+    ) -> AstNode {
+        let lhs_table = create_member_access(ids, lhs, FATPOINTER_TABLE_FIELD_NAME);
+
+        // Build: rhs.table^
+        let rhs_table_deref = AstFactory::create_deref_reference(
+            create_member_access(ids, rhs, FATPOINTER_TABLE_FIELD_NAME),
+            ids.next_id(),
+            SourceLocation::internal(),
+        );
+
+        // Build: __itable_<rhs_interface>#(rhs.table^)
+        let itable_name = itable_helper::get_itable_name(rhs_interface_name);
+        let cast_target = AstFactory::create_member_reference(
+            AstFactory::create_identifier(itable_name, SourceLocation::internal(), ids.next_id()),
+            None,
+            ids.next_id(),
+        );
+        let casted = AstFactory::create_cast_statement(
+            cast_target,
+            AstFactory::create_paren_expression(rhs_table_deref, SourceLocation::internal(), ids.next_id()),
+            &SourceLocation::internal(),
+            ids.next_id(),
+        );
+
+        // Build: __itable_<rhs_interface>#(rhs.table^).__upcast_<lhs_interface>
+        let upcast_field_name = itable_helper::get_upcast_field_name(lhs_interface_name);
+        let upcast_read = AstFactory::create_member_reference(
+            AstFactory::create_identifier(upcast_field_name, SourceLocation::internal(), ids.next_id()),
+            Some(casted),
+            ids.next_id(),
+        );
+
+        AstFactory::create_assignment(lhs_table, upcast_read, ids.next_id())
     }
 
     /// Appends a member access to a base expression: `base.field_name`.
@@ -3175,46 +3353,6 @@ mod tests {
         }
 
         #[test]
-        #[should_panic]
-        fn interface_to_interface_assignment_upcasting() {
-            let source = r#"
-                INTERFACE IA
-                END_INTERFACE
-
-                INTERFACE IB EXTENDS IA
-                END_INTERFACE
-
-                INTERFACE IC EXTENDS IB
-                END_INTERFACE
-
-                INTERFACE ID EXTENDS IB, IC
-                END_INTERFACE
-
-
-                FUNCTION main
-                    VAR
-                        refA: IA;
-                        refB: IB;
-                        refC: IC;
-                        refD: ID;
-
-                        refA2: IA;
-                    END_VAR
-
-                    refA := refA2; // same interface, no cast
-
-                    // Upcasts
-                    refA := refB;
-                    refA := refC;
-                    refA := refD;
-                END_FUNCTION
-            "#;
-
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
-            ");
-        }
-
-        #[test]
         fn call_argument_wrapping_in_if_condition() {
             let source = r#"
                 INTERFACE IA
@@ -3300,6 +3438,714 @@ mod tests {
                 i := i + 1
             END_WHILE
             ");
+        }
+    }
+
+    mod upcast {
+        mod assignments {
+            #[test]
+            fn simple() {
+                // IB extends IA: refIA := refIB should copy .data and read .table
+                // through __upcast_IA on the IB itable.
+                let source = r#"
+                    INTERFACE IA
+                        METHOD foo END_METHOD
+                    END_INTERFACE
+
+                    INTERFACE IB EXTENDS IA
+                        METHOD bar END_METHOD
+                    END_INTERFACE
+
+                    FUNCTION_BLOCK FbA IMPLEMENTS IB
+                        METHOD foo END_METHOD
+                        METHOD bar END_METHOD
+                    END_FUNCTION_BLOCK
+
+                    FUNCTION main
+                        VAR
+                            refA: IA;
+                            refB: IB;
+                        END_VAR
+
+                        refA := refB;
+                    END_FUNCTION
+                "#;
+
+                insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
+                [
+                    "// Statements in main",
+                    "refA.data := refB.data",
+                    "refA.table := __itable_IB#(refB.table^).__upcast_IA",
+                ]
+                "#);
+            }
+
+            #[test]
+            fn transitive() {
+                // IC extends IB extends IA: refIA := refIC should use a single
+                // __upcast_IA read (flattened), not chain through IB.
+                let source = r#"
+                    INTERFACE IA
+                        METHOD foo END_METHOD
+                    END_INTERFACE
+
+                    INTERFACE IB EXTENDS IA
+                        METHOD bar END_METHOD
+                    END_INTERFACE
+
+                    INTERFACE IC EXTENDS IB
+                        METHOD baz END_METHOD
+                    END_INTERFACE
+
+                    FUNCTION_BLOCK FbA IMPLEMENTS IC
+                        METHOD foo END_METHOD
+                        METHOD bar END_METHOD
+                        METHOD baz END_METHOD
+                    END_FUNCTION_BLOCK
+
+                    FUNCTION main
+                        VAR
+                            refA: IA;
+                            refC: IC;
+                        END_VAR
+
+                        refA := refC;
+                    END_FUNCTION
+                "#;
+
+                insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
+                [
+                    "// Statements in main",
+                    "refA.data := refC.data",
+                    "refA.table := __itable_IC#(refC.table^).__upcast_IA",
+                ]
+                "#);
+            }
+
+            #[test]
+            fn same_interface_unchanged() {
+                // Same interface assignment should remain a plain memcpy (no upcast).
+                let source = r#"
+                    INTERFACE IA
+                        METHOD foo END_METHOD
+                    END_INTERFACE
+
+                    FUNCTION_BLOCK FbA IMPLEMENTS IA
+                        METHOD foo END_METHOD
+                    END_FUNCTION_BLOCK
+
+                    FUNCTION main
+                        VAR
+                            refA1: IA;
+                            refA2: IA;
+                        END_VAR
+
+                        refA1 := refA2;
+                    END_FUNCTION
+                "#;
+
+                insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
+                [
+                    "// Statements in main",
+                    "refA1 := refA2",
+                ]
+                "#);
+            }
+        }
+
+        mod arguments {
+            #[test]
+            fn simple() {
+                // Passing refIB where IA is expected should allocate a temp fat pointer
+                // with upcasted table.
+                let source = r#"
+                    INTERFACE IA
+                        METHOD foo END_METHOD
+                    END_INTERFACE
+
+                    INTERFACE IB EXTENDS IA
+                        METHOD bar END_METHOD
+                    END_INTERFACE
+
+                    FUNCTION_BLOCK FbA IMPLEMENTS IB
+                        METHOD foo END_METHOD
+                        METHOD bar END_METHOD
+                    END_FUNCTION_BLOCK
+
+                    FUNCTION consumer
+                        VAR_INPUT
+                            in1: IA;
+                        END_VAR
+                    END_FUNCTION
+
+                    FUNCTION main
+                        VAR
+                            refB: IB;
+                        END_VAR
+
+                        consumer(refB);
+                    END_FUNCTION
+                "#;
+
+                insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
+                [
+                    "// Statements in main",
+                    "alloca __fatpointer_0: __FATPOINTER",
+                    "__fatpointer_0.data := refB.data",
+                    "__fatpointer_0.table := __itable_IB#(refB.table^).__upcast_IA",
+                    "consumer(__fatpointer_0)",
+                ]
+                "#);
+            }
+
+            #[test]
+            fn named() {
+                // Named argument syntax: consumer(in1 := refIB) where in1: IA.
+                let source = r#"
+                    INTERFACE IA
+                        METHOD foo END_METHOD
+                    END_INTERFACE
+
+                    INTERFACE IB EXTENDS IA
+                        METHOD bar END_METHOD
+                    END_INTERFACE
+
+                    FUNCTION_BLOCK FbA IMPLEMENTS IB
+                        METHOD foo END_METHOD
+                        METHOD bar END_METHOD
+                    END_FUNCTION_BLOCK
+
+                    FUNCTION consumer
+                        VAR_INPUT
+                            in1: IA;
+                        END_VAR
+                    END_FUNCTION
+
+                    FUNCTION main
+                        VAR
+                            refB: IB;
+                        END_VAR
+
+                        consumer(in1 := refB);
+                    END_FUNCTION
+                "#;
+
+                insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
+                [
+                    "// Statements in main",
+                    "alloca __fatpointer_0: __FATPOINTER",
+                    "__fatpointer_0.data := refB.data",
+                    "__fatpointer_0.table := __itable_IB#(refB.table^).__upcast_IA",
+                    "consumer(in1 := __fatpointer_0)",
+                ]
+                "#);
+            }
+
+            #[test]
+            fn same_interface_no_wrap() {
+                // Passing refIA where IA is expected: no wrapping needed.
+                let source = r#"
+                    INTERFACE IA
+                        METHOD foo END_METHOD
+                    END_INTERFACE
+
+                    FUNCTION_BLOCK FbA IMPLEMENTS IA
+                        METHOD foo END_METHOD
+                    END_FUNCTION_BLOCK
+
+                    FUNCTION consumer
+                        VAR_INPUT
+                            in1: IA;
+                        END_VAR
+                    END_FUNCTION
+
+                    FUNCTION main
+                        VAR
+                            refA: IA;
+                        END_VAR
+
+                        consumer(refA);
+                        consumer(in1 := refA);
+                    END_FUNCTION
+                "#;
+
+                insta::assert_debug_snapshot!(super::super::lower_and_serialize_statements(source, &["main"]), @r#"
+                [
+                    "// Statements in main",
+                    "consumer(refA)",
+                    "consumer(in1 := refA)",
+                ]
+                "#);
+            }
+        }
+    }
+
+    mod properties {
+        #[test]
+        fn property_get_through_interface() {
+            // A standalone property get through an interface reference.
+            // Should lower to an itable indirect call to __get_foo.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                    END_VAR
+
+                    reference.foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__itable_IA#(reference.table^).__get_foo^(reference.data^)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_set_through_interface() {
+            // Setting a property through an interface reference.
+            // Should lower to an itable indirect call to __set_foo with the value as argument.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                    END_VAR
+
+                    reference.foo := 5;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__itable_IA#(reference.table^).__set_foo^(reference.data^, 5)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_get_in_assignment() {
+            // Getting a property through an interface and assigning it to a local variable.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                        result : DINT;
+                    END_VAR
+
+                    result := reference.foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "result := __itable_IA#(reference.table^).__get_foo^(reference.data^)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_get_in_expression() {
+            // Using a property getter in a binary expression.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                        result : DINT;
+                    END_VAR
+
+                    result := reference.foo + 1;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "result := __itable_IA#(reference.table^).__get_foo^(reference.data^) + 1",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_self_assignment_through_interface() {
+            // Self-assignment: reference.foo := reference.foo
+            // Should produce a setter whose argument is the getter, both through the itable.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                    END_VAR
+
+                    reference.foo := reference.foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__itable_IA#(reference.table^).__set_foo^(reference.data^, __itable_IA#(reference.table^).__get_foo^(reference.data^))",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_get_as_function_argument() {
+            // Passing a property getter result as an argument to a function.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer
+                    VAR_INPUT
+                        x : DINT;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                    END_VAR
+
+                    consumer(reference.foo);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "consumer(__itable_IA#(reference.table^).__get_foo^(reference.data^))",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_and_method_calls_mixed() {
+            // An interface has both a method and a property. Both are called through the
+            // interface reference and should dispatch through the same itable.
+            let source = r#"
+                INTERFACE IA
+                    METHOD bar : DINT END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    METHOD bar : DINT END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                        result : DINT;
+                    END_VAR
+
+                    reference.bar();
+                    result := reference.foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__itable_IA#(reference.table^).bar^(reference.data^)",
+                "result := __itable_IA#(reference.table^).__get_foo^(reference.data^)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_through_qualified_interface() {
+            // Accessing a property through a qualified path: container.reference.foo
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK Container
+                    VAR
+                        reference : IA;
+                    END_VAR
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        container : Container;
+                        result : DINT;
+                    END_VAR
+
+                    result := container.reference.foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "Container__ctor(container)",
+                "result := __itable_IA#(container.reference.table^).__get_foo^(container.reference.data^)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_through_array_of_interfaces() {
+            // Accessing a property through an array of interface references.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        references : ARRAY[0..10] OF IA;
+                        i : DINT;
+                        result : DINT;
+                    END_VAR
+
+                    result := references[i].foo;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__main_references__ctor(references)",
+                "result := __itable_IA#(references[i].table^).__get_foo^(references[i].data^)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_assignment_expands_for_interface_variable() {
+            // Assigning a concrete POU instance (that has properties) to an interface variable.
+            // Verifies normal fat-pointer expansion still works when the POU has properties.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                        instance : FbA;
+                    END_VAR
+
+                    reference := instance;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instance)",
+                "reference.data := ADR(instance)",
+                "reference.table := ADR(__itable_IA_FbA_instance)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_assignment_uses_correct_itable_for_overridden_pou() {
+            // Assigning different concrete POU instances to the same interface variable.
+            // FbB extends FbA and overrides the getter. Each assignment should use the
+            // correct itable instance for the .table field.
+            let source = r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                        instanceA : FbA;
+                        instanceB : FbB;
+                    END_VAR
+
+                    reference := instanceA;
+                    reference := instanceB;
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "FbA__ctor(instanceA)",
+                "FbB__ctor(instanceB)",
+                "reference.data := ADR(instanceA)",
+                "reference.table := ADR(__itable_IA_FbA_instance)",
+                "reference.data := ADR(instanceB)",
+                "reference.table := ADR(__itable_IA_FbB_instance)",
+            ]
+            "#);
+        }
+
+        #[test]
+        fn property_get_nested_in_interface_method_call() {
+            // Using a property getter as an argument to an interface method call.
+            // reference.bar(reference.foo) where bar is a method and foo is a property.
+            let source = r#"
+                INTERFACE IA
+                    METHOD bar
+                        VAR_INPUT
+                            x : DINT;
+                        END_VAR
+                    END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    METHOD bar
+                        VAR_INPUT
+                            x : DINT;
+                        END_VAR
+                    END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION main
+                    VAR
+                        reference : IA;
+                    END_VAR
+
+                    reference.bar(reference.foo);
+                END_FUNCTION
+            "#;
+
+            insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
+            [
+                "// Statements in main",
+                "__itable_IA#(reference.table^).bar^(reference.data^, __itable_IA#(reference.table^).__get_foo^(reference.data^))",
+            ]
+            "#);
         }
     }
 }
