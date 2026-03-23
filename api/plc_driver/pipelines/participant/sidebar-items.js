@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CodegenParticipant","InitParticipant"],"trait":["PipelineParticipant","PipelineParticipantMut"]};
+window.SIDEBAR_ITEMS = {"struct":["ArrayLowerer","CodegenParticipant","InitParticipant"],"trait":["PipelineParticipant","PipelineParticipantMut"]};

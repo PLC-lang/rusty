@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Array Initializer Lowering"><title>plc_lowering::array_lowering - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_lowering" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module array_lowering</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../plc_lowering/index.html">plc_<wbr>lowering</a><span class="version">0.3.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module array_<wbr>lowering</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#array-initializer-lowering" title="Array Initializer Lowering">Array Initializer Lowering</a><ul><li><a href="#why-this-exists" title="Why this exists">Why this exists</a></li><li><a href="#when-this-pass-triggers" title="When this pass triggers">When this pass triggers</a></li><li><a href="#lowering-rules" title="Lowering rules">Lowering rules</a></li><li><a href="#side-effects" title="Side effects">Side effects</a></li></ul></li></ul><h3><a href="#functions">Module Items</a></h3><ul class="block"><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate plc_<wbr>lowering</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">plc_lowering</a></div><h1>Module <span>array_<wbr>lowering</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/plc_lowering/array_lowering.rs.html#1-725">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="array-initializer-lowering"><a class="doc-anchor" href="#array-initializer-lowering">§</a>Array Initializer Lowering</h2>
+<p>This pass rewrites array initializer assignments whose elements cannot be
+evaluated at compile time into sequences of indexed assignments and/or FOR
+loops that the codegen backend can handle.</p>
+<h3 id="why-this-exists"><a class="doc-anchor" href="#why-this-exists">§</a>Why this exists</h3>
+<p>The initializer pass (<code>initializer.rs</code>) emits constructor bodies that assign
+array literals to their targets: <code>self.arr := [init];</code>.  When every element
+of the literal is a compile-time constant (integers, reals, bools, …) codegen
+materializes the whole array as an anonymous global constant and copies it
+with <code>memcpy</code> — no lowering needed.</p>
+<p>However, some element expressions are <strong>not</strong> compile-time constants:</p>
+<ul>
+<li>
+<p><strong>Function calls</strong> such as <code>ADR(x)</code> produce addresses that depend on
+runtime memory layout.  These can never appear in a global constant.</p>
+</li>
+<li>
+<p><strong>Struct literal initializers</strong> like <code>(a := 5, b := 10)</code> are semantically
+constant but codegen’s <code>generate_literal_array_value</code> currently cannot
+evaluate them inside an array context (it stack-overflows in the
+context-free expression generator).  This is a codegen limitation, not a
+fundamental one — once fixed, struct literals can be removed from the
+trigger list.</p>
+</li>
+</ul>
+<p>For these cases the assignment must be decomposed into individual element
+stores that the expression generator can handle one at a time.</p>
+<h3 id="when-this-pass-triggers"><a class="doc-anchor" href="#when-this-pass-triggers">§</a>When this pass triggers</h3>
+<p>The pass walks every implementation body looking for assignments whose RHS
+is a <code>LiteralArray</code>.  It checks the array’s element tree for non-constant
+expressions via [<code>contains_non_constant_expression</code>]:</p>
+<div><table><thead><tr><th>Element kind</th><th>Constant?</th><th>Triggers lowering?</th></tr></thead><tbody>
+<tr><td>Literal (int, real, …)</td><td>yes</td><td>no</td></tr>
+<tr><td>String literal</td><td>yes</td><td>no</td></tr>
+<tr><td>Variable reference</td><td><strong>no</strong></td><td><strong>yes</strong> — runtime value</td></tr>
+<tr><td>Function call (<code>ADR(x)</code>)</td><td><strong>no</strong></td><td><strong>yes</strong> — runtime value</td></tr>
+<tr><td>Struct literal <code>(a:=1)</code></td><td><strong>no</strong>*</td><td><strong>yes</strong> — codegen limitation</td></tr>
+</tbody></table>
+</div>
+<p>*Struct literals are semantically constant but are treated as non-constant
+because codegen’s <code>generate_literal_array_value</code> cannot currently evaluate
+them inside an array context.</p>
+<p>If no non-constant expression is found, the literal is left as-is for
+codegen’s memcpy path.</p>
+<h3 id="lowering-rules"><a class="doc-anchor" href="#lowering-rules">§</a>Lowering rules</h3>
+<p>Given <code>arr : ARRAY[start..end] OF T := [init];</code> where <code>init</code> contains
+non-constant expressions:</p>
+<div><table><thead><tr><th>Pattern</th><th>Lowered form</th></tr></thead><tbody>
+<tr><td><code>[N(val)]</code>  (N ≥ threshold)</td><td><code>FOR __idx := start TO start+N-1 DO arr[__idx] := val</code></td></tr>
+<tr><td><code>[N(val)]</code>  (N &lt; threshold)</td><td><code>arr[start] := val; arr[start+1] := val; …</code></td></tr>
+<tr><td><code>[v1, v2, v3]</code></td><td><code>arr[start] := v1; arr[start+1] := v2; …</code></td></tr>
+<tr><td><code>[3(v1), v2, 2(v3)]</code></td><td>mixed — each segment lowered independently</td></tr>
+</tbody></table>
+</div>
+<p>Multi-dimensional arrays are also handled:</p>
+<ul>
+<li>Individual assignments use computed multi-dimensional indices via
+[<code>ArrayInfo::flat_to_indices</code>] (e.g. flat index 5 on <code>ARRAY[0..2, 0..2]</code>
+becomes <code>arr[1, 2]</code>).</li>
+<li>A single <code>MultipliedStatement</code> filling the entire array uses nested FOR
+loops (one per dimension).</li>
+<li>Partial multiplied segments on multi-dim arrays are unrolled to individual
+assignments with computed indices.</li>
+</ul>
+<h3 id="side-effects"><a class="doc-anchor" href="#side-effects">§</a>Side effects</h3>
+<p>After lowering, the pass:</p>
+<ol>
+<li><strong>Strips the original initializer</strong> from the variable / user-type
+declaration so the data-type generator does not attempt to create a
+<code>__init</code> global for an expression it cannot evaluate.</li>
+<li><strong>Adds <code>VAR_TEMP</code> counter variables</strong> (e.g. <code>__literal_idx</code>) to POUs
+that contain generated FOR loops.</li>
+</ol>
+</div></details><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.lower_literal_arrays.html" title="fn plc_lowering::array_lowering::lower_literal_arrays">lower_<wbr>literal_<wbr>arrays</a></dt><dd>Walks every implementation in the compilation unit and rewrites assignments whose
+right-hand side is an array literal (<code>LiteralArray</code>) into indexed assignments
+and/or FOR loops.</dd></dl></section></div></main></body></html>

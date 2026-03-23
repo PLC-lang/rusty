@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["control_statement","inheritance","initializer","retain"]};
+window.SIDEBAR_ITEMS = {"mod":["array_lowering","control_statement","inheritance","initializer","retain"]};
