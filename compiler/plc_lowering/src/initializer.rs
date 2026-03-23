@@ -583,6 +583,13 @@ impl Initializer {
         self.pre_register_all_constructors(&unit);
         // Now do the main traversal to generate initialization logic
         self.visit_compilation_unit(&unit);
+
+        // Strip non-constant array initializers from declarations. The init lowerer
+        // has consumed them into constructor body assignments; keeping them would
+        // cause the data-type generator to fail evaluating runtime expressions as
+        // compile-time constants.
+        strip_non_const_array_initializers(&mut unit, &index);
+
         self.index = None;
         // Add each constructor function to the unit as a new function
         for (name, body) in self.constructors {
@@ -640,6 +647,7 @@ impl Initializer {
             unit.pous.push(pou);
             unit.implementations.push(implementation);
         }
+
         unit
     }
 
@@ -827,6 +835,94 @@ impl Initializer {
             Some("self")
         }
     }
+}
+
+/// Strips non-constant array literal initializers from variable and type
+/// declarations. The init lowerer has consumed them into constructor body
+/// assignments; keeping them would cause the data-type generator to fail
+/// evaluating runtime expressions as compile-time constants.
+fn strip_non_const_array_initializers(unit: &mut CompilationUnit, index: &Index) {
+    for pou in &mut unit.pous {
+        let pou_name = pou.name.clone();
+        for block in &mut pou.variable_blocks {
+            if block.constant {
+                continue;
+            }
+            for var in &mut block.variables {
+                if var
+                    .initializer
+                    .as_ref()
+                    .is_some_and(|init| is_non_const_array_literal(init, index, Some(&pou_name)))
+                {
+                    var.initializer = None;
+                }
+            }
+        }
+    }
+
+    for udt in &mut unit.user_types {
+        if udt.initializer.as_ref().is_some_and(|init| is_non_const_array_literal(init, index, None)) {
+            udt.initializer = None;
+        }
+    }
+
+    for block in &mut unit.global_vars {
+        if block.constant {
+            continue;
+        }
+        for var in &mut block.variables {
+            if var.initializer.as_ref().is_some_and(|init| is_non_const_array_literal(init, index, None)) {
+                var.initializer = None;
+            }
+        }
+    }
+}
+
+/// Returns `true` if `node` is an array literal containing non-constant expressions.
+fn is_non_const_array_literal(node: &AstNode, index: &Index, pou_name: Option<&str>) -> bool {
+    use plc_ast::ast::AstStatement;
+    use plc_ast::literals::{Array, AstLiteral};
+
+    if let AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) = node.get_stmt() {
+        !is_const_initializer(elements, index, pou_name)
+    } else {
+        false
+    }
+}
+
+/// Returns `true` if every leaf in the expression tree can be evaluated at
+/// compile time. Literals and references to constant variables are const;
+/// function calls, struct literal assignments, and non-constant variable
+/// references are not.
+fn is_const_initializer(node: &AstNode, index: &Index, pou_name: Option<&str>) -> bool {
+    use plc_ast::ast::AstStatement;
+
+    match node.get_stmt() {
+        AstStatement::Literal(..) => true,
+        AstStatement::Identifier(..) | AstStatement::ReferenceExpr(..)
+            if is_const_reference(node, index, pou_name) =>
+        {
+            true
+        }
+        AstStatement::ExpressionList(exprs) => exprs.iter().all(|e| is_const_initializer(e, index, pou_name)),
+        AstStatement::MultipliedStatement(plc_ast::ast::MultipliedStatement { element, .. }) => {
+            is_const_initializer(element, index, pou_name)
+        }
+        AstStatement::ParenExpression(inner) => is_const_initializer(inner, index, pou_name),
+        _ => false,
+    }
+}
+
+/// Returns `true` if the node is a reference to a constant variable.
+fn is_const_reference(node: &AstNode, index: &Index, pou_name: Option<&str>) -> bool {
+    let name = node.get_flat_reference_name();
+    let Some(name) = name else { return false };
+
+    // Check as POU-local member first, then as global
+    let variable =
+        pou_name.and_then(|pou| index.find_member(pou, name)).or_else(|| index.find_global_variable(name));
+
+    variable.is_some_and(|v| v.is_constant())
 }
 
 #[cfg(test)]

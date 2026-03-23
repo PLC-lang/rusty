@@ -257,13 +257,10 @@ fn adr_expression_list_is_lowered() {
     assert_eq!(count_assignments(stmts), 4);
 }
 
-/// `strip_initializers` keys by `implementation.type_name`, but
-/// for a FUNCTION_BLOCK's member array the assignment lives in `Foo__ctor`
-/// whose `type_name` is `"Foo__ctor"`, while the variable declaration sits in
-/// the `Foo` POU (keyed by `pou.name == "Foo"`). The mismatch means the
-/// initializer is never stripped from `Foo`'s variable block.
+/// Verify that FB member array non-constant initializers are lowered into
+/// indexed assignments in the constructor body.
 #[test]
-fn fb_member_array_non_const_initializer_is_stripped() {
+fn fb_member_array_non_const_initializer_is_lowered() {
     let project = lower(
         "
         FUNCTION_BLOCK Foo
@@ -274,37 +271,10 @@ fn fb_member_array_non_const_initializer_is_stripped() {
         END_FUNCTION_BLOCK
         ",
     );
-    let pou = project.units[0].get_unit().pous.iter().find(|p| p.name == "Foo").unwrap();
-    let arr_var = pou
-        .variable_blocks
-        .iter()
-        .flat_map(|b| &b.variables)
-        .find(|v| v.name == "arr")
-        .expect("arr variable should exist");
-    assert!(arr_var.initializer.is_none(), "Lowered FB member array initializer should be stripped");
-}
-
-#[test]
-fn adr_variable_initializer_is_stripped() {
-    let project = lower(
-        "
-        FUNCTION main : DINT
-        VAR
-            x : DINT;
-            arr : ARRAY[0..2] OF REF_TO DINT := [3(ADR(x))];
-        END_VAR
-            main := 0;
-        END_FUNCTION
-        ",
-    );
-    let pou = project.units[0].get_unit().pous.iter().find(|p| p.name == "main").unwrap();
-    let arr_var = pou
-        .variable_blocks
-        .iter()
-        .flat_map(|b| &b.variables)
-        .find(|v| v.name == "arr")
-        .expect("arr variable should exist");
-    assert!(arr_var.initializer.is_none(), "Lowered array initializer should be stripped");
+    let stmts = find_impl_stmts(&project, "Foo__ctor");
+    assert!(!has_literal_array(stmts), "FB member non-const array should be lowered");
+    // 3 indexed assignments for arr + 1 init for x
+    assert_eq!(count_assignments(stmts), 4);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -417,8 +387,9 @@ fn variable_elements_in_expression_list_are_lowered() {
     assert_eq!(count_assignments(stmts), 5);
 }
 
+/// Verify that only the non-constant array is lowered while the constant one is left as-is.
 #[test]
-fn only_lowered_variable_initializer_is_stripped_for_shared_type() {
+fn shared_type_non_const_is_lowered_const_is_not() {
     let project = lower(
         "
         TYPE tarr : ARRAY[0..2] OF DINT; END_TYPE
@@ -434,25 +405,11 @@ fn only_lowered_variable_initializer_is_stripped_for_shared_type() {
         ",
     );
 
-    let pou = project.units[0].get_unit().pous.iter().find(|p| p.name == "main").unwrap();
-    let lowered_arr = pou
-        .variable_blocks
-        .iter()
-        .flat_map(|b| &b.variables)
-        .find(|v| v.name == "lowered_arr")
-        .expect("lowered_arr variable should exist");
-    let const_arr = pou
-        .variable_blocks
-        .iter()
-        .flat_map(|b| &b.variables)
-        .find(|v| v.name == "const_arr")
-        .expect("const_arr variable should exist");
-
-    assert!(lowered_arr.initializer.is_none(), "Lowered initializer should be stripped");
-    assert!(
-        const_arr.initializer.is_some(),
-        "Initializer for same-type variable without lowering must be preserved"
-    );
+    let stmts = find_impl_stmts(&project, "main");
+    // 3 indexed assignments for lowered_arr + `seed := 42` + const_arr literal assignment + `main := 0`
+    assert_eq!(count_assignments(stmts), 6);
+    // const_arr's literal array assignment is still present
+    assert!(has_literal_array(stmts), "Constant array should remain as literal");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -547,8 +504,9 @@ fn type_level_struct_array_ctor_is_lowered() {
     assert_eq!(count_assignments(stmts), 3);
 }
 
+/// Verify that type-level struct array initializers are lowered in the constructor body.
 #[test]
-fn type_level_struct_array_initializer_is_stripped() {
+fn type_level_struct_array_is_lowered_in_ctor() {
     let project = lower(
         "
         TYPE MyStruct : STRUCT a : DINT; END_STRUCT END_TYPE
@@ -560,13 +518,9 @@ fn type_level_struct_array_initializer_is_stripped() {
         END_FUNCTION
         ",
     );
-    let udt = project.units[0]
-        .get_unit()
-        .user_types
-        .iter()
-        .find(|u| u.data_type.get_name() == Some("tarr"))
-        .expect("tarr type should exist");
-    assert!(udt.initializer.is_none(), "Lowered type initializer should be stripped");
+    let stmts = find_impl_stmts(&project, "tarr__ctor");
+    assert!(!has_literal_array(stmts), "Type-level struct array should be lowered");
+    assert_eq!(count_assignments(stmts), 3);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

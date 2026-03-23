@@ -2793,7 +2793,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 && (expression.is_array_value() || expression.is_struct_value())
                 && left_type.is_aggregate()
             {
-                self.store_aggregate_via_memcpy(left, left_type, expression, right_statement)?;
+                self.store_aggregate_via_memcpy(left, expression, right_statement)?;
             } else {
                 self.llvm.builder.build_store(left, expression)?;
             }
@@ -2807,16 +2807,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn store_aggregate_via_memcpy(
         &self,
         target: PointerValue<'ink>,
-        _target_type: &DataTypeInformation,
         value: BasicValueEnum<'ink>,
         right_statement: &AstNode,
     ) -> Result<(), CodegenError> {
-        let global_ptr = self.llvm.materialize_as_global(&value)?;
+        let (global_ptr, alignment) = self.llvm.materialize_as_global(&value)?;
         let size = value
             .get_type()
             .size_of()
             .ok_or_else(|| Diagnostic::codegen_error("Cannot determine type size", right_statement))?;
-        self.llvm.builder.build_memcpy(target, 1, global_ptr, 1, size)?;
+        self.llvm.builder.build_memcpy(target, alignment, global_ptr, alignment, size)?;
         Ok(())
     }
 
