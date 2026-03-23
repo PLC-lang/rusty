@@ -21,6 +21,7 @@ use plc::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
+    array_lowering,
     retain::RetainParticipant,
     {
         control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
@@ -247,6 +248,28 @@ impl PipelineParticipantMut for InitParticipant {
         }
         // Append new units and constructor to the ast and re-index
         let project = ParsedProject { units: resulting_units };
+        project.index(self.id_provider.clone())
+    }
+}
+
+pub struct ArrayLowerer {
+    id_provider: IdProvider,
+}
+
+impl ArrayLowerer {
+    pub fn new(id_provider: IdProvider) -> Self {
+        Self { id_provider }
+    }
+}
+
+impl PipelineParticipantMut for ArrayLowerer {
+    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { project: ParsedProject { mut units }, index, .. } = indexed_project;
+        for unit in &mut units {
+            array_lowering::lower_literal_arrays(unit, &index, &mut self.id_provider);
+        }
+        // Re-index since we modified the AST (new statements, possible new alloca variables)
+        let project = ParsedProject { units };
         project.index(self.id_provider.clone())
     }
 }

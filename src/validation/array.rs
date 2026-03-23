@@ -163,7 +163,12 @@ fn statement_to_array_length<T: AnnotationMap>(context: &ValidationContext<T>, s
             .and_then(|it| it.information.get_array_length(context.index))
             .unwrap_or(0),
 
-        AstStatement::MultipliedStatement(data) => data.multiplier as usize,
+        AstStatement::MultipliedStatement(data) => {
+            // If the multiplier is a literal integer, use it directly.
+            // Otherwise (e.g. variable reference), we can't statically determine the
+            // count — skip validation by returning 0.
+            data.multiplier.get_literal_integer_value().unwrap_or(0) as usize
+        }
         AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(_) => 1,
 
         // Any literal other than an array can be counted as 1

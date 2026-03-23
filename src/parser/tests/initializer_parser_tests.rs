@@ -276,7 +276,9 @@ fn array_initializer_multiplier_can_be_parsed() {
         LiteralArray {
             elements: Some(
                 MultipliedStatement {
-                    multiplier: 3,
+                    multiplier: LiteralInteger {
+                        value: 3,
+                    },
                     element: LiteralInteger {
                         value: 7,
                     },

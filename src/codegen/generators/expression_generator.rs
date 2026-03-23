@@ -2786,8 +2786,37 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             )?;
         } else {
             let expression = self.generate_expression(right_statement)?;
-            self.llvm.builder.build_store(left, expression)?;
+            // For aggregate constant values (array/struct literals), avoid emitting a giant
+            // inline `store` instruction. Instead, materialize the constant as an anonymous
+            // global and memcpy from it — this is O(1) in IR size regardless of array length.
+            if expression.is_const()
+                && (expression.is_array_value() || expression.is_struct_value())
+                && left_type.is_aggregate()
+            {
+                self.store_aggregate_via_memcpy(left, left_type, expression, right_statement)?;
+            } else {
+                self.llvm.builder.build_store(left, expression)?;
+            }
         }
+        Ok(())
+    }
+
+    /// Materializes an aggregate constant value as an anonymous global and copies it
+    /// into `target` via memcpy. This avoids bloated inline `store` instructions for
+    /// large array/struct literals.
+    fn store_aggregate_via_memcpy(
+        &self,
+        target: PointerValue<'ink>,
+        _target_type: &DataTypeInformation,
+        value: BasicValueEnum<'ink>,
+        right_statement: &AstNode,
+    ) -> Result<(), CodegenError> {
+        let global_ptr = self.llvm.materialize_as_global(&value)?;
+        let size = value
+            .get_type()
+            .size_of()
+            .ok_or_else(|| Diagnostic::codegen_error("Cannot determine type size", right_statement))?;
+        self.llvm.builder.build_memcpy(target, 1, global_ptr, 1, size)?;
         Ok(())
     }
 

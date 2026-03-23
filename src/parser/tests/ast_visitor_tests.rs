@@ -195,8 +195,8 @@ fn test_visit_multiplied_statement() {
             3(a+b);
         END_PROGRAM",
     );
-    // THEN we expect to visit the multiplied expression and its subexpressions
-    assert_eq!(get_character_range('a', 'b'), visitor.identifiers);
+    // THEN we expect to visit the multiplier literal and the subexpressions
+    assert_eq!(vec!["3", "a", "b"], visitor.identifiers);
 }
 
 #[test]
@@ -438,7 +438,8 @@ fn test_visit_datatype_initializers_statement() {
         END_TYPE",
     );
     // THEN we expect to visit all initializers and enum elements
-    let mut expected = ["1", "3", "4", "7"].iter().map(|c| c.to_string()).collect::<Vec<String>>();
+    // "4" appears twice: once from the array bounds `4..7` and once from the multiplier `4(d)`
+    let mut expected = ["1", "3", "4", "4", "7"].iter().map(|c| c.to_string()).collect::<Vec<String>>();
 
     expected.extend(get_character_range('a', 'm'));
     assert_eq!(expected, visitor.identifiers);
