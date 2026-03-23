@@ -149,10 +149,6 @@ struct LoweredResult {
     counter_names: BTreeSet<String>,
 }
 
-struct LoweredAssignment {
-    lowered: LoweredResult,
-}
-
 // ── Public entry point ──────────────────────────────────────────────────────
 
 /// Walks every implementation in the compilation unit and rewrites assignments whose
@@ -175,11 +171,11 @@ pub fn lower_literal_arrays(unit: &mut CompilationUnit, index: &Index, id_provid
         let mut counters: BTreeSet<String> = BTreeSet::new();
 
         for stmt in std::mem::take(&mut implementation.statements) {
-            if let Some(lowered_assignment) =
+            if let Some(lowered) =
                 try_lower_array_assignment(&stmt, index, &implementation.type_name, id_provider)
             {
-                counters.extend(lowered_assignment.lowered.counter_names);
-                new_statements.extend(lowered_assignment.lowered.statements);
+                counters.extend(lowered.counter_names);
+                new_statements.extend(lowered.statements);
             } else {
                 new_statements.push(stmt);
             }
@@ -354,7 +350,7 @@ fn try_lower_array_assignment(
     index: &Index,
     pou_type_name: &str,
     id_provider: &mut IdProvider,
-) -> Option<LoweredAssignment> {
+) -> Option<LoweredResult> {
     let AstStatement::Assignment(data) = stmt.get_stmt() else {
         return None;
     };
@@ -393,31 +389,14 @@ fn try_lower_array_assignment(
     let array_info = ArrayInfo { dims };
     let lowered = lower_array_elements(data.left.as_ref(), elements, &array_info, id_provider);
 
-    Some(LoweredAssignment { lowered })
+    Some(lowered)
 }
 
 /// Returns `true` if the expression tree contains any non-constant expression
 /// that cannot be evaluated at compile time, such as function calls or struct
 /// literal initializers `(a := 1, b := 2)`.
 fn contains_non_constant_expression(node: &AstNode) -> bool {
-    !is_constant_expression(node)
-}
-
-/// Returns `true` if every leaf in the expression tree is a compile-time constant
-/// (literal integer, real, bool, string, etc.).  Anything else — variable references,
-/// function calls, struct literal assignments — is considered non-constant.
-fn is_constant_expression(node: &AstNode) -> bool {
-    match node.get_stmt() {
-        AstStatement::Literal(..) => true,
-        AstStatement::ExpressionList(exprs) => exprs.iter().all(is_constant_expression),
-        AstStatement::MultipliedStatement(MultipliedStatement { element, .. }) => {
-            is_constant_expression(element)
-        }
-        AstStatement::ParenExpression(inner) => is_constant_expression(inner),
-        // Everything else: variable references, function calls, struct literal
-        // assignments, etc. — not a compile-time constant.
-        _ => false,
-    }
+    !crate::helper::is_const_expression(node, None, None)
 }
 
 /// Determines the type name of the LHS of an assignment by consulting the index.

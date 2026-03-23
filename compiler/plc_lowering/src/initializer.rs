@@ -884,45 +884,10 @@ fn is_non_const_array_literal(node: &AstNode, index: &Index, pou_name: Option<&s
     use plc_ast::literals::{Array, AstLiteral};
 
     if let AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) = node.get_stmt() {
-        !is_const_initializer(elements, index, pou_name)
+        !crate::helper::is_const_expression(elements, Some(index), pou_name)
     } else {
         false
     }
-}
-
-/// Returns `true` if every leaf in the expression tree can be evaluated at
-/// compile time. Literals and references to constant variables are const;
-/// function calls, struct literal assignments, and non-constant variable
-/// references are not.
-fn is_const_initializer(node: &AstNode, index: &Index, pou_name: Option<&str>) -> bool {
-    use plc_ast::ast::AstStatement;
-
-    match node.get_stmt() {
-        AstStatement::Literal(..) => true,
-        AstStatement::Identifier(..) | AstStatement::ReferenceExpr(..)
-            if is_const_reference(node, index, pou_name) =>
-        {
-            true
-        }
-        AstStatement::ExpressionList(exprs) => exprs.iter().all(|e| is_const_initializer(e, index, pou_name)),
-        AstStatement::MultipliedStatement(plc_ast::ast::MultipliedStatement { element, .. }) => {
-            is_const_initializer(element, index, pou_name)
-        }
-        AstStatement::ParenExpression(inner) => is_const_initializer(inner, index, pou_name),
-        _ => false,
-    }
-}
-
-/// Returns `true` if the node is a reference to a constant variable.
-fn is_const_reference(node: &AstNode, index: &Index, pou_name: Option<&str>) -> bool {
-    let name = node.get_flat_reference_name();
-    let Some(name) = name else { return false };
-
-    // Check as POU-local member first, then as global
-    let variable =
-        pou_name.and_then(|pou| index.find_member(pou, name)).or_else(|| index.find_global_variable(name));
-
-    variable.is_some_and(|v| v.is_constant())
 }
 
 #[cfg(test)]

@@ -53,11 +53,6 @@ impl GlobalValueExt for GlobalValue<'_> {
         self
     }
 
-    fn make_retain(self) -> Self {
-        self.set_section(Some(RETAIN_SECTION_NAME));
-        self
-    }
-
     fn set_initial_value(self, initial_value: Option<BasicValueEnum>, data_type: BasicTypeEnum) -> Self {
         if let Some(initializer) = initial_value {
             let v = &initializer as &dyn BasicValue;
@@ -65,6 +60,11 @@ impl GlobalValueExt for GlobalValue<'_> {
         } else {
             Llvm::set_const_zero_initializer(&self, data_type);
         };
+        self
+    }
+
+    fn make_retain(self) -> Self {
+        self.set_section(Some(RETAIN_SECTION_NAME));
         self
     }
 }

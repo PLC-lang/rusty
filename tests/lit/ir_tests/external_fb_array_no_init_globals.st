@@ -18,9 +18,10 @@ VAR
 END_VAR
 END_PROGRAM
 
-// The ctor for myFb should be declared (external), not defined
-// CHECK: declare void @myFb__ctor(ptr)
-
-// No .const_init or __myFb.arr__init globals should be present
+// No .const_init or __myFb.arr__init globals should be present.
+// CHECK-NOT directives must come before CHECK to scan from start of input.
 // CHECK-NOT: @.const_init
 // CHECK-NOT: @__myFb.arr__init
+
+// The ctor for myFb should be declared (external), not defined
+// CHECK: declare void @myFb__ctor(ptr)
