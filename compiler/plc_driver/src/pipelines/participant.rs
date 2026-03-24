@@ -21,11 +21,11 @@ use plc::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
+    control::ControlDesugarer,
+    control_statement::ControlStatementParticipant,
+    inheritance::InheritanceLowerer,
+    initializer::Initializer,
     retain::RetainParticipant,
-    {
-        control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
-        initializer::Initializer,
-    },
 };
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
@@ -338,6 +338,14 @@ impl PipelineParticipantMut for ControlStatementParticipant {
     fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         let ParsedProject { mut units } = parsed_project;
         self.lower_control_statements(&mut units);
+        ParsedProject { units }
+    }
+}
+
+impl PipelineParticipantMut for ControlDesugarer {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        self.desugar(&mut units);
         ParsedProject { units }
     }
 }

@@ -3,6 +3,7 @@ pub mod tests {
 
     use std::{collections::HashMap, path::PathBuf, str::FromStr, sync::Mutex};
 
+    use crate::resolver::AnnotationMap;
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
         mut_visitor::AstVisitorMut,
@@ -12,6 +13,7 @@ pub mod tests {
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use plc_index::GlobalContext;
+    use plc_lowering::control::ControlDesugarer;
     use plc_lowering::control_statement::ControlStatementLowerer;
     use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
@@ -149,8 +151,12 @@ pub mod tests {
         index.import(std::mem::take(&mut annotations.new_index));
         all_annotations.import(annotations);
 
-        // TODO: Added the control statement lowerer for now... but maybe we should be using the pipeline participants for codegen as well
-        // so that we can get a "true" representation of what would be generated when the compiler is run.
+        // TODO: Added the control statement lowerer for now... but maybe we should be using the pipeline
+        // participants for codegen as well so that we can get a "true" representation of what would be
+        // generated when the compiler is run.
+        let control_desugarer = ControlDesugarer::new(id_provider.clone());
+        control_desugarer.desugar(std::slice::from_mut(&mut unit));
+
         let mut control_statement_lowerer = ControlStatementLowerer::new(id_provider.clone());
         control_statement_lowerer.visit_compilation_unit(&mut unit);
 

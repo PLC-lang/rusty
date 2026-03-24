@@ -9,7 +9,7 @@ use crate::ast::{
     JumpStatement, MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr,
     UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
 };
-use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
+use crate::control_statements::{AstControlStatement, ConditionalBlock, LoopStatement, ReturnStatement};
 use crate::literals::AstLiteral;
 use crate::try_from_mut;
 
@@ -183,6 +183,11 @@ pub trait AstVisitorMut: Sized {
         stmt.walk(self)
     }
 
+    fn visit_while_statement(&mut self, stmt: &mut LoopStatement) {
+        visit_nodes_mut!(self, &mut stmt.condition);
+        self.visit_statement_list(&mut stmt.body);
+    }
+
     fn visit_case_condition(&mut self, node: &mut AstNode) {
         let AstStatement::CaseCondition(child) = node.get_stmt_mut() else {
             unreachable!("CaseCondition");
@@ -353,7 +358,10 @@ impl WalkerMut for AstControlStatement {
                 stmt.blocks.walk(visitor);
                 visitor.visit_statement_list(&mut stmt.else_block);
             }
-            AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
+            AstControlStatement::WhileLoop(stmt) => {
+                visitor.visit_while_statement(stmt);
+            }
+            AstControlStatement::RepeatLoop(stmt) => {
                 visit_nodes_mut!(visitor, &mut stmt.condition);
                 visitor.visit_statement_list(&mut stmt.body);
             }

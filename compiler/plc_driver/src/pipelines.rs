@@ -43,8 +43,8 @@ use plc_header_generator::{
 };
 use plc_index::GlobalContext;
 use plc_lowering::{
-    control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
-    retain::RetainParticipant,
+    control::ControlDesugarer, control_statement::ControlStatementParticipant,
+    inheritance::InheritanceLowerer, retain::RetainParticipant,
 };
 use project::{
     object::Object,
@@ -299,6 +299,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
+            Box::new(ControlDesugarer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(PolymorphismLowerer::new(
                 self.context.provider(),

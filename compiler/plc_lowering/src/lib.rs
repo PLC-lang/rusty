@@ -4,10 +4,12 @@ use plc::{
 };
 use plc_ast::{ast::AstNode, provider::IdProvider};
 
+pub mod control;
 pub mod control_statement;
 pub mod inheritance;
 pub mod initializer;
 pub mod retain;
+
 #[cfg(test)]
 mod tests;
 

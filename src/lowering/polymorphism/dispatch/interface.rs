@@ -3391,13 +3391,7 @@ mod tests {
             ");
         }
 
-        // FIXME: A dedicated loop desugarer (running before this pass) that rewrites WHILE/FOR
-        // into `WHILE TRUE DO IF NOT <cond> THEN EXIT END_IF <body> END_WHILE` would fix this:
-        // the condition ends up inside the loop body where our preamble mechanism handles it
-        // correctly. The AggregateLowerer already does a similar WHILE transformation, but it
-        // runs later and is arguably the wrong place for structural loop rewrites.
         #[test]
-        #[ignore = "stale fat pointer: preamble is hoisted before the loop instead of re-evaluated each iteration"]
         fn call_argument_wrapping_in_while_condition() {
             let source = r#"
                 INTERFACE IA
@@ -3424,19 +3418,62 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            // The preamble must be inside the loop so `instances[i]` is re-evaluated each
-            // iteration. This requires restructuring WHILE into WHILE TRUE + EXIT.
             insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
             // Statements in main
-            alloca __fatpointer_0: __FATPOINTER
-            __fatpointer_0.data := ADR(instances[i])
-            __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
+            __main_instances__ctor(instances)
             WHILE TRUE DO
+                alloca __fatpointer_0: __FATPOINTER
+                __fatpointer_0.data := ADR(instances[i])
+                __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
                 IF NOT consumer(__fatpointer_0) THEN
-
+                    EXIT;
                 END_IF
                 i := i + 1
             END_WHILE
+            ");
+        }
+
+        #[test]
+        fn call_argument_wrapping_in_repeat_condition() {
+            let source = r#"
+                INTERFACE IA
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                END_FUNCTION_BLOCK
+
+                FUNCTION consumer : BOOL
+                    VAR_INPUT
+                        in1: IA;
+                    END_VAR
+                END_FUNCTION
+
+                FUNCTION main
+                    VAR
+                        instances: ARRAY[0..9] OF FbA;
+                        i: DINT;
+                    END_VAR
+
+                    REPEAT
+                        i := i + 1;
+                    UNTIL consumer(instances[i])
+                    END_REPEAT
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
+            // Statements in main
+            __main_instances__ctor(instances)
+            alloca __fatpointer_0: __FATPOINTER
+            __fatpointer_0.data := ADR(instances[i])
+            __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
+            REPEAT
+                i := i + 1
+                IF consumer(__fatpointer_0) THEN
+                    EXIT;
+                END_IF
+            UNTIL TRUE
+            END_REPEAT
             ");
         }
     }

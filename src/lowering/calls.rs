@@ -388,7 +388,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 self.steal_and_walk_list(&mut stmt.else_block);
             }
             AstControlStatement::WhileLoop(stmt) => {
-                self.visit_loop_statement(stmt);
+                self.steal_and_walk_list(&mut stmt.body);
             }
             AstControlStatement::RepeatLoop(stmt) => {
                 let ctx = self.ctx.clone();
