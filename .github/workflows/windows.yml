@@ -15,7 +15,7 @@ jobs:
     runs-on: windows-2022
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
@@ -44,17 +44,17 @@ jobs:
       - name: Release Build
         run: cargo build --release --workspace
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
         with:
           name: plc.exe
           path: target/release/plc.exe
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
         with:
           name: stdlib.dll
           path: target/release/iec61131std.dll
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@v4
         with:
           name: stdlib.lib
           path: target/release/iec61131std.lib

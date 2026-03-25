@@ -1,0 +1,81 @@
+---
+name: Release PR
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  release-pr:
+    name: Create or update release PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    # Skip if the push is a release PR merge
+    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install tools
+        run: |
+          cargo install cargo-edit --locked
+          cargo install git-cliff --locked
+
+      - name: Determine next version
+        id: version
+        run: |
+          CURRENT=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          NEXT=$(git-cliff --bumped-version 2>/dev/null | sed 's/^v//')
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          if [ -z "$NEXT" ] || [ "$NEXT" = "$CURRENT" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump versions
+        if: steps.version.outputs.skip == 'false'
+        run: cargo set-version --workspace ${{ steps.version.outputs.next }}
+
+      - name: Generate changelog
+        if: steps.version.outputs.skip == 'false'
+        run: |
+          git-cliff --tag "v${{ steps.version.outputs.next }}" -o CHANGELOG.md
+
+      - name: Create pull request
+        if: steps.version.outputs.skip == 'false'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "chore(release): prepare v${{ steps.version.outputs.next }}"
+          branch: release/next
+          delete-branch: true
+          title: "chore(release): v${{ steps.version.outputs.next }}"
+          body: |
+            ## Release v${{ steps.version.outputs.next }}
+
+            Bumps all workspace packages from v${{ steps.version.outputs.current }} → v${{ steps.version.outputs.next }}.
+
+            Review the updated `CHANGELOG.md` for a full list of changes.
+
+            ---
+            _Merge this PR to trigger tagging and GitHub release creation._
+          labels: release
