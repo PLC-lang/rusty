@@ -1,0 +1,12 @@
+RUN: %COMPILE %S/main.st && %RUN | %CHECK %s
+
+Verify that an {external} FB with a constant array initializer works in a
+split-compilation scenario:
+  1. fb_body.c provides the FB body (compiled to .o by lit.local.cfg)
+  2. --constructors-only generates the ctor object (with memcpy from .const_init)
+  3. main.st links both and accesses the initialized array
+
+CHECK: 10
+CHECK: 30
+CHECK: 50
+CHECK: 99

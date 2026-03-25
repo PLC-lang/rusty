@@ -301,7 +301,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
     }
 
     pub fn get_default_mut_participants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
-        use participant::InitParticipant;
+        use participant::{ArrayLowerer, InitParticipant};
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
@@ -318,6 +318,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 self.context.provider(),
                 self.context.should_generate_external_constructors(),
             )),
+            Box::new(ArrayLowerer::new(self.context.provider())),
         ];
         mut_participants
     }
@@ -443,6 +444,15 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             .mutable_participants
             .iter_mut()
             .fold(annotated_project, |project, p| p.post_annotate(project));
+
+        // Collect diagnostics from participants that validated during lowering.
+        for p in &mut self.mutable_participants {
+            let diags = p.diagnostics();
+            if !diags.is_empty() {
+                self.diagnostician.handle(&diags);
+            }
+        }
+
         Ok(annotated_project)
     }
 

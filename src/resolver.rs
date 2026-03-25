@@ -2073,6 +2073,9 @@ impl<'i> TypeAnnotator<'i> {
                         } else {
                             let ty = if left_type.is_bit() && right_type.is_bit() {
                                 right_type
+                            } else if l_intrinsic_type.is_unsigned_int() && r_intrinsic_type.is_unsigned_int()
+                            {
+                                self.index.get_type_or_panic(UDINT_TYPE)
                             } else {
                                 self.index.get_type_or_panic(DINT_TYPE)
                             };

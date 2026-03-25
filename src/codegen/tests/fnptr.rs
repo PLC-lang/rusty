@@ -160,6 +160,7 @@ fn function_pointer_method_with_return_type_aggregate() {
     %A = type {}
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"aaaaa\00"
+    @.const_init = private unnamed_addr constant [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5]
 
     define void @A(ptr %0) {
     entry:
@@ -186,7 +187,7 @@ fn function_pointer_method_with_return_type_aggregate() {
       %bar = alloca ptr, align [filtered]
       store ptr %1, ptr %bar, align [filtered]
       %deref = load ptr, ptr %bar, align [filtered]
-      store [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5], ptr %deref, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %deref, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([5 x i32], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
@@ -213,6 +214,9 @@ fn function_pointer_method_with_return_type_aggregate() {
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1

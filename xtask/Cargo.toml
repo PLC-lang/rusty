@@ -2,6 +2,7 @@
 name = "xtask"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 [features]
 default = []
@@ -22,6 +23,6 @@ sqlx = { version = "0.8", features = [
 async-std = "1.12.0"
 tempfile = "3"
 clap = { version = "4.3.10", features = ["derive"] }
-plc = { path = "../", package = "rusty" }
+plc = { path = "../", package = "plc-compiler" }
 plc_ast = { path = "../compiler/plc_ast" }
 plc_source = { path = "../compiler/plc_source" }
