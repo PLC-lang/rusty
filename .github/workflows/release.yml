@@ -32,9 +32,6 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Install git-cliff
-        uses: kenji-miyake/setup-git-cliff@v2
-
       - name: Get version from Cargo.toml
         id: version
         run: |
@@ -43,9 +40,10 @@ jobs:
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes
-        id: notes
-        run: |
-          git-cliff --latest --strip header > /tmp/release-notes.md
+        id: changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          args: --latest --strip header
 
       - name: Create tag and GitHub release
         uses: softprops/action-gh-release@v2
@@ -54,6 +52,6 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: ${{ steps.version.outputs.tag }}
-          body_path: /tmp/release-notes.md
+          body: ${{ steps.changelog.outputs.content }}
           draft: false
           prerelease: ${{ startsWith(steps.version.outputs.version, '0.') }}

@@ -14,8 +14,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    # Skip if the push is a release PR merge
-    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    # Skip if the push is a release PR merge; always run for manual triggers
+    if: github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):')
     steps:
       - name: Generate GitHub App token
         id: app-token
@@ -33,16 +33,20 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install tools
-        run: |
-          cargo install cargo-edit --locked
-          cargo install git-cliff --locked
+      - name: Install cargo-edit
+        run: cargo install cargo-edit --locked --version 0.13.9
 
       - name: Determine next version
+        id: cliff-version
+        uses: orhun/git-cliff-action@v4
+        with:
+          args: --bumped-version
+
+      - name: Check if bump needed
         id: version
         run: |
           CURRENT=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
-          NEXT=$(git-cliff --bumped-version 2>/dev/null | sed 's/^v//')
+          NEXT=$(echo "${{ steps.cliff-version.outputs.version }}" | sed 's/^v//')
           echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
           if [ -z "$NEXT" ] || [ "$NEXT" = "$CURRENT" ]; then
@@ -57,8 +61,12 @@ jobs:
 
       - name: Generate changelog
         if: steps.version.outputs.skip == 'false'
-        run: |
-          git-cliff --tag "v${{ steps.version.outputs.next }}" -o CHANGELOG.md
+        id: changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          args: --tag "v${{ steps.version.outputs.next }}"
+        env:
+          OUTPUT: CHANGELOG.md
 
       - name: Create pull request
         if: steps.version.outputs.skip == 'false'
