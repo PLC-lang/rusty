@@ -570,7 +570,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // after the call we need to copy the values for assigned outputs
         // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)
-        // FUNCTION outputs are defined as `rusty::index::ArgumentType::ByRef` // FIXME(mhasel): for standard-compliance functions also need to support VAR_OUTPUT
+        // FUNCTION outputs are defined as `rusty::index::ArgumentType::ByRef`
         if !(pou.is_function() || pou.is_method()) {
             let parameter_struct = match arguments_list.first() {
                 Some(v) => v.into_pointer_value(),
@@ -578,6 +578,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             };
 
             self.assign_output_values(parameter_struct, implementation_name, parameters_list)?
+        } else {
+            // For functions/methods, VAR_OUTPUT is passed by-ref. When the target is a direct-access
+            // expression (e.g. wordVar.%B0), the codegen passes a temporary alloca to the function.
+            // After the call we must write back from that temp into the actual target with proper
+            // bit-manipulation (mask/shift/or).
+            self.write_back_function_output_direct_access(
+                implementation_name,
+                &parameters_list,
+                &arguments_list,
+            )?;
         }
 
         Ok(ExpressionValue::RValue(value))
@@ -759,6 +769,77 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             _ => self.generate_output_assignment(param_context),
         }
+    }
+
+    /// After a FUNCTION call, writes back VAR_OUTPUT values that target direct-access expressions.
+    ///
+    /// For functions, VAR_OUTPUT parameters are passed by reference. When the caller passes a
+    /// direct-access target (e.g. `wordVar.%B0`), a temporary alloca is used as the by-ref argument.
+    /// The function writes into this temp, but the value must then be merged back into the original
+    /// variable using the appropriate bit-manipulation (mask + shift + or).
+    fn write_back_function_output_direct_access(
+        &self,
+        function_name: &str,
+        parameters_list: &[&AstNode],
+        arguments_list: &[BasicMetadataValueEnum<'ink>],
+    ) -> Result<(), CodegenError> {
+        let declared_parameters = self.index.get_available_parameters(function_name);
+        let implicit = arguments_are_implicit(parameters_list);
+
+        for (call_idx, param_node) in parameters_list.iter().enumerate() {
+            let (decl_idx, argument_expr, _) =
+                get_implicit_call_parameter(param_node, &declared_parameters, call_idx)?;
+
+            let Some(decl_param) = declared_parameters.get(decl_idx) else { continue };
+            if !decl_param.get_variable_type().is_output() {
+                continue;
+            }
+
+            // Resolve the actual target expression (unwrap `out => expr` for explicit calls)
+            let target_expr = if implicit {
+                argument_expr
+            } else {
+                match param_node.get_stmt() {
+                    AstStatement::OutputAssignment(data) => data.right.as_ref(),
+                    _ => argument_expr,
+                }
+            };
+
+            if !target_expr.has_direct_access() {
+                continue;
+            }
+
+            // The corresponding LLVM argument is the temp alloca pointer passed to the function.
+            let Some(llvm_arg) = arguments_list.get(decl_idx) else { continue };
+            let temp_ptr = llvm_arg.into_pointer_value();
+
+            // Resolve the base variable (strip direct-access chain) and load the output value.
+            let (base, _) = collect_base_and_direct_access_for_assignment(target_expr).unwrap();
+            let left_pointer = self.generate_lvalue(base)?;
+            let left_type = self.annotations.get_type(base, self.index).unwrap();
+
+            // For functions, VAR_OUTPUT is stored as an auto-deref pointer type; unwrap to
+            // get the actual element type (e.g. `__auto_pointer_to_BYTE` -> `BYTE`).
+            let param_type_name = decl_param.get_type_name();
+            let right_type_name = match self.index.find_effective_type_info(param_type_name) {
+                Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. }) => {
+                    inner_type_name.clone()
+                }
+                _ => param_type_name.to_string(),
+            };
+            let right_type =
+                self.index.find_effective_type_by_name(&right_type_name).unwrap();
+
+            self.generate_output_assignment_with_direct_access(
+                target_expr,
+                left_pointer,
+                left_type,
+                temp_ptr,
+                right_type,
+            )?;
+        }
+
+        Ok(())
     }
 
     pub fn generate_assignment_with_direct_access(
