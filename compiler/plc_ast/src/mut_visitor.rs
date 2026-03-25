@@ -188,6 +188,11 @@ pub trait AstVisitorMut: Sized {
         self.visit_statement_list(&mut stmt.body);
     }
 
+    fn visit_repeat_statement(&mut self, stmt: &mut LoopStatement) {
+        visit_nodes_mut!(self, &mut stmt.condition);
+        self.visit_statement_list(&mut stmt.body);
+    }
+
     fn visit_case_condition(&mut self, node: &mut AstNode) {
         let AstStatement::CaseCondition(child) = node.get_stmt_mut() else {
             unreachable!("CaseCondition");
@@ -362,8 +367,7 @@ impl WalkerMut for AstControlStatement {
                 visitor.visit_while_statement(stmt);
             }
             AstControlStatement::RepeatLoop(stmt) => {
-                visit_nodes_mut!(visitor, &mut stmt.condition);
-                visitor.visit_statement_list(&mut stmt.body);
+                visitor.visit_repeat_statement(stmt);
             }
             AstControlStatement::ForLoop(stmt) => {
                 visit_nodes_mut!(visitor, &mut stmt.counter, &mut stmt.start, &mut stmt.end);

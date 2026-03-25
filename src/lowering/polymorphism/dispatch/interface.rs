@@ -3464,16 +3464,19 @@ mod tests {
             insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
             // Statements in main
             __main_instances__ctor(instances)
-            alloca __fatpointer_0: __FATPOINTER
-            __fatpointer_0.data := ADR(instances[i])
-            __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
-            REPEAT
-                i := i + 1
-                IF consumer(__fatpointer_0) THEN
-                    EXIT;
+            alloca __repeat_check_0: BOOL
+            WHILE TRUE DO
+                IF __repeat_check_0 THEN
+                    alloca __fatpointer_0: __FATPOINTER
+                    __fatpointer_0.data := ADR(instances[i])
+                    __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
+                    IF consumer(__fatpointer_0) THEN
+                        EXIT;
+                    END_IF
                 END_IF
-            UNTIL TRUE
-            END_REPEAT
+                __repeat_check_0 := TRUE
+                i := i + 1
+            END_WHILE
             ");
         }
     }

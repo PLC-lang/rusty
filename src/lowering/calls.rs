@@ -420,7 +420,8 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
 #[cfg(test)]
 mod tests {
-    use insta::assert_debug_snapshot;
+    use insta::{assert_debug_snapshot, assert_snapshot};
+    use plc_ast::ast::{AstNode, CompilationUnit};
     use plc_ast::mut_visitor::AstVisitorMut;
     use plc_ast::provider::IdProvider;
     use plc_lowering::control_statement::ControlStatementLowerer;
@@ -432,6 +433,18 @@ mod tests {
         annotate_and_lower_with_ids, annotate_with_ids, index as test_index, index_and_lower,
         index_unit_with_id, index_with_ids,
     };
+
+    fn format_implementation_statements(unit: &CompilationUnit, implementation_name: &str) -> String {
+        unit.implementations
+            .iter()
+            .find(|implementation| implementation.name == implementation_name)
+            .unwrap()
+            .statements
+            .iter()
+            .map(AstNode::as_string)
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
 
     #[test]
     fn function_with_simple_return_not_changed() {
@@ -918,6 +931,43 @@ mod tests {
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
+    }
+
+    #[test]
+    fn complex_call_in_repeat_until_condition_stays_under_skip_guard() {
+        let id_provider = IdProvider::default();
+        let src = r#"
+        FUNCTION complexFunc : STRING
+        complexFunc := 'hello';
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            x : INT;
+        END_VAR
+        REPEAT
+            x := x + 1;
+        UNTIL complexFunc() = 'hello'
+        END_REPEAT
+        END_PROGRAM
+        "#;
+
+        let (unit, index, ..) = index_and_lower(src, id_provider.clone());
+        let (_, _, lowered) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
+        let statements = format_implementation_statements(&lowered.0, "main");
+
+        assert_snapshot!(statements, @"
+        alloca __repeat_check_0: BOOL
+        WHILE TRUE DO
+            IF __repeat_check_0 THEN
+                alloca __complexFunc0: STRING, complexFunc(__complexFunc0), IF __complexFunc0 = 'hello' THEN
+                    EXIT;
+                END_IF
+            END_IF
+            __repeat_check_0 := TRUE
+            x := x + 1
+        END_WHILE
+        ");
     }
 
     #[test]

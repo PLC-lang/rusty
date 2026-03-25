@@ -28,6 +28,9 @@ impl AstSerializer {
     fn serialize_statement_list(&mut self, stmts: &[AstNode]) {
         self.indent += 1;
         for stmt in stmts {
+            if matches!(stmt.get_stmt(), AstStatement::EmptyStatement(..)) {
+                continue;
+            }
             self.push_indent();
             stmt.walk(self);
         }
