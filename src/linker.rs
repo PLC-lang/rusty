@@ -80,9 +80,9 @@ impl Linker {
     }
 
     /// Set the output file and run the linker to generate an executable
-    pub fn build_exectuable(&mut self, path: PathBuf) -> Result<PathBuf, LinkerError> {
+    pub fn build_executable(&mut self, path: PathBuf) -> Result<PathBuf, LinkerError> {
         if let Some(file) = self.get_str_from_path(&path) {
-            self.linker.build_exectuable(file);
+            self.linker.build_executable(file);
             self.linker.finalize()?;
         }
         Ok(path)
@@ -133,6 +133,14 @@ impl Linker {
     /// Driver linkers receive this through `-Xlinker`, direct linkers receive it unchanged.
     pub fn add_linker_arg(&mut self, arg: &str) {
         self.linker.add_linker_arg(arg.to_string());
+    }
+
+    /// Add a driver-level flag.
+    ///
+    /// Driver linkers receive this directly (e.g. `cc -no-pie`).
+    /// Direct linkers receive the equivalent low-level flag when known.
+    pub fn add_driver_flag(&mut self, flag: &str) {
+        self.linker.add_driver_flag(flag.to_string());
     }
 }
 
@@ -219,7 +227,7 @@ fn resolve_driver_linker(linker: &str, target: &str) -> Result<CcLinker, LinkerE
         return Err(LinkerError::Link(format!("Linker not found: {linker}")));
     }
 
-    let mut pre_args = default_driver_pre_args(target);
+    let mut pre_args = default_driver_pre_args();
     let cross_target = !target_matches_host(target);
     log::trace!("Driver linker `{linker}` cross-target={cross_target} target=`{target}`");
 
@@ -240,7 +248,7 @@ fn resolve_driver_linker(linker: &str, target: &str) -> Result<CcLinker, LinkerE
 /// Default pre-arguments for compiler drivers.
 ///
 /// - Prefer lld backend when available.
-fn default_driver_pre_args(_target: &str) -> Vec<String> {
+fn default_driver_pre_args() -> Vec<String> {
     let mut args = Vec::new();
     if which("ld.lld").is_ok() {
         args.push("-fuse-ld=lld".to_string());
@@ -259,9 +267,11 @@ fn default_driver_pre_args(_target: &str) -> Vec<String> {
 /// sysroot (crt files, libc, etc.) is available — matching what a real link will
 /// need.
 fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool {
-    let null_output = if cfg!(windows) { "NUL" } else { "/dev/null" };
+    use std::time::{Duration, Instant};
 
+    let null_output = if cfg!(windows) { "NUL" } else { "/dev/null" };
     let probe_src = "int main(){return 0;}";
+    let timeout = Duration::from_secs(10);
 
     let supported = Command::new(linker)
         .arg(format!("--target={target}"))
@@ -273,13 +283,28 @@ fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool
         .spawn()
         .and_then(|mut child| {
             use std::io::Write;
-            // Write the source then drop stdin so the child sees EOF and doesn't hang.
+            // Write the source then drop stdin so the child sees EOF.
             if let Some(mut stdin) = child.stdin.take() {
                 let _ = stdin.write_all(probe_src.as_bytes());
             }
-            child.wait()
+
+            let start = Instant::now();
+            loop {
+                match child.try_wait()? {
+                    Some(status) => return Ok(status.success()),
+                    None if start.elapsed() >= timeout => {
+                        log::debug!(
+                            "supports_target_flag: probe timed out after {}s, killing child",
+                            timeout.as_secs()
+                        );
+                        let _ = child.kill();
+                        let _ = child.wait();
+                        return Ok(false);
+                    }
+                    None => std::thread::sleep(Duration::from_millis(50)),
+                }
+            }
         })
-        .map(|status| status.success())
         .unwrap_or(false);
 
     log::trace!(
@@ -387,7 +412,27 @@ impl LinkerInterface for CcLinker {
         }
     }
 
-    fn build_exectuable(&mut self, path: &str) {
+    fn add_driver_flag(&mut self, flag: String) {
+        if self.driver_mode {
+            log::trace!("Adding driver-level flag: {flag}");
+            self.add_arg(flag);
+        } else {
+            // Translate known driver flags to their direct-linker equivalents.
+            let direct_flag = match flag.as_str() {
+                "-no-pie" | "-nopie" => "--no-pie",
+                "-pie" => "--pie",
+                _ => {
+                    log::trace!("Unknown driver flag `{flag}` passed to direct linker unchanged");
+                    self.add_arg(flag);
+                    return;
+                }
+            };
+            log::trace!("Translating driver flag `{flag}` to direct linker flag `{direct_flag}`");
+            self.add_arg(direct_flag.to_string());
+        }
+    }
+
+    fn build_executable(&mut self, path: &str) {
         if self.driver_mode {
             if self.no_crt {
                 log::trace!("Executable link: adding -nostartfiles");
@@ -454,6 +499,10 @@ trait LinkerInterface {
         self.add_arg(arg);
     }
 
+    fn add_driver_flag(&mut self, flag: String) {
+        self.add_arg(flag);
+    }
+
     fn add_obj(&mut self, path: &str) {
         self.add_arg(path.into());
     }
@@ -482,7 +531,7 @@ trait LinkerInterface {
         self.add_arg(path.into());
     }
 
-    fn build_exectuable(&mut self, path: &str) {
+    fn build_executable(&mut self, path: &str) {
         self.add_arg("-o".into());
         self.add_arg(path.into());
     }
@@ -576,6 +625,20 @@ mod test {
         let mut linker = CcLinker::new("ld.lld");
         linker.add_linker_arg("--no-undefined".to_string());
         assert_eq!(linker.command_args(), vec!["--no-undefined"]);
+    }
+
+    #[test]
+    fn driver_flag_is_added_directly_for_driver_linkers() {
+        let mut linker = CcLinker::new_driver("cc", Vec::new());
+        linker.add_driver_flag("-no-pie".to_string());
+        assert_eq!(linker.command_args(), vec!["-no-pie"]);
+    }
+
+    #[test]
+    fn driver_flag_is_translated_for_direct_linkers() {
+        let mut linker = CcLinker::new("ld.lld");
+        linker.add_driver_flag("-no-pie".to_string());
+        assert_eq!(linker.command_args(), vec!["--no-pie"]);
     }
 
     #[test]

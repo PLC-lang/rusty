@@ -24,7 +24,7 @@ use plc::{
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
-    output::FormatOption,
+    output::{FormatOption, RelocationPreference},
     parser::parse_file,
     resolver::{
         const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
@@ -178,13 +178,29 @@ impl<T: SourceContainer> BuildPipeline<T> {
         self.compile_parameters.as_ref().map(|params| {
             let location = &self.project.get_location().map(|it| it.to_path_buf());
             let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
+            // Remap deprecated PIC/NoPIC format options from plc.json to Shared + relocation preference.
+            let (output_format, relocation_preference) = match output_format {
+                FormatOption::PIC => {
+                    log::warn!(
+                        "compile_type \"PIC\" in build config is deprecated, use \"Shared\" with --fpic instead"
+                    );
+                    (FormatOption::Shared, RelocationPreference::Pic)
+                }
+                FormatOption::NoPIC => {
+                    log::warn!(
+                        "compile_type \"NoPIC\" in build config is deprecated, use \"Shared\" with --fno-pic instead"
+                    );
+                    (FormatOption::Shared, RelocationPreference::NoPic)
+                }
+                other => (other, params.relocation_preference()),
+            };
             CompileOptions {
                 root: location.to_owned(),
                 build_location: params.get_build_location(),
                 output: self.project.get_output_name(),
                 output_format,
                 optimization: params.optimization,
-                relocation_preference: params.relocation_preference(),
+                relocation_preference,
                 error_format: params.error_format,
                 debug_level: params.debug_level(),
                 single_module: params.single_module,
@@ -204,6 +220,22 @@ impl<T: SourceContainer> BuildPipeline<T> {
     pub fn get_link_options(&self) -> Option<LinkOptions> {
         self.compile_parameters.as_ref().map(|params| {
             let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
+            // Remap deprecated PIC/NoPIC format options from plc.json to Shared + relocation preference.
+            let (output_format, relocation_preference) = match output_format {
+                FormatOption::PIC => {
+                    log::warn!(
+                        "compile_type \"PIC\" in build config is deprecated, use \"Shared\" with --fpic instead"
+                    );
+                    (FormatOption::Shared, RelocationPreference::Pic)
+                }
+                FormatOption::NoPIC => {
+                    log::warn!(
+                        "compile_type \"NoPIC\" in build config is deprecated, use \"Shared\" with --fno-pic instead"
+                    );
+                    (FormatOption::Shared, RelocationPreference::NoPic)
+                }
+                other => (other, params.relocation_preference()),
+            };
             let libraries = self
                 .project
                 .get_libraries()
@@ -232,7 +264,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 linker_args: params.linker_args.clone(),
                 no_crt: params.no_crt,
                 no_libc: params.no_libc,
-                relocation_preference: params.relocation_preference(),
+                relocation_preference,
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
                 linker_script,
@@ -1134,11 +1166,11 @@ impl GeneratedProject {
                     && matches!(link_options.format, FormatOption::Static)
                 {
                     log::debug!("Applying -no-pie for --fno-pic executable link");
-                    linker.add_linker_arg("-no-pie");
+                    linker.add_driver_flag("-no-pie");
                 }
 
                 match link_options.format {
-                    FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),
+                    FormatOption::Static => linker.build_executable(output_location).map_err(Into::into),
                     FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC => {
                         linker.build_shared_obj(output_location).map_err(Into::into)
                     }

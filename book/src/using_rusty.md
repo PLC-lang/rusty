@@ -86,6 +86,7 @@ plc hello_world.st -o hello_world --linker=cc
 Please note that RuSTy will attempt to link the generated object file by default to generate an executable if you didn't specify something else (option `-c`).
 
 - The `--linker=cc` flag tells RuSTy that it should link with the system's compiler driver instead of the built in linker. This provides support to create executables.
+- When no `--linker` is specified, RuSTy resolves the internal linker in this order: `cc` → `clang` → `ld.lld` → `ld`. The first linker that is found and supports the target is used. Compiler drivers (`cc`, `clang`) are preferred for their correct platform setup (sysroot, CRT files, etc.).
 - You can override the driver backend linker with `--fuse-ld=<name>` (for example `--fuse-ld=mold`).
 - Additional libraries can be linked using the `-l` flag, additional library paths can be added with `-L`.
 - You can pass raw linker arguments using `--linker-arg=<arg>` (repeatable). With compiler drivers these are forwarded via `-Xlinker`.

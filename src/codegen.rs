@@ -461,7 +461,14 @@ impl<'ink> GeneratedModule<'ink> {
                     self.persist_to_shared_pic_object(output, target, optimization_level)
                 }
             },
-            FormatOption::NoPIC => self.persist_to_shared_object(output, target, optimization_level),
+            FormatOption::NoPIC => match relocation_preference {
+                RelocationPreference::Pic => {
+                    self.persist_to_shared_pic_object(output, target, optimization_level)
+                }
+                RelocationPreference::Default | RelocationPreference::NoPic => {
+                    self.persist_to_shared_object(output, target, optimization_level)
+                }
+            },
             FormatOption::Bitcode => self.persist_to_bitcode(output),
             FormatOption::IR => self.persist_to_ir(output),
         }
