@@ -20,7 +20,7 @@ jobs:
           - { os: "ubuntu-24.04-arm" }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run `build.sh --lit`
         shell: bash
@@ -37,7 +37,7 @@ jobs:
           - { os: "ubuntu-24.04-arm" }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run `build.sh --lit --release`
         shell: bash
