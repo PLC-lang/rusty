@@ -619,6 +619,10 @@ impl VariableBlock {
     pub fn is_temp(&self) -> bool {
         matches!(self.kind, VariableBlockType::Temp)
     }
+
+    pub fn is_input_by_val(&self) -> bool {
+        matches!(self.kind, VariableBlockType::Input(ArgumentProperty::ByVal))
+    }
 }
 
 impl Default for VariableBlock {

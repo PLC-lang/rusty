@@ -13,6 +13,7 @@ pub mod tests {
     };
     use plc_index::GlobalContext;
     use plc_lowering::control_statement::ControlStatementLowerer;
+    use plc_lowering::reference_to_return::ReferenceToReturnParticipant;
     use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
@@ -153,6 +154,14 @@ pub mod tests {
         // so that we can get a "true" representation of what would be generated when the compiler is run.
         let mut control_statement_lowerer = ControlStatementLowerer::new(id_provider.clone());
         control_statement_lowerer.visit_compilation_unit(&mut unit);
+
+        // Add the reference to return participant
+        let mut reference_to_return_participant = ReferenceToReturnParticipant::new(id_provider.clone());
+        let mut units = vec![unit];
+        reference_to_return_participant.lower_reference_to_return(&mut units);
+
+        // Steal the unit back after we're done
+        let mut unit = units.remove(0);
 
         let mut aggregate_lowerer = AggregateTypeLowerer::new(id_provider.clone());
         aggregate_lowerer.index.replace(index);
