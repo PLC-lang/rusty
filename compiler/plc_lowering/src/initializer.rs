@@ -583,6 +583,13 @@ impl Initializer {
         self.pre_register_all_constructors(&unit);
         // Now do the main traversal to generate initialization logic
         self.visit_compilation_unit(&unit);
+
+        // Strip non-constant array initializers from declarations. The init lowerer
+        // has consumed them into constructor body assignments; keeping them would
+        // cause the data-type generator to fail evaluating runtime expressions as
+        // compile-time constants.
+        strip_non_const_array_initializers(&mut unit, &index);
+
         self.index = None;
         // Add each constructor function to the unit as a new function
         for (name, body) in self.constructors {
@@ -640,6 +647,7 @@ impl Initializer {
             unit.pous.push(pou);
             unit.implementations.push(implementation);
         }
+
         unit
     }
 
@@ -826,6 +834,59 @@ impl Initializer {
         } else {
             Some("self")
         }
+    }
+}
+
+/// Strips non-constant array literal initializers from variable and type
+/// declarations. The init lowerer has consumed them into constructor body
+/// assignments; keeping them would cause the data-type generator to fail
+/// evaluating runtime expressions as compile-time constants.
+fn strip_non_const_array_initializers(unit: &mut CompilationUnit, index: &Index) {
+    for pou in &mut unit.pous {
+        let pou_name = pou.name.clone();
+        for block in &mut pou.variable_blocks {
+            if block.constant {
+                continue;
+            }
+            for var in &mut block.variables {
+                if var
+                    .initializer
+                    .as_ref()
+                    .is_some_and(|init| is_non_const_array_literal(init, index, Some(&pou_name)))
+                {
+                    var.initializer = None;
+                }
+            }
+        }
+    }
+
+    for udt in &mut unit.user_types {
+        if udt.initializer.as_ref().is_some_and(|init| is_non_const_array_literal(init, index, None)) {
+            udt.initializer = None;
+        }
+    }
+
+    for block in &mut unit.global_vars {
+        if block.constant {
+            continue;
+        }
+        for var in &mut block.variables {
+            if var.initializer.as_ref().is_some_and(|init| is_non_const_array_literal(init, index, None)) {
+                var.initializer = None;
+            }
+        }
+    }
+}
+
+/// Returns `true` if `node` is an array literal containing non-constant expressions.
+fn is_non_const_array_literal(node: &AstNode, index: &Index, pou_name: Option<&str>) -> bool {
+    use plc_ast::ast::AstStatement;
+    use plc_ast::literals::{Array, AstLiteral};
+
+    if let AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) = node.get_stmt() {
+        !crate::helper::is_const_expression(elements, Some(index), pou_name)
+    } else {
+        false
     }
 }
 

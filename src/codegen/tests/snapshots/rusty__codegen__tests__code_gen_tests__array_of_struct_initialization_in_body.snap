@@ -11,13 +11,14 @@ target triple = "[filtered]"
 %MyStruct = type { i32, i32 }
 
 @mainProg_instance = global %mainProg zeroinitializer
+@.const_init = private unnamed_addr constant [2 x %MyStruct] [%MyStruct { i32 10, i32 20 }, %MyStruct { i32 30, i32 40 }]
 
 define void @mainProg(ptr %0) {
 entry:
   %arr = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
   %x = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 1
   %y = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 2
-  store [2 x %MyStruct] [%MyStruct { i32 10, i32 20 }, %MyStruct { i32 30, i32 40 }], ptr %arr, align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] @.const_init, i64 ptrtoint (ptr getelementptr ([2 x %MyStruct], ptr null, i32 1) to i64), i1 false)
   %tmpVar = getelementptr inbounds [2 x %MyStruct], ptr %arr, i32 0, i32 0
   %a = getelementptr inbounds nuw %MyStruct, ptr %tmpVar, i32 0, i32 0
   %load_a = load i32, ptr %a, align [filtered]
@@ -28,3 +29,8 @@ entry:
   store i32 %load_b, ptr %y, align [filtered]
   ret void
 }
+
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
