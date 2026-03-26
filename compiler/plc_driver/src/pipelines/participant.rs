@@ -21,8 +21,7 @@ use plc::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
-    array_lowering,
-    control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
+    array_lowering, control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
     initializer::Initializer, reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
 };
 use project::{object::Object, project::LibraryInformation};
