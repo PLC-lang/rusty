@@ -426,7 +426,7 @@ fn function_call_with_array_access() {
 }
 
 #[test]
-fn function_call_with_with_references_to_references() {
+fn function_call_with_with_references_to_references_lowered() {
     let result = codegen(
         "
         FUNCTION referenceFunc
@@ -448,10 +448,12 @@ fn function_call_with_with_references_to_references() {
 
             VAR_TEMP
                 __referenceFunc_return_val : REFERENCE TO INT;
+                __referenceFunc_return_val_store : INT;
             END_VAR
 
             tmpVal := 11;
             refVal REF= tmpVal;
+            __referenceFunc_return_val REF= __referenceFunc_return_val_store;
             referenceFunc(__referenceFunc_return_val, refVal);
             refVal REF= __referenceFunc_return_val;
             conVal := refVal;
@@ -489,17 +491,22 @@ fn function_call_with_with_references_to_references() {
       %conVal = alloca i16, align [filtered]
       %tmpVal = alloca i16, align [filtered]
       %__referenceFunc_return_val = alloca ptr, align [filtered]
+      %__referenceFunc_return_val_store = alloca i16, align [filtered]
       store ptr null, ptr %refVal, align [filtered]
       store i16 0, ptr %conVal, align [filtered]
       store i16 0, ptr %tmpVal, align [filtered]
       store ptr null, ptr %__referenceFunc_return_val, align [filtered]
+      store i16 0, ptr %__referenceFunc_return_val_store, align [filtered]
       store i16 11, ptr %tmpVal, align [filtered]
       store ptr %tmpVal, ptr %refVal, align [filtered]
-      call void @referenceFunc(ptr %__referenceFunc_return_val, ptr %refVal)
+      store ptr %__referenceFunc_return_val_store, ptr %__referenceFunc_return_val, align [filtered]
       %deref = load ptr, ptr %__referenceFunc_return_val, align [filtered]
-      store ptr %deref, ptr %refVal, align [filtered]
       %deref1 = load ptr, ptr %refVal, align [filtered]
-      %load_refVal = load i16, ptr %deref1, align [filtered]
+      call void @referenceFunc(ptr %deref, ptr %deref1)
+      %deref2 = load ptr, ptr %__referenceFunc_return_val, align [filtered]
+      store ptr %deref2, ptr %refVal, align [filtered]
+      %deref3 = load ptr, ptr %refVal, align [filtered]
+      %load_refVal = load i16, ptr %deref3, align [filtered]
       store i16 %load_refVal, ptr %conVal, align [filtered]
       ret void
     }

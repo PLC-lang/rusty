@@ -210,29 +210,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         cast_if_needed!(self, target_type, actual_type, v, self.annotations.get(expression))
     }
 
-    pub fn generate_expression_for_reference_to_reference(
-        &self,
-        expression: &AstNode,
-    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        // generate the expression
-        match expression.get_stmt() {
-            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(member), base }) => {
-                let base = base.as_deref();
-                let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
-                let member_name = member.get_flat_reference_name().unwrap_or("unknown");
-
-                let value = self.create_llvm_pointer_value_for_reference(
-                    base_value.map(|it| (base.unwrap(), it.get_basic_value_enum().into_pointer_value())),
-                    self.get_load_name(member).as_deref().unwrap_or(member_name),
-                    expression,
-                )?;
-
-                Ok(value.into())
-            }
-            _ => self.generate_expression(expression),
-        }
-    }
-
     pub fn generate_expression_with_cast_to_type_of_secondary_expression(
         &self,
         expression: &AstNode,
@@ -1089,11 +1066,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     {
                         // for auto_deref pointers (VAR_INPUT {ref}, VAR_IN_OUT) we call generate_argument_by_ref()
                         // we need the inner_type and not pointer to type otherwise we would generate a double pointer
-                        Some((
-                            it.get_declaration_type(),
-                            inner_type_name.as_str(),
-                            both_sides_are_reference_to,
-                        ))
+                        // unless both sides are reference to, in which case the double pointer is required
+                        let type_name =
+                            if both_sides_are_reference_to { name } else { inner_type_name.as_str() };
+
+                        Some((it.get_declaration_type(), type_name, both_sides_are_reference_to))
                     } else {
                         Some((it.get_declaration_type(), name, both_sides_are_reference_to))
                     }
@@ -1113,11 +1090,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 })?;
 
             if let Some((declaration_type, type_name, both_sides_are_reference_to)) = parameter_info {
-                let argument: BasicValueEnum = if both_sides_are_reference_to {
-                    self.generate_expression_for_reference_to_reference(argument)?
-                } else if declaration_type.is_by_ref()
+                let argument: BasicValueEnum = if declaration_type.is_by_ref()
                     || (self.index.get_effective_type_or_void_by_name(type_name).is_aggregate_type()
                         && declaration_type.is_input())
+                    || both_sides_are_reference_to
                 {
                     let declared_parameter = declared_parameters.get(i);
                     self.generate_argument_by_ref(argument, type_name, declared_parameter.copied())?

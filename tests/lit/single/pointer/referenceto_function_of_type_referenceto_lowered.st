@@ -1,17 +1,38 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
+
+// Non-lowered code
+/*
+FUNCTION referenceFunc : REFERENCE TO INT
+    VAR_INPUT
+        in	: REFERENCE TO INT;
+    END_VAR
+
+    in := in + 1;
+    referenceFunc REF= in;
+END_FUNCTION
+
+FUNCTION main : DINT
+    VAR
+        refVal : REFERENCE TO INT;
+        conVal : INT;
+        tmpVal : INT;
+    END_VAR
+
+    tmpVal := 11;
+    refVal REF= tmpVal;
+    refVal REF= referenceFunc(refVal);
+    conVal := refVal;
+END_FUNCTION
+*/
+
 FUNCTION referenceFunc
     VAR_INPUT
         __referenceFunc_return_val : REFERENCE TO INT;
         in	: REFERENCE TO INT;
     END_VAR
 
-    printf('in 1: %d$N', in);
-
     in := in + 1;
-
-    printf('in 2: %d$N', in);
-
-    __referenceFunc_return_val REF= in;
+    __referenceFunc_return_val := in;
 END_FUNCTION
 
 FUNCTION main : DINT
@@ -23,18 +44,13 @@ FUNCTION main : DINT
 
     VAR_TEMP
         __referenceFunc_return_val : REFERENCE TO INT;
+        __referenceFunc_return_val_store : INT;
     END_VAR
-
-    printf('Testing...$N');
 
     tmpVal := 11;
     refVal REF= tmpVal;
-
-    refVal := refVal + 1;
-    printf('refVal 1: %d$N', refVal);
-
+    __referenceFunc_return_val REF= __referenceFunc_return_val_store;
     referenceFunc(__referenceFunc_return_val, refVal);
-    // Segfaults here... why??
     refVal REF= __referenceFunc_return_val;
     conVal := refVal;
 
