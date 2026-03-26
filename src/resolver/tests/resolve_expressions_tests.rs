@@ -20,7 +20,7 @@ use crate::{
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, Dimension, TypeSize, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE,
-        LINT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
+        LINT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UDINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -886,8 +886,9 @@ fn resolve_binary_expressions() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
+    // We expect promoted unsigned types to hold sign information
     let expected_types = vec![
-        "BYTE", "WORD", "DWORD", "LWORD", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT", "ULINT",
+        "BYTE", "WORD", "DWORD", "LWORD", "DINT", "UDINT", "DINT", "UDINT", "DINT", "UDINT", "LINT", "ULINT",
     ];
     let type_names: Vec<&str> =
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
@@ -3847,7 +3848,7 @@ fn undeclared_varargs_type_hint_promoted_correctly() {
         assert_type_and_hint!(&annotations, &index, parameters[0], REAL_TYPE, Some(LREAL_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[1], LREAL_TYPE, Some(LREAL_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[2], BOOL_TYPE, None);
-        assert_type_and_hint!(&annotations, &index, parameters[3], USINT_TYPE, Some(DINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[3], USINT_TYPE, Some(UDINT_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[4], INT_TYPE, Some(DINT_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[5], DINT_TYPE, Some(DINT_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[6], LINT_TYPE, Some(LINT_TYPE));

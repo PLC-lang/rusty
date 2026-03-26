@@ -21,6 +21,7 @@ use plc::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
+    array_lowering,
     control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
     initializer::Initializer, reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
 };
@@ -87,6 +88,12 @@ pub trait PipelineParticipantMut {
     /// This happens directly after annotations
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         annotated_project
+    }
+
+    /// Returns any diagnostics accumulated during this participant's pipeline stages.
+    /// The default implementation returns an empty vec.
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        Vec::new()
     }
 }
 
@@ -242,6 +249,28 @@ impl PipelineParticipantMut for InitParticipant {
     }
 }
 
+pub struct ArrayLowerer {
+    id_provider: IdProvider,
+}
+
+impl ArrayLowerer {
+    pub fn new(id_provider: IdProvider) -> Self {
+        Self { id_provider }
+    }
+}
+
+impl PipelineParticipantMut for ArrayLowerer {
+    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { project: ParsedProject { mut units }, index, .. } = indexed_project;
+        for unit in &mut units {
+            array_lowering::lower_literal_arrays(unit, &index, &mut self.id_provider);
+        }
+        // Re-index since we modified the AST (new statements, possible new alloca variables)
+        let project = ParsedProject { units };
+        project.index(self.id_provider.clone())
+    }
+}
+
 impl PipelineParticipantMut for InheritanceLowerer {
     fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         let ParsedProject { mut units } = parsed_project;
@@ -301,13 +330,18 @@ impl PipelineParticipantMut for PolymorphismLowerer {
         let AnnotatedProject { units, index, annotations } = annotated_project;
         let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
 
-        self.dispatch(index, annotations.annotation_map, &mut units);
+        let diagnostics = self.dispatch(index, annotations.annotation_map, &mut units);
+        self.stash_diagnostics(diagnostics);
         let project = ParsedProject { units };
 
         // Dispatch lowering may inject new types (e.g. `__FATPOINTER` and itables for interface
         // dispatch) into the compilation units' `user_types`. Re-indexing from the units ensures
         // these types are present in the index for the subsequent re-annotation.
         project.index(self.ids.clone()).annotate(self.ids.clone())
+    }
+
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        self.take_diagnostics()
     }
 }
 

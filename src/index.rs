@@ -665,8 +665,9 @@ impl InterfaceIndexEntry {
             .collect()
     }
 
-    /// Returns a list of ALL existing interfaces this interface extends directly or indirectly
-    pub fn get_parent_interfaces_recursive<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
+    /// Returns a list of ALL interfaces in this interface's hierarchy, **including `self`**,
+    /// as well as all interfaces it extends directly or indirectly.
+    pub fn get_interface_hierarchy<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
         let mut seen: FxHashSet<&Identifier> = FxHashSet::default();
         let mut queue: VecDeque<&InterfaceIndexEntry> = VecDeque::new();
 
@@ -1839,6 +1840,34 @@ impl Index {
             // Only count members that are part of the struct
             if !member.is_temp() && !member.is_var_external() && !member.is_return() {
                 index += 1;
+            }
+        }
+
+        None
+    }
+
+    /// Computes the struct GEP index for a position.
+    /// VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the POU struct
+    /// (they are stack-allocated or reference external storage), so they are excluded
+    /// when computing the index.
+    /// Returns None if the variable is not part of the struct (temp/external/return).
+    pub fn get_struct_member_index_by_position(&self, container_name: &str, position: &usize) -> Option<u32> {
+        let members = self.get_pou_members(container_name);
+        let mut actual_index: u32 = 0;
+
+        for (index, member) in members.iter().enumerate() {
+            if index == *position {
+                // VAR_TEMP, VAR_EXTERNAL, and return variables are not part of the struct
+                if member.is_temp() || member.is_var_external() || member.is_return() {
+                    return None;
+                } else {
+                    return Some(actual_index);
+                }
+            }
+
+            // Only count members that are part of the struct
+            if !member.is_temp() && !member.is_var_external() && !member.is_return() {
+                actual_index += 1;
             }
         }
 

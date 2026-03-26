@@ -21,10 +21,16 @@
 //! the following struct types are generated:
 //! ```text
 //! __itable_IA { foo: __FPOINTER IA.foo }
-//! __itable_IB { foo: __FPOINTER IA.foo, bar: __FPOINTER IB.bar }
+//! __itable_IB { __upcast_IA: POINTER TO __VOID, foo: __FPOINTER IA.foo, bar: __FPOINTER IB.bar }
 //! ```
 //! Note that inherited methods (from parent interfaces) appear first, followed by the interface's
 //! own declarations, and duplicate method names are deduplicated (first occurrence wins).
+//!
+//! Each itable struct also includes `__upcast_<Ancestor>` pointer fields (one per proper ancestor
+//! interface, sorted alphabetically) before the function pointer fields. These enable O(1)
+//! interface upcasting at runtime — when a child interface variable is assigned to a parent
+//! interface variable, the correct parent itable pointer is read directly from the upcast field
+//! rather than requiring a runtime lookup. Root interfaces have no upcast fields.
 //!
 //! # 2. Itable Global Instances
 //! For every (interface, POU) pair where the POU transitively implements the interface — either
@@ -103,6 +109,11 @@ impl InterfaceTableGenerator {
             let Some(interface) = index.find_interface(&ast_iface.ident.name) else { continue };
             let location = SourceLocation::internal_in_unit(unit.file.get_name());
             let mut members = Vec::new();
+
+            // Upcast pointer fields for each ancestor interface (excluding self), sorted alphabetically.
+            for ancestor_name in helper::collect_ancestor_interfaces(index, interface) {
+                members.push(helper::create_upcast_field(ancestor_name, &location));
+            }
 
             for method in interface.get_deduplicated_methods(index) {
                 let member = Variable {
@@ -189,7 +200,7 @@ impl InterfaceTableGenerator {
 
             for iface_name in helper::collect_interfaces_for_pou(index, pou) {
                 let Some(interface) = index.find_interface(iface_name) else { continue };
-                let instance = self.generate_single_itable_instance(index, interface, pou, unit_file);
+                let instance = self.generate_itable_instance(index, interface, pou, unit_file);
 
                 if super::is_internal_instance(ast_pou.linkage, self.generate_external_constructors) {
                     internal_instances.push(instance);
@@ -205,7 +216,7 @@ impl InterfaceTableGenerator {
     }
 
     /// Creates a single `__itable_<interface>_<pou>_instance := (...)` variable
-    fn generate_single_itable_instance(
+    fn generate_itable_instance(
         &mut self,
         index: &Index,
         interface: &InterfaceIndexEntry,
@@ -216,6 +227,22 @@ impl InterfaceTableGenerator {
         let pou_name = pou.get_name();
 
         let mut assignments = Vec::new();
+
+        // Upcast assignments for each ancestor interface (excluding self), sorted alphabetically.
+        for ancestor_name in helper::collect_ancestor_interfaces(index, interface) {
+            let field_name = helper::get_upcast_field_name(ancestor_name);
+            let itable_instance_name = helper::get_itable_instance_name(ancestor_name, pou_name);
+
+            let left = AstFactory::create_member_reference(
+                AstFactory::create_identifier(&field_name, SourceLocation::internal(), self.ids.next_id()),
+                None,
+                self.ids.next_id(),
+            );
+            let right = self.generate_adr_call(&itable_instance_name);
+
+            assignments.push(AstFactory::create_assignment(left, right, self.ids.next_id()));
+        }
+
         for method in interface.get_deduplicated_methods(index) {
             let method_call_name = method.get_call_name();
 
@@ -305,11 +332,14 @@ impl InterfaceTableGenerator {
 /// Internal helper functions for itable name generation, method deduplication, and interface
 /// obligation collection.
 pub mod helper {
-    use plc_ast::ast::{DataType, DataTypeDeclaration};
+    use plc_ast::ast::{DataType, DataTypeDeclaration, Variable};
     use plc_source::source_location::SourceLocation;
     use rustc_hash::FxHashSet;
 
-    use crate::index::{Index, PouIndexEntry};
+    use crate::{
+        index::{Index, InterfaceIndexEntry, PouIndexEntry},
+        typesystem::VOID_INTERNAL_NAME,
+    };
 
     pub fn get_itable_name(interface_name: &str) -> String {
         format!("__itable_{interface_name}")
@@ -317,6 +347,50 @@ pub mod helper {
 
     pub fn get_itable_instance_name(interface_name: &str, pou_name: &str) -> String {
         format!("__itable_{interface_name}_{pou_name}_instance")
+    }
+
+    pub fn get_upcast_field_name(ancestor_interface_name: &str) -> String {
+        format!("__upcast_{ancestor_interface_name}")
+    }
+
+    /// Returns the names of all proper ancestor interfaces (excluding self) for the given interface,
+    /// sorted alphabetically.
+    pub fn collect_ancestor_interfaces<'idx>(
+        index: &'idx Index,
+        interface: &'idx InterfaceIndexEntry,
+    ) -> Vec<&'idx str> {
+        let mut ancestors: Vec<_> = interface
+            .get_interface_hierarchy(index)
+            .into_iter()
+            .map(|entry| entry.get_name())
+            .filter(|name| *name != interface.get_name())
+            .collect();
+        ancestors.sort();
+        ancestors
+    }
+
+    /// Creates a `POINTER TO __VOID` variable for an upcast field in an itable struct definition.
+    pub fn create_upcast_field(ancestor_name: &str, location: &SourceLocation) -> Variable {
+        Variable {
+            name: get_upcast_field_name(ancestor_name),
+            data_type_declaration: DataTypeDeclaration::Definition {
+                data_type: Box::new(DataType::PointerType {
+                    name: None,
+                    referenced_type: Box::new(DataTypeDeclaration::Reference {
+                        referenced_type: VOID_INTERNAL_NAME.to_string(),
+                        location: location.clone(),
+                    }),
+                    auto_deref: None,
+                    type_safe: false,
+                    is_function: false,
+                }),
+                location: location.clone(),
+                scope: None,
+            },
+            initializer: None,
+            address: None,
+            location: location.clone(),
+        }
     }
 
     pub fn create_function_pointer(referenced_type: String, location: SourceLocation) -> DataType {
@@ -346,7 +420,7 @@ pub mod helper {
             for iface_name in pou.get_interfaces() {
                 if let Some(iface) = index.find_interface(iface_name) {
                     // Expand to include all ancestor interfaces
-                    for ancestor in iface.get_parent_interfaces_recursive(index) {
+                    for ancestor in iface.get_interface_hierarchy(index) {
                         result.insert(ancestor.get_name());
                     }
                 }
@@ -454,12 +528,13 @@ mod tests {
             foo: __FPOINTER IA.foo;
         }
         __itable_IB {
+            __upcast_IA: POINTER TO __VOID;
             foo: __FPOINTER IA.foo;
             bar: __FPOINTER IB.bar;
         }
         // Globals
         __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
-        __itable_IB_FbA_instance: __itable_IB := (foo := ADR(FbA.foo), bar := ADR(FbA.bar))
+        __itable_IB_FbA_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbA_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar))
         ");
     }
 
@@ -594,14 +669,15 @@ mod tests {
             foo: __FPOINTER IA.foo;
         }
         __itable_IB {
+            __upcast_IA: POINTER TO __VOID;
             foo: __FPOINTER IA.foo;
             bar: __FPOINTER IB.bar;
         }
         // Globals
         __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
         __itable_IA_FbB_instance: __itable_IA := (foo := ADR(FbA.foo))
-        __itable_IB_FbA_instance: __itable_IB := (foo := ADR(FbA.foo), bar := ADR(FbA.bar))
-        __itable_IB_FbB_instance: __itable_IB := (foo := ADR(FbA.foo), bar := ADR(FbA.bar))
+        __itable_IB_FbA_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbA_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar))
+        __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar))
         ");
     }
 
@@ -689,6 +765,7 @@ mod tests {
             foo: __FPOINTER IA.foo;
         }
         __itable_IB {
+            __upcast_IA: POINTER TO __VOID;
             foo: __FPOINTER IA.foo;
             bar: __FPOINTER IB.bar;
         }
@@ -699,8 +776,8 @@ mod tests {
         __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
         __itable_IA_FbB_instance: __itable_IA := (foo := ADR(FbB.foo))
         __itable_IA_FbC_instance: __itable_IA := (foo := ADR(FbB.foo))
-        __itable_IB_FbB_instance: __itable_IB := (foo := ADR(FbB.foo), bar := ADR(FbB.bar))
-        __itable_IB_FbC_instance: __itable_IB := (foo := ADR(FbB.foo), bar := ADR(FbC.bar))
+        __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbB.foo), bar := ADR(FbB.bar))
+        __itable_IB_FbC_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbC_instance), foo := ADR(FbB.foo), bar := ADR(FbC.bar))
         __itable_IC_FbC_instance: __itable_IC := (baz := ADR(FbC.baz))
         ");
     }
@@ -797,14 +874,19 @@ mod tests {
             foo: __FPOINTER IA.foo;
         }
         __itable_IB {
+            __upcast_IA: POINTER TO __VOID;
             foo: __FPOINTER IA.foo;
             bar: __FPOINTER IB.bar;
         }
         __itable_IC {
+            __upcast_IA: POINTER TO __VOID;
             foo: __FPOINTER IA.foo;
             baz: __FPOINTER IC.baz;
         }
         __itable_ID {
+            __upcast_IA: POINTER TO __VOID;
+            __upcast_IB: POINTER TO __VOID;
+            __upcast_IC: POINTER TO __VOID;
             foo: __FPOINTER IA.foo;
             bar: __FPOINTER IB.bar;
             baz: __FPOINTER IC.baz;
@@ -815,11 +897,11 @@ mod tests {
         __itable_IA_FbB_instance: __itable_IA := (foo := ADR(FbB.foo))
         __itable_IA_FbC_instance: __itable_IA := (foo := ADR(FbC.foo))
         __itable_IA_FbD_instance: __itable_IA := (foo := ADR(FbD.foo))
-        __itable_IB_FbB_instance: __itable_IB := (foo := ADR(FbB.foo), bar := ADR(FbB.bar))
-        __itable_IB_FbD_instance: __itable_IB := (foo := ADR(FbD.foo), bar := ADR(FbD.bar))
-        __itable_IC_FbC_instance: __itable_IC := (foo := ADR(FbC.foo), baz := ADR(FbC.baz))
-        __itable_IC_FbD_instance: __itable_IC := (foo := ADR(FbD.foo), baz := ADR(FbD.baz))
-        __itable_ID_FbD_instance: __itable_ID := (foo := ADR(FbD.foo), bar := ADR(FbD.bar), baz := ADR(FbD.baz), qux := ADR(FbD.qux))
+        __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbB.foo), bar := ADR(FbB.bar))
+        __itable_IB_FbD_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbD_instance), foo := ADR(FbD.foo), bar := ADR(FbD.bar))
+        __itable_IC_FbC_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbC_instance), foo := ADR(FbC.foo), baz := ADR(FbC.baz))
+        __itable_IC_FbD_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbD_instance), foo := ADR(FbD.foo), baz := ADR(FbD.baz))
+        __itable_ID_FbD_instance: __itable_ID := (__upcast_IA := ADR(__itable_IA_FbD_instance), __upcast_IB := ADR(__itable_IB_FbD_instance), __upcast_IC := ADR(__itable_IC_FbD_instance), foo := ADR(FbD.foo), bar := ADR(FbD.bar), baz := ADR(FbD.baz), qux := ADR(FbD.qux))
         ");
     }
 
@@ -856,6 +938,594 @@ mod tests {
         // Globals
         __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
         ");
+    }
+
+    #[test]
+    fn upcast_single_parent() {
+        // IB extends IA. The itable struct for IB should contain an __upcast_IA field,
+        // and each IB itable instance should initialize it to point to the corresponding
+        // IA itable instance for the same POU.
+        let result = lower_and_serialize(
+            r#"
+            INTERFACE IA
+                METHOD foo END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IB
+                METHOD foo END_METHOD
+                METHOD bar END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+        );
+
+        insta::assert_snapshot!(result, @r"
+        // Structs
+        __itable_IA {
+            foo: __FPOINTER IA.foo;
+        }
+        __itable_IB {
+            __upcast_IA: POINTER TO __VOID;
+            foo: __FPOINTER IA.foo;
+            bar: __FPOINTER IB.bar;
+        }
+        // Globals
+        __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
+        __itable_IB_FbA_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbA_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar))
+        ");
+    }
+
+    #[test]
+    fn upcast_linear_chain() {
+        // IC extends IB extends IA. IC's itable struct should have both __upcast_IA and
+        // __upcast_IB (flattened, no hopping). IB's itable struct should have __upcast_IA.
+        let result = lower_and_serialize(
+            r#"
+            INTERFACE IA
+                METHOD foo END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar END_METHOD
+            END_INTERFACE
+
+            INTERFACE IC EXTENDS IB
+                METHOD baz END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IC
+                METHOD foo END_METHOD
+                METHOD bar END_METHOD
+                METHOD baz END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+        );
+
+        insta::assert_snapshot!(result, @r"
+        // Structs
+        __itable_IA {
+            foo: __FPOINTER IA.foo;
+        }
+        __itable_IB {
+            __upcast_IA: POINTER TO __VOID;
+            foo: __FPOINTER IA.foo;
+            bar: __FPOINTER IB.bar;
+        }
+        __itable_IC {
+            __upcast_IA: POINTER TO __VOID;
+            __upcast_IB: POINTER TO __VOID;
+            foo: __FPOINTER IA.foo;
+            bar: __FPOINTER IB.bar;
+            baz: __FPOINTER IC.baz;
+        }
+        // Globals
+        __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
+        __itable_IB_FbA_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbA_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar))
+        __itable_IC_FbA_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbA_instance), __upcast_IB := ADR(__itable_IB_FbA_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar), baz := ADR(FbA.baz))
+        ");
+    }
+
+    #[test]
+    fn upcast_diamond() {
+        // Diamond: ID extends IB and IC, both of which extend IA. ID's itable struct should
+        // have __upcast_IA, __upcast_IB, __upcast_IC — with __upcast_IA deduplicated (appears
+        // only once despite two paths to IA).
+        let result = lower_and_serialize(
+            r#"
+            INTERFACE IA
+                METHOD foo END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar END_METHOD
+            END_INTERFACE
+
+            INTERFACE IC EXTENDS IA
+                METHOD baz END_METHOD
+            END_INTERFACE
+
+            INTERFACE ID EXTENDS IB, IC
+                METHOD qux END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS ID
+                METHOD foo END_METHOD
+                METHOD bar END_METHOD
+                METHOD baz END_METHOD
+                METHOD qux END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+        );
+
+        insta::assert_snapshot!(result, @r"
+        // Structs
+        __itable_IA {
+            foo: __FPOINTER IA.foo;
+        }
+        __itable_IB {
+            __upcast_IA: POINTER TO __VOID;
+            foo: __FPOINTER IA.foo;
+            bar: __FPOINTER IB.bar;
+        }
+        __itable_IC {
+            __upcast_IA: POINTER TO __VOID;
+            foo: __FPOINTER IA.foo;
+            baz: __FPOINTER IC.baz;
+        }
+        __itable_ID {
+            __upcast_IA: POINTER TO __VOID;
+            __upcast_IB: POINTER TO __VOID;
+            __upcast_IC: POINTER TO __VOID;
+            foo: __FPOINTER IA.foo;
+            bar: __FPOINTER IB.bar;
+            baz: __FPOINTER IC.baz;
+            qux: __FPOINTER ID.qux;
+        }
+        // Globals
+        __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
+        __itable_IB_FbA_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbA_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar))
+        __itable_IC_FbA_instance: __itable_IC := (__upcast_IA := ADR(__itable_IA_FbA_instance), foo := ADR(FbA.foo), baz := ADR(FbA.baz))
+        __itable_ID_FbA_instance: __itable_ID := (__upcast_IA := ADR(__itable_IA_FbA_instance), __upcast_IB := ADR(__itable_IB_FbA_instance), __upcast_IC := ADR(__itable_IC_FbA_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar), baz := ADR(FbA.baz), qux := ADR(FbA.qux))
+        ");
+    }
+
+    #[test]
+    fn upcast_with_pou_inheritance() {
+        // FbB extends FbA, FbA implements IB which extends IA. Both POUs get itable instances
+        // for IA and IB. The IB instances for both POUs should have __upcast_IA pointing to the
+        // respective IA itable instance.
+        let result = lower_and_serialize(
+            r#"
+            INTERFACE IA
+                METHOD foo END_METHOD
+            END_INTERFACE
+
+            INTERFACE IB EXTENDS IA
+                METHOD bar END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IB
+                METHOD foo END_METHOD
+                METHOD bar END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB EXTENDS FbA
+                METHOD foo END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+        );
+
+        insta::assert_snapshot!(result, @r"
+        // Structs
+        __itable_IA {
+            foo: __FPOINTER IA.foo;
+        }
+        __itable_IB {
+            __upcast_IA: POINTER TO __VOID;
+            foo: __FPOINTER IA.foo;
+            bar: __FPOINTER IB.bar;
+        }
+        // Globals
+        __itable_IA_FbA_instance: __itable_IA := (foo := ADR(FbA.foo))
+        __itable_IA_FbB_instance: __itable_IA := (foo := ADR(FbB.foo))
+        __itable_IB_FbA_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbA_instance), foo := ADR(FbA.foo), bar := ADR(FbA.bar))
+        __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), foo := ADR(FbB.foo), bar := ADR(FbA.bar))
+        ");
+    }
+
+    mod properties {
+        use crate::lowering::polymorphism::table::interface::tests::helper::lower_and_serialize;
+
+        #[test]
+        fn interface_with_property_generates_itable_entries() {
+            // An interface declares a property with both GET and SET.
+            // The itable struct should contain entries for __get_foo and __set_foo.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            ");
+        }
+
+        #[test]
+        fn interface_with_get_only_property_generates_single_entry() {
+            // An interface declares a property with only GET (no SET).
+            // The itable struct should only contain __get_foo.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_INTERFACE
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+            }
+            ");
+        }
+
+        #[test]
+        fn pou_implementing_interface_with_property_generates_instance() {
+            // FbA IMPLEMENTS IA where IA has a property with GET and SET.
+            // The global itable instance should point to FbA's lowered getter/setter methods.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn interface_with_methods_and_properties() {
+            // An interface declares both a regular method and a property.
+            // The itable struct should contain entries for the method and the property accessors.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    METHOD bar END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    METHOD bar END_METHOD
+
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                bar: __FPOINTER IA.bar;
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (bar := ADR(FbA.bar), __get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn extended_interface_inherits_property_methods() {
+            // IB EXTENDS IA, where IA declares a property. IB adds its own method.
+            // IB's itable should include the inherited __get_foo/__set_foo from IA,
+            // plus its own bar entry.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                    METHOD bar END_METHOD
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IB
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+
+                    METHOD bar END_METHOD
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            __itable_IB {
+                __upcast_IA: POINTER TO __VOID;
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+                bar: __FPOINTER IB.bar;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IB_FbA_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbA_instance), __get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo), bar := ADR(FbA.bar))
+            ");
+        }
+
+        #[test]
+        fn overridden_property_in_derived_pou_points_to_child() {
+            // FbB EXTENDS FbA, both implement IA's property. FbB overrides the getter.
+            // FbB's itable should point __get_foo to FbB, while __set_foo still points to FbA.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbB.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn inherited_interface_property_obligation_through_pou_chain() {
+            // FbB EXTENDS FbA. FbA IMPLEMENTS IA (with property). FbB doesn't override.
+            // FbB should still get its own itable instance pointing to FbA's implementations.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn overridden_set_only_property_in_derived_pou_points_to_child() {
+            // FbB EXTENDS FbA, both implement IA's property. FbB overrides only the setter.
+            // FbB's itable should point __set_foo to FbB, while __get_foo still points to FbA.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                    PROPERTY foo : DINT
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbB.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn deep_pou_chain_with_alternating_property_accessor_overrides() {
+            // Three-level POU chain: FbC extends FbB extends FbA which implements IA.
+            // FbB overrides only the getter, FbC overrides only the setter.
+            // Each POU's itable should resolve each accessor to the most-derived override:
+            //   FbA → both point to FbA
+            //   FbB → get to FbB, set to FbA
+            //   FbC → get to FbB (inherited from FbB), set to FbC
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbC EXTENDS FbB
+                    PROPERTY foo : DINT
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbB.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbC_instance: __itable_IA := (__get_foo := ADR(FbB.__get_foo), __set_foo := ADR(FbC.__set_foo))
+            ");
+        }
+
+        #[test]
+        fn extended_interface_with_property_override_in_derived_pou() {
+            // IB EXTENDS IA, where IA declares a property. FbA implements IB with both
+            // accessors, and FbB extends FbA overriding only the setter.
+            // Both IA and IB itables for FbB should pick up the overridden setter from FbB
+            // while the getter stays at FbA.
+            let result = lower_and_serialize(
+                r#"
+                INTERFACE IA
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+                END_INTERFACE
+
+                INTERFACE IB EXTENDS IA
+                    METHOD bar END_METHOD
+                END_INTERFACE
+
+                FUNCTION_BLOCK FbA IMPLEMENTS IB
+                    PROPERTY foo : DINT
+                        GET END_GET
+                        SET END_SET
+                    END_PROPERTY
+
+                    METHOD bar END_METHOD
+                END_FUNCTION_BLOCK
+
+                FUNCTION_BLOCK FbB EXTENDS FbA
+                    PROPERTY foo : DINT
+                        SET END_SET
+                    END_PROPERTY
+                END_FUNCTION_BLOCK
+                "#,
+            );
+
+            insta::assert_snapshot!(result, @r"
+            // Structs
+            __itable_IA {
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+            }
+            __itable_IB {
+                __upcast_IA: POINTER TO __VOID;
+                __get_foo: __FPOINTER IA.__get_foo;
+                __set_foo: __FPOINTER IA.__set_foo;
+                bar: __FPOINTER IB.bar;
+            }
+            // Globals
+            __itable_IA_FbA_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo))
+            __itable_IA_FbB_instance: __itable_IA := (__get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbB.__set_foo))
+            __itable_IB_FbA_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbA_instance), __get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbA.__set_foo), bar := ADR(FbA.bar))
+            __itable_IB_FbB_instance: __itable_IB := (__upcast_IA := ADR(__itable_IA_FbB_instance), __get_foo := ADR(FbA.__get_foo), __set_foo := ADR(FbB.__set_foo), bar := ADR(FbA.bar))
+            ");
+        }
     }
 
     mod helper {
@@ -930,6 +1600,11 @@ mod tests {
 
                 writeln!(&mut structs_buf, "{name} {{").unwrap();
                 for var in variables {
+                    if var.name.starts_with("__upcast_") {
+                        writeln!(&mut structs_buf, "    {}: POINTER TO __VOID;", var.name).unwrap();
+                        continue;
+                    }
+
                     // The member's type is a reference to a named pointer type (e.g. "____itable_IA_foo").
                     // Look it up in the index to get the inner referenced type.
                     let ref_name = var.data_type_declaration.get_referenced_type().unwrap_or_default();

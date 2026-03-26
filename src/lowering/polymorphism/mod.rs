@@ -16,6 +16,7 @@ pub mod dispatch;
 pub mod table;
 
 use plc_ast::{ast::CompilationUnit, provider::IdProvider};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{index::Index, resolver::AnnotationMapImpl};
 
@@ -25,11 +26,15 @@ use self::{dispatch::DispatchLowerer, table::TableGenerator};
 pub struct PolymorphismLowerer {
     pub ids: IdProvider,
     pub generate_external_constructors: bool,
+    /// Diagnostics collected during interface dispatch lowering. These are produced by
+    /// validation checks that must run during lowering (before interface types are rewritten
+    /// to `__FATPOINTER`). Retrieved via [`take_diagnostics`](Self::take_diagnostics).
+    diagnostics: Vec<Diagnostic>,
 }
 
 impl PolymorphismLowerer {
     pub fn new(ids: IdProvider, generate_external_constructors: bool) -> Self {
-        Self { ids, generate_external_constructors }
+        Self { ids, generate_external_constructors, diagnostics: Vec::new() }
     }
 
     /// Generates vtable and itable struct definitions, `__vtable` member fields on root POUs,
@@ -43,7 +48,24 @@ impl PolymorphismLowerer {
     /// 1. Interface dispatch: replaces interface-typed declarations with `__FATPOINTER`,
     ///    expands assignments, and transforms calls through itables.
     /// 2. POU dispatch: transforms method calls into indirect calls through vtables.
-    pub fn dispatch(&self, index: Index, annotations: AnnotationMapImpl, units: &mut [CompilationUnit]) {
+    ///
+    /// Returns any diagnostics produced during interface validation.
+    pub fn dispatch(
+        &self,
+        index: Index,
+        annotations: AnnotationMapImpl,
+        units: &mut [CompilationUnit],
+    ) -> Vec<Diagnostic> {
         DispatchLowerer::lower(self.ids.clone(), index, annotations, units)
+    }
+
+    /// Takes accumulated diagnostics, leaving the internal buffer empty.
+    pub fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
+    }
+
+    /// Stores diagnostics collected during dispatch lowering.
+    pub fn stash_diagnostics(&mut self, diagnostics: Vec<Diagnostic>) {
+        self.diagnostics = diagnostics;
     }
 }

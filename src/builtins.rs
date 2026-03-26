@@ -670,7 +670,11 @@ lazy_static! {
                     let left = generator.generate_expression(actual_in)?.into_int_value();
                     let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(actual_n, actual_in)?.into_int_value();
 
-                    let shr = generator.llvm.builder.build_right_shift(left, right, left.get_type().is_sized(), "")?;
+                    let is_signed = generator.annotations
+                        .get_type(actual_in, generator.index)
+                        .map(|it| it.get_type_information().is_signed_int())
+                        .unwrap_or(false);
+                    let shr = generator.llvm.builder.build_right_shift(left, right, is_signed, "")?;
 
                     Ok(ExpressionValue::RValue(shr.as_basic_value_enum()))
                 }

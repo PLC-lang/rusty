@@ -4,7 +4,9 @@ use plc::{
 };
 use plc_ast::{ast::AstNode, provider::IdProvider};
 
+pub mod array_lowering;
 pub mod control_statement;
+pub(crate) mod helper;
 pub mod inheritance;
 pub mod initializer;
 pub mod reference_to_return;

@@ -1,15 +1,17 @@
 [package]
 name = "plc_lowering"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
+license = "LGPL-3.0"
+description = "AST lowering passes for the PLC Structured Text compiler"
 
 [dependencies]
-plc = { path = "../..", package = "rusty" }
-plc_ast = { path = "../plc_ast" }
-plc_source = { path = "../plc_source" }
-plc_diagnostics = { path = "../plc_diagnostics" }
+plc = { path = "../..", package = "plc-compiler", version = "0.3.0" }
+plc_ast = { path = "../plc_ast", version = "0.3.0" }
+plc_source = { path = "../plc_source", version = "0.3.0" }
+plc_diagnostics = { path = "../plc_diagnostics", version = "0.3.0" }
 log.workspace = true
 
 [dev-dependencies]
-plc_driver = { path = "../plc_driver" }
+plc_driver = { path = "../plc_driver", version = "0.3.0" }
 insta = "1.31.0"
