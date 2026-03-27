@@ -1471,3 +1471,55 @@ fn cross_unit_function_with_typedef_array_parameter() {
     assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
     assert_eq!(dependencies.len(), 9);
 }
+
+#[test]
+fn value_annotation_resolves_struct_member_dependencies() {
+    // When a cast expression like `MyStruct#(...)` produces a Value annotation with
+    // resulting_type = "MyStruct", the resolver must recursively resolve MyStruct's
+    // member types as dependencies. This is the mechanism that ensures itable struct
+    // types (and their function pointer members) are available during codegen.
+    //
+    // Simulates the post-lowering state where an FB in a separate unit casts a void
+    // pointer to an itable struct type: `__itable_IA#(reference.table^).foo^(...)`
+    let units = [
+        "
+        TYPE inner : STRUCT
+            x : DINT;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE wrapper : STRUCT
+            field : REF_TO inner;
+        END_STRUCT
+        END_TYPE
+        ",
+        // A program that references `wrapper` only through a cast expression
+        // (not through a variable declaration), analogous to how the lowered
+        // itable dispatch references the itable struct type.
+        "
+        FUNCTION foo : DINT
+        VAR
+            ptr : REF_TO BYTE;
+        END_VAR
+            foo := wrapper#(ptr^).field^.x;
+        END_FUNCTION
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    // The cast to `wrapper` must pull in wrapper and its member types
+    assert!(dependencies.contains(&Dependency::Datatype("foo".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("wrapper".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__wrapper_field".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("inner".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+}
