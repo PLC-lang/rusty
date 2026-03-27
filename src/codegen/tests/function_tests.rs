@@ -490,3 +490,59 @@ fn function_output_should_be_cast_if_needed() {
     }
     "#)
 }
+
+#[test]
+fn function_block_output_should_be_cast_if_needed() {
+    let result = codegen(
+        "
+        FUNCTION_BLOCK libFunction_fb
+        VAR_OUTPUT
+            result : REAL;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM mainProg
+            VAR
+                libFunction : libFunction_fb;
+                i1 : INT;
+            END_VAR
+
+            libFunction(
+                result => i1
+            );
+        END_PROGRAM
+       ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type { %libFunction_fb, i16 }
+    %libFunction_fb = type { float }
+
+    @mainProg_instance = global %mainProg zeroinitializer
+
+    define void @libFunction_fb(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %result = getelementptr inbounds nuw %libFunction_fb, ptr %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @mainProg(ptr %0) {
+    entry:
+      %libFunction = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
+      %i1 = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 1
+      call void @libFunction_fb(ptr %libFunction)
+      %1 = getelementptr inbounds %libFunction_fb, ptr %libFunction, i32 0, i32 0
+      %2 = load float, ptr %1, align [filtered]
+      %3 = fptosi float %2 to i16
+      store i16 %3, ptr %i1, align [filtered]
+      ret void
+    }
+    "#)
+}

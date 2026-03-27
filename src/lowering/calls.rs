@@ -410,6 +410,8 @@ impl AstVisitorMut for AggregateTypeLowerer {
             .as_ref()
             .iter()
             .any(|param| is_output_assignment_and_type_cast_needed(param, annotation.as_ref(), index))
+            // Stateful structs (such as function blocks) have their own output assignment mechanism in codegen,
+            // and are not handled by this lowerer
             && (function_entry.is_function() || function_entry.is_method())
         {
             let mut pre_statements: Vec<AstNode> = Vec::new();
@@ -575,9 +577,10 @@ fn is_output_assignment_and_type_cast_needed(
 
 #[cfg(test)]
 mod tests {
-    use insta::assert_debug_snapshot;
+    use insta::{assert_debug_snapshot, assert_snapshot};
     use plc_ast::mut_visitor::AstVisitorMut;
     use plc_ast::provider::IdProvider;
+    use plc_ast::ser::AstSerializer;
     use plc_lowering::control_statement::ControlStatementLowerer;
     use pretty_assertions::assert_eq;
 
@@ -1447,5 +1450,111 @@ mod tests {
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[2].statements[0]);
+    }
+
+    #[test]
+    fn calls_to_functions_with_output_assignments_are_lowererd_if_type_cast_is_needed() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION libFunction : INT
+        VAR_INPUT
+            inVar1 : INT;
+            inVar2 : REAL;
+        END_VAR
+        VAR_OUTPUT
+            result : REAL;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                i1 : INT;
+            END_VAR
+
+            libFunction(
+                inVar1 := 0,
+                inVar2 := 0.0,
+                result => i1
+            );
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        let statement = &implementation.statements[0];
+        assert_snapshot!(AstSerializer::format(statement), @"alloca __libFunction_result0: REAL, libFunction(inVar1 := 0, inVar2 := 0.0, result => __libFunction_result0), i1 := __libFunction_result0");
+    }
+
+    #[test]
+    fn calls_to_functions_with_output_assignments_are_not_lowererd_if_no_type_cast_is_needed() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION libFunction : INT
+        VAR_INPUT
+            inVar1 : INT;
+            inVar2 : REAL;
+        END_VAR
+        VAR_OUTPUT
+            result : REAL;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                i1 : REAL;
+            END_VAR
+
+            libFunction(
+                inVar1 := 0,
+                inVar2 := 0.0,
+                result => i1
+            );
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        let statement = &implementation.statements[0];
+        assert_snapshot!(AstSerializer::format(statement), @"libFunction(inVar1 := 0, inVar2 := 0.0, result => i1)");
     }
 }
