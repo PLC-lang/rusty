@@ -394,3 +394,76 @@ fn validate_ranges() {
       │                 ^^^^^ Invalid range `1..-5`, did you mean `-5..1`?
     ");
 }
+
+#[test]
+fn fewer_elements_1d() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            full    : ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5];
+            partial : ARRAY[1..5] OF DINT := [1, 2, 3];
+            one     : ARRAY[1..5] OF DINT := [1];
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn fewer_elements_2d() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            flat_full    : ARRAY[1..2, 1..3] OF DINT := [1, 2, 3, 4, 5, 6];
+            flat_partial : ARRAY[1..2, 1..3] OF DINT := [1, 2, 3];
+            flat_one     : ARRAY[1..2, 1..3] OF DINT := [1];
+
+            nested_full    : ARRAY[1..2] OF ARRAY[1..3] OF DINT := [[1, 2, 3], [4, 5, 6]];
+            nested_partial : ARRAY[1..2] OF ARRAY[1..3] OF DINT := [[1, 2, 3]];
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn fewer_elements_structs() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE FOO : STRUCT
+            idx : DINT;
+        END_STRUCT END_TYPE
+
+        FUNCTION main : DINT
+        VAR
+            full    : ARRAY[1..3] OF FOO := [(idx := 1), (idx := 2), (idx := 3)];
+            partial : ARRAY[1..3] OF FOO := [(idx := 1)];
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn fewer_elements_multiplied() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            full    : ARRAY[1..5] OF DINT := [5(0)];
+            partial : ARRAY[1..5] OF DINT := [3(0)];
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}

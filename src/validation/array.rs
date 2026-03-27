@@ -89,9 +89,19 @@ fn validate_array<T: AnnotationMap>(
         let location = stmt_rhs.get_location();
         validator.push_diagnostic(
             Diagnostic::new(format!(
-                "Array `{name}` has a size of {len_lhs}, but {len_rhs} elements were provided"
+                "Too many initial values for array `{name}`. Expected {len_lhs}, found {len_rhs}."
             ))
             .with_error_code("E043")
+            .with_location(location),
+        );
+    } else if len_rhs > 0 && len_rhs < len_lhs {
+        let name = statement.lhs_name(validator.context);
+        let location = stmt_rhs.get_location();
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Fewer initial values for array `{name}` than expected. Expected {len_lhs}, found {len_rhs}."
+            ))
+            .with_error_code("E127")
             .with_location(location),
         );
     }
