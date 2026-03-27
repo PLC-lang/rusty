@@ -1,27 +1,34 @@
 use serde::{Deserialize, Serialize};
 
+/// The desired output format / link mode for a compilation.
+///
+/// This determines the **kind** of artifact produced (object, shared lib, executable, etc.).
+/// Relocation behavior (PIC vs non-PIC) is controlled separately via [`RelocationPreference`].
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub enum FormatOption {
-    /// Indicates that the result will be an object file (e.g. No Linking)
+    /// Compile-only: emit a single object file, no linking.
     Object,
-    /// Indicates that the output format will be linked statically (i.e. Executable)
+    /// Link into a static executable.
     #[default]
     Static,
-    /// Indicates that the linked object will be Position Independant
+    /// **Deprecated** — equivalent to `Shared` with `RelocationPreference::Pic`.
+    /// Retained for backward compatibility with `--pic`.
     PIC,
-    /// Indicates that the linked object will be shared and position independent
+    /// Link into a shared library (`.so` / `.dylib`).
     Shared,
-    /// Indicates that the compiled object will be a DynamicNoPIC object
+    /// **Deprecated** — equivalent to `Shared` with `RelocationPreference::NoPic`.
+    /// Retained for backward compatibility with `--no-pic`.
     NoPIC,
-    /// Indicates that the compiled object will be relocatable (e.g. Combinable into multiple objects)
+    /// Partial (relocatable) link: combine multiple objects into one (linker `-r`).
     Relocatable,
-    /// Indicates that the compile result will be LLVM Bitcode
+    /// Emit LLVM bitcode (`.bc`).
     Bitcode,
-    /// Indicates that the compile result will be LLVM IR
+    /// Emit LLVM IR text (`.ll`).
     IR,
 }
 
 impl FormatOption {
+    /// Returns `true` if this format requires invoking the linker.
     pub fn should_link(self) -> bool {
         matches!(
             self,
@@ -32,4 +39,26 @@ impl FormatOption {
                 | FormatOption::Relocatable
         )
     }
+}
+
+/// Controls the relocation model used during code generation.
+///
+/// This is orthogonal to [`FormatOption`] — you can request PIC code for any output kind.
+///
+/// | Preference | Object files | Shared libraries | Executables |
+/// |---|---|---|---|
+/// | `Default` | platform default | PIC | platform default (often PIE) |
+/// | `Pic` | PIC relocations | PIC | PIC (PIE-compatible) |
+/// | `NoPic` | non-PIC relocations | non-PIC (may fail on some targets) | non-PIE (`-no-pie`) |
+///
+/// Corresponds to CLI flags `--fpic` and `--fno-pic`.
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize, Default)]
+pub enum RelocationPreference {
+    /// Use the platform / format default relocation model.
+    #[default]
+    Default,
+    /// Generate position-independent code (`--fpic`).
+    Pic,
+    /// Generate non-position-independent code (`--fno-pic`).
+    NoPic,
 }
