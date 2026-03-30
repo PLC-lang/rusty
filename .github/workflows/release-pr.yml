@@ -46,7 +46,7 @@ jobs:
         id: version
         run: |
           CURRENT=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
-          NEXT=$(echo "${{ steps.cliff-version.outputs.version }}" | sed 's/^v//')
+          NEXT=$(echo "${{ steps.cliff-version.outputs.content }}" | sed 's/^v//')
           echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
           if [ -z "$NEXT" ] || [ "$NEXT" = "$CURRENT" ]; then

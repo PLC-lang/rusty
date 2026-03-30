@@ -962,8 +962,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             _ => {
                 let assigned_output = self.generate_lvalue(expr)?;
-                let assigned_output_type =
-                    self.annotations.get_type_or_void(expr, self.index).get_type_information();
+                let assigned_output_type_main = self.annotations.get_type_or_void(expr, self.index);
+                let assigned_output_type = assigned_output_type_main.get_type_information();
 
                 let pou_type_name = self
                     .index
@@ -973,6 +973,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let pointee = self.llvm_index.get_associated_pou_type(pou_type_name).unwrap();
                 let output = self.build_parameter_struct_gep(pointee, context);
 
+                let output_value_type_main =
+                    self.index.get_effective_type_or_void_by_name(parameter.get_type_name());
                 let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
 
                 if assigned_output_type.is_aggregate() && output_value_type.is_aggregate() {
@@ -986,7 +988,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     )?;
                 } else {
                     let pointee = self.llvm_index.get_associated_type(output_value_type.get_name()).unwrap();
-                    let output_value = builder.build_load(pointee, output, "")?;
+                    let output_value = cast_if_needed!(
+                        self,
+                        assigned_output_type_main,
+                        output_value_type_main,
+                        builder.build_load(pointee, output, "")?,
+                        None
+                    )?;
                     builder.build_store(assigned_output, output_value)?;
                 }
             }
