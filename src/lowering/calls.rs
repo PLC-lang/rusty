@@ -53,7 +53,7 @@ use plc_ast::{
         AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock,
         VariableBlockType,
     },
-    control_statements::{AstControlStatement, ConditionalBlock, IfStatement, LoopStatement},
+    control_statements::{AstControlStatement, ConditionalBlock, LoopStatement},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     try_from_mut,
@@ -119,38 +119,38 @@ impl AggregateTypeLowerer {
     }
 
     fn visit_loop_statement(&mut self, stmt: &mut LoopStatement) {
-        let location = stmt.condition.get_location();
-        let mut condition = std::mem::replace(
-            stmt.condition.as_mut(),
-            AstFactory::create_literal(
-                plc_ast::literals::AstLiteral::Bool(true),
-                location.clone(),
-                self.id_provider.next_id(),
-            ),
-        );
-        if !self.ctx.is_do_while {
-            condition =
-                AstFactory::create_not_expression(condition, location.clone(), self.id_provider.next_id());
-        }
-        //wrap in if statement
-        let break_stmt = AstFactory::create_exit_statement(location.clone(), self.id_provider.next_id());
-        let if_condition = AstFactory::create_if_statement(
-            IfStatement {
-                blocks: vec![ConditionalBlock { condition: Box::new(condition), body: vec![break_stmt] }],
-                else_block: vec![],
-                end_location: SourceLocation::internal(),
-            },
-            location.clone(),
-            self.id_provider.next_id(),
-        );
-        //Insert the if statement at the start or end of the body
-        if self.ctx.is_do_while {
-            stmt.body.push(if_condition);
-        } else {
-            stmt.body.insert(0, if_condition);
-        }
+        // let location = stmt.condition.get_location();
+        // let mut condition = std::mem::replace(
+        //     stmt.condition.as_mut(),
+        //     AstFactory::create_literal(
+        //         plc_ast::literals::AstLiteral::Bool(true),
+        //         location.clone(),
+        //         self.id_provider.next_id(),
+        //     ),
+        // );
+        // if !self.ctx.is_do_while {
+        //     condition =
+        //         AstFactory::create_not_expression(condition, location.clone(), self.id_provider.next_id());
+        // }
+        // //wrap in if statement
+        // let break_stmt = AstFactory::create_exit_statement(location.clone(), self.id_provider.next_id());
+        // let if_condition = AstFactory::create_if_statement(
+        //     IfStatement {
+        //         blocks: vec![ConditionalBlock { condition: Box::new(condition), body: vec![break_stmt] }],
+        //         else_block: vec![],
+        //         end_location: SourceLocation::internal(),
+        //     },
+        //     location.clone(),
+        //     self.id_provider.next_id(),
+        // );
+        // //Insert the if statement at the start or end of the body
+        // if self.ctx.is_do_while {
+        //     stmt.body.push(if_condition);
+        // } else {
+        //     // Dont be the loop
+        // }
 
-        self.steal_and_walk_list(&mut stmt.body);
+        // self.steal_and_walk_list(&mut stmt.body);
     }
 
     fn walk_with_context<T>(&mut self, t: &mut T, ctx: VisitorContext, f: impl Fn(&mut Self, &mut T))

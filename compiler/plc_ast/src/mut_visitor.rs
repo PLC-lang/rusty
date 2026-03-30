@@ -9,7 +9,7 @@ use crate::ast::{
     JumpStatement, MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr,
     UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
 };
-use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
+use crate::control_statements::{AstControlStatement, ConditionalBlock, LoopStatement, ReturnStatement};
 use crate::literals::AstLiteral;
 use crate::try_from_mut;
 
@@ -180,7 +180,19 @@ pub trait AstVisitorMut: Sized {
 
     fn visit_control_statement(&mut self, node: &mut AstNode) {
         let stmt = try_from_mut!(node, AstControlStatement).expect("AstControlStatement");
-        stmt.walk(self)
+        match stmt {
+            AstControlStatement::WhileLoop(loop_stmt) => self.visit_while_loop_statement(loop_stmt),
+            _ => stmt.walk(self),
+        }
+    }
+
+    /// Visits a `WhileLoop` control statement.
+    /// Make sure to visit the condition and body to continue the traversal.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `LoopStatement` node to visit.
+    fn visit_while_loop_statement(&mut self, stmt: &mut LoopStatement) {
+        visit_nodes_mut!(self, &mut stmt.condition);
+        self.visit_statement_list(&mut stmt.body);
     }
 
     fn visit_case_condition(&mut self, node: &mut AstNode) {
