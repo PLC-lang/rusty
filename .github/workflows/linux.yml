@@ -309,16 +309,25 @@ jobs:
             ghcr.io/plc-lang/rust-llvm:latest \
             -c "df -h && apt-get clean && rm -rf /var/lib/apt/lists/* && ./scripts/build.sh --coverage"
 
-      - name: Upload to codecov.io
+      - name: Upload unit test coverage to codecov.io
         uses: codecov/codecov-action@v4
         with:
           files: lcov.info
+          flags: unittests
+
+      - name: Upload lit test coverage to codecov.io
+        uses: codecov/codecov-action@v4
+        with:
+          files: lcov.lit.info
+          flags: littests
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v4
         with:
           name: code-coverage-report
-          path: lcov.info
+          path: |
+            lcov.info
+            lcov.lit.info
 
 
 

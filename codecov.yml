@@ -7,3 +7,17 @@ coverage:
     patch:
       default:
         informational: true #Ignore failed coverage
+
+flags:
+  unittests:
+    paths:
+      - compiler/
+      - src/
+      - libs/
+    carryforward: true
+  littests:
+    paths:
+      - compiler/
+      - src/
+      - libs/
+    carryforward: true

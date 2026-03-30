@@ -39,18 +39,9 @@ function set_cargo_options() {
     echo "$CARGO_OPTIONS"
 }
 
-function run_coverage() {
-    log "Exporting Flags"
-    export RUSTFLAGS="-C instrument-coverage"
-    export LLVM_PROFILE_FILE="rusty-%p-%m.profraw"
-
-    log "Cleaning before build"
-    cargo clean
-    log "Building coverage"
-    cargo build --workspace
-    log "Running coverage tests"
-    cargo test --workspace
-    log "Collecting coverage results"
+function collect_coverage() {
+    local output_file=$1
+    log "Collecting coverage results into $output_file"
     grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
         --ignore "/*" \
         --ignore "src/main.rs" \
@@ -58,7 +49,35 @@ function run_coverage() {
         --ignore "src/*/tests/*" \
         --ignore "tests/*" \
         --ignore "src/lexer/tokens.rs" \
-        --ignore-not-existing -o lcov.info
+        --ignore-not-existing -o "$output_file"
+}
+
+function run_coverage() {
+    log "Exporting Flags"
+    export RUSTFLAGS="-C instrument-coverage"
+    export LLVM_PROFILE_FILE="rusty-%p-%m.profraw"
+
+    log "Cleaning profraw files and previous reports"
+    find . -name "*.profraw" -delete
+    rm -f lcov.info lcov.lit.info
+
+    log "Cleaning before build"
+    cargo clean
+    log "Building coverage"
+    cargo build --workspace
+
+    log "Running unit/integration tests"
+    cargo test --workspace
+    collect_coverage lcov.info
+
+    log "Cleaning profraw files before lit run"
+    find . -name "*.profraw" -delete
+
+    log "Running lit tests for coverage"
+    run_std_build
+    run_package_std
+    lit -v -DLIB=$project_location/output -DCOMPILER=$project_location/target/debug/plc tests/lit/ || true
+    collect_coverage lcov.lit.info
 }
 
 
