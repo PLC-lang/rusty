@@ -68,6 +68,34 @@ fn shift_right_test() {
 }
 
 #[test]
+fn shift_right_unsigned_uses_logical_shift() {
+    #[derive(Default, Debug)]
+    #[repr(C)]
+    struct Main {
+        unsigned_result: u8,
+        signed_result: i8,
+    }
+
+    let src = "
+        PROGRAM main
+        VAR
+           unsigned_result : BYTE;
+           signed_result : SINT;
+        END_VAR
+        unsigned_result := SHR(BYTE#251, SINT#1);
+        signed_result := SHR(SINT#-4, SINT#1);
+        END_PROGRAM
+        ";
+    let sources = SourceCode::new(src, "main.st");
+    let mut maintype = Main::default();
+    let _res: u32 = compile_and_run(sources, "".into(), &mut maintype);
+    // BYTE#251 = 0b11111011 → logical shift right by 1 → 0b01111101 = 125
+    assert_eq!(maintype.unsigned_result, 125);
+    // SINT#-4 = 0b11111100 → arithmetic shift right by 1 → 0b11111110 = -2
+    assert_eq!(maintype.signed_result, -2);
+}
+
+#[test]
 fn rotate_left_test() {
     let src = "
         PROGRAM main

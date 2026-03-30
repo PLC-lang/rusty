@@ -53,11 +53,6 @@ impl GlobalValueExt for GlobalValue<'_> {
         self
     }
 
-    fn make_retain(self) -> Self {
-        self.set_section(Some(RETAIN_SECTION_NAME));
-        self
-    }
-
     fn set_initial_value(self, initial_value: Option<BasicValueEnum>, data_type: BasicTypeEnum) -> Self {
         if let Some(initializer) = initial_value {
             let v = &initializer as &dyn BasicValue;
@@ -65,6 +60,11 @@ impl GlobalValueExt for GlobalValue<'_> {
         } else {
             Llvm::set_const_zero_initializer(&self, data_type);
         };
+        self
+    }
+
+    fn make_retain(self) -> Self {
+        self.set_section(Some(RETAIN_SECTION_NAME));
         self
     }
 }
@@ -95,14 +95,15 @@ impl<'a> Llvm<'a> {
     }
 
     /// Materializes an aggregate constant (array or struct) as an anonymous, unnamed-addr
-    /// global constant in the current module and returns a pointer to it. This avoids
-    /// emitting bloated inline `store` instructions for large literal values.
+    /// global constant in the current module and returns a pointer to it along with the
+    /// preferred alignment (in bytes). This avoids emitting bloated inline `store`
+    /// instructions for large literal values.
     ///
     /// The module is obtained from the builder's current insert position.
     pub fn materialize_as_global(
         &self,
         value: &BasicValueEnum<'a>,
-    ) -> Result<PointerValue<'a>, CodegenError> {
+    ) -> Result<(PointerValue<'a>, u32), CodegenError> {
         let block = self.builder.get_insert_block().ok_or_else(|| {
             CodegenError::new(
                 "No insert block when materializing global constant",
@@ -128,9 +129,12 @@ impl<'a> Llvm<'a> {
         global.set_constant(true);
         global.set_unnamed_addr(true);
         global.set_linkage(Linkage::Private);
+        // get_alignment() returns 0 when no explicit alignment is set; default to 1
+        // since build_memcpy requires a non-zero alignment value.
+        let alignment = global.get_alignment().max(1);
         // Prevent Module::drop from disposing the module we don't own.
         std::mem::forget(module);
-        Ok(global.as_pointer_value())
+        Ok((global.as_pointer_value(), alignment))
     }
 
     /// creates a local variable at the builder's location

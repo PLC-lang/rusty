@@ -303,27 +303,24 @@ fn adr_expression_list_is_lowered() {
     assert_eq!(count_assignments(stmts), 4);
 }
 
+/// Verify that FB member array non-constant initializers are lowered into
+/// indexed assignments in the constructor body.
 #[test]
-fn adr_variable_initializer_is_stripped() {
+fn fb_member_array_non_const_initializer_is_lowered() {
     let project = lower(
         "
-        FUNCTION main : DINT
+        FUNCTION_BLOCK Foo
         VAR
             x : DINT;
             arr : ARRAY[0..2] OF REF_TO DINT := [3(ADR(x))];
         END_VAR
-            main := 0;
-        END_FUNCTION
+        END_FUNCTION_BLOCK
         ",
     );
-    let pou = project.units[0].get_unit().pous.iter().find(|p| p.name == "main").unwrap();
-    let arr_var = pou
-        .variable_blocks
-        .iter()
-        .flat_map(|b| &b.variables)
-        .find(|v| v.name == "arr")
-        .expect("arr variable should exist");
-    assert!(arr_var.initializer.is_none(), "Lowered array initializer should be stripped");
+    let stmts = find_impl_stmts(&project, "Foo__ctor");
+    assert!(!has_literal_array(stmts), "FB member non-const array should be lowered");
+    // 3 indexed assignments for arr + 1 init for x
+    assert_eq!(count_assignments(stmts), 4);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -436,8 +433,9 @@ fn variable_elements_in_expression_list_are_lowered() {
     assert_eq!(count_assignments(stmts), 5);
 }
 
+/// Verify that only the non-constant array is lowered while the constant one is left as-is.
 #[test]
-fn only_lowered_variable_initializer_is_stripped_for_shared_type() {
+fn shared_type_non_const_is_lowered_const_is_not() {
     let project = lower(
         "
         TYPE tarr : ARRAY[0..2] OF DINT; END_TYPE
@@ -453,25 +451,11 @@ fn only_lowered_variable_initializer_is_stripped_for_shared_type() {
         ",
     );
 
-    let pou = project.units[0].get_unit().pous.iter().find(|p| p.name == "main").unwrap();
-    let lowered_arr = pou
-        .variable_blocks
-        .iter()
-        .flat_map(|b| &b.variables)
-        .find(|v| v.name == "lowered_arr")
-        .expect("lowered_arr variable should exist");
-    let const_arr = pou
-        .variable_blocks
-        .iter()
-        .flat_map(|b| &b.variables)
-        .find(|v| v.name == "const_arr")
-        .expect("const_arr variable should exist");
-
-    assert!(lowered_arr.initializer.is_none(), "Lowered initializer should be stripped");
-    assert!(
-        const_arr.initializer.is_some(),
-        "Initializer for same-type variable without lowering must be preserved"
-    );
+    let stmts = find_impl_stmts(&project, "main");
+    // 3 indexed assignments for lowered_arr + `seed := 42` + const_arr literal assignment + `main := 0`
+    assert_eq!(count_assignments(stmts), 6);
+    // const_arr's literal array assignment is still present
+    assert!(has_literal_array(stmts), "Constant array should remain as literal");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -566,8 +550,9 @@ fn type_level_struct_array_ctor_is_lowered() {
     assert_eq!(count_assignments(stmts), 3);
 }
 
+/// Verify that type-level struct array initializers are lowered in the constructor body.
 #[test]
-fn type_level_struct_array_initializer_is_stripped() {
+fn type_level_struct_array_is_lowered_in_ctor() {
     let project = lower(
         "
         TYPE MyStruct : STRUCT a : DINT; END_STRUCT END_TYPE
@@ -579,13 +564,9 @@ fn type_level_struct_array_initializer_is_stripped() {
         END_FUNCTION
         ",
     );
-    let udt = project.units[0]
-        .get_unit()
-        .user_types
-        .iter()
-        .find(|u| u.data_type.get_name() == Some("tarr"))
-        .expect("tarr type should exist");
-    assert!(udt.initializer.is_none(), "Lowered type initializer should be stripped");
+    let stmts = find_impl_stmts(&project, "tarr__ctor");
+    assert!(!has_literal_array(stmts), "Type-level struct array should be lowered");
+    assert_eq!(count_assignments(stmts), 3);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -630,4 +611,34 @@ fn flat_to_indices_3d() {
     assert_eq!(info.flat_to_indices(3), vec![0, 1, 0]);
     assert_eq!(info.flat_to_indices(9), vec![1, 0, 0]);
     assert_eq!(info.flat_to_indices(26), vec![2, 2, 2]);
+}
+
+/// `FOR_LOOP_THRESHOLD` (32) is checked per `MultipliedStatement`
+/// segment, not against the total element count. An initializer split into
+/// multiple sub-threshold segments - e.g. `[10(v), 10(v), 10(v), 10(v)]`
+/// totalling 40 elements - is fully unrolled into 40 individual assignments
+/// instead of emitting a FOR loop, because each segment's count (10) is below
+/// the threshold. This documents the current behaviour so that
+/// any future fix is intentional.
+#[test]
+fn multi_segment_above_threshold_is_unrolled_per_segment() {
+    let project = lower(
+        "
+        FUNCTION main : DINT
+        VAR
+            v : DINT := 1;
+            arr : ARRAY[0..39] OF DINT := [10(v), 10(v), 10(v), 10(v)];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    let stmts = find_impl_stmts(&project, "main");
+    assert!(!has_literal_array(stmts));
+    // Each of the 4 segments (count=10, below threshold=32) is unrolled
+    // individually, producing 40 assignments rather than a FOR loop.
+    // A fix would need to apply the threshold to the *total* element count.
+    assert!(!has_for_loop(stmts), "Each segment is below threshold so no FOR loop is emitted");
+    // 40 indexed assignments + `v := 1` + `main := 0`
+    assert_eq!(count_assignments(stmts), 42);
 }

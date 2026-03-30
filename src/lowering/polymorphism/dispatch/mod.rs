@@ -12,8 +12,10 @@
 
 pub mod interface;
 pub mod pou;
+pub mod validation;
 
 use plc_ast::{ast::CompilationUnit, provider::IdProvider};
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use crate::{index::Index, resolver::AnnotationMapImpl};
 
@@ -25,16 +27,19 @@ pub struct DispatchLowerer;
 
 impl DispatchLowerer {
     /// Lowers direct calls to indirect calls for polymorphic variables.
+    /// Returns any diagnostics produced during interface validation.
     pub fn lower(
         ids: IdProvider,
         index: Index,
         annotations: AnnotationMapImpl,
         units: &mut [CompilationUnit],
-    ) {
+    ) -> Vec<Diagnostic> {
         let mut lowerer = InterfaceDispatchLowerer::new(ids.clone(), &index, &annotations);
-        lowerer.lower(units);
+        let diagnostics = lowerer.lower(units);
 
         let mut lowerer = PolymorphicCallLowerer::new(ids, &index, &annotations);
         lowerer.lower(units);
+
+        diagnostics
     }
 }

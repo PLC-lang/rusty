@@ -2896,7 +2896,6 @@ fn super_with_structured_types() {
     @__vtable_child_instance = global %__vtable_child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
     @__parent.data__init = unnamed_addr constant %Complex_Type { i16 10, i16 20, float 3.050000e+01 }
-    @__parent.arr_data__init = unnamed_addr constant [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }]
     @.const_init = private unnamed_addr constant %Complex_Type { i16 1, i16 2, float 3.500000e+00 }
     @.const_init.1 = private unnamed_addr constant %Complex_Type { i16 4, i16 5, float 6.500000e+00 }
 
