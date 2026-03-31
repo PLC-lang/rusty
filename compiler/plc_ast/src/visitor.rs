@@ -8,7 +8,9 @@ use crate::ast::{
     MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression,
     UserTypeDeclaration, Variable, VariableBlock,
 };
-use crate::control_statements::{AstControlStatement, ConditionalBlock, LoopStatement, ReturnStatement};
+use crate::control_statements::{
+    AstControlStatement, ConditionalBlock, ForLoopStatement, LoopStatement, ReturnStatement,
+};
 use crate::literals::AstLiteral;
 
 /// Macro that calls the visitor's `visit` method for every AstNode in the passed iterator `iter`.
@@ -383,8 +385,19 @@ pub trait AstVisitor: Sized {
             AstControlStatement::RepeatLoop(loop_stmt) => {
                 self.visit_repeat_loop_statement(loop_stmt, node)
             }
+            AstControlStatement::ForLoop(for_stmt) => self.visit_for_loop_statement(for_stmt, node),
             _ => stmt.walk(self),
         }
+    }
+
+    /// Visits a `ForLoop` control statement.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `ForLoopStatement` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    fn visit_for_loop_statement(&mut self, stmt: &ForLoopStatement, _node: &AstNode) {
+        visit_nodes!(self, &stmt.counter, &stmt.start, &stmt.end);
+        visit_all_nodes!(self, &stmt.by_step);
+        self.visit_statement_list(&stmt.body);
     }
 
     /// Visits a `WhileLoop` control statement.

@@ -1,6 +1,6 @@
 use plc_ast::{
     ast::{AstNode, LinkageType},
-    control_statements::LoopStatement,
+    control_statements::{ForLoopStatement, LoopStatement},
     provider::IdProvider,
     visitor::{AstVisitor, Walker},
 };
@@ -194,6 +194,7 @@ fn test_visit_while_loop_statement_override() {
     // AND all identifiers inside the while loops were still visited
     assert_eq!(get_character_range('a', 'd'), visitor.identifiers);
 }
+
 #[test]
 fn test_visit_repeat_loop_statement_override() {
     // GIVEN a visitor that specifically tracks repeat loop visits
@@ -241,6 +242,59 @@ fn test_visit_repeat_loop_statement_override() {
     assert_eq!(2, visitor.repeat_count);
     // AND all identifiers inside the repeat loops were still visited
     assert_eq!(get_character_range('a', 'd'), visitor.identifiers);
+}
+
+#[test]
+fn test_visit_for_loop_statement_override() {
+    // GIVEN a visitor that specifically tracks for loop visits
+    struct ForLoopCounter {
+        for_count: usize,
+        identifiers: Vec<String>,
+    }
+
+    impl AstVisitor for ForLoopCounter {
+        fn visit_for_loop_statement(&mut self, stmt: &ForLoopStatement, _: &AstNode) {
+            self.for_count += 1;
+            self.visit(&stmt.counter);
+            self.visit(&stmt.start);
+            self.visit(&stmt.end);
+            if let Some(step) = &stmt.by_step {
+                self.visit(step);
+            }
+            for s in &stmt.body {
+                self.visit(s);
+            }
+        }
+
+        fn visit_identifier(&mut self, stmt: &str, _: &AstNode) {
+            self.identifiers.push(stmt.to_string());
+        }
+
+        fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, _: &AstNode) {
+            self.identifiers.push(stmt.get_literal_value());
+        }
+    }
+
+    // WHEN we visit source code with two for loops
+    let mut visitor = ForLoopCounter { for_count: 0, identifiers: vec![] };
+    visit(
+        "
+        PROGRAM prg
+            FOR a := b TO c BY d DO
+                e;
+            END_FOR;
+            FOR f := 0 TO g DO
+                h;
+            END_FOR;
+        END_PROGRAM",
+        &mut visitor,
+    );
+    visitor.identifiers.sort();
+
+    // THEN we expect the for-specific visitor to have been called twice
+    assert_eq!(2, visitor.for_count);
+    // AND all identifiers inside the for loops were still visited
+    assert_eq!(vec!["0", "a", "b", "c", "d", "e", "f", "g", "h"], visitor.identifiers);
 }
 
 #[test]

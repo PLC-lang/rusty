@@ -719,6 +719,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             current_loop_continue: Some(condition_check),
             load_prefix: self.load_prefix.clone(),
             load_suffix: self.load_suffix.clone(),
+            llvm_index,
             ..*self
         };
         body_generator.generate_body(body)?;

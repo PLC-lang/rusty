@@ -54,10 +54,44 @@
 //!     <body>
 //! END_WHILE
 //! ```
+//!
+//! # 3. For
+//! Given
+//! ```
+//! FOR <ctrl> := <init> TO <final> [BY <steps>] DO
+//!     <body>
+//! END_FOR
+//! ```
+//! becomes
+//! ```
+//! alloca ran_once_N: bool;
+//! alloca is_incrementing_N: bool;
+//! <ctrl> := <init>;
+//! is_incrementing_N := <step> > 0;
+//!
+//! WHILE TRUE DO
+//!     IF ran_once_N THEN
+//!         <ctrl> := <ctrl> + <step>;
+//!     END_IF;
+//!     ran_once_N := TRUE;
+//!
+//!     IF is_incrementing_N THEN
+//!         IF <ctrl> > <final> THEN
+//!             EXIT;
+//!         END_IF;
+//!     ELSE
+//!         IF <ctrl> < <final> THEN
+//!             EXIT;
+//!         END_IF;
+//!     END_IF;
+//!
+//!     <body>
+//! END_WHILE
+//! ```
 
 use plc_ast::{
     ast::{AstFactory, AstNode, CompilationUnit, Operator},
-    control_statements::LoopStatement,
+    control_statements::{ForLoopStatement, LoopStatement},
     literals::AstLiteral,
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -80,6 +114,14 @@ struct RepeatDesugarer {
     replacement: Option<(AstNode, AstNode)>,
 }
 
+struct ForDesugarer {
+    ids: IdProvider,
+    counter: usize,
+
+    /// Preamble statements followed by the replacement loop
+    replacement: Option<Vec<AstNode>>,
+}
+
 impl LoopDesugarer {
     pub fn new(ids: IdProvider) -> Self {
         Self { ids }
@@ -88,10 +130,12 @@ impl LoopDesugarer {
     pub fn desugar(&self, units: &mut [CompilationUnit]) {
         let mut whiled = WhileDesugarer { ids: self.ids.clone() };
         let mut repeatd = RepeatDesugarer { ids: self.ids.clone(), counter: 0, replacement: None };
+        let mut ford = ForDesugarer { ids: self.ids.clone(), counter: 0, replacement: None };
 
         for unit in units {
             whiled.visit_compilation_unit(unit);
             repeatd.visit_compilation_unit(unit);
+            ford.visit_compilation_unit(unit);
         }
     }
 }
@@ -156,16 +200,9 @@ impl AstVisitorMut for RepeatDesugarer {
         let cond_location = cond.location.clone();
 
         // Create a temporary variable to track first iteration
-        let alloca_name = format!("ran_once_{}", self.counter);
-        let alloca = helper::create_alloca(&mut self.ids, "BOOL", alloca_name.clone());
+        let (alloca, ran_once_ref) =
+            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{}", self.counter));
         self.counter += 1;
-
-        // Create the reference identifier of temporary variable
-        let ran_once_ref = AstFactory::create_member_reference(
-            AstFactory::create_identifier(alloca_name, SourceLocation::internal(), self.ids.next_id()),
-            None,
-            self.ids.next_id(),
-        );
 
         // Create the the if guards, that is
         // ```
@@ -205,6 +242,130 @@ impl AstVisitorMut for RepeatDesugarer {
     }
 }
 
+impl AstVisitorMut for ForDesugarer {
+    fn visit_statement_list(&mut self, stmts: &mut Vec<AstNode>) {
+        let statements = std::mem::take(stmts);
+        let mut new_statements = Vec::with_capacity(statements.len());
+
+        for mut statement in statements {
+            statement.walk(self);
+
+            match self.replacement.take() {
+                Some(replacement) => new_statements.extend(replacement),
+                None => new_statements.push(statement),
+            };
+        }
+
+        *stmts = new_statements;
+    }
+
+    // TODO: Sourcelocations are wrong
+    fn visit_for_loop_statement(&mut self, stmt: &mut ForLoopStatement) {
+        // First, visit the body itself to desugar nested loops (if any)
+        self.visit_statement_list(&mut stmt.body);
+
+        // Take the for loop components and original body.
+        let counter = *std::mem::take(&mut stmt.counter);
+        let start = *std::mem::take(&mut stmt.start);
+        let end = *std::mem::take(&mut stmt.end);
+        let by_step = stmt.by_step.take().map(|step| *step);
+        let mut body = std::mem::take(&mut stmt.body);
+        let loop_location = start.location.span(&stmt.end_location);
+
+        // Create temporaries tracking whether the loop already ran and which comparison branch to use.
+        let (ran_once_alloca, ran_once_ref) =
+            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{}", self.counter));
+        let (is_incrementing_alloca, is_incrementing_ref) =
+            helper::create_alloca(&mut self.ids, "BOOL", format!("is_incrementing_{}", self.counter));
+        self.counter += 1;
+
+        // Normalize the step expression so omitted `BY` becomes a literal `1`.
+        let has_explicit_step = by_step.is_some();
+        let step = by_step.unwrap_or_else(|| helper::create_literal_integer(&mut self.ids, 1));
+        let zero = helper::create_literal_integer(&mut self.ids, 0);
+
+        // Increment the counter at the top of every iteration after the first one.
+        let increment_assignment = AstFactory::create_assignment(
+            counter.clone(),
+            AstFactory::create_binary_expression(
+                counter.clone(),
+                Operator::Plus,
+                step.clone(),
+                self.ids.next_id(),
+            ),
+            self.ids.next_id(),
+        );
+        let increment_guard = helper::create_if_then(
+            self.ids.clone(),
+            ran_once_ref.clone(),
+            vec![increment_assignment],
+            SourceLocation::internal(),
+        );
+
+        // Mark that the loop has already executed once.
+        let ran_once_assignment = AstFactory::create_assignment(
+            ran_once_ref,
+            AstFactory::create_literal(
+                AstLiteral::Bool(true),
+                SourceLocation::internal(),
+                self.ids.next_id(),
+            ),
+            self.ids.next_id(),
+        );
+
+        // Compute the comparison direction once before entering the replacement loop.
+        let is_incrementing_value = if has_explicit_step {
+            AstFactory::create_binary_expression(step.clone(), Operator::Greater, zero, self.ids.next_id())
+        } else {
+            helper::create_literal_true(&mut self.ids, SourceLocation::internal())
+        };
+        let is_incrementing_assignment = AstFactory::create_assignment(
+            is_incrementing_ref.clone(),
+            is_incrementing_value,
+            self.ids.next_id(),
+        );
+
+        // Exit once the counter has moved past the end bound for the chosen direction.
+        let incrementing_exit = helper::create_if_then_exit(
+            self.ids.clone(),
+            AstFactory::create_binary_expression(
+                counter.clone(),
+                Operator::Greater,
+                end.clone(),
+                self.ids.next_id(),
+            ),
+            loop_location.clone(),
+        );
+        let decrementing_exit = helper::create_if_then_exit(
+            self.ids.clone(),
+            AstFactory::create_binary_expression(counter.clone(), Operator::Less, end, self.ids.next_id()),
+            loop_location.clone(),
+        );
+        let bound_guard = helper::create_if_then_else(
+            self.ids.clone(),
+            is_incrementing_ref,
+            vec![incrementing_exit],
+            vec![decrementing_exit],
+            SourceLocation::internal(),
+        );
+
+        // Prepend the desugared loop control flow ahead of the original body.
+        body.insert(0, increment_guard);
+        body.insert(1, ran_once_assignment);
+        body.insert(2, bound_guard);
+
+        debug_assert!(self.replacement.is_none());
+        // Replace the original for loop with its preamble and a `WHILE TRUE` loop.
+        self.replacement = Some(vec![
+            ran_once_alloca,
+            is_incrementing_alloca,
+            AstFactory::create_assignment(counter, start, self.ids.next_id()),
+            is_incrementing_assignment,
+            helper::create_while_true_loop(&mut self.ids, body, loop_location.clone(), loop_location),
+        ]);
+    }
+}
+
 mod helper {
     use plc_ast::{
         ast::{Allocation, AstFactory, AstNode, AstStatement},
@@ -235,6 +396,24 @@ mod helper {
         )
     }
 
+    pub fn create_if_then_else(
+        mut ids: IdProvider,
+        condition: AstNode,
+        body: Vec<AstNode>,
+        else_body: Vec<AstNode>,
+        location: SourceLocation,
+    ) -> AstNode {
+        AstFactory::create_if_statement(
+            IfStatement {
+                blocks: vec![ConditionalBlock { condition: Box::new(condition), body }],
+                else_block: else_body,
+                end_location: location.clone(),
+            },
+            location,
+            ids.next_id(),
+        )
+    }
+
     pub fn create_if_then_exit(mut ids: IdProvider, condition: AstNode, location: SourceLocation) -> AstNode {
         AstFactory::create_if_statement(
             IfStatement {
@@ -254,7 +433,7 @@ mod helper {
         ids: &mut IdProvider,
         body: Vec<AstNode>,
         cond_location: SourceLocation,
-        location: SourceLocation,
+        _location: SourceLocation,
     ) -> AstNode {
         let statement = LoopStatement {
             condition: Box::new(AstFactory::create_literal(
@@ -270,8 +449,12 @@ mod helper {
         AstFactory::create_while_statement(statement, SourceLocation::internal(), ids.next_id())
     }
 
-    pub fn create_alloca(ids: &mut IdProvider, ty: &str, name: String) -> AstNode {
-        AstNode {
+    pub fn create_literal_integer(ids: &mut IdProvider, value: i128) -> AstNode {
+        AstFactory::create_literal(AstLiteral::Integer(value), SourceLocation::internal(), ids.next_id())
+    }
+
+    pub fn create_alloca(ids: &mut IdProvider, ty: &str, name: String) -> (AstNode, AstNode) {
+        let alloca = AstNode {
             stmt: AstStatement::AllocationStatement(Allocation {
                 name: name.to_string(),
                 reference_type: String::from(ty),
@@ -279,7 +462,14 @@ mod helper {
             id: ids.next_id(),
             location: SourceLocation::internal(),
             metadata: None,
-        }
+        };
+        let ident = AstFactory::create_member_reference(
+            AstFactory::create_identifier(name, SourceLocation::internal(), ids.next_id()),
+            None,
+            ids.next_id(),
+        );
+
+        (alloca, ident)
     }
 }
 
@@ -571,5 +761,520 @@ mod tests {
         }
     }
 
-    mod for_loops {}
+    mod for_loops {
+        #[test]
+        fn default_step() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i : INT;
+                        a, b : INT;
+                    END_VAR
+
+                    FOR i := 0 TO 10 DO
+                        a := b;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := 0
+            is_incrementing_0 := TRUE
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + 1
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > 10 THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < 10 THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                a := b
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn explicit_step_and_continue() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i, step, max, a, b : INT;
+                    END_VAR
+
+                    FOR i := a TO max BY step DO
+                        b := a;
+                        CONTINUE;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := a
+            is_incrementing_0 := step > 0
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + step
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > max THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < max THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                b := a
+                CONTINUE;
+                
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn zero_step() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i : INT;
+                    END_VAR
+
+                    FOR i := 1 TO 3 BY 0 DO
+                        CONTINUE;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := 1
+            is_incrementing_0 := 0 > 0
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + 0
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > 3 THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < 3 THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                CONTINUE;
+                
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn explicit_positive_step_no_iteration_when_start_exceeds_end() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i : INT;
+                    END_VAR
+
+                    FOR i := 5 TO 1 BY 2 DO
+                        EXIT;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := 5
+            is_incrementing_0 := 2 > 0
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + 2
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > 1 THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < 1 THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                EXIT;
+                
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn explicit_negative_step_no_iteration_when_start_is_below_end() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i : INT;
+                    END_VAR
+
+                    FOR i := 1 TO 5 BY -1 DO
+                        EXIT;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := 1
+            is_incrementing_0 := -1 > 0
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + -1
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > 5 THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < 5 THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                EXIT;
+                
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn equal_bounds() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i, a : INT;
+                    END_VAR
+
+                    FOR i := 4 TO 4 DO
+                        a := i;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := 4
+            is_incrementing_0 := TRUE
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + 1
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > 4 THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < 4 THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                a := i
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn mutable_end_expression() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i, max : INT;
+                    END_VAR
+
+                    FOR i := 0 TO max DO
+                        max := max - 1;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := 0
+            is_incrementing_0 := TRUE
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + 1
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > max THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < max THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                max := max - 1
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn mutable_step_expression() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i, step : INT;
+                    END_VAR
+
+                    FOR i := 0 TO 10 BY step DO
+                        step := step + 1;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := 0
+            is_incrementing_0 := step > 0
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + step
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > 10 THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < 10 THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                step := step + 1
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn continue_in_nested_if() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i, a, b, c, d : INT;
+                    END_VAR
+
+                    FOR i := a TO b DO
+                        IF c > d THEN
+                            CONTINUE;
+                        END_IF
+                        c := i;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := a
+            is_incrementing_0 := TRUE
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + 1
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > b THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < b THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                IF c > d THEN
+                    CONTINUE;
+                    
+                END_IF
+                c := i
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn exit_in_body() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i, a, b : INT;
+                    END_VAR
+
+                    FOR i := a TO b DO
+                        EXIT;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := a
+            is_incrementing_0 := TRUE
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + 1
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > b THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < b THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                EXIT;
+                
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn nested_with_explicit_steps() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i, j, start, finish, outer_step, inner_step, a : INT;
+                    END_VAR
+
+                    FOR i := start TO finish BY outer_step DO
+                        FOR j := 10 TO 0 BY inner_step DO
+                            a := j;
+                        END_FOR
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_1: BOOL
+            alloca is_incrementing_1: BOOL
+            i := start
+            is_incrementing_1 := outer_step > 0
+            WHILE TRUE DO
+                IF ran_once_1 THEN
+                    i := i + outer_step
+                END_IF
+                ran_once_1 := TRUE
+                IF is_incrementing_1 THEN
+                    IF i > finish THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < finish THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                alloca ran_once_0: BOOL
+                alloca is_incrementing_0: BOOL
+                j := 10
+                is_incrementing_0 := inner_step > 0
+                WHILE TRUE DO
+                    IF ran_once_0 THEN
+                        j := j + inner_step
+                    END_IF
+                    ran_once_0 := TRUE
+                    IF is_incrementing_0 THEN
+                        IF j > 0 THEN
+                            EXIT;
+                        END_IF
+                    ELSE
+                        IF j < 0 THEN
+                            EXIT;
+                        END_IF
+                    END_IF
+                    a := j
+                END_WHILE
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn nested() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        i, j, a, b, c : INT;
+                    END_VAR
+
+                    FOR i := a TO b BY c DO
+                        FOR j := 0 TO 2 DO
+                            a := j;
+                        END_FOR
+                        b := i;
+                    END_FOR
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_1: BOOL
+            alloca is_incrementing_1: BOOL
+            i := a
+            is_incrementing_1 := c > 0
+            WHILE TRUE DO
+                IF ran_once_1 THEN
+                    i := i + c
+                END_IF
+                ran_once_1 := TRUE
+                IF is_incrementing_1 THEN
+                    IF i > b THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < b THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                alloca ran_once_0: BOOL
+                alloca is_incrementing_0: BOOL
+                j := 0
+                is_incrementing_0 := TRUE
+                WHILE TRUE DO
+                    IF ran_once_0 THEN
+                        j := j + 1
+                    END_IF
+                    ran_once_0 := TRUE
+                    IF is_incrementing_0 THEN
+                        IF j > 2 THEN
+                            EXIT;
+                        END_IF
+                    ELSE
+                        IF j < 2 THEN
+                            EXIT;
+                        END_IF
+                    END_IF
+                    a := j
+                END_WHILE
+                b := i
+            END_WHILE
+            ");
+        }
+    }
 }

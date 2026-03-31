@@ -3277,14 +3277,31 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
             // Statements in main
             __main_instances__ctor(instances)
             __main_references__ctor(references)
-            FOR i := 0 TO 2 DO
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := 0
+            is_incrementing_0 := TRUE
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + 1
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > 2 THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < 2 THEN
+                        EXIT;
+                    END_IF
+                END_IF
                 references[i].data := ADR(instances[i])
                 references[i].table := ADR(__itable_IA_FbA_instance)
-            END_FOR
+            END_WHILE
             ");
         }
 
