@@ -22,7 +22,7 @@ extern "C" {
 
 typedef struct {
     uint64_t* __vtable;
-    uint64_t* _Internal_;
+    void* _Internal_;
 } ASYNC_Task_type;
 
 void ASYNC_Task(ASYNC_Task_type* self);
