@@ -132,6 +132,15 @@ impl TypeHelper for GeneratedHeaderForC {
                     ),
                 },
             },
+            DataTypeInformation::Void => TypeInformation {
+                name: String::from(C_VOID),
+                attribute: determine_type_attribute(
+                    extended_type_name.is_variadic,
+                    extended_type_name.is_sized_variadic,
+                    false,
+                    None,
+                ),
+            },
             _ => {
                 log::debug!("{} this type is not yet supported!", extended_type_name.type_name);
                 TypeInformation::new()
