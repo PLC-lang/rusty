@@ -813,6 +813,52 @@ fn case_11_function_pointers_generated_header_file() {
     assert_snapshot!(&generated_header.get_contents());
 }
 
+// ------------------ //
+// -- Test Case 12 -- //
+// ------------------ //
+
+fn get_source_code_for_case_12_void_pointers() -> SourceCode {
+    SourceCode::new(
+        "
+    FUNCTION_BLOCK ASYNC_Task
+    VAR
+        _Internal_ : POINTER TO __VOID;
+    END_VAR
+    END_FUNCTION_BLOCK
+    ",
+        "void_pointers.pli",
+    )
+}
+
+#[test]
+fn case_12_void_pointers_generated_header_file_template_data() {
+    let generated_headers =
+        prepare_all_generated_header_contents(get_source_code_for_case_12_void_pointers());
+
+    // This test case should only produce one header file
+    assert!(generated_headers.len() == 1);
+
+    // Ensure the path has been configured correctly
+    assert!(generated_headers[0].get_path() == "void_pointers.h");
+
+    let prepared_header_data = PreparedHeaderData {
+        template_data: generated_headers[0].get_template_data().clone(),
+        directory: generated_headers[0].get_directory().to_string(),
+        path: generated_headers[0].get_path().to_string(),
+        file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
+    };
+
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
+}
+
+#[test]
+fn case_12_void_pointers_generated_header_file() {
+    let generated_header =
+        get_all_generated_header_contents("case_12_void_pointers_generated_header_file_template_data");
+    assert_snapshot!(&generated_header.get_contents());
+}
+
 // -------------------------------- //
 // -- Re-usable pipeline methods -- //
 // -------------------------------- //
