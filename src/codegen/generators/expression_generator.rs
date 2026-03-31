@@ -2522,14 +2522,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         initializer: &AstNode,
         type_hint: Option<&DataTypeInformation>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        let fallback;
-        let data_type = match type_hint {
-            Some(dt) => dt,
-            None => {
-                fallback = self.get_type_hint_info_for(initializer)?;
-                fallback
-            }
-        };
+        let data_type = if let Some(dt) = type_hint { dt } else { self.get_type_hint_info_for(initializer)? };
         let array_value =
             self.generate_literal_array_value(initializer, data_type, &initializer.get_location())?;
         Ok(array_value.as_basic_value_enum())
