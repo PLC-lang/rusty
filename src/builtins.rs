@@ -50,8 +50,9 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
-                validation: Some(|validator, operator, parameters, _, _| {
+                validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_argument_count(validator, operator, &parameters, 1);
+                    validate_constant_parameters(validator, &parameters, annotations, index);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -125,8 +126,9 @@ lazy_static! {
                         }
                     );
                 }),
-                validation: Some(|validator, operator, parameters, _, _| {
+                validation: Some(|validator, operator, parameters, annotations, index| {
                     validate_argument_count(validator, operator, &parameters, 1);
+                    validate_constant_parameters(validator, &parameters, annotations, index);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -1006,6 +1008,34 @@ fn validate_argument_count(
 
     if params.len() != expected {
         validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, params.len(), operator));
+    }
+}
+
+fn validate_constant_parameters(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    let Some(params) = parameters else {
+        // If there are no parameters, then there is nothing to evaluate
+        return;
+    };
+
+    let params = flatten_expression_list(params);
+
+    for param in params {
+        if let Some(StatementAnnotation::Variable { constant: true, resulting_type, .. }) =
+            annotations.get(param)
+        {
+            if !index.get_type_information_or_void(resulting_type).is_aggregate() {
+                validator.push_diagnostic(
+                    Diagnostic::new("Invalid assignment, constant is read-only")
+                        .with_location(param.location.clone())
+                        .with_error_code("E098"),
+                );
+            }
+        }
     }
 }
 
