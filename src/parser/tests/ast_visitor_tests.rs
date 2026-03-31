@@ -195,6 +195,55 @@ fn test_visit_while_loop_statement_override() {
     assert_eq!(get_character_range('a', 'd'), visitor.identifiers);
 }
 #[test]
+fn test_visit_repeat_loop_statement_override() {
+    // GIVEN a visitor that specifically tracks repeat loop visits
+    struct RepeatLoopCounter {
+        repeat_count: usize,
+        identifiers: Vec<String>,
+    }
+
+    impl AstVisitor for RepeatLoopCounter {
+        fn visit_repeat_loop_statement(&mut self, stmt: &LoopStatement, _: &AstNode) {
+            self.repeat_count += 1;
+            // continue walking children
+            for s in &stmt.body {
+                self.visit(s);
+            }
+            stmt.condition.walk(self);
+        }
+
+        fn visit_identifier(&mut self, stmt: &str, _: &AstNode) {
+            self.identifiers.push(stmt.to_string());
+        }
+
+        fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, _: &AstNode) {
+            self.identifiers.push(stmt.get_literal_value());
+        }
+    }
+
+    // WHEN we visit source code with two repeat loops
+    let mut visitor = RepeatLoopCounter { repeat_count: 0, identifiers: vec![] };
+    visit(
+        "
+        PROGRAM prg
+            REPEAT
+                a;
+            UNTIL b END_REPEAT;
+            REPEAT
+                c;
+            UNTIL d END_REPEAT;
+        END_PROGRAM",
+        &mut visitor,
+    );
+    visitor.identifiers.sort();
+
+    // THEN we expect the repeat-specific visitor to have been called twice
+    assert_eq!(2, visitor.repeat_count);
+    // AND all identifiers inside the repeat loops were still visited
+    assert_eq!(get_character_range('a', 'd'), visitor.identifiers);
+}
+
+#[test]
 fn test_visit_repeat_loop_statement() {
     // GIVEN a source code with a repeat loop statement
     // WHEN we visit all nodes in the AST

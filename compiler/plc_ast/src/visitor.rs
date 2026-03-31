@@ -380,6 +380,9 @@ pub trait AstVisitor: Sized {
             AstControlStatement::WhileLoop(loop_stmt) => {
                 self.visit_while_loop_statement(loop_stmt, node)
             }
+            AstControlStatement::RepeatLoop(loop_stmt) => {
+                self.visit_repeat_loop_statement(loop_stmt, node)
+            }
             _ => stmt.walk(self),
         }
     }
@@ -390,6 +393,16 @@ pub trait AstVisitor: Sized {
     /// * `stmt` - The unwraped, typed `LoopStatement` node to visit.
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
     fn visit_while_loop_statement(&mut self, stmt: &LoopStatement, _node: &AstNode) {
+        visit_nodes!(self, &stmt.condition);
+        self.visit_statement_list(&stmt.body);
+    }
+
+    /// Visits a `RepeatLoop` control statement.
+    /// Make sure to call `walk` on the `LoopStatement` node to visit its children.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `LoopStatement` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    fn visit_repeat_loop_statement(&mut self, stmt: &LoopStatement, _node: &AstNode) {
         visit_nodes!(self, &stmt.condition);
         self.visit_statement_list(&stmt.body);
     }

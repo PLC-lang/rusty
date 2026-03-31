@@ -182,6 +182,7 @@ pub trait AstVisitorMut: Sized {
         let stmt = try_from_mut!(node, AstControlStatement).expect("AstControlStatement");
         match stmt {
             AstControlStatement::WhileLoop(loop_stmt) => self.visit_while_loop_statement(loop_stmt),
+            AstControlStatement::RepeatLoop(loop_stmt) => self.visit_repeat_loop_statement(loop_stmt),
             _ => stmt.walk(self),
         }
     }
@@ -191,6 +192,15 @@ pub trait AstVisitorMut: Sized {
     /// # Arguments
     /// * `stmt` - The unwraped, typed `LoopStatement` node to visit.
     fn visit_while_loop_statement(&mut self, stmt: &mut LoopStatement) {
+        visit_nodes_mut!(self, &mut stmt.condition);
+        self.visit_statement_list(&mut stmt.body);
+    }
+
+    /// Visits a `RepeatLoop` control statement.
+    /// Make sure to visit the condition and body to continue the traversal.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `LoopStatement` node to visit.
+    fn visit_repeat_loop_statement(&mut self, stmt: &mut LoopStatement) {
         visit_nodes_mut!(self, &mut stmt.condition);
         self.visit_statement_list(&mut stmt.body);
     }
