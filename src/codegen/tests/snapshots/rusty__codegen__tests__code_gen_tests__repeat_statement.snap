@@ -14,26 +14,37 @@ target triple = "[filtered]"
 define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %ran_once_0 = alloca i8, align [filtered]
+  store i8 0, ptr %ran_once_0, align [filtered]
   br label %condition_check
 
 condition_check:                                  ; preds = %entry, %continue1
   br i1 true, label %while_body, label %continue
 
 while_body:                                       ; preds = %condition_check
-  %load_x = load i8, ptr %x, align [filtered]
-  %load_x2 = load i8, ptr %x, align [filtered]
-  %1 = icmp ne i8 %load_x2, 0
+  %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
+  %1 = icmp ne i8 %load_ran_once_0, 0
   br i1 %1, label %condition_body, label %continue1
 
-continue:                                         ; preds = %condition_body, %condition_check
+continue:                                         ; preds = %condition_body3, %condition_check
   ret void
 
 condition_body:                                   ; preds = %while_body
+  %load_x = load i8, ptr %x, align [filtered]
+  %2 = icmp ne i8 %load_x, 0
+  br i1 %2, label %condition_body3, label %continue2
+
+continue1:                                        ; preds = %continue2, %while_body
+  store i8 1, ptr %ran_once_0, align [filtered]
+  %load_x4 = load i8, ptr %x, align [filtered]
+  br label %condition_check
+
+condition_body3:                                  ; preds = %condition_body
   br label %continue
 
 buffer_block:                                     ; No predecessors!
-  br label %continue1
+  br label %continue2
 
-continue1:                                        ; preds = %buffer_block, %while_body
-  br label %condition_check
+continue2:                                        ; preds = %buffer_block, %condition_body
+  br label %continue1
 }

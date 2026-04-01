@@ -1,52 +1,63 @@
-//! Module canonicalizing loops into while loops.
+//! Canonical loop lowering for the Structured Text AST.
 //!
-//! This module is responsible for desugaring loops into `WHILE TRUE (* ... *) END_WHILE` constructs.
+//! This module rewrites all loop constructs into a canonical core based on `WHILE TRUE DO ... END_WHILE`.
 //!
-//! # 1. While
-//! While loops are the easiest candidate to desugar. We simply take the condition and move it into the body
-//! with a prepended if-guard to break out of the loop if the condition is false. That is given
-//! ```
+//! ## `WHILE`
+//!
+//! A `WHILE` loop checks its condition before each iteration:
+//!
+//! ```st
 //! WHILE <cond> DO
 //!     <body>
 //! END_WHILE
 //! ```
-//! we transform it into
-//! ```
+//!
+//! It is rewritten to:
+//!
+//! ```st
 //! WHILE TRUE DO
 //!     IF NOT <cond> THEN
 //!         EXIT;
 //!     END_IF
 //!
-//!    <body>
+//!     <body>
 //! END_WHILE
 //! ```
 //!
-//! # 2. Repeat
-//! Repeats are while-do loops, given
-//! ```
+//! This preserves the original pre-test semantics while making the loop body
+//! explicit.
+//!
+//! ## `REPEAT`
+//!
+//! A `REPEAT` loop executes its body first and checks the condition afterwards:
+//!
+//! ```st
 //! REPEAT
 //!     <body>
 //! UNTIL <cond>
 //! END_REPEAT
 //! ```
-//! we want to desugar into
-//! ```
+//!
+//! A naive lowering to:
+//!
+//! ```st
 //! WHILE TRUE DO
 //!     <body>
-//!
 //!     IF <cond> THEN
-//!         EXIT
+//!         EXIT;
 //!     END_IF
 //! END_WHILE
 //! ```
-//! However, this will not work if the body contains a `CONTINUE` statement, as the `IF <cond>` check will be
-//! skipped and the loop will run endlessly. As such the final desugared form is
-//! ```
-//! alloca ran_once_N: bool;
+//!
+//! is incorrect in the presence of `CONTINUE`, because a `CONTINUE` inside `<body>` would skip the condition
+//! check entirely. To preserve post-test semantics, this module introduces a synthetic boolean temporary:
+//!
+//! ```st
+//! alloca ran_once_N : BOOL;
 //! WHILE TRUE DO
 //!     IF ran_once_N THEN
 //!         IF <cond> THEN
-//!             EXIT
+//!             EXIT;
 //!         END_IF
 //!     END_IF
 //!
@@ -55,39 +66,58 @@
 //! END_WHILE
 //! ```
 //!
-//! # 3. For
-//! Given
-//! ```
-//! FOR <ctrl> := <init> TO <final> [BY <steps>] DO
+//! The first iteration always executes the body. From the second iteration on, the original `UNTIL` condition
+//! is checked before re-entering the body.
+//!
+//! ## `FOR`
+//!
+//! A counted loop:
+//!
+//! ```st
+//! FOR <ctrl> := <init> TO <final> [BY <step>] DO
 //!     <body>
 //! END_FOR
 //! ```
-//! becomes
-//! ```
-//! alloca ran_once_N: bool;
-//! alloca is_incrementing_N: bool;
+//!
+//! is lowered to a canonical `WHILE TRUE` loop with two synthetic temporaries:
+//!
+//! - `ran_once_N` tracks whether the first iteration has already happened
+//! - `is_incrementing_N` remembers whether the step is positive
+//!
+//! ```st
+//! alloca ran_once_N : BOOL;
+//! alloca is_incrementing_N : BOOL;
+//!
 //! <ctrl> := <init>;
 //! is_incrementing_N := <step> > 0;
 //!
 //! WHILE TRUE DO
 //!     IF ran_once_N THEN
 //!         <ctrl> := <ctrl> + <step>;
-//!     END_IF;
+//!     END_IF
 //!     ran_once_N := TRUE;
 //!
 //!     IF is_incrementing_N THEN
 //!         IF <ctrl> > <final> THEN
 //!             EXIT;
-//!         END_IF;
+//!         END_IF
 //!     ELSE
 //!         IF <ctrl> < <final> THEN
 //!             EXIT;
-//!         END_IF;
-//!     END_IF;
+//!         END_IF
+//!     END_IF
 //!
 //!     <body>
 //! END_WHILE
 //! ```
+//!
+//! If `BY` is omitted, the step defaults to `1`. The step and end expressions remain part of the lowered tree
+//! and are therefore evaluated where needed by later passes, matching the compiler's current semantics.
+//!
+//! ## Generated temporaries
+//!
+//! Compiler-generated names such as `ran_once_N` and `is_incrementing_N` are unique per desugared loop.
+//! They are ordinary AST allocations used only to encode loop semantics explicitly for later stages.
 
 use plc_ast::{
     ast::{AstFactory, AstNode, CompilationUnit, Operator},
@@ -522,6 +552,27 @@ mod tests {
         }
 
         #[test]
+        fn while_true_exit() {
+            let source = r#"
+                FUNCTION main
+                    WHILE TRUE DO
+                        EXIT;
+                    END_WHILE
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            WHILE TRUE DO
+                IF NOT TRUE THEN
+                    EXIT;
+                END_IF
+                EXIT;
+
+            END_WHILE
+            ");
+        }
+
+        #[test]
         fn and_condition() {
             let source = r#"
                 FUNCTION main
@@ -645,6 +696,35 @@ mod tests {
                 a := b
                 b := c
                 c := a
+            END_WHILE
+            ");
+        }
+
+        #[test]
+        fn condition_is_checked_on_second_iteration() {
+            let source = r#"
+                FUNCTION main
+                    VAR
+                        x : BOOL;
+                    END_VAR
+
+                    REPEAT
+                        x;
+                    UNTIL x
+                    END_REPEAT
+                END_FUNCTION
+            "#;
+
+            insta::assert_snapshot!(super::serialize(source), @"
+            alloca ran_once_0: BOOL
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    IF x THEN
+                        EXIT;
+                    END_IF
+                END_IF
+                ran_once_0 := TRUE
+                x
             END_WHILE
             ");
         }
@@ -837,7 +917,7 @@ mod tests {
                 END_IF
                 b := a
                 CONTINUE;
-                
+
             END_WHILE
             ");
         }
@@ -876,7 +956,7 @@ mod tests {
                     END_IF
                 END_IF
                 CONTINUE;
-                
+
             END_WHILE
             ");
         }
@@ -915,7 +995,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-                
+
             END_WHILE
             ");
         }
@@ -954,7 +1034,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-                
+
             END_WHILE
             ");
         }
@@ -1111,7 +1191,7 @@ mod tests {
                 END_IF
                 IF c > d THEN
                     CONTINUE;
-                    
+
                 END_IF
                 c := i
             END_WHILE
@@ -1152,7 +1232,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-                
+
             END_WHILE
             ");
         }

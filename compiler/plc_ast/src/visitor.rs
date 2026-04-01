@@ -379,12 +379,8 @@ pub trait AstVisitor: Sized {
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
     fn visit_control_statement(&mut self, stmt: &AstControlStatement, node: &AstNode) {
         match stmt {
-            AstControlStatement::WhileLoop(loop_stmt) => {
-                self.visit_while_loop_statement(loop_stmt, node)
-            }
-            AstControlStatement::RepeatLoop(loop_stmt) => {
-                self.visit_repeat_loop_statement(loop_stmt, node)
-            }
+            AstControlStatement::WhileLoop(loop_stmt) => self.visit_while_loop_statement(loop_stmt, node),
+            AstControlStatement::RepeatLoop(loop_stmt) => self.visit_repeat_loop_statement(loop_stmt, node),
             AstControlStatement::ForLoop(for_stmt) => self.visit_for_loop_statement(for_stmt, node),
             _ => stmt.walk(self),
         }

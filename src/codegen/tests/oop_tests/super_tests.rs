@@ -2279,105 +2279,157 @@ fn super_in_loop_constructs() {
       store i16 0, ptr %i, align [filtered]
       store i16 0, ptr %sum, align [filtered]
       store i16 0, ptr %sum, align [filtered]
+      %ran_once_0 = alloca i8, align [filtered]
+      store i8 0, ptr %ran_once_0, align [filtered]
+      %is_incrementing_0 = alloca i8, align [filtered]
+      store i8 0, ptr %is_incrementing_0, align [filtered]
       store i16 0, ptr %i, align [filtered]
-      br i1 true, label %predicate_sle, label %predicate_sge
-
-    predicate_sle:                                    ; preds = %increment, %entry
-      %1 = load i16, ptr %i, align [filtered]
-      %2 = sext i16 %1 to i32
-      %condition = icmp sle i32 %2, 5
-      br i1 %condition, label %loop, label %continue
-
-    predicate_sge:                                    ; preds = %increment, %entry
-      %3 = load i16, ptr %i, align [filtered]
-      %4 = sext i16 %3 to i32
-      %condition1 = icmp sge i32 %4, 5
-      br i1 %condition1, label %loop, label %continue
-
-    loop:                                             ; preds = %predicate_sge, %predicate_sle
-      %load_sum = load i16, ptr %sum, align [filtered]
-      %5 = sext i16 %load_sum to i32
-      %arr = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 2
-      %load_i = load i16, ptr %i, align [filtered]
-      %6 = sext i16 %load_i to i32
-      %tmpVar = mul i32 1, %6
-      %tmpVar2 = add i32 %tmpVar, 0
-      %tmpVar3 = getelementptr inbounds [6 x i16], ptr %arr, i32 0, i32 %tmpVar2
-      %load_tmpVar = load i16, ptr %tmpVar3, align [filtered]
-      %7 = sext i16 %load_tmpVar to i32
-      %tmpVar4 = add i32 %5, %7
-      %8 = trunc i32 %tmpVar4 to i16
-      store i16 %8, ptr %sum, align [filtered]
-      call void @parent__increment(ptr %__parent)
-      br label %increment
-
-    increment:                                        ; preds = %loop
-      %9 = load i16, ptr %i, align [filtered]
-      %10 = sext i16 %9 to i32
-      %next = add i32 1, %10
-      %11 = trunc i32 %next to i16
-      store i16 %11, ptr %i, align [filtered]
-      br i1 true, label %predicate_sle, label %predicate_sge
-
-    continue:                                         ; preds = %predicate_sge, %predicate_sle
+      store i8 1, ptr %is_incrementing_0, align [filtered]
       br label %condition_check
 
-    condition_check:                                  ; preds = %continue6, %continue
-      br i1 true, label %while_body, label %continue5
+    condition_check:                                  ; preds = %continue2, %entry
+      br i1 true, label %while_body, label %continue
 
     while_body:                                       ; preds = %condition_check
-      %counter = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
-      %load_counter = load i16, ptr %counter, align [filtered]
-      %12 = sext i16 %load_counter to i32
-      %tmpVar7 = icmp slt i32 %12, 10
-      %13 = zext i1 %tmpVar7 to i8
-      %14 = icmp ne i8 %13, 0
-      %tmpVar8 = xor i1 %14, true
-      br i1 %tmpVar8, label %condition_body, label %continue6
+      %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
+      %1 = icmp ne i8 %load_ran_once_0, 0
+      br i1 %1, label %condition_body, label %continue1
 
-    continue5:                                        ; preds = %condition_body, %condition_check
-      br label %condition_check9
+    continue:                                         ; preds = %condition_body11, %condition_body7, %condition_check
+      br label %condition_check18
 
     condition_body:                                   ; preds = %while_body
-      br label %continue5
+      %load_i = load i16, ptr %i, align [filtered]
+      %2 = sext i16 %load_i to i32
+      %tmpVar = add i32 %2, 1
+      %3 = trunc i32 %tmpVar to i16
+      store i16 %3, ptr %i, align [filtered]
+      br label %continue1
 
-    buffer_block:                                     ; No predecessors!
-      br label %continue6
+    continue1:                                        ; preds = %condition_body, %while_body
+      store i8 1, ptr %ran_once_0, align [filtered]
+      %load_is_incrementing_0 = load i8, ptr %is_incrementing_0, align [filtered]
+      %4 = icmp ne i8 %load_is_incrementing_0, 0
+      br i1 %4, label %condition_body3, label %else
 
-    continue6:                                        ; preds = %buffer_block, %while_body
+    condition_body3:                                  ; preds = %continue1
+      %load_i5 = load i16, ptr %i, align [filtered]
+      %5 = sext i16 %load_i5 to i32
+      %tmpVar6 = icmp sgt i32 %5, 5
+      %6 = zext i1 %tmpVar6 to i8
+      %7 = icmp ne i8 %6, 0
+      br i1 %7, label %condition_body7, label %continue4
+
+    else:                                             ; preds = %continue1
+      %load_i9 = load i16, ptr %i, align [filtered]
+      %8 = sext i16 %load_i9 to i32
+      %tmpVar10 = icmp slt i32 %8, 5
+      %9 = zext i1 %tmpVar10 to i8
+      %10 = icmp ne i8 %9, 0
+      br i1 %10, label %condition_body11, label %continue8
+
+    continue2:                                        ; preds = %continue8, %continue4
+      %load_sum = load i16, ptr %sum, align [filtered]
+      %11 = sext i16 %load_sum to i32
+      %arr = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 2
+      %load_i13 = load i16, ptr %i, align [filtered]
+      %12 = sext i16 %load_i13 to i32
+      %tmpVar14 = mul i32 1, %12
+      %tmpVar15 = add i32 %tmpVar14, 0
+      %tmpVar16 = getelementptr inbounds [6 x i16], ptr %arr, i32 0, i32 %tmpVar15
+      %load_tmpVar = load i16, ptr %tmpVar16, align [filtered]
+      %13 = sext i16 %load_tmpVar to i32
+      %tmpVar17 = add i32 %11, %13
+      %14 = trunc i32 %tmpVar17 to i16
+      store i16 %14, ptr %sum, align [filtered]
       call void @parent__increment(ptr %__parent)
       br label %condition_check
 
-    condition_check9:                                 ; preds = %continue16, %continue5
-      br i1 true, label %while_body10, label %continue11
+    condition_body7:                                  ; preds = %condition_body3
+      br label %continue
 
-    while_body10:                                     ; preds = %condition_check9
-      %counter12 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
-      %counter13 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
-      %load_counter14 = load i16, ptr %counter13, align [filtered]
-      %15 = sext i16 %load_counter14 to i32
-      %tmpVar15 = sub i32 %15, 1
-      %16 = trunc i32 %tmpVar15 to i16
-      store i16 %16, ptr %counter12, align [filtered]
-      %counter17 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
-      %load_counter18 = load i16, ptr %counter17, align [filtered]
-      %17 = sext i16 %load_counter18 to i32
-      %tmpVar19 = icmp sle i32 %17, 0
-      %18 = zext i1 %tmpVar19 to i8
-      %19 = icmp ne i8 %18, 0
-      br i1 %19, label %condition_body20, label %continue16
+    buffer_block:                                     ; No predecessors!
+      br label %continue4
 
-    continue11:                                       ; preds = %condition_body20, %condition_check9
+    continue4:                                        ; preds = %buffer_block, %condition_body3
+      br label %continue2
+
+    condition_body11:                                 ; preds = %else
+      br label %continue
+
+    buffer_block12:                                   ; No predecessors!
+      br label %continue8
+
+    continue8:                                        ; preds = %buffer_block12, %else
+      br label %continue2
+
+    condition_check18:                                ; preds = %continue21, %continue
+      br i1 true, label %while_body19, label %continue20
+
+    while_body19:                                     ; preds = %condition_check18
+      %counter = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
+      %load_counter = load i16, ptr %counter, align [filtered]
+      %15 = sext i16 %load_counter to i32
+      %tmpVar22 = icmp slt i32 %15, 10
+      %16 = zext i1 %tmpVar22 to i8
+      %17 = icmp ne i8 %16, 0
+      %tmpVar23 = xor i1 %17, true
+      br i1 %tmpVar23, label %condition_body24, label %continue21
+
+    continue20:                                       ; preds = %condition_body24, %condition_check18
+      %ran_once_026 = alloca i8, align [filtered]
+      store i8 0, ptr %ran_once_026, align [filtered]
+      br label %condition_check27
+
+    condition_body24:                                 ; preds = %while_body19
+      br label %continue20
+
+    buffer_block25:                                   ; No predecessors!
+      br label %continue21
+
+    continue21:                                       ; preds = %buffer_block25, %while_body19
+      call void @parent__increment(ptr %__parent)
+      br label %condition_check18
+
+    condition_check27:                                ; preds = %continue30, %continue20
+      br i1 true, label %while_body28, label %continue29
+
+    while_body28:                                     ; preds = %condition_check27
+      %load_ran_once_031 = load i8, ptr %ran_once_026, align [filtered]
+      %18 = icmp ne i8 %load_ran_once_031, 0
+      br i1 %18, label %condition_body32, label %continue30
+
+    continue29:                                       ; preds = %condition_body37, %condition_check27
       ret void
 
-    condition_body20:                                 ; preds = %while_body10
-      br label %continue11
+    condition_body32:                                 ; preds = %while_body28
+      %counter34 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
+      %load_counter35 = load i16, ptr %counter34, align [filtered]
+      %19 = sext i16 %load_counter35 to i32
+      %tmpVar36 = icmp sle i32 %19, 0
+      %20 = zext i1 %tmpVar36 to i8
+      %21 = icmp ne i8 %20, 0
+      br i1 %21, label %condition_body37, label %continue33
 
-    buffer_block21:                                   ; No predecessors!
-      br label %continue16
+    continue30:                                       ; preds = %continue33, %while_body28
+      store i8 1, ptr %ran_once_026, align [filtered]
+      %counter39 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
+      %counter40 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
+      %load_counter41 = load i16, ptr %counter40, align [filtered]
+      %22 = sext i16 %load_counter41 to i32
+      %tmpVar42 = sub i32 %22, 1
+      %23 = trunc i32 %tmpVar42 to i16
+      store i16 %23, ptr %counter39, align [filtered]
+      br label %condition_check27
 
-    continue16:                                       ; preds = %buffer_block21, %while_body10
-      br label %condition_check9
+    condition_body37:                                 ; preds = %condition_body32
+      br label %continue29
+
+    buffer_block38:                                   ; No predecessors!
+      br label %continue33
+
+    continue33:                                       ; preds = %buffer_block38, %condition_body32
+      br label %continue30
     }
 
     define void @parent__ctor(ptr %0) {

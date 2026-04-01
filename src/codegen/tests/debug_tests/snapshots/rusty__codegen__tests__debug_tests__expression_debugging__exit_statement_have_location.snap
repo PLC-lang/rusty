@@ -29,7 +29,7 @@ condition_body:                                   ; preds = %while_body
   br label %continue, !dbg !13
 
 buffer_block:                                     ; No predecessors!
-  br label %continue1, !dbg !16
+  br label %continue1, !dbg !13
 
 continue1:                                        ; preds = %buffer_block, %while_body
   br label %condition_check, !dbg !12
@@ -54,4 +54,3 @@ continue1:                                        ; preds = %buffer_block, %whil
 !13 = !DILocation(line: 3, column: 18, scope: !4)
 !14 = !DILocation(line: 6, column: 12, scope: !4)
 !15 = !DILocation(line: 7, column: 8, scope: !4)
-!16 = !DILocation(line: 0, scope: !4)
