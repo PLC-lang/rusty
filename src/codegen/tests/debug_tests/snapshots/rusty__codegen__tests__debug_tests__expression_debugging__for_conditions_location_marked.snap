@@ -21,7 +21,7 @@ entry:
   br label %condition_check, !dbg !12
 
 condition_check:                                  ; preds = %entry, %continue2
-  br i1 true, label %while_body, label %continue, !dbg !14
+  br i1 true, label %while_body, label %continue, !dbg !12
 
 while_body:                                       ; preds = %condition_check
   %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered], !dbg !12
@@ -29,8 +29,8 @@ while_body:                                       ; preds = %condition_check
   br i1 %0, label %condition_body, label %continue1, !dbg !12
 
 continue:                                         ; preds = %condition_body11, %condition_body7, %condition_check
-  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !15
-  ret i32 %myFunc_ret, !dbg !15
+  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !14
+  ret i32 %myFunc_ret, !dbg !14
 
 condition_body:                                   ; preds = %while_body
   %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !13
@@ -59,23 +59,23 @@ else:                                             ; preds = %continue1
   br i1 %5, label %condition_body11, label %continue8, !dbg !13
 
 continue2:                                        ; preds = %continue8, %continue4
-  store i32 1, ptr %myFunc, align [filtered], !dbg !16
+  store i32 1, ptr %myFunc, align [filtered], !dbg !15
   br label %condition_check, !dbg !12
 
 condition_body7:                                  ; preds = %condition_body3
-  br label %continue, !dbg !14
+  br label %continue, !dbg !12
 
 buffer_block:                                     ; No predecessors!
-  br label %continue4, !dbg !14
+  br label %continue4, !dbg !12
 
 continue4:                                        ; preds = %buffer_block, %condition_body3
   br label %continue2, !dbg !12
 
 condition_body11:                                 ; preds = %else
-  br label %continue, !dbg !14
+  br label %continue, !dbg !12
 
 buffer_block12:                                   ; No predecessors!
-  br label %continue8, !dbg !14
+  br label %continue8, !dbg !12
 
 continue8:                                        ; preds = %buffer_block12, %else
   br label %continue2, !dbg !12
@@ -98,6 +98,5 @@ continue8:                                        ; preds = %buffer_block12, %el
 !11 = !DILocation(line: 2, column: 17, scope: !4)
 !12 = !DILocation(line: 0, scope: !4)
 !13 = !DILocation(line: 3, column: 16, scope: !4)
-!14 = !DILocation(line: 3, column: 26, scope: !4)
-!15 = !DILocation(line: 6, column: 8, scope: !4)
-!16 = !DILocation(line: 4, column: 16, scope: !4)
+!14 = !DILocation(line: 6, column: 8, scope: !4)
+!15 = !DILocation(line: 4, column: 16, scope: !4)

@@ -542,7 +542,7 @@ fn switch_case_debug_info() {
       br label %condition_check, !dbg !18
 
     condition_check:                                  ; preds = %continue2, %entry
-      br i1 true, label %while_body, label %continue, !dbg !19
+      br i1 true, label %while_body, label %continue, !dbg !18
 
     while_body:                                       ; preds = %condition_check
       br i1 false, label %condition_body, label %continue1, !dbg !19
@@ -552,10 +552,10 @@ fn switch_case_debug_info() {
       ret i32 %main_ret, !dbg !20
 
     condition_body:                                   ; preds = %while_body
-      br label %continue, !dbg !19
+      br label %continue, !dbg !18
 
     buffer_block:                                     ; No predecessors!
-      br label %continue1, !dbg !19
+      br label %continue1, !dbg !18
 
     continue1:                                        ; preds = %buffer_block, %while_body
       %load_x1 = load i16, ptr %x1, align [filtered], !dbg !21
@@ -613,7 +613,7 @@ fn switch_case_debug_info() {
     !15 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !16, align [filtered])
     !16 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !17 = !DILocation(line: 2, column: 17, scope: !4)
-    !18 = !DILocation(line: 22, column: 12, scope: !4)
+    !18 = !DILocation(line: 0, scope: !4)
     !19 = !DILocation(line: 9, column: 18, scope: !4)
     !20 = !DILocation(line: 24, column: 8, scope: !4)
     !21 = !DILocation(line: 10, column: 12, scope: !4)

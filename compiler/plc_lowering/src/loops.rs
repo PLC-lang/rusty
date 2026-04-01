@@ -554,13 +554,13 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             WHILE TRUE DO
                 IF NOT TRUE THEN
                     EXIT;
                 END_IF
                 EXIT;
-
+                
             END_WHILE
             ");
         }
@@ -889,7 +889,7 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca ran_once_0: BOOL
             alloca is_incrementing_0: BOOL
             i := a
@@ -910,7 +910,7 @@ mod tests {
                 END_IF
                 b := a
                 CONTINUE;
-
+                
             END_WHILE
             ");
         }
@@ -929,7 +929,7 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca ran_once_0: BOOL
             alloca is_incrementing_0: BOOL
             i := 1
@@ -949,7 +949,7 @@ mod tests {
                     END_IF
                 END_IF
                 CONTINUE;
-
+                
             END_WHILE
             ");
         }
@@ -968,7 +968,7 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca ran_once_0: BOOL
             alloca is_incrementing_0: BOOL
             i := 5
@@ -988,7 +988,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-
+                
             END_WHILE
             ");
         }
@@ -1007,7 +1007,7 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca ran_once_0: BOOL
             alloca is_incrementing_0: BOOL
             i := 1
@@ -1027,7 +1027,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-
+                
             END_WHILE
             ");
         }
@@ -1163,7 +1163,7 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca ran_once_0: BOOL
             alloca is_incrementing_0: BOOL
             i := a
@@ -1184,7 +1184,7 @@ mod tests {
                 END_IF
                 IF c > d THEN
                     CONTINUE;
-
+                    
                 END_IF
                 c := i
             END_WHILE
@@ -1205,7 +1205,7 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
+            insta::assert_snapshot!(super::serialize(source), @r"
             alloca ran_once_0: BOOL
             alloca is_incrementing_0: BOOL
             i := a
@@ -1225,7 +1225,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-
+                
             END_WHILE
             ");
         }
