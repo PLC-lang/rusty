@@ -122,7 +122,6 @@
 use plc_ast::{
     ast::{AstFactory, AstNode, CompilationUnit, Operator},
     control_statements::{ForLoopStatement, LoopStatement},
-    literals::AstLiteral,
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
 };
@@ -175,23 +174,24 @@ impl AstVisitorMut for WhileDesugarer {
         // First, visit the body itself to desugar nested loops (if any)
         self.visit_statement_list(&mut stmt.body);
 
-        // Clone the previous conditions location for the new loop condition and if guard
+        // Preserve the original condition location so stepping can still land on the user-written
+        // `WHILE <cond>` header, but make the canonical loop scaffolding internal.
         let prev_cond_loc = stmt.condition.location.clone();
 
-        // Swap the condition with a literal `TRUE`
+        // Swap the condition with a synthetic literal `TRUE`.
         let prev_cond = std::mem::replace(
             &mut stmt.condition,
-            Box::new(helper::create_literal_true(&mut self.ids, prev_cond_loc.clone())),
+            Box::new(helper::create_internal_literal_true(&mut self.ids)),
         );
 
-        // Create a negated if guard to break from the loop
-        let negated_cond = AstFactory::create_unary_expression(
-            Operator::Not,
-            *prev_cond,
-            prev_cond_loc.clone(),
-            self.ids.next_id(),
-        );
-        let if_guard = helper::create_if_then_exit(self.ids.clone(), negated_cond, prev_cond_loc);
+        // Hide the canonical backedge from source-level debugging.
+        stmt.end_location = SourceLocation::internal();
+
+        // Create a synthetic guard whose wrapper is internal, while the reused user condition keeps
+        // its original location.
+        let negated_cond =
+            AstFactory::create_unary_expression(Operator::Not, *prev_cond, prev_cond_loc, self.ids.next_id());
+        let if_guard = helper::create_if_then_exit(self.ids.clone(), negated_cond);
 
         // Prepend the body with the if guard
         stmt.body.insert(0, if_guard);
@@ -207,7 +207,9 @@ impl AstVisitorMut for RepeatDesugarer {
             statement.walk(self);
 
             match self.replacement.take() {
-                Some((alloca, while_loop)) => {
+                Some((alloca, mut while_loop)) => {
+                    while_loop.location = statement.location.clone();
+
                     new_statements.push(alloca);
                     new_statements.push(while_loop);
                 }
@@ -219,56 +221,41 @@ impl AstVisitorMut for RepeatDesugarer {
         *stmts = new_statements;
     }
 
-    // TODO: Sourcelocations are wrong
     fn visit_repeat_loop_statement(&mut self, stmt: &mut LoopStatement) {
         // First, visit the body itself to desugar nested loops (if any)
         self.visit_statement_list(&mut stmt.body);
 
-        // Take the repeat condition and body
+        // Take the repeat condition and body.
         let cond = std::mem::take(&mut stmt.condition);
         let mut body = std::mem::take(&mut stmt.body);
-        let cond_location = cond.location.clone();
 
-        // Create a temporary variable to track first iteration
+        // Create a temporary variable to track first iteration.
         let (alloca, ran_once_ref) =
             helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{}", self.counter));
         self.counter += 1;
 
-        // Create the the if guards, that is
-        // ```
-        // IF ran_once_N THEN
-        //     IF <cond> THEN
-        //         EXIT
-        //     END_IF
-        // END_IF
-        // ```
+        // Only the user-authored `UNTIL <cond>` check should stay visible in debug info. The
+        // surrounding gating `IF ran_once_N THEN ...` is synthetic and therefore internal.
         let if_guard = helper::create_if_then(
             self.ids.clone(),
             ran_once_ref.clone(),
-            vec![helper::create_if_then_exit(self.ids.clone(), *cond, cond_location.clone())],
+            vec![helper::create_if_then_exit(self.ids.clone(), *cond)],
             SourceLocation::internal(),
         );
 
-        // Create the `ran_once_N := TRUE` before the actual body to flag iteration ran at least once
-        let ran_once_assignment = AstFactory::create_assignment(
+        // Synthetic `ran_once_N := TRUE` should not inherit any user source location.
+        let ran_once_assignment = helper::create_internal_assignment(
             ran_once_ref,
-            AstFactory::create_literal(
-                AstLiteral::Bool(true),
-                SourceLocation::internal(),
-                self.ids.next_id(),
-            ),
-            self.ids.next_id(),
+            helper::create_internal_literal_true(&mut self.ids),
+            &mut self.ids,
         );
 
-        // Prepend the if guard and `ran_once_N := TRUE` assignment before the actual body
+        // Prepend the if guard and `ran_once_N := TRUE` assignment before the actual body.
         body.insert(0, if_guard);
         body.insert(1, ran_once_assignment);
 
         debug_assert!(self.replacement.is_none());
-        self.replacement = Some((
-            alloca,
-            helper::create_while_true_loop(&mut self.ids, body, cond_location.clone(), cond_location),
-        ));
+        self.replacement = Some((alloca, helper::create_while_true_loop(&mut self.ids, body)));
     }
 }
 
@@ -281,7 +268,12 @@ impl AstVisitorMut for ForDesugarer {
             statement.walk(self);
 
             match self.replacement.take() {
-                Some(replacement) => new_statements.extend(replacement),
+                Some(mut replacement) => {
+                    if let Some(while_loop) = replacement.last_mut() {
+                        while_loop.location = statement.location.clone();
+                    }
+                    new_statements.extend(replacement)
+                }
                 None => new_statements.push(statement),
             };
         }
@@ -289,7 +281,6 @@ impl AstVisitorMut for ForDesugarer {
         *stmts = new_statements;
     }
 
-    // TODO: Sourcelocations are wrong
     fn visit_for_loop_statement(&mut self, stmt: &mut ForLoopStatement) {
         // First, visit the body itself to desugar nested loops (if any)
         self.visit_statement_list(&mut stmt.body);
@@ -300,7 +291,6 @@ impl AstVisitorMut for ForDesugarer {
         let end = *std::mem::take(&mut stmt.end);
         let by_step = stmt.by_step.take().map(|step| *step);
         let mut body = std::mem::take(&mut stmt.body);
-        let loop_location = start.location.span(&stmt.end_location);
 
         // Create temporaries tracking whether the loop already ran and which comparison branch to use.
         let (ran_once_alloca, ran_once_ref) =
@@ -315,15 +305,15 @@ impl AstVisitorMut for ForDesugarer {
         let zero = helper::create_literal_integer(&mut self.ids, 0);
 
         // Increment the counter at the top of every iteration after the first one.
-        let increment_assignment = AstFactory::create_assignment(
+        let increment_assignment = helper::create_internal_assignment(
             counter.clone(),
-            AstFactory::create_binary_expression(
+            helper::create_internal_binary_expression(
                 counter.clone(),
                 Operator::Plus,
                 step.clone(),
-                self.ids.next_id(),
+                &mut self.ids,
             ),
-            self.ids.next_id(),
+            &mut self.ids,
         );
         let increment_guard = helper::create_if_then(
             self.ids.clone(),
@@ -333,29 +323,26 @@ impl AstVisitorMut for ForDesugarer {
         );
 
         // Mark that the loop has already executed once.
-        let ran_once_assignment = AstFactory::create_assignment(
+        let ran_once_assignment = helper::create_internal_assignment(
             ran_once_ref,
-            AstFactory::create_literal(
-                AstLiteral::Bool(true),
-                SourceLocation::internal(),
-                self.ids.next_id(),
-            ),
-            self.ids.next_id(),
+            helper::create_internal_literal_true(&mut self.ids),
+            &mut self.ids,
         );
 
         // Compute the comparison direction once before entering the replacement loop.
         let is_incrementing_value = if has_explicit_step {
-            AstFactory::create_binary_expression(step.clone(), Operator::Greater, zero, self.ids.next_id())
+            helper::create_internal_binary_expression(step.clone(), Operator::Greater, zero, &mut self.ids)
         } else {
-            helper::create_literal_true(&mut self.ids, SourceLocation::internal())
+            helper::create_internal_literal_true(&mut self.ids)
         };
-        let is_incrementing_assignment = AstFactory::create_assignment(
+        let is_incrementing_assignment = helper::create_internal_assignment(
             is_incrementing_ref.clone(),
             is_incrementing_value,
-            self.ids.next_id(),
+            &mut self.ids,
         );
 
-        // Exit once the counter has moved past the end bound for the chosen direction.
+        // Exit once the counter has moved past the end bound for the chosen direction. The actual
+        // bound comparisons still point at the user-written `FOR ... TO ... [BY ...]` header.
         let incrementing_exit = helper::create_if_then_exit(
             self.ids.clone(),
             AstFactory::create_binary_expression(
@@ -364,12 +351,10 @@ impl AstVisitorMut for ForDesugarer {
                 end.clone(),
                 self.ids.next_id(),
             ),
-            loop_location.clone(),
         );
         let decrementing_exit = helper::create_if_then_exit(
             self.ids.clone(),
             AstFactory::create_binary_expression(counter.clone(), Operator::Less, end, self.ids.next_id()),
-            loop_location.clone(),
         );
         let bound_guard = helper::create_if_then_else(
             self.ids.clone(),
@@ -391,22 +376,22 @@ impl AstVisitorMut for ForDesugarer {
             is_incrementing_alloca,
             AstFactory::create_assignment(counter, start, self.ids.next_id()),
             is_incrementing_assignment,
-            helper::create_while_true_loop(&mut self.ids, body, loop_location.clone(), loop_location),
+            helper::create_while_true_loop(&mut self.ids, body),
         ]);
     }
 }
 
 mod helper {
     use plc_ast::{
-        ast::{Allocation, AstFactory, AstNode, AstStatement},
+        ast::{Allocation, AstFactory, AstNode, AstStatement, Operator},
         control_statements::{ConditionalBlock, IfStatement, LoopStatement},
         literals::AstLiteral,
         provider::IdProvider,
     };
     use plc_source::source_location::SourceLocation;
 
-    pub fn create_literal_true(ids: &mut IdProvider, location: SourceLocation) -> AstNode {
-        AstFactory::create_literal(AstLiteral::Bool(true), location, ids.next_id())
+    pub fn create_internal_literal_true(ids: &mut IdProvider) -> AstNode {
+        AstFactory::create_literal(AstLiteral::Bool(true), SourceLocation::internal(), ids.next_id())
     }
 
     pub fn create_if_then(
@@ -444,12 +429,13 @@ mod helper {
         )
     }
 
-    pub fn create_if_then_exit(mut ids: IdProvider, condition: AstNode, location: SourceLocation) -> AstNode {
+    pub fn create_if_then_exit(mut ids: IdProvider, condition: AstNode) -> AstNode {
+        let location = SourceLocation::internal();
         AstFactory::create_if_statement(
             IfStatement {
                 blocks: vec![ConditionalBlock {
                     condition: Box::new(condition),
-                    body: vec![AstFactory::create_exit_statement(location.clone(), ids.next_id())],
+                    body: vec![AstFactory::create_exit_statement(SourceLocation::internal(), ids.next_id())],
                 }],
                 else_block: Vec::new(),
                 end_location: location.clone(),
@@ -459,24 +445,31 @@ mod helper {
         )
     }
 
-    pub fn create_while_true_loop(
-        ids: &mut IdProvider,
-        body: Vec<AstNode>,
-        cond_location: SourceLocation,
-        _location: SourceLocation,
-    ) -> AstNode {
+    pub fn create_while_true_loop(ids: &mut IdProvider, body: Vec<AstNode>) -> AstNode {
         let statement = LoopStatement {
-            condition: Box::new(AstFactory::create_literal(
-                AstLiteral::Bool(true),
-                cond_location,
-                ids.next_id(),
-            )),
+            condition: Box::new(create_internal_literal_true(ids)),
             body,
-            end_location: SourceLocation::internal(), // TODO: What location do we use here?
+            end_location: SourceLocation::internal(),
         };
 
-        // TODO: Also what location here?
         AstFactory::create_while_statement(statement, SourceLocation::internal(), ids.next_id())
+    }
+
+    pub fn create_internal_binary_expression(
+        left: AstNode,
+        operator: Operator,
+        right: AstNode,
+        ids: &mut IdProvider,
+    ) -> AstNode {
+        let mut expr = AstFactory::create_binary_expression(left, operator, right, ids.next_id());
+        expr.location = SourceLocation::internal();
+        expr
+    }
+
+    pub fn create_internal_assignment(left: AstNode, right: AstNode, ids: &mut IdProvider) -> AstNode {
+        let mut assignment = AstFactory::create_assignment(left, right, ids.next_id());
+        assignment.location = SourceLocation::internal();
+        assignment
     }
 
     pub fn create_literal_integer(ids: &mut IdProvider, value: i128) -> AstNode {
@@ -567,7 +560,7 @@ mod tests {
                     EXIT;
                 END_IF
                 EXIT;
-                
+
             END_WHILE
             ");
         }
@@ -917,7 +910,7 @@ mod tests {
                 END_IF
                 b := a
                 CONTINUE;
-                
+
             END_WHILE
             ");
         }
@@ -956,7 +949,7 @@ mod tests {
                     END_IF
                 END_IF
                 CONTINUE;
-                
+
             END_WHILE
             ");
         }
@@ -995,7 +988,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-                
+
             END_WHILE
             ");
         }
@@ -1034,7 +1027,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-                
+
             END_WHILE
             ");
         }
@@ -1191,7 +1184,7 @@ mod tests {
                 END_IF
                 IF c > d THEN
                     CONTINUE;
-                    
+
                 END_IF
                 c := i
             END_WHILE
@@ -1232,7 +1225,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-                
+
             END_WHILE
             ");
         }

@@ -1,17 +1,16 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
-    expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},
+    expression_generator::{to_i1, ExpressionCodeGenerator},
     llvm::Llvm,
 };
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
-        llvm_typesystem::cast_if_needed,
         CodegenError, LlvmTypedIndex,
     },
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem::{get_bigger_type, DataTypeInformation, DINT_TYPE},
+    typesystem::DataTypeInformation,
 };
 use inkwell::{
     basic_block::BasicBlock,
@@ -24,9 +23,7 @@ use plc_ast::{
         flatten_expression_list, Allocation, AstNode, AstStatement, JumpStatement, LabelStatement, Operator,
         ReferenceAccess, ReferenceExpr,
     },
-    control_statements::{
-        AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement, ReturnStatement,
-    },
+    control_statements::{AstControlStatement, CaseStatement, IfStatement, LoopStatement, ReturnStatement},
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
