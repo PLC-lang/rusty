@@ -567,7 +567,7 @@ mod tests {
                     EXIT;
                 END_IF
                 EXIT;
-
+                
             END_WHILE
             ");
         }
@@ -917,7 +917,7 @@ mod tests {
                 END_IF
                 b := a
                 CONTINUE;
-
+                
             END_WHILE
             ");
         }
@@ -956,7 +956,7 @@ mod tests {
                     END_IF
                 END_IF
                 CONTINUE;
-
+                
             END_WHILE
             ");
         }
@@ -995,7 +995,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-
+                
             END_WHILE
             ");
         }
@@ -1034,7 +1034,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-
+                
             END_WHILE
             ");
         }
@@ -1191,7 +1191,7 @@ mod tests {
                 END_IF
                 IF c > d THEN
                     CONTINUE;
-
+                    
                 END_IF
                 c := i
             END_WHILE
@@ -1232,7 +1232,7 @@ mod tests {
                     END_IF
                 END_IF
                 EXIT;
-
+                
             END_WHILE
             ");
         }

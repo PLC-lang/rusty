@@ -259,11 +259,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     ) -> Result<(), CodegenError> {
         match statement {
             AstControlStatement::If(ifstmt) => self.generate_if_statement(llvm_index, ifstmt),
-            AstControlStatement::ForLoop(for_stmt) => self.generate_for_statement(llvm_index, for_stmt),
-            AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
-                self.generate_loop_statement(llvm_index, stmt)
-            }
             AstControlStatement::Case(stmt) => self.generate_case_statement(llvm_index, stmt),
+
+            AstControlStatement::WhileLoop(stmt) => self.generate_loop_statement(llvm_index, stmt),
+            AstControlStatement::RepeatLoop(_) | AstControlStatement::ForLoop(_) => {
+                unreachable!("desugared into while loop")
+            }
         }
     }
 
@@ -390,135 +391,6 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             right_type,
             right_expr,
         )
-    }
-
-    /// generates a for-loop statement
-    ///
-    /// FOR `counter` := `start` TO `end` BY `by_step` DO
-    ///
-    /// - `counter` the counter variable
-    /// - `start` the value indicating the start of the for loop
-    /// - `end` the value indicating the end of the for loop
-    /// - `by_step` the step of the loop
-    /// - `body` the statements inside the for-loop
-    fn generate_for_statement(
-        &self,
-        llvm_index: &'a LlvmTypedIndex<'b>,
-        stmt: &ForLoopStatement,
-    ) -> Result<(), CodegenError> {
-        let (builder, current_function, context) = self.get_llvm_deps();
-        let exp_gen = self.create_expr_generator(llvm_index);
-
-        let end_ty = self.annotations.get_type_or_void(&stmt.end, self.index);
-        let counter_ty = self.annotations.get_type_or_void(&stmt.counter, self.index);
-        let cast_target_ty = get_bigger_type(self.index.get_type_or_panic(DINT_TYPE), counter_ty, self.index);
-        let cast_target_llty = llvm_index.find_associated_type(cast_target_ty.get_name()).unwrap();
-
-        let step_ty = stmt.by_step.as_ref().map(|it| {
-            self.register_debug_location(it);
-            self.annotations.get_type_or_void(it, self.index)
-        });
-
-        let eval_step = || {
-            step_ty.map_or_else(
-                || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::internal()),
-                |step_ty| {
-                    let step = exp_gen.generate_expression(stmt.by_step.as_ref().unwrap())?;
-                    cast_if_needed!(exp_gen, cast_target_ty, step_ty, step, None)
-                },
-            )
-        };
-
-        let predicate_incrementing = context.append_basic_block(current_function, "predicate_sle");
-        let predicate_decrementing = context.append_basic_block(current_function, "predicate_sge");
-        let loop_body = context.append_basic_block(current_function, "loop");
-        let increment = context.append_basic_block(current_function, "increment");
-        let afterloop = context.append_basic_block(current_function, "continue");
-
-        self.generate_assignment_statement(llvm_index, &stmt.counter, &stmt.start)?;
-        let counter = exp_gen.generate_lvalue(&stmt.counter)?;
-        let counter_pointee = {
-            let datatype = self.annotations.get_type(&stmt.counter, self.index).unwrap();
-            self.llvm_index.get_associated_type(&datatype.name).unwrap()
-        };
-
-        // generate loop predicate selector. since `STEP` can be a reference, this needs to be a runtime eval
-        // XXX(mhasel): IR could possibly be improved by generating phi instructions.
-        //              Candidate for frontend optimization for builds without optimization when `STEP`
-        //              is a compile-time constant
-        let is_incrementing = builder.build_int_compare(
-            inkwell::IntPredicate::SGT,
-            eval_step()?.into_int_value(),
-            self.llvm
-                .create_const_numeric(&cast_target_llty, "0", SourceLocation::internal())?
-                .into_int_value(),
-            "is_incrementing",
-        )?;
-        builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing)?;
-        // generate predicates for incrementing and decrementing counters
-        let generate_predicate = |predicate| {
-            builder.position_at_end(match predicate {
-                inkwell::IntPredicate::SLE => predicate_incrementing,
-                inkwell::IntPredicate::SGE => predicate_decrementing,
-                _ => unreachable!(),
-            });
-
-            let end = exp_gen.generate_expression_value(&stmt.end).unwrap();
-            let end_value = match end {
-                ExpressionValue::LValue(value, pointee) => builder.build_load(pointee, value, "")?,
-                ExpressionValue::RValue(val) => val,
-            };
-
-            let counter_value = builder.build_load(counter_pointee, counter, "")?;
-            let cmp = builder.build_int_compare(
-                predicate,
-                cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
-                cast_if_needed!(exp_gen, cast_target_ty, end_ty, end_value, None)?.into_int_value(),
-                "condition",
-            )?;
-            builder.build_conditional_branch(cmp, loop_body, afterloop)?;
-            Ok::<(), CodegenError>(())
-        };
-        generate_predicate(inkwell::IntPredicate::SLE)?;
-        generate_predicate(inkwell::IntPredicate::SGE)?;
-
-        // generate loop body
-        builder.position_at_end(loop_body);
-        let body_builder = StatementCodeGenerator {
-            current_loop_continue: Some(increment),
-            current_loop_exit: Some(afterloop),
-            load_prefix: self.load_prefix.clone(),
-            load_suffix: self.load_suffix.clone(),
-            ..*self
-        };
-        body_builder.generate_body(&stmt.body)?;
-        // Place debug location to end of loop
-        self.debug.set_debug_location(
-            self.llvm,
-            self.function_context,
-            stmt.end_location.get_line_plus_one(),
-            stmt.end_location.get_column(),
-        );
-
-        // increment counter
-        builder.build_unconditional_branch(increment)?;
-        builder.position_at_end(increment);
-        let counter_value = builder.build_load(counter_pointee, counter, "")?;
-        let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
-            eval_step()?.into_int_value(),
-            cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
-            "next",
-        )?);
-        builder.build_store(
-            counter,
-            cast_if_needed!(exp_gen, counter_ty, cast_target_ty, inc, None)?.into_int_value(),
-        )?;
-
-        // check condition
-        builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing)?;
-        // continue
-        builder.position_at_end(afterloop);
-        Ok(())
     }
 
     /// genertes a case statement
