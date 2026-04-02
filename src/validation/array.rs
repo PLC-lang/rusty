@@ -85,7 +85,7 @@ fn validate_array<T: AnnotationMap>(
     }
 
     let len_lhs = lhs_type.get_array_length(context.index).unwrap_or(0);
-    let len_rhs = statement_to_array_length(context, stmt_rhs);
+    let Some(len_rhs) = statement_to_array_length(context, stmt_rhs) else { return };
 
     if len_lhs == 0 {
         return;
@@ -101,7 +101,7 @@ fn validate_array<T: AnnotationMap>(
             .with_error_code("E043")
             .with_location(location),
         );
-    } else if len_rhs > 0 && len_rhs < len_lhs {
+    } else if len_rhs < len_lhs {
         let name = statement.lhs_name(validator.context);
         let location = stmt_rhs.get_location();
         validator.push_diagnostic(
@@ -162,34 +162,40 @@ fn validate_array_of_structs<T: AnnotationMap>(
 }
 
 /// Takes an [`AstStatementKind`] and returns its length as if it was an array. For example calling this function
-/// on an expression-list such as `[(...), (...)]` would return 2.
-fn statement_to_array_length<T: AnnotationMap>(context: &ValidationContext<T>, statement: &AstNode) -> usize {
+/// on an expression-list such as `[(...), (...)]` would return 2. Returns `None` if the length could not be
+/// determined (e.g. for unresolved calls or unknown AST nodes), signaling that size validation should be skipped.
+fn statement_to_array_length<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    statement: &AstNode,
+) -> Option<usize> {
     match statement.get_stmt() {
         AstStatement::Literal(AstLiteral::Array(arr)) => match arr.elements() {
             Some(AstNode { stmt: AstStatement::ExpressionList(expressions), .. }) => {
-                expressions.iter().map(|it| statement_to_array_length(context, it)).sum::<usize>()
+                let mut total = 0;
+                for it in expressions {
+                    total += statement_to_array_length(context, it)?;
+                }
+                Some(total)
             }
 
             Some(any) => statement_to_array_length(context, any),
-            None => 0,
+            None => Some(0),
         },
 
         AstStatement::CallStatement(_) => context
             .annotations
             .get_type(statement, context.index)
-            .and_then(|it| it.information.get_array_length(context.index))
-            .unwrap_or(0),
+            .and_then(|it| it.information.get_array_length(context.index)),
 
-        AstStatement::MultipliedStatement(data) => data.multiplier as usize,
-        AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(_) => 1,
+        AstStatement::MultipliedStatement(data) => Some(data.multiplier as usize),
+        AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(_) => Some(1),
 
         // Any literal other than an array can be counted as 1
-        AstStatement::Literal { .. } => 1,
+        AstStatement::Literal { .. } => Some(1),
 
         _any => {
-            // XXX: Not sure what else could be in here
-            log::debug!("Array size-counting for {statement:?} not covered; validation _might_ be wrong");
-            0
+            log::debug!("Array size-counting for {statement:?} not covered; skipping validation");
+            None
         }
     }
 }

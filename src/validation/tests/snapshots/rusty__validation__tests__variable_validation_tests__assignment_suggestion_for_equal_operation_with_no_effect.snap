@@ -2,12 +2,6 @@
 source: src/validation/tests/variable_validation_tests.rs
 expression: diagnostics
 ---
-warning[E127]: Fewer initial values for array `arr_dint` than expected. Expected 6, found 3.
-  ┌─ <internal>:8:51
-  │
-8 │                 arr_dint : ARRAY[0..5] OF DINT := [1 = 1, 2, 3, 4, 5 = 5];
-  │                                                   ^^^^^^^^^^^^^^^^^^^^^^^ Fewer initial values for array `arr_dint` than expected. Expected 6, found 3.
-
 warning[E023]: This equal statement has no effect, did you mean `value := 1`?
    ┌─ <internal>:24:13
    │
