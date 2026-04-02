@@ -467,3 +467,213 @@ fn fewer_elements_multiplied() {
 
     assert_snapshot!(diagnostics);
 }
+
+// --- TYPE-level array initialization validation ---
+
+#[test]
+fn type_level_too_many_elements() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE arraytype : ARRAY [1..5] OF INT := [1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_fewer_elements() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE arraytype : ARRAY [1..5] OF INT := [1,2];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_exact_elements() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE arraytype : ARRAY [1..5] OF INT := [1,2,3,4,5];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn type_level_composed_array_too_many() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE baseArray : ARRAY [1..10] OF INT := [1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+
+        TYPE inherited_toomany : ARRAY [1..10] OF baseArray := [1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_composed_array_fewer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE baseArray : ARRAY [1..10] OF INT := [1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+
+        TYPE inherited_tooless : ARRAY [1..10] OF baseArray := [1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_array_of_array_too_many() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE toomany : ARRAY [1..10] OF ARRAY [1..10] OF INT := [1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_array_of_array_fewer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE tooless : ARRAY [1..10] OF ARRAY [1..10] OF INT := [1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_repetition_too_many() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE arraytype : ARRAY [1..5] OF INT := [6(0)];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_repetition_fewer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE arraytype : ARRAY [1..5] OF INT := [3(0)];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_derived_array_too_many() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE userArrayType : ARRAY [1..5] OF INT := [1,2,3,4,5];
+        END_TYPE
+
+        TYPE derivedArrayType : userArrayType;
+        END_TYPE
+
+        TYPE derived_derived : ARRAY [1..2] OF derivedArrayType := [1,2,3,4,5,6,7,8,9,10,11];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_derived_array_fewer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE userArrayType : ARRAY [1..5] OF INT := [1,2,3,4,5];
+        END_TYPE
+
+        TYPE derivedArrayType : userArrayType;
+        END_TYPE
+
+        TYPE derived_derived : ARRAY [1..2] OF derivedArrayType := [1,2,3,4,5,6,7,8,9];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_struct_array_too_many() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE myStruct : STRUCT
+            first : INT;
+            second : BOOL;
+        END_STRUCT END_TYPE
+
+        TYPE arraytype : ARRAY [1..2] OF myStruct := [(first := 5, second := FALSE), (first := 10, second := TRUE), (first := 15, second := FALSE)];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_struct_array_fewer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE myStruct : STRUCT
+            first : INT;
+            second : BOOL;
+        END_STRUCT END_TYPE
+
+        TYPE arraytype : ARRAY [1..5] OF myStruct := [(first := 5, second := FALSE)];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}

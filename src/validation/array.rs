@@ -10,7 +10,7 @@
 //! introduced to make the validation code as generic as possible.
 
 use plc_ast::{
-    ast::{AstNode, AstStatement, Variable},
+    ast::{AstNode, AstStatement, UserTypeDeclaration, Variable},
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -20,11 +20,12 @@ use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
 
 use super::{ValidationContext, Validator, Validators};
 
-/// Indicates whether an array was assigned in a VAR block or a POU body
+/// Indicates whether an array was assigned in a VAR block, a POU body, or a TYPE declaration
 #[derive(Debug, Clone, Copy)]
 pub(super) enum StatementWrapper<'a> {
     Statement(&'a AstNode),
     Variable(&'a Variable),
+    TypeDeclaration(&'a UserTypeDeclaration),
 }
 
 impl<'a> From<&'a AstNode> for StatementWrapper<'a> {
@@ -36,6 +37,12 @@ impl<'a> From<&'a AstNode> for StatementWrapper<'a> {
 impl<'a> From<&'a Variable> for StatementWrapper<'a> {
     fn from(value: &'a Variable) -> Self {
         Self::Variable(value)
+    }
+}
+
+impl<'a> From<&'a UserTypeDeclaration> for StatementWrapper<'a> {
+    fn from(value: &'a UserTypeDeclaration) -> Self {
+        Self::TypeDeclaration(value)
     }
 }
 
@@ -195,6 +202,9 @@ impl<'a> StatementWrapper<'a> {
                 let AstStatement::Assignment(data) = &statement.stmt else { return "".to_string() };
                 context.slice(&data.left.location)
             }
+            StatementWrapper::TypeDeclaration(utd) => {
+                utd.data_type.get_name().map(|s| s.to_string()).unwrap_or_default()
+            }
         }
     }
 
@@ -205,6 +215,7 @@ impl<'a> StatementWrapper<'a> {
                 let AstStatement::Assignment(data) = &statement.stmt else { return None };
                 Some(&data.right)
             }
+            StatementWrapper::TypeDeclaration(utd) => utd.initializer.as_ref(),
         }
     }
 
@@ -222,6 +233,10 @@ impl<'a> StatementWrapper<'a> {
                 .data_type_declaration
                 .get_referenced_type()
                 .and_then(|it| context.index.find_effective_type_info(it)),
+
+            StatementWrapper::TypeDeclaration(utd) => {
+                utd.data_type.get_name().and_then(|name| context.index.find_effective_type_info(name))
+            }
         }?;
 
         match ty {
