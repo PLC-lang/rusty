@@ -44,6 +44,11 @@ To link the library, two options are then available: [Shared](#shared-libraries)
 A shared library (i.e. extension `.so`) can be linked using the `-l` flag. </br>
 For a library called `mylib`, when the flag `-lmylib` is passed, the linker will search for a file called `libmylib.so`.
 
+RuSTy also supports:
+
+- exact filename lookup: `-l:libmylib.so.1`
+- direct full path input: `-l/path/to/libmylib.so.1`
+
 > Note that the `lib<LibName>.so` format is required by the linker for unix like systems.
 
 The library locations used by the linker are the default search locations of the linker (i.e. `/usr/lib`, `/lib`), additional paths can be provided using the `-L` flag (e.g `-L/opt/lib` will make the linker also search for files in /opt/lib).</br>
@@ -69,9 +74,10 @@ plc input.st -i iec/header.st -L/lib/ -liec
 
 ## Linking libraries using the Build Description File `plc.json`
 
-Libraries can be added to a project managed with a [Build Description File](using_rusty/build_description_file.md#build-description-file-plcjson). </br>
+Libraries can be added to a project managed with a [Build Configuration](using_rusty/build_configuration.md#build-description-file-plcjson). </br>
 To add a library to the project, the `"libraries"` section can be used.
 A library entry requires a `name`, a `path`, the `package` behaviour, and a set of files to include (`include_path`).
+Optionally, it can define `link_path` to link an exact library file (for example `libmylib.so.1`).
 
 ### `name`
 
@@ -82,6 +88,19 @@ A library with the name `mylib` must have an equivalant compiled file called `li
 ### `path`
 
 The location of the library to be linked. The path can be either absolute or relative to the project. </br>
+
+### `link_path` (optional)
+
+An optional explicit library file to link.
+
+- If omitted, RuSTy links by `name` using `-l<name>`.
+- If present, RuSTy links this exact file.
+- Relative values are resolved against `path`.
+
+Examples:
+
+- `"link_path": "libmylib.so.1"`
+- `"link_path": "/opt/vendor/lib/libmylib.so.1"`
 
 ### `package`
 
@@ -97,8 +116,8 @@ POUs and Global variables included in the list are marked as external, the imple
 
 ### Library Location
 
-Libraries marked as `Copy` will be copied during the compilation to the defined [Library Location](using_rusty/build_description_file.md#--lib-location).
-By default this is the same as the [Build Location](using_rusty/build_description_file.md#--build-location) unless overridden by the `--lib-location` parameter.
+Libraries marked as `Copy` will be copied during the compilation to the defined [Library Location](using_rusty/build_configuration.md#--lib-location).
+By default this is the same as the [Build Location](using_rusty/build_configuration.md#--build-location) unless overridden by the `--lib-location` parameter.
 
 ### Using environment variables
 
@@ -106,7 +125,8 @@ Since libraries can be compiled for multiple targets, the lib path can contain e
 `$ARCH` can be used as placeholder in the path to indicate the the currently compiled target.
 </br></br></br>
 
-> During linking, if no `.so` file with name [`lib<name>.so`](#name) is found, the compilation will fail.
+> During linking by `name`, if no matching library (for example `lib<name>.so`) is found, compilation will fail.
+> If `link_path` is set, RuSTy links that exact file instead of name resolution.
 
 ### Configuration Example (`plc.json`)
 
@@ -117,6 +137,7 @@ A configuration example for a `Copy` library called _mylib_ and a `System` libra
     {
         "name" : "mylib",
         "path" : "libs/$ARCH/",
+        "link_path" : "libmylib.so.1",
         "package" : "Copy",
         "include_path" : [
             "simple_program.st"

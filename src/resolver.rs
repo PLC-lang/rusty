@@ -214,6 +214,8 @@ impl TypeAnnotator<'_> {
             }
             StatementAnnotation::Value { resulting_type } => {
                 self.dependencies.insert(Dependency::Datatype(resulting_type.to_string()));
+                self.dependencies
+                    .extend(self.get_datatype_dependencies(resulting_type, FxIndexSet::default()));
             }
             _ => (),
         };

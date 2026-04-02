@@ -20,7 +20,7 @@ use self::{
     llvm_index::LlvmTypedIndex,
 };
 use crate::{
-    output::FormatOption,
+    output::{FormatOption, RelocationPreference},
     resolver::{AstAnnotations, Dependency, StringLiterals},
     DebugLevel, OnlineChange, OptimizationLevel, Target,
 };
@@ -429,6 +429,7 @@ impl<'ink> GeneratedModule<'ink> {
         output_dir: Option<&Path>,
         output_name: &str,
         format: FormatOption,
+        relocation_preference: RelocationPreference,
         target: &Target,
         optimization_level: OptimizationLevel,
     ) -> Result<PathBuf, CodegenError> {
@@ -438,13 +439,36 @@ impl<'ink> GeneratedModule<'ink> {
             std::fs::create_dir_all(parent)?;
         }
         match format {
-            FormatOption::Object | FormatOption::Relocatable => {
-                self.persist_as_static_obj(output, target, optimization_level)
-            }
-            FormatOption::PIC | FormatOption::Shared | FormatOption::Static => {
-                self.persist_to_shared_pic_object(output, target, optimization_level)
-            }
-            FormatOption::NoPIC => self.persist_to_shared_object(output, target, optimization_level),
+            FormatOption::Object | FormatOption::Relocatable => match relocation_preference {
+                RelocationPreference::Pic => {
+                    self.persist_to_shared_pic_object(output, target, optimization_level)
+                }
+                RelocationPreference::Default | RelocationPreference::NoPic => {
+                    self.persist_as_static_obj(output, target, optimization_level)
+                }
+            },
+            FormatOption::PIC | FormatOption::Shared => match relocation_preference {
+                RelocationPreference::NoPic => {
+                    self.persist_to_shared_object(output, target, optimization_level)
+                }
+                RelocationPreference::Default | RelocationPreference::Pic => {
+                    self.persist_to_shared_pic_object(output, target, optimization_level)
+                }
+            },
+            FormatOption::Static => match relocation_preference {
+                RelocationPreference::NoPic => self.persist_as_static_obj(output, target, optimization_level),
+                RelocationPreference::Default | RelocationPreference::Pic => {
+                    self.persist_to_shared_pic_object(output, target, optimization_level)
+                }
+            },
+            FormatOption::NoPIC => match relocation_preference {
+                RelocationPreference::Pic => {
+                    self.persist_to_shared_pic_object(output, target, optimization_level)
+                }
+                RelocationPreference::Default | RelocationPreference::NoPic => {
+                    self.persist_to_shared_object(output, target, optimization_level)
+                }
+            },
             FormatOption::Bitcode => self.persist_to_bitcode(output),
             FormatOption::IR => self.persist_to_ir(output),
         }
