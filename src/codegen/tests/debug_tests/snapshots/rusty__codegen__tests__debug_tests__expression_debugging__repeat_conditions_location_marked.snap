@@ -12,7 +12,7 @@ entry:
   %myFunc = alloca i32, align [filtered]
     #dbg_declare(ptr %myFunc, !9, !DIExpression(), !11)
   store i32 0, ptr %myFunc, align [filtered]
-  %ran_once_0 = alloca i8, align [filtered], !dbg !12
+  %ran_once_0 = alloca i8, align [filtered]
   store i8 0, ptr %ran_once_0, align [filtered], !dbg !12
   br label %condition_check, !dbg !12
 

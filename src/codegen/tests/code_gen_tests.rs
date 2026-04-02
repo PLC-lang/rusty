@@ -885,6 +885,58 @@ fn for_statement_with_exit() {
 }
 
 #[test]
+fn nested_loop_temporaries_are_allocated_in_entry_block() {
+    let result = codegen(
+        r#"
+        FUNCTION main : DINT
+        VAR
+            i, j : DINT;
+        END_VAR
+
+        FOR i := 1 TO 10 DO
+            FOR j := 1 TO 1 DO
+            END_FOR
+        END_FOR
+        END_FUNCTION
+        "#,
+    );
+
+    let result = result
+        .lines()
+        .take_while(|line| !line.trim_start().starts_with("condition_check:"))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    // Nested FOR loops become nested WHILE TRUE loops once desugared, with temporary alloca locals like
+    // `ran_once_*` and `is_incrementing_*`. If their `alloca`s stay in the loop body, the inner temporaries
+    // are reallocated on each iteration. Codegen must hoist those stack allocations to the entry block.
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %i = alloca i32, align [filtered]
+      %j = alloca i32, align [filtered]
+      store i32 0, ptr %i, align [filtered]
+      store i32 0, ptr %j, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      %ran_once_1 = alloca i8, align [filtered]
+      store i8 0, ptr %ran_once_1, align [filtered]
+      %is_incrementing_1 = alloca i8, align [filtered]
+      store i8 0, ptr %is_incrementing_1, align [filtered]
+      store i32 1, ptr %i, align [filtered]
+      store i8 1, ptr %is_incrementing_1, align [filtered]
+      %ran_once_0 = alloca i8, align [filtered]
+      %is_incrementing_0 = alloca i8, align [filtered]
+      br label %condition_check
+    "#);
+}
+
+#[test]
 fn class_method_in_pou() {
     let result = codegen(
         "
