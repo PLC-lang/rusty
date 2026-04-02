@@ -82,6 +82,14 @@ pub struct LinkOptions {
     pub library_paths: Vec<PathBuf>,
     pub format: FormatOption,
     pub linker: LinkerType,
+    /// Optional backend linker for compiler-driver linkers (maps to `-fuse-ld=<name>`).
+    pub fuse_linker: Option<String>,
+    /// Raw linker arguments forwarded to the active linker.
+    pub linker_args: Vec<String>,
+    /// If set, disable C runtime startup files during executable linking.
+    pub no_crt: bool,
+    /// If set, disable implicit/default C libraries during executable linking.
+    pub no_libc: bool,
     pub lib_location: Option<PathBuf>,
     pub build_location: Option<PathBuf>,
     pub linker_script: LinkerScript,

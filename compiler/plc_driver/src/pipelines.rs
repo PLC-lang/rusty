@@ -227,6 +227,10 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 library_paths,
                 format: output_format,
                 linker: self.linker.clone(),
+                fuse_linker: params.fuse_linker.clone(),
+                linker_args: params.linker_args.clone(),
+                no_crt: params.no_crt,
+                no_libc: params.no_libc,
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
                 linker_script,
@@ -1071,6 +1075,22 @@ impl GeneratedProject {
                 let target_triple = self.target.get_target_triple();
                 let mut linker =
                     plc::linker::Linker::new(&target_triple.as_str().to_string_lossy(), link_options.linker)?;
+                if let Some(fuse) = &link_options.fuse_linker {
+                    log::debug!("Applying --fuse-ld={fuse}");
+                    linker.set_fuse_ld(fuse);
+                }
+                if link_options.no_crt {
+                    log::debug!("Applying --nocrt to linker invocation");
+                    linker.set_no_crt();
+                }
+                if link_options.no_libc {
+                    log::debug!("Applying --nolibc to linker invocation");
+                    linker.set_no_libc();
+                }
+                for arg in &link_options.linker_args {
+                    log::trace!("Applying --linker-arg={arg}");
+                    linker.add_linker_arg(arg);
+                }
                 for obj in &self.objects {
                     linker.add_obj(&obj.get_path().to_string_lossy());
                 }
