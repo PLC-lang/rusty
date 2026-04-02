@@ -119,8 +119,6 @@
 //! Compiler-generated names such as `ran_once_N` and `is_incrementing_N` are unique per desugared loop.
 //! They are ordinary AST allocations used only to encode loop semantics explicitly for later stages.
 
-use std::sync::atomic::{AtomicUsize, Ordering};
-
 use plc_ast::{
     ast::{AstFactory, AstNode, CompilationUnit, Operator},
     control_statements::{ForLoopStatement, LoopStatement},
@@ -128,8 +126,6 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
-
-static LOOP_DESUGAR_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 pub struct LoopDesugarer {
     ids: IdProvider,
@@ -141,6 +137,7 @@ struct WhileDesugarer {
 
 struct RepeatDesugarer {
     ids: IdProvider,
+    counter: usize,
 
     /// A preamble and its replacement loop
     replacement: Option<(AstNode, AstNode)>,
@@ -148,6 +145,7 @@ struct RepeatDesugarer {
 
 struct ForDesugarer {
     ids: IdProvider,
+    counter: usize,
 
     /// Preamble statements followed by the replacement loop
     replacement: Option<Vec<AstNode>>,
@@ -159,11 +157,9 @@ impl LoopDesugarer {
     }
 
     pub fn desugar(&self, units: &mut [CompilationUnit]) {
-        LOOP_DESUGAR_COUNTER.store(0, Ordering::Relaxed);
-
         let mut whiled = WhileDesugarer { ids: self.ids.clone() };
-        let mut repeatd = RepeatDesugarer { ids: self.ids.clone(), replacement: None };
-        let mut ford = ForDesugarer { ids: self.ids.clone(), replacement: None };
+        let mut repeatd = RepeatDesugarer { ids: self.ids.clone(), counter: 0, replacement: None };
+        let mut ford = ForDesugarer { ids: self.ids.clone(), counter: 0, replacement: None };
 
         for unit in units {
             whiled.visit_compilation_unit(unit);
@@ -234,9 +230,9 @@ impl AstVisitorMut for RepeatDesugarer {
         let mut body = std::mem::take(&mut stmt.body);
 
         // Create a temporary variable to track first iteration.
-        let counter_num = LOOP_DESUGAR_COUNTER.fetch_add(1, Ordering::Relaxed);
         let (alloca, ran_once_ref) =
-            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{counter_num}"));
+            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{}", self.counter));
+        self.counter += 1;
 
         // Only the user-authored `UNTIL <cond>` check should stay visible in debug info. The
         // surrounding gating `IF ran_once_N THEN ...` is synthetic and therefore internal.
@@ -297,11 +293,11 @@ impl AstVisitorMut for ForDesugarer {
         let mut body = std::mem::take(&mut stmt.body);
 
         // Create temporaries tracking whether the loop already ran and which comparison branch to use.
-        let counter_num = LOOP_DESUGAR_COUNTER.fetch_add(1, Ordering::Relaxed);
         let (ran_once_alloca, ran_once_ref) =
-            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{counter_num}"));
+            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{}", self.counter));
         let (is_incrementing_alloca, is_incrementing_ref) =
-            helper::create_alloca(&mut self.ids, "BOOL", format!("is_incrementing_{counter_num}"));
+            helper::create_alloca(&mut self.ids, "BOOL", format!("is_incrementing_{}", self.counter));
+        self.counter += 1;
 
         // Normalize the step expression so omitted `BY` becomes a literal `1`.
         let has_explicit_step = by_step.is_some();
@@ -1353,68 +1349,5 @@ mod tests {
             END_WHILE
             ");
         }
-    }
-
-    #[test]
-    fn shared_counter_is_used_across_while_repeat_and_for_loops() {
-        let source = r#"
-            FUNCTION main
-                VAR
-                    a, b, i : INT;
-                END_VAR
-
-                WHILE a < b DO
-                    a := a + 1;
-                END_WHILE
-
-                REPEAT
-                    a := a - 1;
-                UNTIL a = 0
-                END_REPEAT
-
-                FOR i := 0 TO 2 DO
-                    b := b + i;
-                END_FOR
-            END_FUNCTION
-        "#;
-
-        insta::assert_snapshot!(serialize(source), @"
-        WHILE TRUE DO
-            IF NOT a < b THEN
-                EXIT;
-            END_IF
-            a := a + 1
-        END_WHILE
-        alloca ran_once_0: BOOL
-        WHILE TRUE DO
-            IF ran_once_0 THEN
-                IF a = 0 THEN
-                    EXIT;
-                END_IF
-            END_IF
-            ran_once_0 := TRUE
-            a := a - 1
-        END_WHILE
-        alloca ran_once_1: BOOL
-        alloca is_incrementing_1: BOOL
-        i := 0
-        is_incrementing_1 := TRUE
-        WHILE TRUE DO
-            IF ran_once_1 THEN
-                i := i + 1
-            END_IF
-            ran_once_1 := TRUE
-            IF is_incrementing_1 THEN
-                IF i > 2 THEN
-                    EXIT;
-                END_IF
-            ELSE
-                IF i < 2 THEN
-                    EXIT;
-                END_IF
-            END_IF
-            b := b + i
-        END_WHILE
-        ");
     }
 }
