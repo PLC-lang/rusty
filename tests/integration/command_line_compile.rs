@@ -89,7 +89,8 @@ fn generate_got_file() {
     let path = temp_file.path().to_string_lossy();
     let name = "got.json";
 
-    compile(&["plc", file.as_str(), "-o", &path, "--online-change", "--got-layout-file", name]).unwrap();
+    compile(&["plc", file.as_str(), "-o", &path, "--online-change", "--got-layout-file", name, "--nocrt"])
+        .unwrap();
 
     //Verify file content
     let mut content = String::new();
