@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ConfigOption","GenerateOption","SubCommands"],"fn":["get_config_format"],"struct":["CompileParameters"],"type":["ParameterError"]};
+window.SIDEBAR_ITEMS = {"enum":["ConfigOption","GenerateOption","LogLevel","SubCommands"],"fn":["get_config_format"],"struct":["CompileParameters"],"type":["ParameterError"]};

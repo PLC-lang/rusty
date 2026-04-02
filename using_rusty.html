@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-548805b4.js";
+            window.path_to_searchindex_js = "searchindex-0edf7295.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-2b8c6dc7.js"></script>
@@ -181,9 +181,13 @@
 <p><code>plc</code> offers a comprehensive help via the <code>-h</code> (<code>--help</code>) option.
 <code>plc</code> takes one output-format parameter and any number of input-files.
 The input files can also be written as <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a>.</p>
-<p><code>plc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--pic|--static|--bc&gt;</code></p>
+<p><code>plc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--static|--bc&gt;</code></p>
 <p>Note that you can only specify at most one output format.
 In the case that no output format switch has been specified, the compiler will select <code>--static</code> by default.</p>
+<blockquote>
+<p><strong>Deprecated:</strong> <code>--pic</code> is equivalent to <code>--shared --fpic</code>. <code>--no-pic</code> is equivalent to <code>--shared --fno-pic</code>.
+Both flags will be removed in a future release.</p>
+</blockquote>
 <p>Similarly, if you do not specify an output filename via the <code>-o</code> or <code>--output</code> options,
 the output filename will consist of the first input filename, but with an appropriate
 file extension depending on the output file format.</p>
@@ -238,11 +242,53 @@ END_FUNCTION
 </code></pre>
 <p>Please note that RuSTy will attempt to link the generated object file by default to generate an executable if you didn’t specify something else (option <code>-c</code>).</p>
 <ul>
-<li>The <code>--linker=cc</code> flag tells RuSTy that it should link with the system’s compiler driver  instead of the built in linker. This provides support to create executables.</li>
-<li>Additional libraries can be linked using the <code>-l</code> flag, additional library paths can be added with <code>-L</code></li>
+<li>The <code>--linker=cc</code> flag tells RuSTy that it should link with the system’s compiler driver instead of the built in linker. This provides support to create executables.</li>
+<li>When no <code>--linker</code> is specified, RuSTy resolves the internal linker in this order: <code>cc</code> → <code>clang</code> → <code>ld.lld</code> → <code>ld</code>. The first linker that is found and supports the target is used. Compiler drivers (<code>cc</code>, <code>clang</code>) are preferred for their correct platform setup (sysroot, CRT files, etc.).</li>
+<li>You can override the driver backend linker with <code>--fuse-ld=&lt;name&gt;</code> (for example <code>--fuse-ld=mold</code>).</li>
+<li>Additional libraries can be linked using the <code>-l</code> flag, additional library paths can be added with <code>-L</code>.</li>
+<li>You can pass raw linker arguments using <code>--linker-arg=&lt;arg&gt;</code> (repeatable). With compiler drivers these are forwarded via <code>-Xlinker</code>.</li>
 <li>You add library search paths by providing additional <code>-L /path/...</code> options. By default, this will be the current directory.</li>
 <li>The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.</li>
+<li>For executable links with compiler drivers, startup/runtime defaults can be controlled explicitly with <code>--nocrt</code> and <code>--nolibc</code>.</li>
+<li><code>-l</code> also supports exact filenames (<code>-l:libfoo.so.1</code>) and direct full paths (<code>-l/path/to/libfoo.so.1</code>).</li>
 </ul>
+<h3 id="relocation-model-pic--no-pic"><a class="header" href="#relocation-model-pic--no-pic">Relocation model (PIC / no-PIC)</a></h3>
+<p>By default, RuSTy generates position-independent code (PIC) when building shared libraries, and uses the
+platform default relocation mode for object files and executables.</p>
+<p>You can override this with:</p>
+<ul>
+<li><code>--fpic</code> — Force PIC code generation. Required for shared libraries on most platforms.</li>
+<li><code>--fno-pic</code> — Force non-PIC code generation. Produces code without the overhead of PIC
+relocations, which can be useful for bare-metal or static-only targets.</li>
+</ul>
+<p>These flags apply to <strong>all</strong> output modes:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Command</th><th>Effect</th></tr>
+</thead>
+<tbody>
+<tr><td><code>plc -c --fpic file.st</code></td><td>Compile to PIC object file</td></tr>
+<tr><td><code>plc -c --fno-pic file.st</code></td><td>Compile to non-PIC object file</td></tr>
+<tr><td><code>plc --shared --fpic file.st</code></td><td>Build PIC shared library (default for <code>--shared</code>)</td></tr>
+<tr><td><code>plc --shared --fno-pic file.st</code></td><td>Build non-PIC shared library (may fail on some targets)</td></tr>
+<tr><td><code>plc --fno-pic file.st --linker=cc</code></td><td>Build non-PIE executable (forwards <code>-no-pie</code> to linker)</td></tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<p><strong>Note:</strong> On x86_64, LLVM’s code generator produces position-independent code by default regardless
+of relocation mode (the small code model uses RIP-relative addressing). The <code>--fpic</code> / <code>--fno-pic</code>
+flags are passed through to LLVM and <strong>will</strong> produce different code on targets where the distinction
+matters (e.g. 32-bit x86, certain ARM configurations).</p>
+<p>On x86_64 Linux, the primary observable effect is at <strong>link time</strong>: most toolchains default to PIE
+executables. When <code>--fno-pic</code> is used for executable output, RuSTy automatically passes <code>-no-pie</code>
+to the linker. Building a non-PIC shared library will fail on targets that require PIC for shared
+objects — this matches the behavior of <code>gcc</code>/<code>clang</code>.</p>
+</blockquote>
+<blockquote>
+<p><code>--fpic</code> and <code>--fno-pic</code> are mutually exclusive and cannot be combined.</p>
+</blockquote>
 <h3 id="building-for-separate-targets"><a class="header" href="#building-for-separate-targets">Building for separate targets</a></h3>
 <p>RuSTy supports building for multiple targets by specifing the <code>--target</code> and optionally the <code>--sysroot</code> command.</p>
 <ul>

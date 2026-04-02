@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-548805b4.js";
+            window.path_to_searchindex_js = "../searchindex-0edf7295.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-2b8c6dc7.js"></script>
@@ -203,6 +203,7 @@ The <code>libraries</code> keyword is optional.</p>
     {
         "name" : "iec61131std",
         "path" : "path/to/lib/",
+        "link_path" : "libiec61131std.so.1",
         "package" : "Copy",
         "include_path" : [
             "examples/hw.st",
@@ -211,6 +212,15 @@ The <code>libraries</code> keyword is optional.</p>
     }
 ]
 </code></pre>
+<h3 id="librarieslink_path"><a class="header" href="#librarieslink_path">libraries.link_path</a></h3>
+<p><code>link_path</code> is optional.</p>
+<p>If present, RuSTy links the exact file instead of resolving by <code>name</code> (<code>-l&lt;name&gt;</code>).
+This is useful for versioned filenames such as <code>libfoo.so.1</code>.</p>
+<ul>
+<li>Relative <code>link_path</code> values are resolved against the library’s <code>path</code>.</li>
+<li>Absolute <code>link_path</code> values are used directly.</li>
+<li>Copy behavior is unchanged: libraries marked as <code>Copy</code> are still copied from the configured library directory.</li>
+</ul>
 <h3 id="output"><a class="header" href="#output">output</a></h3>
 <p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>"output" : "output.so"</code> to define the output file. The default location is the current build directory. (see <a href="#build-location">Build Location</a>).</p>
 <h3 id="compile_type"><a class="header" href="#compile_type">compile_type</a></h3>
@@ -270,6 +280,16 @@ This can be overriden with the <code>--build-location</code> command line parame
 <p>The lib location is where all libraries marked with <code>Copy</code> will be copied. 
 By default it is the same as the <code>build-location</code>.
 This can be overriden with the <code>--lib-location</code> command line parameter.</p>
+<h3 id="additional-linker-options"><a class="header" href="#additional-linker-options">Additional linker options</a></h3>
+<p>All regular linker options from <code>plc</code> can also be used with the <code>build</code> subcommand, e.g.:</p>
+<ul>
+<li><code>--linker=&lt;cmd&gt;</code></li>
+<li><code>--fuse-ld=&lt;name&gt;</code></li>
+<li><code>--linker-arg=&lt;arg&gt;</code> (repeatable)</li>
+<li><code>--nocrt</code></li>
+<li><code>--nolibc</code></li>
+<li><code>--fpic</code> / <code>--fno-pic</code> (relocation model)</li>
+</ul>
 <h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
 <p>Environment variables can be used inside the build description file, the variables are evaluated before an entry is evaluated.</p>
 <p>In addition to externally defined variables, the build exports variables that can be referenced in the description file:</p>

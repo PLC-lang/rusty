@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-548805b4.js";
+            window.path_to_searchindex_js = "searchindex-0edf7295.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-2b8c6dc7.js"></script>
@@ -284,9 +284,13 @@ echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' &gt;&gt; ~/.zprofile
 <p><code>plc</code> offers a comprehensive help via the <code>-h</code> (<code>--help</code>) option.
 <code>plc</code> takes one output-format parameter and any number of input-files.
 The input files can also be written as <a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob patterns</a>.</p>
-<p><code>plc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--pic|--static|--bc&gt;</code></p>
+<p><code>plc [OPTIONS] &lt;input-files&gt;... &lt;--ir|--shared|--static|--bc&gt;</code></p>
 <p>Note that you can only specify at most one output format.
 In the case that no output format switch has been specified, the compiler will select <code>--static</code> by default.</p>
+<blockquote>
+<p><strong>Deprecated:</strong> <code>--pic</code> is equivalent to <code>--shared --fpic</code>. <code>--no-pic</code> is equivalent to <code>--shared --fno-pic</code>.
+Both flags will be removed in a future release.</p>
+</blockquote>
 <p>Similarly, if you do not specify an output filename via the <code>-o</code> or <code>--output</code> options,
 the output filename will consist of the first input filename, but with an appropriate
 file extension depending on the output file format.</p>
@@ -341,11 +345,53 @@ END_FUNCTION
 </code></pre>
 <p>Please note that RuSTy will attempt to link the generated object file by default to generate an executable if you didn’t specify something else (option <code>-c</code>).</p>
 <ul>
-<li>The <code>--linker=cc</code> flag tells RuSTy that it should link with the system’s compiler driver  instead of the built in linker. This provides support to create executables.</li>
-<li>Additional libraries can be linked using the <code>-l</code> flag, additional library paths can be added with <code>-L</code></li>
+<li>The <code>--linker=cc</code> flag tells RuSTy that it should link with the system’s compiler driver instead of the built in linker. This provides support to create executables.</li>
+<li>When no <code>--linker</code> is specified, RuSTy resolves the internal linker in this order: <code>cc</code> → <code>clang</code> → <code>ld.lld</code> → <code>ld</code>. The first linker that is found and supports the target is used. Compiler drivers (<code>cc</code>, <code>clang</code>) are preferred for their correct platform setup (sysroot, CRT files, etc.).</li>
+<li>You can override the driver backend linker with <code>--fuse-ld=&lt;name&gt;</code> (for example <code>--fuse-ld=mold</code>).</li>
+<li>Additional libraries can be linked using the <code>-l</code> flag, additional library paths can be added with <code>-L</code>.</li>
+<li>You can pass raw linker arguments using <code>--linker-arg=&lt;arg&gt;</code> (repeatable). With compiler drivers these are forwarded via <code>-Xlinker</code>.</li>
 <li>You add library search paths by providing additional <code>-L /path/...</code> options. By default, this will be the current directory.</li>
 <li>The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.</li>
+<li>For executable links with compiler drivers, startup/runtime defaults can be controlled explicitly with <code>--nocrt</code> and <code>--nolibc</code>.</li>
+<li><code>-l</code> also supports exact filenames (<code>-l:libfoo.so.1</code>) and direct full paths (<code>-l/path/to/libfoo.so.1</code>).</li>
 </ul>
+<h3 id="relocation-model-pic--no-pic"><a class="header" href="#relocation-model-pic--no-pic">Relocation model (PIC / no-PIC)</a></h3>
+<p>By default, RuSTy generates position-independent code (PIC) when building shared libraries, and uses the
+platform default relocation mode for object files and executables.</p>
+<p>You can override this with:</p>
+<ul>
+<li><code>--fpic</code> — Force PIC code generation. Required for shared libraries on most platforms.</li>
+<li><code>--fno-pic</code> — Force non-PIC code generation. Produces code without the overhead of PIC
+relocations, which can be useful for bare-metal or static-only targets.</li>
+</ul>
+<p>These flags apply to <strong>all</strong> output modes:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Command</th><th>Effect</th></tr>
+</thead>
+<tbody>
+<tr><td><code>plc -c --fpic file.st</code></td><td>Compile to PIC object file</td></tr>
+<tr><td><code>plc -c --fno-pic file.st</code></td><td>Compile to non-PIC object file</td></tr>
+<tr><td><code>plc --shared --fpic file.st</code></td><td>Build PIC shared library (default for <code>--shared</code>)</td></tr>
+<tr><td><code>plc --shared --fno-pic file.st</code></td><td>Build non-PIC shared library (may fail on some targets)</td></tr>
+<tr><td><code>plc --fno-pic file.st --linker=cc</code></td><td>Build non-PIE executable (forwards <code>-no-pie</code> to linker)</td></tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<p><strong>Note:</strong> On x86_64, LLVM’s code generator produces position-independent code by default regardless
+of relocation mode (the small code model uses RIP-relative addressing). The <code>--fpic</code> / <code>--fno-pic</code>
+flags are passed through to LLVM and <strong>will</strong> produce different code on targets where the distinction
+matters (e.g. 32-bit x86, certain ARM configurations).</p>
+<p>On x86_64 Linux, the primary observable effect is at <strong>link time</strong>: most toolchains default to PIE
+executables. When <code>--fno-pic</code> is used for executable output, RuSTy automatically passes <code>-no-pie</code>
+to the linker. Building a non-PIC shared library will fail on targets that require PIC for shared
+objects — this matches the behavior of <code>gcc</code>/<code>clang</code>.</p>
+</blockquote>
+<blockquote>
+<p><code>--fpic</code> and <code>--fno-pic</code> are mutually exclusive and cannot be combined.</p>
+</blockquote>
 <h3 id="building-for-separate-targets"><a class="header" href="#building-for-separate-targets">Building for separate targets</a></h3>
 <p>RuSTy supports building for multiple targets by specifing the <code>--target</code> and optionally the <code>--sysroot</code> command.</p>
 <ul>
@@ -467,6 +513,7 @@ The <code>libraries</code> keyword is optional.</p>
     {
         "name" : "iec61131std",
         "path" : "path/to/lib/",
+        "link_path" : "libiec61131std.so.1",
         "package" : "Copy",
         "include_path" : [
             "examples/hw.st",
@@ -475,6 +522,15 @@ The <code>libraries</code> keyword is optional.</p>
     }
 ]
 </code></pre>
+<h3 id="librarieslink_path"><a class="header" href="#librarieslink_path">libraries.link_path</a></h3>
+<p><code>link_path</code> is optional.</p>
+<p>If present, RuSTy links the exact file instead of resolving by <code>name</code> (<code>-l&lt;name&gt;</code>).
+This is useful for versioned filenames such as <code>libfoo.so.1</code>.</p>
+<ul>
+<li>Relative <code>link_path</code> values are resolved against the library’s <code>path</code>.</li>
+<li>Absolute <code>link_path</code> values are used directly.</li>
+<li>Copy behavior is unchanged: libraries marked as <code>Copy</code> are still copied from the configured library directory.</li>
+</ul>
 <h3 id="output"><a class="header" href="#output">output</a></h3>
 <p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>"output" : "output.so"</code> to define the output file. The default location is the current build directory. (see <a href="#build-location">Build Location</a>).</p>
 <h3 id="compile_type"><a class="header" href="#compile_type">compile_type</a></h3>
@@ -534,6 +590,16 @@ This can be overriden with the <code>--build-location</code> command line parame
 <p>The lib location is where all libraries marked with <code>Copy</code> will be copied. 
 By default it is the same as the <code>build-location</code>.
 This can be overriden with the <code>--lib-location</code> command line parameter.</p>
+<h3 id="additional-linker-options"><a class="header" href="#additional-linker-options">Additional linker options</a></h3>
+<p>All regular linker options from <code>plc</code> can also be used with the <code>build</code> subcommand, e.g.:</p>
+<ul>
+<li><code>--linker=&lt;cmd&gt;</code></li>
+<li><code>--fuse-ld=&lt;name&gt;</code></li>
+<li><code>--linker-arg=&lt;arg&gt;</code> (repeatable)</li>
+<li><code>--nocrt</code></li>
+<li><code>--nolibc</code></li>
+<li><code>--fpic</code> / <code>--fno-pic</code> (relocation model)</li>
+</ul>
 <h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
 <p>Environment variables can be used inside the build description file, the variables are evaluated before an entry is evaluated.</p>
 <p>In addition to externally defined variables, the build exports variables that can be referenced in the description file:</p>
@@ -1889,6 +1955,11 @@ POUs and Global variables included with the <code>-i</code> are marked as extern
 <h3 id="shared-libraries"><a class="header" href="#shared-libraries">Shared Libraries</a></h3>
 <p>A shared library (i.e. extension <code>.so</code>) can be linked using the <code>-l</code> flag. 
 For a library called <code>mylib</code>, when the flag <code>-lmylib</code> is passed, the linker will search for a file called <code>libmylib.so</code>.</p>
+<p>RuSTy also supports:</p>
+<ul>
+<li>exact filename lookup: <code>-l:libmylib.so.1</code></li>
+<li>direct full path input: <code>-l/path/to/libmylib.so.1</code></li>
+</ul>
 <blockquote>
 <p>Note that the <code>lib&lt;LibName&gt;.so</code> format is required by the linker for unix like systems.</p>
 </blockquote>
@@ -1907,9 +1978,10 @@ If the application is being compiled with the <code>--static</code> flag (or no 
 <pre><code class="language-sh">plc input.st -i iec/header.st -L/lib/ -liec
 </code></pre>
 <h2 id="linking-libraries-using-the-build-description-file-plcjson"><a class="header" href="#linking-libraries-using-the-build-description-file-plcjson">Linking libraries using the Build Description File <code>plc.json</code></a></h2>
-<p>Libraries can be added to a project managed with a <a href="using_rusty/build_description_file.html#build-description-file-plcjson">Build Description File</a>. 
+<p>Libraries can be added to a project managed with a <a href="#build-description-file-plcjson">Build Configuration</a>. 
 To add a library to the project, the <code>"libraries"</code> section can be used.
-A library entry requires a <code>name</code>, a <code>path</code>, the <code>package</code> behaviour, and a set of files to include (<code>include_path</code>).</p>
+A library entry requires a <code>name</code>, a <code>path</code>, the <code>package</code> behaviour, and a set of files to include (<code>include_path</code>).
+Optionally, it can define <code>link_path</code> to link an exact library file (for example <code>libmylib.so.1</code>).</p>
 <h3 id="name"><a class="header" href="#name"><code>name</code></a></h3>
 <p>The name of the library to be linked. This will be used by the linker to find the library. 
 A library with the name <code>mylib</code> must have an equivalant compiled file called <code>libmylib.so</code>.</p>
@@ -1918,6 +1990,18 @@ A library with the name <code>mylib</code> must have an equivalant compiled file
 </blockquote>
 <h3 id="path"><a class="header" href="#path"><code>path</code></a></h3>
 <p>The location of the library to be linked. The path can be either absolute or relative to the project. </p>
+<h3 id="link_path-optional"><a class="header" href="#link_path-optional"><code>link_path</code> (optional)</a></h3>
+<p>An optional explicit library file to link.</p>
+<ul>
+<li>If omitted, RuSTy links by <code>name</code> using <code>-l&lt;name&gt;</code>.</li>
+<li>If present, RuSTy links this exact file.</li>
+<li>Relative values are resolved against <code>path</code>.</li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li><code>"link_path": "libmylib.so.1"</code></li>
+<li><code>"link_path": "/opt/vendor/lib/libmylib.so.1"</code></li>
+</ul>
 <h3 id="package"><a class="header" href="#package"><code>package</code></a></h3>
 <p>The packaging option for the library, i.e wether the library should be copied or is already available on the system.
 The value <a name="copy"><code>"Copy"</code></a> indicates that the given library should be copied to the <a href="#library-location">Library Location</a>. 
@@ -1927,14 +2011,15 @@ The value <a name="system"><code>"System"</code></a> indicates that the given li
 Each <a href="#program-organization-unit-pou">POU</a>, <a href="#variables-1">Global Variable</a>, or <a href="#datatypes-1">Datatype</a> defined in the included files will be added to the project.
 POUs and Global variables included in the list are marked as external, the implementation part of a POU is ignored.</p>
 <h3 id="library-location"><a class="header" href="#library-location">Library Location</a></h3>
-<p>Libraries marked as <code>Copy</code> will be copied during the compilation to the defined <a href="using_rusty/build_description_file.html#--lib-location">Library Location</a>.
-By default this is the same as the <a href="using_rusty/build_description_file.html#--build-location">Build Location</a> unless overridden by the <code>--lib-location</code> parameter.</p>
+<p>Libraries marked as <code>Copy</code> will be copied during the compilation to the defined <a href="#--lib-location">Library Location</a>.
+By default this is the same as the <a href="#--build-location">Build Location</a> unless overridden by the <code>--lib-location</code> parameter.</p>
 <h3 id="using-environment-variables"><a class="header" href="#using-environment-variables">Using environment variables</a></h3>
 <p>Since libraries can be compiled for multiple targets, the lib path can contain environment variables to disambiguate the compile location.
 <code>$ARCH</code> can be used as placeholder in the path to indicate the the currently compiled target.
 </p>
 <blockquote>
-<p>During linking, if no <code>.so</code> file with name <a href="#name"><code>lib&lt;name&gt;.so</code></a> is found, the compilation will fail.</p>
+<p>During linking by <code>name</code>, if no matching library (for example <code>lib&lt;name&gt;.so</code>) is found, compilation will fail.
+If <code>link_path</code> is set, RuSTy links that exact file instead of name resolution.</p>
 </blockquote>
 <h3 id="configuration-example-plcjson"><a class="header" href="#configuration-example-plcjson">Configuration Example (<code>plc.json</code>)</a></h3>
 <p>A configuration example for a <code>Copy</code> library called <em>mylib</em> and a <code>System</code> library called <em>std</em>:</p>
@@ -1942,6 +2027,7 @@ By default this is the same as the <a href="using_rusty/build_description_file.h
     {
         "name" : "mylib",
         "path" : "libs/$ARCH/",
+        "link_path" : "libmylib.so.1",
         "package" : "Copy",
         "include_path" : [
             "simple_program.st"

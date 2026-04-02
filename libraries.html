@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-548805b4.js";
+            window.path_to_searchindex_js = "searchindex-0edf7295.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-2b8c6dc7.js"></script>
@@ -208,6 +208,11 @@ POUs and Global variables included with the <code>-i</code> are marked as extern
 <h3 id="shared-libraries"><a class="header" href="#shared-libraries">Shared Libraries</a></h3>
 <p>A shared library (i.e. extension <code>.so</code>) can be linked using the <code>-l</code> flag. 
 For a library called <code>mylib</code>, when the flag <code>-lmylib</code> is passed, the linker will search for a file called <code>libmylib.so</code>.</p>
+<p>RuSTy also supports:</p>
+<ul>
+<li>exact filename lookup: <code>-l:libmylib.so.1</code></li>
+<li>direct full path input: <code>-l/path/to/libmylib.so.1</code></li>
+</ul>
 <blockquote>
 <p>Note that the <code>lib&lt;LibName&gt;.so</code> format is required by the linker for unix like systems.</p>
 </blockquote>
@@ -226,9 +231,10 @@ If the application is being compiled with the <code>--static</code> flag (or no 
 <pre><code class="language-sh">plc input.st -i iec/header.st -L/lib/ -liec
 </code></pre>
 <h2 id="linking-libraries-using-the-build-description-file-plcjson"><a class="header" href="#linking-libraries-using-the-build-description-file-plcjson">Linking libraries using the Build Description File <code>plc.json</code></a></h2>
-<p>Libraries can be added to a project managed with a <a href="using_rusty/build_description_file.html#build-description-file-plcjson">Build Description File</a>. 
+<p>Libraries can be added to a project managed with a <a href="using_rusty/build_configuration.html#build-description-file-plcjson">Build Configuration</a>. 
 To add a library to the project, the <code>"libraries"</code> section can be used.
-A library entry requires a <code>name</code>, a <code>path</code>, the <code>package</code> behaviour, and a set of files to include (<code>include_path</code>).</p>
+A library entry requires a <code>name</code>, a <code>path</code>, the <code>package</code> behaviour, and a set of files to include (<code>include_path</code>).
+Optionally, it can define <code>link_path</code> to link an exact library file (for example <code>libmylib.so.1</code>).</p>
 <h3 id="name"><a class="header" href="#name"><code>name</code></a></h3>
 <p>The name of the library to be linked. This will be used by the linker to find the library. 
 A library with the name <code>mylib</code> must have an equivalant compiled file called <code>libmylib.so</code>.</p>
@@ -237,6 +243,18 @@ A library with the name <code>mylib</code> must have an equivalant compiled file
 </blockquote>
 <h3 id="path"><a class="header" href="#path"><code>path</code></a></h3>
 <p>The location of the library to be linked. The path can be either absolute or relative to the project. </p>
+<h3 id="link_path-optional"><a class="header" href="#link_path-optional"><code>link_path</code> (optional)</a></h3>
+<p>An optional explicit library file to link.</p>
+<ul>
+<li>If omitted, RuSTy links by <code>name</code> using <code>-l&lt;name&gt;</code>.</li>
+<li>If present, RuSTy links this exact file.</li>
+<li>Relative values are resolved against <code>path</code>.</li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li><code>"link_path": "libmylib.so.1"</code></li>
+<li><code>"link_path": "/opt/vendor/lib/libmylib.so.1"</code></li>
+</ul>
 <h3 id="package"><a class="header" href="#package"><code>package</code></a></h3>
 <p>The packaging option for the library, i.e wether the library should be copied or is already available on the system.
 The value <a name="copy"><code>"Copy"</code></a> indicates that the given library should be copied to the <a href="#library-location">Library Location</a>. 
@@ -246,14 +264,15 @@ The value <a name="system"><code>"System"</code></a> indicates that the given li
 Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
 POUs and Global variables included in the list are marked as external, the implementation part of a POU is ignored.</p>
 <h3 id="library-location"><a class="header" href="#library-location">Library Location</a></h3>
-<p>Libraries marked as <code>Copy</code> will be copied during the compilation to the defined <a href="using_rusty/build_description_file.html#--lib-location">Library Location</a>.
-By default this is the same as the <a href="using_rusty/build_description_file.html#--build-location">Build Location</a> unless overridden by the <code>--lib-location</code> parameter.</p>
+<p>Libraries marked as <code>Copy</code> will be copied during the compilation to the defined <a href="using_rusty/build_configuration.html#--lib-location">Library Location</a>.
+By default this is the same as the <a href="using_rusty/build_configuration.html#--build-location">Build Location</a> unless overridden by the <code>--lib-location</code> parameter.</p>
 <h3 id="using-environment-variables"><a class="header" href="#using-environment-variables">Using environment variables</a></h3>
 <p>Since libraries can be compiled for multiple targets, the lib path can contain environment variables to disambiguate the compile location.
 <code>$ARCH</code> can be used as placeholder in the path to indicate the the currently compiled target.
 </p>
 <blockquote>
-<p>During linking, if no <code>.so</code> file with name <a href="#name"><code>lib&lt;name&gt;.so</code></a> is found, the compilation will fail.</p>
+<p>During linking by <code>name</code>, if no matching library (for example <code>lib&lt;name&gt;.so</code>) is found, compilation will fail.
+If <code>link_path</code> is set, RuSTy links that exact file instead of name resolution.</p>
 </blockquote>
 <h3 id="configuration-example-plcjson"><a class="header" href="#configuration-example-plcjson">Configuration Example (<code>plc.json</code>)</a></h3>
 <p>A configuration example for a <code>Copy</code> library called <em>mylib</em> and a <code>System</code> library called <em>std</em>:</p>
@@ -261,6 +280,7 @@ By default this is the same as the <a href="using_rusty/build_description_file.h
     {
         "name" : "mylib",
         "path" : "libs/$ARCH/",
+        "link_path" : "libmylib.so.1",
         "package" : "Copy",
         "include_path" : [
             "simple_program.st"
