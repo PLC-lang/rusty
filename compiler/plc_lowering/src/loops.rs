@@ -167,7 +167,7 @@ impl LoopDesugarer {
         let mut whiled = WhileDesugarer { ids: self.ids.clone() };
         let mut repeatd =
             RepeatDesugarer { ids: self.ids.clone(), counter: counter.clone(), replacement: None };
-        let mut ford = ForDesugarer { ids: self.ids.clone(), counter: counter, replacement: None };
+        let mut ford = ForDesugarer { ids: self.ids.clone(), counter, replacement: None };
 
         for unit in units {
             whiled.visit_compilation_unit(unit);
