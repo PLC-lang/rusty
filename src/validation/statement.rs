@@ -1329,12 +1329,12 @@ fn validate_assignment<T: AnnotationMap>(
             } else {
                 validate_assignment_mismatch(context, validator, left_type, right_type, location);
             }
-        } else if is_output_assignment {
-            // If this is an output assignment, then we need to swap the types for type size validation
+        } else if is_output_assignment && context.is_call() {
+            // If this is an output assignment (and the context is a call), then we need to swap the types for type size validation
             // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
-            validate_assignment_type_sizes(validator, right_type, left.unwrap(), context)
+            validate_assignment_type_sizes(validator, right_type, left.unwrap(), context);
         } else {
-            validate_assignment_type_sizes(validator, left_type, right, context)
+            validate_assignment_type_sizes(validator, left_type, right, context);
         }
     }
 }
@@ -2097,10 +2097,14 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
     }
 
     let lhs = left.get_type_information();
-    let Ok(lhs_size) = lhs.get_size(context.index) else { return };
+    let Ok(lhs_size) = lhs.get_size(context.index) else {
+        return;
+    };
     let results_in_truncation = |rhs: &DataType| {
         let rhs = rhs.get_type_information();
-        let Ok(rhs_size) = rhs.get_size(context.index) else { return false };
+        let Ok(rhs_size) = rhs.get_size(context.index) else {
+            return false;
+        };
         lhs_size < rhs_size
             || (lhs_size == rhs_size
                 && ((lhs.is_signed_int() && rhs.is_unsigned_int()) || (lhs.is_int() && rhs.is_float())))
