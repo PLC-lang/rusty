@@ -11,8 +11,8 @@ pub fn is_const_expression(node: &AstNode, index: Option<&Index>, pou_name: Opti
     match node.get_stmt() {
         AstStatement::Literal(..) => true,
         AstStatement::ExpressionList(exprs) => exprs.iter().all(|e| is_const_expression(e, index, pou_name)),
-        AstStatement::MultipliedStatement(MultipliedStatement { element, .. }) => {
-            is_const_expression(element, index, pou_name)
+        AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }) => {
+            is_const_expression(multiplier, index, pou_name) && is_const_expression(element, index, pou_name)
         }
         AstStatement::ParenExpression(inner) => is_const_expression(inner, index, pou_name),
         AstStatement::Identifier(..) | AstStatement::ReferenceExpr(..) => {

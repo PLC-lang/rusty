@@ -1,4 +1,4 @@
-use plc_ast::{ast::AstStatement, control_statements::AstControlStatement};
+use insta::assert_snapshot;
 use plc_driver::parse_and_annotate;
 use plc_source::SourceCode;
 
@@ -9,42 +9,16 @@ fn lower(src: &str) -> plc_driver::pipelines::AnnotatedProject {
     project
 }
 
-/// Finds an implementation by name in the project's annotated units.
-fn find_impl_stmts<'a>(
-    project: &'a plc_driver::pipelines::AnnotatedProject,
-    name: &str,
-) -> &'a [plc_ast::ast::AstNode] {
+/// Finds an implementation by name and returns its statements as pseudo-ST.
+fn lowered_statements(project: &plc_driver::pipelines::AnnotatedProject, name: &str) -> String {
     for unit in &project.units {
         for imp in &unit.get_unit().implementations {
             if imp.name == name {
-                return &imp.statements;
+                return imp.statements.iter().map(|s| s.as_string()).collect::<Vec<_>>().join("\n");
             }
         }
     }
     panic!("Implementation '{name}' not found");
-}
-
-/// Returns the number of assignments in a statement list.
-fn count_assignments(stmts: &[plc_ast::ast::AstNode]) -> usize {
-    stmts.iter().filter(|s| matches!(s.get_stmt(), AstStatement::Assignment(..))).count()
-}
-
-/// Returns true if any statement is a FOR loop.
-fn has_for_loop(stmts: &[plc_ast::ast::AstNode]) -> bool {
-    stmts
-        .iter()
-        .any(|s| matches!(s.get_stmt(), AstStatement::ControlStatement(AstControlStatement::ForLoop(..))))
-}
-
-/// Returns true if any top-level assignment has a `LiteralArray` on the RHS.
-fn has_literal_array(stmts: &[plc_ast::ast::AstNode]) -> bool {
-    stmts.iter().any(|s| {
-        if let AstStatement::Assignment(data) = s.get_stmt() {
-            matches!(data.right.get_stmt(), AstStatement::Literal(plc_ast::literals::AstLiteral::Array(..)))
-        } else {
-            false
-        }
-    })
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -61,8 +35,11 @@ fn constant_int_array_is_not_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(has_literal_array(stmts), "Constant array should NOT be lowered");
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr := 
+    main := 0
+    "#);
 }
 
 #[test]
@@ -75,15 +52,15 @@ fn constant_expression_list_is_not_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(has_literal_array(stmts), "Constant expression list array should NOT be lowered");
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr := 
+    main := 0
+    "#);
 }
 
 #[test]
 fn const_variable_as_multiplier_is_rewritten_and_not_lowered() {
-    // `[(NB_BOOL)(0.0033)]` is parsed as a CallStatement but should be rewritten
-    // into a MultipliedStatement when NB_BOOL is a constant integer. Since all
-    // elements are constant REALs, the result should NOT be lowered further.
     let project = lower(
         "
         VAR_GLOBAL CONSTANT
@@ -98,13 +75,15 @@ fn const_variable_as_multiplier_is_rewritten_and_not_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(has_literal_array(stmts), "Constant multiplied array should NOT be lowered");
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_MAX_TIME_BOOL__ctor(MAX_TIME_BOOL)
+    MAX_TIME_BOOL := 
+    main := 0
+    "#);
 }
 
 #[test]
 fn const_variable_as_multiplier_in_global_is_rewritten() {
-    // Same rewrite for global constant arrays with `[(CONST)(value)]` syntax.
     let project = lower(
         "
         VAR_GLOBAL CONSTANT
@@ -117,15 +96,11 @@ fn const_variable_as_multiplier_in_global_is_rewritten() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert_eq!(count_assignments(stmts), 1);
+    assert_snapshot!(lowered_statements(&project, "main"), @"main := 0");
 }
 
 #[test]
 fn const_variable_as_multiplier_with_non_constant_element_is_lowered() {
-    // `[(N)(ADR(x))]` — the multiplier is a constant but the element is a runtime
-    // value (function call).  The CallStatement should be rewritten to a
-    // MultipliedStatement, then lowered into individual assignments.
     let project = lower(
         "
         VAR_GLOBAL CONSTANT
@@ -141,16 +116,17 @@ fn const_variable_as_multiplier_with_non_constant_element_is_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts), "Non-constant elements should be lowered");
-    assert_eq!(count_assignments(stmts), 3 + 1); // 3 element assignments + return assignment
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr[0] := ADR(x)
+    arr[1] := ADR(x)
+    arr[2] := ADR(x)
+    main := 0
+    "#);
 }
 
 #[test]
 fn local_const_variable_as_multiplier_is_rewritten_and_not_lowered() {
-    // `[(N)(42)]` where N is a POU-local `VAR CONSTANT` should be rewritten
-    // into a MultipliedStatement.  Since all elements are constant, the result
-    // should NOT be lowered further.
     let project = lower(
         "
         FUNCTION main : DINT
@@ -164,15 +140,15 @@ fn local_const_variable_as_multiplier_is_rewritten_and_not_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(has_literal_array(stmts), "Local constant multiplied array should NOT be lowered");
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr := 
+    main := 0
+    "#);
 }
 
 #[test]
 fn local_const_variable_as_multiplier_with_non_constant_element_is_lowered() {
-    // `[(N)(ADR(x))]` where N is a POU-local `VAR CONSTANT` — the multiplier
-    // resolves to a constant but the element is a runtime value, so the array
-    // should be lowered into individual assignments.
     let project = lower(
         "
         FUNCTION main : DINT
@@ -187,9 +163,65 @@ fn local_const_variable_as_multiplier_with_non_constant_element_is_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts), "Non-constant elements should be lowered");
-    assert_eq!(count_assignments(stmts), 3 + 1); // 3 element assignments + return assignment
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr[0] := ADR(x)
+    arr[1] := ADR(x)
+    arr[2] := ADR(x)
+    main := 0
+    "#);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Non-constant variable multipliers — lowered to FOR loops
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn non_constant_variable_multiplier_is_lowered_to_for_loop() {
+    let project = lower(
+        "
+        FUNCTION main : DINT
+        VAR
+            n : DINT := 5;
+            arr : ARRAY[0..4] OF DINT := [(n)(42)];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    n := 5
+    __main_arr__ctor(arr)
+    FOR __literal_idx := 0 + 0 TO 0 + 0 + n - 1 DO
+        arr[__literal_idx] := 42
+    END_FOR
+    main := 0
+    "#);
+}
+
+#[test]
+fn non_constant_variable_multiplier_mixed_segments_lowered() {
+    let project = lower(
+        "
+        FUNCTION main : DINT
+        VAR
+            n : DINT := 3;
+            arr : ARRAY[0..4] OF DINT := [(n)(10), 20, 30];
+        END_VAR
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    n := 3
+    __main_arr__ctor(arr)
+    FOR __literal_idx := 0 + 0 TO 0 + 0 + n - 1 DO
+        arr[__literal_idx] := 10
+    END_FOR
+    arr[0 + 0 + n] := 20
+    arr[0 + 0 + n + 1] := 30
+    main := 0
+    "#);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -209,11 +241,13 @@ fn small_adr_array_is_unrolled() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts), "ADR() array should be lowered");
-    // 3 indexed assignments + `main := 0`
-    assert_eq!(count_assignments(stmts), 4);
-    assert!(!has_for_loop(stmts), "Small arrays should be unrolled");
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr[0] := ADR(x)
+    arr[1] := ADR(x)
+    arr[2] := ADR(x)
+    main := 0
+    "#);
 }
 
 #[test]
@@ -229,11 +263,13 @@ fn large_adr_array_uses_for_loop() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts), "ADR() array should be lowered");
-    assert!(has_for_loop(stmts), "Large ADR arrays should use FOR loop");
-    // Only `main := 0` as direct assignment
-    assert_eq!(count_assignments(stmts), 1);
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    FOR __literal_idx := 0 TO 99 DO
+        arr[__literal_idx] := ADR(x)
+    END_FOR
+    main := 0
+    "#);
 }
 
 #[test]
@@ -251,14 +287,15 @@ fn adr_expression_list_is_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts), "ADR expression list should be lowered");
-    // 3 indexed assignments + `main := 0`
-    assert_eq!(count_assignments(stmts), 4);
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr[0] := ADR(a)
+    arr[1] := ADR(b)
+    arr[2] := ADR(c)
+    main := 0
+    "#);
 }
 
-/// Verify that FB member array non-constant initializers are lowered into
-/// indexed assignments in the constructor body.
 #[test]
 fn fb_member_array_non_const_initializer_is_lowered() {
     let project = lower(
@@ -271,10 +308,14 @@ fn fb_member_array_non_const_initializer_is_lowered() {
         END_FUNCTION_BLOCK
         ",
     );
-    let stmts = find_impl_stmts(&project, "Foo__ctor");
-    assert!(!has_literal_array(stmts), "FB member non-const array should be lowered");
-    // 3 indexed assignments for arr + 1 init for x
-    assert_eq!(count_assignments(stmts), 4);
+    assert_snapshot!(lowered_statements(&project, "Foo__ctor"), @r#"
+    __Foo___vtable__ctor(self.__vtable)
+    __Foo_arr__ctor(self.arr)
+    self.arr[0] := ADR(x)
+    self.arr[1] := ADR(x)
+    self.arr[2] := ADR(x)
+    self.__vtable := ADR(__vtable_Foo_instance)
+    "#);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -295,11 +336,13 @@ fn small_struct_array_is_unrolled() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts), "Struct literal array should be lowered");
-    // 3 indexed assignments + `main := 0`
-    assert_eq!(count_assignments(stmts), 4);
-    assert!(!has_for_loop(stmts));
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr[0] := (a := 5, b := 10)
+    arr[1] := (a := 5, b := 10)
+    arr[2] := (a := 5, b := 10)
+    main := 0
+    "#);
 }
 
 #[test]
@@ -316,10 +359,13 @@ fn large_struct_array_uses_for_loop() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts), "Struct literal array should be lowered");
-    assert!(has_for_loop(stmts), "Large struct arrays should use FOR loop");
-    assert_eq!(count_assignments(stmts), 1); // only `main := 0`
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    FOR __literal_idx := 0 TO 99 DO
+        arr[__literal_idx] := (a := 7)
+    END_FOR
+    main := 0
+    "#);
 }
 
 #[test]
@@ -336,10 +382,12 @@ fn struct_expression_list_is_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts));
-    // 2 indexed assignments + `main := 0`
-    assert_eq!(count_assignments(stmts), 3);
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr[0] := (a := 1, b := 2)
+    arr[1] := (a := 3, b := 4)
+    main := 0
+    "#);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -359,17 +407,18 @@ fn variable_as_element_value_is_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts), "Variable-element array should be lowered");
-    // 3 indexed assignments + `a := 42` + `main := 0`
-    assert_eq!(count_assignments(stmts), 5);
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    a := 42
+    __main_arr__ctor(arr)
+    arr[0] := a
+    arr[1] := a
+    arr[2] := a
+    main := 0
+    "#);
 }
 
 #[test]
 fn variable_elements_in_expression_list_are_lowered() {
-    // The array uses an expression list where each element is a variable
-    // reference (`[a, a, a]`), so the initializer is non-constant and must
-    // be lowered into indexed runtime assignments.
     let project = lower(
         "
         FUNCTION main : DINT
@@ -381,13 +430,16 @@ fn variable_elements_in_expression_list_are_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts), "Variable-element expression list should be lowered");
-    // 3 indexed assignments + `a := 42` + `main := 0`
-    assert_eq!(count_assignments(stmts), 5);
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    a := 42
+    __main_arr__ctor(arr)
+    arr[0] := a
+    arr[1] := a
+    arr[2] := a
+    main := 0
+    "#);
 }
 
-/// Verify that only the non-constant array is lowered while the constant one is left as-is.
 #[test]
 fn shared_type_non_const_is_lowered_const_is_not() {
     let project = lower(
@@ -404,12 +456,16 @@ fn shared_type_non_const_is_lowered_const_is_not() {
         END_FUNCTION
         ",
     );
-
-    let stmts = find_impl_stmts(&project, "main");
-    // 3 indexed assignments for lowered_arr + `seed := 42` + const_arr literal assignment + `main := 0`
-    assert_eq!(count_assignments(stmts), 6);
-    // const_arr's literal array assignment is still present
-    assert!(has_literal_array(stmts), "Constant array should remain as literal");
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    seed := 42
+    tarr__ctor(lowered_arr)
+    lowered_arr[0] := seed
+    lowered_arr[1] := seed
+    lowered_arr[2] := seed
+    tarr__ctor(const_arr)
+    const_arr := 
+    main := 0
+    "#);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -430,10 +486,15 @@ fn mixed_adr_segments_are_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts));
-    // 2 + 1 + 2 = 5 indexed assignments + `main := 0`
-    assert_eq!(count_assignments(stmts), 6);
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr[0] := ADR(x)
+    arr[1] := ADR(x)
+    arr[2] := ADR(y)
+    arr[3] := ADR(x)
+    arr[4] := ADR(x)
+    main := 0
+    "#);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -453,10 +514,13 @@ fn nonzero_offset_adr_array_is_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts));
-    // 3 indexed assignments + `main := 0`
-    assert_eq!(count_assignments(stmts), 4);
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr[5] := ADR(x)
+    arr[6] := ADR(x)
+    arr[7] := ADR(x)
+    main := 0
+    "#);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -476,10 +540,16 @@ fn multi_dim_adr_array_is_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts));
-    // 6 indexed assignments + `main := 0`
-    assert_eq!(count_assignments(stmts), 7);
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    __main_arr__ctor(arr)
+    arr[0, 0] := ADR(x)
+    arr[0, 1] := ADR(x)
+    arr[0, 2] := ADR(x)
+    arr[1, 0] := ADR(x)
+    arr[1, 1] := ADR(x)
+    arr[1, 2] := ADR(x)
+    main := 0
+    "#);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -499,28 +569,11 @@ fn type_level_struct_array_ctor_is_lowered() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "tarr__ctor");
-    assert!(!has_literal_array(stmts));
-    assert_eq!(count_assignments(stmts), 3);
-}
-
-/// Verify that type-level struct array initializers are lowered in the constructor body.
-#[test]
-fn type_level_struct_array_is_lowered_in_ctor() {
-    let project = lower(
-        "
-        TYPE MyStruct : STRUCT a : DINT; END_STRUCT END_TYPE
-        TYPE tarr : ARRAY[0..2] OF MyStruct := [3((a := 42))]; END_TYPE
-
-        FUNCTION main : DINT
-        VAR arr : tarr; END_VAR
-            main := 0;
-        END_FUNCTION
-        ",
-    );
-    let stmts = find_impl_stmts(&project, "tarr__ctor");
-    assert!(!has_literal_array(stmts), "Type-level struct array should be lowered");
-    assert_eq!(count_assignments(stmts), 3);
+    assert_snapshot!(lowered_statements(&project, "tarr__ctor"), @r#"
+    self[0] := (a := 42)
+    self[1] := (a := 42)
+    self[2] := (a := 42)
+    "#);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -569,8 +622,8 @@ fn flat_to_indices_3d() {
 
 /// `FOR_LOOP_THRESHOLD` (32) is checked per `MultipliedStatement`
 /// segment, not against the total element count. An initializer split into
-/// multiple sub-threshold segments - e.g. `[10(v), 10(v), 10(v), 10(v)]`
-/// totalling 40 elements - is fully unrolled into 40 individual assignments
+/// multiple sub-threshold segments — e.g. `[10(v), 10(v), 10(v), 10(v)]`
+/// totalling 40 elements — is fully unrolled into 40 individual assignments
 /// instead of emitting a FOR loop, because each segment's count (10) is below
 /// the threshold. This documents the current behaviour so that
 /// any future fix is intentional.
@@ -587,12 +640,49 @@ fn multi_segment_above_threshold_is_unrolled_per_segment() {
         END_FUNCTION
         ",
     );
-    let stmts = find_impl_stmts(&project, "main");
-    assert!(!has_literal_array(stmts));
-    // Each of the 4 segments (count=10, below threshold=32) is unrolled
-    // individually, producing 40 assignments rather than a FOR loop.
-    // A fix would need to apply the threshold to the *total* element count.
-    assert!(!has_for_loop(stmts), "Each segment is below threshold so no FOR loop is emitted");
-    // 40 indexed assignments + `v := 1` + `main := 0`
-    assert_eq!(count_assignments(stmts), 42);
+    assert_snapshot!(lowered_statements(&project, "main"), @r#"
+    v := 1
+    __main_arr__ctor(arr)
+    arr[0] := v
+    arr[1] := v
+    arr[2] := v
+    arr[3] := v
+    arr[4] := v
+    arr[5] := v
+    arr[6] := v
+    arr[7] := v
+    arr[8] := v
+    arr[9] := v
+    arr[10] := v
+    arr[11] := v
+    arr[12] := v
+    arr[13] := v
+    arr[14] := v
+    arr[15] := v
+    arr[16] := v
+    arr[17] := v
+    arr[18] := v
+    arr[19] := v
+    arr[20] := v
+    arr[21] := v
+    arr[22] := v
+    arr[23] := v
+    arr[24] := v
+    arr[25] := v
+    arr[26] := v
+    arr[27] := v
+    arr[28] := v
+    arr[29] := v
+    arr[30] := v
+    arr[31] := v
+    arr[32] := v
+    arr[33] := v
+    arr[34] := v
+    arr[35] := v
+    arr[36] := v
+    arr[37] := v
+    arr[38] := v
+    arr[39] := v
+    main := 0
+    "#);
 }

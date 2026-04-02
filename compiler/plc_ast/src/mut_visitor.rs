@@ -243,7 +243,8 @@ impl WalkerMut for MultipliedStatement {
     where
         V: AstVisitorMut,
     {
-        visitor.visit(&mut self.element)
+        visitor.visit(&mut self.multiplier);
+        visitor.visit(&mut self.element);
     }
 }
 

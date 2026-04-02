@@ -549,13 +549,22 @@ fn evaluate_with_target_hint(
                 .into_iter()
                 .collect::<Option<Vec<AstNode>>>();
 
+            // Try to evaluate the multiplier as well (it may be a constant reference).
+            let evaluated_multiplier =
+                evaluate(multiplier, scope, index, lhs).ok().flatten().unwrap_or_else(|| *multiplier.clone());
+
             //return a new array, or return none if one was not resolvable
             inner_elements.map(|ie| {
                 if let [ie] = ie.as_slice() {
-                    AstFactory::create_multiplied_statement(*multiplier, ie.clone(), location.clone(), id)
+                    AstFactory::create_multiplied_statement(
+                        evaluated_multiplier.clone(),
+                        ie.clone(),
+                        location.clone(),
+                        id,
+                    )
                 } else {
                     AstFactory::create_multiplied_statement(
-                        *multiplier,
+                        evaluated_multiplier.clone(),
                         AstFactory::create_expression_list(ie, location.clone(), id),
                         location.clone(),
                         id,
