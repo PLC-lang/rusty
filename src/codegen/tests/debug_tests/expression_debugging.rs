@@ -206,7 +206,7 @@ fn exit_statement_have_location() {
     let result = codegen_with_debug(
         "
         FUNCTION myFunc : DINT
-            WHILE TRUE THEN
+            WHILE TRUE DO
                 EXIT;
             END_WHILE
             myFunc := 1;
