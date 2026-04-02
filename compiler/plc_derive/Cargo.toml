@@ -1,6 +1,6 @@
 [package]
 name = "plc_derive"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 license = "LGPL-3.0"
 description = "Derive macros for the PLC Structured Text compiler"
