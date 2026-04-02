@@ -119,6 +119,11 @@
 //! Compiler-generated names such as `ran_once_N` and `is_incrementing_N` are unique per desugared loop.
 //! They are ordinary AST allocations used only to encode loop semantics explicitly for later stages.
 
+use std::{
+    rc::Rc,
+    sync::atomic::{AtomicUsize, Ordering},
+};
+
 use plc_ast::{
     ast::{AstFactory, AstNode, CompilationUnit, Operator},
     control_statements::{ForLoopStatement, LoopStatement},
@@ -137,7 +142,7 @@ struct WhileDesugarer {
 
 struct RepeatDesugarer {
     ids: IdProvider,
-    counter: usize,
+    counter: Rc<AtomicUsize>,
 
     /// A preamble and its replacement loop
     replacement: Option<(AstNode, AstNode)>,
@@ -145,7 +150,7 @@ struct RepeatDesugarer {
 
 struct ForDesugarer {
     ids: IdProvider,
-    counter: usize,
+    counter: Rc<AtomicUsize>,
 
     /// Preamble statements followed by the replacement loop
     replacement: Option<Vec<AstNode>>,
@@ -157,9 +162,12 @@ impl LoopDesugarer {
     }
 
     pub fn desugar(&self, units: &mut [CompilationUnit]) {
+        let counter = Rc::new(AtomicUsize::new(0));
+
         let mut whiled = WhileDesugarer { ids: self.ids.clone() };
-        let mut repeatd = RepeatDesugarer { ids: self.ids.clone(), counter: 0, replacement: None };
-        let mut ford = ForDesugarer { ids: self.ids.clone(), counter: 0, replacement: None };
+        let mut repeatd =
+            RepeatDesugarer { ids: self.ids.clone(), counter: counter.clone(), replacement: None };
+        let mut ford = ForDesugarer { ids: self.ids.clone(), counter: counter, replacement: None };
 
         for unit in units {
             whiled.visit_compilation_unit(unit);
@@ -230,9 +238,9 @@ impl AstVisitorMut for RepeatDesugarer {
         let mut body = std::mem::take(&mut stmt.body);
 
         // Create a temporary variable to track first iteration.
+        let counter = self.counter.fetch_add(1, Ordering::SeqCst);
         let (alloca, ran_once_ref) =
-            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{}", self.counter));
-        self.counter += 1;
+            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{counter}"));
 
         // Only the user-authored `UNTIL <cond>` check should stay visible in debug info. The
         // surrounding gating `IF ran_once_N THEN ...` is synthetic and therefore internal.
@@ -293,11 +301,11 @@ impl AstVisitorMut for ForDesugarer {
         let mut body = std::mem::take(&mut stmt.body);
 
         // Create temporaries tracking whether the loop already ran and which comparison branch to use.
+        let num = self.counter.fetch_add(1, Ordering::SeqCst);
         let (ran_once_alloca, ran_once_ref) =
-            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{}", self.counter));
+            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{num}"));
         let (is_incrementing_alloca, is_incrementing_ref) =
-            helper::create_alloca(&mut self.ids, "BOOL", format!("is_incrementing_{}", self.counter));
-        self.counter += 1;
+            helper::create_alloca(&mut self.ids, "BOOL", format!("is_incrementing_{num}"));
 
         // Normalize the step expression so omitted `BY` becomes a literal `1`.
         let has_explicit_step = by_step.is_some();
