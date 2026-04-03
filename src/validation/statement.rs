@@ -1102,7 +1102,7 @@ fn get_pointee_type_name<'a, T: AnnotationMap>(
     }
 
     // ADR/REF returns LWORD, so the pointer's inner type is lost — recover it from the call argument
-    if !is_ref_or_adr_call(right) {
+    if !is_ref_or_adr_call(right, context) {
         return None;
     }
 
@@ -1123,8 +1123,25 @@ fn validate_ref_assignment<T: AnnotationMap>(
     assignment_location: &SourceLocation,
 ) {
     let annotation_lhs = context.annotations.get(&assignment.left);
+    let rhs_is_constant =
+        if let Some(StatementAnnotation::Variable { constant: true, resulting_type, .. }) =
+            context.annotations.get(&assignment.right)
+        {
+            !context.index.get_type_information_or_void(resulting_type).is_aggregate()
+        } else {
+            false
+        };
     let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
+
+    // Assert that the right-hand side is not a constant
+    if rhs_is_constant {
+        validator.push_diagnostic(
+            Diagnostic::new("Invalid assignment, constant is read-only")
+                .with_location(&assignment.right.location)
+                .with_error_code("E098"),
+        );
+    }
 
     // Assert that the right-hand side is a reference
     if !(assignment.right.get_node_peeled().is_reference()
@@ -1360,7 +1377,7 @@ fn normalized_left_type_for_assignment<'a, T: AnnotationMap>(
     left_type: &'a typesystem::DataType,
     right: &'a AstNode,
 ) -> &'a typesystem::DataType {
-    if is_ref_or_adr_call(right) {
+    if is_ref_or_adr_call(right, context) {
         return left_type;
     }
 
@@ -1373,12 +1390,28 @@ fn normalized_left_type_for_assignment<'a, T: AnnotationMap>(
     left_type
 }
 
-fn is_ref_or_adr_call(statement: &AstNode) -> bool {
-    matches!(
-        statement.get_stmt_peeled(),
-        AstStatement::CallStatement(CallStatement { operator, .. })
-            if matches!(operator.get_flat_reference_name(), Some("REF" | "ADR"))
-    )
+fn is_ref_or_adr_call<T: AnnotationMap>(node: &AstNode, context: &ValidationContext<T>) -> bool {
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = node.get_stmt_peeled() else {
+        return false;
+    };
+
+    let Some(call_name) = context.annotations.get_call_name(operator.as_ref()) else {
+        return false;
+    };
+
+    let Some(adr_builtin) = builtins::get_builtin("ADR") else {
+        return false;
+    };
+
+    let Some(ref_builtin) = builtins::get_builtin("REF") else {
+        return false;
+    };
+
+    context.index.get_builtin_function(call_name).is_some_and(|builtin| std::ptr::eq(builtin, adr_builtin))
+        || context
+            .index
+            .get_builtin_function(call_name)
+            .is_some_and(|builtin| std::ptr::eq(builtin, ref_builtin))
 }
 
 fn variable_is_in_inherited_or_self_scope<T: AnnotationMap>(
