@@ -92,8 +92,17 @@ fn link_as_static_object() {
     //Compile file 2 into obj
     compile(&["plc", file2.as_str(), "-o", out2.as_str(), "-c", "--target", TARGET.unwrap()]).unwrap();
     //Compile file1 as shared object with file2 as param
-    compile(&["plc", file1.as_str(), out2.as_str(), "-o", out1.as_str(), "--target", TARGET.unwrap()])
-        .unwrap();
+    compile(&[
+        "plc",
+        file1.as_str(),
+        out2.as_str(),
+        "-o",
+        out1.as_str(),
+        "--nocrt",
+        "--target",
+        TARGET.unwrap(),
+    ])
+    .unwrap();
 
     //Delete it
     fs::remove_file(&out1).unwrap();
@@ -158,7 +167,7 @@ fn link_missing_file() {
 //This is a regression, see #548
 fn link_to_a_relative_location_with_no_parent() {
     let file1 = get_test_file("linking/relative.st");
-    compile(&["plc", file1.as_str(), "-o", "output.o", "--target", TARGET.unwrap()]).unwrap();
+    compile(&["plc", file1.as_str(), "-o", "output.o", "--nocrt", "--target", TARGET.unwrap()]).unwrap();
 
     //Make sure the file exists in the test location
     let res = std::path::Path::new("output.o");
