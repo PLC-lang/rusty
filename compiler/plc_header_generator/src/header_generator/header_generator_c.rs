@@ -428,7 +428,7 @@ impl GeneratedHeaderForC {
         _: &[DataType],
     ) -> bool {
         if let Some(data_type_name) = &user_type.data_type.get_name() {
-            if data_type_name.starts_with("__") {
+            if data_type_is_system_generated(data_type_name) {
                 match &user_type.data_type {
                     // Support for multi-dimensional arrays
                     ast::DataType::ArrayType { .. } => return true,
@@ -617,17 +617,15 @@ impl GeneratedHeaderForC {
             match type_info.attribute {
                 TypeAttribute::UserGenerated => {
                     let type_name = type_info.get_type_name();
-                    let option_user_type = get_user_generated_type_by_name(&type_name, user_types);
 
-                    if let Some(user_type) = option_user_type {
-                        let user_type_variable = self.get_user_type_variable(
+                    if let Some(user_type) = get_user_generated_type_by_name(&type_name, user_types) {
+                        if let Some(value) = self.get_user_type_variable(
                             user_type,
                             builtin_types,
                             Some(&String::from(variable.get_name())),
                             Some(&type_name),
-                        );
-
-                        if let Some(value) = user_type_variable {
+                            user_types,
+                        ) {
                             // Function pointers
                             let data_type_with_no_reference_symbol = value.data_type.replace("*", "");
                             let option_pou =
@@ -679,6 +677,10 @@ impl GeneratedHeaderForC {
                             } else {
                                 variables.push(value);
                             }
+                        } else {
+                            log::warn!(
+                                "User generated type '{type_name}' could not be parsed as a variable."
+                            );
                         }
                     } else {
                         variables.push(Variable {
@@ -796,6 +798,7 @@ impl GeneratedHeaderForC {
         builtin_types: &[DataType],
         field_name_override: Option<&String>,
         type_name_override: Option<&String>,
+        user_types: &[UserTypeDeclaration],
     ) -> Option<Variable> {
         // We generally want to skip the declaration of user types that are only internally relevant
         if let Some(data_type_name) = user_type.data_type.get_name() {
@@ -874,18 +877,32 @@ impl GeneratedHeaderForC {
                 // As a sanity check we will return "None" and log an error if no name for this referenced type is found
                 let name = coalesce_field_name_override_with_default(name, field_name_override);
                 if let Some(referenced_type_name) = referenced_type.get_name() {
-                    let type_info = self.get_type_name_for_type(
-                        &ExtendedTypeName {
-                            type_name: referenced_type_name.to_string(),
-                            is_variadic: false,
-                            is_sized_variadic: false,
-                        },
-                        builtin_types,
-                    );
+                    match (
+                        get_user_generated_type_by_name(referenced_type_name, user_types),
+                        data_type_is_system_generated(referenced_type_name),
+                    ) {
+                        (Some(user_type), true) => self.get_user_type_variable(
+                            user_type,
+                            builtin_types,
+                            field_name_override,
+                            type_name_override,
+                            user_types,
+                        ),
+                        _ => {
+                            let type_info = self.get_type_name_for_type(
+                                &get_type_from_data_type_decleration(
+                                    &Some(referenced_type.as_ref().clone()),
+                                    false,
+                                ),
+                                builtin_types,
+                            );
 
-                    let data_type = format!("{}{}", type_info.get_type_name(), self.get_reference_symbol());
+                            let data_type =
+                                format!("{}{}", type_info.get_type_name(), self.get_reference_symbol());
 
-                    Some(Variable { name, data_type, variable_type: VariableType::Default })
+                            Some(Variable { name, data_type, variable_type: VariableType::Default })
+                        }
+                    }
                 } else {
                     log::warn!("Referenced type expected for pointer with name: {name} but none found!");
                     None
@@ -932,7 +949,7 @@ impl GeneratedHeaderForC {
             let mut reference_found = false;
 
             // We only want to evaluate generated types
-            if !variable.name.starts_with("__") {
+            if !data_type_is_system_generated(&variable.name) {
                 reference_found = true;
             }
 

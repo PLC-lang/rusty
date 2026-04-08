@@ -21,8 +21,10 @@ use std::{
 
 use cli::{CompileParameters, ParameterError};
 use plc::{
-    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
-    OptimizationLevel,
+    codegen::CodegenContext,
+    linker::LinkerType,
+    output::{FormatOption, RelocationPreference},
+    DebugLevel, ErrorFormat, OnlineChange, OptimizationLevel,
 };
 
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter};
@@ -52,6 +54,7 @@ pub struct CompileOptions {
     pub output: String,
     pub output_format: FormatOption,
     pub optimization: OptimizationLevel,
+    pub relocation_preference: RelocationPreference,
     pub error_format: ErrorFormat,
     pub debug_level: DebugLevel,
     pub single_module: bool,
@@ -67,6 +70,7 @@ impl Default for CompileOptions {
             output: String::new(),
             output_format: Default::default(),
             optimization: OptimizationLevel::None,
+            relocation_preference: RelocationPreference::Default,
             error_format: ErrorFormat::None,
             debug_level: DebugLevel::None,
             single_module: false,
@@ -82,6 +86,16 @@ pub struct LinkOptions {
     pub library_paths: Vec<PathBuf>,
     pub format: FormatOption,
     pub linker: LinkerType,
+    /// Optional backend linker for compiler-driver linkers (maps to `-fuse-ld=<name>`).
+    pub fuse_linker: Option<String>,
+    /// Raw linker arguments forwarded to the active linker.
+    pub linker_args: Vec<String>,
+    /// If set, disable C runtime startup files during executable linking.
+    pub no_crt: bool,
+    /// If set, disable implicit/default C libraries during executable linking.
+    pub no_libc: bool,
+    /// Relocation preference (PIC / NoPic / Default).
+    pub relocation_preference: RelocationPreference,
     pub lib_location: Option<PathBuf>,
     pub build_location: Option<PathBuf>,
     pub linker_script: LinkerScript,
