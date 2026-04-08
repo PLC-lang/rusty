@@ -1030,7 +1030,7 @@ fn validate_constant_parameters(
         {
             if !index.get_type_information_or_void(resulting_type).is_aggregate() {
                 validator.push_diagnostic(
-                    Diagnostic::new("Invalid assignment, constant is read-only")
+                    Diagnostic::new("Invalid assignment, cannot ensure constant is used as read-only")
                         .with_location(param.location.clone())
                         .with_error_code("E098"),
                 );

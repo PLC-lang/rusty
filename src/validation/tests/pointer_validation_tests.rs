@@ -930,11 +930,11 @@ fn reference_to_constant_is_not_allowed() {
     let diagnostics = parse_and_validate_buffered(source);
 
     insta::assert_snapshot!(diagnostics, @"
-    error[E098]: Invalid assignment, constant is read-only
+    error[E098]: Invalid assignment, cannot ensure constant is used as read-only
        ┌─ <internal>:10:22
        │
     10 │             y := REF(x);
-       │                      ^ Invalid assignment, constant is read-only
+       │                      ^ Invalid assignment, cannot ensure constant is used as read-only
     ")
 }
 
@@ -988,11 +988,11 @@ fn pointer_to_constant_is_not_allowed() {
     8 │                 y : POINTER TO DINT;
       │                     ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
 
-    error[E098]: Invalid assignment, constant is read-only
+    error[E098]: Invalid assignment, cannot ensure constant is used as read-only
        ┌─ <internal>:10:22
        │
     10 │             y := ADR(x);
-       │                      ^ Invalid assignment, constant is read-only
+       │                      ^ Invalid assignment, cannot ensure constant is used as read-only
     ")
 }
 
