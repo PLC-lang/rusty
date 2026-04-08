@@ -1123,21 +1123,17 @@ fn validate_ref_assignment<T: AnnotationMap>(
     assignment_location: &SourceLocation,
 ) {
     let annotation_lhs = context.annotations.get(&assignment.left);
-    let rhs_is_constant =
-        if let Some(StatementAnnotation::Variable { constant: true, resulting_type, .. }) =
-            context.annotations.get(&assignment.right)
-        {
-            !context.index.get_type_information_or_void(resulting_type).is_aggregate()
-        } else {
-            false
-        };
+    let rhs_is_constant = matches!(
+        context.annotations.get(&assignment.right),
+        Some(StatementAnnotation::Variable { constant: true, .. })
+    );
     let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
 
     // Assert that the right-hand side is not a constant
     if rhs_is_constant {
         validator.push_diagnostic(
-            Diagnostic::new("Invalid assignment, constant is read-only")
+            Diagnostic::new("Invalid assignment, cannot ensure constant is used as read-only")
                 .with_location(&assignment.right.location)
                 .with_error_code("E098"),
         );

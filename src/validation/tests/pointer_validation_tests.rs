@@ -956,11 +956,11 @@ fn reference_assignment_of_constant_is_not_allowed() {
     let diagnostics = parse_and_validate_buffered(source);
 
     insta::assert_snapshot!(diagnostics, @"
-    error[E098]: Invalid assignment, constant is read-only
+    error[E098]: Invalid assignment, cannot ensure constant is used as read-only
        ┌─ <internal>:10:20
        │
     10 │             y REF= x;
-       │                    ^ Invalid assignment, constant is read-only
+       │                    ^ Invalid assignment, cannot ensure constant is used as read-only
     ")
 }
 
