@@ -42,6 +42,7 @@ The `libraries` keyword is optional.
     {
         "name" : "iec61131std",
         "path" : "path/to/lib/",
+        "link_path" : "libiec61131std.so.1",
         "package" : "Copy",
         "include_path" : [
             "examples/hw.st",
@@ -50,6 +51,17 @@ The `libraries` keyword is optional.
     }
 ]
 ```
+
+### libraries.link_path
+
+`link_path` is optional.
+
+If present, RuSTy links the exact file instead of resolving by `name` (`-l<name>`).
+This is useful for versioned filenames such as `libfoo.so.1`.
+
+- Relative `link_path` values are resolved against the library's `path`.
+- Absolute `link_path` values are used directly.
+- Copy behavior is unchanged: libraries marked as `Copy` are still copied from the configured library directory.
 
 ### output
 
@@ -123,6 +135,17 @@ This can be overriden with the `--build-location` command line parameter.
 The lib location is where all libraries marked with `Copy` will be copied. </br>
 By default it is the same as the `build-location`.</br>
 This can be overriden with the `--lib-location` command line parameter.
+
+### Additional linker options
+
+All regular linker options from `plc` can also be used with the `build` subcommand, e.g.:
+
+- `--linker=<cmd>`
+- `--fuse-ld=<name>`
+- `--linker-arg=<arg>` (repeatable)
+- `--nocrt`
+- `--nolibc`
+- `--fpic` / `--fno-pic` (relocation model)
 
 ## Environment Variables
 
