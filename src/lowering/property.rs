@@ -425,7 +425,7 @@ mod validation {
 
     fn invalid_property_set_target(target: &AstNode) -> Diagnostic {
         Diagnostic::new("Properties can only be assigned as a whole, not through member or index access")
-            .with_error_code("E127")
+            .with_error_code("E128")
             .with_location(get_terminal_leaf_location(target))
     }
 

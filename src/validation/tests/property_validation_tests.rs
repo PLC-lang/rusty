@@ -950,7 +950,7 @@ fn nested_member_assignment_through_property_is_rejected() {
     );
 
     insta::assert_snapshot!(diagnostics, @"
-    error[E127]: Properties can only be assigned as a whole, not through member or index access
+    error[E128]: Properties can only be assigned as a whole, not through member or index access
        ┌─ <internal>:21:31
        │
     21 │             instance.position.x := 5;
@@ -998,7 +998,7 @@ fn property_on_target_chain_but_property_get_in_index_expression_is_still_reject
     );
 
     insta::assert_snapshot!(diagnostics, @"
-    error[E127]: Properties can only be assigned as a whole, not through member or index access
+    error[E128]: Properties can only be assigned as a whole, not through member or index access
        ┌─ <internal>:26:22
        │
     26 │             instance.values[instance.position.x] := 5;
@@ -1035,7 +1035,7 @@ fn property_returning_array_of_structs_followed_by_index_and_member_assignment_i
     );
 
     insta::assert_snapshot!(diagnostics, @"
-    error[E127]: Properties can only be assigned as a whole, not through member or index access
+    error[E128]: Properties can only be assigned as a whole, not through member or index access
        ┌─ <internal>:21:35
        │
     21 │             instance.positions[1].x := 5;
