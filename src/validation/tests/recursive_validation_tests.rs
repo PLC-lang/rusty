@@ -454,6 +454,31 @@ mod arrays {
 
         assert_snapshot!(&diagnostics);
     }
+
+    #[test]
+    fn circular_array_type_aliases_ab() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE a : ARRAY[0..10] OF b; END_TYPE
+            TYPE b : ARRAY[0..10] OF a; END_TYPE
+            ",
+        );
+
+        assert_snapshot!(&diagnostics);
+    }
+
+    #[test]
+    fn circular_array_type_aliases_abc() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE a : ARRAY[0..10] OF b; END_TYPE
+            TYPE b : ARRAY[0..10] OF c; END_TYPE
+            TYPE c : ARRAY[0..10] OF a; END_TYPE
+            ",
+        );
+
+        assert_snapshot!(&diagnostics);
+    }
 }
 
 mod functionblocks {
