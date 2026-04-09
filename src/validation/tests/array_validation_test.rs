@@ -696,11 +696,5 @@ fn fewer_elements_in_type_and_derived_variable() {
         ",
     );
 
-    let warning_count = diagnostics.matches("warning[E127]").count();
-    assert_eq!(warning_count, 2, "Expected two E127 warnings, got:\n{diagnostics}");
-    assert!(diagnostics.contains("array `a`"), "Expected E127 warning for variable `a`, got:\n{diagnostics}");
-    assert!(
-        diagnostics.contains("array `userArrayType`"),
-        "Expected E127 warning for type `userArrayType`, got:\n{diagnostics}"
-    );
+    assert_snapshot!(diagnostics);
 }
