@@ -1027,12 +1027,6 @@ mod type_aliases {
             ",
         );
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-          ┌─ <internal>:4:24
-          │
-        4 │                 next : POINTER TO Node;
-          │                        ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-        ");
+        insta::assert_snapshot!(diagnostics, @"");
     }
 }

@@ -7,7 +7,7 @@ use crate::diagnostician::DiagnosticAssessor;
 
 use super::{
     Diagnostic,
-    Severity::{self, Error, Info, Warning},
+    Severity::{self, Error, Ignore, Info, Warning},
 };
 
 macro_rules! add_diagnostic {
@@ -116,7 +116,7 @@ lazy_static! {
         E012,   Error,      include_str!("./error_codes/E012.md"), // Missing Case Condition
         E013,   Warning,    include_str!("./error_codes/E013.md"), // Keywords shoud contain underscores
         E014,   Warning,    include_str!("./error_codes/E014.md"), // Wrong parantheses type
-        E015,   Warning,    include_str!("./error_codes/E015.md"), // Pointer is not standard
+        E015,   Ignore,     include_str!("./error_codes/E015.md"), // Pointer is not standard; ignored due to internal feedback it being too noisy
         E016,   Warning,    include_str!("./error_codes/E016.md"), // Return types cannot have a default value
         E017,   Error,      include_str!("./error_codes/E017.md"), // Classes cannot contain implementations
         E018,   Error,      include_str!("./error_codes/E018.md"), // Duplicate Label
