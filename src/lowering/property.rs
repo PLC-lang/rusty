@@ -83,26 +83,29 @@ use plc_ast::{
     provider::IdProvider,
     try_from_mut,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 pub struct PropertyLowerer {
     pub id_provider: IdProvider,
     pub annotations: Option<AstAnnotations>,
+    pub diagnostics: Vec<Diagnostic>,
 }
 
 impl PropertyLowerer {
     pub fn new(id_provider: IdProvider) -> PropertyLowerer {
-        PropertyLowerer { id_provider, annotations: None }
+        PropertyLowerer { id_provider, annotations: None, diagnostics: Vec::new() }
     }
 }
 
 impl PropertyLowerer {
-    /// Lowers [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
+    /// Lowers [`CompilationUnit::properties`] into [`CompilationUnit::units`] and
+    /// [`CompilationUnit::implementations`]
     pub fn properties_to_pous(&mut self, unit: &mut CompilationUnit) {
         let mut local_pous = Vec::new();
         let mut local_impls = Vec::new();
 
-        // Lower properties defined in a POU (e.g. a FUNCTION_BLOCK)
+        // Lower properties defined in a POU (e.g. a FUNCTION_BLOCK).
         for pou in &mut unit.pous {
             for property in &mut pou.properties {
                 let (pous, impls) = lower_to_pou(self.id_provider.clone(), &pou.name, property);
@@ -112,7 +115,7 @@ impl PropertyLowerer {
             }
         }
 
-        // Lower properties defined in an interface
+        // Lower properties defined in an interface.
         for interface in &mut unit.interfaces {
             for property in &mut interface.properties {
                 let (pous, _) = lower_to_pou(self.id_provider.clone(), &interface.ident.name, property);
@@ -125,9 +128,29 @@ impl PropertyLowerer {
         unit.implementations.extend(local_impls);
     }
 
-    /// Lowers any property references into method calls
+    /// Lowers any property references into method calls.
     pub fn properties_to_fncalls(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
+    }
+
+    fn visit_assignment_target(&mut self, node: &mut AstNode) {
+        let Some(ReferenceExpr { access, base }) = try_from_mut!(node, ReferenceExpr) else {
+            return;
+        };
+
+        // Lower expressions nested inside the assignment target, such as array indices.
+        match access {
+            ReferenceAccess::Index(node) | ReferenceAccess::Cast(node) => node.walk(self),
+
+            // Member/global accesses are part of the assignment target chain itself. Do not walk them here
+            ReferenceAccess::Global(_) | ReferenceAccess::Member(_) => (),
+            ReferenceAccess::Deref | ReferenceAccess::Address => (),
+        }
+
+        // Continue along the target chain without lowering the target references themselves.
+        if let Some(base) = base {
+            self.visit_assignment_target(base);
+        }
     }
 }
 
@@ -137,9 +160,23 @@ impl AstVisitorMut for PropertyLowerer {
             unreachable!();
         };
 
+        // Lower reads inside the assignment target, such as property gets used in index expressions.
+        self.visit_assignment_target(&mut data.left);
+
+        // Lower the right-hand side normally.
         self.visit(&mut data.right);
 
-        match self.annotations.as_ref().and_then(|map| map.get(&data.left)) {
+        let Some(annotations) = self.annotations.as_ref() else {
+            return;
+        };
+
+        // Reject assignments that access through a property instead of assigning the property directly.
+        if let Some(diagnostic) = validation::validate_nested_property_set_target(annotations, &data.left) {
+            self.diagnostics.push(diagnostic);
+            return;
+        }
+
+        match annotations.get(&data.left) {
             // When dealing with an assignment where the left-hand side is a property reference, we have to
             // replace the reference with a method call to `__set_<property>(<right-hand-side>)`
             Some(annotation) if annotation.is_property() => {
@@ -151,7 +188,7 @@ impl AstVisitorMut for PropertyLowerer {
                     node.location.clone(),
                 );
 
-                // In-place AST replacement of the assignment statements as a whole with the newly created call
+                // In-place AST replacement of the assignment statement with the newly created call.
                 let _ = std::mem::replace(node, call);
             }
 
@@ -349,6 +386,73 @@ mod helper {
         let AstStatement::Identifier(name) = &mut member.stmt else { return };
 
         name.insert_str(0, prefix);
+    }
+}
+
+mod validation {
+    use plc_ast::ast::{AstNode, AstStatement, ReferenceAccess, ReferenceExpr};
+    use plc_diagnostics::diagnostics::Diagnostic;
+    use plc_source::source_location::SourceLocation;
+
+    use crate::resolver::{AnnotationMap, AstAnnotations};
+
+    pub fn validate_nested_property_set_target(
+        annotations: &AstAnnotations,
+        left: &AstNode,
+    ) -> Option<Diagnostic> {
+        let mut current = left;
+
+        loop {
+            let Some(base) = get_base(current) else {
+                return None;
+            };
+
+            // Reject `foo.bar := value` when `foo` is a property. Setters operate on the whole property
+            // and cannot be followed by further member or index accesses.
+            if annotations.get(base).is_some_and(|annotation| annotation.is_property()) {
+                return Some(invalid_property_set_target(left));
+            }
+
+            current = base;
+        }
+    }
+
+    fn get_base(node: &AstNode) -> Option<&AstNode> {
+        let AstStatement::ReferenceExpr(ReferenceExpr { base, .. }) = &node.stmt else {
+            return None;
+        };
+
+        base.as_deref()
+    }
+
+    fn invalid_property_set_target(target: &AstNode) -> Diagnostic {
+        Diagnostic::new(
+            "Properties can only be assigned as a whole, not through member or index access",
+        )
+        .with_error_code("E127")
+        .with_location(get_terminal_leaf_location(target))
+    }
+
+    fn get_terminal_leaf_location(node: &AstNode) -> SourceLocation {
+        let AstStatement::ReferenceExpr(ReferenceExpr { access, base }) = &node.stmt else {
+            return node.location.clone();
+        };
+
+        match access {
+            ReferenceAccess::Global(node) | ReferenceAccess::Member(node) => node.location.clone(),
+
+            // Highlight the trailing indexed access, e.g. `values[expr]`, rather than only the inner
+            // index expression `expr`.
+            ReferenceAccess::Index(_) => base
+                .as_deref()
+                .map(get_terminal_leaf_location)
+                .map(|location| location.span(&node.location))
+                .unwrap_or_else(|| node.location.clone()),
+
+            ReferenceAccess::Cast(_) | ReferenceAccess::Deref | ReferenceAccess::Address => {
+                node.location.clone()
+            }
+        }
     }
 }
 

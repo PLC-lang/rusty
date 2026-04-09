@@ -228,6 +228,7 @@ lazy_static! {
         E124,   Error,      include_str!("./error_codes/E124.md"),  // Invalid escape sequence in string literal
         E125,   Error,      include_str!("./error_codes/E125.md"),  // Incompatible POINTER TO types in class/FB hierarchy
         E126,   Error,      include_str!("./error_codes/E126.md"),  // Incompatible types in interface polymorphism
+        E127,   Error,      include_str!("./error_codes/E127.md"),  // Invalid nested property assignment target
     );
 }
 
