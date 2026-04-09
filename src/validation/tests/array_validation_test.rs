@@ -677,3 +677,30 @@ fn type_level_struct_array_fewer() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn fewer_elements_in_type_and_derived_variable() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM PLC_PRG
+            VAR CONSTANT
+                x : INT := 0;
+            END_VAR
+            VAR
+                a : userArrayType := [x,x];
+            END_VAR
+        END_PROGRAM
+
+        TYPE userArrayType : ARRAY [1..5] OF INT := [1,2,4,5];
+        END_TYPE
+        ",
+    );
+
+    let warning_count = diagnostics.matches("warning[E127]").count();
+    assert_eq!(warning_count, 2, "Expected two E127 warnings, got:\n{diagnostics}");
+    assert!(diagnostics.contains("array `a`"), "Expected E127 warning for variable `a`, got:\n{diagnostics}");
+    assert!(
+        diagnostics.contains("array `userArrayType`"),
+        "Expected E127 warning for type `userArrayType`, got:\n{diagnostics}"
+    );
+}

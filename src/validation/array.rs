@@ -187,6 +187,14 @@ fn statement_to_array_length<T: AnnotationMap>(
             .get_type(statement, context.index)
             .and_then(|it| it.information.get_array_length(context.index)),
 
+        AstStatement::ReferenceExpr(_) => {
+            let len = context
+                .annotations
+                .get_type(statement, context.index)
+                .and_then(|it| it.information.get_array_length(context.index));
+            Some(len.unwrap_or(1))
+        }
+
         AstStatement::MultipliedStatement(data) => Some(data.multiplier as usize),
         AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(_) => Some(1),
 
