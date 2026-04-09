@@ -1001,6 +1001,9 @@ fn reference_to_constant_aggregate_types_is_allowed() {
     let source = r#"
         VAR_GLOBAL CONSTANT
             g2 : STRING := 'Whats up';
+        END_VAR
+
+        VAR_GLOBAL
             g1 : Transaction := (id := 5, amount := 10, message := g2);
         END_VAR
 
