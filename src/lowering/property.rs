@@ -403,9 +403,7 @@ mod validation {
         let mut current = left;
 
         loop {
-            let Some(base) = get_base(current) else {
-                return None;
-            };
+            let base = get_base(current)?;
 
             // Reject `foo.bar := value` when `foo` is a property. Setters operate on the whole property
             // and cannot be followed by further member or index accesses.
@@ -426,11 +424,9 @@ mod validation {
     }
 
     fn invalid_property_set_target(target: &AstNode) -> Diagnostic {
-        Diagnostic::new(
-            "Properties can only be assigned as a whole, not through member or index access",
-        )
-        .with_error_code("E127")
-        .with_location(get_terminal_leaf_location(target))
+        Diagnostic::new("Properties can only be assigned as a whole, not through member or index access")
+            .with_error_code("E127")
+            .with_location(get_terminal_leaf_location(target))
     }
 
     fn get_terminal_leaf_location(node: &AstNode) -> SourceLocation {
