@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-0edf7295.js";
+            window.path_to_searchindex_js = "searchindex-e82b9dcb.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-2b8c6dc7.js"></script>
+        <script src="toc-677a71b1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1840,6 +1840,24 @@ FUNCTION main
     END_VAR
     refIA := refIB;  // OK: IB extends IA
 END_FUNCTION
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="array-initialized-with-fewer-elements-than-expected"><a class="header" href="#array-initialized-with-fewer-elements-than-expected">Array initialized with fewer elements than expected</a></h1>
+<p>An array initializer provides fewer values than the declared array size.
+The remaining elements will be zero-initialized.</p>
+<p>Example:</p>
+<pre><code class="language-st">VAR
+    arr : ARRAY[1..5] OF DINT := [1, 2, 3]; // only 3 of 5 elements
+END_VAR
+</code></pre>
+<p>This is a warning because the compiler will implicitly fill the unspecified
+elements with their default (zero) value, which may or may not be intentional.</p>
+<p>To silence this warning, provide all elements explicitly or use a multiplied
+initializer to fill the rest:</p>
+<pre><code class="language-st">VAR
+    arr : ARRAY[1..5] OF DINT := [1, 2, 3, 0, 0];   // explicit
+    arr2 : ARRAY[1..5] OF DINT := [1, 2, 3, 2(0)];   // multiplied fill
+END_VAR
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
