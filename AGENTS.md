@@ -69,3 +69,12 @@ insta::assert_snapshot!(result);
 // Good
 insta::assert_snapshot!(result, @r"");
 ```
+
+7. Avoid fully qualified paths like `plc_source::source_location::SourceLocation` unless required due to name clashes
+```
+// Bad
+fn get_base(node: &AstNode) -> plc_source::source_location::SourceLocation { ... }
+
+// Good
+fn get_base(node: &AstNode) -> SourceLocation { ... }
+```
