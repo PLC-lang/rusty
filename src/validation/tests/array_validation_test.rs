@@ -696,5 +696,17 @@ fn fewer_elements_in_type_and_derived_variable() {
         ",
     );
 
-    assert_snapshot!(diagnostics);
+    assert_snapshot!(diagnostics, @"
+    warning[E127]: Fewer initial values for array `a` than expected. Expected 5, found 2.
+      ┌─ <internal>:7:38
+      │
+    7 │                 a : userArrayType := [x,x];
+      │                                      ^^^^^ Fewer initial values for array `a` than expected. Expected 5, found 2.
+
+    warning[E127]: Fewer initial values for array `userArrayType` than expected. Expected 5, found 4.
+       ┌─ <internal>:11:53
+       │
+    11 │         TYPE userArrayType : ARRAY [1..5] OF INT := [1,2,4,5];
+       │                                                     ^^^^^^^^^ Fewer initial values for array `userArrayType` than expected. Expected 5, found 4.
+    ");
 }
