@@ -19,7 +19,6 @@ junit=0
 package=0
 deb=0
 deb_revision="1"
-deb_name=""
 deb_stdlib_name=""
 target=""
 
@@ -440,7 +439,6 @@ function run_package_deb() {
     version=$(get_project_version)
     local deb_rev="$deb_revision"
     local deb_output_dir="$project_location/target/debian"
-    local compiler_pkg_name="${deb_name:-plc-compiler}"
     local stdlib_pkg_name="${deb_stdlib_name:-plc-stdlib}"
 
     make_dir "$deb_output_dir"
@@ -449,19 +447,17 @@ function run_package_deb() {
     echo "-----------------------------------"
     echo "Version: $version"
     echo "Revision: $deb_rev"
-    echo "Compiler package: $compiler_pkg_name"
     echo "Stdlib package: $stdlib_pkg_name"
 
-    # --- plc binary package via cargo-deb ---
-    log "Building $compiler_pkg_name binary deb via cargo-deb"
+    # --- plc binary package via cargo-deb (name comes from Cargo.toml metadata) ---
+    log "Building plc-compiler binary deb via cargo-deb"
     if command -v cargo-deb &> /dev/null; then
         cargo deb -p plc_driver --no-build --no-strip \
             --output "$deb_output_dir" \
-            --deb-revision "$deb_rev" \
-            --deb-name "$compiler_pkg_name"
-        echo "$compiler_pkg_name binary deb built"
+            --deb-revision "$deb_rev"
+        echo "plc-compiler binary deb built"
     else
-        echo "Warning: cargo-deb not found, skipping $compiler_pkg_name binary deb"
+        echo "Warning: cargo-deb not found, skipping plc-compiler binary deb"
         echo "Install with: cargo install cargo-deb"
     fi
 
@@ -546,9 +542,6 @@ function run_in_container() {
     if [[ "$deb_revision" != "1" ]]; then
         params="$params --deb-revision $deb_revision"
     fi
-    if [[ -n "$deb_name" ]]; then
-        params="$params --deb-name $deb_name"
-    fi
     if [[ -n "$deb_stdlib_name" ]]; then
         params="$params --deb-stdlib-name $deb_stdlib_name"
     fi
@@ -582,7 +575,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-engine:,container-name:,coverage,package,deb,deb-revision:,deb-name:,deb-stdlib-name:,target:
+LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-engine:,container-name:,coverage,package,deb,deb-revision:,deb-stdlib-name:,target:
 
 check_env
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -656,10 +649,6 @@ while true; do
         --deb-revision)
             shift
             deb_revision=$1
-            ;;
-        --deb-name)
-            shift
-            deb_name=$1
             ;;
         --deb-stdlib-name)
             shift
