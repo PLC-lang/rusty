@@ -677,3 +677,25 @@ fn type_level_struct_array_fewer() {
 
     assert_snapshot!(diagnostics);
 }
+
+#[test]
+fn oversized_array_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            huge : ARRAY[1..5, 2345324..3333333, -1..1, 10..100, 33..55, -1..1, -1..1, -1..1] OF DINT;
+            ok   : ARRAY[1..1000] OF DINT;
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    warning[E129]: Array `huge` has 837_501_496_650 elements which exceeds the maximum supported array size of UDINT#4_294_967_295 elements.
+      ┌─ <internal>:4:13
+      │
+    4 │             huge : ARRAY[1..5, 2345324..3333333, -1..1, 10..100, 33..55, -1..1, -1..1, -1..1] OF DINT;
+      │             ^^^^ Array `huge` has 837_501_496_650 elements which exceeds the maximum supported array size of UDINT#4_294_967_295 elements.
+    ");
+}
