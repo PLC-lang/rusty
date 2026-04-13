@@ -1755,13 +1755,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(reference)
             .map(|it| it.get_basic_value_enum().into_pointer_value())
             .and_then(|lvalue| {
-                if let DataTypeInformation::Array { name, dimensions, inner_type_name } =
-                    self.get_type_hint_info_for(reference)?
-                {
+                let type_hint_info = self.get_type_hint_info_for(reference)?;
+                // Resolve through aliases to get the effective array type information
+                let effective_info = self
+                    .index
+                    .find_effective_type_info(type_hint_info.get_name())
+                    .unwrap_or(type_hint_info);
+                if let DataTypeInformation::Array { name, dimensions, inner_type_name } = effective_info {
                     // make sure dimensions match statement list
                     let statements = access.get_as_list();
                     if statements.is_empty() || statements.len() != dimensions.len() {
-                        return Err(Diagnostic::codegen_error("Invalid array access", access).into());
+                        return Err(Diagnostic::codegen_error(
+                            format!(
+                                "Invalid array access: expected {} dimension(s) for array type '{}', but got {}",
+                                dimensions.len(),
+                                name,
+                                statements.len()
+                            )
+                            .as_str(),
+                            access,
+                        )
+                        .into());
                     }
 
                     // e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
@@ -1849,8 +1863,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             // For flattened array-of-array parameters (fundamental element pointer):
                             // Calculate proper stride: index * element_size
                             // This handles cases like i8* representing [N x STRING]* or i32* representing [N x [M x i32]]*
-                            let DataTypeInformation::Array { inner_type_name, .. } =
-                                self.get_type_hint_info_for(reference)?
+                            let DataTypeInformation::Array { inner_type_name, .. } = effective_info
                             else {
                                 log::error!("Uncaught resolve error for inner type of nested array");
                                 return Err(Diagnostic::codegen_error(
@@ -1901,7 +1914,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     return Ok(pointer);
                 }
-                Err(Diagnostic::codegen_error("Invalid array access", access).into())
+                Err(Diagnostic::codegen_error(
+                    format!(
+                        "Invalid array access: type '{}' is not an array type",
+                        type_hint_info.get_name()
+                    )
+                    .as_str(),
+                    access,
+                )
+                .into())
             })
     }
 
@@ -2262,7 +2283,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 AstLiteral::Time(t) => self.create_const_int(t.value()).map(ExpressionValue::RValue),
                 AstLiteral::String(s) => self.generate_string_literal(literal_statement, s.value(), location),
                 AstLiteral::Array(arr) => self
-                    .generate_literal_array(arr.elements().ok_or_else(cannot_generate_literal)?)
+                    .generate_literal_array(
+                        arr.elements().ok_or_else(cannot_generate_literal)?,
+                        Some(self.get_type_hint_info_for(literal_statement)?),
+                    )
                     .map(ExpressionValue::RValue),
                 AstLiteral::Null => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },
@@ -2279,7 +2303,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
 
             AstStatement::MultipliedStatement { .. } => {
-                self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
+                self.generate_literal_array(literal_statement, None).map(ExpressionValue::RValue)
             }
             AstStatement::ParenExpression(expr) => self.generate_literal(expr),
             // if there is an expression-list this might be a struct-initialization or array-initialization
@@ -2287,7 +2311,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let type_hint = self.get_type_hint_info_for(literal_statement)?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
-                        self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
+                        self.generate_literal_array(literal_statement, None).map(ExpressionValue::RValue)
                     }
                     _ => self.generate_literal_struct(literal_statement),
                 }
@@ -2517,12 +2541,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_literal_array(
         &self,
         initializer: &AstNode,
+        type_hint: Option<&DataTypeInformation>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        let array_value = self.generate_literal_array_value(
-            initializer,
-            self.get_type_hint_info_for(initializer)?,
-            &initializer.get_location(),
-        )?;
+        let data_type = if let Some(dt) = type_hint { dt } else { self.get_type_hint_info_for(initializer)? };
+        let array_value =
+            self.generate_literal_array_value(initializer, data_type, &initializer.get_location())?;
         Ok(array_value.as_basic_value_enum())
     }
 

@@ -793,3 +793,258 @@ fn conflicting_signatures_in_head_and_tail_inheritance_chain() {
        │                      ^^^^^^ Overridden property `myProp` has different signatures in POU `fbD` and `fbA`
     ");
 }
+
+#[test]
+fn direct_property_assignment_is_allowed() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        TYPE Position:
+            STRUCT
+                x: DINT;
+                y: DINT;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+            PROPERTY position: Position
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance: FbA;
+                value: Position;
+            END_VAR
+
+            instance.position := value;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn property_self_assignment_remains_allowed() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        TYPE Position:
+            STRUCT
+                x: DINT;
+                y: DINT;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+            PROPERTY position: Position
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance: FbA;
+            END_VAR
+
+            instance.position := instance.position;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn property_get_followed_by_member_access_remains_allowed() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        TYPE Position:
+            STRUCT
+                x: DINT;
+                y: DINT;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+            PROPERTY position: Position
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance: FbA;
+                value: DINT;
+            END_VAR
+
+            value := instance.position.x;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn property_get_inside_lhs_index_expression_remains_allowed() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        TYPE Position:
+            STRUCT
+                x: DINT;
+                y: DINT;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+            PROPERTY position: Position
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance: FbA;
+                arr: ARRAY[1..10] OF DINT;
+            END_VAR
+
+            arr[instance.position.x] := 5;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn nested_member_assignment_through_property_is_rejected() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        TYPE Position:
+            STRUCT
+                x: DINT;
+                y: DINT;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+            PROPERTY position: Position
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance: FbA;
+            END_VAR
+
+            instance.position.x := 5;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E128]: Properties can only be assigned as a whole, not through member or index access
+       ┌─ <internal>:21:31
+       │
+    21 │             instance.position.x := 5;
+       │                               ^ Properties can only be assigned as a whole, not through member or index access
+
+    error[E048]: Could not resolve reference to x
+       ┌─ <internal>:21:31
+       │
+    21 │             instance.position.x := 5;
+       │                               ^ Could not resolve reference to x
+    ");
+}
+
+#[test]
+fn property_on_target_chain_but_property_get_in_index_expression_is_still_rejected() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        TYPE Position:
+            STRUCT
+                x: DINT;
+                y: DINT;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+            PROPERTY values: ARRAY[1..10] OF DINT
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+
+            PROPERTY position: Position
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance: FbA;
+            END_VAR
+
+            instance.values[instance.position.x] := 5;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E128]: Properties can only be assigned as a whole, not through member or index access
+       ┌─ <internal>:26:22
+       │
+    26 │             instance.values[instance.position.x] := 5;
+       │                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Properties can only be assigned as a whole, not through member or index access
+    ");
+}
+
+#[test]
+fn property_returning_array_of_structs_followed_by_index_and_member_assignment_is_rejected() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        TYPE Position:
+            STRUCT
+                x: DINT;
+                y: DINT;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+            PROPERTY positions: ARRAY[1..5] OF Position
+                GET END_GET
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance: FbA;
+            END_VAR
+
+            instance.positions[1].x := 5;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E128]: Properties can only be assigned as a whole, not through member or index access
+       ┌─ <internal>:21:35
+       │
+    21 │             instance.positions[1].x := 5;
+       │                                   ^ Properties can only be assigned as a whole, not through member or index access
+
+    error[E048]: Could not resolve reference to x
+       ┌─ <internal>:21:35
+       │
+    21 │             instance.positions[1].x := 5;
+       │                                   ^ Could not resolve reference to x
+    ");
+}

@@ -1,6 +1,7 @@
 //! Module implementing the participant methods for the [`plc::lowering::property::PropertyLowerer`]
 
 use plc::lowering::property::PropertyLowerer;
+use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
     participant::PipelineParticipantMut, AnnotatedProject, AnnotatedUnit, IndexedProject, ParsedProject,
@@ -32,5 +33,9 @@ impl PipelineParticipantMut for PropertyLowerer {
         };
 
         project.annotate(self.id_provider.clone())
+    }
+
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
     }
 }
