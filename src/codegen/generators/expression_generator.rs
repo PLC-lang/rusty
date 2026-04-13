@@ -2262,7 +2262,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 AstLiteral::Time(t) => self.create_const_int(t.value()).map(ExpressionValue::RValue),
                 AstLiteral::String(s) => self.generate_string_literal(literal_statement, s.value(), location),
                 AstLiteral::Array(arr) => self
-                    .generate_literal_array(arr.elements().ok_or_else(cannot_generate_literal)?)
+                    .generate_literal_array(
+                        arr.elements().ok_or_else(cannot_generate_literal)?,
+                        Some(self.get_type_hint_info_for(literal_statement)?),
+                    )
                     .map(ExpressionValue::RValue),
                 AstLiteral::Null => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },
@@ -2279,7 +2282,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
 
             AstStatement::MultipliedStatement { .. } => {
-                self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
+                self.generate_literal_array(literal_statement, None).map(ExpressionValue::RValue)
             }
             AstStatement::ParenExpression(expr) => self.generate_literal(expr),
             // if there is an expression-list this might be a struct-initialization or array-initialization
@@ -2287,7 +2290,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let type_hint = self.get_type_hint_info_for(literal_statement)?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
-                        self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
+                        self.generate_literal_array(literal_statement, None).map(ExpressionValue::RValue)
                     }
                     _ => self.generate_literal_struct(literal_statement),
                 }
@@ -2517,12 +2520,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_literal_array(
         &self,
         initializer: &AstNode,
+        type_hint: Option<&DataTypeInformation>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        let array_value = self.generate_literal_array_value(
-            initializer,
-            self.get_type_hint_info_for(initializer)?,
-            &initializer.get_location(),
-        )?;
+        let data_type = if let Some(dt) = type_hint { dt } else { self.get_type_hint_info_for(initializer)? };
+        let array_value =
+            self.generate_literal_array_value(initializer, data_type, &initializer.get_location())?;
         Ok(array_value.as_basic_value_enum())
     }
 

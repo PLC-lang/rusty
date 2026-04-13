@@ -2,6 +2,18 @@
 source: src/validation/tests/array_validation_test.rs
 expression: diagnostics
 ---
+warning[E127]: Fewer initial values for array `arr` than expected. Expected 2, found 1.
+   ┌─ <internal>:13:60
+   │
+13 │                 foo_valid_0     : FOO := (idx := 0, arr := [(arr := [1, 2, 3, 4, 5])]);
+   │                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^ Fewer initial values for array `arr` than expected. Expected 2, found 1.
+
+warning[E127]: Fewer initial values for array `arr` than expected. Expected 5, found 3.
+   ┌─ <internal>:14:95
+   │
+14 │                 foo_valid_1     : FOO := (idx := 0, arr := [(arr := [1, 2, 3, 4, 5]), (arr := [1, 2, 3])]);
+   │                                                                                               ^^^^^^^^^ Fewer initial values for array `arr` than expected. Expected 5, found 3.
+
 error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:18:70
    │
