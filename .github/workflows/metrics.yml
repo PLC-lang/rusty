@@ -23,7 +23,7 @@ jobs:
     - name: Install git
       run: apt-get update && apt-get install -y git
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Update git permissions
       run: |
