@@ -163,6 +163,7 @@ pub fn generate_data_types<'ink>(
     //If we didn't resolve anything this cycle, report the remaining issues and exit
     if !types_to_init.is_empty() {
         //Report each error as a new diagnostic, add the type's location as related to the error
+        let failed_names: Vec<&str> = types_to_init.iter().map(|(name, _)| *name).collect();
         let diags = types_to_init
             .into_iter()
             .map(|(name, ty)| {
@@ -174,10 +175,8 @@ pub fn generate_data_types<'ink>(
             .collect::<Vec<_>>();
         if !diags.is_empty() {
             //Report the operation failure
-            return Err(Diagnostic::new("Some initial values were not generated")
-                .with_error_code("E075")
-                .with_sub_diagnostics(diags)
-                .into()); // FIXME: these sub-diagnostics aren't printed to the console
+            let message = format!("Could not generate initial value(s) for: {}", failed_names.join(", "));
+            return Err(Diagnostic::new(message).with_error_code("E075").with_sub_diagnostics(diags).into());
         }
     }
     Ok(generator.types_index)
