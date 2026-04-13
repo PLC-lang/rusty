@@ -703,7 +703,7 @@ fn array_access_through_type_alias_is_valid() {
         ",
     );
 
-    assert_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics, @"");
 }
 
 #[test]
@@ -727,5 +727,5 @@ fn array_alias_with_struct_initializers_is_valid() {
         ",
     );
 
-    assert_snapshot!(&diagnostics);
+    assert_snapshot!(&diagnostics, @"");
 }

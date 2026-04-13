@@ -1,6 +1,0 @@
----
-source: src/validation/tests/array_validation_test.rs
-assertion_line: 730
-expression: "&diagnostics"
----
-
