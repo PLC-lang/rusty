@@ -51,6 +51,9 @@ impl RecursiveValidator {
 
         // Check for recursive type aliases
         self.validate_type_aliases(index);
+
+        // Check for recursive array type aliases
+        self.validate_array_type_cycles(index);
     }
 
     /// Validates that type aliases are not recursive
@@ -134,6 +137,73 @@ impl RecursiveValidator {
         }
 
         None
+    }
+
+    /// Validates that array type aliases don't form cycles, e.g.
+    /// `TYPE a : ARRAY[0..10] OF b; END_TYPE  TYPE b : ARRAY[0..10] OF a; END_TYPE`
+    fn validate_array_type_cycles(&mut self, index: &Index) {
+        let mut globally_visited = FxIndexSet::default();
+
+        for data_type in index.get_types().values() {
+            if !data_type.get_type_information().is_array() {
+                continue;
+            }
+
+            let name = data_type.get_name();
+            if globally_visited.contains(name) {
+                continue;
+            }
+
+            // Follow inner_type_name links looking for a cycle
+            let mut path: Vec<(&str, &DataType)> = Vec::new();
+            let mut seen = FxIndexSet::default();
+            let mut current = data_type;
+
+            loop {
+                let current_name = current.get_name();
+                if !seen.insert(current_name.to_string()) {
+                    // Found a cycle — extract it
+                    if let Some(start) = path.iter().position(|(n, _)| *n == current_name) {
+                        let cycle_nodes: Vec<&DataType> = path[start..].iter().map(|(_, dt)| *dt).collect();
+
+                        let error = cycle_nodes
+                            .iter()
+                            .map(|dt| dt.get_name())
+                            .chain(std::iter::once(current_name))
+                            .join(" -> ");
+
+                        let mut diagnostic =
+                            Diagnostic::new(format!("Recursive data structure `{error}` has infinite size"))
+                                .with_error_code("E029");
+
+                        if let Some(first) = cycle_nodes.first() {
+                            diagnostic = diagnostic.with_location(&first.location);
+                        }
+                        for dt in cycle_nodes.iter().skip(1) {
+                            diagnostic = diagnostic.with_secondary_location(&dt.location);
+                        }
+
+                        self.diagnostics.push(diagnostic);
+                    }
+                    break;
+                }
+
+                path.push((current_name, current));
+                globally_visited.insert(current_name.to_string());
+
+                // Follow the inner type of the array
+                let Some(inner_name) = current.get_type_information().get_inner_array_type_name() else {
+                    break;
+                };
+
+                let inner_type = index.get_effective_type_or_void_by_name(inner_name);
+                if !inner_type.get_type_information().is_array() {
+                    break;
+                }
+
+                current = inner_type;
+            }
+        }
     }
 }
 
