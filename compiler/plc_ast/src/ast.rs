@@ -1613,10 +1613,6 @@ impl AstNode {
             _ => None,
         }
     }
-
-    pub fn is_repeat(&self) -> bool {
-        matches!(self.stmt, AstStatement::ControlStatement(AstControlStatement::RepeatLoop(_)))
-    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]

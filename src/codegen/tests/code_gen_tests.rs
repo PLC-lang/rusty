@@ -1635,17 +1635,14 @@ fn for_statement_with_binary_expressions() {
       %tmpVar2 = icmp sgt i32 %tmpVar1, 0
       %1 = zext i1 %tmpVar2 to i8
       store i8 %1, ptr %is_incrementing_0, align [filtered]
-      br label %condition_check
+      br label %while_body
 
-    condition_check:                                  ; preds = %entry, %continue7
-      br i1 true, label %while_body, label %continue
-
-    while_body:                                       ; preds = %condition_check
+    while_body:                                       ; preds = %continue7, %entry
       %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
       %2 = icmp ne i8 %load_ran_once_0, 0
       br i1 %2, label %condition_body, label %continue3
 
-    continue:                                         ; preds = %condition_body19, %condition_body13, %condition_check
+    continue:                                         ; preds = %condition_body19, %condition_body13
       ret void
 
     condition_body:                                   ; preds = %while_body
@@ -1682,7 +1679,7 @@ fn for_statement_with_binary_expressions() {
 
     continue7:                                        ; preds = %continue14, %continue9
       %load_x21 = load i32, ptr %x, align [filtered]
-      br label %condition_check
+      br label %while_body
 
     condition_body13:                                 ; preds = %condition_body8
       br label %continue
@@ -1740,17 +1737,14 @@ fn for_statement_type_casting() {
       %tmpVar = icmp sgt i32 %0, 0
       %1 = zext i1 %tmpVar to i8
       store i8 %1, ptr %is_incrementing_0, align [filtered]
-      br label %condition_check
+      br label %while_body
 
-    condition_check:                                  ; preds = %entry, %continue4
-      br i1 true, label %while_body, label %continue
-
-    while_body:                                       ; preds = %condition_check
+    while_body:                                       ; preds = %continue4, %entry
       %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
       %2 = icmp ne i8 %load_ran_once_0, 0
       br i1 %2, label %condition_body, label %continue1
 
-    continue:                                         ; preds = %condition_body13, %condition_body9, %condition_check
+    continue:                                         ; preds = %condition_body13, %condition_body9
       ret void
 
     condition_body:                                   ; preds = %while_body
@@ -1791,7 +1785,7 @@ fn for_statement_type_casting() {
       %tmpVar16 = mul i32 %13, 3
       %14 = trunc i32 %tmpVar16 to i16
       store i16 %14, ptr %b, align [filtered]
-      br label %condition_check
+      br label %while_body
 
     condition_body9:                                  ; preds = %condition_body5
       br label %continue
