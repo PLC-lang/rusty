@@ -275,18 +275,15 @@ where
     };
 
     // Skip if any dimension has an invalid range (start > end) — already reported as E097.
-    let has_invalid_range = dimensions.iter().any(|dim| {
-        dim.get_range(context.index).is_ok_and(|range| range.start > range.end)
-    });
+    let has_invalid_range =
+        dimensions.iter().any(|dim| dim.get_range(context.index).is_ok_and(|range| range.start > range.end));
     if has_invalid_range {
         return;
     }
 
     // Compute total element count in u64 to detect when it exceeds u32::MAX.
-    let element_count: u64 = dimensions
-        .iter()
-        .map(|dim| dim.get_length(context.index).unwrap_or(0) as u64)
-        .product();
+    let element_count: u64 =
+        dimensions.iter().map(|dim| dim.get_length(context.index).unwrap_or(0) as u64).product();
 
     if element_count > u32::MAX as u64 {
         let name = &variable.name;
