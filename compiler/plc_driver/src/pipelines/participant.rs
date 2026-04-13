@@ -21,12 +21,8 @@ use plc::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
-    array_lowering,
-    retain::RetainParticipant,
-    {
-        control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
-        initializer::Initializer,
-    },
+    array_lowering, control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
+    initializer::Initializer, loops::LoopDesugarer, retain::RetainParticipant,
 };
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
@@ -353,7 +349,8 @@ impl PipelineParticipantMut for RetainParticipant {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         let IndexedProject { mut project, index, .. } = indexed_project;
         self.lower_retain(&mut project.units, index);
-        //Re-index
+
+        // Re-index
         project.index(self.ids.clone())
     }
 }
@@ -362,6 +359,16 @@ impl PipelineParticipantMut for ControlStatementParticipant {
     fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         let ParsedProject { mut units } = parsed_project;
         self.lower_control_statements(&mut units);
+
+        ParsedProject { units }
+    }
+}
+
+impl PipelineParticipantMut for LoopDesugarer {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        self.desugar(&mut units);
+
         ParsedProject { units }
     }
 }

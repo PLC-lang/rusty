@@ -3291,14 +3291,31 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
             // Statements in main
             __main_instances__ctor(instances)
             __main_references__ctor(references)
-            FOR i := 0 TO 2 DO
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := 0
+            is_incrementing_0 := TRUE
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + 1
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > 2 THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < 2 THEN
+                        EXIT;
+                    END_IF
+                END_IF
                 references[i].data := ADR(instances[i])
                 references[i].table := ADR(__itable_IA_FbA_instance)
-            END_FOR
+            END_WHILE
             ");
         }
 
@@ -3411,7 +3428,6 @@ mod tests {
         // correctly. The AggregateLowerer already does a similar WHILE transformation, but it
         // runs later and is arguably the wrong place for structural loop rewrites.
         #[test]
-        #[ignore = "stale fat pointer: preamble is hoisted before the loop instead of re-evaluated each iteration"]
         fn call_argument_wrapping_in_while_condition() {
             let source = r#"
                 INTERFACE IA
@@ -3442,12 +3458,13 @@ mod tests {
             // iteration. This requires restructuring WHILE into WHILE TRUE + EXIT.
             insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
             // Statements in main
-            alloca __fatpointer_0: __FATPOINTER
-            __fatpointer_0.data := ADR(instances[i])
-            __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
+            __main_instances__ctor(instances)
             WHILE TRUE DO
+                alloca __fatpointer_0: __FATPOINTER
+                __fatpointer_0.data := ADR(instances[i])
+                __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
                 IF NOT consumer(__fatpointer_0) THEN
-
+                    EXIT;
                 END_IF
                 i := i + 1
             END_WHILE
