@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-e82b9dcb.js";
+            window.path_to_searchindex_js = "searchindex-d35a8411.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-677a71b1.js"></script>
+        <script src="toc-f68036c4.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1858,6 +1858,33 @@ initializer to fill the rest:</p>
     arr : ARRAY[1..5] OF DINT := [1, 2, 3, 0, 0];   // explicit
     arr2 : ARRAY[1..5] OF DINT := [1, 2, 3, 2(0)];   // multiplied fill
 END_VAR
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-assignment-through-a-property"><a class="header" href="#invalid-assignment-through-a-property">Invalid assignment through a property</a></h1>
+<p>Properties can only be assigned as a whole, not through member or index access.</p>
+<p>A setter <code>position</code> is conceptually just a method call, similar to:</p>
+<pre><code class="language-iec61131st">instance.set_position(value)
+</code></pre>
+<p>That means the setter updates the entire property value. It does not produce an assignable intermediate value,
+so writing through a property into nested fields or elements is not allowed.</p>
+<h2 id="invalid-1"><a class="header" href="#invalid-1">Invalid</a></h2>
+<p>Assigning to a field of a property:</p>
+<pre><code class="language-iec61131st">instance.position.x := 5;
+</code></pre>
+<p>Assigning to an indexed element of a property:</p>
+<pre><code class="language-iec61131st">instance.values[1] := 5;
+</code></pre>
+<p>Using a property as the base of a larger assignment target:</p>
+<pre><code class="language-iec61131st">instance.positions[1].x := 5;
+</code></pre>
+<h2 id="valid-1"><a class="header" href="#valid-1">Valid</a></h2>
+<p>Assign the full property value:</p>
+<pre><code class="language-iec61131st">instance.position := value;
+instance.values := local_array;
+</code></pre>
+<p>Read from a property and then access members or indices:</p>
+<pre><code class="language-iec61131st">local := instance.position.x;
+arr[instance.position.x] := 5;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
