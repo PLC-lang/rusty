@@ -411,6 +411,20 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             **params = AstFactory::create_expression_list(args, location, self.ids.next_id());
         }
 
+        // --- Direct interface reference calls ---
+        // `refIA()` is invalid. Validate it here before codegen would later stumble over the
+        // still-unlowered interface-typed operator.
+        if let Some(diagnostic) =
+            validation::validate_direct_interface_call(self.annotations, self.index, operator)
+        {
+            self.diagnostics.push(diagnostic);
+
+            // Drop the enclosing statement so downstream codegen does not trip over the still-invalid
+            // direct interface call after we already emitted the user-facing diagnostic.
+            self.replacement = Some(vec![]);
+            return;
+        }
+
         // --- Interface method call rewriting ---
         // Check if the call operator's base is an interface-typed variable. If so, rewrite the
         // call into an indirect dispatch through the itable.
