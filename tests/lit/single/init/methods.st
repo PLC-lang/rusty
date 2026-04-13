@@ -1,11 +1,13 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 VAR_GLOBAL CONSTANT
     g2 : STRING := 'Whats up';
-    g1 : Transaction := (id := 5, amount := 10, message := g2);
 END_VAR
 
-VAR_GLOBAL 
+VAR_GLOBAL
     g0 : DINT := 5;
+
+    // g1 used to be a constant in this test, but now we have explicit validation that says that constants cannot be referenced in pointers
+    g1 : Transaction := (id := 5, amount := 10, message := g2);
 END_VAR
 
 TYPE Transaction : STRUCT
@@ -117,18 +119,18 @@ FUNCTION_BLOCK fb6
 END_FUNCTION_BLOCK
 
 PROGRAM prog
-    VAR 
+    VAR
         fb0: fb0;
         fb1: fb1;
         fb2: fb2;
         fb3: fb3;
     END_VAR
     METHOD progMethod
-        VAR 
+        VAR
             fb4: fb4;
             fb5: fb5;
             fb6: fb6;
-        END_VAR 
+        END_VAR
             fb0.fbMethod();
             fb1.fbMethod();
             fb2.fbMethod();
@@ -140,8 +142,8 @@ PROGRAM prog
     progMethod();
 END_PROGRAM
 
-FUNCTION main : DINT 
-VAR 
+FUNCTION main : DINT
+VAR
     fb0: fb0;
     fb1: fb1;
     fb2: fb2;
@@ -149,7 +151,7 @@ VAR
     fb4: fb4;
     fb5: fb5;
     fb6: fb6;
-END_VAR 
+END_VAR
     fb0.fbMethod();
     fb1.fbMethod();
     fb2.fbMethod();
