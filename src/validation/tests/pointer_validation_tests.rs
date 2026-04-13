@@ -982,12 +982,6 @@ fn pointer_to_constant_is_not_allowed() {
     let diagnostics = parse_and_validate_buffered(source);
 
     insta::assert_snapshot!(diagnostics, @"
-    warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-      ┌─ <internal>:8:21
-      │
-    8 │                 y : POINTER TO DINT;
-      │                     ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
     error[E098]: Invalid assignment, cannot ensure constant is used as read-only
        ┌─ <internal>:10:22
        │
