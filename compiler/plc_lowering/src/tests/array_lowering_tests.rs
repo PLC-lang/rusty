@@ -36,6 +36,13 @@ fn has_for_loop(stmts: &[plc_ast::ast::AstNode]) -> bool {
         .any(|s| matches!(s.get_stmt(), AstStatement::ControlStatement(AstControlStatement::ForLoop(..))))
 }
 
+/// Returns true if any statement is a WHILE loop.
+fn has_while_loop(stmts: &[plc_ast::ast::AstNode]) -> bool {
+    stmts
+        .iter()
+        .any(|s| matches!(s.get_stmt(), AstStatement::ControlStatement(AstControlStatement::WhileLoop(..))))
+}
+
 /// Returns true if any top-level assignment has a `LiteralArray` on the RHS.
 fn has_literal_array(stmts: &[plc_ast::ast::AstNode]) -> bool {
     stmts.iter().any(|s| {
@@ -217,7 +224,7 @@ fn small_adr_array_is_unrolled() {
 }
 
 #[test]
-fn large_adr_array_uses_for_loop() {
+fn large_adr_array_uses_while_loop() {
     let project = lower(
         "
         FUNCTION main : DINT
@@ -231,9 +238,10 @@ fn large_adr_array_uses_for_loop() {
     );
     let stmts = find_impl_stmts(&project, "main");
     assert!(!has_literal_array(stmts), "ADR() array should be lowered");
-    assert!(has_for_loop(stmts), "Large ADR arrays should use FOR loop");
-    // Only `main := 0` as direct assignment
-    assert_eq!(count_assignments(stmts), 1);
+    assert!(!has_for_loop(stmts), "Array lowering must not synthesize FOR loops");
+    assert!(has_while_loop(stmts), "Large ADR arrays should use a counted WHILE loop");
+    // Counter initialization + `main := 0` as direct assignments.
+    assert_eq!(count_assignments(stmts), 2);
 }
 
 #[test]
@@ -303,7 +311,7 @@ fn small_struct_array_is_unrolled() {
 }
 
 #[test]
-fn large_struct_array_uses_for_loop() {
+fn large_struct_array_uses_while_loop() {
     let project = lower(
         "
         TYPE MyStruct : STRUCT a : DINT; END_STRUCT END_TYPE
@@ -318,8 +326,9 @@ fn large_struct_array_uses_for_loop() {
     );
     let stmts = find_impl_stmts(&project, "main");
     assert!(!has_literal_array(stmts), "Struct literal array should be lowered");
-    assert!(has_for_loop(stmts), "Large struct arrays should use FOR loop");
-    assert_eq!(count_assignments(stmts), 1); // only `main := 0`
+    assert!(!has_for_loop(stmts), "Array lowering must not synthesize FOR loops");
+    assert!(has_while_loop(stmts), "Large struct arrays should use a counted WHILE loop");
+    assert_eq!(count_assignments(stmts), 2); // counter initialization + `main := 0`
 }
 
 #[test]
@@ -567,13 +576,13 @@ fn flat_to_indices_3d() {
     assert_eq!(info.flat_to_indices(26), vec![2, 2, 2]);
 }
 
-/// `FOR_LOOP_THRESHOLD` (32) is checked per `MultipliedStatement`
-/// segment, not against the total element count. An initializer split into
-/// multiple sub-threshold segments - e.g. `[10(v), 10(v), 10(v), 10(v)]`
-/// totalling 40 elements - is fully unrolled into 40 individual assignments
-/// instead of emitting a FOR loop, because each segment's count (10) is below
-/// the threshold. This documents the current behaviour so that
-/// any future fix is intentional.
+/// `LOOP_THRESHOLD` (32) is checked per `MultipliedStatement` segment, not
+/// against the total element count. An initializer split into multiple
+/// sub-threshold segments - e.g. `[10(v), 10(v), 10(v), 10(v)]` totalling 40
+/// elements - is fully unrolled into 40 individual assignments instead of
+/// emitting a generated loop, because each segment's count (10) is below the
+/// threshold. This documents the current behaviour so that any future fix is
+/// intentional.
 #[test]
 fn multi_segment_above_threshold_is_unrolled_per_segment() {
     let project = lower(
@@ -590,9 +599,10 @@ fn multi_segment_above_threshold_is_unrolled_per_segment() {
     let stmts = find_impl_stmts(&project, "main");
     assert!(!has_literal_array(stmts));
     // Each of the 4 segments (count=10, below threshold=32) is unrolled
-    // individually, producing 40 assignments rather than a FOR loop.
+    // individually, producing 40 assignments rather than a generated loop.
     // A fix would need to apply the threshold to the *total* element count.
-    assert!(!has_for_loop(stmts), "Each segment is below threshold so no FOR loop is emitted");
+    assert!(!has_while_loop(stmts), "Each segment is below threshold so no loop is emitted");
+    assert!(!has_for_loop(stmts), "Array lowering must not synthesize FOR loops");
     // 40 indexed assignments + `v := 1` + `main := 0`
     assert_eq!(count_assignments(stmts), 42);
 }
