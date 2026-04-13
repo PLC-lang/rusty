@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Canonical loop lowering for the Structured Text AST."><title>plc_lowering::loops - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_lowering" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module loops</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../plc_lowering/index.html">plc_<wbr>lowering</a><span class="version">0.3.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module loops</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#while" title="`WHILE`"><code>WHILE</code></a></li><li><a href="#repeat" title="`REPEAT`"><code>REPEAT</code></a></li><li><a href="#for" title="`FOR`"><code>FOR</code></a></li><li><a href="#generated-temporaries" title="Generated temporaries">Generated temporaries</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate plc_<wbr>lowering</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">plc_lowering</a></div><h1>Module <span>loops</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/plc_lowering/loops.rs.html#1-1361">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Canonical loop lowering for the Structured Text AST.</p>
+<p>This module rewrites all loop constructs into a canonical core based on <code>WHILE TRUE DO ... END_WHILE</code>.</p>
+<h3 id="while"><a class="doc-anchor" href="#while">§</a><code>WHILE</code></h3>
+<p>A <code>WHILE</code> loop checks its condition before each iteration:</p>
+<div class="example-wrap"><pre class="language-st"><code>WHILE &lt;cond&gt; DO
+    &lt;body&gt;
+END_WHILE</code></pre></div>
+<p>It is rewritten to:</p>
+<div class="example-wrap"><pre class="language-st"><code>WHILE TRUE DO
+    IF NOT &lt;cond&gt; THEN
+        EXIT;
+    END_IF
+
+    &lt;body&gt;
+END_WHILE</code></pre></div>
+<p>This preserves the original pre-test semantics while making the loop body
+explicit.</p>
+<h3 id="repeat"><a class="doc-anchor" href="#repeat">§</a><code>REPEAT</code></h3>
+<p>A <code>REPEAT</code> loop executes its body first and checks the condition afterwards:</p>
+<div class="example-wrap"><pre class="language-st"><code>REPEAT
+    &lt;body&gt;
+UNTIL &lt;cond&gt;
+END_REPEAT</code></pre></div>
+<p>A naive lowering to:</p>
+<div class="example-wrap"><pre class="language-st"><code>WHILE TRUE DO
+    &lt;body&gt;
+    IF &lt;cond&gt; THEN
+        EXIT;
+    END_IF
+END_WHILE</code></pre></div>
+<p>is incorrect in the presence of <code>CONTINUE</code>, because a <code>CONTINUE</code> inside <code>&lt;body&gt;</code> would skip the condition
+check entirely. To preserve post-test semantics, this module introduces a synthetic boolean temporary:</p>
+<div class="example-wrap"><pre class="language-st"><code>alloca ran_once_N : BOOL;
+WHILE TRUE DO
+    IF ran_once_N THEN
+        IF &lt;cond&gt; THEN
+            EXIT;
+        END_IF
+    END_IF
+
+    ran_once_N := TRUE;
+    &lt;body&gt;
+END_WHILE</code></pre></div>
+<p>The first iteration always executes the body. From the second iteration on, the original <code>UNTIL</code> condition
+is checked before re-entering the body.</p>
+<h3 id="for"><a class="doc-anchor" href="#for">§</a><code>FOR</code></h3>
+<p>A counted loop:</p>
+<div class="example-wrap"><pre class="language-st"><code>FOR &lt;ctrl&gt; := &lt;init&gt; TO &lt;final&gt; [BY &lt;step&gt;] DO
+    &lt;body&gt;
+END_FOR</code></pre></div>
+<p>is lowered to a canonical <code>WHILE TRUE</code> loop with two synthetic temporaries:</p>
+<ul>
+<li><code>ran_once_N</code> tracks whether the first iteration has already happened</li>
+<li><code>is_incrementing_N</code> remembers whether the step is positive</li>
+</ul>
+<div class="example-wrap"><pre class="language-st"><code>alloca ran_once_N : BOOL;
+alloca is_incrementing_N : BOOL;
+
+&lt;ctrl&gt; := &lt;init&gt;;
+is_incrementing_N := &lt;step&gt; &gt; 0;
+
+WHILE TRUE DO
+    IF ran_once_N THEN
+        &lt;ctrl&gt; := &lt;ctrl&gt; + &lt;step&gt;;
+    END_IF
+    ran_once_N := TRUE;
+
+    IF is_incrementing_N THEN
+        IF &lt;ctrl&gt; &gt; &lt;final&gt; THEN
+            EXIT;
+        END_IF
+    ELSE
+        IF &lt;ctrl&gt; &lt; &lt;final&gt; THEN
+            EXIT;
+        END_IF
+    END_IF
+
+    &lt;body&gt;
+END_WHILE</code></pre></div>
+<p>If <code>BY</code> is omitted, the step defaults to <code>1</code>. The step and end expressions remain part of the lowered tree
+and are therefore evaluated where needed by later passes, matching the compiler’s current semantics.</p>
+<h3 id="generated-temporaries"><a class="doc-anchor" href="#generated-temporaries">§</a>Generated temporaries</h3>
+<p>Compiler-generated names such as <code>ran_once_N</code> and <code>is_incrementing_N</code> are unique per desugared loop.
+They are ordinary AST allocations used only to encode loop semantics explicitly for later stages.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.LoopDesugarer.html" title="struct plc_lowering::loops::LoopDesugarer">Loop<wbr>Desugarer</a></dt></dl></section></div></main></body></html>
