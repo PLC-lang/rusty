@@ -173,12 +173,12 @@
 <a href=#173 id=173 data-nosnippet>173</a>            <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(expressions), .. }) =&gt; {
 <a href=#174 id=174 data-nosnippet>174</a>                <span class="kw">let </span><span class="kw-2">mut </span>total = <span class="number">0</span>;
 <a href=#175 id=175 data-nosnippet>175</a>                <span class="kw">for </span>it <span class="kw">in </span>expressions {
-<a href=#176 id=176 data-nosnippet>176</a>                    total += statement_to_array_length(context, it)<span class="question-mark">?</span>;
+<a href=#176 id=176 data-nosnippet>176</a>                    total += array_element_length(context, it)<span class="question-mark">?</span>;
 <a href=#177 id=177 data-nosnippet>177</a>                }
 <a href=#178 id=178 data-nosnippet>178</a>                <span class="prelude-val">Some</span>(total)
 <a href=#179 id=179 data-nosnippet>179</a>            }
 <a href=#180 id=180 data-nosnippet>180</a>
-<a href=#181 id=181 data-nosnippet>181</a>            <span class="prelude-val">Some</span>(any) =&gt; statement_to_array_length(context, any),
+<a href=#181 id=181 data-nosnippet>181</a>            <span class="prelude-val">Some</span>(any) =&gt; array_element_length(context, any),
 <a href=#182 id=182 data-nosnippet>182</a>            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>),
 <a href=#183 id=183 data-nosnippet>183</a>        },
 <a href=#184 id=184 data-nosnippet>184</a>
@@ -187,75 +187,98 @@
 <a href=#187 id=187 data-nosnippet>187</a>            .get_type(statement, context.index)
 <a href=#188 id=188 data-nosnippet>188</a>            .and_then(|it| it.information.get_array_length(context.index)),
 <a href=#189 id=189 data-nosnippet>189</a>
-<a href=#190 id=190 data-nosnippet>190</a>        AstStatement::MultipliedStatement(data) =&gt; <span class="prelude-val">Some</span>(data.multiplier <span class="kw">as </span>usize),
-<a href=#191 id=191 data-nosnippet>191</a>        AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="number">1</span>),
-<a href=#192 id=192 data-nosnippet>192</a>
-<a href=#193 id=193 data-nosnippet>193</a>        <span class="comment">// Any literal other than an array can be counted as 1
-<a href=#194 id=194 data-nosnippet>194</a>        </span>AstStatement::Literal { .. } =&gt; <span class="prelude-val">Some</span>(<span class="number">1</span>),
-<a href=#195 id=195 data-nosnippet>195</a>
-<a href=#196 id=196 data-nosnippet>196</a>        _any =&gt; {
-<a href=#197 id=197 data-nosnippet>197</a>            <span class="macro">log::debug!</span>(<span class="string">"Array size-counting for {statement:?} not covered; skipping validation"</span>);
-<a href=#198 id=198 data-nosnippet>198</a>            <span class="prelude-val">None
-<a href=#199 id=199 data-nosnippet>199</a>        </span>}
-<a href=#200 id=200 data-nosnippet>200</a>    }
-<a href=#201 id=201 data-nosnippet>201</a>}
-<a href=#202 id=202 data-nosnippet>202</a>
-<a href=#203 id=203 data-nosnippet>203</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; StatementWrapper&lt;<span class="lifetime">'a</span>&gt; {
-<a href=#204 id=204 data-nosnippet>204</a>    <span class="kw">fn </span>lhs_name(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;</span>GlobalContext) -&gt; String {
-<a href=#205 id=205 data-nosnippet>205</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#206 id=206 data-nosnippet>206</a>            StatementWrapper::Variable(variable) =&gt; variable.name.clone(),
-<a href=#207 id=207 data-nosnippet>207</a>            StatementWrapper::Statement(statement) =&gt; {
-<a href=#208 id=208 data-nosnippet>208</a>                <span class="kw">let </span>AstStatement::Assignment(data) = <span class="kw-2">&amp;</span>statement.stmt <span class="kw">else </span>{ <span class="kw">return </span><span class="string">""</span>.to_string() };
-<a href=#209 id=209 data-nosnippet>209</a>                context.slice(<span class="kw-2">&amp;</span>data.left.location)
-<a href=#210 id=210 data-nosnippet>210</a>            }
-<a href=#211 id=211 data-nosnippet>211</a>            StatementWrapper::TypeDeclaration(utd) =&gt; {
-<a href=#212 id=212 data-nosnippet>212</a>                utd.data_type.get_name().map(|s| s.to_string()).unwrap_or_default()
-<a href=#213 id=213 data-nosnippet>213</a>            }
-<a href=#214 id=214 data-nosnippet>214</a>        }
-<a href=#215 id=215 data-nosnippet>215</a>    }
-<a href=#216 id=216 data-nosnippet>216</a>
-<a href=#217 id=217 data-nosnippet>217</a>    <span class="kw">fn </span>rhs_statement(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode&gt; {
-<a href=#218 id=218 data-nosnippet>218</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#219 id=219 data-nosnippet>219</a>            StatementWrapper::Variable(variable) =&gt; variable.initializer.as_ref(),
-<a href=#220 id=220 data-nosnippet>220</a>            StatementWrapper::Statement(statement) =&gt; {
-<a href=#221 id=221 data-nosnippet>221</a>                <span class="kw">let </span>AstStatement::Assignment(data) = <span class="kw-2">&amp;</span>statement.stmt <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
-<a href=#222 id=222 data-nosnippet>222</a>                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>data.right)
-<a href=#223 id=223 data-nosnippet>223</a>            }
-<a href=#224 id=224 data-nosnippet>224</a>            StatementWrapper::TypeDeclaration(utd) =&gt; utd.initializer.as_ref(),
-<a href=#225 id=225 data-nosnippet>225</a>        }
-<a href=#226 id=226 data-nosnippet>226</a>    }
-<a href=#227 id=227 data-nosnippet>227</a>
-<a href=#228 id=228 data-nosnippet>228</a>    <span class="kw">fn </span>lhs_info&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>ValidationContext&lt;T&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>DataTypeInformation&gt;
-<a href=#229 id=229 data-nosnippet>229</a>    <span class="kw">where
-<a href=#230 id=230 data-nosnippet>230</a>        </span>T: AnnotationMap,
-<a href=#231 id=231 data-nosnippet>231</a>    {
-<a href=#232 id=232 data-nosnippet>232</a>        <span class="kw">let </span>ty = <span class="kw">match </span><span class="self">self </span>{
-<a href=#233 id=233 data-nosnippet>233</a>            StatementWrapper::Statement(statement) =&gt; {
-<a href=#234 id=234 data-nosnippet>234</a>                <span class="kw">let </span>AstNode { stmt: AstStatement::Assignment(data), .. } = statement <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
-<a href=#235 id=235 data-nosnippet>235</a>                context.annotations.get_type(<span class="kw-2">&amp;</span>data.left, context.index).map(|it| it.get_type_information())
+<a href=#190 id=190 data-nosnippet>190</a>        <span class="comment">// At the top level, a reference to a variable is not an array initializer — skip
+<a href=#191 id=191 data-nosnippet>191</a>        // validation. References inside array literals are handled by `array_element_length`.
+<a href=#192 id=192 data-nosnippet>192</a>        </span>AstStatement::ReferenceExpr(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+<a href=#193 id=193 data-nosnippet>193</a>
+<a href=#194 id=194 data-nosnippet>194</a>        AstStatement::MultipliedStatement(data) =&gt; <span class="prelude-val">Some</span>(data.multiplier <span class="kw">as </span>usize),
+<a href=#195 id=195 data-nosnippet>195</a>        AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="number">1</span>),
+<a href=#196 id=196 data-nosnippet>196</a>
+<a href=#197 id=197 data-nosnippet>197</a>        <span class="comment">// Any literal other than an array can be counted as 1
+<a href=#198 id=198 data-nosnippet>198</a>        </span>AstStatement::Literal { .. } =&gt; <span class="prelude-val">Some</span>(<span class="number">1</span>),
+<a href=#199 id=199 data-nosnippet>199</a>
+<a href=#200 id=200 data-nosnippet>200</a>        _any =&gt; {
+<a href=#201 id=201 data-nosnippet>201</a>            <span class="macro">log::debug!</span>(<span class="string">"Array size-counting for {statement:?} not covered; skipping validation"</span>);
+<a href=#202 id=202 data-nosnippet>202</a>            <span class="prelude-val">None
+<a href=#203 id=203 data-nosnippet>203</a>        </span>}
+<a href=#204 id=204 data-nosnippet>204</a>    }
+<a href=#205 id=205 data-nosnippet>205</a>}
+<a href=#206 id=206 data-nosnippet>206</a>
+<a href=#207 id=207 data-nosnippet>207</a><span class="doccomment">/// Returns the length of an element inside an array literal.
+<a href=#208 id=208 data-nosnippet>208</a>/// Unlike [`statement_to_array_length`], non-array references are counted as 1 element
+<a href=#209 id=209 data-nosnippet>209</a>/// since they represent individual values in the initializer list.
+<a href=#210 id=210 data-nosnippet>210</a></span><span class="kw">fn </span>array_element_length&lt;T: AnnotationMap&gt;(
+<a href=#211 id=211 data-nosnippet>211</a>    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+<a href=#212 id=212 data-nosnippet>212</a>    statement: <span class="kw-2">&amp;</span>AstNode,
+<a href=#213 id=213 data-nosnippet>213</a>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+<a href=#214 id=214 data-nosnippet>214</a>    <span class="kw">match </span>statement.get_stmt() {
+<a href=#215 id=215 data-nosnippet>215</a>        AstStatement::ReferenceExpr(<span class="kw">_</span>) =&gt; {
+<a href=#216 id=216 data-nosnippet>216</a>            <span class="kw">let </span>len = context
+<a href=#217 id=217 data-nosnippet>217</a>                .annotations
+<a href=#218 id=218 data-nosnippet>218</a>                .get_type(statement, context.index)
+<a href=#219 id=219 data-nosnippet>219</a>                .and_then(|it| it.information.get_array_length(context.index));
+<a href=#220 id=220 data-nosnippet>220</a>            <span class="prelude-val">Some</span>(len.unwrap_or(<span class="number">1</span>))
+<a href=#221 id=221 data-nosnippet>221</a>        }
+<a href=#222 id=222 data-nosnippet>222</a>        <span class="kw">_ </span>=&gt; statement_to_array_length(context, statement),
+<a href=#223 id=223 data-nosnippet>223</a>    }
+<a href=#224 id=224 data-nosnippet>224</a>}
+<a href=#225 id=225 data-nosnippet>225</a>
+<a href=#226 id=226 data-nosnippet>226</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; StatementWrapper&lt;<span class="lifetime">'a</span>&gt; {
+<a href=#227 id=227 data-nosnippet>227</a>    <span class="kw">fn </span>lhs_name(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;</span>GlobalContext) -&gt; String {
+<a href=#228 id=228 data-nosnippet>228</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#229 id=229 data-nosnippet>229</a>            StatementWrapper::Variable(variable) =&gt; variable.name.clone(),
+<a href=#230 id=230 data-nosnippet>230</a>            StatementWrapper::Statement(statement) =&gt; {
+<a href=#231 id=231 data-nosnippet>231</a>                <span class="kw">let </span>AstStatement::Assignment(data) = <span class="kw-2">&amp;</span>statement.stmt <span class="kw">else </span>{ <span class="kw">return </span><span class="string">""</span>.to_string() };
+<a href=#232 id=232 data-nosnippet>232</a>                context.slice(<span class="kw-2">&amp;</span>data.left.location)
+<a href=#233 id=233 data-nosnippet>233</a>            }
+<a href=#234 id=234 data-nosnippet>234</a>            StatementWrapper::TypeDeclaration(utd) =&gt; {
+<a href=#235 id=235 data-nosnippet>235</a>                utd.data_type.get_name().map(|s| s.to_string()).unwrap_or_default()
 <a href=#236 id=236 data-nosnippet>236</a>            }
-<a href=#237 id=237 data-nosnippet>237</a>
-<a href=#238 id=238 data-nosnippet>238</a>            StatementWrapper::Variable(variable) =&gt; variable
-<a href=#239 id=239 data-nosnippet>239</a>                .data_type_declaration
-<a href=#240 id=240 data-nosnippet>240</a>                .get_referenced_type()
-<a href=#241 id=241 data-nosnippet>241</a>                .and_then(|it| context.index.find_effective_type_info(it)),
-<a href=#242 id=242 data-nosnippet>242</a>
-<a href=#243 id=243 data-nosnippet>243</a>            StatementWrapper::TypeDeclaration(utd) =&gt; {
-<a href=#244 id=244 data-nosnippet>244</a>                utd.data_type.get_name().and_then(|name| context.index.find_effective_type_info(name))
-<a href=#245 id=245 data-nosnippet>245</a>            }
-<a href=#246 id=246 data-nosnippet>246</a>        }<span class="question-mark">?</span>;
-<a href=#247 id=247 data-nosnippet>247</a>
-<a href=#248 id=248 data-nosnippet>248</a>        <span class="kw">match </span>ty {
-<a href=#249 id=249 data-nosnippet>249</a>            DataTypeInformation::Pointer { .. } =&gt; <span class="prelude-val">Some</span>(context.index.find_elementary_pointer_type(ty)),
-<a href=#250 id=250 data-nosnippet>250</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(ty),
-<a href=#251 id=251 data-nosnippet>251</a>        }
-<a href=#252 id=252 data-nosnippet>252</a>    }
-<a href=#253 id=253 data-nosnippet>253</a>}
-<a href=#254 id=254 data-nosnippet>254</a>
-<a href=#255 id=255 data-nosnippet>255</a><span class="kw">fn </span>peel(node: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="kw-2">&amp;</span>AstNode {
-<a href=#256 id=256 data-nosnippet>256</a>    <span class="kw">match </span><span class="kw-2">&amp;</span>node.stmt {
-<a href=#257 id=257 data-nosnippet>257</a>        AstStatement::ParenExpression(expr) =&gt; peel(expr),
-<a href=#258 id=258 data-nosnippet>258</a>        <span class="kw">_ </span>=&gt; node,
-<a href=#259 id=259 data-nosnippet>259</a>    }
-<a href=#260 id=260 data-nosnippet>260</a>}
+<a href=#237 id=237 data-nosnippet>237</a>        }
+<a href=#238 id=238 data-nosnippet>238</a>    }
+<a href=#239 id=239 data-nosnippet>239</a>
+<a href=#240 id=240 data-nosnippet>240</a>    <span class="kw">fn </span>rhs_statement(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode&gt; {
+<a href=#241 id=241 data-nosnippet>241</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#242 id=242 data-nosnippet>242</a>            StatementWrapper::Variable(variable) =&gt; variable.initializer.as_ref(),
+<a href=#243 id=243 data-nosnippet>243</a>            StatementWrapper::Statement(statement) =&gt; {
+<a href=#244 id=244 data-nosnippet>244</a>                <span class="kw">let </span>AstStatement::Assignment(data) = <span class="kw-2">&amp;</span>statement.stmt <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
+<a href=#245 id=245 data-nosnippet>245</a>                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>data.right)
+<a href=#246 id=246 data-nosnippet>246</a>            }
+<a href=#247 id=247 data-nosnippet>247</a>            StatementWrapper::TypeDeclaration(utd) =&gt; utd.initializer.as_ref(),
+<a href=#248 id=248 data-nosnippet>248</a>        }
+<a href=#249 id=249 data-nosnippet>249</a>    }
+<a href=#250 id=250 data-nosnippet>250</a>
+<a href=#251 id=251 data-nosnippet>251</a>    <span class="kw">fn </span>lhs_info&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, context: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>ValidationContext&lt;T&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>DataTypeInformation&gt;
+<a href=#252 id=252 data-nosnippet>252</a>    <span class="kw">where
+<a href=#253 id=253 data-nosnippet>253</a>        </span>T: AnnotationMap,
+<a href=#254 id=254 data-nosnippet>254</a>    {
+<a href=#255 id=255 data-nosnippet>255</a>        <span class="kw">let </span>ty = <span class="kw">match </span><span class="self">self </span>{
+<a href=#256 id=256 data-nosnippet>256</a>            StatementWrapper::Statement(statement) =&gt; {
+<a href=#257 id=257 data-nosnippet>257</a>                <span class="kw">let </span>AstNode { stmt: AstStatement::Assignment(data), .. } = statement <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
+<a href=#258 id=258 data-nosnippet>258</a>                context.annotations.get_type(<span class="kw-2">&amp;</span>data.left, context.index).map(|it| it.get_type_information())
+<a href=#259 id=259 data-nosnippet>259</a>            }
+<a href=#260 id=260 data-nosnippet>260</a>
+<a href=#261 id=261 data-nosnippet>261</a>            StatementWrapper::Variable(variable) =&gt; variable
+<a href=#262 id=262 data-nosnippet>262</a>                .data_type_declaration
+<a href=#263 id=263 data-nosnippet>263</a>                .get_referenced_type()
+<a href=#264 id=264 data-nosnippet>264</a>                .and_then(|it| context.index.find_effective_type_info(it)),
+<a href=#265 id=265 data-nosnippet>265</a>
+<a href=#266 id=266 data-nosnippet>266</a>            StatementWrapper::TypeDeclaration(utd) =&gt; {
+<a href=#267 id=267 data-nosnippet>267</a>                utd.data_type.get_name().and_then(|name| context.index.find_effective_type_info(name))
+<a href=#268 id=268 data-nosnippet>268</a>            }
+<a href=#269 id=269 data-nosnippet>269</a>        }<span class="question-mark">?</span>;
+<a href=#270 id=270 data-nosnippet>270</a>
+<a href=#271 id=271 data-nosnippet>271</a>        <span class="kw">match </span>ty {
+<a href=#272 id=272 data-nosnippet>272</a>            DataTypeInformation::Pointer { .. } =&gt; <span class="prelude-val">Some</span>(context.index.find_elementary_pointer_type(ty)),
+<a href=#273 id=273 data-nosnippet>273</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(ty),
+<a href=#274 id=274 data-nosnippet>274</a>        }
+<a href=#275 id=275 data-nosnippet>275</a>    }
+<a href=#276 id=276 data-nosnippet>276</a>}
+<a href=#277 id=277 data-nosnippet>277</a>
+<a href=#278 id=278 data-nosnippet>278</a><span class="kw">fn </span>peel(node: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="kw-2">&amp;</span>AstNode {
+<a href=#279 id=279 data-nosnippet>279</a>    <span class="kw">match </span><span class="kw-2">&amp;</span>node.stmt {
+<a href=#280 id=280 data-nosnippet>280</a>        AstStatement::ParenExpression(expr) =&gt; peel(expr),
+<a href=#281 id=281 data-nosnippet>281</a>        <span class="kw">_ </span>=&gt; node,
+<a href=#282 id=282 data-nosnippet>282</a>    }
+<a href=#283 id=283 data-nosnippet>283</a>}
 </code></pre></div></section></main></body></html>
