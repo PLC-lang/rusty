@@ -710,3 +710,55 @@ fn fewer_elements_in_type_and_derived_variable() {
        │                                                     ^^^^^^^^^ Fewer initial values for array `userArrayType` than expected. Expected 5, found 4.
     ");
 }
+
+#[test]
+fn array_access_through_type_alias_is_valid() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE SomeStruct : STRUCT
+            field4 : USINT;
+        END_STRUCT END_TYPE
+
+        TYPE SomeArray : ARRAY[1..2] OF SomeStruct; END_TYPE
+        TYPE MyAlias : SomeArray; END_TYPE
+        TYPE MyDoubleAlias : MyAlias; END_TYPE
+
+        PROGRAM prg
+        VAR
+            x : MyAlias;
+            y : MyDoubleAlias;
+        END_VAR
+            x[1].field4 := 5;
+            x[2].field4 := 10;
+            y[1].field4 := 15;
+            y[2].field4 := 20;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(&diagnostics, @"");
+}
+
+#[test]
+fn array_alias_with_struct_initializers_is_valid() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE SomeStruct : STRUCT
+            field4 : USINT;
+        END_STRUCT END_TYPE
+
+        TYPE SomeArray : ARRAY[1..2] OF SomeStruct; END_TYPE
+        TYPE MySomeArrayWInit : SomeArray := [(field4 := 2), (field4 := 2)]; END_TYPE
+
+        PROGRAM prg
+        VAR
+            x : MySomeArrayWInit;
+        END_VAR
+            x[1].field4 := 3;
+            x[2].field4 := 4;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(&diagnostics, @"");
+}
