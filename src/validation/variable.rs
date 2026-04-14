@@ -294,7 +294,7 @@ where
                 fmt_thousands(element_count),
                 fmt_thousands(u32::MAX as u64),
             ))
-            .with_error_code("E129")
+            .with_error_code("E130")
             .with_location(&variable.location),
         );
     }

@@ -230,7 +230,8 @@ lazy_static! {
         E126,   Error,      include_str!("./error_codes/E126.md"),  // Incompatible types in interface polymorphism
         E127,   Warning,    include_str!("./error_codes/E127.md"),  // Array initialized with fewer elements than expected
         E128,   Error,      include_str!("./error_codes/E128.md"),  // Invalid nested property assignment target
-        E129,   Warning,    include_str!("./error_codes/E129.md"),  // Array size exceeds supported limit
+        E129,   Error,      include_str!("./error_codes/E129.md"),  // Direct interface reference call
+        E130,   Warning,    include_str!("./error_codes/E130.md"),  // Array size exceeds supported limit
     );
 }
 
