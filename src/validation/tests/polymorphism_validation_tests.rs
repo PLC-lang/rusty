@@ -1574,6 +1574,96 @@ mod interface {
     }
 
     #[test]
+    fn call_interface_ref_directly() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                END_VAR
+                refIA();
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E129]: Interfaces cannot be called directly
+           ┌─ <internal>:16:17
+           │
+        16 │                 refIA();
+           │                 ^^^^^ Interfaces cannot be called directly
+        ");
+    }
+
+    #[test]
+    fn call_qualified_interface_ref_directly() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK Container
+                VAR
+                    refIA : IA;
+                END_VAR
+
+                THIS^.refIA();
+            END_FUNCTION_BLOCK
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E129]: Interfaces cannot be called directly
+           ┌─ <internal>:12:17
+           │
+        12 │                 THIS^.refIA();
+           │                 ^^^^^^^^^^^ Interfaces cannot be called directly
+        ");
+    }
+
+    #[test]
+    fn call_interface_ref_array_element_directly() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refs : ARRAY[1..2] OF IA;
+                    i    : DINT;
+                END_VAR
+                refs[i]();
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E129]: Interfaces cannot be called directly
+           ┌─ <internal>:17:17
+           │
+        17 │                 refs[i]();
+           │                 ^^^^^^^ Interfaces cannot be called directly
+        ");
+    }
+
+    #[test]
     fn access_field_through_interface_ref() {
         // Interfaces only expose methods — field access is invalid
         let source = r#"
