@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-d35a8411.js";
+            window.path_to_searchindex_js = "searchindex-7a45d802.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-f68036c4.js"></script>
+        <script src="toc-403b269e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1885,6 +1885,41 @@ instance.values := local_array;
 <p>Read from a property and then access members or indices:</p>
 <pre><code class="language-iec61131st">local := instance.position.x;
 arr[instance.position.x] := 5;
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="interfaces-cannot-be-called-directly"><a class="header" href="#interfaces-cannot-be-called-directly">Interfaces cannot be called directly</a></h1>
+<p>Calling an interface-typed variable directly like <code>myInterface()</code> is invalid and instead a concrete method
+must be called, e.g. <code>myInterface.foo()</code>.</p>
+<h2 id="invalid-2"><a class="header" href="#invalid-2">Invalid</a></h2>
+<pre><code class="language-st">INTERFACE IA
+    METHOD foo END_METHOD
+END_INTERFACE
+
+FUNCTION main
+    VAR
+        refIA : IA;
+    END_VAR
+
+    refIA();
+END_FUNCTION
+</code></pre>
+<p>This also applies to qualified references and array elements:</p>
+<pre><code class="language-st">THIS^.refIA();
+refs[i]();
+</code></pre>
+<h2 id="valid-2"><a class="header" href="#valid-2">Valid</a></h2>
+<p>Specify the method name explicitly:</p>
+<pre><code class="language-st">INTERFACE IA
+    METHOD foo END_METHOD
+END_INTERFACE
+
+FUNCTION main
+    VAR
+        refIA : IA;
+    END_VAR
+
+    refIA.foo();
+END_FUNCTION
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>

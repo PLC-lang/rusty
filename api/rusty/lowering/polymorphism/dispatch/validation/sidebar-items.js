@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["validate_interface_assignment","validate_pou_implements_interface"]};
+window.SIDEBAR_ITEMS = {"fn":["validate_direct_interface_call","validate_interface_assignment","validate_pou_implements_interface"]};
