@@ -300,7 +300,7 @@ fn super_in_method_calls() {
             VAR
                 value : INT := 10;
             END_VAR
-            
+
             METHOD process : INT
                 process := value * 2;
             END_METHOD
@@ -310,7 +310,7 @@ fn super_in_method_calls() {
             METHOD process : INT // Override parent's method
                 process := value + 5;
             END_METHOD
-            
+
             METHOD test : INT
                 // Call parent's implementation
                 test := SUPER^.process();
@@ -860,7 +860,7 @@ fn super_in_multi_level_inheritance() {
             VAR
                 g_val : INT := 10;
             END_VAR
-            
+
             METHOD gp_method : INT
                 gp_method := g_val;
             END_METHOD
@@ -870,7 +870,7 @@ fn super_in_multi_level_inheritance() {
             VAR
                 p_val : INT := 20;
             END_VAR
-            
+
             METHOD p_method : INT
                 p_method := p_val + SUPER^.gp_method();
             END_METHOD
@@ -880,7 +880,7 @@ fn super_in_multi_level_inheritance() {
             VAR
                 c_val : INT := 30;
             END_VAR
-            
+
             METHOD test : INT
                 // Access parent's method which itself uses SUPER^
                 test := SUPER^.p_method();
@@ -1373,7 +1373,7 @@ fn super_in_conditionals() {
                 ELSE
                     SUPER^.value := 100;
                 END_IF;
-                
+
                 // In CASE statement
                 CASE SUPER^.value OF
                     10: SUPER^.threshold := 40;
@@ -1732,14 +1732,14 @@ fn super_as_function_parameter() {
                 process_val(SUPER^);
             END_METHOD
         END_FUNCTION_BLOCK
-        
+
         FUNCTION process_ref : INT
         VAR_INPUT
             ref : REF_TO parent;
         END_VAR
             ref^.val := 20;
         END_FUNCTION
-        
+
         FUNCTION process_val : INT
         VAR_INPUT
             val : parent;
@@ -1939,7 +1939,7 @@ fn super_with_deeply_nested_expressions() {
                 b : INT := 2;
                 c : INT := 3;
             END_VAR
-            
+
             METHOD calc : INT
                 calc := a + b * c;
             END_METHOD
@@ -2186,7 +2186,7 @@ fn super_in_loop_constructs() {
                 counter : INT := 0;
                 arr : ARRAY[0..5] OF INT := [1,2,3,4,5,6];
             END_VAR
-            
+
             METHOD increment
                 counter := counter + 1;
             END_METHOD
@@ -2198,18 +2198,18 @@ fn super_in_loop_constructs() {
                     i : INT;
                     sum : INT := 0;
                 END_VAR
-                
+
                 // FOR loop with SUPER^
                 FOR i := 0 TO 5 BY 1 DO
                     sum := sum + SUPER^.arr[i];
                     SUPER^.increment();
                 END_FOR;
-                
+
                 // WHILE loop with SUPER^
                 WHILE SUPER^.counter < 10 DO
                     SUPER^.increment();
                 END_WHILE;
-                
+
                 // REPEAT loop with SUPER^
                 REPEAT
                     SUPER^.counter := SUPER^.counter - 1;
@@ -2283,21 +2283,21 @@ fn super_in_loop_constructs() {
       store i8 0, ptr %ran_once_1, align [filtered]
       %is_incrementing_1 = alloca i8, align [filtered]
       store i8 0, ptr %is_incrementing_1, align [filtered]
+      %ran_once_1 = alloca i8, align [filtered]
+      store i8 0, ptr %ran_once_1, align [filtered]
+      %is_incrementing_1 = alloca i8, align [filtered]
+      store i8 0, ptr %is_incrementing_1, align [filtered]
       store i16 0, ptr %i, align [filtered]
       store i8 1, ptr %is_incrementing_1, align [filtered]
-      %ran_once_0 = alloca i8, align [filtered]
-      br label %condition_check
+      br label %while_body
 
-    condition_check:                                  ; preds = %continue2, %entry
-      br i1 true, label %while_body, label %continue
-
-    while_body:                                       ; preds = %condition_check
+    while_body:                                       ; preds = %continue2, %entry
       %load_ran_once_1 = load i8, ptr %ran_once_1, align [filtered]
       %1 = icmp ne i8 %load_ran_once_1, 0
       br i1 %1, label %condition_body, label %continue1
 
-    continue:                                         ; preds = %condition_body11, %condition_body7, %condition_check
-      br label %condition_check18
+    continue:                                         ; preds = %condition_body11, %condition_body7
+      br label %while_body18
 
     condition_body:                                   ; preds = %while_body
       %load_i = load i16, ptr %i, align [filtered]
@@ -2344,7 +2344,7 @@ fn super_in_loop_constructs() {
       %14 = trunc i32 %tmpVar17 to i16
       store i16 %14, ptr %sum, align [filtered]
       call void @parent__increment(ptr %__parent)
-      br label %condition_check
+      br label %while_body
 
     condition_body7:                                  ; preds = %condition_body3
       br label %continue
@@ -2364,72 +2364,67 @@ fn super_in_loop_constructs() {
     continue8:                                        ; preds = %buffer_block12, %else
       br label %continue2
 
-    condition_check18:                                ; preds = %continue21, %continue
-      br i1 true, label %while_body19, label %continue20
-
-    while_body19:                                     ; preds = %condition_check18
+    while_body18:                                     ; preds = %continue20, %continue
       %counter = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
       %load_counter = load i16, ptr %counter, align [filtered]
       %15 = sext i16 %load_counter to i32
-      %tmpVar22 = icmp slt i32 %15, 10
-      %16 = zext i1 %tmpVar22 to i8
+      %tmpVar21 = icmp slt i32 %15, 10
+      %16 = zext i1 %tmpVar21 to i8
       %17 = icmp ne i8 %16, 0
-      %tmpVar23 = xor i1 %17, true
-      br i1 %tmpVar23, label %condition_body24, label %continue21
+      %tmpVar22 = xor i1 %17, true
+      br i1 %tmpVar22, label %condition_body23, label %continue20
 
-    continue20:                                       ; preds = %condition_body24, %condition_check18
+    continue19:                                       ; preds = %condition_body23
+      %ran_once_0 = alloca i8, align [filtered]
       store i8 0, ptr %ran_once_0, align [filtered]
-      br label %condition_check26
+      br label %while_body25
 
-    condition_body24:                                 ; preds = %while_body19
+    condition_body23:                                 ; preds = %while_body18
+      br label %continue19
+
+    buffer_block24:                                   ; No predecessors!
       br label %continue20
 
-    buffer_block25:                                   ; No predecessors!
-      br label %continue21
-
-    continue21:                                       ; preds = %buffer_block25, %while_body19
+    continue20:                                       ; preds = %buffer_block24, %while_body18
       call void @parent__increment(ptr %__parent)
-      br label %condition_check18
+      br label %while_body18
 
-    condition_check26:                                ; preds = %continue29, %continue20
-      br i1 true, label %while_body27, label %continue28
-
-    while_body27:                                     ; preds = %condition_check26
+    while_body25:                                     ; preds = %continue27, %continue19
       %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
       %18 = icmp ne i8 %load_ran_once_0, 0
-      br i1 %18, label %condition_body30, label %continue29
+      br i1 %18, label %condition_body28, label %continue27
 
-    continue28:                                       ; preds = %condition_body35, %condition_check26
+    continue26:                                       ; preds = %condition_body33
       ret void
 
-    condition_body30:                                 ; preds = %while_body27
-      %counter32 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
-      %load_counter33 = load i16, ptr %counter32, align [filtered]
-      %19 = sext i16 %load_counter33 to i32
-      %tmpVar34 = icmp sle i32 %19, 0
-      %20 = zext i1 %tmpVar34 to i8
+    condition_body28:                                 ; preds = %while_body25
+      %counter30 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
+      %load_counter31 = load i16, ptr %counter30, align [filtered]
+      %19 = sext i16 %load_counter31 to i32
+      %tmpVar32 = icmp sle i32 %19, 0
+      %20 = zext i1 %tmpVar32 to i8
       %21 = icmp ne i8 %20, 0
-      br i1 %21, label %condition_body35, label %continue31
+      br i1 %21, label %condition_body33, label %continue29
 
-    continue29:                                       ; preds = %continue31, %while_body27
+    continue27:                                       ; preds = %continue29, %while_body25
       store i8 1, ptr %ran_once_0, align [filtered]
-      %counter37 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
-      %counter38 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
-      %load_counter39 = load i16, ptr %counter38, align [filtered]
-      %22 = sext i16 %load_counter39 to i32
-      %tmpVar40 = sub i32 %22, 1
-      %23 = trunc i32 %tmpVar40 to i16
-      store i16 %23, ptr %counter37, align [filtered]
-      br label %condition_check26
+      %counter35 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
+      %counter36 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
+      %load_counter37 = load i16, ptr %counter36, align [filtered]
+      %22 = sext i16 %load_counter37 to i32
+      %tmpVar38 = sub i32 %22, 1
+      %23 = trunc i32 %tmpVar38 to i16
+      store i16 %23, ptr %counter35, align [filtered]
+      br label %while_body25
 
-    condition_body35:                                 ; preds = %condition_body30
-      br label %continue28
+    condition_body33:                                 ; preds = %condition_body28
+      br label %continue26
 
-    buffer_block36:                                   ; No predecessors!
-      br label %continue31
-
-    continue31:                                       ; preds = %buffer_block36, %condition_body30
+    buffer_block34:                                   ; No predecessors!
       br label %continue29
+
+    continue29:                                       ; preds = %buffer_block34, %condition_body28
+      br label %continue27
     }
 
     define void @parent__ctor(ptr %0) {
@@ -2862,11 +2857,11 @@ fn super_with_return_value_in_multiple_contexts() {
             VAR
                 value : INT := 10;
             END_VAR
-            
+
             METHOD get_value : INT
                 get_value := value;
             END_METHOD
-            
+
             METHOD get_ref : REF_TO parent
                 get_ref := THIS;
             END_METHOD
@@ -2877,12 +2872,12 @@ fn super_with_return_value_in_multiple_contexts() {
                 // Return value directly from SUPER^ call
                 test_value := SUPER^.get_value();
             END_METHOD
-            
+
             METHOD test_ref : REF_TO parent
                 // Return REF_TO parent from SUPER
                 test_ref := SUPER;
             END_METHOD
-            
+
             METHOD test_mixed : INT
                 // Use SUPER in complex return expression
                 test_mixed := SUPER^.get_value() + SUPER^.get_ref()^.value;
@@ -2917,15 +2912,15 @@ fn super_with_structured_types() {
                 VAR
                     local_data : Complex_Type;
                 END_VAR
-                
+
                 // Access structured type through SUPER^
                 local_data.x := SUPER^.data.x;
                 local_data.y := SUPER^.data.y;
                 local_data.z := SUPER^.data.z;
-                
+
                 // Access structured array through SUPER^
                 SUPER^.arr_data[0].x := SUPER^.arr_data[1].x;
-                
+
                 // Nested access
                 SUPER^.arr_data[0].z := SUPER^.data.z;
             END_METHOD
@@ -3166,7 +3161,7 @@ fn super_in_action_blocks() {
             VAR
                 value : INT := 10;
             END_VAR
-            
+
             METHOD increment
                 value := value + 1;
             END_METHOD
@@ -3174,7 +3169,7 @@ fn super_in_action_blocks() {
 
         FUNCTION_BLOCK child EXTENDS parent
         END_FUNCTION_BLOCK
-        
+
         ACTION child.increase
             // Using SUPER^ inside an ACTION block
             SUPER^.value := SUPER^.value + 5;

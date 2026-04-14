@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: diagnostics
+---
+warning[E127]: Fewer initial values for array `partial` than expected. Expected 5, found 3.
+  ┌─ <internal>:5:46
+  │
+5 │             partial : ARRAY[1..5] OF DINT := [3(0)];
+  │                                              ^^^^^^ Fewer initial values for array `partial` than expected. Expected 5, found 3.

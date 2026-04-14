@@ -20,17 +20,14 @@ entry:
   store i8 0, ptr %is_incrementing_0, align [filtered]
   store i32 3, ptr %x, align [filtered]
   store i8 1, ptr %is_incrementing_0, align [filtered]
-  br label %condition_check
+  br label %while_body
 
-condition_check:                                  ; preds = %entry, %buffer_block15
-  br i1 true, label %while_body, label %continue
-
-while_body:                                       ; preds = %condition_check
+while_body:                                       ; preds = %buffer_block15, %entry
   %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
   %1 = icmp ne i8 %load_ran_once_0, 0
   br i1 %1, label %condition_body, label %continue1
 
-continue:                                         ; preds = %continue2, %condition_body11, %condition_body7, %condition_check
+continue:                                         ; preds = %continue2, %condition_body11, %condition_body7
   ret void
 
 condition_body:                                   ; preds = %while_body
@@ -69,7 +66,7 @@ buffer_block15:                                   ; No predecessors!
   %load_x16 = load i32, ptr %x, align [filtered]
   %tmpVar17 = add i32 %load_x16, 5
   store i32 %tmpVar17, ptr %x, align [filtered]
-  br label %condition_check
+  br label %while_body
 
 condition_body7:                                  ; preds = %condition_body3
   br label %continue

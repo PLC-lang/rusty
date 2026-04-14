@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: diagnostics
+---
+warning[E127]: Fewer initial values for array `arraytype` than expected. Expected 5, found 2.
+  ┌─ <internal>:2:49
+  │
+2 │         TYPE arraytype : ARRAY [1..5] OF INT := [1,2];
+  │                                                 ^^^^^ Fewer initial values for array `arraytype` than expected. Expected 5, found 2.

@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: diagnostics
+---
+error[E043]: Too many initial values for array `derived_derived`. Expected 10, found 11.
+  ┌─ <internal>:8:68
+  │
+8 │         TYPE derived_derived : ARRAY [1..2] OF derivedArrayType := [1,2,3,4,5,6,7,8,9,10,11];
+  │                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^ Too many initial values for array `derived_derived`. Expected 10, found 11.

@@ -1,10 +1,11 @@
 name: Build Linux
 
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
+    branches: [master]
   pull_request:
     branches: [master]
+  merge_group:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -18,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run Check
         run: |
@@ -47,7 +48,7 @@ jobs:
       - name: Show disk space after cleanup
         run: df -h
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Cargo test
         run: |
@@ -68,7 +69,7 @@ jobs:
           - { os: "ubuntu-24.04-arm", arch: "aarch64" }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Release Build (native ${{ matrix.config.arch }})
         shell: bash
@@ -91,25 +92,25 @@ jobs:
           ./scripts/build.sh --build --release --package --deb \
             --target x86_64-linux-gnu,aarch64-linux-gnu,x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: plc-${{ matrix.config.arch }}
           path: target/release/plc
           if-no-files-found: error
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.config.arch == 'x86_64'
         with:
           name: stdlib
           path: output/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.config.arch == 'x86_64'
         with:
           name: schema
           path: compiler/plc_project/schema/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: deb-${{ matrix.config.arch }}
           path: target/debian/*.deb
@@ -129,16 +130,16 @@ jobs:
       packages: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download deb artifacts (x86_64)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: deb-x86_64
           path: artifacts/deb-x86_64/
 
       - name: Download deb artifacts (aarch64)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: deb-aarch64
           path: artifacts/deb-aarch64/
@@ -154,7 +155,7 @@ jobs:
           # Copy libiec61131std debs for BOTH architectures (cross-compilation support)
           find artifacts/deb-x86_64/ -name "libiec61131std_*_amd64.deb" -exec cp {} artifacts/deb/ \;
           find artifacts/deb-aarch64/ -name "libiec61131std_*_arm64.deb" -exec cp {} artifacts/deb/ \;
-          
+
           # Validate that expected files were copied
           echo "Deb packages for Docker image (${{ matrix.config.docker_arch }}):"
           ls -la artifacts/deb/
@@ -164,7 +165,7 @@ jobs:
           fi
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build Docker image
         run: |
@@ -178,7 +179,7 @@ jobs:
         if: |
           github.event_name == 'workflow_dispatch' ||
           (github.event_name != 'pull_request' && github.ref == 'refs/heads/master')
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -217,10 +218,10 @@ jobs:
       packages: write
     steps:
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -274,7 +275,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run Checks
         run: |
@@ -298,7 +299,7 @@ jobs:
       - name: Show disk space after cleanup
         run: df -h
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run coverage in container
         run: |
@@ -310,18 +311,76 @@ jobs:
             -c "df -h && apt-get clean && rm -rf /var/lib/apt/lists/* && ./scripts/build.sh --coverage"
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           files: lcov.info
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: code-coverage-report
           path: lcov.info
 
+  pr-artifacts:
+    name: PR Artifacts
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: package-linux
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@v9
+        with:
+          script: |
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const lines = artifacts.artifacts
+              .filter(a => a.name !== 'code-coverage-report')
+              .map(a => `| \`${a.name}\` | [Download](${runUrl}/artifacts/${a.id}) | ${(a.size_in_bytes / 1024 / 1024).toFixed(1)} MB |`);
 
+            const section = [
+              '#### :penguin: Linux',
+              '| Artifact | Link | Size |',
+              '|----------|------|------|',
+              ...lines,
+              '',
+              `_From [workflow run](${runUrl})_`,
+            ].join('\n');
 
+            const COMMENT_MARKER = '<!-- pr-artifacts -->';
+            const SECTION_START = '<!-- linux-start -->';
+            const SECTION_END = '<!-- linux-end -->';
+            const sectionBlock = `${SECTION_START}\n${section}\n${SECTION_END}`;
 
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes(COMMENT_MARKER));
+
+            if (existing) {
+              const re = new RegExp(`${SECTION_START}[\\s\\S]*?${SECTION_END}`);
+              const body = re.test(existing.body)
+                ? existing.body.replace(re, sectionBlock)
+                : existing.body + '\n\n' + sectionBlock;
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `${COMMENT_MARKER}\n### Build Artifacts\n\n${sectionBlock}`,
+              });
+            }
 
 

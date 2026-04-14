@@ -27,17 +27,14 @@ entry:
   %tmpVar = icmp sgt i32 %load_step, 0
   %1 = zext i1 %tmpVar to i8
   store i8 %1, ptr %is_incrementing_0, align [filtered]
-  br label %condition_check
+  br label %while_body
 
-condition_check:                                  ; preds = %entry, %continue4
-  br i1 true, label %while_body, label %continue
-
-while_body:                                       ; preds = %condition_check
+while_body:                                       ; preds = %continue4, %entry
   %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
   %2 = icmp ne i8 %load_ran_once_0, 0
   br i1 %2, label %condition_body, label %continue1
 
-continue:                                         ; preds = %condition_body14, %condition_body9, %condition_check
+continue:                                         ; preds = %condition_body14, %condition_body9
   ret void
 
 condition_body:                                   ; preds = %while_body
@@ -71,7 +68,7 @@ else:                                             ; preds = %continue1
 
 continue4:                                        ; preds = %continue10, %continue6
   %load_x16 = load i32, ptr %x, align [filtered]
-  br label %condition_check
+  br label %while_body
 
 condition_body9:                                  ; preds = %condition_body5
   br label %continue

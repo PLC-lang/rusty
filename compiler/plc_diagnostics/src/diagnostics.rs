@@ -327,6 +327,15 @@ impl Diagnostic {
         .with_location(location)
     }
 
+    pub fn invalid_direct_interface_call<T>(location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new("Interfaces cannot be called directly")
+            .with_error_code("E129")
+            .with_location(location)
+    }
+
     pub fn cannot_generate_initializer<T>(variable_name: &str, location: T) -> Diagnostic
     where
         T: Into<SourceLocation>,

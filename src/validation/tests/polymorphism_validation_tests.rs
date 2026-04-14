@@ -22,13 +22,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-          ┌─ <internal>:8:32
-          │
-        8 │                     ptr      : POINTER TO FbA;
-          │                                ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-        ");
+        insta::assert_snapshot!(diagnostics, @"");
     }
 
     #[test]
@@ -51,13 +45,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:11:32
-           │
-        11 │                     ptr      : POINTER TO FbA;
-           │                                ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-        ");
+        insta::assert_snapshot!(diagnostics, @"");
     }
 
     #[test]
@@ -85,13 +73,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:15:32
-           │
-        15 │                     ptr      : POINTER TO FbA;
-           │                                ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-        ");
+        insta::assert_snapshot!(diagnostics, @"");
     }
 
     #[test]
@@ -114,13 +96,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:11:32
-           │
-        11 │                     ptr      : POINTER TO FbA;
-           │                                ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E125]: Invalid assignment: 'FbA' and 'FbX' are not related and cannot be used polymorphically
            ┌─ <internal>:13:17
            │
@@ -149,13 +125,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:11:32
-           │
-        11 │                     ptr      : POINTER TO FbB;
-           │                                ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E125]: Invalid assignment: 'FbB' and 'FbA' are not related and cannot be used polymorphically
            ┌─ <internal>:13:17
            │
@@ -187,13 +157,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:14:32
-           │
-        14 │                     ptr      : POINTER TO FbB;
-           │                                ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E125]: Invalid assignment: 'FbB' and 'FbC' are not related and cannot be used polymorphically
            ┌─ <internal>:16:17
            │
@@ -226,19 +190,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:10:28
-           │
-        10 │                     ptrA : POINTER TO FbA;
-           │                            ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:11:28
-           │
-        11 │                     ptrB : POINTER TO FbB;
-           │                            ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-        ");
+        insta::assert_snapshot!(diagnostics, @"");
     }
 
     #[test]
@@ -261,19 +213,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:10:28
-           │
-        10 │                     ptrA : POINTER TO FbA;
-           │                            ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:11:28
-           │
-        11 │                     ptrB : POINTER TO FbB;
-           │                            ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E125]: Invalid assignment: 'FbB' and 'FbA' are not related and cannot be used polymorphically
            ┌─ <internal>:13:17
            │
@@ -302,19 +242,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:10:28
-           │
-        10 │                     ptrA : POINTER TO FbA;
-           │                            ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:11:28
-           │
-        11 │                     ptrX : POINTER TO FbX;
-           │                            ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E125]: Invalid assignment: 'FbA' and 'FbX' are not related and cannot be used polymorphically
            ┌─ <internal>:13:17
            │
@@ -470,13 +398,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:11:32
-           │
-        11 │                     ptr      : POINTER TO ClA;
-           │                                ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-        ");
+        insta::assert_snapshot!(diagnostics, @"");
     }
 
     #[test]
@@ -499,13 +421,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:11:32
-           │
-        11 │                     ptr      : POINTER TO ClA;
-           │                                ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E125]: Invalid assignment: 'ClA' and 'ClX' are not related and cannot be used polymorphically
            ┌─ <internal>:13:17
            │
@@ -536,13 +452,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-          ┌─ <internal>:9:27
-          │
-        9 │                     ptr : POINTER TO FbA;
-          │                           ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-        ");
+        insta::assert_snapshot!(diagnostics, @"");
     }
 
     #[test]
@@ -568,13 +478,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:14:27
-           │
-        14 │                     ptr : POINTER TO FbA;
-           │                           ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-        ");
+        insta::assert_snapshot!(diagnostics, @"");
     }
 
     #[test]
@@ -600,13 +504,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:14:27
-           │
-        14 │                     ptr : POINTER TO FbA;
-           │                           ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E048]: Could not resolve reference to bar
            ┌─ <internal>:16:22
            │
@@ -641,13 +539,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:17:27
-           │
-        17 │                     ptr : POINTER TO FbA;
-           │                           ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E048]: Could not resolve reference to baz
            ┌─ <internal>:19:22
            │
@@ -685,19 +577,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:10:27
-           │
-        10 │                     ptr : POINTER TO FbA;
-           │                           ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:16:28
-           │
-        16 │                     ptrB : POINTER TO FbB;
-           │                            ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-        ");
+        insta::assert_snapshot!(diagnostics, @"");
     }
 
     #[test]
@@ -724,19 +604,7 @@ mod pou {
         "#;
 
         let diagnostics = parse_and_validate_buffered(source);
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:10:27
-           │
-        10 │                     ptr : POINTER TO FbA;
-           │                           ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:16:28
-           │
-        16 │                     ptrX : POINTER TO FbX;
-           │                            ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E125]: Invalid assignment: 'FbA' and 'FbX' are not related and cannot be used polymorphically
            ┌─ <internal>:18:26
            │
@@ -769,19 +637,7 @@ mod pou {
         "#;
 
         let diagnostics = parse_and_validate_buffered(source);
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:10:27
-           │
-        10 │                     ptr : POINTER TO FbB;
-           │                           ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:16:28
-           │
-        16 │                     ptrA : POINTER TO FbA;
-           │                            ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E125]: Invalid assignment: 'FbB' and 'FbA' are not related and cannot be used polymorphically
            ┌─ <internal>:18:26
            │
@@ -815,13 +671,7 @@ mod pou {
 
         let diagnostics = parse_and_validate_buffered(source);
 
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:10:27
-           │
-        10 │                     ptr : POINTER TO FbA;
-           │                           ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-        ");
+        insta::assert_snapshot!(diagnostics, @"");
     }
 
     #[test]
@@ -848,13 +698,7 @@ mod pou {
         "#;
 
         let diagnostics = parse_and_validate_buffered(source);
-        insta::assert_snapshot!(diagnostics, @r"
-        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-           ┌─ <internal>:10:27
-           │
-        10 │                     ptr : POINTER TO FbA;
-           │                           ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
-
+        insta::assert_snapshot!(diagnostics, @"
         error[E125]: Invalid assignment: 'FbA' and 'FbX' are not related and cannot be used polymorphically
            ┌─ <internal>:18:26
            │
@@ -1726,6 +1570,96 @@ mod interface {
            │
         24 │                 refIA.bar();
            │                       ^^^ Could not resolve reference to bar
+        ");
+    }
+
+    #[test]
+    fn call_interface_ref_directly() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refIA : IA;
+                END_VAR
+                refIA();
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E129]: Interfaces cannot be called directly
+           ┌─ <internal>:16:17
+           │
+        16 │                 refIA();
+           │                 ^^^^^ Interfaces cannot be called directly
+        ");
+    }
+
+    #[test]
+    fn call_qualified_interface_ref_directly() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK Container
+                VAR
+                    refIA : IA;
+                END_VAR
+
+                THIS^.refIA();
+            END_FUNCTION_BLOCK
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E129]: Interfaces cannot be called directly
+           ┌─ <internal>:12:17
+           │
+        12 │                 THIS^.refIA();
+           │                 ^^^^^^^^^^^ Interfaces cannot be called directly
+        ");
+    }
+
+    #[test]
+    fn call_interface_ref_array_element_directly() {
+        let source = r#"
+            INTERFACE IA
+                METHOD foo
+                END_METHOD
+            END_INTERFACE
+
+            FUNCTION_BLOCK FbA IMPLEMENTS IA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refs : ARRAY[1..2] OF IA;
+                    i    : DINT;
+                END_VAR
+                refs[i]();
+            END_FUNCTION
+        "#;
+
+        let diagnostics = parse_and_validate_buffered(source);
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E129]: Interfaces cannot be called directly
+           ┌─ <internal>:17:17
+           │
+        17 │                 refs[i]();
+           │                 ^^^^^^^ Interfaces cannot be called directly
         ");
     }
 

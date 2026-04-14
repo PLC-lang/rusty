@@ -310,19 +310,20 @@ fn elseif_is_lowered_to_else_with_nested_if_inside_for_loop() {
       store i8 0, ptr %ran_once_0, align [filtered]
       %is_incrementing_0 = alloca i8, align [filtered]
       store i8 0, ptr %is_incrementing_0, align [filtered]
+      %ran_once_0 = alloca i8, align [filtered]
+      store i8 0, ptr %ran_once_0, align [filtered]
+      %is_incrementing_0 = alloca i8, align [filtered]
+      store i8 0, ptr %is_incrementing_0, align [filtered]
       store i16 0, ptr %i, align [filtered]
       store i8 1, ptr %is_incrementing_0, align [filtered]
-      br label %condition_check
+      br label %while_body
 
-    condition_check:                                  ; preds = %entry, %continue14
-      br i1 true, label %while_body, label %continue
-
-    while_body:                                       ; preds = %condition_check
+    while_body:                                       ; preds = %continue14, %entry
       %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
       %1 = icmp ne i8 %load_ran_once_0, 0
       br i1 %1, label %condition_body, label %continue1
 
-    continue:                                         ; preds = %condition_body11, %condition_body7, %condition_check
+    continue:                                         ; preds = %condition_body11, %condition_body7
       ret void
 
     condition_body:                                   ; preds = %while_body
@@ -394,7 +395,7 @@ fn elseif_is_lowered_to_else_with_nested_if_inside_for_loop() {
       br i1 %16, label %condition_body21, label %else17
 
     continue14:                                       ; preds = %continue18, %condition_body16
-      br label %condition_check
+      br label %while_body
 
     condition_body21:                                 ; preds = %else13
       store i8 98, ptr %cVar, align [filtered]
@@ -472,18 +473,15 @@ fn elseif_is_lowered_to_else_with_nested_if_inside_while_loop() {
       store i8 110, ptr %cVar, align [filtered]
       store i8 1, ptr %someCon, align [filtered]
       store i16 0, ptr %breakOut, align [filtered]
-      br label %condition_check
+      br label %while_body
 
-    condition_check:                                  ; preds = %entry, %continue2
-      br i1 true, label %while_body, label %continue
-
-    while_body:                                       ; preds = %condition_check
+    while_body:                                       ; preds = %continue2, %entry
       %load_someCon = load i8, ptr %someCon, align [filtered]
       %1 = icmp ne i8 %load_someCon, 0
       %tmpVar = xor i1 %1, true
       br i1 %tmpVar, label %condition_body, label %continue1
 
-    continue:                                         ; preds = %condition_body, %condition_check
+    continue:                                         ; preds = %condition_body
       ret void
 
     condition_body:                                   ; preds = %while_body
@@ -514,7 +512,7 @@ fn elseif_is_lowered_to_else_with_nested_if_inside_while_loop() {
       br i1 %7, label %condition_body9, label %else5
 
     continue2:                                        ; preds = %continue6, %condition_body4
-      br label %condition_check
+      br label %while_body
 
     condition_body9:                                  ; preds = %else
       store i8 98, ptr %cVar, align [filtered]

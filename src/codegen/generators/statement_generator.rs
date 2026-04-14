@@ -24,6 +24,7 @@ use plc_ast::{
         ReferenceAccess, ReferenceExpr,
     },
     control_statements::{AstControlStatement, CaseStatement, IfStatement, LoopStatement, ReturnStatement},
+    literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
@@ -534,78 +535,52 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
     /// generates a while statement
     ///
-    /// WHILE condition DO
-    ///     body
-    /// END_WHILE
+    /// Generates a canonical lowered loop.
     ///
-    /// - `condition` the while's condition
-    /// - `body` the while's body statements
+    /// All loops are desugared into `WHILE TRUE DO ... END_WHILE` before reaching codegen, so the
+    /// loop body already contains the real control flow (`IF ... EXIT`, increment/bounds checks,
+    /// etc.). Codegen therefore only has to emit the infinite loop skeleton and wire `EXIT` /
+    /// `CONTINUE` to the lowered body.
     fn generate_loop_statement(
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
         stmt: &LoopStatement,
     ) -> Result<(), CodegenError> {
-        let builder = &self.llvm.builder;
-        let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-        let (condition_block, _) =
-            self.generate_base_while_statement(llvm_index, &stmt.condition, &stmt.body, &stmt.end_location)?;
+        debug_assert!(
+            matches!(stmt.condition.get_stmt_peeled(), AstStatement::Literal(AstLiteral::Bool(true)),),
+            "Loops _should_ be desugared into a canonicalized `WHILE TRUE DO ... END_WHILE` format (see `loops.rs`)"
+        );
 
-        let continue_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
-
-        builder.position_at_end(basic_block);
-        builder.build_unconditional_branch(condition_block)?;
-
-        builder.position_at_end(continue_block);
-        Ok(())
-    }
-
-    /// utility method for while and repeat loops
-    fn generate_base_while_statement(
-        &self,
-        llvm_index: &'a LlvmTypedIndex<'b>,
-        condition: &AstNode,
-        body: &[AstNode],
-        end_location: &SourceLocation,
-    ) -> Result<(BasicBlock<'_>, BasicBlock<'_>), CodegenError> {
         let (builder, current_function, context) = self.get_llvm_deps();
-        let condition_check = context.append_basic_block(current_function, "condition_check");
+        let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
+
         let while_body = context.append_basic_block(current_function, "while_body");
         let continue_block = context.append_basic_block(current_function, "continue");
 
-        //Check loop condition
-        builder.position_at_end(condition_check);
-        self.register_debug_location(condition);
-        let condition_value = self.create_expr_generator(llvm_index).generate_expression(condition)?;
-        builder.build_conditional_branch(
-            to_i1(condition_value.into_int_value(), builder)?,
-            while_body,
-            continue_block,
-        )?;
+        builder.position_at_end(basic_block);
+        builder.build_unconditional_branch(while_body)?;
 
-        //Enter the for loop
         builder.position_at_end(while_body);
         let body_generator = StatementCodeGenerator {
             current_loop_exit: Some(continue_block),
-            current_loop_continue: Some(condition_check),
+            current_loop_continue: Some(while_body),
             load_prefix: self.load_prefix.clone(),
             load_suffix: self.load_suffix.clone(),
             llvm_index,
             ..*self
         };
-        body_generator.generate_body(body)?;
-        //Set the debug location to the end of the loop
+        body_generator.generate_body(&stmt.body)?;
+
         self.debug.set_debug_location(
             self.llvm,
             self.function_context,
-            end_location.get_line_plus_one(),
-            end_location.get_column(),
+            stmt.end_location.get_line_plus_one(),
+            stmt.end_location.get_column(),
         );
-        //Loop back
-        builder.build_unconditional_branch(condition_check)?;
+        builder.build_unconditional_branch(while_body)?;
 
-        //Continue
         builder.position_at_end(continue_block);
-        Ok((condition_check, while_body))
+        Ok(())
     }
 
     /// generates an IF-Statement

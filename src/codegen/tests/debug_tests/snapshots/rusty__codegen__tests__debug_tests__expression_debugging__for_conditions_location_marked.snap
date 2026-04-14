@@ -18,17 +18,14 @@ entry:
   store i8 0, ptr %is_incrementing_0, align [filtered], !dbg !12
   store i32 1, ptr %myFunc, align [filtered], !dbg !13
   store i8 1, ptr %is_incrementing_0, align [filtered], !dbg !12
-  br label %condition_check, !dbg !12
+  br label %while_body, !dbg !12
 
-condition_check:                                  ; preds = %entry, %continue2
-  br i1 true, label %while_body, label %continue, !dbg !12
-
-while_body:                                       ; preds = %condition_check
+while_body:                                       ; preds = %continue2, %entry
   %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered], !dbg !12
   %0 = icmp ne i8 %load_ran_once_0, 0, !dbg !12
   br i1 %0, label %condition_body, label %continue1, !dbg !12
 
-continue:                                         ; preds = %condition_body11, %condition_body7, %condition_check
+continue:                                         ; preds = %condition_body11, %condition_body7
   %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !14
   ret i32 %myFunc_ret, !dbg !14
 
@@ -60,7 +57,7 @@ else:                                             ; preds = %continue1
 
 continue2:                                        ; preds = %continue8, %continue4
   store i32 1, ptr %myFunc, align [filtered], !dbg !15
-  br label %condition_check, !dbg !12
+  br label %while_body, !dbg !12
 
 condition_body7:                                  ; preds = %condition_body3
   br label %continue, !dbg !12
