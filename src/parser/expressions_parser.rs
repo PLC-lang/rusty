@@ -85,9 +85,9 @@ pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> AstNode {
     start
 }
 
-// OR
+// OR, OR_ELSE
 fn parse_or_expression(lexer: &mut ParseSession) -> AstNode {
-    parse_left_associative_expression!(lexer, parse_xor_expression, OperatorOr,)
+    parse_left_associative_expression!(lexer, parse_xor_expression, OperatorOr | OperatorOrElse,)
 }
 
 // XOR
@@ -95,9 +95,13 @@ fn parse_xor_expression(lexer: &mut ParseSession) -> AstNode {
     parse_left_associative_expression!(lexer, parse_and_expression, OperatorXor,)
 }
 
-// AND
+// AND, AND_THEN
 fn parse_and_expression(lexer: &mut ParseSession) -> AstNode {
-    parse_left_associative_expression!(lexer, parse_equality_expression, OperatorAmp | OperatorAnd,)
+    parse_left_associative_expression!(
+        lexer,
+        parse_equality_expression,
+        OperatorAmp | OperatorAnd | OperatorAndThen,
+    )
 }
 
 //EQUALITY  =, <>
@@ -209,7 +213,9 @@ fn to_operator(token: &Token) -> Option<Operator> {
         OperatorGreaterOrEqual => Some(Operator::GreaterOrEqual),
         OperatorModulo => Some(Operator::Modulo),
         OperatorAnd | OperatorAmp => Some(Operator::And),
+        OperatorAndThen => Some(Operator::AndThen),
         OperatorOr => Some(Operator::Or),
+        OperatorOrElse => Some(Operator::OrElse),
         OperatorXor => Some(Operator::Xor),
         OperatorNot => Some(Operator::Not),
         _ => None,

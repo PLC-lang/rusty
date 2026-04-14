@@ -370,8 +370,14 @@ pub enum Token {
     #[token("MOD", ignore(case))]
     OperatorModulo,
 
+    #[token("AND_THEN", ignore(case))]
+    OperatorAndThen,
+
     #[token("AND", ignore(case))]
     OperatorAnd,
+
+    #[token("OR_ELSE", ignore(case))]
+    OperatorOrElse,
 
     #[token("OR", ignore(case))]
     OperatorOr,

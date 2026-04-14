@@ -36,13 +36,15 @@ pub struct CompatibilityProfile {
 // forward compatibility — newer profile files work with older compilers.
 // When adding new flags, add them with `#[serde(default = "...")]` to
 // ensure profiles that don't mention the flag get the current default.
+// Default matches CODESYS behavior: `short_circuit_bool_ops` defaults to `false` (no short-circuit for AND/OR).
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct BehaviorFlags {
-    // No flags yet — this struct will grow as behaviors are implemented.
-    // Each flag should:
-    //   1. Have a `#[serde(default = "...")]` attribute
-    //   2. Default to current (CODESYS-compatible) behavior
-    //   3. Be documented in book/src/using_rusty/compatibility_profiles.md
+    /// Whether `AND` / `OR` on booleans should short-circuit.
+    ///
+    /// - `false` (CODESYS default): `AND`/`OR` evaluate both operands. Use `AND_THEN`/`OR_ELSE` for short-circuit.
+    /// - `true` (standard): `AND`/`OR` short-circuit. `AND_THEN`/`OR_ELSE` are accepted but equivalent.
+    #[serde(default)]
+    pub short_circuit_bool_ops: bool,
 }
 
 /// Well-known profile names.
@@ -64,7 +66,7 @@ impl CompatibilityProfile {
     pub fn standard() -> Self {
         CompatibilityProfile {
             name: Some(PROFILE_STANDARD.to_string()),
-            behaviors: BehaviorFlags::default(),
+            behaviors: BehaviorFlags { short_circuit_bool_ops: true },
             diagnostics: DiagnosticsConfiguration::default(),
         }
     }

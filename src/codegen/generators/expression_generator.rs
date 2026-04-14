@@ -2148,8 +2148,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.llvm.builder.build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar")?
             }
             Operator::Xor => self.llvm.builder.build_xor(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::And => self.llvm.builder.build_and(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::Or => self.llvm.builder.build_or(int_lvalue, int_rvalue, "tmpVar")?,
+            Operator::And | Operator::AndThen => {
+                self.llvm.builder.build_and(int_lvalue, int_rvalue, "tmpVar")?
+            }
+            Operator::Or | Operator::OrElse => {
+                self.llvm.builder.build_or(int_lvalue, int_rvalue, "tmpVar")?
+            }
             _ => Err(Diagnostic::codegen_error(
                 format!("Operator '{operator}' unimplemented for int").as_str(),
                 SourceLocation::undefined(),
@@ -2675,9 +2679,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         right: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         match operator {
-            Operator::And | Operator::Or => {
+            // AND_THEN / OR_ELSE always short-circuit regardless of profile
+            Operator::AndThen | Operator::OrElse => {
                 self.generate_bool_short_circuit_expression(operator, left, right)
             }
+            // AND / OR short-circuit only when the profile enables it
+            Operator::And | Operator::Or if self.compatibility_profile.behaviors.short_circuit_bool_ops => {
+                self.generate_bool_short_circuit_expression(operator, left, right)
+            }
+            // AND / OR eager evaluation (no short-circuit)
+            Operator::And => Ok(self
+                .llvm
+                .builder
+                .build_and(
+                    to_i1(self.generate_expression(left)?.into_int_value(), &self.llvm.builder)?,
+                    to_i1(self.generate_expression(right)?.into_int_value(), &self.llvm.builder)?,
+                    "",
+                )?
+                .as_basic_value_enum()),
+            Operator::Or => Ok(self
+                .llvm
+                .builder
+                .build_or(
+                    to_i1(self.generate_expression(left)?.into_int_value(), &self.llvm.builder)?,
+                    to_i1(self.generate_expression(right)?.into_int_value(), &self.llvm.builder)?,
+                    "",
+                )?
+                .as_basic_value_enum()),
             Operator::Equal => Ok(self
                 .llvm
                 .builder
@@ -2737,8 +2765,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //Compare left to 0
 
         match operator {
-            Operator::Or => builder.build_conditional_branch(lhs, continue_branch, right_branch)?,
-            Operator::And => builder.build_conditional_branch(lhs, right_branch, continue_branch)?,
+            Operator::Or | Operator::OrElse => {
+                builder.build_conditional_branch(lhs, continue_branch, right_branch)?
+            }
+            Operator::And | Operator::AndThen => {
+                builder.build_conditional_branch(lhs, right_branch, continue_branch)?
+            }
             _ => {
                 return Err(Diagnostic::codegen_error(
                     format!("Cannot generate phi-expression for operator {operator:}"),

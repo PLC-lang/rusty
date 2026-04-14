@@ -294,6 +294,64 @@ pub mod tests {
         codegen_without_unwrap(src).map_err(|it| panic!("{it}")).unwrap()
     }
 
+    pub fn codegen_with_profile(
+        src: &str,
+        profile: plc_diagnostics::profiles::CompatibilityProfile,
+    ) -> String {
+        codegen_with_profile_without_unwrap(src, profile).map_err(|it| panic!("{it}")).unwrap()
+    }
+
+    pub fn codegen_with_profile_without_unwrap(
+        src: &str,
+        profile: plc_diagnostics::profiles::CompatibilityProfile,
+    ) -> Result<String, String> {
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), src.to_string());
+        let mut id_provider = IdProvider::default();
+        let (unit, index, diagnostics) = index_and_lower(src, id_provider.clone());
+        reporter.handle(&diagnostics);
+
+        let (annotations, index, annotated_units) =
+            annotate_and_lower_with_ids(unit, index, id_provider.clone());
+
+        let annotations = AstAnnotations::new(annotations, id_provider.next_id());
+        let got_layout = Mutex::new(HashMap::default());
+        let (unit, dependencies, literals) = annotated_units;
+        let context = CodegenContext::create();
+        let path = PathBuf::from_str("src").ok();
+        let mut code_generator = crate::codegen::CodeGen::new(
+            &context,
+            path.as_deref(),
+            unit.file,
+            crate::OptimizationLevel::None,
+            DebugLevel::None,
+            OnlineChange::Disabled,
+            &Target::System,
+        );
+        let llvm_index = code_generator
+            .generate_llvm_index(
+                &context,
+                &annotations,
+                &literals,
+                &dependencies,
+                &index,
+                &got_layout,
+                &profile,
+            )
+            .map_err(|err| {
+                reporter.handle(&[err.into()]);
+                reporter.buffer().unwrap()
+            })?;
+
+        code_generator
+            .generate(&context, &unit, &annotations, &index, llvm_index, false, &profile)
+            .map(|module| module.persist_to_string())
+            .map_err(|err| {
+                reporter.handle(&[err.into()]);
+                reporter.buffer().unwrap()
+            })
+    }
+
     fn codegen_into_modules<T: Compilable>(
         context: &CodegenContext,
         sources: T,

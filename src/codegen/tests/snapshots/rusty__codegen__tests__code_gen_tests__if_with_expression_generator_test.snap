@@ -19,23 +19,17 @@ entry:
   %tmpVar = icmp sgt i32 %load_x, 1
   %1 = zext i1 %tmpVar to i8
   %2 = icmp ne i8 %1, 0
-  br i1 %2, label %5, label %3
+  %load_b1 = load i8, ptr %b1, align [filtered]
+  %3 = icmp ne i8 %load_b1, 0
+  %4 = or i1 %2, %3
+  %5 = zext i1 %4 to i8
+  %6 = icmp ne i8 %5, 0
+  br i1 %6, label %condition_body, label %continue
 
-condition_body:                                   ; preds = %5
+condition_body:                                   ; preds = %entry
   %load_x1 = load i32, ptr %x, align [filtered]
   br label %continue
 
-continue:                                         ; preds = %condition_body, %5
+continue:                                         ; preds = %condition_body, %entry
   ret void
-
-3:                                                ; preds = %entry
-  %load_b1 = load i8, ptr %b1, align [filtered]
-  %4 = icmp ne i8 %load_b1, 0
-  br label %5
-
-5:                                                ; preds = %3, %entry
-  %6 = phi i1 [ %2, %entry ], [ %4, %3 ]
-  %7 = zext i1 %6 to i8
-  %8 = icmp ne i8 %7, 0
-  br i1 %8, label %condition_body, label %continue
 }

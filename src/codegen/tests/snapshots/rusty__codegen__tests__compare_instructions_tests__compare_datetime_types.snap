@@ -20,26 +20,14 @@ entry:
   %load_var_time = load i64, ptr %var_time, align [filtered]
   %load_var_time_of_day = load i64, ptr %var_time_of_day, align [filtered]
   %tmpVar = icmp sgt i64 %load_var_time, %load_var_time_of_day
-  br i1 %tmpVar, label %1, label %2
-
-1:                                                ; preds = %entry
   %load_var_time_of_day1 = load i64, ptr %var_time_of_day, align [filtered]
   %load_var_date = load i64, ptr %var_date, align [filtered]
   %tmpVar2 = icmp sgt i64 %load_var_time_of_day1, %load_var_date
-  br label %2
-
-2:                                                ; preds = %1, %entry
-  %3 = phi i1 [ %tmpVar, %entry ], [ %tmpVar2, %1 ]
-  br i1 %3, label %4, label %5
-
-4:                                                ; preds = %2
+  %1 = and i1 %tmpVar, %tmpVar2
   %load_var_date3 = load i64, ptr %var_date, align [filtered]
   %load_var_date_and_time = load i64, ptr %var_date_and_time, align [filtered]
   %tmpVar4 = icmp sgt i64 %load_var_date3, %load_var_date_and_time
-  br label %5
-
-5:                                                ; preds = %4, %2
-  %6 = phi i1 [ %3, %2 ], [ %tmpVar4, %4 ]
-  %7 = zext i1 %6 to i8
+  %2 = and i1 %1, %tmpVar4
+  %3 = zext i1 %2 to i8
   ret void
 }

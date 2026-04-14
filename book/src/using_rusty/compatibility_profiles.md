@@ -105,9 +105,46 @@ Behavior flags control specific aspects of how the compiler translates and valid
 
 Flags will be added incrementally as the profile system evolves. Each flag is documented below with its default value, which profiles set it, and what effect it has.
 
-<!-- As behavior flags are added, document each one here with:
-     - Flag name and type
-     - Default value
-     - Which profiles set it to what
-     - Which compiler phases it affects
-     - Example showing the behavioral difference -->
+### `short_circuit_bool_ops`
+
+| Type | Default | `codesys` profile | `standard` profile |
+|------|---------|--------------------|--------------------|
+| `bool` | `false` | `false` | `true` |
+
+Controls whether `AND` and `OR` use short-circuit evaluation on boolean operands.
+
+**When `false`** (CODESYS-compatible): `AND` and `OR` always evaluate both operands, even if the result can be determined from the left operand alone. For example, in `a() AND b()`, both `a()` and `b()` will be called regardless of the result of `a()`.
+
+**When `true`** (IEC 61131-3 standard): `AND` and `OR` use short-circuit evaluation. If the left operand of `AND` is `FALSE`, or the left operand of `OR` is `TRUE`, the right operand is not evaluated.
+
+This flag only affects boolean operands. When `AND` and `OR` are used with integer types (bitwise operations), both operands are always evaluated regardless of this setting.
+
+#### `AND_THEN` and `OR_ELSE` keywords
+
+The `AND_THEN` and `OR_ELSE` keywords always use short-circuit evaluation, regardless of the active profile. They are useful in the CODESYS profile where `AND`/`OR` do not short-circuit:
+
+```iecst
+// Safe null-check pattern: right side only evaluated if left is TRUE
+IF ptr <> NULL AND_THEN ptr^.value > 0 THEN
+    // ...
+END_IF;
+```
+
+Under the `standard` profile, `AND_THEN` and `OR_ELSE` behave identically to `AND` and `OR` since all four operators short-circuit.
+
+| Operator | `codesys` profile | `standard` profile |
+|----------|-------------------|--------------------|
+| `AND` | evaluates both sides | short-circuits |
+| `OR` | evaluates both sides | short-circuits |
+| `AND_THEN` | short-circuits | short-circuits |
+| `OR_ELSE` | short-circuits | short-circuits |
+
+#### Example
+
+```json
+{
+  "behaviors": {
+    "short_circuit_bool_ops": true
+  }
+}
+```
