@@ -342,7 +342,26 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 }?
                 .into_struct_type();
 
-                Ok(Some(struct_type.const_named_struct(&member_values).as_basic_value_enum()))
+                // If any member is a large array (> 1M elements) with no explicit initializer,
+                // use zeroinitializer for the whole struct instead of const_named_struct.
+                // This avoids materializing huge zero arrays (e.g. multi-GB) in the .data
+                // section. The lowering phase generates __ctor functions that handle non-zero
+                // member initialization at runtime, so zeroinitializer + constructor is correct.
+                let has_oversized_default_array = members
+                    .iter()
+                    .filter(|it| it.get_variable_type() != VariableType::Temp)
+                    .filter(|it| it.initial_value.is_none())
+                    .any(|it| {
+                        self.types_index
+                            .find_associated_type(it.get_type_name())
+                            .is_some_and(|ty| ty.is_array_type() && ty.into_array_type().len() > 1_000_000)
+                    });
+
+                if has_oversized_default_array {
+                    Ok(Some(struct_type.const_zero().as_basic_value_enum()))
+                } else {
+                    Ok(Some(struct_type.const_named_struct(&member_values).as_basic_value_enum()))
+                }
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
                 data_type,
