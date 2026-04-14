@@ -2667,7 +2667,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(array_value.as_basic_value_enum())
     }
 
-    /// generates a phi-expression (&& or || expression) with respect to short-circuit evaluation
+    /// Generates a boolean binary expression (AND, OR, AND_THEN, OR_ELSE).
+    ///
+    /// `AND_THEN` and `OR_ELSE` always use short-circuit (phi-based) evaluation.
+    /// `AND` and `OR` use short-circuit or eager evaluation depending on the
+    /// active compatibility profile's `short_circuit_bool_ops` flag.
     ///
     /// - `operator` an operator suitable for bool variables
     /// - `left` the left side of the expression

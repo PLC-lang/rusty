@@ -1085,7 +1085,7 @@ fn or_else_test() {
 #[test]
 fn boolean_priority_with_and_then_or_else_test() {
     // AND_THEN has same precedence as AND, OR_ELSE same as OR
-    // Precedence: OR_ELSE > XOR > AND_THEN, same as OR > XOR > AND
+    // Precedence: AND/AND_THEN > XOR > OR/OR_ELSE
     let src = "
         PROGRAM exp
         a AND_THEN b XOR c OR_ELSE d;
