@@ -84,7 +84,7 @@ impl TimerParams {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn TP(timer: &mut TimerParams) {
-    //If timer is active (start time set)
+    // If timer is active (start time set)
     let output = if timer.is_running() {
         timer.update_elapsed_time();
         // If time elapsed within range
@@ -100,7 +100,8 @@ pub extern "C" fn TP(timer: &mut TimerParams) {
         timer.start();
         true
     } else {
-        unreachable!("We should not get here, if we do write the failing test for it.")
+        // Behaviour here should be to return only defaults
+        false
     };
     timer.set_output(output);
     timer.input_edge.set(timer.input);
