@@ -4,6 +4,8 @@ use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use log::LevelFilter;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
+
+use crate::profiles::CompatibilityProfile;
 use plc_header_generator::GenerateLanguage;
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
@@ -344,6 +346,14 @@ pub struct CompileParameters {
     pub error_config: Option<String>,
 
     #[clap(
+        name = "profile",
+        long,
+        help = "Set a compatibility profile (name or path to profile file)",
+        global = true
+    )]
+    pub profile: Option<String>,
+
+    #[clap(
         name = "single-module",
         long,
         help = "Build the application as a single LLVM module",
@@ -455,6 +465,8 @@ pub enum ConfigOption {
     Schema,
     #[clap(help = "Prints the configuration for the project")]
     Diagnostics,
+    #[clap(help = "Prints the resolved compatibility profile")]
+    Profile,
 }
 
 #[derive(Debug, Subcommand)]
@@ -698,6 +710,24 @@ impl CompileParameters {
         } else {
             bail!("{} does not exist", config_path.to_string_lossy())
         }
+    }
+
+    /// Resolves the compatibility profile from CLI flags.
+    ///
+    /// Resolution order:
+    /// 1. If `--profile` is set, resolve from name or file path.
+    /// 2. Else if `--error-config` is set, wrap the diagnostics config in a codesys profile.
+    /// 3. Else return the default codesys profile.
+    pub fn get_compatibility_profile(&self) -> Result<CompatibilityProfile> {
+        if let Some(profile_value) = &self.profile {
+            return CompatibilityProfile::from_name_or_path(profile_value);
+        }
+
+        if let Some(config) = self.get_error_configuration()? {
+            return Ok(CompatibilityProfile::from_diagnostics_configuration(config));
+        }
+
+        Ok(CompatibilityProfile::default())
     }
 }
 
@@ -1334,5 +1364,77 @@ mod cli_tests {
 
         let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf-variables")).unwrap_err();
         assert_eq!(error.kind(), ErrorKind::EmptyValue);
+    }
+
+    #[test]
+    fn profile_flag_parses_named_profile() {
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--profile", "standard")).unwrap();
+        assert_eq!(params.profile, Some("standard".to_string()));
+        let profile = params.get_compatibility_profile().unwrap();
+        assert_eq!(profile.name.as_deref(), Some("standard"));
+    }
+
+    #[test]
+    fn profile_flag_parses_codesys() {
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--profile", "codesys")).unwrap();
+        let profile = params.get_compatibility_profile().unwrap();
+        assert_eq!(profile.name.as_deref(), Some("codesys"));
+    }
+
+    #[test]
+    fn no_profile_flag_defaults_to_codesys() {
+        let params = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
+        let profile = params.get_compatibility_profile().unwrap();
+        assert_eq!(profile.name.as_deref(), Some("codesys"));
+    }
+
+    #[test]
+    fn profile_flag_with_file_path() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("my-profile.json");
+        std::fs::write(&path, r#"{ "name": "custom" }"#).unwrap();
+
+        let path_str = path.to_str().unwrap();
+        let params = CompileParameters::parse(&["plc", "input.st", "--profile", path_str]).unwrap();
+        let profile = params.get_compatibility_profile().unwrap();
+        assert_eq!(profile.name.as_deref(), Some("custom"));
+    }
+
+    #[test]
+    fn error_config_converts_to_profile() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("errors.json");
+        std::fs::write(&path, r#"{ "ignore": ["E001"] }"#).unwrap();
+
+        let path_str = path.to_str().unwrap();
+        let params = CompileParameters::parse(&["plc", "input.st", "--error-config", path_str]).unwrap();
+        let profile = params.get_compatibility_profile().unwrap();
+        // Converted from error-config, so no profile name
+        assert!(profile.name.is_none());
+    }
+
+    #[test]
+    fn profile_flag_works_with_build_subcommand() {
+        let params = CompileParameters::parse(vec_of_strings!("build", "--profile", "standard")).unwrap();
+        assert_eq!(params.profile, Some("standard".to_string()));
+    }
+
+    #[test]
+    fn profile_flag_works_with_check_subcommand() {
+        let params = CompileParameters::parse(vec_of_strings!("check", "--profile", "codesys")).unwrap();
+        assert_eq!(params.profile, Some("codesys".to_string()));
+    }
+
+    #[test]
+    fn config_profile_subcommand() {
+        let parameters = CompileParameters::parse(vec_of_strings!("config", "profile")).unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Config { option, .. } => {
+                    assert_eq!(option, ConfigOption::Profile);
+                }
+                _ => panic!("Unexpected command"),
+            };
+        }
     }
 }

@@ -300,13 +300,28 @@ impl<T: SourceContainer> BuildPipeline<T> {
         self.compile_parameters.as_ref().map(|params| params.output.clone().unwrap_or_default())
     }
 
-    fn print_config_options(&self, option: ConfigOption) -> Result<(), Diagnostic> {
+    fn print_config_options(&self, option: ConfigOption, format: ConfigFormat) -> Result<(), Diagnostic> {
         match option {
             cli::ConfigOption::Schema => {
                 println!("{}", self.project.get_validation_schema().as_ref())
             }
             cli::ConfigOption::Diagnostics => {
                 println!("{}", self.diagnostician.get_diagnostic_configuration())
+            }
+            cli::ConfigOption::Profile => {
+                let profile = self
+                    .compile_parameters
+                    .as_ref()
+                    .map(|p| p.get_compatibility_profile())
+                    .transpose()
+                    .map_err(|e| Diagnostic::new(e.to_string()))?
+                    .unwrap_or_default();
+                let output = match format {
+                    ConfigFormat::JSON => profile.to_json(),
+                    ConfigFormat::TOML => profile.to_toml(),
+                }
+                .map_err(|e| Diagnostic::new(e.to_string()))?;
+                println!("{output}");
             }
         };
 
@@ -377,10 +392,10 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
 impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     fn run(&mut self) -> anyhow::Result<(), Diagnostic> {
-        if let Some((options, _format)) =
+        if let Some((options, format)) =
             self.compile_parameters.as_ref().and_then(CompileParameters::get_config_options)
         {
-            return self.print_config_options(options);
+            return self.print_config_options(options, format);
         }
         if let Some(CompileParameters { build_info: true, .. }) = self.compile_parameters {
             println!("{}", option_env!("RUSTY_BUILD_INFO").unwrap_or("version information unavailable"));
