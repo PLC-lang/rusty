@@ -225,7 +225,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::AllocationStatement(Allocation { name, reference_type }) => {
                 let ty =
                     llvm_index.find_associated_type(reference_type).expect("Type must exist at this point");
-                let value = self.llvm.builder.build_alloca(ty, name)?;
+                let value =
+                    self.llvm.create_entry_local_variable(self.function_context.function, name, &ty)?;
                 self.llvm.generate_variable_initializer(
                     &llvm_index,
                     self.index,
