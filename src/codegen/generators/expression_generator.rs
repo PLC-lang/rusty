@@ -62,6 +62,8 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
 
     // the function on how to obtain the the length to use for the string
     string_len_provider: fn(type_length_declaration: usize, actual_length: usize) -> usize,
+
+    pub compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
 }
 
 /// context information to generate a parameter
@@ -144,6 +146,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         llvm_index: &'b LlvmTypedIndex<'ink>,
         function_context: &'b FunctionContext<'ink, 'b>,
         debug: &'b DebugBuilderEnum<'ink>,
+        compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
     ) -> ExpressionCodeGenerator<'ink, 'b> {
         ExpressionCodeGenerator {
             llvm,
@@ -155,6 +158,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
             string_len_provider: |_, actual_length| actual_length, //when generating string-literals in a body, use the actual length
+            compatibility_profile,
         }
     }
 
@@ -170,6 +174,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         index: &'b Index,
         annotations: &'b AstAnnotations,
         llvm_index: &'b LlvmTypedIndex<'ink>,
+        compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
     ) -> ExpressionCodeGenerator<'ink, 'b> {
         ExpressionCodeGenerator {
             llvm,
@@ -181,6 +186,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
             string_len_provider: |type_length_declaration, _| type_length_declaration, //when generating string-literals in declarations, use the declared length
+            compatibility_profile,
         }
     }
 
@@ -2608,6 +2614,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.index,
             self.annotations,
             self.llvm_index,
+            self.compatibility_profile,
         );
         for e in elements {
             //generate with correct type hint using context-free generator

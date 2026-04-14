@@ -43,6 +43,7 @@ pub struct DataTypeGenerator<'ink, 'b> {
     index: &'b Index,
     annotations: &'b AstAnnotations,
     types_index: LlvmTypedIndex<'ink>,
+    compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
 }
 
 /// generates the llvm-type for the given data-type and registers it at the index
@@ -58,6 +59,7 @@ pub fn generate_data_types<'ink>(
     dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
+    compatibility_profile: &plc_diagnostics::profiles::CompatibilityProfile,
 ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
     let mut types = vec![];
     let mut pou_types = vec![];
@@ -82,8 +84,14 @@ pub fn generate_data_types<'ink>(
         }
     }
 
-    let mut generator =
-        DataTypeGenerator { llvm, debug, index, annotations, types_index: LlvmTypedIndex::default() };
+    let mut generator = DataTypeGenerator {
+        llvm,
+        debug,
+        index,
+        annotations,
+        types_index: LlvmTypedIndex::default(),
+        compatibility_profile,
+    };
 
     // first create all STUBs for struct types (empty structs)
     // and associate them in the llvm index
@@ -440,6 +448,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 self.index,
                 self.annotations,
                 &self.types_index,
+                self.compatibility_profile,
             );
 
             let lhs_type = self.index.get_type_information_or_void(data_type_name);
@@ -499,6 +508,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                     self.index,
                     self.annotations,
                     &self.types_index,
+                    self.compatibility_profile,
                 );
                 Ok(Some(generator.generate_literal(initializer)?.get_basic_value_enum()))
             } else {

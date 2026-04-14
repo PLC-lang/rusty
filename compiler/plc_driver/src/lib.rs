@@ -19,6 +19,8 @@ use std::{
     sync::{Arc, RwLock},
 };
 
+use plc_diagnostics::profiles::CompatibilityProfile;
+
 use cli::{CompileParameters, ParameterError};
 use plc::{
     codegen::CodegenContext,
@@ -61,6 +63,7 @@ pub struct CompileOptions {
     pub single_module: bool,
     pub online_change: OnlineChange,
     pub constructors_only: bool,
+    pub compatibility_profile: Arc<CompatibilityProfile>,
 }
 
 impl Default for CompileOptions {
@@ -77,6 +80,7 @@ impl Default for CompileOptions {
             single_module: false,
             online_change: OnlineChange::Disabled,
             constructors_only: false,
+            compatibility_profile: Arc::new(CompatibilityProfile::default()),
         }
     }
 }

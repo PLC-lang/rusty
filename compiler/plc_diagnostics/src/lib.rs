@@ -2,4 +2,5 @@
 
 pub mod diagnostician;
 pub mod diagnostics;
+pub mod profiles;
 pub mod reporter;

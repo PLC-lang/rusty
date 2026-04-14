@@ -115,8 +115,11 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
             ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
             ErrorFormat::None => Diagnostician::null_diagnostician(),
         };
-        let diagnostician = if let Some(configuration) = compile_parameters.get_error_configuration()? {
-            diagnostician.with_configuration(configuration)
+
+        // Resolve the compatibility profile and feed its diagnostics to the diagnostician
+        let profile = std::sync::Arc::new(compile_parameters.get_compatibility_profile()?);
+        let diagnostician = if profile.diagnostics != Default::default() {
+            diagnostician.with_configuration(profile.diagnostics.clone())
         } else {
             diagnostician
         };
@@ -135,12 +138,13 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
                     .as_slice(),
                 None,
             )?;
-        let context =
+        let mut context =
             if compile_parameters.generate_external_constructors || compile_parameters.constructors_only {
                 context.generate_external_constructors()
             } else {
                 context
             };
+        context.set_compatibility_profile(profile);
 
         let linker = compile_parameters.linker.as_deref().into();
         Ok(BuildPipeline {
@@ -213,6 +217,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                     OnlineChange::Disabled
                 },
                 constructors_only: params.constructors_only,
+                compatibility_profile: self.context.compatibility_profile().clone(),
             }
         })
     }
@@ -941,6 +946,7 @@ impl AnnotatedProject {
             dependencies,
             &self.index,
             got_layout,
+            &compile_options.compatibility_profile,
         )?;
         code_generator
             .generate(
@@ -950,6 +956,7 @@ impl AnnotatedProject {
                 &self.index,
                 llvm_index,
                 compile_options.constructors_only,
+                &compile_options.compatibility_profile,
             )
             .map_err(Into::into)
     }

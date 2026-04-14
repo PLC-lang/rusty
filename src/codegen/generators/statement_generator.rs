@@ -58,6 +58,7 @@ pub struct StatementCodeGenerator<'a, 'b> {
     pub current_loop_continue: Option<BasicBlock<'a>>,
 
     pub debug: &'b DebugBuilderEnum<'a>,
+    compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
 }
 
 impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
@@ -69,6 +70,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         llvm_index: &'b LlvmTypedIndex<'a>,
         linking_context: &'b FunctionContext<'a, 'b>,
         debug: &'b DebugBuilderEnum<'a>,
+        compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
     ) -> StatementCodeGenerator<'a, 'b> {
         StatementCodeGenerator {
             llvm,
@@ -81,6 +83,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             current_loop_exit: None,
             current_loop_continue: None,
             debug,
+            compatibility_profile,
         }
     }
 
@@ -96,6 +99,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             llvm_index,
             self.function_context,
             self.debug,
+            self.compatibility_profile,
         )
     }
 

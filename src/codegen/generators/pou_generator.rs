@@ -48,6 +48,7 @@ pub struct PouGenerator<'ink, 'cg> {
     annotations: &'cg AstAnnotations,
     llvm_index: &'cg LlvmTypedIndex<'ink>,
     online_change: &'cg OnlineChange,
+    compatibility_profile: &'cg plc_diagnostics::profiles::CompatibilityProfile,
 }
 
 /// Creates opaque implementations for all callable items in the index
@@ -64,9 +65,11 @@ pub fn generate_implementation_stubs<'ink>(
     debug: &mut DebugBuilderEnum<'ink>,
     online_change: &OnlineChange,
     file_name: &str,
+    compatibility_profile: &plc_diagnostics::profiles::CompatibilityProfile,
 ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
     let mut llvm_index = LlvmTypedIndex::default();
-    let pou_generator = PouGenerator::new(llvm, index, annotations, types_index, online_change);
+    let pou_generator =
+        PouGenerator::new(llvm, index, annotations, types_index, online_change, compatibility_profile);
     let implementations = dependencies
         .into_iter()
         .filter_map(|it| match it {
@@ -95,6 +98,7 @@ pub fn generate_implementation_stubs<'ink>(
 /// The given constant can then be used to initialize the variable using memcpy without re-evaluating the expression
 /// Retrieves the POUs from the index (implementation)
 /// Returns a new LLVM index to be merged with the parent codegen index.
+#[allow(clippy::too_many_arguments)]
 pub fn generate_global_constants_for_pou_members<'ink>(
     module: &Module<'ink>,
     llvm: &Llvm<'ink>,
@@ -103,6 +107,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     annotations: &AstAnnotations,
     llvm_index: &LlvmTypedIndex<'ink>,
     location: &str,
+    compatibility_profile: &plc_diagnostics::profiles::CompatibilityProfile,
 ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
     let mut local_llvm_index = LlvmTypedIndex::default();
     let implementations = dependencies
@@ -131,7 +136,13 @@ pub fn generate_global_constants_for_pou_members<'ink>(
                 index.get_effective_type_or_void_by_name(it.get_type_name()).get_type_information();
             var_type.is_struct() || var_type.is_array() || var_type.is_string()
         });
-        let exp_gen = ExpressionCodeGenerator::new_context_free(llvm, index, annotations, llvm_index);
+        let exp_gen = ExpressionCodeGenerator::new_context_free(
+            llvm,
+            index,
+            annotations,
+            llvm_index,
+            compatibility_profile,
+        );
         for variable in variables {
             let name = index::get_initializer_name(variable.get_qualified_name());
             let right_stmt = variable
@@ -170,8 +181,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         annotations: &'cg AstAnnotations,
         llvm_index: &'cg LlvmTypedIndex<'ink>,
         online_change: &'cg OnlineChange,
+        compatibility_profile: &'cg plc_diagnostics::profiles::CompatibilityProfile,
     ) -> PouGenerator<'ink, 'cg> {
-        PouGenerator { llvm, index, annotations, llvm_index, online_change }
+        PouGenerator { llvm, index, annotations, llvm_index, online_change, compatibility_profile }
     }
 
     fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> Result<String, CodegenError> {
@@ -512,6 +524,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 &local_index,
                 &function_context,
                 debug,
+                self.compatibility_profile,
             );
             let (line, column) = implementation
                 .statements
@@ -766,6 +779,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             self.index,
             self.annotations,
             local_llvm_index,
+            self.compatibility_profile,
         );
 
         for variable in variables_with_initializers {

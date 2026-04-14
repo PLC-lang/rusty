@@ -118,41 +118,47 @@ The existing `--error-config` flag is deprecated and subsumed by the profile's `
 
 ### Tasks
 
-- [ ] Add `compatibility_profile` field to `GlobalContext` (`compiler/plc_index/src/lib.rs:21`)
+- [x] Add `compatibility_profile` field to `GlobalContext` (`compiler/plc_index/src/lib.rs:21`)
   - Type: `Arc<CompatibilityProfile>` (cheap to clone, shared across phases)
   - Add `set_compatibility_profile()` and `compatibility_profile()` accessor
-  - Default: `Arc::new(CompatibilityProfile::codesys())`
-- [ ] Set the profile on `GlobalContext` during pipeline initialization
+  - Default via `#[serde(skip)]` (defaults to `CompatibilityProfile::default()` = codesys)
+- [x] Set the profile on `GlobalContext` during pipeline initialization
   - In `BuildPipeline::try_from(CompileParameters)` (`pipelines.rs:83`), resolve the profile and set it on `self.context`
-- [ ] Feed `profile.diagnostics` to the diagnostician
-  - Replace the current `get_error_configuration()` call (~line 103) with profile-based extraction
-- [ ] Add profile to `CompileOptions` (`compiler/plc_driver/src/lib.rs:45`)
+- [x] Feed `profile.diagnostics` to the diagnostician
+  - Replaced `get_error_configuration()` call with profile-based extraction in pipeline init
+- [x] Add profile to `CompileOptions` (`compiler/plc_driver/src/lib.rs:45`)
   - Type: `Arc<CompatibilityProfile>`
-  - Populate in `get_compile_options()` (`pipelines.rs:177`)
-- [ ] Thread profile to codegen
-  - Add to `CodeGen::new()` parameters (`src/codegen.rs:99`), store on `CodeGen` struct
-  - Pass through to `PouGenerator` → `StatementCodeGenerator` → `ExpressionCodeGenerator`
-  - **OR** (simpler): add to `ExpressionCodeGenerator` struct directly since it's constructed in `StatementCodeGenerator::create_expr_generator()`
-- [ ] Verify lowering participants can access the profile
-  - Participants are constructed in `get_default_mut_participants()` (`pipelines.rs:335`) using `self.context` (the `GlobalContext`)
-  - Participants that need the profile receive `Arc<CompatibilityProfile>` at construction time (same pattern as `IdProvider`)
-  - **No changes needed yet** — just verify the access path works; actual usage comes in later phases
-- [ ] Verify validators can access the profile
+  - Populated in `get_compile_options()` from `self.context.compatibility_profile()`
+- [x] Thread profile to codegen
+  - Passed through `CompileOptions` → `generate_module()` → `generate_llvm_index()` + `generate()`
+  - Threaded through `PouGenerator` → `StatementCodeGenerator` → `ExpressionCodeGenerator`
+  - Also threaded through `DataTypeGenerator`, `VariableGenerator`, and `generate_implementation_stubs`
+- [x] Verify lowering participants can access the profile
+  - Participants are constructed in `get_default_mut_participants()` using `self.context` (the `GlobalContext`)
+  - `self.context.compatibility_profile()` returns `&Arc<CompatibilityProfile>`
+  - Verified: access path works; actual usage comes in later phases
+- [x] Verify validators can access the profile
   - `Validator::new(context: &GlobalContext)` already receives `GlobalContext`
-  - Access via `self.context.compatibility_profile()`
-  - **No changes needed yet** — just verify the access path works
+  - `self.context.compatibility_profile()` is accessible
+  - Verified: access path works
 
 ### Key Files
 
 | File | Action |
 |------|--------|
+| `compiler/plc_diagnostics/src/profiles.rs` | **New** — core profile types (moved from `plc_driver`) |
+| `compiler/plc_diagnostics/src/lib.rs` | Add `pub mod profiles` |
+| `compiler/plc_driver/src/profiles.rs` | Re-exports from `plc_diagnostics::profiles` + tests |
 | `compiler/plc_index/src/lib.rs` | Add `compatibility_profile` to `GlobalContext` |
 | `compiler/plc_driver/src/pipelines.rs` | Resolve profile at init, feed to diagnostician + CompileOptions |
 | `compiler/plc_driver/src/lib.rs` | Add profile to `CompileOptions` |
-| `src/codegen.rs` | Accept and store profile in `CodeGen` |
-| `src/codegen/generators/pou_generator.rs` | Thread profile to statement generator |
-| `src/codegen/generators/statement_generator.rs` | Thread profile to expression generator |
-| `src/codegen/generators/expression_generator.rs` | Store profile reference on struct |
+| `src/codegen.rs` | Thread profile through `generate_llvm_index` + `generate` |
+| `src/codegen/generators/pou_generator.rs` | Add profile to struct + constructors |
+| `src/codegen/generators/statement_generator.rs` | Add profile to struct + constructors |
+| `src/codegen/generators/expression_generator.rs` | Add profile to struct + constructors |
+| `src/codegen/generators/data_type_generator.rs` | Add profile to `DataTypeGenerator` |
+| `src/codegen/generators/variable_generator.rs` | Add profile to `VariableGenerator` |
+| `src/test_utils.rs` | Pass default profile in test codegen helpers |
 
 ### Context for Implementer
 
@@ -236,6 +242,24 @@ The existing `--error-config` flag is deprecated and subsumed by the profile's `
 - Per-flag documentation in the book
 - Profile inheritance (a custom profile extending a named one)
 - Potential build config integration (profile specified in `plc.json` build file)
+
+---
+
+## Discussion: Profile Crate Placement
+
+The `CompatibilityProfile` and `BehaviorFlags` types currently live in `plc_diagnostics`. This was a pragmatic choice: all crates that need the profile (`plc_index`, `plc_lowering`, the main `plc` crate, `plc_driver`) already depend on `plc_diagnostics`, and the profile struct uses `DiagnosticsConfiguration` which is defined there.
+
+However, `plc_diagnostics` is semantically about error/warning reporting — profiles are a broader compiler configuration concern. Options to consider post-implementation:
+
+1. **Rename `plc_diagnostics`** to something broader (e.g. `plc_core`, `plc_config`) — this reflects that it already contains configuration types (`DiagnosticsConfiguration`, `Severity`) alongside reporting. Disruptive but accurate.
+
+2. **Create a new `plc_config` crate** — holds `CompatibilityProfile`, `BehaviorFlags`, and potentially `DiagnosticsConfiguration` (which is profile-adjacent). Both `plc_diagnostics` and `plc_driver` would depend on it. This is the cleanest separation but adds a crate.
+
+3. **Move profiles to `plc_util`** — the existing shared utility crate. Would need `serde` and `log` as deps and a way to reference `DiagnosticsConfiguration` (either by moving it too, or making the diagnostics field generic/optional at the core level).
+
+4. **Keep in `plc_diagnostics`** — accept the naming mismatch as pragmatic. The crate already has non-diagnostic types and this avoids churn.
+
+**Decision**: defer until after Phase 5 (first behavior flag), then reassess based on how many crates actually import the profile types and whether the naming friction causes confusion.
 
 ---
 

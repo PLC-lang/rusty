@@ -261,15 +261,24 @@ pub mod tests {
             online_change.clone(),
             &Target::System,
         );
+        let compatibility_profile = plc_diagnostics::profiles::CompatibilityProfile::default();
         let llvm_index = code_generator
-            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout)
+            .generate_llvm_index(
+                &context,
+                &annotations,
+                &literals,
+                &dependencies,
+                &index,
+                &got_layout,
+                &compatibility_profile,
+            )
             .map_err(|err| {
                 reporter.handle(&[err.into()]);
                 reporter.buffer().unwrap()
             })?;
 
         code_generator
-            .generate(&context, &unit, &annotations, &index, llvm_index, false)
+            .generate(&context, &unit, &annotations, &index, llvm_index, false, &compatibility_profile)
             .map(|module| module.persist_to_string())
             .map_err(|err| {
                 reporter.handle(&[err.into()]);
@@ -331,6 +340,7 @@ pub mod tests {
                 );
                 let got_layout = Mutex::new(HashMap::default());
 
+                let compatibility_profile = plc_diagnostics::profiles::CompatibilityProfile::default();
                 let llvm_index = code_generator.generate_llvm_index(
                     context,
                     &annotations,
@@ -338,10 +348,11 @@ pub mod tests {
                     &dependencies,
                     &index,
                     &got_layout,
+                    &compatibility_profile,
                 )?;
 
                 code_generator
-                    .generate(context, &unit, &annotations, &index, llvm_index, false)
+                    .generate(context, &unit, &annotations, &index, llvm_index, false, &compatibility_profile)
                     .map_err(Diagnostic::from)
             })
             .collect::<Result<Vec<_>, Diagnostic>>()
