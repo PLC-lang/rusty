@@ -229,6 +229,7 @@ lazy_static! {
         E125,   Error,      include_str!("./error_codes/E125.md"),  // Incompatible POINTER TO types in class/FB hierarchy
         E126,   Error,      include_str!("./error_codes/E126.md"),  // Incompatible types in interface polymorphism
         E127,   Warning,    include_str!("./error_codes/E127.md"),  // Array initialized with fewer elements than expected
+        E128,   Error,      include_str!("./error_codes/E128.md"),  // Invalid nested property assignment target
     );
 }
 

@@ -647,13 +647,22 @@ impl DataTypeInformation {
     }
 
     pub fn is_generic(&self, index: &Index) -> bool {
+        self.is_generic_recursive(index, &mut FxHashSet::default())
+    }
+
+    fn is_generic_recursive(&self, index: &Index, seen: &mut FxHashSet<String>) -> bool {
         match self {
             DataTypeInformation::Array { inner_type_name, .. }
             | DataTypeInformation::Pointer { inner_type_name, .. }
-            | DataTypeInformation::Alias { referenced_type: inner_type_name, .. } => index
-                .find_effective_type_by_name(inner_type_name)
-                .map(|dt| dt.get_type_information().is_generic(index))
-                .unwrap_or(false),
+            | DataTypeInformation::Alias { referenced_type: inner_type_name, .. } => {
+                if !seen.insert(inner_type_name.clone()) {
+                    return false;
+                }
+                index
+                    .find_effective_type_by_name(inner_type_name)
+                    .map(|dt| dt.get_type_information().is_generic_recursive(index, seen))
+                    .unwrap_or(false)
+            }
             DataTypeInformation::Generic { .. } => true,
             _ => false,
         }
@@ -720,7 +729,7 @@ impl DataTypeInformation {
     }
 
     fn get_size_recursive<'b>(&'b self, index: &'b Index, seen: &mut FxHashSet<&'b str>) -> Result<Bytes> {
-        if self.is_struct() && !seen.insert(self.get_name()) {
+        if !seen.insert(self.get_name()) {
             return Err(anyhow!("Recursive type detected: {}", self.get_name()));
         }
         let res = match self {
@@ -742,7 +751,7 @@ impl DataTypeInformation {
                 .map(Into::into),
             DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
                 let inner_type = index.get_type_information_or_void(inner_type_name);
-                let inner_size = inner_type.get_size_in_bits(index)?;
+                let inner_size = inner_type.get_size_recursive(index, seen)?.bits();
                 let element_count: u32 =
                     dimensions.iter().map(|dim| dim.get_length(index).unwrap()).product();
                 Ok(Bytes::from_bits(inner_size * element_count))
@@ -792,15 +801,24 @@ impl DataTypeInformation {
     /// provides range information for `[1..5]` and `[5..10]` in two different types stored in
     /// the index.
     pub fn get_inner_array_types<'a>(&'a self, types: &mut Vec<&'a DataTypeInformation>, index: &'a Index) {
-        if let DataTypeInformation::Array { name, inner_type_name, .. } = self {
-            if name != inner_type_name {
-                types.push(self);
+        fn collect<'a>(
+            dti: &'a DataTypeInformation,
+            types: &mut Vec<&'a DataTypeInformation>,
+            index: &'a Index,
+            visited: &mut FxHashSet<&'a str>,
+        ) {
+            if let DataTypeInformation::Array { name, inner_type_name, .. } = dti {
+                if name != inner_type_name && visited.insert(name) {
+                    types.push(dti);
 
-                if let Some(ty) = index.find_type(inner_type_name).map(DataType::get_type_information) {
-                    ty.get_inner_array_types(types, index);
+                    if let Some(ty) = index.find_type(inner_type_name).map(DataType::get_type_information) {
+                        collect(ty, types, index, visited);
+                    }
                 }
             }
         }
+        let mut visited = FxHashSet::default();
+        collect(self, types, index, &mut visited);
     }
 
     pub fn get_inner_pointer_type_name(&self) -> Option<&str> {
@@ -826,19 +844,27 @@ impl DataTypeInformation {
     /// For example calling this function on `ARRAY[1..5] OF DINT`, `ARRAY[1..2, 1..5] OF DINT` and
     /// `ARRAY[1..3] OF ARRAY[1..5]` yields `5`, `10` and `15` respectively.
     pub fn get_array_length(&self, index: &Index) -> Option<usize> {
-        fn intrinsic_array_type<'index>(index: &'index Index, name: &str) -> &'index DataType {
+        fn intrinsic_array_type<'index>(
+            index: &'index Index,
+            name: &str,
+            visited: &mut FxHashSet<String>,
+        ) -> &'index DataType {
             let effective_type = index.get_effective_type_or_void_by_name(name);
 
             match effective_type.get_type_information() {
-                DataTypeInformation::Array { inner_type_name, .. } => {
-                    intrinsic_array_type(index, inner_type_name)
+                DataTypeInformation::Array { inner_type_name, .. }
+                    if visited.insert(inner_type_name.to_string()) =>
+                {
+                    intrinsic_array_type(index, inner_type_name, visited)
                 }
                 _ => effective_type,
             }
         }
 
         let DataTypeInformation::Array { inner_type_name, .. } = self else { return None };
-        let inner_type_info = intrinsic_array_type(index, inner_type_name).get_type_information();
+        let mut visited = FxHashSet::default();
+        let inner_type_info =
+            intrinsic_array_type(index, inner_type_name, &mut visited).get_type_information();
         let inner_type_size = inner_type_info.get_size_in_bits(index).ok()?;
         let arr_size = self.get_size_in_bits(index).ok()?;
 
