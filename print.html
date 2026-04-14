@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-7a45d802.js";
+            window.path_to_searchindex_js = "searchindex-2b7089db.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-403b269e.js"></script>
+        <script src="toc-ae9fca4f.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1922,6 +1922,26 @@ FUNCTION main
 END_FUNCTION
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="array-size-exceeds-supported-limit"><a class="header" href="#array-size-exceeds-supported-limit">Array size exceeds supported limit</a></h1>
+<p>The declared array has more elements than the compiler can safely handle.
+The total number of elements (the product of all dimension lengths) must not
+exceed <code>UDINT#4_294_967_295</code>.</p>
+<p>Extremely large arrays cause excessive compilation times and may fail to link
+because the resulting object file cannot represent them.</p>
+<h2 id="example-5"><a class="header" href="#example-5">Example</a></h2>
+<pre><code class="language-st">VAR
+    // 5 × 988_010 × 3 × 91 × ... = ~837 billion elements — exceeds UDINT max
+    huge : ARRAY[1..5, 2345324..3333333, -1..1, 10..100] OF DINT;
+END_VAR
+</code></pre>
+<h2 id="possible-fixes"><a class="header" href="#possible-fixes">Possible fixes</a></h2>
+<ul>
+<li>Reduce the array dimensions.</li>
+<li>Use dynamically allocated memory via <code>REF_TO</code> and runtime allocation if
+the platform supports it.</li>
+<li>Split the data across multiple smaller arrays.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
 <h2 id="usage-1"><a class="header" href="#usage-1">Usage</a></h2>
@@ -2150,7 +2170,7 @@ To achieve this, the called function must be defined in a <code>C</code> compati
 <li>or be declared in <code>ST</code> using the <code>{external}</code> keyword</li>
 </ul>
 <p>When including multiple header files/function interfaces, the <code>-i</code> flag must precede each individual file, e.g. <code>-i file1.st -i file2.st -i file3.st</code>. Alternatively, when including an entire folder with <code>-i '/liblocation/*.st'</code>, the path must be put in quotes, otherwise the command-line might parse the arguments in a way that is incompatible (i.e. does not precede each file with <code>-i</code>).</p>
-<h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
+<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
 <p>Given a <code>min</code> function defined in <code>C</code> as follows:</p>
 <pre><code class="language-C">int min(int a, int b) {
 //...
@@ -2801,7 +2821,7 @@ END_ACTION
 <p>Variable declaration blocks can be delcared as CONSTANT.
 All variables of a constant declaration block become constants.
 Constant variables can not be changed and need to be initialized.</p>
-<h2 id="example-6"><a class="header" href="#example-6">Example</a></h2>
+<h2 id="example-7"><a class="header" href="#example-7">Example</a></h2>
 <pre><code class="language-iecst">TYPE OneInt : INT := 1; END_TYPE
 
 VAR_GLOBAL CONSTANT
@@ -3077,7 +3097,7 @@ RuSTy supports this functionalty and extends it to support all <code>INT</code> 
 <blockquote>
 <p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
 </blockquote>
-<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
+<h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR
     variable    : LWORD;
@@ -3235,7 +3255,7 @@ While this approach needs much more code and hand-written changes, its benefits 
 Every element of the AST is easily identified, debugged and understood.
 E.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the RuSTy-AST enforces the structure of every node. So the RuSTy-Binary-Statement has exactly two children.
 It is impossible to construct it differently.</p>
-<h4 id="example-8"><a class="header" href="#example-8">Example</a></h4>
+<h4 id="example-9"><a class="header" href="#example-9">Example</a></h4>
 <p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures:</p>
 <pre><code class="language-rs">struct Reference {
    name: string
