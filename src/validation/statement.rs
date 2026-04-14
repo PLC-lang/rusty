@@ -390,6 +390,9 @@ where
 
         validator.push_diagnostic(diagnostic)
     }
+
+    // We should walk the condition like it is any other statement to validate references and so on
+    visit_statement(validator, condition, context);
 }
 
 fn validate_control_statement<T: AnnotationMap>(
