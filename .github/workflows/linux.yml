@@ -5,6 +5,7 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  merge_group:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -150,10 +151,10 @@ jobs:
           echo "Artifact structure:"
           find artifacts/ -name "*.deb" -type f
           # Copy the plc binary deb for this image's architecture only
-          find artifacts/deb-${{ matrix.config.arch }}/ -name "plc_*_${{ matrix.config.docker_arch }}.deb" -exec cp {} artifacts/deb/ \;
-          # Copy libiec61131std debs for BOTH architectures (cross-compilation support)
-          find artifacts/deb-x86_64/ -name "libiec61131std_*_amd64.deb" -exec cp {} artifacts/deb/ \;
-          find artifacts/deb-aarch64/ -name "libiec61131std_*_arm64.deb" -exec cp {} artifacts/deb/ \;
+          find artifacts/deb-${{ matrix.config.arch }}/ -name "plc-compiler_*_${{ matrix.config.docker_arch }}.deb" -exec cp {} artifacts/deb/ \;
+          # Copy plc-stdlib debs for BOTH architectures (cross-compilation support)
+          find artifacts/deb-x86_64/ -name "plc-stdlib_*_amd64.deb" -exec cp {} artifacts/deb/ \;
+          find artifacts/deb-aarch64/ -name "plc-stdlib_*_arm64.deb" -exec cp {} artifacts/deb/ \;
           
           # Validate that expected files were copied
           echo "Deb packages for Docker image (${{ matrix.config.docker_arch }}):"

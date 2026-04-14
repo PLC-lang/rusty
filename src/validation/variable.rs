@@ -249,6 +249,57 @@ where
     }
 }
 
+/// Formats a number with `_` as thousands separator for readability (e.g. `4_294_967_295`).
+fn fmt_thousands(n: u64) -> String {
+    let s = n.to_string();
+    let mut result = String::with_capacity(s.len() + s.len() / 3);
+    for (i, c) in s.chars().enumerate() {
+        if i > 0 && (s.len() - i).is_multiple_of(3) {
+            result.push('_');
+        }
+        result.push(c);
+    }
+    result
+}
+
+fn validate_array_size<T>(validator: &mut Validator, variable: &Variable, context: &ValidationContext<T>)
+where
+    T: AnnotationMap,
+{
+    let ty_name = variable.data_type_declaration.get_name().unwrap_or_default();
+    let effective_type = context.index.get_effective_type_or_void_by_name(ty_name);
+    let ty_info = effective_type.get_type_information();
+
+    let DataTypeInformation::Array { dimensions, .. } = ty_info else {
+        return;
+    };
+
+    // Skip if any dimension has an invalid range (start > end) — already reported as E097.
+    let has_invalid_range =
+        dimensions.iter().any(|dim| dim.get_range(context.index).is_ok_and(|range| range.start > range.end));
+    if has_invalid_range {
+        return;
+    }
+
+    // Compute total element count in u64 to detect when it exceeds u32::MAX.
+    let element_count: u64 =
+        dimensions.iter().map(|dim| dim.get_length(context.index).unwrap_or(0) as u64).product();
+
+    if element_count > u32::MAX as u64 {
+        let name = &variable.name;
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Array `{name}` has {} elements which exceeds the maximum \
+                 supported array size of UDINT#{} elements.",
+                fmt_thousands(element_count),
+                fmt_thousands(u32::MAX as u64),
+            ))
+            .with_error_code("E130")
+            .with_location(&variable.location),
+        );
+    }
+}
+
 fn validate_variable<T: AnnotationMap>(
     validator: &mut Validator,
     variable: &Variable,
@@ -257,6 +308,7 @@ fn validate_variable<T: AnnotationMap>(
     validate_variable_redeclaration(validator, variable, context);
 
     validate_array_ranges(validator, variable, context);
+    validate_array_size(validator, variable, context);
 
     if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {
         validate_reference_to_declaration(validator, context, variable, v_entry);
