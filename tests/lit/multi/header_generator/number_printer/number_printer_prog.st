@@ -41,7 +41,7 @@ END_VAR
     // CHECK-NEXT: [70, 71, 72]
 
     // Add numbers together
-    IF AddInt(4, 5, result => addedNumbers) = 0 THEN
+    IF AddInt(4, 5, addedNumbers) = 0 THEN
         PrintNumber(addedNumbers);  // CHECK: The number you asked for: 9
     END_IF
 
