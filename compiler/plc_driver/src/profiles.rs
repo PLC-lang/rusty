@@ -134,8 +134,14 @@ impl CompatibilityProfile {
     }
 
     /// Creates a profile from a legacy `DiagnosticsConfiguration` (for `--error-config` compat).
+    ///
+    /// All non-diagnostic settings default to codesys behavior.
     pub fn from_diagnostics_configuration(config: DiagnosticsConfiguration) -> Self {
-        CompatibilityProfile { name: None, behaviors: BehaviorFlags::default(), diagnostics: config }
+        log::trace!("Converting --error-config diagnostics configuration to a compatibility profile");
+        let mut profile = Self::codesys();
+        profile.name = None;
+        profile.diagnostics = config;
+        profile
     }
 }
 

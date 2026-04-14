@@ -72,9 +72,9 @@ The existing `--error-config` flag is deprecated and subsumed by the profile's `
 
 ---
 
-## Phase 2: CLI Flag & Deprecation
+## Phase 2: CLI Flag & `--error-config` Compatibility
 
-**Goal**: Add `--profile` as a global flag. Deprecate `--error-config`. Both flags resolve to a `CompatibilityProfile`.
+**Goal**: Add `--profile` as a global flag. Keep `--error-config` working as-is (no deprecation yet). Both flags resolve to a `CompatibilityProfile`.
 
 ### Tasks
 
@@ -82,22 +82,18 @@ The existing `--error-config` flag is deprecated and subsumed by the profile's `
   - Global flag (`global = true`) so it works with `build`, `check`, `config`, `generate`, etc.
   - Type: `Option<String>` — accepts a profile name or file path
   - Help text: `"Set a compatibility profile (name or path to profile file)"`
-- [ ] Mark `--error-config` as deprecated
-  - Add deprecation notice to its help text
-  - In the resolution logic, emit `log::warn!("--error-config is deprecated, use --profile instead")`
 - [ ] Add `get_compatibility_profile(&self) -> Result<CompatibilityProfile>` method on `CompileParameters`
   - If `--profile` is set: resolve via `CompatibilityProfile::from_name_or_path()`
-  - Else if `--error-config` is set: load old format, wrap in a `CompatibilityProfile` with default behaviors
+  - Else if `--error-config` is set: load old format, wrap in a codesys-default `CompatibilityProfile` with the provided diagnostics overrides, and `log::trace!` that the error config is being converted to a profile
   - Else: return `CompatibilityProfile::codesys()` (default — matches current compiler behavior)
-  - Error if both `--profile` and `--error-config` are provided
+  - If both `--profile` and `--error-config` are provided, `--profile` takes precedence and `--error-config` diagnostics are merged in (or error — TBD)
 - [ ] Extend `ConfigOption` enum with a `Profile` variant
   - `plc config profile` — prints the resolved profile as JSON/TOML
   - Allows `plc config profile --profile codesys` to export a named profile
 - [ ] Add CLI tests:
   - `--profile standard` parses correctly
   - `--profile path/to/file.json` parses correctly
-  - `--error-config` still works (with deprecation)
-  - `--profile` + `--error-config` together is an error
+  - `--error-config` still works, converted to a codesys profile with trace log
   - `plc config profile` outputs valid JSON
 
 ### Key Files
@@ -182,9 +178,9 @@ The existing `--error-config` flag is deprecated and subsumed by the profile's `
   - Explain forward compatibility (unknown flags are skipped)
   - Section for each behavior flag (empty initially, grows as flags are added)
 - [ ] Update `book/src/using_rusty/error_configuration.md`
-  - Add deprecation notice for `--error-config`
-  - Point users to the new profile system
-  - Explain migration path: their existing JSON works inside a profile's `diagnostics` section
+  - Mention that `--error-config` is automatically converted to a profile internally
+  - Point users to the new profile system as the recommended approach
+  - Explain that their existing JSON works inside a profile's `diagnostics` section
 - [ ] Update `book/src/SUMMARY.md`
   - Add `Compatibility Profiles` entry under `Using RuSTy`
 
@@ -193,7 +189,7 @@ The existing `--error-config` flag is deprecated and subsumed by the profile's `
 | File | Action |
 |------|--------|
 | `book/src/using_rusty/compatibility_profiles.md` | **New** |
-| `book/src/using_rusty/error_configuration.md` | Add deprecation notice |
+| `book/src/using_rusty/error_configuration.md` | Mention profile conversion, link to new docs |
 | `book/src/SUMMARY.md` | Add new entry |
 
 ---
