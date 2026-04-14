@@ -2283,12 +2283,9 @@ fn super_in_loop_constructs() {
       store i8 0, ptr %ran_once_1, align [filtered]
       %is_incrementing_1 = alloca i8, align [filtered]
       store i8 0, ptr %is_incrementing_1, align [filtered]
-      %ran_once_1 = alloca i8, align [filtered]
-      store i8 0, ptr %ran_once_1, align [filtered]
-      %is_incrementing_1 = alloca i8, align [filtered]
-      store i8 0, ptr %is_incrementing_1, align [filtered]
       store i16 0, ptr %i, align [filtered]
       store i8 1, ptr %is_incrementing_1, align [filtered]
+      %ran_once_0 = alloca i8, align [filtered]
       br label %while_body
 
     while_body:                                       ; preds = %continue2, %entry
@@ -2375,7 +2372,6 @@ fn super_in_loop_constructs() {
       br i1 %tmpVar22, label %condition_body23, label %continue20
 
     continue19:                                       ; preds = %condition_body23
-      %ran_once_0 = alloca i8, align [filtered]
       store i8 0, ptr %ran_once_0, align [filtered]
       br label %while_body25
 

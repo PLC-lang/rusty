@@ -310,10 +310,6 @@ fn elseif_is_lowered_to_else_with_nested_if_inside_for_loop() {
       store i8 0, ptr %ran_once_0, align [filtered]
       %is_incrementing_0 = alloca i8, align [filtered]
       store i8 0, ptr %is_incrementing_0, align [filtered]
-      %ran_once_0 = alloca i8, align [filtered]
-      store i8 0, ptr %ran_once_0, align [filtered]
-      %is_incrementing_0 = alloca i8, align [filtered]
-      store i8 0, ptr %is_incrementing_0, align [filtered]
       store i16 0, ptr %i, align [filtered]
       store i8 1, ptr %is_incrementing_0, align [filtered]
       br label %while_body
