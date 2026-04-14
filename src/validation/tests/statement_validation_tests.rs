@@ -2745,3 +2745,87 @@ fn function_call_with_variadics_should_not_produce_downcast_warnings() {
 
     assert_snapshot!(diagnostics, @"");
 }
+
+#[test]
+fn and_then_with_non_bool_operands_is_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+        VAR
+            a : DINT;
+            b : DINT;
+            c : DINT;
+        END_VAR
+            c := a AND_THEN b;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E131]: `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+      ┌─ <internal>:8:18
+      │
+    8 │             c := a AND_THEN b;
+      │                  ^^^^^^^^^^^^ `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+    ");
+}
+
+#[test]
+fn or_else_with_non_bool_operands_is_an_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+        VAR
+            a : DINT;
+            b : DINT;
+            c : DINT;
+        END_VAR
+            c := a OR_ELSE b;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E131]: `OR_ELSE` requires boolean operands, use `OR` for bitwise operations on non-boolean types
+      ┌─ <internal>:8:18
+      │
+    8 │             c := a OR_ELSE b;
+      │                  ^^^^^^^^^^^ `OR_ELSE` requires boolean operands, use `OR` for bitwise operations on non-boolean types
+    ");
+}
+
+#[test]
+fn and_then_with_bool_operands_is_ok() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+        VAR
+            a : BOOL;
+            b : BOOL;
+            c : BOOL;
+        END_VAR
+            c := a AND_THEN b;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn or_else_with_bool_operands_is_ok() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM main
+        VAR
+            a : BOOL;
+            b : BOOL;
+            c : BOOL;
+        END_VAR
+            c := a OR_ELSE b;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
