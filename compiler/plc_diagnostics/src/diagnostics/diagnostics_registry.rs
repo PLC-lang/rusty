@@ -84,7 +84,7 @@ impl DiagnosticAssessor for DiagnosticsRegistry {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(transparent)]
 pub struct DiagnosticsConfiguration(FxHashMap<Severity, Vec<String>>);
 
