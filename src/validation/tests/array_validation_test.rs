@@ -679,6 +679,39 @@ fn type_level_struct_array_fewer() {
 }
 
 #[test]
+fn fewer_elements_in_type_and_derived_variable() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM PLC_PRG
+            VAR CONSTANT
+                x : INT := 0;
+            END_VAR
+            VAR
+                a : userArrayType := [x,x];
+            END_VAR
+        END_PROGRAM
+
+        TYPE userArrayType : ARRAY [1..5] OF INT := [1,2,4,5];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E127]: Fewer initial values for array `a` than expected. Expected 5, found 2.
+      ┌─ <internal>:7:38
+      │
+    7 │                 a : userArrayType := [x,x];
+      │                                      ^^^^^ Fewer initial values for array `a` than expected. Expected 5, found 2.
+
+    warning[E127]: Fewer initial values for array `userArrayType` than expected. Expected 5, found 4.
+       ┌─ <internal>:11:53
+       │
+    11 │         TYPE userArrayType : ARRAY [1..5] OF INT := [1,2,4,5];
+       │                                                     ^^^^^^^^^ Fewer initial values for array `userArrayType` than expected. Expected 5, found 4.
+    ");
+}
+
+#[test]
 fn array_access_through_type_alias_is_valid() {
     let diagnostics = parse_and_validate_buffered(
         "
