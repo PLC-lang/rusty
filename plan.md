@@ -176,20 +176,21 @@ The existing `--error-config` flag is deprecated and subsumed by the profile's `
 
 ### Tasks
 
-- [ ] Create `book/src/using_rusty/compatibility_profiles.md`
+- [x] Create `book/src/using_rusty/compatibility_profiles.md`
   - Explain what profiles are and why they exist
-  - Document the `--profile` flag
+  - Document the `--profile` flag with usage examples
   - Document built-in profiles (`standard`, `codesys`)
-  - Document the file format with examples
+  - Document the file format (JSON + TOML) with examples
   - Explain how to export and customize profiles (`plc config profile`)
   - Explain forward compatibility (unknown flags are skipped)
-  - Section for each behavior flag (empty initially, grows as flags are added)
-- [ ] Update `book/src/using_rusty/error_configuration.md`
-  - Mention that `--error-config` is automatically converted to a profile internally
-  - Point users to the new profile system as the recommended approach
-  - Explain that their existing JSON works inside a profile's `diagnostics` section
-- [ ] Update `book/src/SUMMARY.md`
-  - Add `Compatibility Profiles` entry under `Using RuSTy`
+  - Placeholder section for behavior flags (grows as flags are added)
+- [x] Update `book/src/using_rusty/error_configuration.md`
+  - Added tip about embedding error config in a profile's `diagnostics` section
+  - Linked to the new compatibility profiles page
+- [x] Update `book/src/SUMMARY.md`
+  - Added `Compatibility Profiles` entry under `Using RuSTy`
+- [x] Update `book/src/using_rusty.md`
+  - Added `config profile` section alongside existing `config diagnostics`
 
 ### Key Files
 

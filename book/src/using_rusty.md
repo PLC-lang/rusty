@@ -177,6 +177,11 @@ Outputs the json schema used for the validation of the `plc.json` file
 Ouputs a json file with the default error severity configuration for the project.
 See [Error Configuration](./error_configuration.md) for more information.
 
+### `config profile`
+
+Outputs the resolved compatibility profile as JSON or TOML.
+See [Compatibility Profiles](./compatibility_profiles.md) for more information.
+
 ## Project-wide initialization
 
 RuSTy uses constructor functions for initialization. The compiler generates:
