@@ -13,11 +13,13 @@
 //! break existing validations (some SUPER tests failed when I tried this). As a result, doing validations
 //! during lowering is the most pragmatic option right now, even if it's a bit inelegant.
 
+use plc_ast::ast::AstNode;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use crate::index::Index;
-use crate::lowering::polymorphism::table::interface::helper as itable_helper;
+use crate::{
+    index::Index, lowering::polymorphism::table::interface::helper as itable_helper, resolver::AnnotationMap,
+};
 
 /// Validates that a POU implements the target interface. Returns `Some(Diagnostic)` if not.
 ///
@@ -69,4 +71,19 @@ pub fn validate_interface_assignment(
     }
 
     Some(Diagnostic::invalid_interface_assignment(source_iface, target_iface, location.clone()))
+}
+
+/// Validates that an interface reference is not called directly.
+///
+/// ```st
+/// refIA();     // error: a method name must be specified
+/// refIA.foo(); // ok:    call a declared interface method instead
+/// ```
+pub fn validate_direct_interface_call<T: AnnotationMap>(
+    annotations: &T,
+    index: &Index,
+    operator: &AstNode,
+) -> Option<Diagnostic> {
+    let operator_type = annotations.get_type_or_void(operator, index);
+    operator_type.is_interface().then(|| Diagnostic::invalid_direct_interface_call(operator.location.clone()))
 }
