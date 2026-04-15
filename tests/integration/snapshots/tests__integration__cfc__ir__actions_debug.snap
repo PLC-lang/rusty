@@ -66,7 +66,7 @@ entry:
 !7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align [filtered], offset: 32, flags: DIFlagPublic)
 !8 = !{i32 2, !"Dwarf Version", i32 5}
 !9 = !{i32 2, !"Debug Info Version", i32 3}
-!10 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !11, splitDebugInlining: false)
+!10 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !11, splitDebugInlining: false, nameTableKind: None)
 !11 = !{!0}
 !12 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 1, type: !13, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !10, retainedNodes: !15)
 !13 = !DISubroutineType(flags: DIFlagPublic, types: !14)

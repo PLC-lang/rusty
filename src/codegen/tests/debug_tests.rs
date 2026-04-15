@@ -114,7 +114,7 @@ fn test_global_var_enum_added_to_debug_info() {
     !8 = !DIEnumerator(name: "c", value: 2)
     !9 = !{i32 2, !"Dwarf Version", i32 5}
     !10 = !{i32 2, !"Debug Info Version", i32 3}
-    !11 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !12, globals: !21, splitDebugInlining: false)
+    !11 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !12, globals: !21, splitDebugInlining: false, nameTableKind: None)
     !12 = !{!3, !13, !15}
     !13 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "en1", scope: !2, file: !2, line: 2, baseType: !14, size: 32, align [filtered], elements: !5)
     !14 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
@@ -225,7 +225,7 @@ fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
     !25 = !DIEnumerator(name: "Execute", value: 16, isUnsigned: true)
     !26 = !{i32 2, !"Dwarf Version", i32 5}
     !27 = !{i32 2, !"Debug Info Version", i32 3}
-    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !29, globals: !30, splitDebugInlining: false)
+    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !29, globals: !30, splitDebugInlining: false, nameTableKind: None)
     !29 = !{!3, !11, !19}
     !30 = !{!0, !9, !17}
     "#)
@@ -334,7 +334,7 @@ fn test_global_var_struct_with_enum_members_added_to_debug_info() {
     !25 = !DISubrange(count: 81, lowerBound: 0)
     !26 = !{i32 2, !"Dwarf Version", i32 5}
     !27 = !{i32 2, !"Debug Info Version", i32 3}
-    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !29, globals: !30, splitDebugInlining: false)
+    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !29, globals: !30, splitDebugInlining: false, nameTableKind: None)
     !29 = !{!8, !14}
     !30 = !{!0}
     "#)
@@ -594,7 +594,7 @@ fn switch_case_debug_info() {
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 2, type: !5, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
@@ -731,7 +731,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !3, file: !3, line: 2, type: !5, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !13)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
@@ -843,7 +843,7 @@ fn action_with_var_temp() {
     !4 = !{}
     !5 = !{i32 2, !"Dwarf Version", i32 5}
     !6 = !{i32 2, !"Debug Info Version", i32 3}
-    !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false)
+    !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false, nameTableKind: None)
     !8 = !{!0}
     !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 2, type: !10, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
@@ -1102,7 +1102,7 @@ END_FUNCTION
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 22, type: !5, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
@@ -1278,7 +1278,7 @@ fn constants_are_tagged_as_such() {
     !25 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align [filtered], offset: 64, flags: DIFlagPublic)
     !26 = !{i32 2, !"Dwarf Version", i32 5}
     !27 = !{i32 2, !"Debug Info Version", i32 3}
-    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !29, splitDebugInlining: false)
+    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !29, splitDebugInlining: false, nameTableKind: None)
     !29 = !{!0, !5, !13, !19}
     !30 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 8, type: !31, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33)
     !31 = !DISubroutineType(flags: DIFlagPublic, types: !32)
@@ -1413,7 +1413,7 @@ fn test_debug_info_regular_pointer_types() {
     !30 = !DISubrange(count: 81, lowerBound: 0)
     !31 = !{i32 2, !"Dwarf Version", i32 5}
     !32 = !{i32 2, !"Debug Info Version", i32 3}
-    !33 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !34, splitDebugInlining: false)
+    !33 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !34, splitDebugInlining: false, nameTableKind: None)
     !34 = !{!0, !6, !13, !22}
     "#)
 }
@@ -1544,7 +1544,7 @@ fn test_debug_info_auto_deref_parameters() {
     !33 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_ref_params_local_ref", baseType: !17, size: 64, align [filtered], dwarfAddressSpace: 1)
     !34 = !{i32 2, !"Dwarf Version", i32 5}
     !35 = !{i32 2, !"Debug Info Version", i32 3}
-    !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false)
+    !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false, nameTableKind: None)
     !37 = !{!0}
     !38 = distinct !DISubprogram(name: "test_with_ref_params", linkageName: "test_with_ref_params", scope: !2, file: !2, line: 2, type: !39, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41)
     !39 = !DISubroutineType(flags: DIFlagPublic, types: !40)
@@ -1645,7 +1645,7 @@ fn test_debug_info_auto_deref_alias_pointers() {
     !18 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_struct", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
     !19 = !{i32 2, !"Dwarf Version", i32 5}
     !20 = !{i32 2, !"Debug Info Version", i32 3}
-    !21 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !22, splitDebugInlining: false)
+    !21 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !22, splitDebugInlining: false, nameTableKind: None)
     !22 = !{!0, !4, !8, !15}
     "#)
 }
@@ -1793,7 +1793,7 @@ fn test_debug_info_mixed_pointer_types() {
     !33 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__mixed_ptr_local_ref", baseType: !30, size: 64, align [filtered], dwarfAddressSpace: 1)
     !34 = !{i32 2, !"Dwarf Version", i32 5}
     !35 = !{i32 2, !"Debug Info Version", i32 3}
-    !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false)
+    !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false, nameTableKind: None)
     !37 = !{!0, !6, !12}
     !38 = distinct !DISubprogram(name: "mixed_ptr", linkageName: "mixed_ptr", scope: !2, file: !2, line: 7, type: !39, scopeLine: 18, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41)
     !39 = !DISubroutineType(flags: DIFlagPublic, types: !40)
@@ -2010,7 +2010,7 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     !46 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_local_reference", baseType: !17, size: 64, align [filtered], dwarfAddressSpace: 1)
     !47 = !{i32 2, !"Dwarf Version", i32 5}
     !48 = !{i32 2, !"Debug Info Version", i32 3}
-    !49 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !50, splitDebugInlining: false)
+    !49 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !50, splitDebugInlining: false, nameTableKind: None)
     !50 = !{!0, !6, !13, !22, !31}
     !51 = distinct !DISubprogram(name: "test_with_reference_params", linkageName: "test_with_reference_params", scope: !2, file: !2, line: 9, type: !52, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !49, retainedNodes: !54)
     !52 = !DISubroutineType(flags: DIFlagPublic, types: !53)
@@ -2074,7 +2074,7 @@ fn range_datatype_debug() {
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 6, type: !5, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
@@ -2157,7 +2157,7 @@ fn range_datatype_reference_expr_bounds_debug() {
     !4 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !5 = !{i32 2, !"Dwarf Version", i32 5}
     !6 = !{i32 2, !"Debug Info Version", i32 3}
-    !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false)
+    !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false, nameTableKind: None)
     !8 = !{!0}
     !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 10, type: !10, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !12)
     !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
@@ -2252,7 +2252,7 @@ fn range_datatype_fqn_reference_bounds_debug() {
     !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_10_103__DINT", scope: !2, file: !2, line: 2, baseType: !7, align [filtered])
     !10 = !{i32 2, !"Dwarf Version", i32 5}
     !11 = !{i32 2, !"Debug Info Version", i32 3}
-    !12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false)
+    !12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false, nameTableKind: None)
     !13 = !{!0}
     !14 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 6, type: !15, scopeLine: 13, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !17)
     !15 = !DISubroutineType(flags: DIFlagPublic, types: !16)
@@ -2359,7 +2359,7 @@ fn range_datatype_debug_alias_reused() {
     !11 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !2, file: !2, line: 13, baseType: !9, size: 32, align [filtered], offset: 96, flags: DIFlagPublic)
     !12 = !{i32 2, !"Dwarf Version", i32 5}
     !13 = !{i32 2, !"Debug Info Version", i32 3}
-    !14 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !15, splitDebugInlining: false)
+    !14 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !15, splitDebugInlining: false, nameTableKind: None)
     !15 = !{!0}
     !16 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 6, type: !17, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !19)
     !17 = !DISubroutineType(flags: DIFlagPublic, types: !18)
