@@ -48,7 +48,7 @@ name = "plc"
 path = "./src/main.rs"
 
 [package.metadata.deb]
-name = "plc"
+name = "plc-compiler"
 maintainer = "PLC-lang Project"
 extended-description = """\
 PLC is an IEC 61131-3 Structured Text compiler targeting LLVM. \
@@ -56,9 +56,9 @@ It compiles ST programs to native machine code for multiple platforms."""
 section = "devel"
 priority = "optional"
 depends = "libc6"
-recommends = "libiec61131std"
+recommends = "plc-stdlib"
 assets = [
     ["target/release/plc", "usr/bin/", "755"],
     ["../../compiler/plc_project/schema/plc-json.schema", "usr/share/plc/schema/", "644"],
-    ["../../scripts/debian/plc/copyright", "usr/share/doc/plc/", "644"],
+    ["../../scripts/debian/plc-compiler/copyright", "usr/share/doc/plc-compiler/", "644"],
 ]

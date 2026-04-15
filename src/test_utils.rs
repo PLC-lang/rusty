@@ -12,7 +12,7 @@ pub mod tests {
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use plc_index::GlobalContext;
-    use plc_lowering::control_statement::ControlStatementLowerer;
+    use plc_lowering::{control_statement::ControlStatementLowerer, loops::LoopDesugarer};
     use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
@@ -142,17 +142,20 @@ pub mod tests {
         index: Index,
         id_provider: IdProvider,
     ) -> Lowered {
+        // Mirror the relevant pre-index lowering participants used by the real pipeline so codegen tests
+        // operate on the same loop/control-flow shape as the compiler.
+        let loop_desugarer = LoopDesugarer::new(id_provider.clone());
+        loop_desugarer.desugar(std::slice::from_mut(&mut unit));
+
+        let mut control_statement_lowerer = ControlStatementLowerer::new(id_provider.clone());
+        control_statement_lowerer.visit_compilation_unit(&mut unit);
+
         let (mut index, _) = evaluate_constants(index);
         let mut all_annotations = AnnotationMapImpl::default();
 
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
         all_annotations.import(annotations);
-
-        // TODO: Added the control statement lowerer for now... but maybe we should be using the pipeline participants for codegen as well
-        // so that we can get a "true" representation of what would be generated when the compiler is run.
-        let mut control_statement_lowerer = ControlStatementLowerer::new(id_provider.clone());
-        control_statement_lowerer.visit_compilation_unit(&mut unit);
 
         let mut aggregate_lowerer = AggregateTypeLowerer::new(id_provider.clone());
         aggregate_lowerer.index.replace(index);

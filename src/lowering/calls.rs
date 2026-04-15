@@ -53,7 +53,7 @@ use plc_ast::{
         AstId, AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable,
         VariableBlock, VariableBlockType,
     },
-    control_statements::{AstControlStatement, ConditionalBlock, IfStatement, LoopStatement},
+    control_statements::{AstControlStatement, ConditionalBlock},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     try_from_mut,
@@ -67,17 +67,6 @@ use crate::{
     typesystem::{DataType, DataTypeInformation},
 };
 
-#[derive(Default, Debug, Clone)]
-struct VisitorContext {
-    is_do_while: bool,
-}
-
-impl VisitorContext {
-    fn do_while_loop() -> Self {
-        Self { is_do_while: true }
-    }
-}
-
 // Performs lowering for aggregate types defined in functions
 #[derive(Default)]
 pub struct AggregateTypeLowerer {
@@ -89,7 +78,6 @@ pub struct AggregateTypeLowerer {
     /// New statements to be added during visit, that should happen after the call. This should always be drained when read
     post_stmts: Vec<Vec<AstNode>>,
     counter: AtomicI32,
-    ctx: VisitorContext,
 }
 
 impl AggregateTypeLowerer {
@@ -119,51 +107,6 @@ impl AggregateTypeLowerer {
             b.condition.walk(self);
             self.steal_and_walk_list(&mut b.body);
         }
-    }
-
-    fn visit_loop_statement(&mut self, stmt: &mut LoopStatement) {
-        let location = stmt.condition.get_location();
-        let mut condition = std::mem::replace(
-            stmt.condition.as_mut(),
-            AstFactory::create_literal(
-                plc_ast::literals::AstLiteral::Bool(true),
-                location.clone(),
-                self.id_provider.next_id(),
-            ),
-        );
-        if !self.ctx.is_do_while {
-            condition =
-                AstFactory::create_not_expression(condition, location.clone(), self.id_provider.next_id());
-        }
-        //wrap in if statement
-        let break_stmt = AstFactory::create_exit_statement(location.clone(), self.id_provider.next_id());
-        let if_condition = AstFactory::create_if_statement(
-            IfStatement {
-                blocks: vec![ConditionalBlock { condition: Box::new(condition), body: vec![break_stmt] }],
-                else_block: vec![],
-                end_location: SourceLocation::internal(),
-            },
-            location.clone(),
-            self.id_provider.next_id(),
-        );
-        //Insert the if statement at the start or end of the body
-        if self.ctx.is_do_while {
-            stmt.body.push(if_condition);
-        } else {
-            stmt.body.insert(0, if_condition);
-        }
-
-        self.steal_and_walk_list(&mut stmt.body);
-    }
-
-    fn walk_with_context<T>(&mut self, t: &mut T, ctx: VisitorContext, f: impl Fn(&mut Self, &mut T))
-    where
-        T: WalkerMut,
-    {
-        let old = self.ctx.clone();
-        self.ctx = ctx;
-        f(self, t);
-        self.ctx = old;
     }
 
     fn push_pre_statement(&mut self, stmt: AstNode) {
@@ -452,15 +395,6 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 self.walk_conditional_blocks(&mut stmt.blocks);
                 self.steal_and_walk_list(&mut stmt.else_block);
             }
-            AstControlStatement::WhileLoop(stmt) => {
-                self.visit_loop_statement(stmt);
-            }
-            AstControlStatement::RepeatLoop(stmt) => {
-                let ctx = self.ctx.clone();
-                self.ctx = VisitorContext::do_while_loop();
-                self.visit_loop_statement(stmt);
-                self.ctx = ctx;
-            }
             AstControlStatement::ForLoop(stmt) => {
                 stmt.counter.walk(self);
                 stmt.start.walk(self);
@@ -472,12 +406,12 @@ impl AstVisitorMut for AggregateTypeLowerer {
             }
             AstControlStatement::Case(stmt) => {
                 stmt.selector.walk(self);
-                self.walk_with_context(
-                    &mut stmt.case_blocks,
-                    VisitorContext::default(),
-                    Self::walk_conditional_blocks,
-                );
+                self.walk_conditional_blocks(&mut stmt.case_blocks);
                 self.steal_and_walk_list(&mut stmt.else_block);
+            }
+            AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
+                stmt.condition.walk(self);
+                self.steal_and_walk_list(&mut stmt.body);
             }
         }
     }

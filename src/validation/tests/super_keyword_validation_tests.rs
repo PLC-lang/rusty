@@ -820,7 +820,13 @@ fn super_in_nested_conditionals() {
     ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
+    warning[E049]: Illegal access to private member parent.value
+       ┌─ <internal>:16:27
+       │
+    16 │                 IF SUPER^.value > 0 THEN
+       │                           ^^^^^ Illegal access to private member parent.value
+
     warning[E049]: Illegal access to private member parent.value
        ┌─ <internal>:18:32
        │

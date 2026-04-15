@@ -14,12 +14,9 @@ target triple = "[filtered]"
 define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-  br label %condition_check
+  br label %while_body
 
-condition_check:                                  ; preds = %entry, %continue5
-  br i1 true, label %while_body, label %continue
-
-while_body:                                       ; preds = %condition_check
+while_body:                                       ; preds = %continue5, %entry
   %load_x = load i32, ptr %x, align [filtered]
   %tmpVar = icmp slt i32 %load_x, 20
   %1 = zext i1 %tmpVar to i8
@@ -27,7 +24,7 @@ while_body:                                       ; preds = %condition_check
   %tmpVar2 = xor i1 %2, true
   br i1 %tmpVar2, label %condition_body, label %continue1
 
-continue:                                         ; preds = %condition_body8, %condition_body, %condition_check
+continue:                                         ; preds = %condition_body8, %condition_body
   ret void
 
 condition_body:                                   ; preds = %while_body
@@ -53,5 +50,5 @@ buffer_block9:                                    ; No predecessors!
   br label %continue5
 
 continue5:                                        ; preds = %buffer_block9, %continue1
-  br label %condition_check
+  br label %while_body
 }
