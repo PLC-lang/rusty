@@ -50,10 +50,10 @@ use std::{borrow::BorrowMut, sync::atomic::AtomicI32};
 use plc_ast::{
     ast::{
         flatten_expression_list, steal_expression_list, AccessModifier, Allocation, Assignment, AstFactory,
-        AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable, VariableBlock,
-        VariableBlockType,
+        AstId, AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable,
+        VariableBlock, VariableBlockType,
     },
-    control_statements::{AstControlStatement, ConditionalBlock, IfStatement, LoopStatement},
+    control_statements::{AstControlStatement, ConditionalBlock},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     try_from_mut,
@@ -66,27 +66,17 @@ use crate::{
     resolver::{AnnotationMap, StatementAnnotation},
 };
 
-#[derive(Default, Debug, Clone)]
-struct VisitorContext {
-    is_do_while: bool,
-}
-
-impl VisitorContext {
-    fn do_while_loop() -> Self {
-        Self { is_do_while: true }
-    }
-}
-
 // Performs lowering for aggregate types defined in functions
 #[derive(Default)]
 pub struct AggregateTypeLowerer {
     pub index: Option<Index>,
     pub annotation: Option<Box<dyn AnnotationMap>>,
     pub id_provider: IdProvider,
-    // New statements to be added during visit, should always be drained when read
-    new_stmts: Vec<Vec<AstNode>>,
+    /// New statements to be added during visit, that should happen before the call. This should always be drained when read
+    pre_stmts: Vec<Vec<AstNode>>,
+    /// New statements to be added during visit, that should happen after the call. This should always be drained when read
+    post_stmts: Vec<Vec<AstNode>>,
     counter: AtomicI32,
-    ctx: VisitorContext,
 }
 
 impl AggregateTypeLowerer {
@@ -118,65 +108,37 @@ impl AggregateTypeLowerer {
         }
     }
 
-    fn visit_loop_statement(&mut self, stmt: &mut LoopStatement) {
-        let location = stmt.condition.get_location();
-        let mut condition = std::mem::replace(
-            stmt.condition.as_mut(),
-            AstFactory::create_literal(
-                plc_ast::literals::AstLiteral::Bool(true),
-                location.clone(),
-                self.id_provider.next_id(),
-            ),
-        );
-        if !self.ctx.is_do_while {
-            condition =
-                AstFactory::create_not_expression(condition, location.clone(), self.id_provider.next_id());
-        }
-        //wrap in if statement
-        let break_stmt = AstFactory::create_exit_statement(location.clone(), self.id_provider.next_id());
-        let if_condition = AstFactory::create_if_statement(
-            IfStatement {
-                blocks: vec![ConditionalBlock { condition: Box::new(condition), body: vec![break_stmt] }],
-                else_block: vec![],
-                end_location: SourceLocation::internal(),
-            },
-            location.clone(),
-            self.id_provider.next_id(),
-        );
-        //Insert the if statement at the start or end of the body
-        if self.ctx.is_do_while {
-            stmt.body.push(if_condition);
-        } else {
-            stmt.body.insert(0, if_condition);
-        }
-
-        self.steal_and_walk_list(&mut stmt.body);
-    }
-
-    fn walk_with_context<T>(&mut self, t: &mut T, ctx: VisitorContext, f: impl Fn(&mut Self, &mut T))
-    where
-        T: WalkerMut,
-    {
-        let old = self.ctx.clone();
-        self.ctx = ctx;
-        f(self, t);
-        self.ctx = old;
-    }
-
-    fn push_statement(&mut self, stmt: AstNode) {
-        if let Some(stmts) = self.new_stmts.last_mut() {
+    fn push_pre_statement(&mut self, stmt: AstNode) {
+        if let Some(stmts) = self.pre_stmts.last_mut() {
             stmts.push(stmt);
         } else {
             unreachable!("Statement lists should exist at this point");
         }
     }
 
-    fn enter_scope(&mut self) {
-        self.new_stmts.push(vec![]);
+    fn push_pre_statements(&mut self, stmts: &[AstNode]) {
+        stmts.iter().for_each(|stmt| self.push_pre_statement(stmt.clone()));
     }
 
-    fn exit_scope(&mut self) -> Option<Vec<AstNode>> {
-        self.new_stmts.pop()
+    fn push_post_statement(&mut self, stmt: AstNode) {
+        if let Some(stmts) = self.post_stmts.last_mut() {
+            stmts.push(stmt);
+        } else {
+            unreachable!("Statement lists should exist at this point");
+        }
+    }
+
+    fn push_post_statements(&mut self, stmts: &[AstNode]) {
+        stmts.iter().for_each(|stmt| self.push_post_statement(stmt.clone()));
+    }
+
+    fn enter_scope(&mut self) {
+        self.pre_stmts.push(vec![]);
+        self.post_stmts.push(vec![]);
+    }
+
+    fn exit_scope(&mut self) -> (Option<Vec<AstNode>>, Option<Vec<AstNode>>) {
+        (self.pre_stmts.pop(), self.post_stmts.pop())
     }
 }
 
@@ -253,13 +215,18 @@ impl AstVisitorMut for AggregateTypeLowerer {
     fn map(&mut self, mut node: AstNode) -> AstNode {
         self.enter_scope();
         node.borrow_mut().walk(self);
-        let mut new_stmts = self.exit_scope().unwrap_or_default();
-        if new_stmts.is_empty() {
+
+        let (pre_stmts, post_stmts) = self.exit_scope();
+        let mut pre_stmts = pre_stmts.unwrap_or_default();
+        let mut post_stmts = post_stmts.unwrap_or_default();
+
+        if pre_stmts.is_empty() && post_stmts.is_empty() {
             node
         } else {
             let location = node.get_location();
-            new_stmts.push(node);
-            AstFactory::create_expression_list(new_stmts, location, self.id_provider.next_id())
+            pre_stmts.push(node);
+            pre_stmts.append(&mut post_stmts);
+            AstFactory::create_expression_list(pre_stmts, location, self.id_provider.next_id())
         }
     }
 
@@ -296,6 +263,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
         let generic_function: Option<&crate::index::PouIndexEntry> =
             generic_name.as_deref().and_then(|it| index.find_pou(it));
         let is_generic_function = generic_function.is_some_and(|it| it.is_generic());
+
         //TODO: needs to be on the function
         if return_type.is_aggregate_type() && !function_entry.is_builtin() {
             //TODO: use qualified name
@@ -314,7 +282,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 location: original_location.clone(),
                 metadata: None,
             };
-            self.push_statement(alloca);
+            self.push_pre_statement(alloca);
             let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
             let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
             let reference = create_member_reference_with_location(
@@ -376,7 +344,87 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 original_location,
             );
             std::mem::swap(node.get_stmt_mut(), reference.get_stmt_mut());
-            self.push_statement(reference);
+            self.push_pre_statement(reference);
+        }
+        // 1. Is this a function with any output assignments?
+        // 2. Do any of the output assignments have types that need casting?
+        else if stmt
+            .parameters
+            .as_ref()
+            .iter()
+            .any(|param| is_output_assignment_and_type_cast_needed(param, annotation.as_ref(), index))
+            // Stateful structs (such as function blocks) have their own output assignment mechanism in codegen,
+            // and are not handled by this lowerer
+            && (function_entry.is_function() || function_entry.is_method())
+        {
+            let mut pre_statements: Vec<AstNode> = Vec::new();
+            let mut post_statements: Vec<AstNode> = Vec::new();
+            let mut expressions: Vec<AstNode> = Vec::new();
+
+            let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
+            let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
+
+            stmt.parameters.as_ref().iter().for_each(|param| {
+                if let AstStatement::ExpressionList(list) = &param.stmt {
+                    list.iter().for_each(|item| {
+                        if !is_output_assignment_and_type_cast_needed(item, annotation.as_ref(), index) {
+                            expressions.push(item.clone());
+                        } else if let AstStatement::OutputAssignment(output_assignment) = &item.stmt {
+                            let left_type = annotation.get_type_or_void(&output_assignment.left, index);
+
+                            // 3. Generate a temporary variable of the type that the function is expecting and pass it by reference to the function
+                            let name = format!(
+                                "__{}_{}{}",
+                                &qualified_name,
+                                output_assignment.left.get_flat_reference_name().unwrap_or_default(),
+                                self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+                            );
+
+                            let alloca = AstNode {
+                                stmt: AstStatement::AllocationStatement(Allocation {
+                                    name: name.clone(),
+                                    reference_type: left_type.get_name().to_string(),
+                                }),
+                                id: self.id_provider.next_id(),
+                                location: item.location.clone(),
+                                metadata: None,
+                            };
+                            pre_statements.push(alloca);
+
+                            // 4. Replace variable in parameters with our new temporary variable that will be passed to the function
+                            expressions.push(AstFactory::create_output_assignment(
+                                *output_assignment.left.clone(),
+                                create_member_reference_by_name(
+                                    &name,
+                                    item.location.clone(),
+                                    self.id_provider.next_id(),
+                                    self.id_provider.next_id(),
+                                ),
+                                self.id_provider.next_id(),
+                            ));
+
+                            // 6. After the call is complete, assign the temporary variable that was passed to the function back to the original variable
+                            post_statements.push(AstFactory::create_assignment(
+                                *output_assignment.right.clone(),
+                                create_member_reference_by_name(
+                                    &name,
+                                    item.location.clone(),
+                                    self.id_provider.next_id(),
+                                    self.id_provider.next_id(),
+                                ),
+                                self.id_provider.next_id(),
+                            ));
+                        } else {
+                            expressions.push(item.clone());
+                        }
+                    });
+                }
+            });
+
+            stmt.parameters.replace(Box::new(AstFactory::create_expression_list(expressions, location, id)));
+
+            self.push_pre_statements(&pre_statements);
+            self.push_post_statements(&post_statements);
         }
     }
 
@@ -386,15 +434,6 @@ impl AstVisitorMut for AggregateTypeLowerer {
             AstControlStatement::If(stmt) => {
                 self.walk_conditional_blocks(&mut stmt.blocks);
                 self.steal_and_walk_list(&mut stmt.else_block);
-            }
-            AstControlStatement::WhileLoop(stmt) => {
-                self.visit_loop_statement(stmt);
-            }
-            AstControlStatement::RepeatLoop(stmt) => {
-                let ctx = self.ctx.clone();
-                self.ctx = VisitorContext::do_while_loop();
-                self.visit_loop_statement(stmt);
-                self.ctx = ctx;
             }
             AstControlStatement::ForLoop(stmt) => {
                 stmt.counter.walk(self);
@@ -407,22 +446,75 @@ impl AstVisitorMut for AggregateTypeLowerer {
             }
             AstControlStatement::Case(stmt) => {
                 stmt.selector.walk(self);
-                self.walk_with_context(
-                    &mut stmt.case_blocks,
-                    VisitorContext::default(),
-                    Self::walk_conditional_blocks,
-                );
+                self.walk_conditional_blocks(&mut stmt.case_blocks);
                 self.steal_and_walk_list(&mut stmt.else_block);
+            }
+            AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
+                stmt.condition.walk(self);
+                self.steal_and_walk_list(&mut stmt.body);
             }
         }
     }
 }
 
+fn create_member_reference_by_name(
+    name: &str,
+    location: SourceLocation,
+    identifier_id: AstId,
+    reference_id: AstId,
+) -> AstNode {
+    AstFactory::create_member_reference(
+        AstFactory::create_identifier(name, location, identifier_id),
+        None,
+        reference_id,
+    )
+}
+
+fn is_output_assignment_and_type_cast_needed(
+    node: &AstNode,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) -> bool {
+    match &node.stmt {
+        AstStatement::ExpressionList(nodes) => {
+            nodes.iter().any(|node| is_output_assignment_and_type_cast_needed(node, annotations, index))
+        }
+        AstStatement::OutputAssignment(assignment) => {
+            // For output assignment in a call these types need to be swapped
+            // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
+            let type_lhs = annotations.get_type_or_void(&assignment.right, index);
+            let type_rhs = annotations.get_type_or_void(&assignment.left, index);
+
+            // If either type is void then this is an empty assignment and casting is not necessary
+            if type_lhs.is_void() || type_rhs.is_void() {
+                return false;
+            }
+
+            let type_info_lhs = type_lhs.get_type_information();
+            let type_info_rhs = type_rhs.get_type_information();
+
+            let Ok(size_lhs) = type_info_lhs.get_size(index) else {
+                return false;
+            };
+            let Ok(size_rhs) = type_info_rhs.get_size(index) else {
+                return false;
+            };
+
+            size_lhs != size_rhs
+                || (size_lhs == size_rhs
+                    && ((type_info_lhs.is_signed_int() && type_info_rhs.is_unsigned_int())
+                        || (type_info_lhs.is_int() && type_info_rhs.is_float())))
+        }
+        _ => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use insta::assert_debug_snapshot;
+    use insta::{assert_debug_snapshot, assert_snapshot};
     use plc_ast::mut_visitor::AstVisitorMut;
     use plc_ast::provider::IdProvider;
+    use plc_ast::ser::AstSerializer;
     use plc_lowering::control_statement::ControlStatementLowerer;
     use pretty_assertions::assert_eq;
 
@@ -1292,5 +1384,111 @@ mod tests {
         lowerer.annotation.replace(Box::new(annotations));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[2].statements[0]);
+    }
+
+    #[test]
+    fn calls_to_functions_with_output_assignments_are_lowererd_if_type_cast_is_needed() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION libFunction : INT
+        VAR_INPUT
+            inVar1 : INT;
+            inVar2 : REAL;
+        END_VAR
+        VAR_OUTPUT
+            result : REAL;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                i1 : INT;
+            END_VAR
+
+            libFunction(
+                inVar1 := 0,
+                inVar2 := 0.0,
+                result => i1
+            );
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        let statement = &implementation.statements[0];
+        assert_snapshot!(AstSerializer::format(statement), @"alloca __libFunction_result0: REAL, libFunction(inVar1 := 0, inVar2 := 0.0, result => __libFunction_result0), i1 := __libFunction_result0");
+    }
+
+    #[test]
+    fn calls_to_functions_with_output_assignments_are_not_lowererd_if_no_type_cast_is_needed() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION libFunction : INT
+        VAR_INPUT
+            inVar1 : INT;
+            inVar2 : REAL;
+        END_VAR
+        VAR_OUTPUT
+            result : REAL;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                i1 : REAL;
+            END_VAR
+
+            libFunction(
+                inVar1 := 0,
+                inVar2 := 0.0,
+                result => i1
+            );
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        let statement = &implementation.statements[0];
+        assert_snapshot!(AstSerializer::format(statement), @"libFunction(inVar1 := 0, inVar2 := 0.0, result => i1)");
     }
 }

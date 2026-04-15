@@ -1063,6 +1063,7 @@ fn parse_literal_real(
         let start = integer_range.start;
         let end = lexer.range().end;
         let fractional = lexer.slice_and_advance();
+        let integer = integer.replace('_', "");
         let value = format!("{}{}.{}", if is_negative { "-" } else { "" }, integer, fractional);
         let new_location = lexer.source_range_factory.create_range(start..end);
 

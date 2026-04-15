@@ -539,20 +539,17 @@ fn switch_case_debug_info() {
       store i16 0, ptr %x3, align [filtered]
         #dbg_declare(ptr %main, !15, !DIExpression(), !17)
       store i32 0, ptr %main, align [filtered]
-      br label %condition_check, !dbg !18
+      br label %while_body, !dbg !18
 
-    condition_check:                                  ; preds = %continue2, %entry
-      br i1 true, label %while_body, label %continue, !dbg !19
-
-    while_body:                                       ; preds = %condition_check
+    while_body:                                       ; preds = %continue2, %entry
       br i1 false, label %condition_body, label %continue1, !dbg !19
 
-    continue:                                         ; preds = %condition_body, %condition_check
+    continue:                                         ; preds = %condition_body
       %main_ret = load i32, ptr %main, align [filtered], !dbg !20
       ret i32 %main_ret, !dbg !20
 
     condition_body:                                   ; preds = %while_body
-      br label %continue, !dbg !19
+      br label %continue, !dbg !21
 
     buffer_block:                                     ; No predecessors!
       br label %continue1, !dbg !21
@@ -589,7 +586,7 @@ fn switch_case_debug_info() {
       br label %continue2, !dbg !25
 
     continue2:                                        ; preds = %else, %case5, %case4, %case
-      br label %condition_check, !dbg !18
+      br label %while_body, !dbg !21
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -613,7 +610,7 @@ fn switch_case_debug_info() {
     !15 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !16, align [filtered])
     !16 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !17 = !DILocation(line: 2, column: 17, scope: !4)
-    !18 = !DILocation(line: 22, column: 12, scope: !4)
+    !18 = !DILocation(line: 9, column: 12, scope: !4)
     !19 = !DILocation(line: 9, column: 18, scope: !4)
     !20 = !DILocation(line: 24, column: 8, scope: !4)
     !21 = !DILocation(line: 0, scope: !4)

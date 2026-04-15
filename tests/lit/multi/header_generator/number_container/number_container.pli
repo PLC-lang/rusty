@@ -1,0 +1,28 @@
+VAR_GLOBAL
+    GlobalMember: NumberContainerMembers;
+END_VAR
+
+TYPE NumberContainerMembers:
+    STRUCT
+        value : INT;
+    END_STRUCT
+END_TYPE
+
+FUNCTION PrintNumber
+VAR_INPUT
+    valueToPrint: INT;
+END_VAR
+END_FUNCTION
+
+FUNCTION_BLOCK NumberContainer
+VAR
+    _Internal_ : POINTER TO __VOID;
+END_VAR
+
+    METHOD FB_INIT
+    END_METHOD
+
+    METHOD GetMemberValue: INT
+    END_METHOD
+
+END_FUNCTION_BLOCK

@@ -10,7 +10,9 @@ use crate::{
     typesystem::{DataTypeInformation, StructSource},
 };
 
-use super::{variable::visit_variable, ValidationContext, Validator, Validators};
+use super::{
+    array::validate_array_assignment, variable::visit_variable, ValidationContext, Validator, Validators,
+};
 
 pub fn visit_data_type_declaration<T: AnnotationMap>(
     validator: &mut Validator,
@@ -155,6 +157,7 @@ pub fn visit_user_type_declaration<T: AnnotationMap>(
     context: &ValidationContext<T>,
 ) {
     visit_data_type(validator, &user_type.data_type, &user_type.location, context);
+    validate_array_assignment(validator, context, user_type);
 }
 
 pub fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool {

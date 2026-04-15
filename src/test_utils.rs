@@ -12,7 +12,7 @@ pub mod tests {
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use plc_index::GlobalContext;
-    use plc_lowering::control_statement::ControlStatementLowerer;
+    use plc_lowering::{control_statement::ControlStatementLowerer, loops::LoopDesugarer};
     use plc_lowering::reference_to_return::ReferenceToReturnParticipant;
     use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
@@ -143,6 +143,14 @@ pub mod tests {
         index: Index,
         id_provider: IdProvider,
     ) -> Lowered {
+        // Mirror the relevant pre-index lowering participants used by the real pipeline so codegen tests
+        // operate on the same loop/control-flow shape as the compiler.
+        let loop_desugarer = LoopDesugarer::new(id_provider.clone());
+        loop_desugarer.desugar(std::slice::from_mut(&mut unit));
+
+        let mut control_statement_lowerer = ControlStatementLowerer::new(id_provider.clone());
+        control_statement_lowerer.visit_compilation_unit(&mut unit);
+
         let (mut index, _) = evaluate_constants(index);
         let mut all_annotations = AnnotationMapImpl::default();
 

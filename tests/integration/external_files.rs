@@ -37,6 +37,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     fs::remove_file(&out).unwrap();
     let mut args = main_args.clone();
     args.push("--static");
+    args.push("--nocrt");
     compile(&args).unwrap();
     fs::remove_file(&out).unwrap();
 }

@@ -9,6 +9,7 @@ pub mod control_statement;
 pub(crate) mod helper;
 pub mod inheritance;
 pub mod initializer;
+pub mod loops;
 pub mod reference_to_return;
 pub mod retain;
 

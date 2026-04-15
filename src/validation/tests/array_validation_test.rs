@@ -394,3 +394,393 @@ fn validate_ranges() {
       │                 ^^^^^ Invalid range `1..-5`, did you mean `-5..1`?
     ");
 }
+
+#[test]
+fn fewer_elements_1d() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            full    : ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5];
+            partial : ARRAY[1..5] OF DINT := [1, 2, 3];
+            one     : ARRAY[1..5] OF DINT := [1];
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn fewer_elements_2d() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            flat_full    : ARRAY[1..2, 1..3] OF DINT := [1, 2, 3, 4, 5, 6];
+            flat_partial : ARRAY[1..2, 1..3] OF DINT := [1, 2, 3];
+            flat_one     : ARRAY[1..2, 1..3] OF DINT := [1];
+
+            nested_full    : ARRAY[1..2] OF ARRAY[1..3] OF DINT := [[1, 2, 3], [4, 5, 6]];
+            nested_partial : ARRAY[1..2] OF ARRAY[1..3] OF DINT := [[1, 2, 3]];
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn fewer_elements_structs() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE FOO : STRUCT
+            idx : DINT;
+        END_STRUCT END_TYPE
+
+        FUNCTION main : DINT
+        VAR
+            full    : ARRAY[1..3] OF FOO := [(idx := 1), (idx := 2), (idx := 3)];
+            partial : ARRAY[1..3] OF FOO := [(idx := 1)];
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn fewer_elements_multiplied() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            full    : ARRAY[1..5] OF DINT := [5(0)];
+            partial : ARRAY[1..5] OF DINT := [3(0)];
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+// --- TYPE-level array initialization validation ---
+
+#[test]
+fn type_level_too_many_elements() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE arraytype : ARRAY [1..5] OF INT := [1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_fewer_elements() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE arraytype : ARRAY [1..5] OF INT := [1,2];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_exact_elements() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE arraytype : ARRAY [1..5] OF INT := [1,2,3,4,5];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn type_level_composed_array_too_many() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE baseArray : ARRAY [1..10] OF INT := [1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+
+        TYPE inherited_toomany : ARRAY [1..10] OF baseArray := [1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_composed_array_fewer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE baseArray : ARRAY [1..10] OF INT := [1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+
+        TYPE inherited_tooless : ARRAY [1..10] OF baseArray := [1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_array_of_array_too_many() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE toomany : ARRAY [1..10] OF ARRAY [1..10] OF INT := [1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_array_of_array_fewer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE tooless : ARRAY [1..10] OF ARRAY [1..10] OF INT := [1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10,
+                                            1,2,3,4,5,6,7,8,9,10];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_repetition_too_many() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE arraytype : ARRAY [1..5] OF INT := [6(0)];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_repetition_fewer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE arraytype : ARRAY [1..5] OF INT := [3(0)];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_derived_array_too_many() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE userArrayType : ARRAY [1..5] OF INT := [1,2,3,4,5];
+        END_TYPE
+
+        TYPE derivedArrayType : userArrayType;
+        END_TYPE
+
+        TYPE derived_derived : ARRAY [1..2] OF derivedArrayType := [1,2,3,4,5,6,7,8,9,10,11];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_derived_array_fewer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE userArrayType : ARRAY [1..5] OF INT := [1,2,3,4,5];
+        END_TYPE
+
+        TYPE derivedArrayType : userArrayType;
+        END_TYPE
+
+        TYPE derived_derived : ARRAY [1..2] OF derivedArrayType := [1,2,3,4,5,6,7,8,9];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_struct_array_too_many() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE myStruct : STRUCT
+            first : INT;
+            second : BOOL;
+        END_STRUCT END_TYPE
+
+        TYPE arraytype : ARRAY [1..2] OF myStruct := [(first := 5, second := FALSE), (first := 10, second := TRUE), (first := 15, second := FALSE)];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn type_level_struct_array_fewer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE myStruct : STRUCT
+            first : INT;
+            second : BOOL;
+        END_STRUCT END_TYPE
+
+        TYPE arraytype : ARRAY [1..5] OF myStruct := [(first := 5, second := FALSE)];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn fewer_elements_in_type_and_derived_variable() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM PLC_PRG
+            VAR CONSTANT
+                x : INT := 0;
+            END_VAR
+            VAR
+                a : userArrayType := [x,x];
+            END_VAR
+        END_PROGRAM
+
+        TYPE userArrayType : ARRAY [1..5] OF INT := [1,2,4,5];
+        END_TYPE
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    warning[E127]: Fewer initial values for array `a` than expected. Expected 5, found 2.
+      ┌─ <internal>:7:38
+      │
+    7 │                 a : userArrayType := [x,x];
+      │                                      ^^^^^ Fewer initial values for array `a` than expected. Expected 5, found 2.
+
+    warning[E127]: Fewer initial values for array `userArrayType` than expected. Expected 5, found 4.
+       ┌─ <internal>:11:53
+       │
+    11 │         TYPE userArrayType : ARRAY [1..5] OF INT := [1,2,4,5];
+       │                                                     ^^^^^^^^^ Fewer initial values for array `userArrayType` than expected. Expected 5, found 4.
+    ");
+}
+
+#[test]
+fn array_access_through_type_alias_is_valid() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE SomeStruct : STRUCT
+            field4 : USINT;
+        END_STRUCT END_TYPE
+
+        TYPE SomeArray : ARRAY[1..2] OF SomeStruct; END_TYPE
+        TYPE MyAlias : SomeArray; END_TYPE
+        TYPE MyDoubleAlias : MyAlias; END_TYPE
+
+        PROGRAM prg
+        VAR
+            x : MyAlias;
+            y : MyDoubleAlias;
+        END_VAR
+            x[1].field4 := 5;
+            x[2].field4 := 10;
+            y[1].field4 := 15;
+            y[2].field4 := 20;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(&diagnostics, @"");
+}
+
+#[test]
+fn array_alias_with_struct_initializers_is_valid() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE SomeStruct : STRUCT
+            field4 : USINT;
+        END_STRUCT END_TYPE
+
+        TYPE SomeArray : ARRAY[1..2] OF SomeStruct; END_TYPE
+        TYPE MySomeArrayWInit : SomeArray := [(field4 := 2), (field4 := 2)]; END_TYPE
+
+        PROGRAM prg
+        VAR
+            x : MySomeArrayWInit;
+        END_VAR
+            x[1].field4 := 3;
+            x[2].field4 := 4;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(&diagnostics, @"");
+}
+
+#[test]
+fn oversized_array_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            huge : ARRAY[1..5, 2345324..3333333, -1..1, 10..100, 33..55, -1..1, -1..1, -1..1] OF DINT;
+            ok   : ARRAY[1..1000] OF DINT;
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E130]: Array `huge` has 837_501_496_650 elements which exceeds the maximum supported array size of UDINT#4_294_967_295 elements.
+      ┌─ <internal>:4:13
+      │
+    4 │             huge : ARRAY[1..5, 2345324..3333333, -1..1, 10..100, 33..55, -1..1, -1..1, -1..1] OF DINT;
+      │             ^^^^ Array `huge` has 837_501_496_650 elements which exceeds the maximum supported array size of UDINT#4_294_967_295 elements.
+    ");
+}

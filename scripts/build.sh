@@ -19,6 +19,7 @@ junit=0
 package=0
 deb=0
 deb_revision="1"
+deb_stdlib_name=""
 target=""
 
 CONTAINER_NAME='rust-llvm'
@@ -354,12 +355,12 @@ function build_lib_deb() {
     local version=$2
     local deb_rev=$3
     local deb_output_dir=$4
+    local pkg_name=${5:-"plc-stdlib"}
 
     local deb_arch
     deb_arch=$(target_to_deb_arch "$target_val")
     local multiarch_tuple
     multiarch_tuple=$(target_to_multiarch_tuple "$target_val")
-    local pkg_name="libiec61131std"
     local pkg_version="${version}-${deb_rev}"
     local stage_dir="$deb_output_dir/${pkg_name}_${pkg_version}_${deb_arch}"
 
@@ -403,7 +404,7 @@ function build_lib_deb() {
     cp "$project_location"/output/include/*.st "$stage_dir/usr/share/plc/include/"
 
     # Copy static debian packaging files
-    local debian_dir="$project_location/scripts/debian/libiec61131std"
+    local debian_dir="$project_location/scripts/debian/plc-stdlib"
 
     cp "$debian_dir/copyright" "$stage_dir/usr/share/doc/$pkg_name/copyright"
     cp "$debian_dir/postinst"  "$stage_dir/DEBIAN/postinst"
@@ -438,6 +439,7 @@ function run_package_deb() {
     version=$(get_project_version)
     local deb_rev="$deb_revision"
     local deb_output_dir="$project_location/target/debian"
+    local stdlib_pkg_name="${deb_stdlib_name:-plc-stdlib}"
 
     make_dir "$deb_output_dir"
 
@@ -445,20 +447,21 @@ function run_package_deb() {
     echo "-----------------------------------"
     echo "Version: $version"
     echo "Revision: $deb_rev"
+    echo "Stdlib package: $stdlib_pkg_name"
 
-    # --- plc binary package via cargo-deb ---
-    log "Building plc binary deb via cargo-deb"
+    # --- plc binary package via cargo-deb (name comes from Cargo.toml metadata) ---
+    log "Building plc-compiler binary deb via cargo-deb"
     if command -v cargo-deb &> /dev/null; then
         cargo deb -p plc_driver --no-build --no-strip \
             --output "$deb_output_dir" \
             --deb-revision "$deb_rev"
-        echo "plc binary deb built"
+        echo "plc-compiler binary deb built"
     else
-        echo "Warning: cargo-deb not found, skipping plc binary deb"
+        echo "Warning: cargo-deb not found, skipping plc-compiler binary deb"
         echo "Install with: cargo install cargo-deb"
     fi
 
-    # --- libiec61131std library package via dpkg-deb ---
+    # --- stdlib library package via dpkg-deb ---
     if command -v dpkg-deb &> /dev/null; then
         if [[ -n "$target" ]]; then
             local built_archs=""
@@ -473,16 +476,16 @@ function run_package_deb() {
                     continue
                 fi
                 built_archs="$built_archs $arch"
-                build_lib_deb "$val" "$version" "$deb_rev" "$deb_output_dir"
+                build_lib_deb "$val" "$version" "$deb_rev" "$deb_output_dir" "$stdlib_pkg_name"
             done
         else
             local native_target
             native_target=$(get_native_target)
-            build_lib_deb "$native_target" "$version" "$deb_rev" "$deb_output_dir"
+            build_lib_deb "$native_target" "$version" "$deb_rev" "$deb_output_dir" "$stdlib_pkg_name"
         fi
-        echo "libiec61131std deb(s) built"
+        echo "$stdlib_pkg_name deb(s) built"
     else
-        echo "Warning: dpkg-deb not found, skipping libiec61131std deb"
+        echo "Warning: dpkg-deb not found, skipping $stdlib_pkg_name deb"
     fi
 
     echo "-----------------------------------"
@@ -539,6 +542,9 @@ function run_in_container() {
     if [[ "$deb_revision" != "1" ]]; then
         params="$params --deb-revision $deb_revision"
     fi
+    if [[ -n "$deb_stdlib_name" ]]; then
+        params="$params --deb-stdlib-name $deb_stdlib_name"
+    fi
     if [[ ! -z $target ]]; then
         params="$params --target $target"
     fi
@@ -569,7 +575,7 @@ function run_in_container() {
 set -o errexit -o pipefail -o noclobber -o nounset
 
 OPTIONS=sorbvc
-LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-engine:,container-name:,coverage,package,deb,deb-revision:,target:
+LONGOPTS=sources,offline,release,check,check-style,build,doc,lit,test,junit,verbose,container,linux,container-engine:,container-name:,coverage,package,deb,deb-revision:,deb-stdlib-name:,target:
 
 check_env
 # -activate quoting/enhanced mode (e.g. by writing out “--options”)
@@ -643,6 +649,10 @@ while true; do
         --deb-revision)
             shift
             deb_revision=$1
+            ;;
+        --deb-stdlib-name)
+            shift
+            deb_stdlib_name=$1
             ;;
         --target)
             shift
