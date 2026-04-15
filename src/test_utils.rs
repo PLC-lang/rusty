@@ -12,8 +12,8 @@ pub mod tests {
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use plc_index::GlobalContext;
-    use plc_lowering::{control_statement::ControlStatementLowerer, loops::LoopDesugarer};
     use plc_lowering::reference_to_return::ReferenceToReturnParticipant;
+    use plc_lowering::{control_statement::ControlStatementLowerer, loops::LoopDesugarer};
     use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
