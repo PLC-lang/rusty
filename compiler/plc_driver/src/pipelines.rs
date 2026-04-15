@@ -203,6 +203,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 relocation_preference,
                 error_format: params.error_format,
                 debug_level: params.debug_level(),
+                generate_pubnames: params.gpubnames,
                 single_module: params.single_module,
                 online_change: if params.online_change {
                     OnlineChange::Enabled {
@@ -916,6 +917,7 @@ impl AnnotatedProject {
             //FIXME don't clone here
             compile_options.online_change.clone(),
             target,
+            compile_options.generate_pubnames,
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types

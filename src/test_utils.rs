@@ -260,6 +260,7 @@ pub mod tests {
             debug_level,
             online_change.clone(),
             &Target::System,
+            false,
         );
         let llvm_index = code_generator
             .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout)
@@ -328,6 +329,7 @@ pub mod tests {
                     debug_level,
                     crate::OnlineChange::Disabled,
                     &Target::System,
+                    false,
                 );
                 let got_layout = Mutex::new(HashMap::default());
 
