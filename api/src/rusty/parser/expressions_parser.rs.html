@@ -1063,201 +1063,202 @@
 <a href=#1063 id=1063 data-nosnippet>1063</a>        <span class="kw">let </span>start = integer_range.start;
 <a href=#1064 id=1064 data-nosnippet>1064</a>        <span class="kw">let </span>end = lexer.range().end;
 <a href=#1065 id=1065 data-nosnippet>1065</a>        <span class="kw">let </span>fractional = lexer.slice_and_advance();
-<a href=#1066 id=1066 data-nosnippet>1066</a>        <span class="kw">let </span>value = <span class="macro">format!</span>(<span class="string">"{}{}.{}"</span>, <span class="kw">if </span>is_negative { <span class="string">"-" </span>} <span class="kw">else </span>{ <span class="string">"" </span>}, integer, fractional);
-<a href=#1067 id=1067 data-nosnippet>1067</a>        <span class="kw">let </span>new_location = lexer.source_range_factory.create_range(start..end);
-<a href=#1068 id=1068 data-nosnippet>1068</a>
-<a href=#1069 id=1069 data-nosnippet>1069</a>        <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_real(value), lexer.next_id(), new_location))
-<a href=#1070 id=1070 data-nosnippet>1070</a>    } <span class="kw">else </span>{
-<a href=#1071 id=1071 data-nosnippet>1071</a>        lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-<a href=#1072 id=1072 data-nosnippet>1072</a>            <span class="string">"LiteralInteger or LiteralExponent"</span>,
-<a href=#1073 id=1073 data-nosnippet>1073</a>            lexer.slice(),
-<a href=#1074 id=1074 data-nosnippet>1074</a>            lexer.location(),
-<a href=#1075 id=1075 data-nosnippet>1075</a>        ));
-<a href=#1076 id=1076 data-nosnippet>1076</a>        <span class="prelude-val">None
-<a href=#1077 id=1077 data-nosnippet>1077</a>    </span>}
-<a href=#1078 id=1078 data-nosnippet>1078</a>}
-<a href=#1079 id=1079 data-nosnippet>1079</a>
-<a href=#1080 id=1080 data-nosnippet>1080</a><span class="attr">#[cfg(test)]
-<a href=#1081 id=1081 data-nosnippet>1081</a></span><span class="kw">mod </span>tests {
-<a href=#1082 id=1082 data-nosnippet>1082</a>    <span class="kw">use </span><span class="kw">crate</span>::parser::expressions_parser::{handle_special_chars, EscapeError};
-<a href=#1083 id=1083 data-nosnippet>1083</a>
-<a href=#1084 id=1084 data-nosnippet>1084</a>    <span class="comment">// ── helpers ────────────────────────────────────────────────────────────────
-<a href=#1085 id=1085 data-nosnippet>1085</a>
-<a href=#1086 id=1086 data-nosnippet>1086</a>    </span><span class="kw">fn </span>ok(s: <span class="kw-2">&amp;</span>str, wide: bool) -&gt; String {
-<a href=#1087 id=1087 data-nosnippet>1087</a>        <span class="kw">let </span>(result, errors) = handle_special_chars(s, wide);
-<a href=#1088 id=1088 data-nosnippet>1088</a>        <span class="macro">assert!</span>(errors.is_empty(), <span class="string">"unexpected errors for {s:?}: {errors:?}"</span>);
-<a href=#1089 id=1089 data-nosnippet>1089</a>        result
-<a href=#1090 id=1090 data-nosnippet>1090</a>    }
-<a href=#1091 id=1091 data-nosnippet>1091</a>
-<a href=#1092 id=1092 data-nosnippet>1092</a>    <span class="kw">fn </span>errs(s: <span class="kw-2">&amp;</span>str, wide: bool) -&gt; Vec&lt;EscapeError&gt; {
-<a href=#1093 id=1093 data-nosnippet>1093</a>        handle_special_chars(s, wide).<span class="number">1
-<a href=#1094 id=1094 data-nosnippet>1094</a>    </span>}
-<a href=#1095 id=1095 data-nosnippet>1095</a>
-<a href=#1096 id=1096 data-nosnippet>1096</a>    <span class="comment">// ── existing regression tests (updated to use the new return type) ─────────
-<a href=#1097 id=1097 data-nosnippet>1097</a>
-<a href=#1098 id=1098 data-nosnippet>1098</a>    </span><span class="attr">#[test]
-<a href=#1099 id=1099 data-nosnippet>1099</a>    </span><span class="kw">fn </span>replace_all_test() {
-<a href=#1100 id=1100 data-nosnippet>1100</a>        <span class="kw">let </span>string = <span class="string">"a $l$L b $n$N test $p$P c $r$R d $t$T$$ $'quote$' $57 💖 $F0$9F$92$96"</span>;
-<a href=#1101 id=1101 data-nosnippet>1101</a>        <span class="kw">let </span>expected = <span class="string">"a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ 'quote' W 💖 💖"</span>;
-<a href=#1102 id=1102 data-nosnippet>1102</a>
-<a href=#1103 id=1103 data-nosnippet>1103</a>        <span class="kw">let </span>w_string = <span class="string">r#"a $l$L b $n$N test $p$P c $r$R d $t$T$$ $"double$" $0077 💖 $D83D$DC96"#</span>;
-<a href=#1104 id=1104 data-nosnippet>1104</a>        <span class="kw">let </span>w_expected = <span class="string">"a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ \"double\" w 💖 💖"</span>;
-<a href=#1105 id=1105 data-nosnippet>1105</a>
-<a href=#1106 id=1106 data-nosnippet>1106</a>        <span class="macro">assert_eq!</span>(ok(w_string, <span class="bool-val">true</span>), w_expected);
-<a href=#1107 id=1107 data-nosnippet>1107</a>        <span class="macro">assert_eq!</span>(ok(string, <span class="bool-val">false</span>), expected);
-<a href=#1108 id=1108 data-nosnippet>1108</a>    }
-<a href=#1109 id=1109 data-nosnippet>1109</a>
-<a href=#1110 id=1110 data-nosnippet>1110</a>    <span class="attr">#[test]
-<a href=#1111 id=1111 data-nosnippet>1111</a>    </span><span class="kw">fn </span>should_not_replace_test() {
-<a href=#1112 id=1112 data-nosnippet>1112</a>        <span class="comment">// $0043 in STRING: $00 → NUL, then '4' and '3' as literals; $" produces '"'
-<a href=#1113 id=1113 data-nosnippet>1113</a>        </span><span class="kw">let </span>string = <span class="string">r#"$0043 $"no replace$""#</span>;
-<a href=#1114 id=1114 data-nosnippet>1114</a>        <span class="kw">let </span>expected = <span class="string">"\u{0}43 \"no replace\""</span>;
-<a href=#1115 id=1115 data-nosnippet>1115</a>        <span class="comment">// $57 in WSTRING: '5' is a hex digit but only 4-digit escapes are valid in WSTRING,
-<a href=#1116 id=1116 data-nosnippet>1116</a>        // and "57 $" is not 4 hex digits → incomplete hex error; $' produces '\''
-<a href=#1117 id=1117 data-nosnippet>1117</a>        </span><span class="kw">let </span>w_string = <span class="string">r#"$57 $'no replace$'"#</span>;
-<a href=#1118 id=1118 data-nosnippet>1118</a>        <span class="kw">let </span>w_expected = <span class="string">"$57 'no replace'"</span>;
-<a href=#1119 id=1119 data-nosnippet>1119</a>
-<a href=#1120 id=1120 data-nosnippet>1120</a>        <span class="macro">assert_eq!</span>(handle_special_chars(w_string, <span class="bool-val">true</span>).<span class="number">0</span>, w_expected);
-<a href=#1121 id=1121 data-nosnippet>1121</a>        <span class="macro">assert_eq!</span>(handle_special_chars(string, <span class="bool-val">false</span>).<span class="number">0</span>, expected);
-<a href=#1122 id=1122 data-nosnippet>1122</a>    }
-<a href=#1123 id=1123 data-nosnippet>1123</a>
-<a href=#1124 id=1124 data-nosnippet>1124</a>    <span class="attr">#[test]
-<a href=#1125 id=1125 data-nosnippet>1125</a>    </span><span class="kw">fn </span>dollar_dollar_followed_by_hex_should_not_be_double_processed() {
-<a href=#1126 id=1126 data-nosnippet>1126</a>        <span class="comment">// $$ → literal '$'; the digits that follow must NOT be re-interpreted as a hex escape
-<a href=#1127 id=1127 data-nosnippet>1127</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"Price: $$100"</span>, <span class="bool-val">false</span>), <span class="string">"Price: $100"</span>);
-<a href=#1128 id=1128 data-nosnippet>1128</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$$41"</span>, <span class="bool-val">false</span>), <span class="string">"$41"</span>);
-<a href=#1129 id=1129 data-nosnippet>1129</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$$1002"</span>, <span class="bool-val">true</span>), <span class="string">"$1002"</span>);
-<a href=#1130 id=1130 data-nosnippet>1130</a>    }
-<a href=#1131 id=1131 data-nosnippet>1131</a>
-<a href=#1132 id=1132 data-nosnippet>1132</a>    <span class="comment">// ── happy-path unit tests ──────────────────────────────────────────────────
-<a href=#1133 id=1133 data-nosnippet>1133</a>
-<a href=#1134 id=1134 data-nosnippet>1134</a>    </span><span class="attr">#[test]
-<a href=#1135 id=1135 data-nosnippet>1135</a>    </span><span class="kw">fn </span>named_escapes_string() {
-<a href=#1136 id=1136 data-nosnippet>1136</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$N"</span>, <span class="bool-val">false</span>), <span class="string">"\n"</span>);
-<a href=#1137 id=1137 data-nosnippet>1137</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$n"</span>, <span class="bool-val">false</span>), <span class="string">"\n"</span>);
-<a href=#1138 id=1138 data-nosnippet>1138</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$L"</span>, <span class="bool-val">false</span>), <span class="string">"\n"</span>); <span class="comment">// line-feed alias
-<a href=#1139 id=1139 data-nosnippet>1139</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$l"</span>, <span class="bool-val">false</span>), <span class="string">"\n"</span>);
-<a href=#1140 id=1140 data-nosnippet>1140</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$R"</span>, <span class="bool-val">false</span>), <span class="string">"\r"</span>);
-<a href=#1141 id=1141 data-nosnippet>1141</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$r"</span>, <span class="bool-val">false</span>), <span class="string">"\r"</span>);
-<a href=#1142 id=1142 data-nosnippet>1142</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$T"</span>, <span class="bool-val">false</span>), <span class="string">"\t"</span>);
-<a href=#1143 id=1143 data-nosnippet>1143</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$t"</span>, <span class="bool-val">false</span>), <span class="string">"\t"</span>);
-<a href=#1144 id=1144 data-nosnippet>1144</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$P"</span>, <span class="bool-val">false</span>), <span class="string">"\x0C"</span>);
-<a href=#1145 id=1145 data-nosnippet>1145</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$p"</span>, <span class="bool-val">false</span>), <span class="string">"\x0C"</span>);
-<a href=#1146 id=1146 data-nosnippet>1146</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$$"</span>, <span class="bool-val">false</span>), <span class="string">"$"</span>);
-<a href=#1147 id=1147 data-nosnippet>1147</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$'"</span>, <span class="bool-val">false</span>), <span class="string">"'"</span>);
-<a href=#1148 id=1148 data-nosnippet>1148</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$\""</span>, <span class="bool-val">false</span>), <span class="string">"\""</span>); <span class="comment">// double-quote also valid in STRING
-<a href=#1149 id=1149 data-nosnippet>1149</a>    </span>}
-<a href=#1150 id=1150 data-nosnippet>1150</a>
-<a href=#1151 id=1151 data-nosnippet>1151</a>    <span class="attr">#[test]
-<a href=#1152 id=1152 data-nosnippet>1152</a>    </span><span class="kw">fn </span>named_escapes_wstring() {
-<a href=#1153 id=1153 data-nosnippet>1153</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$N"</span>, <span class="bool-val">true</span>), <span class="string">"\n"</span>);
-<a href=#1154 id=1154 data-nosnippet>1154</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$n"</span>, <span class="bool-val">true</span>), <span class="string">"\n"</span>);
-<a href=#1155 id=1155 data-nosnippet>1155</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$L"</span>, <span class="bool-val">true</span>), <span class="string">"\n"</span>);
-<a href=#1156 id=1156 data-nosnippet>1156</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$l"</span>, <span class="bool-val">true</span>), <span class="string">"\n"</span>);
-<a href=#1157 id=1157 data-nosnippet>1157</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$R"</span>, <span class="bool-val">true</span>), <span class="string">"\r"</span>);
-<a href=#1158 id=1158 data-nosnippet>1158</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$r"</span>, <span class="bool-val">true</span>), <span class="string">"\r"</span>);
-<a href=#1159 id=1159 data-nosnippet>1159</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$T"</span>, <span class="bool-val">true</span>), <span class="string">"\t"</span>);
-<a href=#1160 id=1160 data-nosnippet>1160</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$t"</span>, <span class="bool-val">true</span>), <span class="string">"\t"</span>);
-<a href=#1161 id=1161 data-nosnippet>1161</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$P"</span>, <span class="bool-val">true</span>), <span class="string">"\x0C"</span>);
-<a href=#1162 id=1162 data-nosnippet>1162</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$p"</span>, <span class="bool-val">true</span>), <span class="string">"\x0C"</span>);
-<a href=#1163 id=1163 data-nosnippet>1163</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$$"</span>, <span class="bool-val">true</span>), <span class="string">"$"</span>);
-<a href=#1164 id=1164 data-nosnippet>1164</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$\""</span>, <span class="bool-val">true</span>), <span class="string">"\""</span>);
-<a href=#1165 id=1165 data-nosnippet>1165</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$'"</span>, <span class="bool-val">true</span>), <span class="string">"'"</span>); <span class="comment">// single-quote also valid in WSTRING
-<a href=#1166 id=1166 data-nosnippet>1166</a>    </span>}
-<a href=#1167 id=1167 data-nosnippet>1167</a>
-<a href=#1168 id=1168 data-nosnippet>1168</a>    <span class="attr">#[test]
-<a href=#1169 id=1169 data-nosnippet>1169</a>    </span><span class="kw">fn </span>hex_escape_string_valid_ascii() {
-<a href=#1170 id=1170 data-nosnippet>1170</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$48$49"</span>, <span class="bool-val">false</span>), <span class="string">"HI"</span>); <span class="comment">// $48='H', $49='I'
-<a href=#1171 id=1171 data-nosnippet>1171</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$41"</span>, <span class="bool-val">false</span>), <span class="string">"A"</span>);
-<a href=#1172 id=1172 data-nosnippet>1172</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$00"</span>, <span class="bool-val">false</span>), <span class="string">"\u{0}"</span>); <span class="comment">// NUL byte
-<a href=#1173 id=1173 data-nosnippet>1173</a>    </span>}
-<a href=#1174 id=1174 data-nosnippet>1174</a>
-<a href=#1175 id=1175 data-nosnippet>1175</a>    <span class="attr">#[test]
-<a href=#1176 id=1176 data-nosnippet>1176</a>    </span><span class="kw">fn </span>hex_escape_string_valid_multibyte_utf8() {
-<a href=#1177 id=1177 data-nosnippet>1177</a>        <span class="comment">// 💖 = U+1F496 = bytes F0 9F 92 96
-<a href=#1178 id=1178 data-nosnippet>1178</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$F0$9F$92$96"</span>, <span class="bool-val">false</span>), <span class="string">"💖"</span>);
-<a href=#1179 id=1179 data-nosnippet>1179</a>    }
-<a href=#1180 id=1180 data-nosnippet>1180</a>
-<a href=#1181 id=1181 data-nosnippet>1181</a>    <span class="attr">#[test]
-<a href=#1182 id=1182 data-nosnippet>1182</a>    </span><span class="kw">fn </span>hex_escape_string_invalid_utf8_replaced_with_replacement_char() {
-<a href=#1183 id=1183 data-nosnippet>1183</a>        <span class="comment">// Invalid UTF-8 byte sequences are decoded lossily → U+FFFD
-<a href=#1184 id=1184 data-nosnippet>1184</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$80"</span>, <span class="bool-val">false</span>), <span class="string">"\u{FFFD}"</span>); <span class="comment">// lone continuation byte
-<a href=#1185 id=1185 data-nosnippet>1185</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"caf$E9"</span>, <span class="bool-val">false</span>), <span class="string">"caf\u{FFFD}"</span>); <span class="comment">// 0xE9 without continuation
-<a href=#1186 id=1186 data-nosnippet>1186</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$FF"</span>, <span class="bool-val">false</span>), <span class="string">"\u{FFFD}"</span>); <span class="comment">// never-valid UTF-8 byte
-<a href=#1187 id=1187 data-nosnippet>1187</a>    </span>}
-<a href=#1188 id=1188 data-nosnippet>1188</a>
-<a href=#1189 id=1189 data-nosnippet>1189</a>    <span class="attr">#[test]
-<a href=#1190 id=1190 data-nosnippet>1190</a>    </span><span class="kw">fn </span>hex_escape_wstring_valid_bmp() {
-<a href=#1191 id=1191 data-nosnippet>1191</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$0048$0049"</span>, <span class="bool-val">true</span>), <span class="string">"HI"</span>); <span class="comment">// U+0048='H', U+0049='I'
-<a href=#1192 id=1192 data-nosnippet>1192</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$0077"</span>, <span class="bool-val">true</span>), <span class="string">"w"</span>); <span class="comment">// U+0077='w'
-<a href=#1193 id=1193 data-nosnippet>1193</a>    </span>}
-<a href=#1194 id=1194 data-nosnippet>1194</a>
-<a href=#1195 id=1195 data-nosnippet>1195</a>    <span class="attr">#[test]
-<a href=#1196 id=1196 data-nosnippet>1196</a>    </span><span class="kw">fn </span>hex_escape_wstring_valid_surrogate_pair() {
-<a href=#1197 id=1197 data-nosnippet>1197</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$D83D$DE00"</span>, <span class="bool-val">true</span>), <span class="string">"😀"</span>); <span class="comment">// U+1F600
-<a href=#1198 id=1198 data-nosnippet>1198</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$D83D$DC96"</span>, <span class="bool-val">true</span>), <span class="string">"💖"</span>); <span class="comment">// U+1F496
-<a href=#1199 id=1199 data-nosnippet>1199</a>    </span>}
-<a href=#1200 id=1200 data-nosnippet>1200</a>
-<a href=#1201 id=1201 data-nosnippet>1201</a>    <span class="attr">#[test]
-<a href=#1202 id=1202 data-nosnippet>1202</a>    </span><span class="kw">fn </span>hex_escape_wstring_unpaired_surrogates_replaced_with_replacement_char() {
-<a href=#1203 id=1203 data-nosnippet>1203</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$D800"</span>, <span class="bool-val">true</span>), <span class="string">"\u{FFFD}"</span>); <span class="comment">// high surrogate alone
-<a href=#1204 id=1204 data-nosnippet>1204</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$DE00"</span>, <span class="bool-val">true</span>), <span class="string">"\u{FFFD}"</span>); <span class="comment">// orphan low surrogate
-<a href=#1205 id=1205 data-nosnippet>1205</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$D83D$0041"</span>, <span class="bool-val">true</span>), <span class="string">"\u{FFFD}A"</span>); <span class="comment">// high + non-low BMP char
-<a href=#1206 id=1206 data-nosnippet>1206</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$DE00$D83D"</span>, <span class="bool-val">true</span>), <span class="string">"\u{FFFD}\u{FFFD}"</span>); <span class="comment">// reversed pair
-<a href=#1207 id=1207 data-nosnippet>1207</a>    </span>}
-<a href=#1208 id=1208 data-nosnippet>1208</a>
-<a href=#1209 id=1209 data-nosnippet>1209</a>    <span class="comment">// ── unhappy-path unit tests ────────────────────────────────────────────────
-<a href=#1210 id=1210 data-nosnippet>1210</a>
-<a href=#1211 id=1211 data-nosnippet>1211</a>    </span><span class="attr">#[test]
-<a href=#1212 id=1212 data-nosnippet>1212</a>    </span><span class="kw">fn </span>trailing_dollar_produces_error() {
-<a href=#1213 id=1213 data-nosnippet>1213</a>        <span class="macro">assert_eq!</span>(errs(<span class="string">"hello$"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
-<a href=#1214 id=1214 data-nosnippet>1214</a>        <span class="macro">assert_eq!</span>(errs(<span class="string">"$"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
-<a href=#1215 id=1215 data-nosnippet>1215</a>        <span class="macro">assert_eq!</span>(errs(<span class="string">"hello$"</span>, <span class="bool-val">true</span>), <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
-<a href=#1216 id=1216 data-nosnippet>1216</a>        <span class="comment">// Trailing '$' after a valid escape is also caught
-<a href=#1217 id=1217 data-nosnippet>1217</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$N$"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
-<a href=#1218 id=1218 data-nosnippet>1218</a>        <span class="macro">assert_eq!</span>(errs(<span class="string">"$48$"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
-<a href=#1219 id=1219 data-nosnippet>1219</a>    }
-<a href=#1220 id=1220 data-nosnippet>1220</a>
-<a href=#1221 id=1221 data-nosnippet>1221</a>    <span class="attr">#[test]
-<a href=#1222 id=1222 data-nosnippet>1222</a>    </span><span class="kw">fn </span>unrecognized_named_escape_produces_error() {
-<a href=#1223 id=1223 data-nosnippet>1223</a>        <span class="comment">// $Q: 'Q' is not a named-escape char and not a hex digit
-<a href=#1224 id=1224 data-nosnippet>1224</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$Q"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::UnrecognizedEscape(<span class="string">'Q'</span>)]);
-<a href=#1225 id=1225 data-nosnippet>1225</a>        <span class="macro">assert_eq!</span>(errs(<span class="string">"$Q"</span>, <span class="bool-val">true</span>), <span class="macro">vec!</span>[EscapeError::UnrecognizedEscape(<span class="string">'Q'</span>)]);
-<a href=#1226 id=1226 data-nosnippet>1226</a>        <span class="comment">// $Z similarly
-<a href=#1227 id=1227 data-nosnippet>1227</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$Z"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::UnrecognizedEscape(<span class="string">'Z'</span>)]);
-<a href=#1228 id=1228 data-nosnippet>1228</a>    }
-<a href=#1229 id=1229 data-nosnippet>1229</a>
-<a href=#1230 id=1230 data-nosnippet>1230</a>    <span class="attr">#[test]
-<a href=#1231 id=1231 data-nosnippet>1231</a>    </span><span class="kw">fn </span>incomplete_hex_escape_produces_error() {
-<a href=#1232 id=1232 data-nosnippet>1232</a>        <span class="comment">// STRING needs 2 hex digits: '$A' has only 1
-<a href=#1233 id=1233 data-nosnippet>1233</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$A"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::IncompleteHexEscape]);
-<a href=#1234 id=1234 data-nosnippet>1234</a>        <span class="comment">// WSTRING needs 4 hex digits: '$004' has only 3
-<a href=#1235 id=1235 data-nosnippet>1235</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$004"</span>, <span class="bool-val">true</span>), <span class="macro">vec!</span>[EscapeError::IncompleteHexEscape]);
-<a href=#1236 id=1236 data-nosnippet>1236</a>        <span class="comment">// WSTRING: first char hex but 4-char window contains non-hex
-<a href=#1237 id=1237 data-nosnippet>1237</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$A5z1"</span>, <span class="bool-val">true</span>), <span class="macro">vec!</span>[EscapeError::IncompleteHexEscape]);
-<a href=#1238 id=1238 data-nosnippet>1238</a>    }
-<a href=#1239 id=1239 data-nosnippet>1239</a>
-<a href=#1240 id=1240 data-nosnippet>1240</a>    <span class="attr">#[test]
-<a href=#1241 id=1241 data-nosnippet>1241</a>    </span><span class="kw">fn </span>multiple_errors_all_reported() {
-<a href=#1242 id=1242 data-nosnippet>1242</a>        <span class="comment">// Two invalid escapes in one string — both must appear in the error list
-<a href=#1243 id=1243 data-nosnippet>1243</a>        </span><span class="kw">let </span>errors = errs(<span class="string">"$Q hello $"</span>, <span class="bool-val">false</span>);
-<a href=#1244 id=1244 data-nosnippet>1244</a>        <span class="macro">assert_eq!</span>(errors, <span class="macro">vec!</span>[EscapeError::UnrecognizedEscape(<span class="string">'Q'</span>), EscapeError::TrailingDollar]);
-<a href=#1245 id=1245 data-nosnippet>1245</a>    }
-<a href=#1246 id=1246 data-nosnippet>1246</a>
-<a href=#1247 id=1247 data-nosnippet>1247</a>    <span class="attr">#[test]
-<a href=#1248 id=1248 data-nosnippet>1248</a>    </span><span class="kw">fn </span>error_recovery_keeps_dollar_in_output() {
-<a href=#1249 id=1249 data-nosnippet>1249</a>        <span class="comment">// The decoded string keeps the '$' for error-recovery; the error is reported separately
-<a href=#1250 id=1250 data-nosnippet>1250</a>        </span><span class="kw">let </span>(s, e) = handle_special_chars(<span class="string">"$Q"</span>, <span class="bool-val">false</span>);
-<a href=#1251 id=1251 data-nosnippet>1251</a>        <span class="macro">assert_eq!</span>(s, <span class="string">"$Q"</span>);
-<a href=#1252 id=1252 data-nosnippet>1252</a>        <span class="macro">assert_eq!</span>(e, <span class="macro">vec!</span>[EscapeError::UnrecognizedEscape(<span class="string">'Q'</span>)]);
-<a href=#1253 id=1253 data-nosnippet>1253</a>
-<a href=#1254 id=1254 data-nosnippet>1254</a>        <span class="kw">let </span>(s, e) = handle_special_chars(<span class="string">"hello$"</span>, <span class="bool-val">false</span>);
-<a href=#1255 id=1255 data-nosnippet>1255</a>        <span class="macro">assert_eq!</span>(s, <span class="string">"hello$"</span>);
-<a href=#1256 id=1256 data-nosnippet>1256</a>        <span class="macro">assert_eq!</span>(e, <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
-<a href=#1257 id=1257 data-nosnippet>1257</a>
-<a href=#1258 id=1258 data-nosnippet>1258</a>        <span class="kw">let </span>(s, e) = handle_special_chars(<span class="string">"$A"</span>, <span class="bool-val">false</span>);
-<a href=#1259 id=1259 data-nosnippet>1259</a>        <span class="macro">assert_eq!</span>(s, <span class="string">"$A"</span>);
-<a href=#1260 id=1260 data-nosnippet>1260</a>        <span class="macro">assert_eq!</span>(e, <span class="macro">vec!</span>[EscapeError::IncompleteHexEscape]);
-<a href=#1261 id=1261 data-nosnippet>1261</a>    }
-<a href=#1262 id=1262 data-nosnippet>1262</a>}
+<a href=#1066 id=1066 data-nosnippet>1066</a>        <span class="kw">let </span>integer = integer.replace(<span class="string">'_'</span>, <span class="string">""</span>);
+<a href=#1067 id=1067 data-nosnippet>1067</a>        <span class="kw">let </span>value = <span class="macro">format!</span>(<span class="string">"{}{}.{}"</span>, <span class="kw">if </span>is_negative { <span class="string">"-" </span>} <span class="kw">else </span>{ <span class="string">"" </span>}, integer, fractional);
+<a href=#1068 id=1068 data-nosnippet>1068</a>        <span class="kw">let </span>new_location = lexer.source_range_factory.create_range(start..end);
+<a href=#1069 id=1069 data-nosnippet>1069</a>
+<a href=#1070 id=1070 data-nosnippet>1070</a>        <span class="prelude-val">Some</span>(AstNode::new_literal(AstLiteral::new_real(value), lexer.next_id(), new_location))
+<a href=#1071 id=1071 data-nosnippet>1071</a>    } <span class="kw">else </span>{
+<a href=#1072 id=1072 data-nosnippet>1072</a>        lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+<a href=#1073 id=1073 data-nosnippet>1073</a>            <span class="string">"LiteralInteger or LiteralExponent"</span>,
+<a href=#1074 id=1074 data-nosnippet>1074</a>            lexer.slice(),
+<a href=#1075 id=1075 data-nosnippet>1075</a>            lexer.location(),
+<a href=#1076 id=1076 data-nosnippet>1076</a>        ));
+<a href=#1077 id=1077 data-nosnippet>1077</a>        <span class="prelude-val">None
+<a href=#1078 id=1078 data-nosnippet>1078</a>    </span>}
+<a href=#1079 id=1079 data-nosnippet>1079</a>}
+<a href=#1080 id=1080 data-nosnippet>1080</a>
+<a href=#1081 id=1081 data-nosnippet>1081</a><span class="attr">#[cfg(test)]
+<a href=#1082 id=1082 data-nosnippet>1082</a></span><span class="kw">mod </span>tests {
+<a href=#1083 id=1083 data-nosnippet>1083</a>    <span class="kw">use </span><span class="kw">crate</span>::parser::expressions_parser::{handle_special_chars, EscapeError};
+<a href=#1084 id=1084 data-nosnippet>1084</a>
+<a href=#1085 id=1085 data-nosnippet>1085</a>    <span class="comment">// ── helpers ────────────────────────────────────────────────────────────────
+<a href=#1086 id=1086 data-nosnippet>1086</a>
+<a href=#1087 id=1087 data-nosnippet>1087</a>    </span><span class="kw">fn </span>ok(s: <span class="kw-2">&amp;</span>str, wide: bool) -&gt; String {
+<a href=#1088 id=1088 data-nosnippet>1088</a>        <span class="kw">let </span>(result, errors) = handle_special_chars(s, wide);
+<a href=#1089 id=1089 data-nosnippet>1089</a>        <span class="macro">assert!</span>(errors.is_empty(), <span class="string">"unexpected errors for {s:?}: {errors:?}"</span>);
+<a href=#1090 id=1090 data-nosnippet>1090</a>        result
+<a href=#1091 id=1091 data-nosnippet>1091</a>    }
+<a href=#1092 id=1092 data-nosnippet>1092</a>
+<a href=#1093 id=1093 data-nosnippet>1093</a>    <span class="kw">fn </span>errs(s: <span class="kw-2">&amp;</span>str, wide: bool) -&gt; Vec&lt;EscapeError&gt; {
+<a href=#1094 id=1094 data-nosnippet>1094</a>        handle_special_chars(s, wide).<span class="number">1
+<a href=#1095 id=1095 data-nosnippet>1095</a>    </span>}
+<a href=#1096 id=1096 data-nosnippet>1096</a>
+<a href=#1097 id=1097 data-nosnippet>1097</a>    <span class="comment">// ── existing regression tests (updated to use the new return type) ─────────
+<a href=#1098 id=1098 data-nosnippet>1098</a>
+<a href=#1099 id=1099 data-nosnippet>1099</a>    </span><span class="attr">#[test]
+<a href=#1100 id=1100 data-nosnippet>1100</a>    </span><span class="kw">fn </span>replace_all_test() {
+<a href=#1101 id=1101 data-nosnippet>1101</a>        <span class="kw">let </span>string = <span class="string">"a $l$L b $n$N test $p$P c $r$R d $t$T$$ $'quote$' $57 💖 $F0$9F$92$96"</span>;
+<a href=#1102 id=1102 data-nosnippet>1102</a>        <span class="kw">let </span>expected = <span class="string">"a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ 'quote' W 💖 💖"</span>;
+<a href=#1103 id=1103 data-nosnippet>1103</a>
+<a href=#1104 id=1104 data-nosnippet>1104</a>        <span class="kw">let </span>w_string = <span class="string">r#"a $l$L b $n$N test $p$P c $r$R d $t$T$$ $"double$" $0077 💖 $D83D$DC96"#</span>;
+<a href=#1105 id=1105 data-nosnippet>1105</a>        <span class="kw">let </span>w_expected = <span class="string">"a \n\n b \n\n test \x0C\x0C c \r\r d \t\t$ \"double\" w 💖 💖"</span>;
+<a href=#1106 id=1106 data-nosnippet>1106</a>
+<a href=#1107 id=1107 data-nosnippet>1107</a>        <span class="macro">assert_eq!</span>(ok(w_string, <span class="bool-val">true</span>), w_expected);
+<a href=#1108 id=1108 data-nosnippet>1108</a>        <span class="macro">assert_eq!</span>(ok(string, <span class="bool-val">false</span>), expected);
+<a href=#1109 id=1109 data-nosnippet>1109</a>    }
+<a href=#1110 id=1110 data-nosnippet>1110</a>
+<a href=#1111 id=1111 data-nosnippet>1111</a>    <span class="attr">#[test]
+<a href=#1112 id=1112 data-nosnippet>1112</a>    </span><span class="kw">fn </span>should_not_replace_test() {
+<a href=#1113 id=1113 data-nosnippet>1113</a>        <span class="comment">// $0043 in STRING: $00 → NUL, then '4' and '3' as literals; $" produces '"'
+<a href=#1114 id=1114 data-nosnippet>1114</a>        </span><span class="kw">let </span>string = <span class="string">r#"$0043 $"no replace$""#</span>;
+<a href=#1115 id=1115 data-nosnippet>1115</a>        <span class="kw">let </span>expected = <span class="string">"\u{0}43 \"no replace\""</span>;
+<a href=#1116 id=1116 data-nosnippet>1116</a>        <span class="comment">// $57 in WSTRING: '5' is a hex digit but only 4-digit escapes are valid in WSTRING,
+<a href=#1117 id=1117 data-nosnippet>1117</a>        // and "57 $" is not 4 hex digits → incomplete hex error; $' produces '\''
+<a href=#1118 id=1118 data-nosnippet>1118</a>        </span><span class="kw">let </span>w_string = <span class="string">r#"$57 $'no replace$'"#</span>;
+<a href=#1119 id=1119 data-nosnippet>1119</a>        <span class="kw">let </span>w_expected = <span class="string">"$57 'no replace'"</span>;
+<a href=#1120 id=1120 data-nosnippet>1120</a>
+<a href=#1121 id=1121 data-nosnippet>1121</a>        <span class="macro">assert_eq!</span>(handle_special_chars(w_string, <span class="bool-val">true</span>).<span class="number">0</span>, w_expected);
+<a href=#1122 id=1122 data-nosnippet>1122</a>        <span class="macro">assert_eq!</span>(handle_special_chars(string, <span class="bool-val">false</span>).<span class="number">0</span>, expected);
+<a href=#1123 id=1123 data-nosnippet>1123</a>    }
+<a href=#1124 id=1124 data-nosnippet>1124</a>
+<a href=#1125 id=1125 data-nosnippet>1125</a>    <span class="attr">#[test]
+<a href=#1126 id=1126 data-nosnippet>1126</a>    </span><span class="kw">fn </span>dollar_dollar_followed_by_hex_should_not_be_double_processed() {
+<a href=#1127 id=1127 data-nosnippet>1127</a>        <span class="comment">// $$ → literal '$'; the digits that follow must NOT be re-interpreted as a hex escape
+<a href=#1128 id=1128 data-nosnippet>1128</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"Price: $$100"</span>, <span class="bool-val">false</span>), <span class="string">"Price: $100"</span>);
+<a href=#1129 id=1129 data-nosnippet>1129</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$$41"</span>, <span class="bool-val">false</span>), <span class="string">"$41"</span>);
+<a href=#1130 id=1130 data-nosnippet>1130</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$$1002"</span>, <span class="bool-val">true</span>), <span class="string">"$1002"</span>);
+<a href=#1131 id=1131 data-nosnippet>1131</a>    }
+<a href=#1132 id=1132 data-nosnippet>1132</a>
+<a href=#1133 id=1133 data-nosnippet>1133</a>    <span class="comment">// ── happy-path unit tests ──────────────────────────────────────────────────
+<a href=#1134 id=1134 data-nosnippet>1134</a>
+<a href=#1135 id=1135 data-nosnippet>1135</a>    </span><span class="attr">#[test]
+<a href=#1136 id=1136 data-nosnippet>1136</a>    </span><span class="kw">fn </span>named_escapes_string() {
+<a href=#1137 id=1137 data-nosnippet>1137</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$N"</span>, <span class="bool-val">false</span>), <span class="string">"\n"</span>);
+<a href=#1138 id=1138 data-nosnippet>1138</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$n"</span>, <span class="bool-val">false</span>), <span class="string">"\n"</span>);
+<a href=#1139 id=1139 data-nosnippet>1139</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$L"</span>, <span class="bool-val">false</span>), <span class="string">"\n"</span>); <span class="comment">// line-feed alias
+<a href=#1140 id=1140 data-nosnippet>1140</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$l"</span>, <span class="bool-val">false</span>), <span class="string">"\n"</span>);
+<a href=#1141 id=1141 data-nosnippet>1141</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$R"</span>, <span class="bool-val">false</span>), <span class="string">"\r"</span>);
+<a href=#1142 id=1142 data-nosnippet>1142</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$r"</span>, <span class="bool-val">false</span>), <span class="string">"\r"</span>);
+<a href=#1143 id=1143 data-nosnippet>1143</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$T"</span>, <span class="bool-val">false</span>), <span class="string">"\t"</span>);
+<a href=#1144 id=1144 data-nosnippet>1144</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$t"</span>, <span class="bool-val">false</span>), <span class="string">"\t"</span>);
+<a href=#1145 id=1145 data-nosnippet>1145</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$P"</span>, <span class="bool-val">false</span>), <span class="string">"\x0C"</span>);
+<a href=#1146 id=1146 data-nosnippet>1146</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$p"</span>, <span class="bool-val">false</span>), <span class="string">"\x0C"</span>);
+<a href=#1147 id=1147 data-nosnippet>1147</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$$"</span>, <span class="bool-val">false</span>), <span class="string">"$"</span>);
+<a href=#1148 id=1148 data-nosnippet>1148</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$'"</span>, <span class="bool-val">false</span>), <span class="string">"'"</span>);
+<a href=#1149 id=1149 data-nosnippet>1149</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$\""</span>, <span class="bool-val">false</span>), <span class="string">"\""</span>); <span class="comment">// double-quote also valid in STRING
+<a href=#1150 id=1150 data-nosnippet>1150</a>    </span>}
+<a href=#1151 id=1151 data-nosnippet>1151</a>
+<a href=#1152 id=1152 data-nosnippet>1152</a>    <span class="attr">#[test]
+<a href=#1153 id=1153 data-nosnippet>1153</a>    </span><span class="kw">fn </span>named_escapes_wstring() {
+<a href=#1154 id=1154 data-nosnippet>1154</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$N"</span>, <span class="bool-val">true</span>), <span class="string">"\n"</span>);
+<a href=#1155 id=1155 data-nosnippet>1155</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$n"</span>, <span class="bool-val">true</span>), <span class="string">"\n"</span>);
+<a href=#1156 id=1156 data-nosnippet>1156</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$L"</span>, <span class="bool-val">true</span>), <span class="string">"\n"</span>);
+<a href=#1157 id=1157 data-nosnippet>1157</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$l"</span>, <span class="bool-val">true</span>), <span class="string">"\n"</span>);
+<a href=#1158 id=1158 data-nosnippet>1158</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$R"</span>, <span class="bool-val">true</span>), <span class="string">"\r"</span>);
+<a href=#1159 id=1159 data-nosnippet>1159</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$r"</span>, <span class="bool-val">true</span>), <span class="string">"\r"</span>);
+<a href=#1160 id=1160 data-nosnippet>1160</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$T"</span>, <span class="bool-val">true</span>), <span class="string">"\t"</span>);
+<a href=#1161 id=1161 data-nosnippet>1161</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$t"</span>, <span class="bool-val">true</span>), <span class="string">"\t"</span>);
+<a href=#1162 id=1162 data-nosnippet>1162</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$P"</span>, <span class="bool-val">true</span>), <span class="string">"\x0C"</span>);
+<a href=#1163 id=1163 data-nosnippet>1163</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$p"</span>, <span class="bool-val">true</span>), <span class="string">"\x0C"</span>);
+<a href=#1164 id=1164 data-nosnippet>1164</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$$"</span>, <span class="bool-val">true</span>), <span class="string">"$"</span>);
+<a href=#1165 id=1165 data-nosnippet>1165</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$\""</span>, <span class="bool-val">true</span>), <span class="string">"\""</span>);
+<a href=#1166 id=1166 data-nosnippet>1166</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$'"</span>, <span class="bool-val">true</span>), <span class="string">"'"</span>); <span class="comment">// single-quote also valid in WSTRING
+<a href=#1167 id=1167 data-nosnippet>1167</a>    </span>}
+<a href=#1168 id=1168 data-nosnippet>1168</a>
+<a href=#1169 id=1169 data-nosnippet>1169</a>    <span class="attr">#[test]
+<a href=#1170 id=1170 data-nosnippet>1170</a>    </span><span class="kw">fn </span>hex_escape_string_valid_ascii() {
+<a href=#1171 id=1171 data-nosnippet>1171</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$48$49"</span>, <span class="bool-val">false</span>), <span class="string">"HI"</span>); <span class="comment">// $48='H', $49='I'
+<a href=#1172 id=1172 data-nosnippet>1172</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$41"</span>, <span class="bool-val">false</span>), <span class="string">"A"</span>);
+<a href=#1173 id=1173 data-nosnippet>1173</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$00"</span>, <span class="bool-val">false</span>), <span class="string">"\u{0}"</span>); <span class="comment">// NUL byte
+<a href=#1174 id=1174 data-nosnippet>1174</a>    </span>}
+<a href=#1175 id=1175 data-nosnippet>1175</a>
+<a href=#1176 id=1176 data-nosnippet>1176</a>    <span class="attr">#[test]
+<a href=#1177 id=1177 data-nosnippet>1177</a>    </span><span class="kw">fn </span>hex_escape_string_valid_multibyte_utf8() {
+<a href=#1178 id=1178 data-nosnippet>1178</a>        <span class="comment">// 💖 = U+1F496 = bytes F0 9F 92 96
+<a href=#1179 id=1179 data-nosnippet>1179</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$F0$9F$92$96"</span>, <span class="bool-val">false</span>), <span class="string">"💖"</span>);
+<a href=#1180 id=1180 data-nosnippet>1180</a>    }
+<a href=#1181 id=1181 data-nosnippet>1181</a>
+<a href=#1182 id=1182 data-nosnippet>1182</a>    <span class="attr">#[test]
+<a href=#1183 id=1183 data-nosnippet>1183</a>    </span><span class="kw">fn </span>hex_escape_string_invalid_utf8_replaced_with_replacement_char() {
+<a href=#1184 id=1184 data-nosnippet>1184</a>        <span class="comment">// Invalid UTF-8 byte sequences are decoded lossily → U+FFFD
+<a href=#1185 id=1185 data-nosnippet>1185</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$80"</span>, <span class="bool-val">false</span>), <span class="string">"\u{FFFD}"</span>); <span class="comment">// lone continuation byte
+<a href=#1186 id=1186 data-nosnippet>1186</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"caf$E9"</span>, <span class="bool-val">false</span>), <span class="string">"caf\u{FFFD}"</span>); <span class="comment">// 0xE9 without continuation
+<a href=#1187 id=1187 data-nosnippet>1187</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$FF"</span>, <span class="bool-val">false</span>), <span class="string">"\u{FFFD}"</span>); <span class="comment">// never-valid UTF-8 byte
+<a href=#1188 id=1188 data-nosnippet>1188</a>    </span>}
+<a href=#1189 id=1189 data-nosnippet>1189</a>
+<a href=#1190 id=1190 data-nosnippet>1190</a>    <span class="attr">#[test]
+<a href=#1191 id=1191 data-nosnippet>1191</a>    </span><span class="kw">fn </span>hex_escape_wstring_valid_bmp() {
+<a href=#1192 id=1192 data-nosnippet>1192</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$0048$0049"</span>, <span class="bool-val">true</span>), <span class="string">"HI"</span>); <span class="comment">// U+0048='H', U+0049='I'
+<a href=#1193 id=1193 data-nosnippet>1193</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$0077"</span>, <span class="bool-val">true</span>), <span class="string">"w"</span>); <span class="comment">// U+0077='w'
+<a href=#1194 id=1194 data-nosnippet>1194</a>    </span>}
+<a href=#1195 id=1195 data-nosnippet>1195</a>
+<a href=#1196 id=1196 data-nosnippet>1196</a>    <span class="attr">#[test]
+<a href=#1197 id=1197 data-nosnippet>1197</a>    </span><span class="kw">fn </span>hex_escape_wstring_valid_surrogate_pair() {
+<a href=#1198 id=1198 data-nosnippet>1198</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$D83D$DE00"</span>, <span class="bool-val">true</span>), <span class="string">"😀"</span>); <span class="comment">// U+1F600
+<a href=#1199 id=1199 data-nosnippet>1199</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$D83D$DC96"</span>, <span class="bool-val">true</span>), <span class="string">"💖"</span>); <span class="comment">// U+1F496
+<a href=#1200 id=1200 data-nosnippet>1200</a>    </span>}
+<a href=#1201 id=1201 data-nosnippet>1201</a>
+<a href=#1202 id=1202 data-nosnippet>1202</a>    <span class="attr">#[test]
+<a href=#1203 id=1203 data-nosnippet>1203</a>    </span><span class="kw">fn </span>hex_escape_wstring_unpaired_surrogates_replaced_with_replacement_char() {
+<a href=#1204 id=1204 data-nosnippet>1204</a>        <span class="macro">assert_eq!</span>(ok(<span class="string">"$D800"</span>, <span class="bool-val">true</span>), <span class="string">"\u{FFFD}"</span>); <span class="comment">// high surrogate alone
+<a href=#1205 id=1205 data-nosnippet>1205</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$DE00"</span>, <span class="bool-val">true</span>), <span class="string">"\u{FFFD}"</span>); <span class="comment">// orphan low surrogate
+<a href=#1206 id=1206 data-nosnippet>1206</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$D83D$0041"</span>, <span class="bool-val">true</span>), <span class="string">"\u{FFFD}A"</span>); <span class="comment">// high + non-low BMP char
+<a href=#1207 id=1207 data-nosnippet>1207</a>        </span><span class="macro">assert_eq!</span>(ok(<span class="string">"$DE00$D83D"</span>, <span class="bool-val">true</span>), <span class="string">"\u{FFFD}\u{FFFD}"</span>); <span class="comment">// reversed pair
+<a href=#1208 id=1208 data-nosnippet>1208</a>    </span>}
+<a href=#1209 id=1209 data-nosnippet>1209</a>
+<a href=#1210 id=1210 data-nosnippet>1210</a>    <span class="comment">// ── unhappy-path unit tests ────────────────────────────────────────────────
+<a href=#1211 id=1211 data-nosnippet>1211</a>
+<a href=#1212 id=1212 data-nosnippet>1212</a>    </span><span class="attr">#[test]
+<a href=#1213 id=1213 data-nosnippet>1213</a>    </span><span class="kw">fn </span>trailing_dollar_produces_error() {
+<a href=#1214 id=1214 data-nosnippet>1214</a>        <span class="macro">assert_eq!</span>(errs(<span class="string">"hello$"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
+<a href=#1215 id=1215 data-nosnippet>1215</a>        <span class="macro">assert_eq!</span>(errs(<span class="string">"$"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
+<a href=#1216 id=1216 data-nosnippet>1216</a>        <span class="macro">assert_eq!</span>(errs(<span class="string">"hello$"</span>, <span class="bool-val">true</span>), <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
+<a href=#1217 id=1217 data-nosnippet>1217</a>        <span class="comment">// Trailing '$' after a valid escape is also caught
+<a href=#1218 id=1218 data-nosnippet>1218</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$N$"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
+<a href=#1219 id=1219 data-nosnippet>1219</a>        <span class="macro">assert_eq!</span>(errs(<span class="string">"$48$"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
+<a href=#1220 id=1220 data-nosnippet>1220</a>    }
+<a href=#1221 id=1221 data-nosnippet>1221</a>
+<a href=#1222 id=1222 data-nosnippet>1222</a>    <span class="attr">#[test]
+<a href=#1223 id=1223 data-nosnippet>1223</a>    </span><span class="kw">fn </span>unrecognized_named_escape_produces_error() {
+<a href=#1224 id=1224 data-nosnippet>1224</a>        <span class="comment">// $Q: 'Q' is not a named-escape char and not a hex digit
+<a href=#1225 id=1225 data-nosnippet>1225</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$Q"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::UnrecognizedEscape(<span class="string">'Q'</span>)]);
+<a href=#1226 id=1226 data-nosnippet>1226</a>        <span class="macro">assert_eq!</span>(errs(<span class="string">"$Q"</span>, <span class="bool-val">true</span>), <span class="macro">vec!</span>[EscapeError::UnrecognizedEscape(<span class="string">'Q'</span>)]);
+<a href=#1227 id=1227 data-nosnippet>1227</a>        <span class="comment">// $Z similarly
+<a href=#1228 id=1228 data-nosnippet>1228</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$Z"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::UnrecognizedEscape(<span class="string">'Z'</span>)]);
+<a href=#1229 id=1229 data-nosnippet>1229</a>    }
+<a href=#1230 id=1230 data-nosnippet>1230</a>
+<a href=#1231 id=1231 data-nosnippet>1231</a>    <span class="attr">#[test]
+<a href=#1232 id=1232 data-nosnippet>1232</a>    </span><span class="kw">fn </span>incomplete_hex_escape_produces_error() {
+<a href=#1233 id=1233 data-nosnippet>1233</a>        <span class="comment">// STRING needs 2 hex digits: '$A' has only 1
+<a href=#1234 id=1234 data-nosnippet>1234</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$A"</span>, <span class="bool-val">false</span>), <span class="macro">vec!</span>[EscapeError::IncompleteHexEscape]);
+<a href=#1235 id=1235 data-nosnippet>1235</a>        <span class="comment">// WSTRING needs 4 hex digits: '$004' has only 3
+<a href=#1236 id=1236 data-nosnippet>1236</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$004"</span>, <span class="bool-val">true</span>), <span class="macro">vec!</span>[EscapeError::IncompleteHexEscape]);
+<a href=#1237 id=1237 data-nosnippet>1237</a>        <span class="comment">// WSTRING: first char hex but 4-char window contains non-hex
+<a href=#1238 id=1238 data-nosnippet>1238</a>        </span><span class="macro">assert_eq!</span>(errs(<span class="string">"$A5z1"</span>, <span class="bool-val">true</span>), <span class="macro">vec!</span>[EscapeError::IncompleteHexEscape]);
+<a href=#1239 id=1239 data-nosnippet>1239</a>    }
+<a href=#1240 id=1240 data-nosnippet>1240</a>
+<a href=#1241 id=1241 data-nosnippet>1241</a>    <span class="attr">#[test]
+<a href=#1242 id=1242 data-nosnippet>1242</a>    </span><span class="kw">fn </span>multiple_errors_all_reported() {
+<a href=#1243 id=1243 data-nosnippet>1243</a>        <span class="comment">// Two invalid escapes in one string — both must appear in the error list
+<a href=#1244 id=1244 data-nosnippet>1244</a>        </span><span class="kw">let </span>errors = errs(<span class="string">"$Q hello $"</span>, <span class="bool-val">false</span>);
+<a href=#1245 id=1245 data-nosnippet>1245</a>        <span class="macro">assert_eq!</span>(errors, <span class="macro">vec!</span>[EscapeError::UnrecognizedEscape(<span class="string">'Q'</span>), EscapeError::TrailingDollar]);
+<a href=#1246 id=1246 data-nosnippet>1246</a>    }
+<a href=#1247 id=1247 data-nosnippet>1247</a>
+<a href=#1248 id=1248 data-nosnippet>1248</a>    <span class="attr">#[test]
+<a href=#1249 id=1249 data-nosnippet>1249</a>    </span><span class="kw">fn </span>error_recovery_keeps_dollar_in_output() {
+<a href=#1250 id=1250 data-nosnippet>1250</a>        <span class="comment">// The decoded string keeps the '$' for error-recovery; the error is reported separately
+<a href=#1251 id=1251 data-nosnippet>1251</a>        </span><span class="kw">let </span>(s, e) = handle_special_chars(<span class="string">"$Q"</span>, <span class="bool-val">false</span>);
+<a href=#1252 id=1252 data-nosnippet>1252</a>        <span class="macro">assert_eq!</span>(s, <span class="string">"$Q"</span>);
+<a href=#1253 id=1253 data-nosnippet>1253</a>        <span class="macro">assert_eq!</span>(e, <span class="macro">vec!</span>[EscapeError::UnrecognizedEscape(<span class="string">'Q'</span>)]);
+<a href=#1254 id=1254 data-nosnippet>1254</a>
+<a href=#1255 id=1255 data-nosnippet>1255</a>        <span class="kw">let </span>(s, e) = handle_special_chars(<span class="string">"hello$"</span>, <span class="bool-val">false</span>);
+<a href=#1256 id=1256 data-nosnippet>1256</a>        <span class="macro">assert_eq!</span>(s, <span class="string">"hello$"</span>);
+<a href=#1257 id=1257 data-nosnippet>1257</a>        <span class="macro">assert_eq!</span>(e, <span class="macro">vec!</span>[EscapeError::TrailingDollar]);
+<a href=#1258 id=1258 data-nosnippet>1258</a>
+<a href=#1259 id=1259 data-nosnippet>1259</a>        <span class="kw">let </span>(s, e) = handle_special_chars(<span class="string">"$A"</span>, <span class="bool-val">false</span>);
+<a href=#1260 id=1260 data-nosnippet>1260</a>        <span class="macro">assert_eq!</span>(s, <span class="string">"$A"</span>);
+<a href=#1261 id=1261 data-nosnippet>1261</a>        <span class="macro">assert_eq!</span>(e, <span class="macro">vec!</span>[EscapeError::IncompleteHexEscape]);
+<a href=#1262 id=1262 data-nosnippet>1262</a>    }
+<a href=#1263 id=1263 data-nosnippet>1263</a>}
 </code></pre></div></section></main></body></html>
