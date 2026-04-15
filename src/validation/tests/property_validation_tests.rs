@@ -4,7 +4,7 @@ fn invalid_pou_type() {
         r"
         FUNCTION foo : DINT
             PROPERTY prop : DINT
-                GET
+                PROPERTY_GET
                     prop := 5;
                 END_GET
             END_PROPERTY
@@ -27,53 +27,53 @@ fn more_than_one_get_or_set_block() {
         r"
         FUNCTION_BLOCK foo
             PROPERTY foo_prop : DINT
-                GET END_GET
-                GET END_GET
+                PROPERTY_GET END_GET
+                PROPERTY_GET END_GET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK bar
             PROPERTY bar_prop : DINT
-                SET END_SET
-                SET END_SET
+                PROPERTY_SET END_SET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK baz
             PROPERTY baz_prop : DINT
-                GET END_GET
-                GET END_GET
+                PROPERTY_GET END_GET
+                PROPERTY_GET END_GET
 
-                SET END_SET
-                SET END_SET
+                PROPERTY_SET END_SET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
     );
     insta::assert_snapshot!(diagnostics, @r"
-    error[E117]: Property has more than one GET block
+    error[E117]: Property has more than one PROPERTY_GET block
       ┌─ <internal>:3:22
       │
     3 │             PROPERTY foo_prop : DINT
-      │                      ^^^^^^^^ Property has more than one GET block
+      │                      ^^^^^^^^ Property has more than one PROPERTY_GET block
 
-    error[E117]: Property has more than one SET block
+    error[E117]: Property has more than one PROPERTY_SET block
        ┌─ <internal>:10:22
        │
     10 │             PROPERTY bar_prop : DINT
-       │                      ^^^^^^^^ Property has more than one SET block
+       │                      ^^^^^^^^ Property has more than one PROPERTY_SET block
 
-    error[E117]: Property has more than one GET block
+    error[E117]: Property has more than one PROPERTY_GET block
        ┌─ <internal>:17:22
        │
     17 │             PROPERTY baz_prop : DINT
-       │                      ^^^^^^^^ Property has more than one GET block
+       │                      ^^^^^^^^ Property has more than one PROPERTY_GET block
 
-    error[E117]: Property has more than one SET block
+    error[E117]: Property has more than one PROPERTY_SET block
        ┌─ <internal>:17:22
        │
     17 │             PROPERTY baz_prop : DINT
-       │                      ^^^^^^^^ Property has more than one SET block
+       │                      ^^^^^^^^ Property has more than one PROPERTY_SET block
     ");
 }
 
@@ -83,7 +83,7 @@ fn invalid_variable_block_type() {
         r"
         FUNCTION_BLOCK foo
             PROPERTY prop : DINT
-                GET
+                PROPERTY_GET
                     VAR_INPUT
                         var_get_in : DINT;
                     END_VAR
@@ -105,7 +105,7 @@ fn invalid_variable_block_type() {
                     END_VAR
                 END_GET
 
-                SET
+                PROPERTY_SET
                     VAR_INPUT
                         var_set_in : DINT;
                     END_VAR
@@ -137,7 +137,7 @@ fn invalid_variable_block_type() {
       │
     3 │             PROPERTY prop : DINT
       │                      ^^^^ Properties only allow variable blocks of type VAR
-    4 │                 GET
+    4 │                 PROPERTY_GET
     5 │                     VAR_INPUT
       │                     --------- see also
 
@@ -198,11 +198,11 @@ fn name_clash_with_member_variable() {
             END_VAR
 
             PROPERTY foo : DINT
-                GET
+                PROPERTY_GET
                     foo := 42;
                 END_GET
 
-                SET
+                PROPERTY_SET
                     foo := 3;
                 END_SET
             END_PROPERTY
@@ -243,8 +243,8 @@ fn name_clash_with_parent_variable() {
 
         FUNCTION_BLOCK fb2 EXTENDS fb1
             PROPERTY foo : DINT
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
@@ -268,8 +268,8 @@ fn name_clash_with_child_variable() {
         r"
         FUNCTION_BLOCK fb1
             PROPERTY foo : DINT
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -299,8 +299,8 @@ fn name_clash_with_property_in_parent_chained() {
         r"
         FUNCTION_BLOCK fb1
             PROPERTY foo : DINT
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -360,8 +360,8 @@ fn name_clash_with_variable_in_parent_chained() {
 
         FUNCTION_BLOCK fb4 EXTENDS fb3
             PROPERTY foo : DINT
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
@@ -385,14 +385,14 @@ fn overriding_property_in_function_block_with_same_datatype_is_ok() {
         r"
         FUNCTION_BLOCK fb1
             PROPERTY foo : DINT
-                SET END_SET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK fb2 EXTENDS fb1
             PROPERTY foo : DINT
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
@@ -407,13 +407,13 @@ fn overriding_property_in_function_block_with_different_datatype_is_not_ok() {
     let source = r"
     FUNCTION_BLOCK fb1
         PROPERTY prop : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 EXTENDS fb1
         PROPERTY prop : STRING
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_FUNCTION_BLOCK
     ";
@@ -450,13 +450,13 @@ fn extending_property_in_function_block_by_accessor_with_same_datatype_is_ok() {
     let source = r"
     FUNCTION_BLOCK fb1
         PROPERTY prop : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 EXTENDS fb1
         PROPERTY prop : DINT
-            SET END_SET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_FUNCTION_BLOCK
     ";
@@ -470,13 +470,13 @@ fn extending_property_in_function_block_by_accessor_with_different_datatype_is_n
     let source = r"
     FUNCTION_BLOCK fb1
         PROPERTY prop : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 EXTENDS fb1
         PROPERTY prop : INT
-            SET END_SET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_FUNCTION_BLOCK
     ";
@@ -499,14 +499,14 @@ fn overriding_property_in_interface_with_same_datatype_is_ok() {
         r"
         INTERFACE intf1
             PROPERTY prop : DINT
-                GET END_GET
+                PROPERTY_GET END_GET
             END_PROPERTY
         END_INTERFACE
 
         INTERFACE intf2 EXTENDS intf1
             PROPERTY prop : DINT
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_INTERFACE
         ",
@@ -521,14 +521,14 @@ fn overriding_property_in_interface_with_different_datatype_is_not_ok() {
     let source = r"
     INTERFACE intf1
         PROPERTY prop : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
-    // We extend the property by a SET accessor in this interface, but with the wrong datatype
+    // We extend the property by a PROPERTY_SET accessor in this interface, but with the wrong datatype
     INTERFACE intf2 EXTENDS intf1
         PROPERTY prop : STRING
-            SET END_SET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_INTERFACE
     ";
@@ -552,13 +552,13 @@ fn extending_interface_with_interfaces_with_conflicting_signatures_is_not_ok() {
     let source = r"
     INTERFACE A
         PROPERTY prop : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE B
         PROPERTY prop : STRING
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
@@ -567,7 +567,7 @@ fn extending_interface_with_interfaces_with_conflicting_signatures_is_not_ok() {
     ";
 
     insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
-    error[E112]: Property `prop` defined in interface `B` and `A` have different datatypes
+    error[E112]: Property `prop` defined in interface `A` and `B` have different datatypes
        ┌─ <internal>:14:15
        │
      3 │         PROPERTY prop : DINT
@@ -577,7 +577,7 @@ fn extending_interface_with_interfaces_with_conflicting_signatures_is_not_ok() {
        │                         ------ see also
        ·
     14 │     INTERFACE C EXTENDS A, B
-       │               ^ Property `prop` defined in interface `B` and `A` have different datatypes
+       │               ^ Property `prop` defined in interface `A` and `B` have different datatypes
     ");
 }
 
@@ -586,77 +586,66 @@ fn multiple_levels() {
     let source = r"
     INTERFACE A
         PROPERTY propA : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE B
         PROPERTY propB : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE C EXTENDS A
         PROPERTY propC : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE DD EXTENDS C
         PROPERTY propD : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
     // All of these are overrides with different signatures
     INTERFACE E EXTENDS B, C, A
         PROPERTY propA : REAL
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
 
         PROPERTY propB : STRING
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
 
         PROPERTY propC : INT
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_INTERFACE
 
     // These on the other hand are overrides, but with the same signature and hence OK
     INTERFACE F EXTENDS B, C, A
         PROPERTY propA : DINT
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
 
         PROPERTY propB : DINT
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
 
         PROPERTY propC : DINT
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_INTERFACE
     ";
 
     insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
-    error[E112]: Property `propA` defined in interface `E` and `A` have different datatypes
-       ┌─ <internal>:27:15
-       │
-     3 │         PROPERTY propA : DINT
-       │                          ---- see also
-       ·
-    27 │     INTERFACE E EXTENDS B, C, A
-       │               ^ Property `propA` defined in interface `E` and `A` have different datatypes
-    28 │         PROPERTY propA : REAL
-       │                          ---- see also
-
     error[E112]: Property `propA` defined in interface `A` and `E` have different datatypes
        ┌─ <internal>:27:15
        │
@@ -665,21 +654,19 @@ fn multiple_levels() {
        ·
     27 │     INTERFACE E EXTENDS B, C, A
        │               ^ Property `propA` defined in interface `A` and `E` have different datatypes
-       ·
-    38 │         PROPERTY propC : INT
-       │                          --- see also
+    28 │         PROPERTY propA : REAL
+       │                          ---- see also
 
-    error[E112]: Property `propC` defined in interface `E` and `C` have different datatypes
+    error[E112]: Property `propA` defined in interface `E` and `C` have different datatypes
        ┌─ <internal>:27:15
        │
     15 │         PROPERTY propC : DINT
        │                          ---- see also
        ·
     27 │     INTERFACE E EXTENDS B, C, A
-       │               ^ Property `propC` defined in interface `E` and `C` have different datatypes
-       ·
-    38 │         PROPERTY propC : INT
-       │                          --- see also
+       │               ^ Property `propA` defined in interface `E` and `C` have different datatypes
+    28 │         PROPERTY propA : REAL
+       │                          ---- see also
 
     error[E112]: Property `propC` defined in interface `C` and `E` have different datatypes
        ┌─ <internal>:27:15
@@ -690,17 +677,29 @@ fn multiple_levels() {
     27 │     INTERFACE E EXTENDS B, C, A
        │               ^ Property `propC` defined in interface `C` and `E` have different datatypes
        ·
-    33 │         PROPERTY propB : STRING
-       │                          ------ see also
+    38 │         PROPERTY propC : INT
+       │                          --- see also
 
-    error[E112]: Property `propB` defined in interface `E` and `B` have different datatypes
+    error[E112]: Property `propC` defined in interface `E` and `B` have different datatypes
        ┌─ <internal>:27:15
        │
      9 │         PROPERTY propB : DINT
        │                          ---- see also
        ·
     27 │     INTERFACE E EXTENDS B, C, A
-       │               ^ Property `propB` defined in interface `E` and `B` have different datatypes
+       │               ^ Property `propC` defined in interface `E` and `B` have different datatypes
+       ·
+    38 │         PROPERTY propC : INT
+       │                          --- see also
+
+    error[E112]: Property `propB` defined in interface `B` and `E` have different datatypes
+       ┌─ <internal>:27:15
+       │
+     9 │         PROPERTY propB : DINT
+       │                          ---- see also
+       ·
+    27 │     INTERFACE E EXTENDS B, C, A
+       │               ^ Property `propB` defined in interface `B` and `E` have different datatypes
        ·
     33 │         PROPERTY propB : STRING
        │                          ------ see also
@@ -713,20 +712,20 @@ fn undefined_references_inheritance() {
         r"
         FUNCTION_BLOCK parent
             PROPERTY myProp : DINT
-                GET END_GET
+                PROPERTY_GET END_GET
             END_PROPERTY
 
-            myProp;         // Ok, this represents GET
-            myProp := 5;    // Error, this represents a SET which is not defined in here
+            myProp;         // Ok, this represents PROPERTY_GET
+            myProp := 5;    // Error, this represents a PROPERTY_SET which is not defined in here
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK child EXTENDS parent
             PROPERTY myProp : DINT
-                SET END_SET
+                PROPERTY_SET END_SET
             END_PROPERTY
 
-            myProp := 5;            // Ok, this represents a GET which is inherited from the parent
-            myProp := myProp  + 1;  // Ok, this represents a SET that is overriden here
+            myProp := 5;            // Ok, this represents a PROPERTY_GET which is inherited from the parent
+            myProp := myProp  + 1;  // Ok, this represents a PROPERTY_SET that is overriden here
         END_FUNCTION_BLOCK
 
         FUNCTION main : DINT
@@ -735,10 +734,10 @@ fn undefined_references_inheritance() {
                 child_fb: child;
             END_VAR
 
-            parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a SET
-            child_fb.myProp := 5;                   // Ok, the `child` FB does define a SET
-            child_fb.myProp := parent_fb.myProp;    // Ok, the `child` FB does define a SET, the `parent` a GET
-            child_fb.myProp := child_fb.myProp + 1; // Ok, the `child` FB does define a SET, inherits the GET from the parent
+            parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a PROPERTY_SET
+            child_fb.myProp := 5;                   // Ok, the `child` FB does define a PROPERTY_SET
+            child_fb.myProp := parent_fb.myProp;    // Ok, the `child` FB does define a PROPERTY_SET, the `parent` a PROPERTY_GET
+            child_fb.myProp := child_fb.myProp + 1; // Ok, the `child` FB does define a PROPERTY_SET, inherits the PROPERTY_GET from the parent
         END_FUNCTION
         ",
     );
@@ -747,13 +746,13 @@ fn undefined_references_inheritance() {
     error[E048]: Could not resolve reference to myProp
       ┌─ <internal>:8:13
       │
-    8 │             myProp := 5;    // Error, this represents a SET which is not defined in here
+    8 │             myProp := 5;    // Error, this represents a PROPERTY_SET which is not defined in here
       │             ^^^^^^ Could not resolve reference to myProp
 
     error[E048]: Could not resolve reference to myProp
        ┌─ <internal>:26:23
        │
-    26 │             parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a SET
+    26 │             parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a PROPERTY_SET
        │                       ^^^^^^ Could not resolve reference to myProp
     ");
 }
@@ -764,7 +763,7 @@ fn conflicting_signatures_in_head_and_tail_inheritance_chain() {
         "
         FUNCTION_BLOCK fbA
             PROPERTY myProp : DINT
-                GET END_GET
+                PROPERTY_GET END_GET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -776,7 +775,7 @@ fn conflicting_signatures_in_head_and_tail_inheritance_chain() {
 
         FUNCTION_BLOCK fbD EXTENDS fbC
             PROPERTY myProp : STRING // Conflicting signature with A, where myProp has a `DINT` datatype
-                SET END_SET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
@@ -807,8 +806,8 @@ fn direct_property_assignment_is_allowed() {
 
         FUNCTION_BLOCK FbA
             PROPERTY position: Position
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -839,8 +838,8 @@ fn property_self_assignment_remains_allowed() {
 
         FUNCTION_BLOCK FbA
             PROPERTY position: Position
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -870,8 +869,8 @@ fn property_get_followed_by_member_access_remains_allowed() {
 
         FUNCTION_BLOCK FbA
             PROPERTY position: Position
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -902,8 +901,8 @@ fn property_get_inside_lhs_index_expression_remains_allowed() {
 
         FUNCTION_BLOCK FbA
             PROPERTY position: Position
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -934,8 +933,8 @@ fn nested_member_assignment_through_property_is_rejected() {
 
         FUNCTION_BLOCK FbA
             PROPERTY position: Position
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -977,13 +976,13 @@ fn property_on_target_chain_but_property_get_in_index_expression_is_still_reject
 
         FUNCTION_BLOCK FbA
             PROPERTY values: ARRAY[1..10] OF DINT
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
 
             PROPERTY position: Position
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -1019,8 +1018,8 @@ fn property_returning_array_of_structs_followed_by_index_and_member_assignment_i
 
         FUNCTION_BLOCK FbA
             PROPERTY positions: ARRAY[1..5] OF Position
-                GET END_GET
-                SET END_SET
+                PROPERTY_GET END_GET
+                PROPERTY_SET END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 

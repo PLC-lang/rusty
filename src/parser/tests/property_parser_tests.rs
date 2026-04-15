@@ -5,14 +5,14 @@ fn properties_can_be_parsed() {
     let source = r"
         FUNCTION_BLOCK foo
             PROPERTY bar : INT
-                GET
+                PROPERTY_GET
                     VAR
                         getLocalVariable : DINT;
                     END_VAR
 
                     bar := 5;
                 END_GET
-                SET
+                PROPERTY_SET
                     VAR
                         setLocalVariable : DINT;
                     END_VAR
@@ -51,7 +51,7 @@ fn properties_can_be_parsed() {
                 PropertyImplementation {
                     kind: Get,
                     location: SourceLocation {
-                        span: Range(3:16 - 3:19),
+                        span: Range(3:16 - 3:28),
                     },
                     variable_blocks: [
                         VariableBlock {
@@ -88,7 +88,7 @@ fn properties_can_be_parsed() {
                 PropertyImplementation {
                     kind: Set,
                     location: SourceLocation {
-                        span: Range(10:16 - 10:19),
+                        span: Range(10:16 - 10:28),
                     },
                     variable_blocks: [
                         VariableBlock {
@@ -186,7 +186,7 @@ fn property_with_variable_block() {
                     // Invalid variable block, should be in a getter or setter
                 END_VAR
 
-                GET
+                PROPERTY_GET
                     // ...
                 END_GET
             END_PROPERTY
@@ -195,10 +195,10 @@ fn property_with_variable_block() {
 
     let (_, diagnostics) = parse_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
-    error[E007]: Variable blocks may only be defined within a GET or SET block in the context of properties
+    error[E007]: Variable blocks may only be defined within a PROPERTY_GET or PROPERTY_SET block in the context of properties
       ┌─ <internal>:4:17
       │
     4 │                 VAR
-      │                 ^^^ Variable blocks may only be defined within a GET or SET block in the context of properties
+      │                 ^^^ Variable blocks may only be defined within a PROPERTY_GET or PROPERTY_SET block in the context of properties
     ");
 }

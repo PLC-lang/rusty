@@ -1309,10 +1309,10 @@ fn output_variables_must_not_be_assignable_outside_of_their_scope() {
             END_METHOD
 
             PROPERTY someProperty : DINT
-                GET
+                PROPERTY_GET
                     out1 := 1;
                 END_GET
-                SET END_SET
+                PROPERTY_SET END_SET
             END_PROPERTY
 
             out1 := 1;
@@ -1381,10 +1381,10 @@ fn output_variables_must_be_assignable_within_the_scope_of_inheritance() {
             END_METHOD
 
             PROPERTY someProperty : DINT
-                GET
+                PROPERTY_GET
                     out1 := 1;
                 END_GET
-                SET END_SET
+                PROPERTY_SET END_SET
             END_PROPERTY
 
             out1 := 1;

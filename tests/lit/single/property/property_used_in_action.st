@@ -4,7 +4,7 @@ FUNCTION_BLOCK A
         x : DINT := 42;
     END_VAR
     PROPERTY foo : DINT
-        GET
+        PROPERTY_GET
             foo := x;
         END_GET
     END_PROPERTY

@@ -6,13 +6,13 @@ FUNCTION_BLOCK fb
     END_VAR
 
     PROPERTY foo: ARRAY[1..5] OF STRING
-        GET
+        PROPERTY_GET
             foo := returnValue;
         END_GET
     END_PROPERTY
 
     PROPERTY bar: DINT
-        GET
+        PROPERTY_GET
             bar := 5;
         END_GET
     END_PROPERTY

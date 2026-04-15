@@ -6,7 +6,7 @@ FUNCTION_BLOCK fb1
     END_VAR
 
     PROPERTY prop: DINT
-        GET
+        PROPERTY_GET
             prop := localPrivateVariable;
         END_GET
     END_PROPERTY
@@ -14,7 +14,7 @@ END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fb2 EXTENDS fb1
     PROPERTY prop: DINT
-        SET
+        PROPERTY_SET
             VAR
                 x: DINT;
             END_VAR

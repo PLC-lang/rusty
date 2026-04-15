@@ -411,8 +411,8 @@ fn interface_with_property() {
     let source = r"
     INTERFACE myInterface
         PROPERTY foo : INT
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_INTERFACE
     ";
@@ -440,23 +440,23 @@ fn interface_with_property() {
                 PropertyImplementation {
                     kind: Get,
                     location: SourceLocation {
-                        span: Range(3:12 - 3:15),
+                        span: Range(3:12 - 3:24),
                     },
                     variable_blocks: [],
                     body: [],
                     end_location: SourceLocation {
-                        span: Range(3:16 - 3:23),
+                        span: Range(3:25 - 3:32),
                     },
                 },
                 PropertyImplementation {
                     kind: Set,
                     location: SourceLocation {
-                        span: Range(4:12 - 4:15),
+                        span: Range(4:12 - 4:24),
                     },
                     variable_blocks: [],
                     body: [],
                     end_location: SourceLocation {
-                        span: Range(4:16 - 4:23),
+                        span: Range(4:25 - 4:32),
                     },
                 },
             ],
@@ -478,11 +478,11 @@ mod error_handling {
             END_METHOD
 
             PROPERTY propA : INT
-                GET
+                PROPERTY_GET
                     1 > 2;
                 END_GET
 
-                SET
+                PROPERTY_SET
                     1 > 2;
                 END_SET
             END_PROPERTY

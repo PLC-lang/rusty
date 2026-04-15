@@ -639,7 +639,7 @@ fn get_and_set_can_be_used_as_method_parameters_and_named_arguments() {
         FUNCTION_BLOCK FbA
         METHOD foo
         VAR_INPUT
-        GET: DINT;
+        PROPERTY_GET: DINT;
         SET: DINT;
         END_VAR
         END_METHOD
@@ -662,11 +662,11 @@ fn use_incorrect_end_keyword() {
     let source = r"
         FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    GET
+                    PROPERTY_GET
                     END_SET;
-                    GET
+                    PROPERTY_GET
                     END_GET;
-                    GET
+                    PROPERTY_GET
                     END_SET;
                     END_PROPERTY
         END_FUNCTION_BLOCK

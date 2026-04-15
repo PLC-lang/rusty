@@ -697,7 +697,7 @@ fn parse_property(lexer: &mut ParseSession) -> Option<PropertyBlock> {
         let block = parse_variable_block(lexer, LinkageType::Internal);
         lexer.accept_diagnostic(
             Diagnostic::new(
-                "Variable blocks may only be defined within a GET or SET block in the context of properties",
+                "Variable blocks may only be defined within a PROPERTY_GET or PROPERTY_SET block in the context of properties",
             )
             .with_location(&block.location)
             .with_error_code("E007"),
@@ -706,10 +706,10 @@ fn parse_property(lexer: &mut ParseSession) -> Option<PropertyBlock> {
 
     let mut implementations = Vec::new();
     let mut property_closed = false;
-    while matches!(lexer.token, KeywordGet | KeywordSet) {
+    while matches!(lexer.token, KeywordPropertyGet | KeywordPropertySet) {
         let location = lexer.location();
-        let kind = if lexer.token == KeywordGet { PropertyKind::Get } else { PropertyKind::Set };
-        lexer.advance(); // Move past `GET` or `SET` keyword
+        let kind = if lexer.token == KeywordPropertyGet { PropertyKind::Get } else { PropertyKind::Set };
+        lexer.advance(); // Move past `PROPERTY_GET` or `PROPERTY_SET` keyword
 
         let mut variable_blocks = Vec::new();
         while lexer.token.is_var() {

@@ -1141,14 +1141,14 @@ mod tests {
 
         #[test]
         fn interface_with_property_generates_itable_entries() {
-            // An interface declares a property with both GET and SET.
+            // An interface declares a property with both PROPERTY_GET and PROPERTY_SET.
             // The itable struct should contain entries for __get_foo and __set_foo.
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_INTERFACE
                 "#,
@@ -1165,13 +1165,13 @@ mod tests {
 
         #[test]
         fn interface_with_get_only_property_generates_single_entry() {
-            // An interface declares a property with only GET (no SET).
+            // An interface declares a property with only PROPERTY_GET (no PROPERTY_SET).
             // The itable struct should only contain __get_foo.
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
                     PROPERTY foo : DINT
-                        GET END_GET
+                        PROPERTY_GET END_GET
                     END_PROPERTY
                 END_INTERFACE
                 "#,
@@ -1187,21 +1187,21 @@ mod tests {
 
         #[test]
         fn pou_implementing_interface_with_property_generates_instance() {
-            // FbA IMPLEMENTS IA where IA has a property with GET and SET.
+            // FbA IMPLEMENTS IA where IA has a property with PROPERTY_GET and PROPERTY_SET.
             // The global itable instance should point to FbA's lowered getter/setter methods.
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
                 "#,
@@ -1228,8 +1228,8 @@ mod tests {
                     METHOD bar END_METHOD
 
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_INTERFACE
 
@@ -1237,8 +1237,8 @@ mod tests {
                     METHOD bar END_METHOD
 
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
                 "#,
@@ -1265,8 +1265,8 @@ mod tests {
                 r#"
                 INTERFACE IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_INTERFACE
 
@@ -1276,8 +1276,8 @@ mod tests {
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IB
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
 
                     METHOD bar END_METHOD
@@ -1311,21 +1311,21 @@ mod tests {
                 r#"
                 INTERFACE IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
                     PROPERTY foo : DINT
-                        GET END_GET
+                        PROPERTY_GET END_GET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
                 "#,
@@ -1351,15 +1351,15 @@ mod tests {
                 r#"
                 INTERFACE IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
 
@@ -1388,21 +1388,21 @@ mod tests {
                 r#"
                 INTERFACE IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
                     PROPERTY foo : DINT
-                        SET END_SET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
                 "#,
@@ -1432,27 +1432,27 @@ mod tests {
                 r#"
                 INTERFACE IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
                     PROPERTY foo : DINT
-                        GET END_GET
+                        PROPERTY_GET END_GET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbC EXTENDS FbB
                     PROPERTY foo : DINT
-                        SET END_SET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
                 "#,
@@ -1481,8 +1481,8 @@ mod tests {
                 r#"
                 INTERFACE IA
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_INTERFACE
 
@@ -1492,8 +1492,8 @@ mod tests {
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IB
                     PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
+                        PROPERTY_GET END_GET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
 
                     METHOD bar END_METHOD
@@ -1501,7 +1501,7 @@ mod tests {
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
                     PROPERTY foo : DINT
-                        SET END_SET
+                        PROPERTY_SET END_SET
                     END_PROPERTY
                 END_FUNCTION_BLOCK
                 "#,

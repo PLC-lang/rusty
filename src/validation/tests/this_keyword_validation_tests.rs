@@ -321,10 +321,10 @@ fn this_in_property_calling_method_is_ok() {
             END_METHOD
 
             PROPERTY Value : INT
-                GET
+                PROPERTY_GET
                     Value := THIS^.DoubleX();
                 END_GET
-                SET
+                PROPERTY_SET
                     this^.x := Value;
                 END_SET
             END_PROPERTY

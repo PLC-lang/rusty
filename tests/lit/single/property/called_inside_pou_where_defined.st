@@ -2,7 +2,7 @@
 
 FUNCTION_BLOCK A
     PROPERTY sayCheese : DINT
-        GET
+        PROPERTY_GET
             printf('Cheese');
         END_GET
     END_PROPERTY

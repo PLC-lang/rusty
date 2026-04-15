@@ -89,15 +89,15 @@ pub enum Token {
     #[token("ENDPROPERTY", ignore(case))]
     KeywordEndProperty,
 
-    #[token("GET", ignore(case))]
-    KeywordGet,
+    #[token("PROPERTY_GET", ignore(case))]
+    KeywordPropertyGet,
 
     #[token("END_GET", ignore(case))]
     #[token("ENDGET", ignore(case))]
     KeywordEndGet,
 
-    #[token("SET", ignore(case))]
-    KeywordSet,
+    #[token("PROPERTY_SET", ignore(case))]
+    KeywordPropertySet,
 
     #[token("END_SET", ignore(case))]
     #[token("ENDSET", ignore(case))]
@@ -457,9 +457,9 @@ impl Token {
 
     /// Returns true if the current token can be used where an identifier is expected.
     ///
-    /// `GET` and `SET` are soft keywords: they are parsed as property accessors in
+    /// `PROPERTY_GET` and `PROPERTY_SET` are soft keywords: they are parsed as property accessors in
     /// property declarations, but may still be used as identifiers elsewhere.
     pub fn is_identifier_like(&self) -> bool {
-        matches!(self, Token::Identifier | Token::KeywordGet | Token::KeywordSet)
+        matches!(self, Token::Identifier | Token::KeywordPropertyGet | Token::KeywordPropertySet)
     }
 }

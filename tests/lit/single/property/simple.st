@@ -5,11 +5,11 @@ FUNCTION_BLOCK fb
     END_VAR
 
     PROPERTY foo : DINT
-        GET
+        PROPERTY_GET
             foo := localPrivateVariable;
         END_GET
 
-        SET
+        PROPERTY_SET
             localPrivateVariable := foo + 5;
         END_SET
     END_PROPERTY

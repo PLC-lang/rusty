@@ -6,21 +6,21 @@ FUNCTION_BLOCK A
     END_VAR
 
     PROPERTY increaseFooBy10 : DINT
-        GET
+        PROPERTY_GET
             printf('Inside increaseFooBy10$N');
             foo := foo + 10;
         END_GET
     END_PROPERTY
 
     PROPERTY increaseFooBy20 : DINT
-        GET
+        PROPERTY_GET
             printf('Inside increaseFooBy20$N');
             foo := foo + 20;
         END_GET
     END_PROPERTY
 
     PROPERTY increaseFooBy30 : DINT
-        GET
+        PROPERTY_GET
             printf('Inside increaseFooBy30$N');
             increaseFooBy20;
             increaseFooBy10;
@@ -28,7 +28,7 @@ FUNCTION_BLOCK A
     END_PROPERTY
 
     PROPERTY readFoo : DINT
-        GET
+        PROPERTY_GET
             printf('Inside readFoo$N');
             readFoo := foo;
         END_GET

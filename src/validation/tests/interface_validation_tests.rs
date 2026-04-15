@@ -2205,8 +2205,8 @@ fn property_not_implemented() {
     let source = r"
     INTERFACE intf
         PROPERTY prop : DINT
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_INTERFACE
 
@@ -2240,14 +2240,14 @@ fn property_partially_implemented() {
     let source = r"
     INTERFACE intf
         PROPERTY prop : DINT
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_INTERFACE
 
     FUNCTION_BLOCK fb IMPLEMENTS intf
         PROPERTY prop : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_FUNCTION_BLOCK
     ";
@@ -2269,13 +2269,13 @@ fn property_with_conflicting_signatures() {
     let source = r"
     INTERFACE intf1
         PROPERTY prop : DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE intf2
         PROPERTY prop : STRING
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
@@ -2284,7 +2284,7 @@ fn property_with_conflicting_signatures() {
     ";
 
     insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
-    error[E112]: Property `prop` defined in interface `intf1` and `intf2` have different datatypes
+    error[E112]: Property `prop` defined in interface `intf2` and `intf1` have different datatypes
        ┌─ <internal>:14:15
        │
      3 │         PROPERTY prop : DINT
@@ -2294,7 +2294,7 @@ fn property_with_conflicting_signatures() {
        │                         ------ see also
        ·
     14 │     INTERFACE intf3 EXTENDS intf1, intf2
-       │               ^^^^^ Property `prop` defined in interface `intf1` and `intf2` have different datatypes
+       │               ^^^^^ Property `prop` defined in interface `intf2` and `intf1` have different datatypes
     ");
 }
 
@@ -2303,13 +2303,13 @@ fn interface_with_property_set_extending_other_interface_with_property_get() {
     let source = r"
     INTERFACE intfA
         PROPERTY prop: DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE intfB
         PROPERTY prop: DINT
-            SET END_SET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_INTERFACE
 
@@ -2318,15 +2318,15 @@ fn interface_with_property_set_extending_other_interface_with_property_get() {
 
     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
         PROPERTY prop: DINT
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
         PROPERTY prop: DINT
-            GET END_GET
-            SET END_SET
+            PROPERTY_GET END_GET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_FUNCTION_BLOCK
     ";
@@ -2339,13 +2339,13 @@ fn missing_property_accessor_implementation() {
     let source = r"
     INTERFACE intfA
         PROPERTY prop: DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE intfB
         PROPERTY prop: DINT
-            SET END_SET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_INTERFACE
 
@@ -2354,13 +2354,13 @@ fn missing_property_accessor_implementation() {
 
     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
         PROPERTY prop: DINT
-            GET END_GET
+            PROPERTY_GET END_GET
         END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
         PROPERTY prop: DINT
-            SET END_SET
+            PROPERTY_SET END_SET
         END_PROPERTY
     END_FUNCTION_BLOCK
   ";

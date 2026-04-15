@@ -2464,7 +2464,7 @@ fn validate_property_call_with_braces() {
         "
         FUNCTION_BLOCK fb
         PROPERTY foo :  REF_TO DINT
-        GET END_GET
+        PROPERTY_GET END_GET
         END_PROPERTY
         END_FUNCTION_BLOCK
 

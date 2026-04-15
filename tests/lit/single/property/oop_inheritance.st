@@ -2,8 +2,8 @@
 
 INTERFACE intf
     PROPERTY prop: DINT
-        GET END_GET
-        SET END_SET
+        PROPERTY_GET END_GET
+        PROPERTY_SET END_SET
     END_PROPERTY
 END_INTERFACE
 
@@ -13,11 +13,11 @@ FUNCTION_BLOCK fb IMPLEMENTS intf
     END_VAR
 
     PROPERTY prop: DINT
-        GET
+        PROPERTY_GET
             prop := localPrivateVariable;
         END_GET
 
-        SET
+        PROPERTY_SET
             // This should never be called when using fb2 because it will be overridden
             localPrivateVariable := 0;
         END_SET
@@ -26,7 +26,7 @@ END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fb2 EXTENDS fb
     PROPERTY prop: DINT
-        SET
+        PROPERTY_SET
             localPrivateVariable := prop;
         END_SET
     END_PROPERTY

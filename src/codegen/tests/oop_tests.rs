@@ -1101,11 +1101,11 @@ fn properties_are_methods() {
                 localPrivateVariable : DINT;
             END_VAR
             PROPERTY foo : DINT
-                GET
+                PROPERTY_GET
                     foo := localPrivateVariable;
                 END_GET
 
-                SET
+                PROPERTY_SET
                     localPrivateVariable := foo;
                 END_SET
             END_PROPERTY
@@ -1869,10 +1869,10 @@ fn this_in_property_and_calling_method() {
             END_METHOD
 
             PROPERTY Value : INT
-                GET
+                PROPERTY_GET
                     Value := THIS^.DoubleX();
                 END_GET
-                SET
+                PROPERTY_SET
                     this^.x := Value;
                 END_SET
             END_PROPERTY

@@ -6,13 +6,13 @@ FUNCTION_BLOCK fb
     END_VAR
 
     PROPERTY foo: ARRAY[1..5] OF DINT
-        GET
+        PROPERTY_GET
             foo := localVariable;
         END_GET
     END_PROPERTY
 
     PROPERTY bar: DINT
-        GET
+        PROPERTY_GET
             bar := 3;
         END_GET
     END_PROPERTY

@@ -22,8 +22,8 @@ VAR
     x : DINT;
 END_VAR
     PROPERTY size : DINT
-        GET END_GET
-        SET END_SET
+        PROPERTY_GET END_GET
+        PROPERTY_SET END_SET
     END_PROPERTY
 
     METHOD FB_INIT

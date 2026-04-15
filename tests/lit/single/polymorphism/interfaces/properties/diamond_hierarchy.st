@@ -12,8 +12,8 @@
 
 INTERFACE IA
     PROPERTY value : DINT
-        GET END_GET
-        SET END_SET
+        PROPERTY_GET END_GET
+        PROPERTY_SET END_SET
     END_PROPERTY
 END_INTERFACE
 
@@ -35,11 +35,11 @@ FUNCTION_BLOCK FbImpl IMPLEMENTS ID
     END_VAR
 
     PROPERTY value : DINT
-        GET
+        PROPERTY_GET
             value := _val;
         END_GET
 
-        SET
+        PROPERTY_SET
             _val := value;
         END_SET
     END_PROPERTY

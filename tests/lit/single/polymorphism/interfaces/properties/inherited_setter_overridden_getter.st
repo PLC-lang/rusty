@@ -1,12 +1,12 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Scenario: FbB extends FbA which implements interface IA with a GET+SET property. FbB overrides
+// Scenario: FbB extends FbA which implements interface IA with a PROPERTY_GET+PROPERTY_SET property. FbB overrides
 // only the getter (adds 1000). Dispatch through an IA variable should use FbB's overridden getter
 // and FbA's inherited setter when pointing at FbB.
 
 INTERFACE IValue
     PROPERTY value : DINT
-        GET END_GET
-        SET END_SET
+        PROPERTY_GET END_GET
+        PROPERTY_SET END_SET
     END_PROPERTY
 END_INTERFACE
 
@@ -16,11 +16,11 @@ FUNCTION_BLOCK FbA IMPLEMENTS IValue
     END_VAR
 
     PROPERTY value : DINT
-        GET
+        PROPERTY_GET
             value := _val;
         END_GET
 
-        SET
+        PROPERTY_SET
             _val := value;
         END_SET
     END_PROPERTY
@@ -29,7 +29,7 @@ END_FUNCTION_BLOCK
 FUNCTION_BLOCK FbB EXTENDS FbA
     // Override only getter — adds 1000 to distinguish
     PROPERTY value : DINT
-        GET
+        PROPERTY_GET
             value := _val + 1000;
         END_GET
     END_PROPERTY

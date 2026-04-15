@@ -57,7 +57,7 @@ fn validate_definition(validator: &mut Validator, pou: &PouIndexEntry) {
 
         if count_set + count_get == 0 {
             validator.push_diagnostic(
-                Diagnostic::new("Property has neither a GET nor a SET block")
+                Diagnostic::new("Property has neither a PROPERTY_GET nor a PROPERTY_SET block")
                     .with_location(&property.ident.location)
                     .with_error_code("E117"),
             );
@@ -66,7 +66,7 @@ fn validate_definition(validator: &mut Validator, pou: &PouIndexEntry) {
 
         if count_get > 1 {
             validator.push_diagnostic(
-                Diagnostic::new("Property has more than one GET block")
+                Diagnostic::new("Property has more than one PROPERTY_GET block")
                     .with_location(&property.ident.location)
                     .with_error_code("E117"),
             );
@@ -74,7 +74,7 @@ fn validate_definition(validator: &mut Validator, pou: &PouIndexEntry) {
 
         if count_set > 1 {
             validator.push_diagnostic(
-                Diagnostic::new("Property has more than one SET block")
+                Diagnostic::new("Property has more than one PROPERTY_SET block")
                     .with_location(&property.ident.location)
                     .with_error_code("E117"),
             );
