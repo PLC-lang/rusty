@@ -300,7 +300,7 @@ fn super_in_method_calls() {
             VAR
                 value : INT := 10;
             END_VAR
-            
+
             METHOD process : INT
                 process := value * 2;
             END_METHOD
@@ -310,7 +310,7 @@ fn super_in_method_calls() {
             METHOD process : INT // Override parent's method
                 process := value + 5;
             END_METHOD
-            
+
             METHOD test : INT
                 // Call parent's implementation
                 test := SUPER^.process();
@@ -860,7 +860,7 @@ fn super_in_multi_level_inheritance() {
             VAR
                 g_val : INT := 10;
             END_VAR
-            
+
             METHOD gp_method : INT
                 gp_method := g_val;
             END_METHOD
@@ -870,7 +870,7 @@ fn super_in_multi_level_inheritance() {
             VAR
                 p_val : INT := 20;
             END_VAR
-            
+
             METHOD p_method : INT
                 p_method := p_val + SUPER^.gp_method();
             END_METHOD
@@ -880,7 +880,7 @@ fn super_in_multi_level_inheritance() {
             VAR
                 c_val : INT := 30;
             END_VAR
-            
+
             METHOD test : INT
                 // Access parent's method which itself uses SUPER^
                 test := SUPER^.p_method();
@@ -1373,7 +1373,7 @@ fn super_in_conditionals() {
                 ELSE
                     SUPER^.value := 100;
                 END_IF;
-                
+
                 // In CASE statement
                 CASE SUPER^.value OF
                     10: SUPER^.threshold := 40;
@@ -1732,14 +1732,14 @@ fn super_as_function_parameter() {
                 process_val(SUPER^);
             END_METHOD
         END_FUNCTION_BLOCK
-        
+
         FUNCTION process_ref : INT
         VAR_INPUT
             ref : REF_TO parent;
         END_VAR
             ref^.val := 20;
         END_FUNCTION
-        
+
         FUNCTION process_val : INT
         VAR_INPUT
             val : parent;
@@ -1939,7 +1939,7 @@ fn super_with_deeply_nested_expressions() {
                 b : INT := 2;
                 c : INT := 3;
             END_VAR
-            
+
             METHOD calc : INT
                 calc := a + b * c;
             END_METHOD
@@ -2186,7 +2186,7 @@ fn super_in_loop_constructs() {
                 counter : INT := 0;
                 arr : ARRAY[0..5] OF INT := [1,2,3,4,5,6];
             END_VAR
-            
+
             METHOD increment
                 counter := counter + 1;
             END_METHOD
@@ -2198,18 +2198,18 @@ fn super_in_loop_constructs() {
                     i : INT;
                     sum : INT := 0;
                 END_VAR
-                
+
                 // FOR loop with SUPER^
                 FOR i := 0 TO 5 BY 1 DO
                     sum := sum + SUPER^.arr[i];
                     SUPER^.increment();
                 END_FOR;
-                
+
                 // WHILE loop with SUPER^
                 WHILE SUPER^.counter < 10 DO
                     SUPER^.increment();
                 END_WHILE;
-                
+
                 // REPEAT loop with SUPER^
                 REPEAT
                     SUPER^.counter := SUPER^.counter - 1;
@@ -2285,6 +2285,7 @@ fn super_in_loop_constructs() {
       store i8 0, ptr %is_incrementing_1, align [filtered]
       store i16 0, ptr %i, align [filtered]
       store i8 1, ptr %is_incrementing_1, align [filtered]
+      %ran_once_0 = alloca i8, align [filtered]
       br label %while_body
 
     while_body:                                       ; preds = %continue2, %entry
@@ -2371,7 +2372,6 @@ fn super_in_loop_constructs() {
       br i1 %tmpVar22, label %condition_body23, label %continue20
 
     continue19:                                       ; preds = %condition_body23
-      %ran_once_0 = alloca i8, align [filtered]
       store i8 0, ptr %ran_once_0, align [filtered]
       br label %while_body25
 
@@ -2853,11 +2853,11 @@ fn super_with_return_value_in_multiple_contexts() {
             VAR
                 value : INT := 10;
             END_VAR
-            
+
             METHOD get_value : INT
                 get_value := value;
             END_METHOD
-            
+
             METHOD get_ref : REF_TO parent
                 get_ref := THIS;
             END_METHOD
@@ -2868,12 +2868,12 @@ fn super_with_return_value_in_multiple_contexts() {
                 // Return value directly from SUPER^ call
                 test_value := SUPER^.get_value();
             END_METHOD
-            
+
             METHOD test_ref : REF_TO parent
                 // Return REF_TO parent from SUPER
                 test_ref := SUPER;
             END_METHOD
-            
+
             METHOD test_mixed : INT
                 // Use SUPER in complex return expression
                 test_mixed := SUPER^.get_value() + SUPER^.get_ref()^.value;
@@ -2908,15 +2908,15 @@ fn super_with_structured_types() {
                 VAR
                     local_data : Complex_Type;
                 END_VAR
-                
+
                 // Access structured type through SUPER^
                 local_data.x := SUPER^.data.x;
                 local_data.y := SUPER^.data.y;
                 local_data.z := SUPER^.data.z;
-                
+
                 // Access structured array through SUPER^
                 SUPER^.arr_data[0].x := SUPER^.arr_data[1].x;
-                
+
                 // Nested access
                 SUPER^.arr_data[0].z := SUPER^.data.z;
             END_METHOD
@@ -3157,7 +3157,7 @@ fn super_in_action_blocks() {
             VAR
                 value : INT := 10;
             END_VAR
-            
+
             METHOD increment
                 value := value + 1;
             END_METHOD
@@ -3165,7 +3165,7 @@ fn super_in_action_blocks() {
 
         FUNCTION_BLOCK child EXTENDS parent
         END_FUNCTION_BLOCK
-        
+
         ACTION child.increase
             // Using SUPER^ inside an ACTION block
             SUPER^.value := SUPER^.value + 5;
