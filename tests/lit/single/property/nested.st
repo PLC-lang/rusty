@@ -18,12 +18,12 @@ FUNCTION_BLOCK C
     END_VAR
 
     PROPERTY foo : DINT
-        PROPERTY_GET
+        PROPERTY_GET foo: DINT
             printf('Inside getter$N');
             foo := localPrivateVariable;
         END_GET
 
-        PROPERTY_SET
+        PROPERTY_SET foo: DINT
             printf('Inside setter$N');
             localPrivateVariable := localPrivateVariable + foo;
         END_SET
@@ -37,12 +37,12 @@ FUNCTION main
 
     // CHECK: Inside getter
     // CHECK: 69
-    printf('%d$N', instanceA.instanceB.instanceC.foo); 
+    printf('%d$N', instanceA.instanceB.instanceC.foo);
 
     // CHECK: Inside setter
     instanceA.instanceB.instanceC.foo := 351;
 
     // CHECK: Inside getter
     // CHECK: 420
-    printf('%d$N', instanceA.instanceB.instanceC.foo); 
+    printf('%d$N', instanceA.instanceB.instanceC.foo);
 END_FUNCTION

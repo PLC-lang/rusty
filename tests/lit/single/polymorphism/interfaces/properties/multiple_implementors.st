@@ -6,8 +6,8 @@
 
 INTERFACE IValue
     PROPERTY value : DINT
-        PROPERTY_GET END_GET
-        PROPERTY_SET END_SET
+        PROPERTY_GET value: DINT END_GET
+        PROPERTY_SET value: DINT END_SET
     END_PROPERTY
 END_INTERFACE
 
@@ -17,11 +17,11 @@ FUNCTION_BLOCK FbPlain IMPLEMENTS IValue
     END_VAR
 
     PROPERTY value : DINT
-        PROPERTY_GET
+        PROPERTY_GET value: DINT
             value := _val;
         END_GET
 
-        PROPERTY_SET
+        PROPERTY_SET value: DINT
             _val := value;
         END_SET
     END_PROPERTY
@@ -33,11 +33,11 @@ FUNCTION_BLOCK FbDoubling IMPLEMENTS IValue
     END_VAR
 
     PROPERTY value : DINT
-        PROPERTY_GET
+        PROPERTY_GET value: DINT
             value := _val * 2;
         END_GET
 
-        PROPERTY_SET
+        PROPERTY_SET value: DINT
             _val := value;
         END_SET
     END_PROPERTY

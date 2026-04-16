@@ -518,7 +518,7 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_GET
+                    PROPERTY_GET foo: DINT
                     END_GET
                 END_PROPERTY
             END_FUNCTION_BLOCK
@@ -589,7 +589,7 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_SET
+                    PROPERTY_SET foo: DINT
                     END_SET
                 END_PROPERTY
             END_FUNCTION_BLOCK
@@ -636,7 +636,7 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_GET
+                    PROPERTY_GET foo: DINT
                         foo := 1;
                         foo := 2;
                         foo := 3;
@@ -644,7 +644,7 @@ mod tests {
                         foo := 5;
                     END_GET
 
-                    PROPERTY_SET
+                    PROPERTY_SET foo: DINT
                         foo := 1;
                         foo := 2;
                         foo := 3;
@@ -667,13 +667,13 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_GET
+                    PROPERTY_GET foo: DINT
                         VAR
                             a, b, c : DINT;
                         END_VAR
                     END_GET
 
-                    PROPERTY_SET
+                    PROPERTY_SET foo: DINT
                         VAR
                             d, e, f : DINT;
                         END_VAR
@@ -775,23 +775,23 @@ mod tests {
                 END_VAR
 
                 PROPERTY foo : DINT
-                    PROPERTY_GET END_GET
-                    PROPERTY_SET END_SET
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_PROPERTY
 
                 PROPERTY bar : DINT
-                    PROPERTY_GET END_GET
-                    PROPERTY_SET END_SET
+                    PROPERTY_GET bar: DINT END_GET
+                    PROPERTY_SET bar: DINT END_SET
                 END_PROPERTY
 
                 PROPERTY baz : DINT
-                    PROPERTY_GET END_GET
-                    PROPERTY_SET END_SET
+                    PROPERTY_GET baz: DINT END_GET
+                    PROPERTY_SET baz: DINT END_SET
                 END_PROPERTY
 
                 PROPERTY qux : DINT
-                    PROPERTY_GET END_GET
-                    PROPERTY_SET END_SET
+                    PROPERTY_GET qux: DINT END_GET
+                    PROPERTY_SET qux: DINT END_SET
                 END_PROPERTY
             END_FUNCTION_BLOCK
             ";
@@ -816,8 +816,8 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_GET END_GET
-                    PROPERTY_SET END_SET
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_PROPERTY
 
                 foo := foo;
@@ -859,8 +859,8 @@ mod tests {
             let source = r"
             INTERFACE foo
                 PROPERTY bar : DINT
-                    PROPERTY_GET END_GET
-                    PROPERTY_SET END_SET
+                    PROPERTY_GET bar: DINT END_GET
+                    PROPERTY_SET bar: DINT END_SET
                 END_PROPERTY
             END_INTERFACE
             ";
@@ -960,8 +960,8 @@ mod tests {
                 END_VAR
 
                 PROPERTY myProp: DINT
-                    PROPERTY_GET END_GET
-                    PROPERTY_SET END_SET
+                    PROPERTY_GET myProp: DINT END_GET
+                    PROPERTY_SET myProp: DINT END_SET
                 END_PROPERTY
             END_FUNCTION_BLOCK
 
@@ -1000,7 +1000,8 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_GET END_GET
+                    PROPERTY_GET foo: DINT
+                    END_GET
                 END_PROPERTY
             END_FUNCTION_BLOCK
 
@@ -1025,7 +1026,7 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK A
                 PROPERTY sayCheese : DINT
-                    PROPERTY_GET
+                    PROPERTY_GET sayCheese: DINT
                         printf('Cheese');
                     END_GET
                 END_PROPERTY
@@ -1060,7 +1061,7 @@ mod tests {
 
             FUNCTION_BLOCK fb
                 PROPERTY foo : STRING
-                    PROPERTY_GET END_GET
+                    PROPERTY_GET foo: STRING END_GET
                 END_PROPERTY
             END_FUNCTION_BLOCK
 
@@ -1116,7 +1117,7 @@ mod tests {
 
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_GET END_GET
+                    PROPERTY_GET foo: DINT END_GET
                 END_PROPERTY
             END_FUNCTION_BLOCK
 
@@ -1147,7 +1148,7 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_GET END_GET
+                    PROPERTY_GET foo: DINT END_GET
                 END_PROPERTY
             END_FUNCTION_BLOCK
 
@@ -1210,13 +1211,13 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : ARRAY[1..5] OF STRING
-                    PROPERTY_GET
+                    PROPERTY_GET foo: ARRAY[1..5] OF STRING
                         foo := ['a', 'b', 'c', 'd', 'e'];
                     END_GET
                 END_PROPERTY
 
                 PROPERTY bar : DINT
-                    PROPERTY_GET
+                    PROPERTY_GET bar: DINT
                         bar := 5;
                     END_GET
                 END_PROPERTY
@@ -1271,7 +1272,7 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_GET
+                    PROPERTY_GET foo: DINT
                         // This should not be expanded into `__get_foo()`
                         foo;
 
@@ -1279,7 +1280,7 @@ mod tests {
                         foo := 5;
                     END_GET
 
-                    PROPERTY_SET
+                    PROPERTY_SET foo: DINT
                         // Same as above
                         foo;
                         foo := 5;
@@ -1350,11 +1351,12 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_GET END_GET
+                    PROPERTY_GET foo: DINT
+                    END_GET
                 END_PROPERTY
 
                 PROPERTY bar : DINT
-                    PROPERTY_GET
+                    PROPERTY_GET bar: DINT
                         foo;
                     END_GET
                 END_PROPERTY
@@ -1374,8 +1376,8 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY foo : DINT
-                    PROPERTY_GET END_GET
-                    PROPERTY_SET END_SET
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_PROPERTY
             END_FUNCTION_BLOCK
 
@@ -1404,8 +1406,8 @@ mod tests {
             let source = r"
             INTERFACE IA
                 PROPERTY value : DINT
-                    PROPERTY_GET END_GET
-                    PROPERTY_SET END_SET
+                    PROPERTY_GET value: DINT END_GET
+                    PROPERTY_SET value: DINT END_SET
                 END_PROPERTY
             END_INTERFACE
 
@@ -1419,8 +1421,13 @@ mod tests {
                 END_VAR
 
                 PROPERTY value : DINT
-                    PROPERTY_GET value := _val; END_GET
-                    PROPERTY_SET _val := value; END_SET
+                    PROPERTY_GET value: DINT
+                        value := _val;
+                    END_GET
+
+                    PROPERTY_SET value: DINT
+                        _val := value;
+                    END_SET
                 END_PROPERTY
 
                 METHOD describe END_METHOD

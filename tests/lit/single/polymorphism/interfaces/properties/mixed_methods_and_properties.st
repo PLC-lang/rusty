@@ -7,8 +7,8 @@ INTERFACE IWidget
     METHOD describe END_METHOD
 
     PROPERTY label : DINT
-        PROPERTY_GET END_GET
-        PROPERTY_SET END_SET
+        PROPERTY_GET label: DINT END_GET
+        PROPERTY_SET label: DINT END_SET
     END_PROPERTY
 END_INTERFACE
 
@@ -22,11 +22,11 @@ FUNCTION_BLOCK FbButton IMPLEMENTS IWidget
     END_METHOD
 
     PROPERTY label : DINT
-        PROPERTY_GET
+        PROPERTY_GET label: DINT
             label := _label;
         END_GET
 
-        PROPERTY_SET
+        PROPERTY_SET label: DINT
             _label := label;
         END_SET
     END_PROPERTY
@@ -42,11 +42,11 @@ FUNCTION_BLOCK FbSlider IMPLEMENTS IWidget
     END_METHOD
 
     PROPERTY label : DINT
-        PROPERTY_GET
+        PROPERTY_GET label: DINT
             label := _label * 10;
         END_GET
 
-        PROPERTY_SET
+        PROPERTY_SET label: DINT
             _label := label + 100;
         END_SET
     END_PROPERTY

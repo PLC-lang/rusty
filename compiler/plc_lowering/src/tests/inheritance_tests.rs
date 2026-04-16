@@ -2172,8 +2172,8 @@ mod inherited_properties {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
             PROPERTY foo : INT
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET foo: INT END_GET
+                PROPERTY_SET foo: INT END_SET
             END_PROPERTY
             END_FUNCTION_BLOCK
 
@@ -2280,8 +2280,8 @@ mod inherited_properties {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
             PROPERTY foo : INT
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET foo: INT END_GET
+                PROPERTY_SET foo: INT END_SET
             END_PROPERTY
             END_FUNCTION_BLOCK
 
@@ -2400,13 +2400,13 @@ mod inherited_properties {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
             PROPERTY foo : INT
-                PROPERTY_GET END_GET
+                PROPERTY_GET foo: INT END_GET
             END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb2 EXTENDS fb
             PROPERTY FOO : INT
-                PROPERTY_SET END_SET
+                PROPERTY_SET foo: INT END_SET
             END_PROPERTY
             END_FUNCTION_BLOCK
 

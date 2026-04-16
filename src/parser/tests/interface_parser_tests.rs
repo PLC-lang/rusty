@@ -411,8 +411,8 @@ fn interface_with_property() {
     let source = r"
     INTERFACE myInterface
         PROPERTY foo : INT
-            PROPERTY_GET END_GET
-            PROPERTY_SET END_SET
+            PROPERTY_GET foo: INT END_GET
+            PROPERTY_SET foo: INT END_SET
         END_PROPERTY
     END_INTERFACE
     ";
@@ -478,11 +478,11 @@ mod error_handling {
             END_METHOD
 
             PROPERTY propA : INT
-                PROPERTY_GET
+                PROPERTY_GET propA: INT
                     1 > 2;
                 END_GET
 
-                PROPERTY_SET
+                PROPERTY_SET propA: INT
                     1 > 2;
                 END_SET
             END_PROPERTY

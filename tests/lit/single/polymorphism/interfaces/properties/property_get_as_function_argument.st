@@ -4,7 +4,7 @@
 
 INTERFACE IValue
     PROPERTY value : DINT
-        PROPERTY_GET END_GET
+        PROPERTY_GET value: DINT END_GET
     END_PROPERTY
 END_INTERFACE
 
@@ -14,7 +14,7 @@ FUNCTION_BLOCK FbStore IMPLEMENTS IValue
     END_VAR
 
     PROPERTY value : DINT
-        PROPERTY_GET
+        PROPERTY_GET value: DINT
             value := _val;
         END_GET
     END_PROPERTY

@@ -588,10 +588,10 @@ fn super_with_property_access() {
             END_VAR
 
             PROPERTY prop : INT
-                PROPERTY_GET
+                PROPERTY_GET prop: INT
                     prop := _prop_val;
                 END_GET
-                PROPERTY_SET
+                PROPERTY_SET prop: INT
                     _prop_val := prop;
                 END_SET
             END_PROPERTY
@@ -603,10 +603,10 @@ fn super_with_property_access() {
             END_VAR
 
             PROPERTY prop : INT // Override property
-                PROPERTY_GET
+                PROPERTY_GET prop: INT
                     prop := _prop_val * 2;
                 END_GET
-                PROPERTY_SET
+                PROPERTY_SET prop: INT
                     _prop_val := prop / 2;
                 END_SET
             END_PROPERTY
@@ -1348,10 +1348,10 @@ fn super_with_property_access_errors() {
             END_VAR
 
             PROPERTY prop : INT
-                PROPERTY_GET
+                PROPERTY_GET prop: INT
                     prop := _value;
                 END_GET
-                PROPERTY_SET
+                PROPERTY_SET prop: INT
                     _value := prop;
                 END_SET
             END_PROPERTY

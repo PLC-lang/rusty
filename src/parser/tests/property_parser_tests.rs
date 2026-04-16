@@ -5,14 +5,14 @@ fn properties_can_be_parsed() {
     let source = r"
         FUNCTION_BLOCK foo
             PROPERTY bar : INT
-                PROPERTY_GET
+                PROPERTY_GET bar: INT
                     VAR
                         getLocalVariable : DINT;
                     END_VAR
 
                     bar := 5;
                 END_GET
-                PROPERTY_SET
+                PROPERTY_SET bar: INT
                     VAR
                         setLocalVariable : DINT;
                     END_VAR
@@ -186,7 +186,7 @@ fn property_with_variable_block() {
                     // Invalid variable block, should be in a getter or setter
                 END_VAR
 
-                PROPERTY_GET
+                PROPERTY_GET bar: DINT
                     // ...
                 END_GET
             END_PROPERTY

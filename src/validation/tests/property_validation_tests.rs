@@ -4,7 +4,7 @@ fn invalid_pou_type() {
         r"
         FUNCTION foo : DINT
             PROPERTY prop : DINT
-                PROPERTY_GET
+                PROPERTY_GET prop: DINT
                     prop := 5;
                 END_GET
             END_PROPERTY
@@ -27,25 +27,25 @@ fn more_than_one_get_or_set_block() {
         r"
         FUNCTION_BLOCK foo
             PROPERTY foo_prop : DINT
-                PROPERTY_GET END_GET
-                PROPERTY_GET END_GET
+                PROPERTY_GET foo_prop: DINT END_GET
+                PROPERTY_GET foo_prop: DINT END_GET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK bar
             PROPERTY bar_prop : DINT
-                PROPERTY_SET END_SET
-                PROPERTY_SET END_SET
+                PROPERTY_SET bar_prop: DINT END_SET
+                PROPERTY_SET bar_prop: DINT END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK baz
             PROPERTY baz_prop : DINT
-                PROPERTY_GET END_GET
-                PROPERTY_GET END_GET
+                PROPERTY_GET baz_prop: DINT END_GET
+                PROPERTY_GET baz_prop: DINT END_GET
 
-                PROPERTY_SET END_SET
-                PROPERTY_SET END_SET
+                PROPERTY_SET baz_prop: DINT END_SET
+                PROPERTY_SET baz_prop: DINT END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
@@ -83,7 +83,7 @@ fn invalid_variable_block_type() {
         r"
         FUNCTION_BLOCK foo
             PROPERTY prop : DINT
-                PROPERTY_GET
+                PROPERTY_GET prop: DINT
                     VAR_INPUT
                         var_get_in : DINT;
                     END_VAR
@@ -105,7 +105,7 @@ fn invalid_variable_block_type() {
                     END_VAR
                 END_GET
 
-                PROPERTY_SET
+                PROPERTY_SET prop: DINT
                     VAR_INPUT
                         var_set_in : DINT;
                     END_VAR
@@ -198,11 +198,11 @@ fn name_clash_with_member_variable() {
             END_VAR
 
             PROPERTY foo : DINT
-                PROPERTY_GET
+                PROPERTY_GET foo: DINT
                     foo := 42;
                 END_GET
 
-                PROPERTY_SET
+                PROPERTY_SET foo: DINT
                     foo := 3;
                 END_SET
             END_PROPERTY
@@ -243,8 +243,8 @@ fn name_clash_with_parent_variable() {
 
         FUNCTION_BLOCK fb2 EXTENDS fb1
             PROPERTY foo : DINT
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET foo: DINT END_GET
+                PROPERTY_SET foo: DINT END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
@@ -268,8 +268,8 @@ fn name_clash_with_child_variable() {
         r"
         FUNCTION_BLOCK fb1
             PROPERTY foo : DINT
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET foo: DINT END_GET
+                PROPERTY_SET foo: DINT END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -299,8 +299,8 @@ fn name_clash_with_property_in_parent_chained() {
         r"
         FUNCTION_BLOCK fb1
             PROPERTY foo : DINT
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET foo: DINT END_GET
+                PROPERTY_SET foo: DINT END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -360,8 +360,8 @@ fn name_clash_with_variable_in_parent_chained() {
 
         FUNCTION_BLOCK fb4 EXTENDS fb3
             PROPERTY foo : DINT
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET foo: DINT END_GET
+                PROPERTY_SET foo: DINT END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
@@ -385,14 +385,14 @@ fn overriding_property_in_function_block_with_same_datatype_is_ok() {
         r"
         FUNCTION_BLOCK fb1
             PROPERTY foo : DINT
-                PROPERTY_SET END_SET
+                PROPERTY_SET foo: DINT END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK fb2 EXTENDS fb1
             PROPERTY foo : DINT
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET foo: DINT END_GET
+                PROPERTY_SET foo: DINT END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
@@ -407,13 +407,13 @@ fn overriding_property_in_function_block_with_different_datatype_is_not_ok() {
     let source = r"
     FUNCTION_BLOCK fb1
         PROPERTY prop : DINT
-            PROPERTY_GET END_GET
+            PROPERTY_GET prop: DINT END_GET
         END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 EXTENDS fb1
         PROPERTY prop : STRING
-            PROPERTY_GET END_GET
+            PROPERTY_GET prop: STRING END_GET
         END_PROPERTY
     END_FUNCTION_BLOCK
     ";
@@ -450,13 +450,13 @@ fn extending_property_in_function_block_by_accessor_with_same_datatype_is_ok() {
     let source = r"
     FUNCTION_BLOCK fb1
         PROPERTY prop : DINT
-            PROPERTY_GET END_GET
+            PROPERTY_GET prop: DINT END_GET
         END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 EXTENDS fb1
         PROPERTY prop : DINT
-            PROPERTY_SET END_SET
+            PROPERTY_SET prop: DINT END_SET
         END_PROPERTY
     END_FUNCTION_BLOCK
     ";
@@ -470,13 +470,13 @@ fn extending_property_in_function_block_by_accessor_with_different_datatype_is_n
     let source = r"
     FUNCTION_BLOCK fb1
         PROPERTY prop : DINT
-            PROPERTY_GET END_GET
+            PROPERTY_GET prop: DINT END_GET
         END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 EXTENDS fb1
         PROPERTY prop : INT
-            PROPERTY_SET END_SET
+            PROPERTY_SET prop: INT END_SET
         END_PROPERTY
     END_FUNCTION_BLOCK
     ";
@@ -499,14 +499,14 @@ fn overriding_property_in_interface_with_same_datatype_is_ok() {
         r"
         INTERFACE intf1
             PROPERTY prop : DINT
-                PROPERTY_GET END_GET
+                PROPERTY_GET prop: DINT END_GET
             END_PROPERTY
         END_INTERFACE
 
         INTERFACE intf2 EXTENDS intf1
             PROPERTY prop : DINT
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET prop: DINT END_GET
+                PROPERTY_SET prop: DINT END_SET
             END_PROPERTY
         END_INTERFACE
         ",
@@ -521,14 +521,14 @@ fn overriding_property_in_interface_with_different_datatype_is_not_ok() {
     let source = r"
     INTERFACE intf1
         PROPERTY prop : DINT
-            PROPERTY_GET END_GET
+            PROPERTY_GET prop: DINT END_GET
         END_PROPERTY
     END_INTERFACE
 
     // We extend the property by a PROPERTY_SET accessor in this interface, but with the wrong datatype
     INTERFACE intf2 EXTENDS intf1
         PROPERTY prop : STRING
-            PROPERTY_SET END_SET
+            PROPERTY_SET prop: STRING END_SET
         END_PROPERTY
     END_INTERFACE
     ";
@@ -552,13 +552,13 @@ fn extending_interface_with_interfaces_with_conflicting_signatures_is_not_ok() {
     let source = r"
     INTERFACE A
         PROPERTY prop : DINT
-            PROPERTY_GET END_GET
+            PROPERTY_GET prop: DINT END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE B
         PROPERTY prop : STRING
-            PROPERTY_GET END_GET
+            PROPERTY_GET prop: STRING END_GET
         END_PROPERTY
     END_INTERFACE
 
@@ -586,61 +586,61 @@ fn multiple_levels() {
     let source = r"
     INTERFACE A
         PROPERTY propA : DINT
-            PROPERTY_GET END_GET
+            PROPERTY_GET propA: DINT END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE B
         PROPERTY propB : DINT
-            PROPERTY_GET END_GET
+            PROPERTY_GET propB: DINT END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE C EXTENDS A
         PROPERTY propC : DINT
-            PROPERTY_GET END_GET
+            PROPERTY_GET propC: DINT END_GET
         END_PROPERTY
     END_INTERFACE
 
     INTERFACE DD EXTENDS C
         PROPERTY propD : DINT
-            PROPERTY_GET END_GET
+            PROPERTY_GET propD: DINT END_GET
         END_PROPERTY
     END_INTERFACE
 
     // All of these are overrides with different signatures
     INTERFACE E EXTENDS B, C, A
         PROPERTY propA : REAL
-            PROPERTY_GET END_GET
-            PROPERTY_SET END_SET
+            PROPERTY_GET propA: REAL END_GET
+            PROPERTY_SET propA: REAL END_SET
         END_PROPERTY
 
         PROPERTY propB : STRING
-            PROPERTY_GET END_GET
-            PROPERTY_SET END_SET
+            PROPERTY_GET propB: STRING END_GET
+            PROPERTY_SET propB: STRING END_SET
         END_PROPERTY
 
         PROPERTY propC : INT
-            PROPERTY_GET END_GET
-            PROPERTY_SET END_SET
+            PROPERTY_GET propC: INT END_GET
+            PROPERTY_SET propC: INT END_SET
         END_PROPERTY
     END_INTERFACE
 
     // These on the other hand are overrides, but with the same signature and hence OK
     INTERFACE F EXTENDS B, C, A
         PROPERTY propA : DINT
-            PROPERTY_GET END_GET
-            PROPERTY_SET END_SET
+            PROPERTY_GET propA: DINT END_GET
+            PROPERTY_SET propA: DINT END_SET
         END_PROPERTY
 
         PROPERTY propB : DINT
-            PROPERTY_GET END_GET
-            PROPERTY_SET END_SET
+            PROPERTY_GET propB: DINT END_GET
+            PROPERTY_SET propB: DINT END_SET
         END_PROPERTY
 
         PROPERTY propC : DINT
-            PROPERTY_GET END_GET
-            PROPERTY_SET END_SET
+            PROPERTY_GET propC: DINT END_GET
+            PROPERTY_SET propC: DINT END_SET
         END_PROPERTY
     END_INTERFACE
     ";
@@ -712,7 +712,7 @@ fn undefined_references_inheritance() {
         r"
         FUNCTION_BLOCK parent
             PROPERTY myProp : DINT
-                PROPERTY_GET END_GET
+                PROPERTY_GET myProp: DINT END_GET
             END_PROPERTY
 
             myProp;         // Ok, this represents PROPERTY_GET
@@ -721,7 +721,7 @@ fn undefined_references_inheritance() {
 
         FUNCTION_BLOCK child EXTENDS parent
             PROPERTY myProp : DINT
-                PROPERTY_SET END_SET
+                PROPERTY_SET myProp: DINT END_SET
             END_PROPERTY
 
             myProp := 5;            // Ok, this represents a PROPERTY_GET which is inherited from the parent
@@ -763,7 +763,7 @@ fn conflicting_signatures_in_head_and_tail_inheritance_chain() {
         "
         FUNCTION_BLOCK fbA
             PROPERTY myProp : DINT
-                PROPERTY_GET END_GET
+                PROPERTY_GET myProp: DINT END_GET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -775,7 +775,7 @@ fn conflicting_signatures_in_head_and_tail_inheritance_chain() {
 
         FUNCTION_BLOCK fbD EXTENDS fbC
             PROPERTY myProp : STRING // Conflicting signature with A, where myProp has a `DINT` datatype
-                PROPERTY_SET END_SET
+                PROPERTY_SET myProp: STRING END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
         ",
@@ -806,8 +806,8 @@ fn direct_property_assignment_is_allowed() {
 
         FUNCTION_BLOCK FbA
             PROPERTY position: Position
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET position: Position END_GET
+                PROPERTY_SET position: Position END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -838,8 +838,8 @@ fn property_self_assignment_remains_allowed() {
 
         FUNCTION_BLOCK FbA
             PROPERTY position: Position
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET position: Position END_GET
+                PROPERTY_SET position: Position END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -869,8 +869,8 @@ fn property_get_followed_by_member_access_remains_allowed() {
 
         FUNCTION_BLOCK FbA
             PROPERTY position: Position
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET position: Position END_GET
+                PROPERTY_SET position: Position END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -901,8 +901,8 @@ fn property_get_inside_lhs_index_expression_remains_allowed() {
 
         FUNCTION_BLOCK FbA
             PROPERTY position: Position
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET position: Position END_GET
+                PROPERTY_SET position: Position END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -933,8 +933,8 @@ fn nested_member_assignment_through_property_is_rejected() {
 
         FUNCTION_BLOCK FbA
             PROPERTY position: Position
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET position: Position END_GET
+                PROPERTY_SET position: Position END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -976,13 +976,13 @@ fn property_on_target_chain_but_property_get_in_index_expression_is_still_reject
 
         FUNCTION_BLOCK FbA
             PROPERTY values: ARRAY[1..10] OF DINT
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET values: ARRAY[1..10] OF DINT END_GET
+                PROPERTY_SET values: ARRAY[1..10] OF DINT END_SET
             END_PROPERTY
 
             PROPERTY position: Position
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET position: Position END_GET
+                PROPERTY_SET position: Position END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -1018,8 +1018,8 @@ fn property_returning_array_of_structs_followed_by_index_and_member_assignment_i
 
         FUNCTION_BLOCK FbA
             PROPERTY positions: ARRAY[1..5] OF Position
-                PROPERTY_GET END_GET
-                PROPERTY_SET END_SET
+                PROPERTY_GET positions: ARRAY[1..5] OF Position END_GET
+                PROPERTY_SET positions: ARRAY[1..5] OF Position END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
 

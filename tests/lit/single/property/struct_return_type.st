@@ -33,7 +33,7 @@ FUNCTION_BLOCK fb
     END_VAR
 
     PROPERTY foo: Transaction
-        PROPERTY_GET
+        PROPERTY_GET foo: Transaction
             printf('Inside getter$N');
 
             // Uninitialized
@@ -45,7 +45,7 @@ FUNCTION_BLOCK fb
             foo := returnValue;
         END_GET
 
-        PROPERTY_SET
+        PROPERTY_SET foo: Transaction
             printf('Inside setter$N');
 
             returnValue := foo;

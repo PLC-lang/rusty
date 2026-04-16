@@ -6,8 +6,8 @@
 
 INTERFACE IA
     PROPERTY value : DINT
-        PROPERTY_GET END_GET
-        PROPERTY_SET END_SET
+        PROPERTY_GET value: DINT END_GET
+        PROPERTY_SET value: DINT END_SET
     END_PROPERTY
 END_INTERFACE
 
@@ -21,11 +21,11 @@ FUNCTION_BLOCK FbImpl IMPLEMENTS IB
     END_VAR
 
     PROPERTY value : DINT
-        PROPERTY_GET
+        PROPERTY_GET value: DINT
             value := _val;
         END_GET
 
-        PROPERTY_SET
+        PROPERTY_SET value: DINT
             _val := value;
         END_SET
     END_PROPERTY
@@ -38,7 +38,7 @@ END_FUNCTION_BLOCK
 FUNCTION_BLOCK FbChild EXTENDS FbImpl
     // Override only setter — adds 500
     PROPERTY value : DINT
-        PROPERTY_SET
+        PROPERTY_SET value: DINT
             _val := value + 500;
         END_SET
     END_PROPERTY

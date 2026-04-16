@@ -5,8 +5,8 @@
 
 INTERFACE IValue
     PROPERTY value : DINT
-        PROPERTY_GET END_GET
-        PROPERTY_SET END_SET
+        PROPERTY_GET value: DINT END_GET
+        PROPERTY_SET value: DINT END_SET
     END_PROPERTY
 END_INTERFACE
 
@@ -16,11 +16,11 @@ FUNCTION_BLOCK FbA IMPLEMENTS IValue
     END_VAR
 
     PROPERTY value : DINT
-        PROPERTY_GET
+        PROPERTY_GET value: DINT
             value := _val;
         END_GET
 
-        PROPERTY_SET
+        PROPERTY_SET value: DINT
             _val := value;
         END_SET
     END_PROPERTY
@@ -29,7 +29,7 @@ END_FUNCTION_BLOCK
 FUNCTION_BLOCK FbB EXTENDS FbA
     // Override only setter — adds 1000 to distinguish
     PROPERTY value : DINT
-        PROPERTY_SET
+        PROPERTY_SET value: DINT
             _val := value + 1000;
         END_SET
     END_PROPERTY

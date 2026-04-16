@@ -10,21 +10,21 @@ FUNCTION_BLOCK A
     END_VAR
 
     PROPERTY x : DINT
-        PROPERTY_GET
+        PROPERTY_GET x: DINT
             x := _x;
         END_GET
 
-        PROPERTY_SET
+        PROPERTY_SET x: DINT
             _x := x;
         END_SET
     END_PROPERTY
 
     PROPERTY y : DINT
-        PROPERTY_GET
+        PROPERTY_GET y: DINT
             y := _y;
         END_GET
 
-        PROPERTY_SET
+        PROPERTY_SET y: DINT
             _y := y;
         END_SET
     END_PROPERTY
@@ -47,14 +47,14 @@ END_FUNCTION_BLOCK
 FUNCTION_BLOCK B EXTENDS A
     // Override only getter of x — adds 100
     PROPERTY x : DINT
-        PROPERTY_GET
+        PROPERTY_GET x: DINT
             x := _x + 100;
         END_GET
     END_PROPERTY
 
     // Override only setter of y — adds 200
     PROPERTY y : DINT
-        PROPERTY_SET
+        PROPERTY_SET y: DINT
             _y := y + 200;
         END_SET
     END_PROPERTY

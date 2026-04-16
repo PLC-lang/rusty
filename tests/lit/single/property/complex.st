@@ -17,10 +17,10 @@ VAR
   foo: DINT := 0;
 END_VAR
   PROPERTY myProp : DINT
-    PROPERTY_GET
+    PROPERTY_GET myProp: DINT
       myProp := foo + 5;
     END_GET
-    PROPERTY_SET
+    PROPERTY_SET myProp: DINT
       foo := myProp + foo;
       END_SET
   END_PROPERTY
