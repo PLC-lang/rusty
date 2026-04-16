@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - name: Generate GitHub App token
         id: app-token
@@ -55,3 +56,40 @@ jobs:
           body: ${{ steps.changelog.outputs.content }}
           draft: false
           prerelease: ${{ startsWith(steps.version.outputs.version, '0.') }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-edit
+        run: cargo install cargo-edit --locked --version 0.13.9
+
+      - name: Compute dev version
+        id: dev
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          DEV_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))-dev"
+          echo "version=$DEV_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Bump to dev version
+        run: cargo set-version --workspace ${{ steps.dev.outputs.version }}
+
+      - name: Update Cargo.lock
+        run: cargo check --workspace
+
+      - name: Create dev-bump pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "chore: bump version to ${{ steps.dev.outputs.version }}"
+          branch: post-release/dev-bump
+          delete-branch: true
+          title: "chore: bump version to ${{ steps.dev.outputs.version }}"
+          body: |
+            Routine post-release version bump.
+
+            Sets the workspace version to `${{ steps.dev.outputs.version }}` so that
+            development builds on `master` are distinguishable from the
+            `${{ steps.version.outputs.tag }}` release.
