@@ -152,7 +152,7 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+    !2 = distinct !DICompileUnit(language: DW_LANG_Pascal83, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !3, file: !3, line: 2, type: !5, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !25)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
@@ -396,7 +396,7 @@ fn write_to_parent_variable_qualified_access() {
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+    !2 = distinct !DICompileUnit(language: DW_LANG_Pascal83, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !3, file: !3, line: 2, type: !5, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !16)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
@@ -651,7 +651,7 @@ fn write_to_parent_variable_in_instance() {
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+    !2 = distinct !DICompileUnit(language: DW_LANG_Pascal83, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !3, file: !3, line: 2, type: !5, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !19)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
@@ -987,7 +987,7 @@ fn array_in_parent_generated() {
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+    !2 = distinct !DICompileUnit(language: DW_LANG_Pascal83, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "grandparent", linkageName: "grandparent", scope: !3, file: !3, line: 2, type: !5, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !19)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
@@ -1304,7 +1304,7 @@ fn complex_array_access_generated() {
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+    !2 = distinct !DICompileUnit(language: DW_LANG_Pascal83, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "grandparent", linkageName: "grandparent", scope: !3, file: !3, line: 2, type: !5, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !19)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
@@ -1520,7 +1520,7 @@ fn function_block_method_debug_info() {
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+    !2 = distinct !DICompileUnit(language: DW_LANG_Pascal83, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !3, file: !3, line: 2, type: !5, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !13)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
@@ -1927,7 +1927,7 @@ END_FUNCTION
 
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
-    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
+    !2 = distinct !DICompileUnit(language: DW_LANG_Pascal83, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
     !3 = !DIFile(filename: "<internal>", directory: "")
     !4 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !15)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)

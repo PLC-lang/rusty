@@ -233,7 +233,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
                 let (debug_info, compile_unit) = plc_llvm::create_debug_info(
                     module,
                     true,
-                    inkwell::debug_info::DWARFSourceLanguage::C, //TODO: Own lang
+                    inkwell::debug_info::DWARFSourceLanguage::Pascal83,
                     filename,
                     root.to_str().unwrap_or_default(),
                     "RuSTy Structured text Compiler",
