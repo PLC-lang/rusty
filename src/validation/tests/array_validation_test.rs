@@ -107,6 +107,86 @@ fn array_access_dimension_mismatch() {
 }
 
 #[test]
+fn array_bounds_must_be_integer() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM p
+        VAR
+            bool_bounds   : ARRAY[FALSE .. TRUE] OF INT;
+            real_bounds   : ARRAY[1.5 .. 3.5] OF INT;
+            string_bounds : ARRAY['a' .. 'z'] OF INT;
+            time_bounds   : ARRAY[T#0s .. T#1s] OF INT;
+            mixed         : ARRAY[0 .. 5, FALSE .. TRUE] OF INT;
+            valid         : ARRAY[0 .. 10] OF INT;
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E008]: Invalid type 'BOOL' for array bounds. Only integer types are allowed
+      ┌─ <internal>:4:35
+      │
+    4 │             bool_bounds   : ARRAY[FALSE .. TRUE] OF INT;
+      │                                   ^^^^^ Invalid type 'BOOL' for array bounds. Only integer types are allowed
+
+    error[E008]: Invalid type 'BOOL' for array bounds. Only integer types are allowed
+      ┌─ <internal>:4:44
+      │
+    4 │             bool_bounds   : ARRAY[FALSE .. TRUE] OF INT;
+      │                                            ^^^^ Invalid type 'BOOL' for array bounds. Only integer types are allowed
+
+    error[E008]: Invalid type 'REAL' for array bounds. Only integer types are allowed
+      ┌─ <internal>:5:35
+      │
+    5 │             real_bounds   : ARRAY[1.5 .. 3.5] OF INT;
+      │                                   ^^^ Invalid type 'REAL' for array bounds. Only integer types are allowed
+
+    error[E008]: Invalid type 'REAL' for array bounds. Only integer types are allowed
+      ┌─ <internal>:5:42
+      │
+    5 │             real_bounds   : ARRAY[1.5 .. 3.5] OF INT;
+      │                                          ^^^ Invalid type 'REAL' for array bounds. Only integer types are allowed
+
+    error[E008]: Invalid type 'STRING' for array bounds. Only integer types are allowed
+      ┌─ <internal>:6:35
+      │
+    6 │             string_bounds : ARRAY['a' .. 'z'] OF INT;
+      │                                   ^^^ Invalid type 'STRING' for array bounds. Only integer types are allowed
+
+    error[E008]: Invalid type 'STRING' for array bounds. Only integer types are allowed
+      ┌─ <internal>:6:42
+      │
+    6 │             string_bounds : ARRAY['a' .. 'z'] OF INT;
+      │                                          ^^^ Invalid type 'STRING' for array bounds. Only integer types are allowed
+
+    error[E008]: Invalid type 'TIME' for array bounds. Only integer types are allowed
+      ┌─ <internal>:7:35
+      │
+    7 │             time_bounds   : ARRAY[T#0s .. T#1s] OF INT;
+      │                                   ^^^^ Invalid type 'TIME' for array bounds. Only integer types are allowed
+
+    error[E008]: Invalid type 'TIME' for array bounds. Only integer types are allowed
+      ┌─ <internal>:7:43
+      │
+    7 │             time_bounds   : ARRAY[T#0s .. T#1s] OF INT;
+      │                                           ^^^^ Invalid type 'TIME' for array bounds. Only integer types are allowed
+
+    error[E008]: Invalid type 'BOOL' for array bounds. Only integer types are allowed
+      ┌─ <internal>:8:43
+      │
+    8 │             mixed         : ARRAY[0 .. 5, FALSE .. TRUE] OF INT;
+      │                                           ^^^^^ Invalid type 'BOOL' for array bounds. Only integer types are allowed
+
+    error[E008]: Invalid type 'BOOL' for array bounds. Only integer types are allowed
+      ┌─ <internal>:8:52
+      │
+    8 │             mixed         : ARRAY[0 .. 5, FALSE .. TRUE] OF INT;
+      │                                                    ^^^^ Invalid type 'BOOL' for array bounds. Only integer types are allowed
+    ");
+}
+
+#[test]
 fn assignment_1d() {
     let diagnostics = parse_and_validate_buffered(
         "
