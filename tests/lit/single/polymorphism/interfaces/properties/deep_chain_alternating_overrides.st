@@ -7,10 +7,8 @@
 //   FbC → (FbB.get, FbC.set)
 
 INTERFACE IValue
-    PROPERTY value : DINT
-        PROPERTY_GET value: DINT END_GET
-        PROPERTY_SET value: DINT END_SET
-    END_PROPERTY
+    PROPERTY_GET value: DINT END_GET
+    PROPERTY_SET value: DINT END_SET
 END_INTERFACE
 
 FUNCTION_BLOCK FbA IMPLEMENTS IValue
@@ -18,33 +16,27 @@ FUNCTION_BLOCK FbA IMPLEMENTS IValue
         _val : DINT := 10;
     END_VAR
 
-    PROPERTY value : DINT
-        PROPERTY_GET value: DINT
-            value := _val;
-        END_GET
+    PROPERTY_GET value: DINT
+        value := _val;
+    END_GET
 
-        PROPERTY_SET value: DINT
-            _val := value;
-        END_SET
-    END_PROPERTY
+    PROPERTY_SET value: DINT
+        _val := value;
+    END_SET
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK FbB EXTENDS FbA
     // Override only getter — adds 1000
-    PROPERTY value : DINT
-        PROPERTY_GET value: DINT
-            value := _val + 1000;
-        END_GET
-    END_PROPERTY
+    PROPERTY_GET value: DINT
+        value := _val + 1000;
+    END_GET
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK FbC EXTENDS FbB
     // Override only setter — adds 2000
-    PROPERTY value : DINT
-        PROPERTY_SET value: DINT
-            _val := value + 2000;
-        END_SET
-    END_PROPERTY
+    PROPERTY_SET value: DINT
+        _val := value + 2000;
+    END_SET
 END_FUNCTION_BLOCK
 
 FUNCTION main

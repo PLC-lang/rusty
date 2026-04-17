@@ -4,10 +4,8 @@
 // through it. Baseline sanity test for property dispatch through interfaces.
 
 INTERFACE IValue
-    PROPERTY value : DINT
-        PROPERTY_GET value: DINT END_GET
-        PROPERTY_SET value: DINT END_SET
-    END_PROPERTY
+    PROPERTY_GET value: DINT END_GET
+    PROPERTY_SET value: DINT END_SET
 END_INTERFACE
 
 FUNCTION_BLOCK FbStore IMPLEMENTS IValue
@@ -15,15 +13,13 @@ FUNCTION_BLOCK FbStore IMPLEMENTS IValue
         _val : DINT := 10;
     END_VAR
 
-    PROPERTY value : DINT
-        PROPERTY_GET value: DINT
-            value := _val;
-        END_GET
+    PROPERTY_GET value: DINT
+        value := _val;
+    END_GET
 
-        PROPERTY_SET value: DINT
-            _val := value;
-        END_SET
-    END_PROPERTY
+    PROPERTY_SET value: DINT
+        _val := value;
+    END_SET
 END_FUNCTION_BLOCK
 
 FUNCTION main

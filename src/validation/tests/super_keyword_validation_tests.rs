@@ -587,14 +587,12 @@ fn super_with_property_access() {
                 _prop_val : INT := 10;
             END_VAR
 
-            PROPERTY prop : INT
-                PROPERTY_GET prop: INT
-                    prop := _prop_val;
-                END_GET
-                PROPERTY_SET prop: INT
-                    _prop_val := prop;
-                END_SET
-            END_PROPERTY
+            PROPERTY_GET prop: INT
+                prop := _prop_val;
+            END_GET
+            PROPERTY_SET prop: INT
+                _prop_val := prop;
+            END_SET
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK child EXTENDS parent
@@ -602,14 +600,12 @@ fn super_with_property_access() {
                 local : INT;
             END_VAR
 
-            PROPERTY prop : INT // Override property
-                PROPERTY_GET prop: INT
-                    prop := _prop_val * 2;
-                END_GET
-                PROPERTY_SET prop: INT
-                    _prop_val := prop / 2;
-                END_SET
-            END_PROPERTY
+            PROPERTY_GET prop: INT
+                prop := _prop_val * 2;
+            END_GET
+            PROPERTY_SET prop: INT
+                _prop_val := prop / 2;
+            END_SET
 
             METHOD test
                 // Get using parent's property getter
@@ -1347,14 +1343,12 @@ fn super_with_property_access_errors() {
                 _value: INT;
             END_VAR
 
-            PROPERTY prop : INT
-                PROPERTY_GET prop: INT
-                    prop := _value;
-                END_GET
-                PROPERTY_SET prop: INT
-                    _value := prop;
-                END_SET
-            END_PROPERTY
+            PROPERTY_GET prop: INT
+                prop := _value;
+            END_GET
+            PROPERTY_SET prop: INT
+                _value := prop;
+            END_SET
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK child EXTENDS parent

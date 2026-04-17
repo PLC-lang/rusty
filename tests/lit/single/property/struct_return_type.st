@@ -32,25 +32,23 @@ FUNCTION_BLOCK fb
         returnValue: Transaction;
     END_VAR
 
-    PROPERTY foo: Transaction
-        PROPERTY_GET foo: Transaction
-            printf('Inside getter$N');
+    PROPERTY_GET foo: Transaction
+        printf('Inside getter$N');
 
-            // Uninitialized
-            IF returnValue.id = 0 THEN
-                returnValue.id := 1;
-                returnValue.values := [1, 2, 4, 8, 16, 32, 64, 128, 256, 512];
-            END_IF
+        // Uninitialized
+        IF returnValue.id = 0 THEN
+            returnValue.id := 1;
+            returnValue.values := [1, 2, 4, 8, 16, 32, 64, 128, 256, 512];
+        END_IF
 
-            foo := returnValue;
-        END_GET
+        foo := returnValue;
+    END_GET
 
-        PROPERTY_SET foo: Transaction
-            printf('Inside setter$N');
+    PROPERTY_SET foo: Transaction
+        printf('Inside setter$N');
 
-            returnValue := foo;
-        END_SET
-    END_PROPERTY
+        returnValue := foo;
+    END_SET
 END_FUNCTION_BLOCK
 
 

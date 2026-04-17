@@ -16,14 +16,13 @@ FUNCTION_BLOCK nest_level2
 VAR
   foo: DINT := 0;
 END_VAR
-  PROPERTY myProp : DINT
     PROPERTY_GET myProp: DINT
       myProp := foo + 5;
     END_GET
+
     PROPERTY_SET myProp: DINT
       foo := myProp + foo;
-      END_SET
-  END_PROPERTY
+    END_SET
 END_FUNCTION_BLOCK
 
 

@@ -17,17 +17,15 @@ FUNCTION_BLOCK C
         localPrivateVariable : DINT := 69;
     END_VAR
 
-    PROPERTY foo : DINT
-        PROPERTY_GET foo: DINT
-            printf('Inside getter$N');
-            foo := localPrivateVariable;
-        END_GET
+    PROPERTY_GET foo: DINT
+        printf('Inside getter$N');
+        foo := localPrivateVariable;
+    END_GET
 
-        PROPERTY_SET foo: DINT
-            printf('Inside setter$N');
-            localPrivateVariable := localPrivateVariable + foo;
-        END_SET
-    END_PROPERTY
+    PROPERTY_SET foo: DINT
+        printf('Inside setter$N');
+        localPrivateVariable := localPrivateVariable + foo;
+    END_SET
 END_FUNCTION_BLOCK
 
 FUNCTION main

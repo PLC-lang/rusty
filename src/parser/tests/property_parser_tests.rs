@@ -4,22 +4,20 @@ use crate::test_utils::tests::{parse, parse_buffered};
 fn properties_can_be_parsed() {
     let source = r"
         FUNCTION_BLOCK foo
-            PROPERTY bar : INT
-                PROPERTY_GET bar: INT
-                    VAR
-                        getLocalVariable : DINT;
-                    END_VAR
+            PROPERTY_GET bar: INT
+                VAR
+                    getLocalVariable : DINT;
+                END_VAR
 
-                    bar := 5;
-                END_GET
-                PROPERTY_SET bar: INT
-                    VAR
-                        setLocalVariable : DINT;
-                    END_VAR
+                bar := 5;
+            END_GET
+            PROPERTY_SET bar: INT
+                VAR
+                    setLocalVariable : DINT;
+                END_VAR
 
-                    localNonExistingVariable := bar;
-                END_SET
-            END_PROPERTY
+                localNonExistingVariable := bar;
+            END_SET
         END_FUNCTION_BLOCK
     ";
 
@@ -137,7 +135,7 @@ fn properties_can_be_parsed() {
 fn property_with_missing_name() {
     let source = r"
         FUNCTION_BLOCK foo
-            PROPERTY : INT  // <- Missing name
+            PROPERTY_GET : INT  // <- Missing name
             END_PROPERTY
         END_FUNCTION_BLOCK
     ";
@@ -162,7 +160,7 @@ fn property_with_missing_name() {
 fn property_with_missing_datatype() {
     let source = r"
         FUNCTION_BLOCK foo
-            PROPERTY bar    // <- Missing datatype
+            PROPERTY_GET bar    // <- Missing datatype
             END_PROPERTY
         END_FUNCTION_BLOCK
     ";
@@ -181,15 +179,12 @@ fn property_with_missing_datatype() {
 fn property_with_variable_block() {
     let source = r"
         FUNCTION_BLOCK foo
-            PROPERTY bar : DINT
+            PROPERTY_GET bar: DINT
                 VAR
                     // Invalid variable block, should be in a getter or setter
                 END_VAR
-
-                PROPERTY_GET bar: DINT
-                    // ...
-                END_GET
-            END_PROPERTY
+                // ...
+            END_GET
         END_FUNCTION_BLOCK
     ";
 

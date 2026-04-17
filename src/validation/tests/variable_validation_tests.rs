@@ -1308,13 +1308,11 @@ fn output_variables_must_not_be_assignable_outside_of_their_scope() {
                 out1 := 1;
             END_METHOD
 
-            PROPERTY someProperty : DINT
-                PROPERTY_GET someProperty: DINT
-                    out1 := 1;
-                END_GET
-                PROPERTY_SET someProperty: DINT
-                END_SET
-            END_PROPERTY
+            PROPERTY_GET someProperty: DINT
+                out1 := 1;
+            END_GET
+            PROPERTY_SET someProperty: DINT
+            END_SET
 
             out1 := 1;
         END_FUNCTION_BLOCK
@@ -1381,13 +1379,11 @@ fn output_variables_must_be_assignable_within_the_scope_of_inheritance() {
                 out1 := 1;
             END_METHOD
 
-            PROPERTY someProperty : DINT
-                PROPERTY_GET someProperty: DINT
-                    out1 := 1;
-                END_GET
-                PROPERTY_SET someProperty: DINT
-                END_SET
-            END_PROPERTY
+            PROPERTY_GET someProperty: DINT
+                out1 := 1;
+            END_GET
+            PROPERTY_SET someProperty: DINT
+            END_SET
 
             out1 := 1;
         END_FUNCTION_BLOCK

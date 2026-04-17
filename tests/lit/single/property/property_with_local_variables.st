@@ -4,23 +4,21 @@ FUNCTION_BLOCK fb
         localPrivateVariable: DINT := 5;
     END_VAR
 
-    PROPERTY foo: DINT
-        PROPERTY_GET foo: DINT
-            VAR
-                one: DINT := 1;
-            END_VAR
+    PROPERTY_GET foo: DINT
+        VAR
+            one: DINT := 1;
+        END_VAR
 
-            foo := localPrivateVariable + one;
-        END_GET
+        foo := localPrivateVariable + one;
+    END_GET
 
-        PROPERTY_SET foo: DINT
-            VAR
-                two: DINT := 2;
-                three: DINT := 3;
-            END_VAR
-            localPrivateVariable := two + foo + three;
-        END_SET
-    END_PROPERTY
+    PROPERTY_SET foo: DINT
+        VAR
+            two: DINT := 2;
+            three: DINT := 3;
+        END_VAR
+        localPrivateVariable := two + foo + three;
+    END_SET
 END_FUNCTION_BLOCK
 
 FUNCTION main

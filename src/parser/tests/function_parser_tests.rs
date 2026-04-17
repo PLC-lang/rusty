@@ -662,14 +662,12 @@ fn use_incorrect_end_keyword() {
     todo!("This should not be a problem anymore with the new syntax");
     let source = r"
         FUNCTION_BLOCK fb
-                PROPERTY foo : DINT
-                    PROPERTY_GET foo: DINT
-                    END_SET;
-                    PROPERTY_GET foo: DINT
-                    END_GET;
-                    PROPERTY_GET foo: DINT
-                    END_SET;
-                    END_PROPERTY
+            PROPERTY_GET foo: DINT
+            END_SET;
+            PROPERTY_GET foo: DINT
+            END_GET;
+            PROPERTY_GET foo: DINT
+            END_SET;
         END_FUNCTION_BLOCK
     ";
 

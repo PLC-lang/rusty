@@ -5,17 +5,13 @@ FUNCTION_BLOCK fb
         returnValue: ARRAY[1..5] OF STRING := ['a', 'b', 'c', 'd', 'e'];
     END_VAR
 
-    PROPERTY foo: ARRAY[1..5] OF STRING
-        PROPERTY_GET foo: ARRAY[1..5] OF STRING
-            foo := returnValue;
-        END_GET
-    END_PROPERTY
+    PROPERTY_GET foo: ARRAY[1..5] OF STRING
+        foo := returnValue;
+    END_GET
 
-    PROPERTY bar: DINT
-        PROPERTY_GET bar: DINT
-            bar := 5;
-        END_GET
-    END_PROPERTY
+    PROPERTY_GET bar: DINT
+        bar := 5;
+    END_GET
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fb2 EXTENDS fb

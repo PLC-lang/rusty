@@ -1146,10 +1146,8 @@ mod tests {
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_INTERFACE
                 "#,
             );
@@ -1170,9 +1168,7 @@ mod tests {
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
                 END_INTERFACE
                 "#,
             );
@@ -1192,17 +1188,13 @@ mod tests {
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_FUNCTION_BLOCK
                 "#,
             );
@@ -1227,19 +1219,15 @@ mod tests {
                 INTERFACE IA
                     METHOD bar END_METHOD
 
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     METHOD bar END_METHOD
 
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_FUNCTION_BLOCK
                 "#,
             );
@@ -1264,10 +1252,8 @@ mod tests {
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_INTERFACE
 
                 INTERFACE IB EXTENDS IA
@@ -1275,10 +1261,8 @@ mod tests {
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IB
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
 
                     METHOD bar END_METHOD
                 END_FUNCTION_BLOCK
@@ -1310,23 +1294,17 @@ mod tests {
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
                 END_FUNCTION_BLOCK
                 "#,
             );
@@ -1350,17 +1328,13 @@ mod tests {
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
@@ -1387,23 +1361,17 @@ mod tests {
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
-                    PROPERTY foo : DINT
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_SET foo: DINT END_SET
                 END_FUNCTION_BLOCK
                 "#,
             );
@@ -1431,29 +1399,21 @@ mod tests {
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbC EXTENDS FbB
-                    PROPERTY foo : DINT
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_SET foo: DINT END_SET
                 END_FUNCTION_BLOCK
                 "#,
             );
@@ -1480,10 +1440,8 @@ mod tests {
             let result = lower_and_serialize(
                 r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
                 END_INTERFACE
 
                 INTERFACE IB EXTENDS IA
@@ -1491,18 +1449,14 @@ mod tests {
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IB
-                    PROPERTY foo : DINT
-                        PROPERTY_GET foo: DINT END_GET
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_SET foo: DINT END_SET
 
                     METHOD bar END_METHOD
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
-                    PROPERTY foo : DINT
-                        PROPERTY_SET foo: DINT END_SET
-                    END_PROPERTY
+                    PROPERTY_SET foo: DINT END_SET
                 END_FUNCTION_BLOCK
                 "#,
             );
