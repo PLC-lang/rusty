@@ -64,7 +64,7 @@ jobs:
 
       - name: Update Cargo.lock
         if: steps.version.outputs.skip == 'false'
-        run: cargo check --workspace
+        run: cargo generate-lockfile
 
       - name: Generate changelog
         if: steps.version.outputs.skip == 'false'
