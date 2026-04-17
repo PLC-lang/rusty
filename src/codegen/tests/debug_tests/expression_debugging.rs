@@ -115,6 +115,325 @@ fn assignment_statement_have_location() {
 }
 
 #[test]
+fn function_with_ctor_triggering_local_still_has_debug_info() {
+    // Regression: initializer-lowering used to taint the enclosing function's
+    // ImplementationIndexEntry.location with an internal FileMarker after injecting
+    // `__<fn>_<var>__ctor` calls at the front of the body. That dropped !DISubprogram
+    // and all !dbg metadata for the whole function. The body below has both a
+    // REF_TO (ctor-triggering) and a plain statement so we can see both the
+    // synthetic ctor call AND the user statement carry sensible debug info.
+    let result = codegen_with_debug(
+        "
+        FUNCTION myFunc : DINT
+        VAR
+            b : REF_TO DINT;
+        END_VAR
+            myFunc := 1;
+        END_FUNCTION
+        ",
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define i32 @myFunc() !dbg !4 {
+    entry:
+      %myFunc = alloca i32, align [filtered]
+      %b = alloca ptr, align [filtered]
+        #dbg_declare(ptr %b, !9, !DIExpression(), !13)
+      store ptr null, ptr %b, align [filtered]
+        #dbg_declare(ptr %myFunc, !14, !DIExpression(), !15)
+      store i32 0, ptr %myFunc, align [filtered]
+      store i32 1, ptr %myFunc, align [filtered], !dbg !16
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
+      ret i32 %myFunc_ret, !dbg !17
+    }
+
+    !llvm.module.flags = !{!0, !1}
+    !llvm.dbg.cu = !{!2}
+
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
+    !1 = !{i32 2, !"Debug Info Version", i32 3}
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !3 = !DIFile(filename: "<internal>", directory: "src")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !5 = !DIFile(filename: "<internal>", directory: "")
+    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
+    !7 = !{null}
+    !8 = !{}
+    !9 = !DILocalVariable(name: "b", scope: !4, file: !5, line: 4, type: !10, align [filtered])
+    !10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____myFunc_b", scope: !3, file: !3, baseType: !11, align [filtered])
+    !11 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__myFunc_b", baseType: !12, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !12 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !13 = !DILocation(line: 4, column: 12, scope: !4)
+    !14 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !12, align [filtered])
+    !15 = !DILocation(line: 2, column: 17, scope: !4)
+    !16 = !DILocation(line: 6, column: 12, scope: !4)
+    !17 = !DILocation(line: 7, column: 8, scope: !4)
+    "#);
+}
+
+#[test]
+fn function_with_value_initialized_local_still_has_debug_info() {
+    // Same regression as `function_with_ctor_triggering_local_still_has_debug_info`, but
+    // triggered by a simple value-initialized scalar (`a : DINT := 5;`) which also produces
+    // a synthetic `__myFunc_a__ctor` during initializer lowering.
+    let result = codegen_with_debug(
+        "
+        FUNCTION myFunc : DINT
+        VAR
+            a : DINT := 5;
+        END_VAR
+            myFunc := a;
+        END_FUNCTION
+        ",
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define i32 @myFunc() !dbg !4 {
+    entry:
+      %myFunc = alloca i32, align [filtered]
+      %a = alloca i32, align [filtered]
+        #dbg_declare(ptr %a, !9, !DIExpression(), !11)
+      store i32 5, ptr %a, align [filtered]
+        #dbg_declare(ptr %myFunc, !12, !DIExpression(), !13)
+      store i32 0, ptr %myFunc, align [filtered]
+      %load_a = load i32, ptr %a, align [filtered], !dbg !14
+      store i32 %load_a, ptr %myFunc, align [filtered], !dbg !14
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !15
+      ret i32 %myFunc_ret, !dbg !15
+    }
+
+    !llvm.module.flags = !{!0, !1}
+    !llvm.dbg.cu = !{!2}
+
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
+    !1 = !{i32 2, !"Debug Info Version", i32 3}
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !3 = !DIFile(filename: "<internal>", directory: "src")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !5 = !DIFile(filename: "<internal>", directory: "")
+    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
+    !7 = !{null}
+    !8 = !{}
+    !9 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !10, align [filtered])
+    !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !11 = !DILocation(line: 4, column: 12, scope: !4)
+    !12 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !10, align [filtered])
+    !13 = !DILocation(line: 2, column: 17, scope: !4)
+    !14 = !DILocation(line: 6, column: 12, scope: !4)
+    !15 = !DILocation(line: 7, column: 8, scope: !4)
+    "#);
+}
+
+#[test]
+fn function_with_struct_local_still_has_debug_info() {
+    // A struct local triggers a `<StructType>__ctor` call — verifies the fix also covers
+    // the non-per-variable ctor case.
+    let result = codegen_with_debug(
+        "
+        TYPE S : STRUCT x : DINT; END_STRUCT END_TYPE
+
+        FUNCTION myFunc : DINT
+        VAR
+            s : S;
+        END_VAR
+            myFunc := s.x;
+        END_FUNCTION
+        ",
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %S = type { i32 }
+
+    define i32 @myFunc() !dbg !4 {
+    entry:
+      %myFunc = alloca i32, align [filtered]
+      %s = alloca %S, align [filtered]
+        #dbg_declare(ptr %s, !9, !DIExpression(), !14)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 ptrtoint (ptr getelementptr (%S, ptr null, i32 1) to i64), i1 false)
+        #dbg_declare(ptr %myFunc, !15, !DIExpression(), !16)
+      store i32 0, ptr %myFunc, align [filtered]
+      %x = getelementptr inbounds nuw %S, ptr %s, i32 0, i32 0, !dbg !17
+      %load_x = load i32, ptr %x, align [filtered], !dbg !17
+      store i32 %load_x, ptr %myFunc, align [filtered], !dbg !17
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
+      ret i32 %myFunc_ret, !dbg !18
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+
+    !llvm.module.flags = !{!0, !1}
+    !llvm.dbg.cu = !{!2}
+
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
+    !1 = !{i32 2, !"Debug Info Version", i32 3}
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !3 = !DIFile(filename: "<internal>", directory: "src")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 4, type: !6, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !5 = !DIFile(filename: "<internal>", directory: "")
+    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
+    !7 = !{null}
+    !8 = !{}
+    !9 = !DILocalVariable(name: "s", scope: !4, file: !5, line: 6, type: !10, align [filtered])
+    !10 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", scope: !5, file: !5, line: 2, size: 32, align [filtered], flags: DIFlagPublic, elements: !11, identifier: "S")
+    !11 = !{!12}
+    !12 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !5, line: 2, baseType: !13, size: 32, align [filtered], flags: DIFlagPublic)
+    !13 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !14 = !DILocation(line: 6, column: 12, scope: !4)
+    !15 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 4, type: !13, align [filtered])
+    !16 = !DILocation(line: 4, column: 17, scope: !4)
+    !17 = !DILocation(line: 8, column: 12, scope: !4)
+    !18 = !DILocation(line: 9, column: 8, scope: !4)
+    "#);
+}
+
+#[test]
+fn function_with_initialized_array_local_still_has_debug_info() {
+    // An initialized array triggers a `__myFunc_arr__ctor` call.
+    let result = codegen_with_debug(
+        "
+        FUNCTION myFunc : DINT
+        VAR
+            arr : ARRAY[0..2] OF DINT := [1, 2, 3];
+        END_VAR
+            myFunc := arr[0];
+        END_FUNCTION
+        ",
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @__myFunc.arr__init = unnamed_addr constant [3 x i32] [i32 1, i32 2, i32 3]
+
+    define i32 @myFunc() !dbg !4 {
+    entry:
+      %myFunc = alloca i32, align [filtered]
+      %arr = alloca [3 x i32], align [filtered]
+        #dbg_declare(ptr %arr, !9, !DIExpression(), !14)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] @__myFunc.arr__init, i64 ptrtoint (ptr getelementptr ([3 x i32], ptr null, i32 1) to i64), i1 false)
+        #dbg_declare(ptr %myFunc, !15, !DIExpression(), !16)
+      store i32 0, ptr %myFunc, align [filtered]
+      %tmpVar = getelementptr inbounds [3 x i32], ptr %arr, i32 0, i32 0, !dbg !17
+      %load_tmpVar = load i32, ptr %tmpVar, align [filtered], !dbg !17
+      store i32 %load_tmpVar, ptr %myFunc, align [filtered], !dbg !17
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
+      ret i32 %myFunc_ret, !dbg !18
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+
+    !llvm.module.flags = !{!0, !1}
+    !llvm.dbg.cu = !{!2}
+
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
+    !1 = !{i32 2, !"Debug Info Version", i32 3}
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !3 = !DIFile(filename: "<internal>", directory: "src")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !5 = !DIFile(filename: "<internal>", directory: "")
+    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
+    !7 = !{null}
+    !8 = !{}
+    !9 = !DILocalVariable(name: "arr", scope: !4, file: !5, line: 4, type: !10, align [filtered])
+    !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 96, align [filtered], elements: !12)
+    !11 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !12 = !{!13}
+    !13 = !DISubrange(count: 3, lowerBound: 0)
+    !14 = !DILocation(line: 4, column: 12, scope: !4)
+    !15 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !11, align [filtered])
+    !16 = !DILocation(line: 2, column: 17, scope: !4)
+    !17 = !DILocation(line: 6, column: 12, scope: !4)
+    !18 = !DILocation(line: 7, column: 8, scope: !4)
+    "#);
+}
+
+#[test]
+fn function_with_reference_to_initializer_still_has_debug_info() {
+    // `REFERENCE TO T REF= x` is a declaration-level initializer (distinct from a runtime
+    // REF= statement in the body). It also goes through initializer lowering and injects
+    // a ctor call, so the enclosing function used to lose its debug info.
+    let result = codegen_with_debug(
+        "
+        FUNCTION myFunc : DINT
+        VAR
+            a : DINT;
+            b : REFERENCE TO DINT REF= a;
+        END_VAR
+            myFunc := b;
+        END_FUNCTION
+        ",
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define i32 @myFunc() !dbg !4 {
+    entry:
+      %myFunc = alloca i32, align [filtered]
+      %a = alloca i32, align [filtered]
+      %b = alloca ptr, align [filtered]
+        #dbg_declare(ptr %a, !9, !DIExpression(), !11)
+      store i32 0, ptr %a, align [filtered]
+        #dbg_declare(ptr %b, !12, !DIExpression(), !15)
+      store ptr null, ptr %b, align [filtered]
+        #dbg_declare(ptr %myFunc, !16, !DIExpression(), !17)
+      store i32 0, ptr %myFunc, align [filtered]
+      %deref = load ptr, ptr %b, align [filtered], !dbg !18
+      %load_b = load i32, ptr %deref, align [filtered], !dbg !18
+      store i32 %load_b, ptr %myFunc, align [filtered], !dbg !18
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !19
+      ret i32 %myFunc_ret, !dbg !19
+    }
+
+    !llvm.module.flags = !{!0, !1}
+    !llvm.dbg.cu = !{!2}
+
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
+    !1 = !{i32 2, !"Debug Info Version", i32 3}
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !3 = !DIFile(filename: "<internal>", directory: "src")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !5 = !DIFile(filename: "<internal>", directory: "")
+    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
+    !7 = !{null}
+    !8 = !{}
+    !9 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !10, align [filtered])
+    !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !11 = !DILocation(line: 4, column: 12, scope: !4)
+    !12 = !DILocalVariable(name: "b", scope: !4, file: !5, line: 5, type: !13, align [filtered])
+    !13 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____myFunc_b", scope: !3, file: !3, baseType: !14, align [filtered])
+    !14 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__myFunc_b", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !15 = !DILocation(line: 5, column: 12, scope: !4)
+    !16 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !10, align [filtered])
+    !17 = !DILocation(line: 2, column: 17, scope: !4)
+    !18 = !DILocation(line: 7, column: 12, scope: !4)
+    !19 = !DILocation(line: 8, column: 8, scope: !4)
+    "#);
+}
+
+#[test]
 fn function_calls_have_location() {
     // Let a function with a call statement
     let result = codegen_with_debug(
