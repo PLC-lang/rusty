@@ -417,6 +417,64 @@ fn assignment_suggestion_for_equal_operation_with_no_effect() {
 }
 
 #[test]
+fn equal_operation_in_call_arguments_does_not_trigger_no_effect_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM mainProg
+        VAR
+            w1, w2 : WORD;
+        END_VAR
+
+            foo(w1 = w2);
+            foo2(w1 = w2);
+
+        END_PROGRAM
+
+        FUNCTION foo
+            VAR_INPUT
+                b : BOOL;
+            END_VAR
+        END_FUNCTION
+
+        {external}
+        FUNCTION foo2
+            VAR_INPUT
+                b : ...;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn equal_operation_as_statement_still_triggers_no_effect_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM mainProg
+        VAR
+            w1, w2 : WORD;
+        END_VAR
+
+            foo2(w1 = w2);
+            w1 = w2;
+
+        END_PROGRAM
+
+        {external}
+        FUNCTION foo2
+            VAR_INPUT
+                b : ...;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_eq!(diagnostics.matches("warning[E023]").count(), 1);
+}
+
+#[test]
 fn invalid_initial_constant_values_in_pou_variables() {
     let diagnostics = parse_and_validate_buffered(
         r#"

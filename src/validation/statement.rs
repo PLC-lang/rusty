@@ -807,7 +807,7 @@ fn visit_binary_expression<T: AnnotationMap>(
 ) {
     match operator {
         Operator::Equal => {
-            if context.annotations.get_type_hint(statement, context.index).is_none() {
+            if !context.is_call() && context.annotations.get_type_hint(statement, context.index).is_none() {
                 let lhs = validator.context.slice(&left.location);
                 let rhs = validator.context.slice(&right.location);
 
