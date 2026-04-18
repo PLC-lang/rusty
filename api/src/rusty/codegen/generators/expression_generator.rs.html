@@ -1173,7 +1173,7 @@
 <a href=#1173 id=1173 data-nosnippet>1173</a>            }
 <a href=#1174 id=1174 data-nosnippet>1174</a>        }
 <a href=#1175 id=1175 data-nosnippet>1175</a>
-<a href=#1176 id=1176 data-nosnippet>1176</a>        result.sort_by(|(idx_a, <span class="kw">_</span>), (idx_b, <span class="kw">_</span>)| idx_a.cmp(idx_b));
+<a href=#1176 id=1176 data-nosnippet>1176</a>        result.sort_by_key(|(idx_a, <span class="kw">_</span>)| <span class="kw-2">*</span>idx_a);
 <a href=#1177 id=1177 data-nosnippet>1177</a>        <span class="prelude-val">Ok</span>(result.into_iter().map(|(<span class="kw">_</span>, v)| v.into()).collect::&lt;Vec&lt;BasicMetadataValueEnum&gt;&gt;())
 <a href=#1178 id=1178 data-nosnippet>1178</a>    }
 <a href=#1179 id=1179 data-nosnippet>1179</a>
@@ -2491,7 +2491,7 @@
 <a href=#2491 id=2491 data-nosnippet>2491</a>            }
 <a href=#2492 id=2492 data-nosnippet>2492</a>            <span class="kw">let </span>struct_type = <span class="self">self</span>.llvm_index.get_associated_type(struct_name)<span class="question-mark">?</span>.into_struct_type();
 <a href=#2493 id=2493 data-nosnippet>2493</a>            <span class="kw">if </span>member_values.len() == struct_type.count_fields() <span class="kw">as </span>usize {
-<a href=#2494 id=2494 data-nosnippet>2494</a>                member_values.sort_by(|(a, <span class="kw">_</span>), (b, <span class="kw">_</span>)| a.cmp(b));
+<a href=#2494 id=2494 data-nosnippet>2494</a>                member_values.sort_by_key(|(a, <span class="kw">_</span>)| <span class="kw-2">*</span>a);
 <a href=#2495 id=2495 data-nosnippet>2495</a>                <span class="kw">let </span>ordered_values: Vec&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt; =
 <a href=#2496 id=2496 data-nosnippet>2496</a>                    member_values.iter().map(|(<span class="kw">_</span>, v)| <span class="kw-2">*</span>v).collect();
 <a href=#2497 id=2497 data-nosnippet>2497</a>

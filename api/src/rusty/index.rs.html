@@ -805,10 +805,10 @@
 <a href=#805 id=805 data-nosnippet>805</a>        <span class="kw">match </span><span class="self">self </span>{
 <a href=#806 id=806 data-nosnippet>806</a>            PouIndexEntry::Program { properties, .. }
 <a href=#807 id=807 data-nosnippet>807</a>            | PouIndexEntry::FunctionBlock { properties, .. }
-<a href=#808 id=808 data-nosnippet>808</a>            | PouIndexEntry::Class { properties, .. } =&gt; {
-<a href=#809 id=809 data-nosnippet>809</a>                <span class="kw">if </span>!properties.is_empty() {
-<a href=#810 id=810 data-nosnippet>810</a>                    <span class="kw">return </span><span class="prelude-val">Some</span>(properties);
-<a href=#811 id=811 data-nosnippet>811</a>                }
+<a href=#808 id=808 data-nosnippet>808</a>            | PouIndexEntry::Class { properties, .. }
+<a href=#809 id=809 data-nosnippet>809</a>                <span class="kw">if </span>!properties.is_empty() =&gt;
+<a href=#810 id=810 data-nosnippet>810</a>            {
+<a href=#811 id=811 data-nosnippet>811</a>                <span class="kw">return </span><span class="prelude-val">Some</span>(properties);
 <a href=#812 id=812 data-nosnippet>812</a>            }
 <a href=#813 id=813 data-nosnippet>813</a>
 <a href=#814 id=814 data-nosnippet>814</a>            <span class="kw">_ </span>=&gt; (),
