@@ -115,6 +115,62 @@ fn assignment_statement_have_location() {
 }
 
 #[test]
+fn ref_assignment_statement_have_location() {
+    // A REF= assignment must carry !dbg metadata so debuggers can stop on the line.
+    let result = codegen_with_debug(
+        "
+        FUNCTION myFunc
+        VAR
+            a : DINT;
+            b : REF_TO DINT;
+        END_VAR
+            b REF= a;
+        END_FUNCTION
+        ",
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define void @myFunc() !dbg !4 {
+    entry:
+      %a = alloca i32, align [filtered]
+      %b = alloca ptr, align [filtered]
+        #dbg_declare(ptr %a, !9, !DIExpression(), !11)
+      store i32 0, ptr %a, align [filtered]
+        #dbg_declare(ptr %b, !12, !DIExpression(), !15)
+      store ptr null, ptr %b, align [filtered]
+      store ptr %a, ptr %b, align [filtered], !dbg !16
+      ret void, !dbg !17
+    }
+
+    !llvm.module.flags = !{!0, !1}
+    !llvm.dbg.cu = !{!2}
+
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
+    !1 = !{i32 2, !"Debug Info Version", i32 3}
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !3 = !DIFile(filename: "<internal>", directory: "src")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !5 = !DIFile(filename: "<internal>", directory: "")
+    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
+    !7 = !{null}
+    !8 = !{}
+    !9 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !10, align [filtered])
+    !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !11 = !DILocation(line: 4, column: 12, scope: !4)
+    !12 = !DILocalVariable(name: "b", scope: !4, file: !5, line: 5, type: !13, align [filtered])
+    !13 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____myFunc_b", scope: !3, file: !3, baseType: !14, align [filtered])
+    !14 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__myFunc_b", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !15 = !DILocation(line: 5, column: 12, scope: !4)
+    !16 = !DILocation(line: 7, column: 12, scope: !4)
+    !17 = !DILocation(line: 8, column: 8, scope: !4)
+    "#);
+}
+
+#[test]
 fn function_calls_have_location() {
     // Let a function with a call statement
     let result = codegen_with_debug(
