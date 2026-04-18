@@ -66,13 +66,12 @@ lazy_static! {
                                 }
                             }
 
-                            Some(StatementAnnotation::Type { type_name }) => {
-                                if generator.index.find_type(type_name).is_some_and(|opt| opt.information.is_function_block()) {
+                            Some(StatementAnnotation::Type { type_name })
+                                if generator.index.find_type(type_name).is_some_and(|opt| opt.information.is_function_block()) => {
                                     if let Some(fn_value) = generator.llvm_index.find_associated_implementation(type_name) {
                                         return Ok(ExpressionValue::RValue(fn_value.as_global_value().as_pointer_value().as_basic_value_enum()));
                                     }
                                 }
-                            }
 
                             _ => (),
                         };

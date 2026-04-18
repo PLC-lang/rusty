@@ -153,7 +153,7 @@ pub fn visit_statement<T: AnnotationMap>(
                         .with_location(statement.get_location()).with_error_code("E119"));
             }
         }
-        AstStatement::This => {
+        AstStatement::This
             if !context.qualifier.is_some_and(|it| {
                 context
                     .index
@@ -165,15 +165,15 @@ pub fn visit_statement<T: AnnotationMap>(
                         _ => None,
                     })
                     .is_some_and(|it| it.is_function_block())
-            }) {
-                validator.push_diagnostic(
+            }) =>
+        {
+            validator.push_diagnostic(
                     Diagnostic::new(
                         "Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s.",
                     )
                     .with_error_code("E120")
                     .with_location(statement),
                 );
-            }
         }
         _ => {}
     }
@@ -620,7 +620,7 @@ fn validate_reference<T: AnnotationMap>(
     }
 
     match context.annotations.get(statement) {
-        Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) => {
+        Some(StatementAnnotation::Variable { qualified_name, argument_type, .. })
             // check if we're accessing a private variable AND the variable's qualifier is not the
             // POU we're accessing it from.
             if argument_type.is_private()
@@ -631,21 +631,20 @@ fn validate_reference<T: AnnotationMap>(
                     .is_some_and(|(pou, container)| {
                         !variable_is_in_pou_or_container(pou, container, context, qualified_name, location)
                     })
-            {
+            => {
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Illegal access to private member {qualified_name}"))
                         .with_error_code("E049")
                         .with_location(location),
                 );
             }
-        }
-        Some(StatementAnnotation::Program { qualified_name }) => {
+        Some(StatementAnnotation::Program { qualified_name })
             if !context.is_call()
                 && context
                     .index
                     .find_implementation_by_name(qualified_name)
                     .is_some_and(|it| matches!(it.get_implementation_type(), ImplementationType::Action))
-            {
+            => {
                 // we parsed a reference expression to an action but we are not in a call-context: likely an action call without parentheses
                 validator.push_diagnostic(
                     Diagnostic::new(format!("A reference to {qualified_name} exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `{qualified_name}()`"))
@@ -653,7 +652,6 @@ fn validate_reference<T: AnnotationMap>(
                         .with_location(location)
                 );
             }
-        }
         _ => (),
     }
 }
