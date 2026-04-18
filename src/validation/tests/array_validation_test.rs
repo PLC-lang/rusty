@@ -187,6 +187,26 @@ fn array_bounds_must_be_integer() {
 }
 
 #[test]
+fn array_bounds_with_const_integer_variables_are_valid() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        VAR_GLOBAL CONSTANT
+            START_IDX : DINT := 1;
+            END_IDX   : DINT := 3;
+        END_VAR
+
+        PROGRAM p
+        VAR
+            arr : ARRAY[START_IDX .. END_IDX] OF INT;
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
 fn assignment_1d() {
     let diagnostics = parse_and_validate_buffered(
         "
