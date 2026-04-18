@@ -805,10 +805,10 @@ impl PouIndexEntry {
         match self {
             PouIndexEntry::Program { properties, .. }
             | PouIndexEntry::FunctionBlock { properties, .. }
-            | PouIndexEntry::Class { properties, .. } => {
-                if !properties.is_empty() {
-                    return Some(properties);
-                }
+            | PouIndexEntry::Class { properties, .. }
+                if !properties.is_empty() =>
+            {
+                return Some(properties);
             }
 
             _ => (),
