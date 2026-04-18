@@ -752,8 +752,12 @@ impl DataTypeInformation {
             DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
                 let inner_type = index.get_type_information_or_void(inner_type_name);
                 let inner_size = inner_type.get_size_recursive(index, seen)?.bits();
-                let element_count: u32 =
-                    dimensions.iter().map(|dim| dim.get_length(index).unwrap()).product();
+                let element_count: u32 = dimensions
+                    .iter()
+                    .map(|dim| dim.get_length(index).map_err(|err| anyhow::anyhow!(err)))
+                    .collect::<Result<Vec<_>>>()?
+                    .into_iter()
+                    .product();
                 Ok(Bytes::from_bits(inner_size * element_count))
             }
             DataTypeInformation::Pointer { .. } => Ok(Bytes::from_bits(POINTER_SIZE)),
