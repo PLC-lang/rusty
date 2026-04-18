@@ -1459,33 +1459,62 @@ fn invalid_reference_to_declaration() {
     );
 
     insta::assert_snapshot!(diagnostics, @"
-    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
-      ┌─ <internal>:4:38
+    error[E099]: Invalid REFERENCE TO declaration
+      ┌─ <internal>:4:17
       │
     4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
-      │                                      ^^^^^^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+      │                 ^^^ Invalid REFERENCE TO declaration
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'REFERENCE TO DINT'
-      ┌─ <internal>:4:38
-      │
-    4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
-      │                                      ^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'REFERENCE TO DINT'
-
-    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
-      ┌─ <internal>:5:36
+    error[E099]: Invalid REFERENCE TO declaration
+      ┌─ <internal>:5:17
       │
     5 │                 baz : REFERENCE TO REFERENCE TO DINT;
-      │                                    ^^^^^^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+      │                 ^^^ Invalid REFERENCE TO declaration
 
-    error[E007]: Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
-                    qux : REF_TO REFERENCE TO DINT;'
-      ┌─ <internal>:5:36
-      │  
-    5 │                   baz : REFERENCE TO REFERENCE TO DINT;
-      │ ╭────────────────────────────────────^
-    6 │ │                 qux : REF_TO REFERENCE TO DINT;
-      │ ╰───────────────────────────────────────────────^ Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
-                    qux : REF_TO REFERENCE TO DINT;'
+    error[E099]: Invalid REFERENCE TO declaration
+      ┌─ <internal>:6:17
+      │
+    6 │                 qux : REF_TO REFERENCE TO DINT;
+      │                 ^^^ Invalid REFERENCE TO declaration
+    ");
+}
+
+#[test]
+fn invalid_reference_to_declaration_via_aliases() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        TYPE
+            RefDint : REFERENCE TO DINT;
+        END_TYPE
+
+        FUNCTION foo
+            VAR
+                nestedA : REFERENCE TO RefDint;
+                nestedB : ARRAY[1..2] OF RefDint;
+                nestedC : REF_TO RefDint;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E099]: Invalid REFERENCE TO declaration
+      ┌─ <internal>:8:17
+      │
+    8 │                 nestedA : REFERENCE TO RefDint;
+      │                 ^^^^^^^ Invalid REFERENCE TO declaration
+
+    error[E099]: Invalid REFERENCE TO declaration
+      ┌─ <internal>:9:17
+      │
+    9 │                 nestedB : ARRAY[1..2] OF RefDint;
+      │                 ^^^^^^^ Invalid REFERENCE TO declaration
+
+    error[E099]: Invalid REFERENCE TO declaration
+       ┌─ <internal>:10:17
+       │
+    10 │                 nestedC : REF_TO RefDint;
+       │                 ^^^^^^^ Invalid REFERENCE TO declaration
     ");
 }
 
