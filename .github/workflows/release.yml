@@ -41,11 +41,31 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Determine previous release tag
+        id: previous-tag
+        run: |
+          CURRENT_TAG="${{ steps.version.outputs.tag }}"
+          PREVIOUS_TAG=$(git tag --list 'v[0-9]*' --sort=-v:refname | grep -Fxv "$CURRENT_TAG" | head -n1 || true)
+          echo "tag=$PREVIOUS_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare release notes workspace
+        run: mkdir -p .github/release
+
       - name: Generate release notes
-        id: changelog
         uses: orhun/git-cliff-action@v4
         with:
-          args: --latest --strip header
+          args: --unreleased --tag "${{ steps.version.outputs.tag }}" --strip header
+        env:
+          OUTPUT: .github/release/raw-notes.md
+
+      - name: Compose release notes
+        run: |
+          bash .github/scripts/compose-release-notes.sh \
+            "${{ steps.version.outputs.version }}" \
+            "${{ steps.version.outputs.tag }}" \
+            "${{ steps.previous-tag.outputs.tag }}" \
+            .github/release/raw-notes.md \
+            .github/release/release-notes.md
 
       - name: Create tag and GitHub release
         uses: softprops/action-gh-release@v2
@@ -53,8 +73,8 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: ${{ steps.version.outputs.tag }}
-          body: ${{ steps.changelog.outputs.content }}
+          name: RuSTy PLC Compiler ${{ steps.version.outputs.version }}
+          body_path: .github/release/release-notes.md
           draft: false
           prerelease: ${{ startsWith(steps.version.outputs.version, '0.') }}
 
