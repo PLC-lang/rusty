@@ -289,7 +289,7 @@
 <a href=#289 id=289 data-nosnippet>289</a>                ))
 <a href=#290 id=290 data-nosnippet>290</a>            })
 <a href=#291 id=291 data-nosnippet>291</a>        }
-<a href=#292 id=292 data-nosnippet>292</a>        Identifier =&gt; <span class="prelude-val">Some</span>(parse_identifier(lexer)),
+<a href=#292 id=292 data-nosnippet>292</a>        token <span class="kw">if </span>token.is_identifier_like() =&gt; <span class="prelude-val">Some</span>(parse_identifier(lexer)),
 <a href=#293 id=293 data-nosnippet>293</a>        KeywordSuper =&gt; {
 <a href=#294 id=294 data-nosnippet>294</a>            lexer.advance();
 <a href=#295 id=295 data-nosnippet>295</a>            <span class="prelude-val">Some</span>(AstFactory::create_super_reference(
@@ -529,7 +529,7 @@
 <a href=#529 id=529 data-nosnippet>529</a>    <span class="comment">//The next token can either be an integer or an identifier
 <a href=#530 id=530 data-nosnippet>530</a>    </span><span class="kw">let </span>index = <span class="kw">match </span>lexer.token {
 <a href=#531 id=531 data-nosnippet>531</a>        LiteralInteger =&gt; parse_strict_literal_integer(lexer),
-<a href=#532 id=532 data-nosnippet>532</a>        Identifier =&gt; {
+<a href=#532 id=532 data-nosnippet>532</a>        token <span class="kw">if </span>token.is_identifier_like() =&gt; {
 <a href=#533 id=533 data-nosnippet>533</a>            <span class="kw">let </span>location = lexer.location();
 <a href=#534 id=534 data-nosnippet>534</a>            <span class="prelude-val">Some</span>(AstFactory::create_member_reference(
 <a href=#535 id=535 data-nosnippet>535</a>                AstFactory::create_identifier(lexer.slice_and_advance().as_str(), location, lexer.next_id()),
