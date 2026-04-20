@@ -705,6 +705,7 @@ fn parse_property(lexer: &mut ParseSession) -> Option<PropertyBlock> {
     }
 
     let mut implementations = Vec::new();
+    let mut property_closed = false;
     while matches!(lexer.token, KeywordGet | KeywordSet) {
         let location = lexer.location();
         let kind = if lexer.token == KeywordGet { PropertyKind::Get } else { PropertyKind::Set };
@@ -715,23 +716,50 @@ fn parse_property(lexer: &mut ParseSession) -> Option<PropertyBlock> {
             variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
         }
 
-        let statements = parse_body_in_region(
-            lexer,
-            match kind {
-                PropertyKind::Get => vec![Token::KeywordEndGet],
-                PropertyKind::Set => vec![Token::KeywordEndSet],
-            },
-        );
+        let (expected_end, wrong_end) = match kind {
+            PropertyKind::Get => (Token::KeywordEndGet, Token::KeywordEndSet),
+            PropertyKind::Set => (Token::KeywordEndSet, Token::KeywordEndGet),
+        };
+
+        let statements =
+            parse_body_in_region(lexer, vec![expected_end, wrong_end, Token::KeywordEndProperty]);
+        let parsed_end = lexer.last_token;
+        let end_location = lexer.last_location();
+
+        if parsed_end == wrong_end {
+            let diagnostic = Diagnostic::unexpected_token_found(
+                format!("{expected_end:?}").as_str(),
+                lexer.slice_region(lexer.last_range.clone()),
+                end_location.clone(),
+            );
+            lexer.accept_diagnostic(diagnostic);
+        } else if parsed_end == Token::KeywordEndProperty {
+            let diagnostic =
+                Diagnostic::missing_token(format!("{expected_end:?}").as_str(), end_location.clone());
+            lexer.accept_diagnostic(diagnostic);
+            property_closed = true;
+        }
+
+        if matches!(parsed_end, Token::KeywordEndGet | Token::KeywordEndSet) {
+            lexer.try_consume(Token::KeywordSemicolon);
+        }
+
         implementations.push(PropertyImplementation {
             kind,
             variable_blocks,
             body: statements,
             location,
-            end_location: lexer.last_location(),
+            end_location,
         });
+
+        if property_closed {
+            break;
+        }
     }
 
-    lexer.try_consume_or_report(Token::KeywordEndProperty); // Move past `END_PROPERTY` keyword
+    if !property_closed {
+        lexer.try_consume_or_report(Token::KeywordEndProperty); // Move past `END_PROPERTY` keyword
+    }
 
     if has_error {
         return None;
@@ -760,7 +788,7 @@ fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {
 /// returns the identifier as a String and the SourceRange of the parsed name
 fn parse_identifier(lexer: &mut ParseSession) -> Option<(String, SourceLocation)> {
     let pou_name = lexer.slice().to_string();
-    if lexer.token == Identifier {
+    if lexer.token.is_identifier_like() {
         lexer.advance();
         Some((pou_name, lexer.last_location()))
     } else {
@@ -1435,7 +1463,7 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
 
 fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
     let mut variables = vec![];
-    while lexer.token == Identifier {
+    while lexer.token.is_identifier_like() {
         let mut line_vars = parse_variable_line(lexer);
         variables.append(&mut line_vars);
     }
@@ -1525,7 +1553,7 @@ fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> O
 fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     // read in a comma separated list of variable names
     let mut var_names: Vec<(String, Range<usize>)> = vec![];
-    while lexer.token == Identifier {
+    while lexer.token.is_identifier_like() {
         let location = lexer.range();
         let identifier_end = location.end;
         var_names.push((lexer.slice_and_advance(), location));
