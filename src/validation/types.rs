@@ -125,14 +125,10 @@ fn validate_data_type(validator: &mut Validator, data_type: &DataType, location:
     }
 
     match data_type {
-        DataType::StructType { variables, .. } => {
-            if variables.is_empty() {
-                validator.push_diagnostic(
-                    Diagnostic::new("Variable block is empty")
-                        .with_error_code("E028")
-                        .with_location(location),
-                );
-            }
+        DataType::StructType { variables, .. } if variables.is_empty() => {
+            validator.push_diagnostic(
+                Diagnostic::new("Variable block is empty").with_error_code("E028").with_location(location),
+            );
         }
         DataType::EnumType {
             elements: AstNode { stmt: AstStatement::ExpressionList(expressions), .. },
