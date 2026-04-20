@@ -684,7 +684,7 @@ fn write_to_parent_variable_in_instance() {
     !32 = !DILocalVariable(name: "bar", scope: !26, file: !3, line: 12, type: !29)
     !33 = !DILocation(line: 12, column: 12, scope: !26)
     !34 = !DILocation(line: 13, column: 8, scope: !26)
-    !35 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 15, type: !36, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !19)
+    !35 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 15, type: !36, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !19)
     !36 = !DISubroutineType(flags: DIFlagPublic, types: !37)
     !37 = !{null}
     !38 = !DILocalVariable(name: "s", scope: !35, file: !3, line: 17, type: !14, align [filtered])
@@ -1029,7 +1029,7 @@ fn array_in_parent_generated() {
     !41 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !3, file: !3, line: 18, baseType: !29, size: 176, align [filtered], offset: 384, flags: DIFlagPublic)
     !42 = !DILocalVariable(name: "child", scope: !35, file: !3, line: 20, type: !38)
     !43 = !DILocation(line: 20, column: 8, scope: !35)
-    !44 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 22, type: !45, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !19)
+    !44 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 22, type: !45, scopeLine: 26, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !19)
     !45 = !DISubroutineType(flags: DIFlagPublic, types: !46)
     !46 = !{null}
     !47 = !DILocalVariable(name: "arr", scope: !44, file: !3, line: 24, type: !48, align [filtered])
@@ -1961,7 +1961,7 @@ END_FUNCTION
     !33 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !3, file: !3, line: 16, baseType: !14, size: 32, align [filtered], offset: 192, flags: DIFlagPublic)
     !34 = !DILocalVariable(name: "grandchild", scope: !27, file: !3, line: 18, type: !30)
     !35 = !DILocation(line: 18, scope: !27)
-    !36 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 20, type: !37, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !15)
+    !36 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 20, type: !37, scopeLine: 30, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !15)
     !37 = !DISubroutineType(flags: DIFlagPublic, types: !38)
     !38 = !{null}
     !39 = !DILocalVariable(name: "array_of_parent", scope: !36, file: !3, line: 22, type: !40, align [filtered])
