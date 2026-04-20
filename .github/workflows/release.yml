@@ -77,7 +77,7 @@ jobs:
         run: cargo set-version --workspace ${{ steps.dev.outputs.version }}
 
       - name: Update Cargo.lock
-        run: cargo check --workspace
+        run: cargo generate-lockfile
 
       - name: Create dev-bump pull request
         uses: peter-evans/create-pull-request@v8
