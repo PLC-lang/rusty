@@ -863,7 +863,15 @@ mod tests {
             let statements = &unit.implementations.iter().find(|it| &it.name == pou).unwrap().statements;
 
             for statement in statements {
-                result.push(statement.as_string());
+                let statement = statement.as_string();
+
+                if statement.contains("\n") {
+                    for split_statement in statement.split("\n") {
+                        result.push(split_statement.to_string());
+                    }
+                } else {
+                    result.push(statement);
+                }
             }
         }
 
@@ -1602,7 +1610,9 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "alloca __producer0: FbA, producer(__producer0), reference.data := ADR(__producer0)",
+                "alloca __producer0: FbA;",
+                "producer(__producer0);",
+                "reference.data := ADR(__producer0);",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
             ]
             "#);
@@ -1636,7 +1646,9 @@ mod tests {
             [
                 "// Statements in main",
                 "Factory__ctor(fb)",
-                "alloca __producer0: FbA, fb.producer(__producer0), reference.data := ADR(__producer0)",
+                "alloca __producer0: FbA;",
+                "fb.producer(__producer0);",
+                "reference.data := ADR(__producer0);",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
             ]
             "#);
@@ -2304,11 +2316,15 @@ mod tests {
             [
                 "// Statements in main",
                 "alloca __fatpointer_0: __FATPOINTER",
-                "alloca __producer0: FbA, producer(__producer0), __fatpointer_0.data := ADR(__producer0)",
+                "alloca __producer0: FbA;",
+                "producer(__producer0);",
+                "__fatpointer_0.data := ADR(__producer0);",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(__fatpointer_0)",
                 "alloca __fatpointer_1: __FATPOINTER",
-                "alloca __producer1: FbA, producer(__producer1), __fatpointer_1.data := ADR(__producer1)",
+                "alloca __producer1: FbA;",
+                "producer(__producer1);",
+                "__fatpointer_1.data := ADR(__producer1);",
                 "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(in1 := __fatpointer_1)",
             ]
@@ -2350,11 +2366,15 @@ mod tests {
                 "// Statements in main",
                 "Factory__ctor(fb)",
                 "alloca __fatpointer_0: __FATPOINTER",
-                "alloca __produce0: FbA, fb.produce(__produce0), __fatpointer_0.data := ADR(__produce0)",
+                "alloca __produce0: FbA;",
+                "fb.produce(__produce0);",
+                "__fatpointer_0.data := ADR(__produce0);",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(__fatpointer_0)",
                 "alloca __fatpointer_1: __FATPOINTER",
-                "alloca __produce1: FbA, fb.produce(__produce1), __fatpointer_1.data := ADR(__produce1)",
+                "alloca __produce1: FbA;",
+                "fb.produce(__produce1);",
+                "__fatpointer_1.data := ADR(__produce1);",
                 "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(in1 := __fatpointer_1)",
             ]
@@ -2399,11 +2419,15 @@ mod tests {
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
-                "alloca __inner0: __FATPOINTER, inner(__inner0, __fatpointer_0), outer(__inner0)",
+                "alloca __inner0: __FATPOINTER;",
+                "inner(__inner0, __fatpointer_0);",
+                "outer(__inner0);",
                 "alloca __fatpointer_1: __FATPOINTER",
                 "__fatpointer_1.data := ADR(instance)",
                 "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
-                "alloca __inner1: __FATPOINTER, inner(inner := __inner1, in1 := __fatpointer_1), outer(in1 := __inner1)",
+                "alloca __inner1: __FATPOINTER;",
+                "inner(inner := __inner1, in1 := __fatpointer_1);",
+                "outer(in1 := __inner1);",
             ]
             "#);
         }
@@ -2441,11 +2465,15 @@ mod tests {
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
-                "alloca __consumer0: STRING, consumer(__consumer0, __fatpointer_0), result := __consumer0",
+                "alloca __consumer0: STRING;",
+                "consumer(__consumer0, __fatpointer_0);",
+                "result := __consumer0;",
                 "alloca __fatpointer_1: __FATPOINTER",
                 "__fatpointer_1.data := ADR(instance)",
                 "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
-                "alloca __consumer1: STRING, consumer(consumer := __consumer1, in1 := __fatpointer_1), result := __consumer1",
+                "alloca __consumer1: STRING;",
+                "consumer(consumer := __consumer1, in1 := __fatpointer_1);",
+                "result := __consumer1;",
             ]
             "#);
         }

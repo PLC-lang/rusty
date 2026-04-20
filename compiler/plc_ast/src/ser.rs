@@ -16,35 +16,57 @@ pub struct AstSerializer<'a> {
     indent: usize,
     unit: Option<&'a CompilationUnit>,
     user_type_context: Option<&'a UserTypeDeclaration>,
+    is_in_paren: bool,
 }
 
 impl AstSerializer<'_> {
     pub fn format(node: &AstNode) -> String {
-        let mut serializer =
-            AstSerializer { result: String::new(), indent: 0, unit: None, user_type_context: None };
+        let mut serializer = AstSerializer {
+            result: String::new(),
+            indent: 0,
+            unit: None,
+            user_type_context: None,
+            is_in_paren: false,
+        };
         serializer.visit(node);
 
         serializer.result
     }
 
     pub fn format_nodes(nodes: &[AstNode]) -> String {
-        let mut serializer =
-            AstSerializer { result: String::new(), indent: 0, unit: None, user_type_context: None };
+        let mut serializer = AstSerializer {
+            result: String::new(),
+            indent: 0,
+            unit: None,
+            user_type_context: None,
+            is_in_paren: false,
+        };
 
-        for (index, node) in nodes.iter().enumerate() {
+        let nodes = nodes.iter().filter(|node| !node.is_empty_statement());
+
+        for (index, node) in nodes.enumerate() {
             if index > 0 {
                 serializer.result.push('\n');
             }
             serializer.visit(node);
-            serializer.result.push(';');
+
+            // Expression lists push their own ';'
+            if !node.is_expression_list() {
+                serializer.result.push(';');
+            }
         }
 
         serializer.result
     }
 
     pub fn format_variable_block(variable_block: &VariableBlock, unit: &CompilationUnit) -> String {
-        let mut serializer =
-            AstSerializer { result: String::new(), indent: 0, unit: Some(unit), user_type_context: None };
+        let mut serializer = AstSerializer {
+            result: String::new(),
+            indent: 0,
+            unit: Some(unit),
+            user_type_context: None,
+            is_in_paren: false,
+        };
         serializer.visit_variable_block(variable_block);
 
         serializer.result
@@ -230,7 +252,9 @@ impl AstVisitor for AstSerializer<'_> {
             }
             ReferenceAccess::Index(index) => {
                 self.result.push('[');
+                self.is_in_paren = true;
                 index.walk(self);
+                self.is_in_paren = false;
                 self.result.push(']');
             }
             ReferenceAccess::Cast(reference) => {
@@ -278,17 +302,31 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_expression_list(&mut self, stmt: &Vec<AstNode>, _node: &AstNode) {
-        for (i, node) in stmt.iter().enumerate() {
-            if i > 0 {
-                self.result.push_str(", ");
+        let len = stmt.iter().filter(|stmt| !stmt.is_empty_statement()).count();
+        let stmt = stmt.iter().filter(|stmt| !stmt.is_empty_statement());
+        if self.is_in_paren {
+            for (i, node) in stmt.enumerate() {
+                if i > 0 {
+                    self.result.push_str(", ");
+                }
+                node.walk(self);
             }
-            node.walk(self);
+        } else {
+            for (i, node) in stmt.enumerate() {
+                node.walk(self);
+                self.result.push(';');
+                if i != len - 1 {
+                    self.push_indent();
+                }
+            }
         }
     }
 
     fn visit_paren_expression(&mut self, inner: &AstNode, _node: &AstNode) {
         self.result.push('(');
+        self.is_in_paren = true;
         inner.walk(self);
+        self.is_in_paren = false;
         self.result.push(')');
     }
 
@@ -319,9 +357,11 @@ impl AstVisitor for AstSerializer<'_> {
     fn visit_call_statement(&mut self, stmt: &CallStatement, _node: &AstNode) {
         stmt.operator.walk(self);
         self.result.push('(');
+        self.is_in_paren = true;
         if let Some(opt) = stmt.parameters.as_ref() {
             opt.walk(self)
         }
+        self.is_in_paren = false;
         self.result.push(')');
     }
 
@@ -416,7 +456,9 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_return_statement(&mut self, stmt: &ReturnStatement, _node: &AstNode) {
-        stmt.walk(self)
+        self.result.push_str("RETURN");
+        stmt.walk(self);
+        self.result.push(';');
     }
 
     fn visit_jump_statement(&mut self, stmt: &JumpStatement, _node: &AstNode) {
