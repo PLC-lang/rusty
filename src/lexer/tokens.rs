@@ -454,4 +454,12 @@ impl Token {
                 | Token::KeywordVarTemp
         )
     }
+
+    /// Returns true if the current token can be used where an identifier is expected.
+    ///
+    /// `GET` and `SET` are soft keywords: they are parsed as property accessors in
+    /// property declarations, but may still be used as identifiers elsewhere.
+    pub fn is_identifier_like(&self) -> bool {
+        matches!(self, Token::Identifier | Token::KeywordGet | Token::KeywordSet)
+    }
 }
