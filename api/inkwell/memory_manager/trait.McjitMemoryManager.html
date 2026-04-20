@@ -3,15 +3,15 @@
     fn <a href="#tymethod.allocate_code_section" class="fn">allocate_code_section</a>(
         &amp;mut self,
         size: <a class="type" href="../../libc/unix/type.uintptr_t.html" title="type libc::unix::uintptr_t">uintptr_t</a>,
-        alignment: <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a>,
-        section_id: <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a>,
+        alignment: <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a>,
+        section_id: <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a>,
         section_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.str.html">str</a>,
     ) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.pointer.html">*mut </a><a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.u8.html">u8</a>;
 <span class="item-spacer"></span>    fn <a href="#tymethod.allocate_data_section" class="fn">allocate_data_section</a>(
         &amp;mut self,
         size: <a class="type" href="../../libc/unix/type.uintptr_t.html" title="type libc::unix::uintptr_t">uintptr_t</a>,
-        alignment: <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a>,
-        section_id: <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a>,
+        alignment: <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a>,
+        section_id: <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a>,
         section_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.str.html">str</a>,
         is_read_only: <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.bool.html">bool</a>,
     ) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.pointer.html">*mut </a><a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.u8.html">u8</a>;
@@ -37,8 +37,8 @@ and on Linux (ELF), it is <code>.llvm_stackmaps</code>.</p>
 </div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.allocate_code_section" class="method"><a class="src rightside" href="../../src/inkwell/memory_manager.rs.html#36-42">Source</a><h4 class="code-header">fn <a href="#tymethod.allocate_code_section" class="fn">allocate_code_section</a>(
     &amp;mut self,
     size: <a class="type" href="../../libc/unix/type.uintptr_t.html" title="type libc::unix::uintptr_t">uintptr_t</a>,
-    alignment: <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a>,
-    section_id: <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a>,
+    alignment: <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a>,
+    section_id: <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a>,
     section_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.str.html">str</a>,
 ) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.pointer.html">*mut </a><a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.u8.html">u8</a></h4></section></summary><div class="docblock"><p>Allocates a block of memory for a code section.</p>
 <h5 id="parameters"><a class="doc-anchor" href="#parameters">§</a>Parameters</h5>
@@ -54,8 +54,8 @@ at least <code>size</code> bytes long and meets <code>alignment</code> requireme
 </div></details><details class="toggle method-toggle" open><summary><section id="tymethod.allocate_data_section" class="method"><a class="src rightside" href="../../src/inkwell/memory_manager.rs.html#58-65">Source</a><h4 class="code-header">fn <a href="#tymethod.allocate_data_section" class="fn">allocate_data_section</a>(
     &amp;mut self,
     size: <a class="type" href="../../libc/unix/type.uintptr_t.html" title="type libc::unix::uintptr_t">uintptr_t</a>,
-    alignment: <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a>,
-    section_id: <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a>,
+    alignment: <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a>,
+    section_id: <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a>,
     section_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.str.html">str</a>,
     is_read_only: <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.bool.html">bool</a>,
 ) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.pointer.html">*mut </a><a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.u8.html">u8</a></h4></section></summary><div class="docblock"><p>Allocates a block of memory for a data section.</p>

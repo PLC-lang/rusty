@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.183/src/unix/linux_like/linux_l4re_shared.rs`."><title>linux_l4re_shared.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="libc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">libc/unix/linux_like/</div>linux_l4re_shared.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::prelude::<span class="kw-2">*</span>;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libc-0.2.185/src/unix/linux_like/linux_l4re_shared.rs`."><title>linux_l4re_shared.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="libc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">libc/unix/linux_like/</div>linux_l4re_shared.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::prelude::<span class="kw-2">*</span>;
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">pub type </span>Elf32_Half = u16;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">pub type </span>Elf32_Word = u32;
@@ -976,7 +976,7 @@
 <a href=#976 id=976 data-nosnippet>976</a>
 <a href=#977 id=977 data-nosnippet>977</a><span class="kw">pub const </span>IPC_RMID: c_int = <span class="number">0</span>;
 <a href=#978 id=978 data-nosnippet>978</a><span class="kw">pub const </span>IPC_SET: c_int = <span class="number">1</span>;
-<a href=#979 id=979 data-nosnippet>979</a><span class="kw">pub const </span>IPC_STAT: c_int = <span class="kw">if </span><span class="macro">cfg!</span>(musl32_time64) { <span class="number">0x102 </span>} <span class="kw">else </span>{ <span class="number">2 </span>};
+<a href=#979 id=979 data-nosnippet>979</a><span class="kw">pub const </span>IPC_STAT: c_int = <span class="kw">if </span><span class="macro">cfg!</span>(musl_redir_time64) { <span class="number">0x102 </span>} <span class="kw">else </span>{ <span class="number">2 </span>};
 <a href=#980 id=980 data-nosnippet>980</a><span class="kw">pub const </span>IPC_INFO: c_int = <span class="number">3</span>;
 <a href=#981 id=981 data-nosnippet>981</a>
 <a href=#982 id=982 data-nosnippet>982</a><span class="kw">pub const </span>SHM_R: c_int = <span class="number">0o400</span>;
@@ -1660,7 +1660,7 @@
 <a href=#1660 id=1660 data-nosnippet>1660</a>            <span class="attr">#[cfg_attr(gnu_file_offset_bits64, link_name = <span class="string">"aio_return64"</span>)]
 <a href=#1661 id=1661 data-nosnippet>1661</a>            </span><span class="kw">pub fn </span>aio_return(aiocbp: <span class="kw-2">*mut </span><span class="kw">crate</span>::aiocb) -&gt; ssize_t;
 <a href=#1662 id=1662 data-nosnippet>1662</a>            <span class="attr">#[cfg_attr(
-<a href=#1663 id=1663 data-nosnippet>1663</a>                any(musl32_time64, gnu_time_bits64),
+<a href=#1663 id=1663 data-nosnippet>1663</a>                any(musl_redir_time64, gnu_time_bits64),
 <a href=#1664 id=1664 data-nosnippet>1664</a>                link_name = <span class="string">"__aio_suspend_time64"
 <a href=#1665 id=1665 data-nosnippet>1665</a>            </span>)]
 <a href=#1666 id=1666 data-nosnippet>1666</a>            </span><span class="kw">pub fn </span>aio_suspend(
@@ -1725,7 +1725,7 @@
 <a href=#1725 id=1725 data-nosnippet>1725</a>                flags: c_ulong,
 <a href=#1726 id=1726 data-nosnippet>1726</a>            ) -&gt; isize;
 <a href=#1727 id=1727 data-nosnippet>1727</a>            <span class="attr">#[cfg_attr(gnu_time_bits64, link_name = <span class="string">"__futimes64"</span>)]
-<a href=#1728 id=1728 data-nosnippet>1728</a>            #[cfg_attr(musl32_time64, link_name = <span class="string">"__futimes_time64"</span>)]
+<a href=#1728 id=1728 data-nosnippet>1728</a>            #[cfg_attr(musl_redir_time64, link_name = <span class="string">"__futimes_time64"</span>)]
 <a href=#1729 id=1729 data-nosnippet>1729</a>            </span><span class="kw">pub fn </span>futimes(fd: c_int, times: <span class="kw-2">*const </span><span class="kw">crate</span>::timeval) -&gt; c_int;
 <a href=#1730 id=1730 data-nosnippet>1730</a>        }
 <a href=#1731 id=1731 data-nosnippet>1731</a>    }
@@ -1827,10 +1827,10 @@
 <a href=#1827 id=1827 data-nosnippet>1827</a>    ) -&gt; c_int;
 <a href=#1828 id=1828 data-nosnippet>1828</a>    <span class="kw">pub fn </span>sched_get_priority_max(policy: c_int) -&gt; c_int;
 <a href=#1829 id=1829 data-nosnippet>1829</a>    <span class="attr">#[cfg_attr(gnu_time_bits64, link_name = <span class="string">"__settimeofday64"</span>)]
-<a href=#1830 id=1830 data-nosnippet>1830</a>    #[cfg_attr(musl32_time64, link_name = <span class="string">"__settimeofday_time64"</span>)]
+<a href=#1830 id=1830 data-nosnippet>1830</a>    #[cfg_attr(musl_redir_time64, link_name = <span class="string">"__settimeofday_time64"</span>)]
 <a href=#1831 id=1831 data-nosnippet>1831</a>    </span><span class="kw">pub fn </span>settimeofday(tv: <span class="kw-2">*const </span><span class="kw">crate</span>::timeval, tz: <span class="kw-2">*const </span><span class="kw">crate</span>::timezone) -&gt; c_int;
 <a href=#1832 id=1832 data-nosnippet>1832</a>    <span class="attr">#[cfg_attr(gnu_time_bits64, link_name = <span class="string">"__sem_timedwait64"</span>)]
-<a href=#1833 id=1833 data-nosnippet>1833</a>    #[cfg_attr(musl32_time64, link_name = <span class="string">"__sem_timedwait_time64"</span>)]
+<a href=#1833 id=1833 data-nosnippet>1833</a>    #[cfg_attr(musl_redir_time64, link_name = <span class="string">"__sem_timedwait_time64"</span>)]
 <a href=#1834 id=1834 data-nosnippet>1834</a>    </span><span class="kw">pub fn </span>sem_timedwait(sem: <span class="kw-2">*mut </span><span class="kw">crate</span>::sem_t, abstime: <span class="kw-2">*const </span><span class="kw">crate</span>::timespec) -&gt; c_int;
 <a href=#1835 id=1835 data-nosnippet>1835</a>    <span class="kw">pub fn </span>sem_getvalue(sem: <span class="kw-2">*mut </span><span class="kw">crate</span>::sem_t, sval: <span class="kw-2">*mut </span>c_int) -&gt; c_int;
 <a href=#1836 id=1836 data-nosnippet>1836</a>    <span class="kw">pub fn </span>mount(
@@ -1843,7 +1843,7 @@
 <a href=#1843 id=1843 data-nosnippet>1843</a>    <span class="attr">#[cfg_attr(gnu_time_bits64, link_name = <span class="string">"__prctl_time64"</span>)]
 <a href=#1844 id=1844 data-nosnippet>1844</a>    </span><span class="kw">pub fn </span>prctl(option: c_int, ...) -&gt; c_int;
 <a href=#1845 id=1845 data-nosnippet>1845</a>    <span class="attr">#[cfg_attr(gnu_time_bits64, link_name = <span class="string">"__ppoll64"</span>)]
-<a href=#1846 id=1846 data-nosnippet>1846</a>    #[cfg_attr(musl32_time64, link_name = <span class="string">"__ppoll_time64"</span>)]
+<a href=#1846 id=1846 data-nosnippet>1846</a>    #[cfg_attr(musl_redir_time64, link_name = <span class="string">"__ppoll_time64"</span>)]
 <a href=#1847 id=1847 data-nosnippet>1847</a>    </span><span class="kw">pub fn </span>ppoll(
 <a href=#1848 id=1848 data-nosnippet>1848</a>        fds: <span class="kw-2">*mut </span><span class="kw">crate</span>::pollfd,
 <a href=#1849 id=1849 data-nosnippet>1849</a>        nfds: <span class="kw">crate</span>::nfds_t,
@@ -1934,59 +1934,65 @@
 <a href=#1934 id=1934 data-nosnippet>1934</a>    <span class="kw">pub fn </span>timer_delete(timerid: <span class="kw">crate</span>::timer_t) -&gt; c_int;
 <a href=#1935 id=1935 data-nosnippet>1935</a>    <span class="attr">#[cfg(not(target_os = <span class="string">"l4re"</span>))]
 <a href=#1936 id=1936 data-nosnippet>1936</a>    </span><span class="kw">pub fn </span>timer_getoverrun(timerid: <span class="kw">crate</span>::timer_t) -&gt; c_int;
-<a href=#1937 id=1937 data-nosnippet>1937</a>    <span class="attr">#[cfg_attr(any(gnu_time_bits64, musl32_time64), link_name = <span class="string">"__timer_gettime64"</span>)]
-<a href=#1938 id=1938 data-nosnippet>1938</a>    </span><span class="kw">pub fn </span>timer_gettime(timerid: <span class="kw">crate</span>::timer_t, curr_value: <span class="kw-2">*mut </span><span class="kw">crate</span>::itimerspec) -&gt; c_int;
-<a href=#1939 id=1939 data-nosnippet>1939</a>    <span class="attr">#[cfg_attr(any(gnu_time_bits64, musl32_time64), link_name = <span class="string">"__timer_settime64"</span>)]
-<a href=#1940 id=1940 data-nosnippet>1940</a>    </span><span class="kw">pub fn </span>timer_settime(
-<a href=#1941 id=1941 data-nosnippet>1941</a>        timerid: <span class="kw">crate</span>::timer_t,
-<a href=#1942 id=1942 data-nosnippet>1942</a>        flags: c_int,
-<a href=#1943 id=1943 data-nosnippet>1943</a>        new_value: <span class="kw-2">*const </span><span class="kw">crate</span>::itimerspec,
-<a href=#1944 id=1944 data-nosnippet>1944</a>        old_value: <span class="kw-2">*mut </span><span class="kw">crate</span>::itimerspec,
-<a href=#1945 id=1945 data-nosnippet>1945</a>    ) -&gt; c_int;
-<a href=#1946 id=1946 data-nosnippet>1946</a>
-<a href=#1947 id=1947 data-nosnippet>1947</a>    <span class="kw">pub fn </span>memmem(
-<a href=#1948 id=1948 data-nosnippet>1948</a>        haystack: <span class="kw-2">*const </span>c_void,
-<a href=#1949 id=1949 data-nosnippet>1949</a>        haystacklen: size_t,
-<a href=#1950 id=1950 data-nosnippet>1950</a>        needle: <span class="kw-2">*const </span>c_void,
-<a href=#1951 id=1951 data-nosnippet>1951</a>        needlelen: size_t,
-<a href=#1952 id=1952 data-nosnippet>1952</a>    ) -&gt; <span class="kw-2">*mut </span>c_void;
-<a href=#1953 id=1953 data-nosnippet>1953</a>    <span class="kw">pub fn </span>sched_getcpu() -&gt; c_int;
-<a href=#1954 id=1954 data-nosnippet>1954</a>
-<a href=#1955 id=1955 data-nosnippet>1955</a>    <span class="kw">pub fn </span>getopt_long(
-<a href=#1956 id=1956 data-nosnippet>1956</a>        argc: c_int,
-<a href=#1957 id=1957 data-nosnippet>1957</a>        argv: <span class="kw-2">*const *mut </span>c_char,
-<a href=#1958 id=1958 data-nosnippet>1958</a>        optstring: <span class="kw-2">*const </span>c_char,
-<a href=#1959 id=1959 data-nosnippet>1959</a>        longopts: <span class="kw-2">*const </span>option,
-<a href=#1960 id=1960 data-nosnippet>1960</a>        longindex: <span class="kw-2">*mut </span>c_int,
-<a href=#1961 id=1961 data-nosnippet>1961</a>    ) -&gt; c_int;
-<a href=#1962 id=1962 data-nosnippet>1962</a>
-<a href=#1963 id=1963 data-nosnippet>1963</a>    <span class="attr">#[cfg(not(target_env = <span class="string">"uclibc"</span>))]
-<a href=#1964 id=1964 data-nosnippet>1964</a>    </span><span class="kw">pub fn </span>copy_file_range(
-<a href=#1965 id=1965 data-nosnippet>1965</a>        fd_in: c_int,
-<a href=#1966 id=1966 data-nosnippet>1966</a>        off_in: <span class="kw-2">*mut </span><span class="kw">crate</span>::off64_t,
-<a href=#1967 id=1967 data-nosnippet>1967</a>        fd_out: c_int,
-<a href=#1968 id=1968 data-nosnippet>1968</a>        off_out: <span class="kw-2">*mut </span><span class="kw">crate</span>::off64_t,
-<a href=#1969 id=1969 data-nosnippet>1969</a>        len: size_t,
-<a href=#1970 id=1970 data-nosnippet>1970</a>        flags: c_uint,
-<a href=#1971 id=1971 data-nosnippet>1971</a>    ) -&gt; ssize_t;
-<a href=#1972 id=1972 data-nosnippet>1972</a>}
-<a href=#1973 id=1973 data-nosnippet>1973</a>
-<a href=#1974 id=1974 data-nosnippet>1974</a><span class="macro">cfg_if!</span> {
-<a href=#1975 id=1975 data-nosnippet>1975</a>    <span class="kw">if </span><span class="attr">#[cfg(not(any(target_env = <span class="string">"musl"</span>, target_env = <span class="string">"ohos"</span>)))] </span>{
-<a href=#1976 id=1976 data-nosnippet>1976</a>        <span class="kw">extern </span><span class="string">"C" </span>{
-<a href=#1977 id=1977 data-nosnippet>1977</a>            <span class="kw">pub fn </span>freopen64(
-<a href=#1978 id=1978 data-nosnippet>1978</a>                filename: <span class="kw-2">*const </span>c_char,
-<a href=#1979 id=1979 data-nosnippet>1979</a>                mode: <span class="kw-2">*const </span>c_char,
-<a href=#1980 id=1980 data-nosnippet>1980</a>                file: <span class="kw-2">*mut </span><span class="kw">crate</span>::FILE,
-<a href=#1981 id=1981 data-nosnippet>1981</a>            ) -&gt; <span class="kw-2">*mut </span><span class="kw">crate</span>::FILE;
-<a href=#1982 id=1982 data-nosnippet>1982</a>            <span class="kw">pub fn </span>fseeko64(
-<a href=#1983 id=1983 data-nosnippet>1983</a>                stream: <span class="kw-2">*mut </span><span class="kw">crate</span>::FILE,
-<a href=#1984 id=1984 data-nosnippet>1984</a>                offset: <span class="kw">crate</span>::off64_t,
-<a href=#1985 id=1985 data-nosnippet>1985</a>                whence: c_int,
-<a href=#1986 id=1986 data-nosnippet>1986</a>            ) -&gt; c_int;
-<a href=#1987 id=1987 data-nosnippet>1987</a>            <span class="kw">pub fn </span>fsetpos64(stream: <span class="kw-2">*mut </span><span class="kw">crate</span>::FILE, ptr: <span class="kw-2">*const </span><span class="kw">crate</span>::fpos64_t) -&gt; c_int;
-<a href=#1988 id=1988 data-nosnippet>1988</a>            <span class="kw">pub fn </span>ftello64(stream: <span class="kw-2">*mut </span><span class="kw">crate</span>::FILE) -&gt; <span class="kw">crate</span>::off64_t;
-<a href=#1989 id=1989 data-nosnippet>1989</a>        }
-<a href=#1990 id=1990 data-nosnippet>1990</a>    }
-<a href=#1991 id=1991 data-nosnippet>1991</a>}
+<a href=#1937 id=1937 data-nosnippet>1937</a>    <span class="attr">#[cfg_attr(
+<a href=#1938 id=1938 data-nosnippet>1938</a>        any(gnu_time_bits64, musl_redir_time64),
+<a href=#1939 id=1939 data-nosnippet>1939</a>        link_name = <span class="string">"__timer_gettime64"
+<a href=#1940 id=1940 data-nosnippet>1940</a>    </span>)]
+<a href=#1941 id=1941 data-nosnippet>1941</a>    </span><span class="kw">pub fn </span>timer_gettime(timerid: <span class="kw">crate</span>::timer_t, curr_value: <span class="kw-2">*mut </span><span class="kw">crate</span>::itimerspec) -&gt; c_int;
+<a href=#1942 id=1942 data-nosnippet>1942</a>    <span class="attr">#[cfg_attr(
+<a href=#1943 id=1943 data-nosnippet>1943</a>        any(gnu_time_bits64, musl_redir_time64),
+<a href=#1944 id=1944 data-nosnippet>1944</a>        link_name = <span class="string">"__timer_settime64"
+<a href=#1945 id=1945 data-nosnippet>1945</a>    </span>)]
+<a href=#1946 id=1946 data-nosnippet>1946</a>    </span><span class="kw">pub fn </span>timer_settime(
+<a href=#1947 id=1947 data-nosnippet>1947</a>        timerid: <span class="kw">crate</span>::timer_t,
+<a href=#1948 id=1948 data-nosnippet>1948</a>        flags: c_int,
+<a href=#1949 id=1949 data-nosnippet>1949</a>        new_value: <span class="kw-2">*const </span><span class="kw">crate</span>::itimerspec,
+<a href=#1950 id=1950 data-nosnippet>1950</a>        old_value: <span class="kw-2">*mut </span><span class="kw">crate</span>::itimerspec,
+<a href=#1951 id=1951 data-nosnippet>1951</a>    ) -&gt; c_int;
+<a href=#1952 id=1952 data-nosnippet>1952</a>
+<a href=#1953 id=1953 data-nosnippet>1953</a>    <span class="kw">pub fn </span>memmem(
+<a href=#1954 id=1954 data-nosnippet>1954</a>        haystack: <span class="kw-2">*const </span>c_void,
+<a href=#1955 id=1955 data-nosnippet>1955</a>        haystacklen: size_t,
+<a href=#1956 id=1956 data-nosnippet>1956</a>        needle: <span class="kw-2">*const </span>c_void,
+<a href=#1957 id=1957 data-nosnippet>1957</a>        needlelen: size_t,
+<a href=#1958 id=1958 data-nosnippet>1958</a>    ) -&gt; <span class="kw-2">*mut </span>c_void;
+<a href=#1959 id=1959 data-nosnippet>1959</a>    <span class="kw">pub fn </span>sched_getcpu() -&gt; c_int;
+<a href=#1960 id=1960 data-nosnippet>1960</a>
+<a href=#1961 id=1961 data-nosnippet>1961</a>    <span class="kw">pub fn </span>getopt_long(
+<a href=#1962 id=1962 data-nosnippet>1962</a>        argc: c_int,
+<a href=#1963 id=1963 data-nosnippet>1963</a>        argv: <span class="kw-2">*const *mut </span>c_char,
+<a href=#1964 id=1964 data-nosnippet>1964</a>        optstring: <span class="kw-2">*const </span>c_char,
+<a href=#1965 id=1965 data-nosnippet>1965</a>        longopts: <span class="kw-2">*const </span>option,
+<a href=#1966 id=1966 data-nosnippet>1966</a>        longindex: <span class="kw-2">*mut </span>c_int,
+<a href=#1967 id=1967 data-nosnippet>1967</a>    ) -&gt; c_int;
+<a href=#1968 id=1968 data-nosnippet>1968</a>
+<a href=#1969 id=1969 data-nosnippet>1969</a>    <span class="attr">#[cfg(not(target_env = <span class="string">"uclibc"</span>))]
+<a href=#1970 id=1970 data-nosnippet>1970</a>    </span><span class="kw">pub fn </span>copy_file_range(
+<a href=#1971 id=1971 data-nosnippet>1971</a>        fd_in: c_int,
+<a href=#1972 id=1972 data-nosnippet>1972</a>        off_in: <span class="kw-2">*mut </span><span class="kw">crate</span>::off64_t,
+<a href=#1973 id=1973 data-nosnippet>1973</a>        fd_out: c_int,
+<a href=#1974 id=1974 data-nosnippet>1974</a>        off_out: <span class="kw-2">*mut </span><span class="kw">crate</span>::off64_t,
+<a href=#1975 id=1975 data-nosnippet>1975</a>        len: size_t,
+<a href=#1976 id=1976 data-nosnippet>1976</a>        flags: c_uint,
+<a href=#1977 id=1977 data-nosnippet>1977</a>    ) -&gt; ssize_t;
+<a href=#1978 id=1978 data-nosnippet>1978</a>}
+<a href=#1979 id=1979 data-nosnippet>1979</a>
+<a href=#1980 id=1980 data-nosnippet>1980</a><span class="macro">cfg_if!</span> {
+<a href=#1981 id=1981 data-nosnippet>1981</a>    <span class="kw">if </span><span class="attr">#[cfg(not(any(target_env = <span class="string">"musl"</span>, target_env = <span class="string">"ohos"</span>)))] </span>{
+<a href=#1982 id=1982 data-nosnippet>1982</a>        <span class="kw">extern </span><span class="string">"C" </span>{
+<a href=#1983 id=1983 data-nosnippet>1983</a>            <span class="kw">pub fn </span>freopen64(
+<a href=#1984 id=1984 data-nosnippet>1984</a>                filename: <span class="kw-2">*const </span>c_char,
+<a href=#1985 id=1985 data-nosnippet>1985</a>                mode: <span class="kw-2">*const </span>c_char,
+<a href=#1986 id=1986 data-nosnippet>1986</a>                file: <span class="kw-2">*mut </span><span class="kw">crate</span>::FILE,
+<a href=#1987 id=1987 data-nosnippet>1987</a>            ) -&gt; <span class="kw-2">*mut </span><span class="kw">crate</span>::FILE;
+<a href=#1988 id=1988 data-nosnippet>1988</a>            <span class="kw">pub fn </span>fseeko64(
+<a href=#1989 id=1989 data-nosnippet>1989</a>                stream: <span class="kw-2">*mut </span><span class="kw">crate</span>::FILE,
+<a href=#1990 id=1990 data-nosnippet>1990</a>                offset: <span class="kw">crate</span>::off64_t,
+<a href=#1991 id=1991 data-nosnippet>1991</a>                whence: c_int,
+<a href=#1992 id=1992 data-nosnippet>1992</a>            ) -&gt; c_int;
+<a href=#1993 id=1993 data-nosnippet>1993</a>            <span class="kw">pub fn </span>fsetpos64(stream: <span class="kw-2">*mut </span><span class="kw">crate</span>::FILE, ptr: <span class="kw-2">*const </span><span class="kw">crate</span>::fpos64_t) -&gt; c_int;
+<a href=#1994 id=1994 data-nosnippet>1994</a>            <span class="kw">pub fn </span>ftello64(stream: <span class="kw-2">*mut </span><span class="kw">crate</span>::FILE) -&gt; <span class="kw">crate</span>::off64_t;
+<a href=#1995 id=1995 data-nosnippet>1995</a>        }
+<a href=#1996 id=1996 data-nosnippet>1996</a>    }
+<a href=#1997 id=1997 data-nosnippet>1997</a>}
 </code></pre></div></section></main></body></html>

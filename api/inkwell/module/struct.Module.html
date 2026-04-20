@@ -542,7 +542,7 @@ will likely invalidate the module.</p>
 )</h4></section></summary><div class="docblock"><p>Append a <code>BasicValue</code> as a module wide flag. Note that using the same key twice
 will likely invalidate the module.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.strip_debug_info" class="method"><a class="src rightside" href="../../src/inkwell/module.rs.html#1515-1517">Source</a><h4 class="code-header">pub fn <a href="#method.strip_debug_info" class="fn">strip_debug_info</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>Strips and debug info from the module, if it exists.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.get_debug_metadata_version" class="method"><a class="src rightside" href="../../src/inkwell/module.rs.html#1520-1522">Source</a><h4 class="code-header">pub fn <a href="#method.get_debug_metadata_version" class="fn">get_debug_metadata_version</a>(&amp;self) -&gt; <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a></h4></section></summary><div class="docblock"><p>Gets the version of debug metadata contained in this <code>Module</code>.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.get_debug_metadata_version" class="method"><a class="src rightside" href="../../src/inkwell/module.rs.html#1520-1522">Source</a><h4 class="code-header">pub fn <a href="#method.get_debug_metadata_version" class="fn">get_debug_metadata_version</a>(&amp;self) -&gt; <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a></h4></section></summary><div class="docblock"><p>Gets the version of debug metadata contained in this <code>Module</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.create_debug_info_builder" class="method"><a class="src rightside" href="../../src/inkwell/module.rs.html#1525-1613">Source</a><h4 class="code-header">pub fn <a href="#method.create_debug_info_builder" class="fn">create_debug_info_builder</a>(
     &amp;self,
     allow_unresolved: <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.bool.html">bool</a>,
@@ -552,10 +552,10 @@ will likely invalidate the module.</p>
     producer: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.str.html">str</a>,
     is_optimized: <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.bool.html">bool</a>,
     flags: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.str.html">str</a>,
-    runtime_ver: <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a>,
+    runtime_ver: <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a>,
     split_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.str.html">str</a>,
     kind: <a class="enum" href="../debug_info/enum.DWARFEmissionKind.html" title="enum inkwell::debug_info::DWARFEmissionKind">DWARFEmissionKind</a>,
-    dwo_id: <a class="type" href="../../libc/primitives/type.c_uint.html" title="type libc::primitives::c_uint">c_uint</a>,
+    dwo_id: <a class="type" href="https://doc.rust-lang.org/1.93.1/core/ffi/primitives/type.c_uint.html" title="type core::ffi::primitives::c_uint">c_uint</a>,
     split_debug_inlining: <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.bool.html">bool</a>,
     debug_info_for_profiling: <a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.bool.html">bool</a>,
     sysroot: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.93.1/std/primitive.str.html">str</a>,
