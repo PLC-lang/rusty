@@ -65,6 +65,7 @@ jobs:
         env:
           RELEASE_TITLE: RuSTy PLC Compiler ${{ steps.version.outputs.version }}
           RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
           PREVIOUS_TAG: ${{ steps.previous-tag.outputs.tag }}
           RELEASE_NOTES_PATH: .github/release/release-notes.md
         with:
@@ -76,6 +77,19 @@ jobs:
             const previousTag = process.env.PREVIOUS_TAG
               ? `\`${process.env.PREVIOUS_TAG}\``
               : '_none_';
+            const version = process.env.RELEASE_VERSION;
+            const assetNames = [
+              'plc-linux-x86_64',
+              'plc-linux-aarch64',
+              'plc.exe',
+              `plc-compiler_${version}-1_amd64.deb`,
+              `plc-compiler_${version}-1_arm64.deb`,
+              `plc-stdlib_${version}-1_amd64.deb`,
+              `plc-stdlib_${version}-1_arm64.deb`,
+              `stdlib-${version}.tar.gz`,
+              'iec61131std.dll',
+              'iec61131std.lib',
+            ];
             const body = [
               marker,
               '### Release Preview',
@@ -92,6 +106,17 @@ jobs:
               `# ${process.env.RELEASE_TITLE}`,
               '',
               releaseNotes,
+              '',
+              '</details>',
+              '',
+              '<details>',
+              '<summary>Expected release assets</summary>',
+              '',
+              'Assets are uploaded asynchronously from the post-merge `Build Linux` and `Build Windows` runs on `master`.',
+              '',
+              ...assetNames.map(name => `- \`${name}\``),
+              '',
+              '_Linux packages prefer the native build for each target architecture._',
               '',
               '</details>',
             ].join('\n');
