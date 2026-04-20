@@ -1285,7 +1285,38 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 self.index.get_variadic_member(pou.get_name()),
                             )
                         } else {
-                            self.generate_expression(param_statement)
+                            let value = self.generate_expression(param_statement)?;
+                            // Apply C default argument promotions for unsized (C-ABI) variadics
+                            if is_unsized {
+                                match type_info.get_type_information() {
+                                    DataTypeInformation::Integer { signed, size, .. } if *size < 32 => {
+                                        let i32_type = self.llvm.context.i32_type();
+                                        let int_val = value.into_int_value();
+                                        Ok(if *signed {
+                                            self.llvm
+                                                .builder
+                                                .build_int_s_extend(int_val, i32_type, "")?
+                                                .as_basic_value_enum()
+                                        } else {
+                                            self.llvm
+                                                .builder
+                                                .build_int_z_extend(int_val, i32_type, "")?
+                                                .as_basic_value_enum()
+                                        })
+                                    }
+                                    DataTypeInformation::Float { size, .. } if *size < 64 => {
+                                        let f64_type = self.llvm.context.f64_type();
+                                        Ok(self
+                                            .llvm
+                                            .builder
+                                            .build_float_ext(value.into_float_value(), f64_type, "")?
+                                            .as_basic_value_enum())
+                                    }
+                                    _ => Ok(value),
+                                }
+                            } else {
+                                Ok(value)
+                            }
                         }
                     })
                 })

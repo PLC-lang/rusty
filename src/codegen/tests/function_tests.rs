@@ -297,6 +297,77 @@ fn function_with_varargs_called_in_program() {
 }
 
 #[test]
+fn unsized_varargs_bitaccess_xor_bool_is_promoted_to_i32() {
+    // A bit-access XOR expression passed to a variadic must be promoted to i32.
+    // Without promotion the i1 result can be clobbered by a subsequent call
+    // (e.g. MUX), producing a different value when the same expression is
+    // printed a second time.
+    let result = codegen(
+        "
+        @EXTERNAL
+        FUNCTION printf : DINT
+        VAR_INPUT {ref}
+          str : STRING;
+        END_VAR
+        VAR_INPUT
+          args : ...;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION foo
+        VAR
+            vTrue    : BOOL := TRUE;
+            arrLword : LWORD := 16#abcdefabcdefabcd;
+        END_VAR
+            printf('%u', arrLword.%x27 XOR vTrue);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
+fn unsized_varargs_bool_args_are_promoted_to_i32() {
+    // BOOL and boolean expressions must be zero-extended to i32 when passed as
+    // unsized variadic arguments (C default argument promotion). Without the
+    // promotion an i1/i8 value reaches printf and produces 255/254 at -Onone.
+    let result = codegen(
+        "
+        @EXTERNAL
+        FUNCTION printf : DINT
+        VAR_INPUT {ref}
+          str : STRING;
+        END_VAR
+        VAR_INPUT
+          args : ...;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM prg
+        VAR
+            vTrue  : BOOL := TRUE;
+            vFalse : BOOL := FALSE;
+        END_VAR
+            printf('%u', FALSE);
+            printf('%u', TRUE);
+            printf('%u', NOT FALSE);
+            printf('%u', NOT TRUE);
+            printf('%u', TRUE AND FALSE);
+            printf('%u', NOT (TRUE AND FALSE));
+            printf('%u', vFalse);
+            printf('%u', vTrue);
+            printf('%u', NOT vFalse);
+            printf('%u', NOT vTrue);
+            printf('%u', NOT (vTrue AND vFalse));
+        END_PROGRAM
+        ",
+    );
+
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
 fn function_with_sized_varargs_called_in_program() {
     let result = codegen(
         "
