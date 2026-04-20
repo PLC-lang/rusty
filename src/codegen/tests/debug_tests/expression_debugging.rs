@@ -72,7 +72,7 @@ fn var_in_out_inout_in_function_added_as_params() {
         END_FUNCTION
         ",
     );
-    //The asignment should recieve a debug info entry
+    // The assignment should receive a debug info entry
     filtered_assert_snapshot!(result);
 }
 
