@@ -3718,11 +3718,11 @@ mod tests {
             // Should lower to an itable indirect call to __get_foo.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3748,13 +3748,13 @@ mod tests {
             // Should lower to an itable indirect call to __set_foo with the value as argument.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY_GET foo: DINT END_GET
-                    PROPERTY_SET foo: DINT END_SET
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY_GET foo: DINT END_GET
-                    PROPERTY_SET foo: DINT END_SET
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3779,11 +3779,11 @@ mod tests {
             // Getting a property through an interface and assigning it to a local variable.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3809,11 +3809,11 @@ mod tests {
             // Using a property getter in a binary expression.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3840,13 +3840,13 @@ mod tests {
             // Should produce a setter whose argument is the getter, both through the itable.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY_GET foo: DINT END_GET
-                    PROPERTY_SET foo: DINT END_SET
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY_GET foo: DINT END_GET
-                    PROPERTY_SET foo: DINT END_SET
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3872,12 +3872,12 @@ mod tests {
             let source = r#"
                 INTERFACE IA
                     PROPERTY_GET foo: DINT
-                    END_GET
+                    END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     PROPERTY_GET foo: DINT
-                    END_GET
+                    END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION consumer
@@ -3912,14 +3912,14 @@ mod tests {
                     METHOD bar : DINT END_METHOD
 
                     PROPERTY_GET foo: DINT
-                    END_GET
+                    END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     METHOD bar : DINT END_METHOD
 
                     PROPERTY_GET foo: DINT
-                    END_GET
+                    END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3948,12 +3948,12 @@ mod tests {
             let source = r#"
                 INTERFACE IA
                     PROPERTY_GET foo: DINT
-                    END_GET
+                    END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     PROPERTY_GET foo: DINT
-                    END_GET
+                    END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK Container
@@ -3987,12 +3987,12 @@ mod tests {
             let source = r#"
                 INTERFACE IA
                     PROPERTY_GET foo: DINT
-                    END_GET
+                    END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     PROPERTY_GET foo: DINT
-                    END_GET
+                    END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -4021,13 +4021,13 @@ mod tests {
             // Verifies normal fat-pointer expansion still works when the POU has properties.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY_GET foo: DINT END_GET
-                    PROPERTY_SET foo: DINT END_SET
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY_GET foo: DINT END_GET
-                    PROPERTY_SET foo: DINT END_SET
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -4057,17 +4057,17 @@ mod tests {
             // correct itable instance for the .table field.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY_GET foo: DINT END_GET
-                    PROPERTY_SET foo: DINT END_SET
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY_GET foo: DINT END_GET
-                    PROPERTY_SET foo: DINT END_SET
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
-                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -4107,7 +4107,7 @@ mod tests {
                         END_VAR
                     END_METHOD
 
-                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
@@ -4117,7 +4117,7 @@ mod tests {
                         END_VAR
                     END_METHOD
 
-                    PROPERTY_GET foo: DINT END_GET
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main

@@ -82,26 +82,15 @@ pub enum Token {
     #[token("THIS", ignore(case))]
     KeywordThis,
 
-    #[token("PROPERTY", ignore(case))]
-    KeywordProperty,
-
-    #[token("END_PROPERTY", ignore(case))]
-    #[token("ENDPROPERTY", ignore(case))]
-    KeywordEndProperty,
-
     #[token("PROPERTY_GET", ignore(case))]
     KeywordPropertyGet,
-
-    #[token("END_GET", ignore(case))]
-    #[token("ENDGET", ignore(case))]
-    KeywordEndGet,
 
     #[token("PROPERTY_SET", ignore(case))]
     KeywordPropertySet,
 
-    #[token("END_SET", ignore(case))]
-    #[token("ENDSET", ignore(case))]
-    KeywordEndSet,
+    #[token("END_PROPERTY", ignore(case))]
+    #[token("ENDPROPERTY", ignore(case))]
+    KeywordEndProperty,
 
     #[token("CONSTANT", ignore(case))]
     KeywordConstant,

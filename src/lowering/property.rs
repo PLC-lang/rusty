@@ -10,13 +10,13 @@
 //!         // ...
 //!         foo := <expr>;
 //!         // ...
-//!     END_GET
+//!     END_PROPERTY
 //!
 //!     PROPERTY_SET
 //!         // ...
 //!         <expr> := foo;
 //!         // ...
-//!     END_SET
+//!     END_PROPERTY
 //! END_FUNCTION_BLOCK
 //! ```
 //! internally these PROPERTY_GET and PROPERTY_SET blocks will be lowered into methods because semantically `<var> := fb.foo` is
@@ -516,7 +516,7 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY_GET foo: DINT
-                END_GET
+                END_PROPERTY
             END_FUNCTION_BLOCK
             ";
 
@@ -585,7 +585,7 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY_SET foo: DINT
-                END_SET
+                END_PROPERTY
             END_FUNCTION_BLOCK
             ";
 
@@ -635,7 +635,7 @@ mod tests {
                     foo := 3;
                     foo := 4;
                     foo := 5;
-                END_GET
+                END_PROPERTY
 
                 PROPERTY_SET foo: DINT
                     foo := 1;
@@ -643,7 +643,7 @@ mod tests {
                     foo := 3;
                     foo := 4;
                     foo := 5;
-                END_SET
+                END_PROPERTY
             END_FUNCTION_BLOCK
             ";
 
@@ -662,13 +662,13 @@ mod tests {
                     VAR
                         a, b, c : DINT;
                     END_VAR
-                END_GET
+                END_PROPERTY
 
                 PROPERTY_SET foo: DINT
                     VAR
                         d, e, f : DINT;
                     END_VAR
-                END_SET
+                END_PROPERTY
             END_FUNCTION_BLOCK
             ";
 
@@ -764,17 +764,17 @@ mod tests {
                     localPrivateVariable : DINT;
                 END_VAR
 
-                PROPERTY_GET foo: DINT END_GET
-                PROPERTY_SET foo: DINT END_SET
+                PROPERTY_GET foo: DINT END_PROPERTY
+                PROPERTY_SET foo: DINT END_PROPERTY
 
-                PROPERTY_GET bar: DINT END_GET
-                PROPERTY_SET bar: DINT END_SET
+                PROPERTY_GET bar: DINT END_PROPERTY
+                PROPERTY_SET bar: DINT END_PROPERTY
 
-                PROPERTY_GET baz: DINT END_GET
-                PROPERTY_SET baz: DINT END_SET
+                PROPERTY_GET baz: DINT END_PROPERTY
+                PROPERTY_SET baz: DINT END_PROPERTY
 
-                PROPERTY_GET qux: DINT END_GET
-                PROPERTY_SET qux: DINT END_SET
+                PROPERTY_GET qux: DINT END_PROPERTY
+                PROPERTY_SET qux: DINT END_PROPERTY
             END_FUNCTION_BLOCK
             ";
 
@@ -797,8 +797,8 @@ mod tests {
         fn property_self_assignment() {
             let source = r"
             FUNCTION_BLOCK fb
-                PROPERTY_GET foo: DINT END_GET
-                PROPERTY_SET foo: DINT END_SET
+                PROPERTY_GET foo: DINT END_PROPERTY
+                PROPERTY_SET foo: DINT END_PROPERTY
 
                 foo := foo;
             END_FUNCTION_BLOCK
@@ -838,8 +838,8 @@ mod tests {
         fn properties_in_interfaces_are_lowered() {
             let source = r"
             INTERFACE foo
-                PROPERTY_GET bar: DINT END_GET
-                PROPERTY_SET bar: DINT END_SET
+                PROPERTY_GET bar: DINT END_PROPERTY
+                PROPERTY_SET bar: DINT END_PROPERTY
             END_INTERFACE
             ";
 
@@ -937,8 +937,8 @@ mod tests {
                     foo : DINT;
                 END_VAR
 
-                PROPERTY_GET myProp: DINT END_GET
-                PROPERTY_SET myProp: DINT END_SET
+                PROPERTY_GET myProp: DINT END_PROPERTY
+                PROPERTY_SET myProp: DINT END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION main
@@ -976,7 +976,7 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY_GET foo: DINT
-                END_GET
+                END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION main
@@ -1001,7 +1001,7 @@ mod tests {
             FUNCTION_BLOCK A
                 PROPERTY_GET sayCheese: DINT
                     printf('Cheese');
-                END_GET
+                END_PROPERTY
 
                 sayCheese;
             END_FUNCTION_BLOCK
@@ -1032,7 +1032,7 @@ mod tests {
             END_FUNCTION
 
             FUNCTION_BLOCK fb
-                PROPERTY_GET foo: STRING END_GET
+                PROPERTY_GET foo: STRING END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION main
@@ -1086,7 +1086,7 @@ mod tests {
             END_FUNCTION
 
             FUNCTION_BLOCK fb
-                PROPERTY_GET foo: DINT END_GET
+                PROPERTY_GET foo: DINT END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION main
@@ -1115,7 +1115,7 @@ mod tests {
         fn reference_as_array_index_is_annotated() {
             let source = r"
             FUNCTION_BLOCK fb
-                PROPERTY_GET foo: DINT END_GET
+                PROPERTY_GET foo: DINT END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION main
@@ -1178,11 +1178,11 @@ mod tests {
             FUNCTION_BLOCK fb
                 PROPERTY_GET foo: ARRAY[1..5] OF STRING
                     foo := ['a', 'b', 'c', 'd', 'e'];
-                END_GET
+                END_PROPERTY
 
                 PROPERTY_GET bar: DINT
                     bar := 5;
-                END_GET
+                END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION main
@@ -1239,13 +1239,13 @@ mod tests {
 
                     // Similarly this should not be expanded into `__set_foo(5)`
                     foo := 5;
-                END_GET
+                END_PROPERTY
 
                 PROPERTY_SET foo: DINT
                     // Same as above
                     foo;
                     foo := 5;
-                END_SET
+                END_PROPERTY
             END_FUNCTION_BLOCK
             ";
 
@@ -1311,11 +1311,11 @@ mod tests {
             let source = r"
             FUNCTION_BLOCK fb
                 PROPERTY_GET foo: DINT
-                END_GET
+                END_PROPERTY
 
                 PROPERTY_GET bar: DINT
                     foo;
-                END_GET
+                END_PROPERTY
             END_FUNCTION_BLOCK
             ";
 
@@ -1331,8 +1331,8 @@ mod tests {
         fn property_in_action() {
             let source = r"
             FUNCTION_BLOCK fb
-                PROPERTY_GET foo: DINT END_GET
-                PROPERTY_SET foo: DINT END_SET
+                PROPERTY_GET foo: DINT END_PROPERTY
+                PROPERTY_SET foo: DINT END_PROPERTY
             END_FUNCTION_BLOCK
 
             ACTION fb.act
@@ -1359,8 +1359,8 @@ mod tests {
         fn inherited_property_through_child_interface_is_annotated() {
             let source = r"
             INTERFACE IA
-                PROPERTY_GET value: DINT END_GET
-                PROPERTY_SET value: DINT END_SET
+                PROPERTY_GET value: DINT END_PROPERTY
+                PROPERTY_SET value: DINT END_PROPERTY
             END_INTERFACE
 
             INTERFACE IB EXTENDS IA
@@ -1374,11 +1374,11 @@ mod tests {
 
                 PROPERTY_GET value: DINT
                     value := _val;
-                END_GET
+                END_PROPERTY
 
                 PROPERTY_SET value: DINT
                     _val := value;
-                END_SET
+                END_PROPERTY
 
                 METHOD describe END_METHOD
             END_FUNCTION_BLOCK

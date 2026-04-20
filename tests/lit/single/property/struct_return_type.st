@@ -42,13 +42,13 @@ FUNCTION_BLOCK fb
         END_IF
 
         foo := returnValue;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_SET foo: Transaction
         printf('Inside setter$N');
 
         returnValue := foo;
-    END_SET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 

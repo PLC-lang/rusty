@@ -2204,8 +2204,8 @@ fn function_block_implementing_erroneous_interface() {
 fn property_not_implemented() {
     let source = r"
     INTERFACE intf
-        PROPERTY_GET prop: DINT END_GET
-        PROPERTY_SET prop: DINT END_SET
+        PROPERTY_GET prop: DINT END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_INTERFACE
 
     FUNCTION_BLOCK fb IMPLEMENTS intf
@@ -2237,12 +2237,12 @@ fn property_not_implemented() {
 fn property_partially_implemented() {
     let source = r"
     INTERFACE intf
-        PROPERTY_GET prop: DINT END_GET
-        PROPERTY_SET prop: DINT END_SET
+        PROPERTY_GET prop: DINT END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_INTERFACE
 
     FUNCTION_BLOCK fb IMPLEMENTS intf
-        PROPERTY_GET prop: DINT END_GET
+        PROPERTY_GET prop: DINT END_PROPERTY
     END_FUNCTION_BLOCK
     ";
 
@@ -2262,11 +2262,11 @@ fn property_partially_implemented() {
 fn property_with_conflicting_signatures() {
     let source = r"
     INTERFACE intf1
-        PROPERTY_GET prop: DINT END_GET
+        PROPERTY_GET prop: DINT END_PROPERTY
     END_INTERFACE
 
     INTERFACE intf2
-        PROPERTY_GET prop: STRING END_GET
+        PROPERTY_GET prop: STRING END_PROPERTY
     END_INTERFACE
 
     INTERFACE intf3 EXTENDS intf1, intf2
@@ -2292,24 +2292,24 @@ fn property_with_conflicting_signatures() {
 fn interface_with_property_set_extending_other_interface_with_property_get() {
     let source = r"
     INTERFACE intfA
-        PROPERTY_GET prop: DINT END_GET
+        PROPERTY_GET prop: DINT END_PROPERTY
     END_INTERFACE
 
     INTERFACE intfB
-        PROPERTY_SET prop: DINT END_SET
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_INTERFACE
 
     INTERFACE intfC EXTENDS intfA, intfB
     END_INTERFACE
 
     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
-        PROPERTY_GET prop: DINT END_GET
-        PROPERTY_SET prop: DINT END_SET
+        PROPERTY_GET prop: DINT END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
-        PROPERTY_GET prop: DINT END_GET
-        PROPERTY_SET prop: DINT END_SET
+        PROPERTY_GET prop: DINT END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_FUNCTION_BLOCK
     ";
 
@@ -2320,22 +2320,22 @@ fn interface_with_property_set_extending_other_interface_with_property_get() {
 fn missing_property_accessor_implementation() {
     let source = r"
     INTERFACE intfA
-        PROPERTY_GET prop: DINT END_GET
+        PROPERTY_GET prop: DINT END_PROPERTY
     END_INTERFACE
 
     INTERFACE intfB
-        PROPERTY_SET prop: DINT END_SET
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_INTERFACE
 
     INTERFACE intfC EXTENDS intfA, intfB
     END_INTERFACE
 
     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
-        PROPERTY_GET prop: DINT END_GET
+        PROPERTY_GET prop: DINT END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
-        PROPERTY_SET prop: DINT END_SET
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_FUNCTION_BLOCK
   ";
 

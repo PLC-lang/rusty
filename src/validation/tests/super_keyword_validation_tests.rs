@@ -589,10 +589,10 @@ fn super_with_property_access() {
 
             PROPERTY_GET prop: INT
                 prop := _prop_val;
-            END_GET
+            END_PROPERTY
             PROPERTY_SET prop: INT
                 _prop_val := prop;
-            END_SET
+            END_PROPERTY
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK child EXTENDS parent
@@ -602,10 +602,10 @@ fn super_with_property_access() {
 
             PROPERTY_GET prop: INT
                 prop := _prop_val * 2;
-            END_GET
+            END_PROPERTY
             PROPERTY_SET prop: INT
                 _prop_val := prop / 2;
-            END_SET
+            END_PROPERTY
 
             METHOD test
                 // Get using parent's property getter
@@ -1345,10 +1345,10 @@ fn super_with_property_access_errors() {
 
             PROPERTY_GET prop: INT
                 prop := _value;
-            END_GET
+            END_PROPERTY
             PROPERTY_SET prop: INT
                 _value := prop;
-            END_SET
+            END_PROPERTY
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK child EXTENDS parent

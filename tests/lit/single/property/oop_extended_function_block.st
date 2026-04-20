@@ -7,11 +7,11 @@ FUNCTION_BLOCK fb
 
     PROPERTY_GET foo: ARRAY[1..5] OF STRING
         foo := returnValue;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_GET bar: DINT
         bar := 5;
-    END_GET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fb2 EXTENDS fb

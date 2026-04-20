@@ -6,7 +6,7 @@ FUNCTION_BLOCK A
 
     PROPERTY_GET foo: DINT
         foo := x;
-    END_GET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK B
@@ -16,7 +16,7 @@ FUNCTION_BLOCK B
 
     PROPERTY_GET foo: DINT
         foo := x;
-    END_GET
+    END_PROPERTY
 
     METHOD bar : DINT
     VAR

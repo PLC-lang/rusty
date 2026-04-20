@@ -663,26 +663,26 @@ fn use_incorrect_end_keyword() {
     let source = r"
         FUNCTION_BLOCK fb
             PROPERTY_GET foo: DINT
-            END_SET;
+            END_PROPERTY;
             PROPERTY_GET foo: DINT
-            END_GET;
+            END_PROPERTY;
             PROPERTY_GET foo: DINT
-            END_SET;
+            END_PROPERTY;
         END_FUNCTION_BLOCK
     ";
 
     let (_, diagnostics) = parse_buffered(source);
     insta::assert_snapshot!(diagnostics, @"
-    error[E007]: Unexpected token: expected KeywordEndGet but found END_SET
+    error[E007]: Unexpected token: expected KeywordEndGet but found END_PROPERTY
       ┌─ <internal>:5:21
       │
-    5 │                     END_SET;
-      │                     ^^^^^^^ Unexpected token: expected KeywordEndGet but found END_SET
+    5 │                     END_PROPERTY;
+      │                     ^^^^^^^ Unexpected token: expected KeywordEndGet but found END_PROPERTY
 
-    error[E007]: Unexpected token: expected KeywordEndGet but found END_SET
+    error[E007]: Unexpected token: expected KeywordEndGet but found END_PROPERTY
       ┌─ <internal>:9:21
       │
-    9 │                     END_SET;
-      │                     ^^^^^^^ Unexpected token: expected KeywordEndGet but found END_SET
+    9 │                     END_PROPERTY;
+      │                     ^^^^^^^ Unexpected token: expected KeywordEndGet but found END_PROPERTY
     ");
 }

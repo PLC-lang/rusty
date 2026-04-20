@@ -18,11 +18,11 @@ VAR
 END_VAR
     PROPERTY_GET myProp: DINT
       myProp := foo + 5;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_SET myProp: DINT
       foo := myProp + foo;
-    END_SET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 

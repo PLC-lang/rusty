@@ -9,11 +9,11 @@ FUNCTION_BLOCK A
 
     PROPERTY_GET value: DINT
         value := _val;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_SET value: DINT
         _val := value;
-    END_SET
+    END_PROPERTY
 
     METHOD printValue
         printf('value=%d$N', value);
@@ -29,7 +29,7 @@ FUNCTION_BLOCK B EXTENDS A
     // Override only the setter — adds 1000 to distinguish from A's setter
     PROPERTY_SET value: DINT
         _val := value + 1000;
-    END_SET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION printViaPtr

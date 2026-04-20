@@ -20,12 +20,12 @@ FUNCTION_BLOCK C
     PROPERTY_GET foo: DINT
         printf('Inside getter$N');
         foo := localPrivateVariable;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_SET foo: DINT
         printf('Inside setter$N');
         localPrivateVariable := localPrivateVariable + foo;
-    END_SET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION main

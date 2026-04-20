@@ -5,8 +5,8 @@
 // correct accessor implementation each time.
 
 INTERFACE IValue
-    PROPERTY_GET value: DINT END_GET
-    PROPERTY_SET value: DINT END_SET
+    PROPERTY_GET value: DINT END_PROPERTY
+    PROPERTY_SET value: DINT END_PROPERTY
 END_INTERFACE
 
 FUNCTION_BLOCK FbPlain IMPLEMENTS IValue
@@ -16,11 +16,11 @@ FUNCTION_BLOCK FbPlain IMPLEMENTS IValue
 
     PROPERTY_GET value: DINT
         value := _val;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_SET value: DINT
         _val := value;
-    END_SET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK FbDoubling IMPLEMENTS IValue
@@ -30,11 +30,11 @@ FUNCTION_BLOCK FbDoubling IMPLEMENTS IValue
 
     PROPERTY_GET value: DINT
         value := _val * 2;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_SET value: DINT
         _val := value;
-    END_SET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION main

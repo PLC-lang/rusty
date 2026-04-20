@@ -7,7 +7,7 @@ FUNCTION_BLOCK fb1
 
     PROPERTY_GET prop: DINT
         prop := localPrivateVariable;
-    END_GET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fb2 EXTENDS fb1
@@ -18,7 +18,7 @@ FUNCTION_BLOCK fb2 EXTENDS fb1
 
         x := prop + 1;
         localPrivateVariable := x;
-    END_SET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION main

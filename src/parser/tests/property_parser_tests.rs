@@ -10,14 +10,14 @@ fn properties_can_be_parsed() {
                 END_VAR
 
                 bar := 5;
-            END_GET
+            END_PROPERTY
             PROPERTY_SET bar: INT
                 VAR
                     setLocalVariable : DINT;
                 END_VAR
 
                 localNonExistingVariable := bar;
-            END_SET
+            END_PROPERTY
         END_FUNCTION_BLOCK
     ";
 
@@ -184,7 +184,7 @@ fn property_with_variable_block() {
                     // Invalid variable block, should be in a getter or setter
                 END_VAR
                 // ...
-            END_GET
+            END_PROPERTY
         END_FUNCTION_BLOCK
     ";
 

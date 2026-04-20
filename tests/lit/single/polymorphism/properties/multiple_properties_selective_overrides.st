@@ -11,19 +11,19 @@ FUNCTION_BLOCK A
 
     PROPERTY_GET x: DINT
         x := _x;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_SET x: DINT
         _x := x;
-    END_SET
+    END_PROPERTY
 
     PROPERTY_GET y: DINT
         y := _y;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_SET y: DINT
         _y := y;
-    END_SET
+    END_PROPERTY
 
     METHOD printXY
         printf('x=%d, y=%d$N', x, y);
@@ -44,12 +44,12 @@ FUNCTION_BLOCK B EXTENDS A
     // Override only getter of x — adds 100
     PROPERTY_GET x: DINT
         x := _x + 100;
-    END_GET
+    END_PROPERTY
 
     // Override only setter of y — adds 200
     PROPERTY_SET y: DINT
         _y := y + 200;
-    END_SET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION printViaPtr

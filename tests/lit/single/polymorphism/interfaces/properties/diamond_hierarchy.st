@@ -11,8 +11,8 @@
 // should expose its respective methods.
 
 INTERFACE IA
-    PROPERTY_GET value: DINT END_GET
-    PROPERTY_SET value: DINT END_SET
+    PROPERTY_GET value: DINT END_PROPERTY
+    PROPERTY_SET value: DINT END_PROPERTY
 END_INTERFACE
 
 INTERFACE IB EXTENDS IA
@@ -34,11 +34,11 @@ FUNCTION_BLOCK FbImpl IMPLEMENTS ID
 
     PROPERTY_GET value: DINT
         value := _val;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_SET value: DINT
         _val := value;
-    END_SET
+    END_PROPERTY
 
     METHOD bar
         printf('bar(%d)$N', _val);

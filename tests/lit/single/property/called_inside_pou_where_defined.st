@@ -3,7 +3,7 @@
 FUNCTION_BLOCK A
     PROPERTY_GET sayCheese: DINT
         printf('Cheese');
-    END_GET
+    END_PROPERTY
 
     sayCheese;
 END_FUNCTION_BLOCK

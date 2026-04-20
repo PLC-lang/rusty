@@ -2171,8 +2171,8 @@ mod inherited_properties {
     fn reference_to_property_declared_in_parent_is_called_correctly() {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
-                PROPERTY_GET foo: INT END_GET
-                PROPERTY_SET foo: INT END_SET
+                PROPERTY_GET foo: INT END_PROPERTY
+                PROPERTY_SET foo: INT END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb2 EXTENDS fb
@@ -2277,8 +2277,8 @@ mod inherited_properties {
     fn reference_to_property_declared_in_grandparent_is_called_correctly() {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
-                PROPERTY_GET foo: INT END_GET
-                PROPERTY_SET foo: INT END_SET
+                PROPERTY_GET foo: INT END_PROPERTY
+                PROPERTY_SET foo: INT END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb2 EXTENDS fb
@@ -2396,12 +2396,12 @@ mod inherited_properties {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
                 PROPERTY_GET foo: INT
-                END_GET
+                END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb2 EXTENDS fb
                 PROPERTY_SET foo: INT
-                END_SET
+                END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb3 EXTENDS fb2

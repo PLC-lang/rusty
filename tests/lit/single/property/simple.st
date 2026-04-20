@@ -6,11 +6,11 @@ FUNCTION_BLOCK fb
 
     PROPERTY_GET foo: DINT
         foo := localPrivateVariable;
-    END_GET
+    END_PROPERTY
 
     PROPERTY_SET foo: DINT
         localPrivateVariable := foo + 5;
-    END_SET
+    END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION main

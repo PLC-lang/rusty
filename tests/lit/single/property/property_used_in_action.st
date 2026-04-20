@@ -5,7 +5,7 @@ FUNCTION_BLOCK A
     END_VAR
     PROPERTY_GET foo: DINT
         foo := x;
-    END_GET
+    END_PROPERTY
 
     METHOD bar : DINT
         bar := foo;

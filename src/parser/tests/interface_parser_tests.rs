@@ -410,8 +410,8 @@ fn interface_deriving_from_multiple_interfaces() {
 fn interface_with_property() {
     let source = r"
     INTERFACE myInterface
-        PROPERTY_GET foo: INT END_GET
-        PROPERTY_SET foo: INT END_SET
+        PROPERTY_GET foo: INT END_PROPERTY
+        PROPERTY_SET foo: INT END_PROPERTY
     END_INTERFACE
     ";
 
@@ -477,11 +477,11 @@ mod error_handling {
 
             PROPERTY_GET propA: INT
                 1 > 2;
-            END_GET
+            END_PROPERTY
 
             PROPERTY_SET propA: INT
                 1 > 2;
-            END_SET
+            END_PROPERTY
         END_INTERFACE
         ";
 

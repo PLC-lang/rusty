@@ -831,7 +831,7 @@ fn lowercase_keywords_accepted() {
 #[test]
 fn property_related_keywords() {
     let mut lexer = lex(r"
-        PROPERTY END_PROPERTY PROPERTY_GET END_GET PROPERTY_SET END_SET
+        PROPERTY END_PROPERTY PROPERTY_GET END_PROPERTY PROPERTY_SET END_PROPERTY
         ENDPROPERTY ENDGET ENDSET
     ");
 

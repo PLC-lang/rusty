@@ -2463,7 +2463,7 @@ fn validate_property_call_with_braces() {
     let diagnostics = test_utils::parse_and_validate_buffered(
         "
         FUNCTION_BLOCK fb
-        PROPERTY_GET foo: REF_TO DINT END_GET
+        PROPERTY_GET foo: REF_TO DINT END_PROPERTY
         END_FUNCTION_BLOCK
 
         FUNCTION main
