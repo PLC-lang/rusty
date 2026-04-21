@@ -126,17 +126,14 @@ impl<'a> ParseSession<'a> {
             | Token::KeywordEndFor
             | Token::KeywordEndRepeat
             | Token::KeywordEndMethod
-            | Token::KeywordEndClass => {
-                if !self.slice().to_string().contains('_') {
-                    self.accept_diagnostic(
-                        Diagnostic::new(format!(
-                            "the words in {} should be separated by a `_`",
-                            self.slice()
-                        ))
+            | Token::KeywordEndClass
+                if !self.slice().to_string().contains('_') =>
+            {
+                self.accept_diagnostic(
+                    Diagnostic::new(format!("the words in {} should be separated by a `_`", self.slice()))
                         .with_error_code("E013")
                         .with_location(self.location()),
-                    );
-                }
+                );
             }
             _ => {}
         }

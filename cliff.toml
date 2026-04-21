@@ -18,8 +18,7 @@ body = """
 ### {{ group | striptags | trim | upper_first }}
 {% for commit in commits %}
 - {% if commit.scope %}**{{ commit.scope }}**: {% endif %}\
-  {{ commit.message | upper_first }}\
-  {% if commit.links | length > 0 %} ({% for link in commit.links %}[{{ link.text }}]({{ link.href }}){% if not loop.last %}, {% endif %}{% endfor %}){% endif %}
+  {{ commit.message | upper_first }}
 {%- endfor %}
 {% endfor %}
 """
@@ -44,10 +43,6 @@ commit_parsers = [
   { message = "^ci", skip = true },
   { message = "^chore", skip = true },
   { message = "^build", skip = true },
-]
-
-link_parsers = [
-  { pattern = "#(\\d+)", href = "https://github.com/PLC-lang/rusty/pull/{{ number }}" },
 ]
 
 [bump]

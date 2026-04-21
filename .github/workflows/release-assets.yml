@@ -1,0 +1,280 @@
+name: Release Assets
+
+on:
+  workflow_run:
+    workflows:
+      - Build Linux
+      - Build Windows
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to backfill, e.g. v0.4.0
+        required: true
+        type: string
+
+jobs:
+  publish-assets:
+    name: Publish release assets
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Resolve source request
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            echo "mode=workflow_run" >> "$GITHUB_OUTPUT"
+            echo "source_run_id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+            echo "source_workflow_name=${{ github.event.workflow_run.name }}" >> "$GITHUB_OUTPUT"
+            echo "conclusion=${{ github.event.workflow_run.conclusion }}" >> "$GITHUB_OUTPUT"
+            echo "head_branch=${{ github.event.workflow_run.head_branch }}" >> "$GITHUB_OUTPUT"
+            echo "event_name=${{ github.event.workflow_run.event }}" >> "$GITHUB_OUTPUT"
+            echo "source_sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+          else
+            TAG="${{ inputs.tag }}"
+            SOURCE_SHA=$(bash .github/scripts/resolve-tag-sha.sh "${{ github.repository }}" "$TAG")
+
+            echo "mode=workflow_dispatch" >> "$GITHUB_OUTPUT"
+            echo "requested_tag=$TAG" >> "$GITHUB_OUTPUT"
+            echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate source request
+        id: validate
+        run: |
+          SKIP=false
+
+          if [[ "${{ steps.source.outputs.mode }}" == "workflow_run" ]]; then
+            if [[ "${{ steps.source.outputs.source_workflow_name }}" != "Build Linux" && "${{ steps.source.outputs.source_workflow_name }}" != "Build Windows" ]]; then
+              echo "Skipping unsupported workflow: ${{ steps.source.outputs.source_workflow_name }}"
+              SKIP=true
+            fi
+
+            if [[ "${{ steps.source.outputs.conclusion }}" != "success" ]]; then
+              echo "Skipping unsuccessful run: ${{ steps.source.outputs.conclusion }}"
+              SKIP=true
+            fi
+
+            if [[ "${{ steps.source.outputs.event_name }}" != "push" ]]; then
+              echo "Skipping non-push run: ${{ steps.source.outputs.event_name }}"
+              SKIP=true
+            fi
+
+            if [[ "${{ steps.source.outputs.head_branch }}" != "master" ]]; then
+              echo "Skipping non-master run: ${{ steps.source.outputs.head_branch }}"
+              SKIP=true
+            fi
+          fi
+
+          echo "skip=$SKIP" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout release commit
+        if: steps.validate.outputs.skip != 'true'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          ref: ${{ steps.source.outputs.source_sha }}
+
+      - name: Get release version from Cargo.toml
+        if: steps.validate.outputs.skip != 'true'
+        id: version
+        env:
+          MODE: ${{ steps.source.outputs.mode }}
+          REQUESTED_TAG: ${{ steps.source.outputs.requested_tag }}
+        run: |
+          VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          TAG="v$VERSION"
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          if [[ "$VERSION" == *-dev ]]; then
+            if [[ "$MODE" == "workflow_dispatch" ]]; then
+              echo "Manual backfill requires a released tag, got dev version $VERSION" >&2
+              exit 1
+            fi
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "$MODE" == "workflow_dispatch" && "$REQUESTED_TAG" != "$TAG" ]]; then
+            echo "Requested tag $REQUESTED_TAG does not match Cargo.toml version $TAG" >&2
+            exit 1
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for GitHub release
+        if: steps.validate.outputs.skip != 'true' && steps.version.outputs.skip != 'true'
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          FOUND=false
+          for _ in $(seq 1 40); do
+            if gh release view "${{ steps.version.outputs.tag }}" >/dev/null 2>&1; then
+              FOUND=true
+              break
+            fi
+            sleep 15
+          done
+          echo "found=$FOUND" >> "$GITHUB_OUTPUT"
+
+      - name: Enforce release existence for manual backfill
+        if: steps.validate.outputs.skip != 'true' && steps.version.outputs.skip != 'true' && steps.source.outputs.mode == 'workflow_dispatch' && steps.release.outputs.found != 'true'
+        run: |
+          echo "Release ${{ steps.version.outputs.tag }} was not found" >&2
+          exit 1
+
+      - name: Resolve tag commit
+        if: steps.validate.outputs.skip != 'true' && steps.version.outputs.skip != 'true' && steps.release.outputs.found == 'true'
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG_SHA=$(bash .github/scripts/resolve-tag-sha.sh "${{ github.repository }}" "${{ steps.version.outputs.tag }}")
+          echo "tag_sha=$TAG_SHA" >> "$GITHUB_OUTPUT"
+
+          if [[ "$TAG_SHA" == "${{ steps.source.outputs.source_sha }}" ]]; then
+            echo "matches=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "matches=false" >> "$GITHUB_OUTPUT"
+            if [[ "${{ steps.source.outputs.mode }}" == "workflow_dispatch" ]]; then
+              echo "Requested tag ${{ steps.version.outputs.tag }} resolves to $TAG_SHA but source SHA is ${{ steps.source.outputs.source_sha }}" >&2
+              exit 1
+            fi
+            echo "Skipping run ${{ steps.source.outputs.source_run_id }} because it does not match tag ${{ steps.version.outputs.tag }}"
+          fi
+
+      - name: Resolve artifact runs
+        if: steps.validate.outputs.skip != 'true' && steps.version.outputs.skip != 'true' && steps.release.outputs.found == 'true' && steps.tag.outputs.matches == 'true'
+        id: runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LINUX_RUN_ID=""
+          WINDOWS_RUN_ID=""
+
+          if [[ "${{ steps.source.outputs.mode }}" == "workflow_run" ]]; then
+            if [[ "${{ steps.source.outputs.source_workflow_name }}" == "Build Linux" ]]; then
+              LINUX_RUN_ID="${{ steps.source.outputs.source_run_id }}"
+            else
+              WINDOWS_RUN_ID="${{ steps.source.outputs.source_run_id }}"
+            fi
+          else
+            LINUX_RUN_ID=$(bash .github/scripts/find-workflow-run.sh "${{ github.repository }}" linux.yml "${{ steps.source.outputs.source_sha }}")
+            WINDOWS_RUN_ID=$(bash .github/scripts/find-workflow-run.sh "${{ github.repository }}" windows.yml "${{ steps.source.outputs.source_sha }}")
+          fi
+
+          echo "linux_run_id=$LINUX_RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "windows_run_id=$WINDOWS_RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Download Linux artifacts
+        if: steps.validate.outputs.skip != 'true' && steps.version.outputs.skip != 'true' && steps.release.outputs.found == 'true' && steps.tag.outputs.matches == 'true' && steps.runs.outputs.linux_run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/linux artifacts/staged
+          gh run download "${{ steps.runs.outputs.linux_run_id }}" \
+            -D artifacts/linux \
+            -n plc-x86_64 \
+            -n plc-aarch64 \
+            -n deb-x86_64 \
+            -n deb-aarch64 \
+            -n stdlib
+
+      - name: Download Windows artifacts
+        if: steps.validate.outputs.skip != 'true' && steps.version.outputs.skip != 'true' && steps.release.outputs.found == 'true' && steps.tag.outputs.matches == 'true' && steps.runs.outputs.windows_run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p artifacts/windows artifacts/staged
+          gh run download "${{ steps.runs.outputs.windows_run_id }}" \
+            -D artifacts/windows \
+            -n plc.exe \
+            -n stdlib.dll \
+            -n stdlib.lib
+
+      - name: Stage release assets
+        if: steps.validate.outputs.skip != 'true' && steps.version.outputs.skip != 'true' && steps.release.outputs.found == 'true' && steps.tag.outputs.matches == 'true'
+        run: |
+          mkdir -p artifacts/staged
+
+          if [[ -n "${{ steps.runs.outputs.linux_run_id }}" ]]; then
+            bash .github/scripts/stage-release-assets.sh \
+              "Build Linux" \
+              "${{ steps.version.outputs.version }}" \
+              artifacts/linux \
+              artifacts/staged >/dev/null
+          fi
+
+          if [[ -n "${{ steps.runs.outputs.windows_run_id }}" ]]; then
+            bash .github/scripts/stage-release-assets.sh \
+              "Build Windows" \
+              "${{ steps.version.outputs.version }}" \
+              artifacts/windows \
+              artifacts/staged >/dev/null
+          fi
+
+          find artifacts/staged -maxdepth 1 -type f -printf '%f\n' | sort | tee artifacts/staged/assets.txt
+
+      - name: Upload release assets
+        if: steps.validate.outputs.skip != 'true' && steps.version.outputs.skip != 'true' && steps.release.outputs.found == 'true' && steps.tag.outputs.matches == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mapfile -t ASSETS < <(find artifacts/staged -maxdepth 1 -type f ! -name assets.txt | sort)
+          if [[ ${#ASSETS[@]} -eq 0 ]]; then
+            echo "No assets staged"
+            exit 0
+          fi
+
+          gh release upload "${{ steps.version.outputs.tag }}" "${ASSETS[@]}" --clobber
+
+      - name: Summary
+        if: always()
+        env:
+          MODE: ${{ steps.source.outputs.mode }}
+          REQUESTED_TAG: ${{ steps.source.outputs.requested_tag }}
+          SOURCE_WORKFLOW: ${{ steps.source.outputs.source_workflow_name }}
+          SOURCE_RUN: ${{ steps.source.outputs.source_run_id }}
+          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_FOUND: ${{ steps.release.outputs.found }}
+          TAG_SHA: ${{ steps.tag.outputs.tag_sha }}
+          TAG_MATCHES: ${{ steps.tag.outputs.matches }}
+          LINUX_RUN: ${{ steps.runs.outputs.linux_run_id }}
+          WINDOWS_RUN: ${{ steps.runs.outputs.windows_run_id }}
+        run: |
+          {
+            echo "## Release asset publish"
+            echo
+            echo "- Mode: ${MODE:-n/a}"
+            echo "- Requested tag: ${REQUESTED_TAG:-n/a}"
+            echo "- Source workflow: ${SOURCE_WORKFLOW:-n/a}"
+            echo "- Source run: ${SOURCE_RUN:-n/a}"
+            echo "- Source SHA: ${SOURCE_SHA:-n/a}"
+            echo "- Version: ${VERSION:-n/a}"
+            echo "- Tag: ${TAG:-n/a}"
+            echo "- Release found: ${RELEASE_FOUND:-false}"
+            echo "- Tag SHA: ${TAG_SHA:-n/a}"
+            echo "- Tag matches source SHA: ${TAG_MATCHES:-false}"
+            echo "- Linux run: ${LINUX_RUN:-n/a}"
+            echo "- Windows run: ${WINDOWS_RUN:-n/a}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ -f artifacts/staged/assets.txt ]]; then
+            {
+              echo
+              echo "### Assets"
+              while IFS= read -r asset; do
+                echo "- \`$asset\`"
+              done < artifacts/staged/assets.txt
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
