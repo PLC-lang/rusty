@@ -33,6 +33,90 @@ fn uninitialized_constants_fall_back_to_the_default() {
 }
 
 #[test]
+fn uninitialized_derived_array_constants_do_not_report_array_literal_syntax_errors() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE internArraySint : ARRAY [1..3] OF SINT := [1,2,3]; END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            gVargDerivedArray : internArraySint;
+        END_VAR
+       ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn uninitialized_array_constants_without_type_default_report_e033() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE internArraySint : ARRAY [1..3] OF SINT; END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            gVargDerivedArray : internArraySint;
+        END_VAR
+       ",
+    );
+
+    assert_snapshot!(&diagnostics, @r"
+    error[E033]: Unresolved constant `gVargDerivedArray` variable: no explicit initializer and no default value could be resolved
+      ┌─ <internal>:5:13
+      │
+    5 │             gVargDerivedArray : internArraySint;
+      │             ^^^^^^^^^^^^^^^^^ Unresolved constant `gVargDerivedArray` variable: no explicit initializer and no default value could be resolved
+    ");
+}
+
+#[test]
+fn array_constants_with_non_constant_initializers_report_e033() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION F : INT
+            F := 1;
+        END_FUNCTION
+
+        VAR_GLOBAL CONSTANT
+            arr : ARRAY[1..2] OF INT := [F(), 2];
+        END_VAR
+       ",
+    );
+
+    assert_snapshot!(&diagnostics, @r"
+    error[E033]: Unresolved constant `arr` variable: Call-statement 'F' in initializer is not constant.
+      ┌─ <internal>:7:41
+      │
+    7 │             arr : ARRAY[1..2] OF INT := [F(), 2];
+      │                                         ^^^^^^^^ Unresolved constant `arr` variable: Call-statement 'F' in initializer is not constant.
+    ");
+}
+
+#[test]
+fn uninitialized_array_constants_with_unresolvable_type_default_report_e033() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION F : INT
+            F := 1;
+        END_FUNCTION
+
+        TYPE arr_t : ARRAY[1..2] OF INT := [F(), 2]; END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            a : arr_t;
+        END_VAR
+       ",
+    );
+
+    assert_snapshot!(&diagnostics, @r"
+    error[E033]: Unresolved constant `a` variable: Call-statement 'F' in initializer is not constant.
+      ┌─ <internal>:9:13
+      │
+    9 │             a : arr_t;
+      │             ^ Unresolved constant `a` variable: Call-statement 'F' in initializer is not constant.
+    ");
+}
+
+#[test]
 fn unresolvable_variables_are_reported() {
     let diagnostics = parse_and_validate_buffered(
         "
