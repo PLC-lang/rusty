@@ -1953,21 +1953,21 @@
 <a href=#1953 id=1953 data-nosnippet>1953</a>        }
 <a href=#1954 id=1954 data-nosnippet>1954</a>    }
 <a href=#1955 id=1955 data-nosnippet>1955</a>
-<a href=#1956 id=1956 data-nosnippet>1956</a>    <span class="doccomment">/// Returns the initioal value registered for the given data_type.
-<a href=#1957 id=1957 data-nosnippet>1957</a>    /// If the given dataType has no initial value AND it is an Alias or SubRange (referencing another type)
+<a href=#1956 id=1956 data-nosnippet>1956</a>    <span class="doccomment">/// Returns the initial value registered for the given data type.
+<a href=#1957 id=1957 data-nosnippet>1957</a>    /// If the given data type has no initial value and it is an Alias or SubRange (referencing another type),
 <a href=#1958 id=1958 data-nosnippet>1958</a>    /// this method tries to obtain the default value from the referenced type.
 <a href=#1959 id=1959 data-nosnippet>1959</a>    </span><span class="kw">pub fn </span>get_initial_value_for_type(<span class="kw-2">&amp;</span><span class="self">self</span>, type_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
 <a href=#1960 id=1960 data-nosnippet>1960</a>        <span class="kw">let </span><span class="kw-2">mut </span>dt = <span class="self">self</span>.type_index.find_type(type_name);
 <a href=#1961 id=1961 data-nosnippet>1961</a>        <span class="kw">let </span><span class="kw-2">mut </span>initial_value = dt.and_then(|it| it.initial_value);
 <a href=#1962 id=1962 data-nosnippet>1962</a>
-<a href=#1963 id=1963 data-nosnippet>1963</a>        <span class="comment">//check if we have no initial value AND this type is an alias to another type
+<a href=#1963 id=1963 data-nosnippet>1963</a>        <span class="comment">// check if we have no initial value and this type is an alias to another type
 <a href=#1964 id=1964 data-nosnippet>1964</a>        </span><span class="kw">while </span>initial_value.is_none()
 <a href=#1965 id=1965 data-nosnippet>1965</a>            &amp;&amp; <span class="macro">matches!</span>(
 <a href=#1966 id=1966 data-nosnippet>1966</a>                dt.map(|it| <span class="kw-2">&amp;</span>it.information),
 <a href=#1967 id=1967 data-nosnippet>1967</a>                <span class="prelude-val">Some</span>(DataTypeInformation::Alias { .. } | DataTypeInformation::SubRange { .. })
 <a href=#1968 id=1968 data-nosnippet>1968</a>            )
 <a href=#1969 id=1969 data-nosnippet>1969</a>        {
-<a href=#1970 id=1970 data-nosnippet>1970</a>            <span class="comment">//try to fetch initial value of the aliased type
+<a href=#1970 id=1970 data-nosnippet>1970</a>            <span class="comment">// try to fetch initial value of the aliased type
 <a href=#1971 id=1971 data-nosnippet>1971</a>            </span>dt = dt.and_then(|it| <span class="self">self</span>.get_aliased_target_type(<span class="kw-2">&amp;</span>it.information));
 <a href=#1972 id=1972 data-nosnippet>1972</a>            initial_value = dt.and_then(|it| it.initial_value);
 <a href=#1973 id=1973 data-nosnippet>1973</a>        }

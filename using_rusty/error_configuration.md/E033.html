@@ -35,7 +35,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-977a6999.js";
+            window.path_to_searchindex_js = "../../searchindex-a0526a18.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e891cefd.js"></script>
@@ -174,7 +174,33 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="unresolved-constant"><a class="header" href="#unresolved-constant">Unresolved Constant</a></h1>
+                        <h1 id="unresolved-constant"><a class="header" href="#unresolved-constant">Unresolved constant</a></h1>
+<p>A <code>CONSTANT</code> declaration could not be resolved to a compile-time value.</p>
+<p>This error is reported when the compiler cannot determine a valid constant initializer, for example when:</p>
+<ul>
+<li>the initializer references non-constant values,</li>
+<li>the initializer contains non-constant operations/calls,</li>
+<li>a referenced constant is itself unresolved,</li>
+<li>a <code>CONSTANT</code> has no explicit initializer and no usable default can be derived from its type.</li>
+</ul>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
+<pre><code class="language-st">TYPE MyInt : INT; END_TYPE
+
+VAR_GLOBAL CONSTANT
+    // No explicit initializer, and no type default available
+    a : MyInt;
+
+    // Not a constant expression
+    b : INT := someVar + 1;
+END_VAR
+</code></pre>
+<h2 id="possible-fixes"><a class="header" href="#possible-fixes">Possible fixes</a></h2>
+<ul>
+<li>Provide an explicit compile-time initializer, e.g. <code>a : MyInt := 0;</code>.</li>
+<li>Ensure all referenced symbols in the initializer are themselves constants.</li>
+<li>Replace non-constant calls/operations with compile-time expressions.</li>
+<li>If relying on implicit defaults, define a default on the declared type.</li>
+</ul>
 
                     </main>
 

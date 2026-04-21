@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-977a6999.js";
+            window.path_to_searchindex_js = "searchindex-a0526a18.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-e891cefd.js"></script>
@@ -824,7 +824,33 @@ parameter is present. For stateful POUs variadic parameters are not supported, t
 or less than the parameter list depending on whether optional arguments such as <code>VAR_INPUT</code> or <code>VAR_OUTPUT</code> were
 passed or not.</p>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="unresolved-constant"><a class="header" href="#unresolved-constant">Unresolved Constant</a></h1>
+<h1 id="unresolved-constant"><a class="header" href="#unresolved-constant">Unresolved constant</a></h1>
+<p>A <code>CONSTANT</code> declaration could not be resolved to a compile-time value.</p>
+<p>This error is reported when the compiler cannot determine a valid constant initializer, for example when:</p>
+<ul>
+<li>the initializer references non-constant values,</li>
+<li>the initializer contains non-constant operations/calls,</li>
+<li>a referenced constant is itself unresolved,</li>
+<li>a <code>CONSTANT</code> has no explicit initializer and no usable default can be derived from its type.</li>
+</ul>
+<h2 id="example-3"><a class="header" href="#example-3">Example</a></h2>
+<pre><code class="language-st">TYPE MyInt : INT; END_TYPE
+
+VAR_GLOBAL CONSTANT
+    // No explicit initializer, and no type default available
+    a : MyInt;
+
+    // Not a constant expression
+    b : INT := someVar + 1;
+END_VAR
+</code></pre>
+<h2 id="possible-fixes"><a class="header" href="#possible-fixes">Possible fixes</a></h2>
+<ul>
+<li>Provide an explicit compile-time initializer, e.g. <code>a : MyInt := 0;</code>.</li>
+<li>Ensure all referenced symbols in the initializer are themselves constants.</li>
+<li>Replace non-constant calls/operations with compile-time expressions.</li>
+<li>If relying on implicit defaults, define a default on the declared type.</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="invalid-constant-block"><a class="header" href="#invalid-constant-block">Invalid constant block</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
@@ -1477,7 +1503,7 @@ END_FUNCTION_BLOCK
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="e121-recursive-type-alias"><a class="header" href="#e121-recursive-type-alias">E121: Recursive type alias</a></h1>
 <p>This error occurs when type aliases reference each other in a cycle, creating an infinite recursion.</p>
-<h2 id="example-3"><a class="header" href="#example-3">Example</a></h2>
+<h2 id="example-4"><a class="header" href="#example-4">Example</a></h2>
 <pre><code class="language-st">TYPE type1 : type2; END_TYPE
 TYPE type2 : type1; END_TYPE
 </code></pre>
@@ -1495,7 +1521,7 @@ TYPE typeB : typeA; END_TYPE     (* Points to another alias, but ultimately reso
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="e122-invalid-enum-base-type"><a class="header" href="#e122-invalid-enum-base-type">E122: Invalid enum base type</a></h1>
 <p>This error occurs when an enum is declared with a base type that is not a valid integer type. Enums in IEC 61131-3 can only use integer types as their underlying representation.</p>
-<h2 id="example-4"><a class="header" href="#example-4">Example</a></h2>
+<h2 id="example-5"><a class="header" href="#example-5">Example</a></h2>
 <pre><code class="language-st">TYPE Color : STRING (red := 1, green := 2, blue := 3);
 END_TYPE
 
@@ -1903,13 +1929,13 @@ The total number of elements (the product of all dimension lengths) must not
 exceed <code>UDINT#4_294_967_295</code>.</p>
 <p>Extremely large arrays cause excessive compilation times and may fail to link
 because the resulting object file cannot represent them.</p>
-<h2 id="example-5"><a class="header" href="#example-5">Example</a></h2>
+<h2 id="example-6"><a class="header" href="#example-6">Example</a></h2>
 <pre><code class="language-st">VAR
     // 5 × 988_010 × 3 × 91 × ... = ~837 billion elements — exceeds UDINT max
     huge : ARRAY[1..5, 2345324..3333333, -1..1, 10..100] OF DINT;
 END_VAR
 </code></pre>
-<h2 id="possible-fixes"><a class="header" href="#possible-fixes">Possible fixes</a></h2>
+<h2 id="possible-fixes-1"><a class="header" href="#possible-fixes-1">Possible fixes</a></h2>
 <ul>
 <li>Reduce the array dimensions.</li>
 <li>Use dynamically allocated memory via <code>REF_TO</code> and runtime allocation if
@@ -2145,7 +2171,7 @@ To achieve this, the called function must be defined in a <code>C</code> compati
 <li>or be declared in <code>ST</code> using the <code>{external}</code> keyword</li>
 </ul>
 <p>When including multiple header files/function interfaces, the <code>-i</code> flag must precede each individual file, e.g. <code>-i file1.st -i file2.st -i file3.st</code>. Alternatively, when including an entire folder with <code>-i '/liblocation/*.st'</code>, the path must be put in quotes, otherwise the command-line might parse the arguments in a way that is incompatible (i.e. does not precede each file with <code>-i</code>).</p>
-<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
+<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
 <p>Given a <code>min</code> function defined in <code>C</code> as follows:</p>
 <pre><code class="language-C">int min(int a, int b) {
 //...
@@ -2796,7 +2822,7 @@ END_ACTION
 <p>Variable declaration blocks can be delcared as CONSTANT.
 All variables of a constant declaration block become constants.
 Constant variables can not be changed and need to be initialized.</p>
-<h2 id="example-7"><a class="header" href="#example-7">Example</a></h2>
+<h2 id="example-8"><a class="header" href="#example-8">Example</a></h2>
 <pre><code class="language-iecst">TYPE OneInt : INT := 1; END_TYPE
 
 VAR_GLOBAL CONSTANT
@@ -3072,7 +3098,7 @@ RuSTy supports this functionalty and extends it to support all <code>INT</code> 
 <blockquote>
 <p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
 </blockquote>
-<h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
+<h3 id="example-9"><a class="header" href="#example-9">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR
     variable    : LWORD;
@@ -3230,7 +3256,7 @@ While this approach needs much more code and hand-written changes, its benefits 
 Every element of the AST is easily identified, debugged and understood.
 E.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the RuSTy-AST enforces the structure of every node. So the RuSTy-Binary-Statement has exactly two children.
 It is impossible to construct it differently.</p>
-<h4 id="example-9"><a class="header" href="#example-9">Example</a></h4>
+<h4 id="example-10"><a class="header" href="#example-10">Example</a></h4>
 <p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures:</p>
 <pre><code class="language-rs">struct Reference {
    name: string
