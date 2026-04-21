@@ -804,7 +804,7 @@ fn only_constant_builtins_are_allowed_in_initializer() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:7:9
       │  
@@ -1450,10 +1450,11 @@ fn output_variables_must_not_be_assignable_outside_of_their_scope() {
                 out1 := 1;
             END_METHOD
 
-            PROPERTY_GET someProperty: DINT
-                out1 := 1;
-            END_PROPERTY
-            PROPERTY_SET someProperty: DINT
+            PROPERTY someProperty : DINT
+                GET
+                    out1 := 1;
+                END_GET
+                SET END_SET
             END_PROPERTY
 
             out1 := 1;
@@ -1476,11 +1477,11 @@ fn output_variables_must_not_be_assignable_outside_of_their_scope() {
        ",
     );
 
-    assert_snapshot!(&diagnostics, @r"
+    assert_snapshot!(&diagnostics, @"
     error[E037]: VAR_OUTPUT variables cannot be assigned outside of their scope.
-       ┌─ <internal>:40:13
+       ┌─ <internal>:41:13
        │
-    40 │             fb.out1 := 1;
+    41 │             fb.out1 := 1;
        │             ^^^^^^^^^^^^ VAR_OUTPUT variables cannot be assigned outside of their scope.
     ");
 }
@@ -1521,10 +1522,11 @@ fn output_variables_must_be_assignable_within_the_scope_of_inheritance() {
                 out1 := 1;
             END_METHOD
 
-            PROPERTY_GET someProperty: DINT
-                out1 := 1;
-            END_PROPERTY
-            PROPERTY_SET someProperty: DINT
+            PROPERTY someProperty : DINT
+                GET
+                    out1 := 1;
+                END_GET
+                SET END_SET
             END_PROPERTY
 
             out1 := 1;

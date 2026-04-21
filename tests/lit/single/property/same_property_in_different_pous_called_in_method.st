@@ -3,9 +3,10 @@ FUNCTION_BLOCK A
     VAR
         x : DINT := 42;
     END_VAR
-
-    PROPERTY_GET foo: DINT
-        foo := x;
+    PROPERTY foo : DINT
+        GET
+            foo := x;
+        END_GET
     END_PROPERTY
 END_FUNCTION_BLOCK
 
@@ -13,9 +14,10 @@ FUNCTION_BLOCK B
     VAR
         x : DINT := 69;
     END_VAR
-
-    PROPERTY_GET foo: DINT
-        foo := x;
+    PROPERTY foo : DINT
+        GET
+            foo := x;
+        END_GET
     END_PROPERTY
 
     METHOD bar : DINT
@@ -24,7 +26,7 @@ FUNCTION_BLOCK B
     END_VAR
         bar := foo;
     END_METHOD
-
+    
     METHOD baz : DINT
     VAR
         instanceA : A;

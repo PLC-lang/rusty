@@ -5,25 +5,33 @@ FUNCTION_BLOCK A
         foo : DINT;
     END_VAR
 
-    PROPERTY_GET increaseFooBy10: DINT
-        printf('Inside increaseFooBy10$N');
-        foo := foo + 10;
+    PROPERTY increaseFooBy10 : DINT
+        GET
+            printf('Inside increaseFooBy10$N');
+            foo := foo + 10;
+        END_GET
     END_PROPERTY
 
-    PROPERTY_GET increaseFooBy20: DINT
-        printf('Inside increaseFooBy20$N');
-        foo := foo + 20;
+    PROPERTY increaseFooBy20 : DINT
+        GET
+            printf('Inside increaseFooBy20$N');
+            foo := foo + 20;
+        END_GET
     END_PROPERTY
 
-    PROPERTY_GET increaseFooBy30: DINT
-        printf('Inside increaseFooBy30$N');
-        increaseFooBy20;
-        increaseFooBy10;
+    PROPERTY increaseFooBy30 : DINT
+        GET
+            printf('Inside increaseFooBy30$N');
+            increaseFooBy20;
+            increaseFooBy10;
+        END_GET
     END_PROPERTY
 
-    PROPERTY_GET readFoo: DINT
-        printf('Inside readFoo$N');
-        readFoo := foo;
+    PROPERTY readFoo : DINT
+        GET
+            printf('Inside readFoo$N');
+            readFoo := foo;
+        END_GET
     END_PROPERTY
 END_FUNCTION_BLOCK
 

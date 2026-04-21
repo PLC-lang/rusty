@@ -1,5 +1,5 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Scenario: B extends A which has a property with both PROPERTY_GET and PROPERTY_SET. B overrides only the setter.
+// Scenario: B extends A which has a property with both GET and SET. B overrides only the setter.
 // Dispatch through POINTER TO A should use A's inherited getter and B's overridden setter.
 
 FUNCTION_BLOCK A
@@ -7,12 +7,14 @@ FUNCTION_BLOCK A
         _val : DINT := 10;
     END_VAR
 
-    PROPERTY_GET value: DINT
-        value := _val;
-    END_PROPERTY
+    PROPERTY value : DINT
+        GET
+            value := _val;
+        END_GET
 
-    PROPERTY_SET value: DINT
-        _val := value;
+        SET
+            _val := value;
+        END_SET
     END_PROPERTY
 
     METHOD printValue
@@ -27,8 +29,10 @@ END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK B EXTENDS A
     // Override only the setter — adds 1000 to distinguish from A's setter
-    PROPERTY_SET value: DINT
-        _val := value + 1000;
+    PROPERTY value : DINT
+        SET
+            _val := value + 1000;
+        END_SET
     END_PROPERTY
 END_FUNCTION_BLOCK
 

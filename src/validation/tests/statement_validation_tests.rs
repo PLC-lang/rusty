@@ -2463,7 +2463,9 @@ fn validate_property_call_with_braces() {
     let diagnostics = test_utils::parse_and_validate_buffered(
         "
         FUNCTION_BLOCK fb
-        PROPERTY_GET foo: REF_TO DINT END_PROPERTY
+        PROPERTY foo :  REF_TO DINT
+        GET END_GET
+        END_PROPERTY
         END_FUNCTION_BLOCK
 
         FUNCTION main
@@ -2478,9 +2480,9 @@ fn validate_property_call_with_braces() {
 
     insta::assert_snapshot!(diagnostics, @r"
     error[E007]: Properties cannot be called like functions. Remove `()`
-       ┌─ <internal>:11:13
+       ┌─ <internal>:13:13
        │
-    11 │             fb_instance.foo();
+    13 │             fb_instance.foo();
        │             ^^^^^^^^^^^^^^^ Properties cannot be called like functions. Remove `()`
     ");
 }

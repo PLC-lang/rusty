@@ -9,20 +9,24 @@ FUNCTION_BLOCK A
         _y : DINT := 2;
     END_VAR
 
-    PROPERTY_GET x: DINT
-        x := _x;
+    PROPERTY x : DINT
+        GET
+            x := _x;
+        END_GET
+
+        SET
+            _x := x;
+        END_SET
     END_PROPERTY
 
-    PROPERTY_SET x: DINT
-        _x := x;
-    END_PROPERTY
+    PROPERTY y : DINT
+        GET
+            y := _y;
+        END_GET
 
-    PROPERTY_GET y: DINT
-        y := _y;
-    END_PROPERTY
-
-    PROPERTY_SET y: DINT
-        _y := y;
+        SET
+            _y := y;
+        END_SET
     END_PROPERTY
 
     METHOD printXY
@@ -42,13 +46,17 @@ END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK B EXTENDS A
     // Override only getter of x — adds 100
-    PROPERTY_GET x: DINT
-        x := _x + 100;
+    PROPERTY x : DINT
+        GET
+            x := _x + 100;
+        END_GET
     END_PROPERTY
 
     // Override only setter of y — adds 200
-    PROPERTY_SET y: DINT
-        _y := y + 200;
+    PROPERTY y : DINT
+        SET
+            _y := y + 200;
+        END_SET
     END_PROPERTY
 END_FUNCTION_BLOCK
 

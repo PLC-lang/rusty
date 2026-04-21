@@ -1,8 +1,10 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 
 FUNCTION_BLOCK A
-    PROPERTY_GET sayCheese: DINT
-        printf('Cheese');
+    PROPERTY sayCheese : DINT
+        GET
+            printf('Cheese');
+        END_GET
     END_PROPERTY
 
     sayCheese;

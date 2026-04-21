@@ -767,8 +767,8 @@ impl Walker for PropertyBlock {
     where
         V: AstVisitor,
     {
+        visitor.visit_data_type_declaration(&self.datatype);
         for implementation in &self.implementations {
-            visitor.visit_data_type_declaration(&implementation.datatype);
             for block in &implementation.variable_blocks {
                 visitor.visit_variable_block(block);
             }
