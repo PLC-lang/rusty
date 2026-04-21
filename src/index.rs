@@ -235,6 +235,10 @@ impl VariableIndexEntry {
         self.get_variable_type() == VariableType::InOut
     }
 
+    pub fn is_output(&self) -> bool {
+        self.get_variable_type().is_output()
+    }
+
     pub fn is_constant(&self) -> bool {
         self.is_constant
     }
@@ -801,10 +805,10 @@ impl PouIndexEntry {
         match self {
             PouIndexEntry::Program { properties, .. }
             | PouIndexEntry::FunctionBlock { properties, .. }
-            | PouIndexEntry::Class { properties, .. } => {
-                if !properties.is_empty() {
-                    return Some(properties);
-                }
+            | PouIndexEntry::Class { properties, .. }
+                if !properties.is_empty() =>
+            {
+                return Some(properties);
             }
 
             _ => (),
