@@ -1,6 +1,6 @@
 [package]
 name = "plc_xml"
-version = "0.4.0"
+version = "0.4.1-dev"
 edition = "2021"
 license = "LGPL-3.0"
 description = "CFC/FBD XML format support for the PLC Structured Text compiler"
@@ -11,10 +11,10 @@ quick-xml = { version = "0.30", features = ["serialize"] }
 insta = "1.20"
 indexmap = "2.0"
 html-escape = "0.2"
-plc = { path = "../..", package = "plc-compiler", version = "0.4.0" }
-ast = { path = "../plc_ast/", package = "plc_ast", version = "0.4.0" }
-plc_diagnostics = { path = "../plc_diagnostics", version = "0.4.0" }
-plc_source = { path = "../plc_source", version = "0.4.0" }
+plc = { path = "../..", package = "plc-compiler", version = "0.4.1-dev" }
+ast = { path = "../plc_ast/", package = "plc_ast", version = "0.4.1-dev" }
+plc_diagnostics = { path = "../plc_diagnostics", version = "0.4.1-dev" }
+plc_source = { path = "../plc_source", version = "0.4.1-dev" }
 itertools.workspace = true
 rustc-hash.workspace = true
 

@@ -11,14 +11,12 @@ FUNCTION_BLOCK A
         _val : DINT := 10;
     END_VAR
 
-    PROPERTY value : DINT
-        GET
-            value := _val;
-        END_GET
+    PROPERTY_GET value: DINT
+        value := _val;
+    END_PROPERTY
 
-        SET
-            _val := value;
-        END_SET
+    PROPERTY_SET value: DINT
+        _val := value;
     END_PROPERTY
 
     METHOD printValue
@@ -33,19 +31,15 @@ END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK B EXTENDS A
     // Override only getter — adds 1000
-    PROPERTY value : DINT
-        GET
-            value := _val + 1000;
-        END_GET
+    PROPERTY_GET value: DINT
+        value := _val + 1000;
     END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK C EXTENDS B
     // Override only setter — adds 2000
-    PROPERTY value : DINT
-        SET
-            _val := value + 2000;
-        END_SET
+    PROPERTY_SET value: DINT
+        _val := value + 2000;
     END_PROPERTY
 END_FUNCTION_BLOCK
 
