@@ -434,14 +434,14 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
             if !self.current_implementation_call_context.pre_statements.is_empty()
                 || !self.current_implementation_call_context.post_statements.is_empty()
             {
-                let stolen_node = match &mut node.stmt {
-                    AstStatement::RefAssignment(assignment) => &mut *assignment.right.clone(),
-                    _ => node,
+                let stolen_node = match &node.stmt {
+                    AstStatement::RefAssignment(assignment) => (*assignment.right).clone(),
+                    _ => node.clone(),
                 };
 
                 let mut combined_expressions = Vec::new();
                 combined_expressions.append(&mut self.current_implementation_call_context.pre_statements);
-                combined_expressions.push(stolen_node.clone());
+                combined_expressions.push(stolen_node);
                 combined_expressions.append(&mut self.current_implementation_call_context.post_statements);
 
                 // Need to assign a new id if we're stealing this node
