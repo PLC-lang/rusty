@@ -523,7 +523,7 @@ fn enum_initialized_with_typed_literal() {
     define void @foo() {
     entry:
       %vEnum = alloca i8, align [filtered]
-      store i32 30, ptr %vEnum, align [filtered]
+      store i8 30, ptr %vEnum, align [filtered]
       ret void
     }
 
@@ -563,7 +563,7 @@ fn typed_enum_initialized_with_typed_literal_with_no_intermediate_function() {
 
     %mainProg = type { i8 }
 
-    @mainProg_instance = global %mainProg { i32 30 }
+    @mainProg_instance = global %mainProg { i8 30 }
     @myEnum.e2 = unnamed_addr constant i8 30
     @myEnum.e1 = unnamed_addr constant i8 0
 
