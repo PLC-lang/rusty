@@ -1,6 +1,6 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Critical issue #3 / TODO: Multiple return paths — the REF= assignment to the function
-// name happens in a conditional branch, not as the last statement.
+// Regression test: multiple return paths with an early RETURN must preserve
+// the REF= assignment to the function name when it occurs in a conditional branch.
 FUNCTION selectRef : REFERENCE TO INT
     VAR_INPUT
         a   : REFERENCE TO INT;

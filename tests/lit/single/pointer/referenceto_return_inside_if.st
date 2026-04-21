@@ -1,6 +1,6 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Critical issue #2: Call-site lowering only handles top-level statements.
-// Calls to reference-to-return functions inside control flow are not lowered.
+// Regression test for critical issue #2: ensure call-site lowering works
+// for reference-to-return function calls inside IF control flow.
 FUNCTION referenceFunc : REFERENCE TO INT
     VAR_INPUT
         in	: REFERENCE TO INT;

@@ -548,7 +548,7 @@ fn function_block_output_should_be_cast_if_needed() {
 }
 
 #[test]
-fn function_call_with_with_references_to_references_lowered() {
+fn function_call_with_references_to_references_lowered() {
     let result = codegen(
         "
         FUNCTION referenceFunc

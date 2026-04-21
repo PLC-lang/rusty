@@ -1,5 +1,5 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Critical issue #2: Calls inside WHILE loops are not lowered.
+// Verify calls inside WHILE loops are lowered.
 FUNCTION referenceFunc : REFERENCE TO INT
     VAR_INPUT
         in	: REFERENCE TO INT;

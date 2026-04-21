@@ -52,7 +52,7 @@ pub fn visit_data_type<T: AnnotationMap>(
         DataType::ArrayType { referenced_type, .. } => {
             visit_data_type_declaration(validator, referenced_type, context);
 
-            // Arrays of auto deref pointers are now allowed
+            // Arrays of automatically dereferenced `REFERENCE TO` pointers are not allowed.
             let declaration = referenced_type.as_ref();
             if !declaration.get_location().is_internal() {
                 if let DataTypeDeclaration::Reference { referenced_type, location } = declaration {
@@ -78,7 +78,7 @@ pub fn visit_data_type<T: AnnotationMap>(
         DataType::PointerType { referenced_type, .. } => {
             visit_data_type_declaration(validator, referenced_type.as_ref(), context);
 
-            // Pointer to auto deref pointers are now allowed
+            // References to automatically dereferenced `REFERENCE TO` pointers are not allowed.
             let declaration = referenced_type.as_ref();
             if !declaration.get_location().is_internal() {
                 if let DataTypeDeclaration::Reference { referenced_type, location } = declaration {

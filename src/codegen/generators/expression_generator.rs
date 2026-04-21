@@ -1106,11 +1106,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .get(i)
                 .map(|it| {
                     let name = it.get_type_name();
-                    let parameter_is_reference_to = if let Some(parameter_type) = self.index.find_type(name) {
-                        parameter_type.get_type_information().is_reference_to()
-                    } else {
-                        false
-                    };
+                    let parameter_is_reference_to = self
+                        .index
+                        .find_effective_type_info(name)
+                        .map(|type_info| type_info.is_reference_to())
+                        .unwrap_or(false);
                     let both_sides_are_reference_to = argument_is_reference_to && parameter_is_reference_to;
 
                     if let Some(DataTypeInformation::Pointer {

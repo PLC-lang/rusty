@@ -1,7 +1,7 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Critical issue #1: The lowering matches all PointerType returns, not just REFERENCE TO.
-// A function returning POINTER TO INT should NOT be rewritten by the reference-to-return
-// lowering — it should keep its return type and work normally.
+// Regression test: ensure reference-to-return lowering does not affect POINTER TO returns.
+// A function returning POINTER TO INT should keep its return type and continue to work
+// normally rather than being lowered as though it returned REFERENCE TO.
 FUNCTION getPointer : POINTER TO INT
     VAR_INPUT
         in	: REF_TO INT;

@@ -864,9 +864,10 @@ mod tests {
 
             for statement in statements {
                 let statement = statement.as_string();
+                let mut split_statements = statement.lines().peekable();
 
-                if statement.contains("\n") {
-                    for split_statement in statement.split("\n") {
+                if split_statements.peek().is_some() {
+                    for split_statement in split_statements {
                         result.push(split_statement.to_string());
                     }
                 } else {

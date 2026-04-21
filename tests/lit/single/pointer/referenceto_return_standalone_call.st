@@ -1,7 +1,7 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 // Verify: Standalone calls (without REF= assignment) to reference-to-return
 // functions have their signatures rewritten so the call compiles.
-// (The TODO at reference_to_return.rs:587 is already handled for top-level calls.)
+// Top-level standalone calls are already handled by this rewriting.
 FUNCTION referenceFunc : REFERENCE TO INT
     VAR_INPUT
         in	: REFERENCE TO INT;

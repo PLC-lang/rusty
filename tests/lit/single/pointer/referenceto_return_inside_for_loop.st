@@ -1,5 +1,5 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Critical issue #2: Calls inside FOR loops are not lowered.
+// Regression test: calls inside FOR loops are lowered correctly.
 FUNCTION referenceFunc : REFERENCE TO INT
     VAR_INPUT
         in	: REFERENCE TO INT;

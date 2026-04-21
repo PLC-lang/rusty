@@ -1,7 +1,7 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Critical issue #3: Only the last statement in the function body is checked for
-// return lowering. If the REF= assignment to the function name isn't the last
-// statement, the lowering is skipped.
+// Regression test for critical issue #3: return lowering must still occur even
+// when the REF= assignment to the function name is not the last statement in
+// the function body.
 FUNCTION referenceFunc : REFERENCE TO INT
     VAR_INPUT
         in	: REFERENCE TO INT;
@@ -12,7 +12,7 @@ FUNCTION referenceFunc : REFERENCE TO INT
 
     in := in + 1;
     referenceFunc REF= in;
-    dummy := 0; // this is the last statement, so the REF= above won't be lowered
+    dummy := 0; // keep a trailing statement to verify the REF= above is still lowered
 END_FUNCTION
 
 FUNCTION main : DINT

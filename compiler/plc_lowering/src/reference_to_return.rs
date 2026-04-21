@@ -125,8 +125,8 @@ pub struct ReferenceToReturnImplementationCallContext {
     pre_statements: Vec<AstNode>,
     post_statements: Vec<AstNode>,
     in_context: bool,
-    in_call: bool,
-    in_sub_call: bool,
+    in_call_stack: bool,
+    in_deep_call_stack: bool,
     used_call_states: Vec<ReferenceToReturnImplementationContextCalls>,
 }
 
@@ -137,8 +137,8 @@ impl ReferenceToReturnImplementationCallContext {
             pre_statements: Vec::new(),
             post_statements: Vec::new(),
             in_context: false,
-            in_call: false,
-            in_sub_call: false,
+            in_call_stack: false,
+            in_deep_call_stack: false,
             used_call_states: Vec::new(),
         }
     }
@@ -462,12 +462,15 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
         let mut replacement_call_statement: Option<AstStatement> = None;
 
         if let AstStatement::CallStatement(call_statement) = &mut node.stmt {
+            let previous_in_call_stack = self.current_implementation_call_context.in_call_stack;
+            let previous_in_deep_call_stack = self.current_implementation_call_context.in_deep_call_stack;
+
             if self.current_implementation_call_context.in_context
                 && self.call_statement_referenced_pou_is_reference_to_return(call_statement)
             {
                 // Enter sub-call context
-                if self.current_implementation_call_context.in_call {
-                    self.current_implementation_call_context.in_sub_call = true;
+                if previous_in_call_stack {
+                    self.current_implementation_call_context.in_deep_call_stack = true;
                 }
 
                 let call_statement_name = call_statement
@@ -549,8 +552,8 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                     };
 
                     // Enter call context (only if we are not in a sub-call)
-                    if !self.current_implementation_call_context.in_sub_call {
-                        self.current_implementation_call_context.in_call = true;
+                    if !self.current_implementation_call_context.in_deep_call_stack {
+                        self.current_implementation_call_context.in_call_stack = true;
                     }
 
                     // Ensure we check the operator and parameters for further possible lowering
@@ -558,16 +561,31 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                     parameters.walk(self);
 
                     // Exit call context (only if we are not in a sub-call)
-                    if !self.current_implementation_call_context.in_sub_call {
-                        self.current_implementation_call_context.in_call = false;
+                    if !self.current_implementation_call_context.in_deep_call_stack {
+                        self.current_implementation_call_context.in_call_stack = false;
                     }
 
-                    if !self.current_implementation_call_context.in_call {
+                    if !self.current_implementation_call_context.in_call_stack {
                         Some(AstStatement::CallStatement(CallStatement {
                             operator: Box::new(operator),
                             parameters: Some(Box::new(parameters)),
                         }))
                     } else {
+                        /* ------------
+                            FIXME (anbt): We should perform this lowering at an earlier stage to simplify this code and remove
+                            the unnecessary stack management that occurs here.
+
+                            Example:
+                            ```ST
+                                foo(bar(baz()));
+
+                                // Should be lowered to:
+                                __baz := baz();
+                                __bar := bar(__baz);
+                                foo(__bar);
+                            ```
+                        ------------ */
+
                         // If we're currently in a sub-call (i.e. call nested in call) then we need to handle this differently
 
                         // Push the call statement to pre-statements
@@ -598,7 +616,7 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
 
                 // We only push the follow up assignment if it was assigned to in the first place
                 // and if this is not a sub call (there will be no ref assignments for sub-calls)
-                if !self.current_implementation_call_context.in_call {
+                if !self.current_implementation_call_context.in_call_stack {
                     if let Some(return_assignment) =
                         &self.current_implementation_call_context.left_side_assignment
                     {
@@ -622,10 +640,13 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                     }
                 }
 
-                if self.current_implementation_call_context.in_call {
-                    self.current_implementation_call_context.in_sub_call = false;
+                if self.current_implementation_call_context.in_call_stack {
+                    self.current_implementation_call_context.in_deep_call_stack = false;
                 }
             }
+
+            self.current_implementation_call_context.in_call_stack = previous_in_call_stack;
+            self.current_implementation_call_context.in_deep_call_stack = previous_in_deep_call_stack;
         }
 
         if let Some(replacement_call_statement) = replacement_call_statement {
@@ -1333,6 +1354,77 @@ mod tests {
         addOne(__addOne_return_val_1, refVal);
         doubleIt(__doubleIt_return_val_1, __addOne_return_val_1);
         refVal REF= __doubleIt_return_val_1;
+        conVal := refVal;
+        ");
+    }
+
+    #[test]
+    fn reference_to_return_double_nested_call() {
+        let src: SourceCode = r#"
+            FUNCTION addOne : REFERENCE TO INT
+                VAR_INPUT
+                    in	: REFERENCE TO INT;
+                END_VAR
+
+                in := in + 1;
+                addOne REF= in;
+            END_FUNCTION
+
+            FUNCTION doubleIt : REFERENCE TO INT
+                VAR_INPUT
+                    in	: REFERENCE TO INT;
+                END_VAR
+
+                in := in * 2;
+                doubleIt REF= in;
+            END_FUNCTION
+
+            FUNCTION tripleIt : REFERENCE TO INT
+                VAR_INPUT
+                    in	: REFERENCE TO INT;
+                END_VAR
+
+                in := in * 3;
+                tripleIt REF= in;
+            END_FUNCTION
+
+            FUNCTION main : DINT
+                VAR
+                    refVal : REFERENCE TO INT;
+                    conVal : INT;
+                    tmpVal : INT;
+                END_VAR
+
+                tmpVal := 5;
+                refVal REF= tmpVal;
+                refVal REF= tripleIt(doubleIt(addOne(refVal)));
+                conVal := refVal;
+            END_FUNCTION
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
+        let unit = &project.units[0].get_unit();
+        let implementations = &unit.implementations;
+
+        let main_implementation =
+            implementations.iter().find(|i| i.name == "main").expect("main implementation should exist");
+
+        let ref_eq_call_func_statement = &main_implementation.statements;
+        assert_snapshot!(AstSerializer::format_nodes(ref_eq_call_func_statement), @"
+        __main_refVal__ctor(refVal);
+        __main__tripleIt_return_val_1__ctor(__tripleIt_return_val_1);
+        __main__doubleIt_return_val_1__ctor(__doubleIt_return_val_1);
+        __main__addOne_return_val_1__ctor(__addOne_return_val_1);
+        tmpVal := 5;
+        refVal REF= tmpVal;
+        __tripleIt_return_val_1 REF= __tripleIt_return_val_store_1;
+        __doubleIt_return_val_1 REF= __doubleIt_return_val_store_1;
+        __addOne_return_val_1 REF= __addOne_return_val_store_1;
+        addOne(__addOne_return_val_1, refVal);
+        doubleIt(__doubleIt_return_val_1, __addOne_return_val_1);
+        tripleIt(__tripleIt_return_val_1, __doubleIt_return_val_1);
+        refVal REF= __tripleIt_return_val_1;
         conVal := refVal;
         ");
     }
