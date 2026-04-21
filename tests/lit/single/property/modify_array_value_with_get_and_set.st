@@ -5,14 +5,12 @@ FUNCTION_BLOCK fb
         localArray: ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5];
     END_VAR
 
-    PROPERTY foo: ARRAY[1..5] OF DINT
-        GET
-            foo := localArray;
-        END_GET
+    PROPERTY_GET foo: ARRAY[1..5] OF DINT
+        foo := localArray;
+    END_PROPERTY
 
-        SET
-            localArray := foo;
-        END_SET
+    PROPERTY_SET foo: ARRAY[1..5] OF DINT
+        localArray := foo;
     END_PROPERTY
 END_FUNCTION_BLOCK
 
