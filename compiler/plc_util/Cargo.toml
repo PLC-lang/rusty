@@ -6,3 +6,4 @@ license = "LGPL-3.0"
 description = "Shared utilities for the PLC Structured Text compiler"
 
 [dependencies]
+insta = { version = "1", features = ["filters"] }

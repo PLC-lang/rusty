@@ -96,12 +96,15 @@ type MainEmptyFunction<U> = unsafe extern "C" fn() -> U;
 
 impl<'ink> CodeGen<'ink> {
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         context: &'ink CodegenContext,
         root: Option<&Path>,
         file_marker: FileMarker,
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
+        debug_prefix_maps: &[(PathBuf, PathBuf)],
+        debug_compilation_dir: Option<&Path>,
         online_change: OnlineChange,
         target: &Target,
     ) -> CodeGen<'ink> {
@@ -136,10 +139,19 @@ impl<'ink> CodeGen<'ink> {
         module.set_triple(&triple);
 
         let debug_level = if file_marker.is_internal() { DebugLevel::None } else { debug_level };
-        let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
+        let debug = debug::DebugBuilderEnum::new(
+            context,
+            &module,
+            root,
+            optimization_level,
+            debug_level,
+            debug_prefix_maps,
+            debug_compilation_dir,
+        );
         CodeGen { module, debug, module_location: module_location.to_string(), online_change }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn generate_llvm_index(
         &mut self,
         context: &'ink CodegenContext,
@@ -148,6 +160,7 @@ impl<'ink> CodeGen<'ink> {
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
         got_layout: &Mutex<HashMap<String, u64>>,
+        constructors_only: bool,
     ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
@@ -270,6 +283,7 @@ impl<'ink> CodeGen<'ink> {
             &mut self.debug,
             &self.online_change,
             &self.module_location,
+            constructors_only,
         )?;
         let llvm = Llvm::new(context, context.create_builder());
         index.merge(llvm_impl_index);

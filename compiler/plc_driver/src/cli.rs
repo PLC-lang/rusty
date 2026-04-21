@@ -5,12 +5,23 @@ use encoding_rs::Encoding;
 use log::LevelFilter;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
 use plc_header_generator::GenerateLanguage;
-use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
+use std::{
+    env,
+    ffi::OsStr,
+    num::ParseIntError,
+    path::{Component, Path, PathBuf},
+};
 
 use plc::output::{FormatOption, RelocationPreference};
 use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
 
 pub type ParameterError = clap::Error;
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PrefixMapArg {
+    pub old: PathBuf,
+    pub new: PathBuf,
+}
 
 #[derive(clap::ArgEnum, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LogLevel {
@@ -331,6 +342,33 @@ pub struct CompileParameters {
     pub gdwarf_varinfo_version: Option<usize>,
 
     #[clap(
+        long = "file-prefix-map",
+        value_name = "OLD=NEW",
+        global = true,
+        help = "Remap debug/source paths from OLD prefix to NEW prefix",
+        parse(try_from_str = parse_prefix_map)
+    )]
+    pub file_prefix_map: Vec<PrefixMapArg>,
+
+    #[clap(
+        long = "debug-prefix-map",
+        value_name = "OLD=NEW",
+        global = true,
+        help = "Alias for --file-prefix-map, remap debug/source paths from OLD prefix to NEW prefix",
+        parse(try_from_str = parse_prefix_map)
+    )]
+    pub debug_prefix_map: Vec<PrefixMapArg>,
+
+    #[clap(
+        long = "debug-compilation-dir",
+        value_name = "dir",
+        global = true,
+        help = "Override the DWARF compilation directory",
+        parse(try_from_str = parse_debug_compilation_dir)
+    )]
+    pub debug_compilation_dir: Option<PathBuf>,
+
+    #[clap(
         name = "threads",
         long,
         short = 'j',
@@ -528,6 +566,59 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
     }
 }
 
+fn normalize_lexical_path(path: &Path) -> PathBuf {
+    let mut normalized = PathBuf::new();
+
+    for component in path.components() {
+        match component {
+            Component::CurDir => {}
+            Component::ParentDir => {
+                if !normalized.pop() {
+                    normalized.push(component.as_os_str());
+                }
+            }
+            Component::RootDir | Component::Prefix(_) | Component::Normal(_) => {
+                normalized.push(component.as_os_str())
+            }
+        }
+    }
+
+    if normalized.as_os_str().is_empty() {
+        PathBuf::from(".")
+    } else {
+        normalized
+    }
+}
+
+fn resolve_old_prefix(path: &Path) -> Result<PathBuf, String> {
+    let current_dir =
+        env::current_dir().map_err(|err| format!("Failed to resolve current directory: {err}"))?;
+    let path = if path.is_absolute() { path.to_path_buf() } else { current_dir.join(path) };
+    Ok(path.canonicalize().unwrap_or_else(|_| normalize_lexical_path(&path)))
+}
+
+fn normalize_new_prefix(path: &Path) -> Result<PathBuf, String> {
+    let current_dir =
+        env::current_dir().map_err(|err| format!("Failed to resolve current directory: {err}"))?;
+    let path = if path.is_absolute() { path.to_path_buf() } else { current_dir.join(path) };
+    Ok(normalize_lexical_path(&path))
+}
+
+fn parse_prefix_map(value: &str) -> Result<PrefixMapArg, String> {
+    let Some((old, new)) = value.split_once('=') else {
+        return Err("Expected OLD=NEW".into());
+    };
+    if old.is_empty() || new.is_empty() {
+        return Err("Expected non-empty OLD=NEW".into());
+    }
+
+    Ok(PrefixMapArg { old: resolve_old_prefix(Path::new(old))?, new: normalize_new_prefix(Path::new(new))? })
+}
+
+fn parse_debug_compilation_dir(value: &str) -> Result<PathBuf, String> {
+    normalize_new_prefix(Path::new(value))
+}
+
 impl CompileParameters {
     pub fn parse<T: AsRef<OsStr> + AsRef<str>>(args: &[T]) -> Result<CompileParameters, ParameterError> {
         CompileParameters::try_parse_from(args)
@@ -558,6 +649,14 @@ impl CompileParameters {
         }
 
         DebugLevel::None
+    }
+
+    pub fn debug_prefix_maps(&self) -> Vec<(PathBuf, PathBuf)> {
+        self.file_prefix_map
+            .iter()
+            .chain(self.debug_prefix_map.iter())
+            .map(|it| (it.old.clone(), it.new.clone()))
+            .collect()
     }
 
     pub fn relocation_preference(&self) -> RelocationPreference {
@@ -712,8 +811,8 @@ mod cli_tests {
         ConfigFormat, ErrorFormat, OptimizationLevel,
     };
     use pretty_assertions::assert_eq;
-    use std::ffi::OsStr;
     use std::fmt::Debug;
+    use std::{env, ffi::OsStr, path::PathBuf};
 
     #[test]
     fn verify_cli() {
@@ -1334,5 +1433,45 @@ mod cli_tests {
 
         let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf-variables")).unwrap_err();
         assert_eq!(error.kind(), ErrorKind::EmptyValue);
+    }
+
+    #[test]
+    fn debug_prefix_maps_are_parsed_and_merged() {
+        let current_dir = env::current_dir().unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--file-prefix-map",
+            "src=/src/TestProject",
+            "--debug-prefix-map",
+            "build=/build/TestProject"
+        ))
+        .unwrap();
+
+        let prefix_maps = parameters.debug_prefix_maps();
+        assert_eq!(prefix_maps.len(), 2);
+        assert_eq!(
+            prefix_maps[0].0,
+            current_dir.join("src").canonicalize().unwrap_or(current_dir.join("src"))
+        );
+        assert_eq!(prefix_maps[0].1, PathBuf::from("/src/TestProject"));
+        assert_eq!(prefix_maps[1].1, PathBuf::from("/build/TestProject"));
+    }
+
+    #[test]
+    fn debug_compilation_dir_is_normalized() {
+        let current_dir = env::current_dir().unwrap();
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--debug-compilation-dir", "virtual/root"))
+                .unwrap();
+
+        assert_eq!(parameters.debug_compilation_dir, Some(current_dir.join("virtual/root")));
+    }
+
+    #[test]
+    fn invalid_prefix_map_is_rejected() {
+        let error =
+            CompileParameters::parse(vec_of_strings!("input.st", "--file-prefix-map", "missing-separator"))
+                .unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::ValueValidation);
     }
 }

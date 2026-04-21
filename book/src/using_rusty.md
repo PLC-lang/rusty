@@ -95,6 +95,12 @@ Please note that RuSTy will attempt to link the generated object file by default
 - For executable links with compiler drivers, startup/runtime defaults can be controlled explicitly with `--nocrt` and `--nolibc`.
 - `-l` also supports exact filenames (`-l:libfoo.so.1`) and direct full paths (`-l/path/to/libfoo.so.1`).
 
+### Debug path remapping
+
+For shipped binaries and remote debugging, RuSTy can rewrite embedded DWARF paths so that they do not contain developer-local checkout paths.
+
+See [Debug Path Remapping](./using_rusty/debug_paths.md).
+
 ### Relocation model (PIC / no-PIC)
 
 By default, RuSTy generates position-independent code (PIC) when building shared libraries, and uses the

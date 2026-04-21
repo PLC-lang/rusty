@@ -64,6 +64,7 @@ pub fn generate_implementation_stubs<'ink>(
     debug: &mut DebugBuilderEnum<'ink>,
     online_change: &OnlineChange,
     file_name: &str,
+    constructors_only: bool,
 ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
     let mut llvm_index = LlvmTypedIndex::default();
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index, online_change);
@@ -83,6 +84,7 @@ pub fn generate_implementation_stubs<'ink>(
                 debug,
                 &mut llvm_index,
                 file_name,
+                constructors_only,
             )?;
             llvm_index.associate_implementation(name, curr_f)?;
         }
@@ -215,6 +217,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         debug: &mut DebugBuilderEnum<'ink>,
         llvm_index: &mut LlvmTypedIndex<'ink>,
         file_name: &str,
+        constructors_only: bool,
     ) -> Result<FunctionValue<'ink>, CodegenError> {
         log::trace!(
             "generating implementation stub for {} in {file_name}. Implementation Type : {:?}",
@@ -328,7 +331,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         // - Init/ProjectInit are compiler-generated and should never carry user-facing debug info.
         // Note: is_in_unit returns true when the implementation has no file (e.g. lowered code),
         // which is correct — lowered user code should still get debug info.
-        if implementation.is_in_unit(file_name) && !implementation.is_init() {
+        if !constructors_only && implementation.is_in_unit(file_name) && !implementation.is_init() {
             debug.register_function(
                 (self.index, self.llvm_index),
                 &function_context,

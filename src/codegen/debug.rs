@@ -1,4 +1,8 @@
-use std::{ops::Range, path::Path};
+use std::{
+    env,
+    ops::Range,
+    path::{Path, PathBuf},
+};
 
 use inkwell::{
     basic_block::BasicBlock,
@@ -168,6 +172,99 @@ impl VariableKey {
     }
 }
 
+#[derive(Clone, Debug, Default)]
+struct DebugPathRemapper {
+    prefix_maps: Vec<(PathBuf, PathBuf)>,
+}
+
+impl DebugPathRemapper {
+    fn new(prefix_maps: &[(PathBuf, PathBuf)]) -> Self {
+        Self { prefix_maps: prefix_maps.to_vec() }
+    }
+
+    fn remap_path(&self, path: &Path) -> PathBuf {
+        let best_match = self
+            .prefix_maps
+            .iter()
+            .filter_map(|(old, new)| {
+                path.strip_prefix(old).ok().map(|suffix| (old.components().count(), new, suffix))
+            })
+            .max_by_key(|(component_count, _, _)| *component_count);
+
+        if let Some((_, new, suffix)) = best_match {
+            let mut mapped = new.clone();
+            if !suffix.as_os_str().is_empty() {
+                mapped.push(suffix);
+            }
+            mapped
+        } else {
+            path.to_path_buf()
+        }
+    }
+}
+
+fn determine_compile_dir(
+    root: Option<&Path>,
+    debug_compilation_dir: Option<&Path>,
+    source_path: &Path,
+) -> PathBuf {
+    if debug_compilation_dir.is_none() {
+        let source_name = source_path.to_string_lossy();
+        if source_name.starts_with('<') {
+            return PathBuf::new();
+        }
+    }
+
+    debug_compilation_dir
+        .or(root)
+        .map(Path::to_path_buf)
+        .or_else(|| env::current_dir().ok())
+        .unwrap_or_default()
+}
+
+fn relative_to_compile_dir(path: &Path, compile_dir: &Path) -> Option<PathBuf> {
+    if !(path.is_absolute() && compile_dir.is_absolute()) {
+        return None;
+    }
+
+    let mut path_components = path.components().peekable();
+    let mut dir_components = compile_dir.components().peekable();
+
+    while path_components.peek().is_some()
+        && dir_components.peek().is_some()
+        && path_components.peek() == dir_components.peek()
+    {
+        path_components.next();
+        dir_components.next();
+    }
+
+    if matches!(path_components.peek(), Some(std::path::Component::Prefix(_)))
+        || matches!(dir_components.peek(), Some(std::path::Component::Prefix(_)))
+        || matches!(path_components.peek(), Some(std::path::Component::RootDir))
+        || matches!(dir_components.peek(), Some(std::path::Component::RootDir))
+    {
+        return None;
+    }
+
+    let mut relative = PathBuf::new();
+    for component in dir_components {
+        match component {
+            std::path::Component::Normal(_) | std::path::Component::ParentDir => relative.push(".."),
+            std::path::Component::CurDir => {}
+            std::path::Component::Prefix(_) | std::path::Component::RootDir => return None,
+        }
+    }
+    for component in path_components {
+        relative.push(component.as_os_str());
+    }
+
+    if relative.as_os_str().is_empty() {
+        None
+    } else {
+        Some(relative)
+    }
+}
+
 /// Represents the debug builder and information for a compilation unit.
 pub struct DebugBuilder<'ink> {
     context: &'ink Context,
@@ -184,6 +281,7 @@ pub struct DebugBuilder<'ink> {
     optimization: OptimizationLevel,
     files: FxHashMap<&'static str, DIFile<'ink>>,
     target_data: TargetData,
+    path_remapper: DebugPathRemapper,
 }
 
 /// A wrapper that redirects to correct debug builder implementation based on the debug context.
@@ -202,6 +300,8 @@ impl<'ink> DebugBuilderEnum<'ink> {
         root: Option<&Path>,
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
+        debug_prefix_maps: &[(PathBuf, PathBuf)],
+        debug_compilation_dir: Option<&Path>,
     ) -> Self {
         match debug_level {
             DebugLevel::None => DebugBuilderEnum::None,
@@ -226,14 +326,18 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     context.metadata_node(&[dwarf_version]),
                 );
 
+                let path_remapper = DebugPathRemapper::new(debug_prefix_maps);
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or("")).to_path_buf();
-                let root = root.unwrap_or_else(|| Path::new(""));
-                let filename = path.strip_prefix(root).unwrap_or(&path).to_str().unwrap_or_default();
+                let compile_dir = determine_compile_dir(root, debug_compilation_dir, &path);
+                let compile_dir = path_remapper.remap_path(&compile_dir);
+                let path = path_remapper.remap_path(&path);
+                let filename = relative_to_compile_dir(&path, &compile_dir).unwrap_or(path);
+                let filename = filename.to_str().unwrap_or_default();
                 let (debug_info, compile_unit) = module.create_debug_info_builder(
                     true,
                     inkwell::debug_info::DWARFSourceLanguage::C, //TODO: Own lang
                     filename,
-                    root.to_str().unwrap_or_default(),
+                    compile_dir.to_str().unwrap_or_default(),
                     "RuSTy Structured text Compiler",
                     optimization.is_optimized(),
                     "",
@@ -260,6 +364,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     optimization,
                     files: Default::default(),
                     target_data,
+                    path_remapper,
                 };
                 match debug_level {
                     DebugLevel::VariablesOnly(_) => DebugBuilderEnum::VariablesOnly(dbg_obj),
@@ -841,7 +946,7 @@ impl<'ink> DebugBuilder<'ink> {
     }
 
     fn get_or_create_debug_file(&mut self, location: &'static str) -> DIFile<'ink> {
-        let path = Path::new(location);
+        let path = self.path_remapper.remap_path(Path::new(location));
         let directory = path.parent().and_then(|it| it.to_str()).unwrap_or("");
         let filename = path.file_name().and_then(|it| it.to_str()).unwrap_or(location);
         *self.files.entry(location).or_insert_with(|| {
