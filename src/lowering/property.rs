@@ -6,13 +6,13 @@
 //! following code
 //! ```iec61131st
 //! FUNCTION_BLOCK fb
-//!     PROPERTY_GET
+//!     PROPERTY_GET foo: DINT
 //!         // ...
 //!         foo := <expr>;
 //!         // ...
 //!     END_PROPERTY
 //!
-//!     PROPERTY_SET
+//!     PROPERTY_SE foo: DINT
 //!         // ...
 //!         <expr> := foo;
 //!         // ...
@@ -20,11 +20,11 @@
 //! END_FUNCTION_BLOCK
 //! ```
 //! internally these PROPERTY_GET and PROPERTY_SET blocks will be lowered into methods because semantically `<var> := fb.foo` is
-//! equivalent to `<var> := fb.get_foo()` and `fb.foo := <expr>` is equivalent to `fb.set_foo(<expr>)`. Hence
+//! equivalent to `<var> := fb.__get_foo()` and `fb.foo := <expr>` is equivalent to `fb.__set_foo(<expr>)`. Hence
 //! the properties internal representation is as follows
 //! ```iec61131st
 //! FUNCTION_BLOCK fb
-//!     METHOD __get_foo
+//!     METHOD __get_foo: DINT
 //!         VAR
 //!             foo : DINT; // Patched in by the lowerer
 //!         END_VAR
