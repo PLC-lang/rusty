@@ -3,6 +3,24 @@
 //! This module handles the lowering of functions that return a "REFERENCE TO" to hide additional processing
 //! that creates a temporary variable and assigns the result to that instead so that no values are assigned
 //! directly from the stack.
+//!
+//! The lowering mechanism works as follows:
+//! 1. Functions with a `REFERENCE TO` return type will be lowered to a `VOID` return type.
+//! 2. Functions with a `REFERENCE TO` return type will be given a new `VAR_INPUT` variable:
+//!    `__{function_name}_return_val` that any return value of the function will be assigned to.
+//! 3. Any POU that invokes a function with a `REFERENCE TO` return type will receive a new temporary
+//!    variable that is then passed as the first parameter to the function.
+//! 4. Any POU that invokes a function with a `REFERENCE TO` return type will then lower the call
+//!    to that function from:
+//!     ```ST
+//!         refVal REF= exampleFunc(refVal);
+//!     ```
+//!     to the following:
+//!     ```ST
+//!         __exampleFunc_return_val_1 REF= __exampleFunc_return_val_store_1;
+//!         exampleFunc(__exampleFunc_return_val_1, refVal);
+//!         refVal REF= __exampleFunc_return_val_1;
+//!     ```
 
 use plc_ast::{
     ast::{
@@ -167,8 +185,7 @@ impl AstVisitorMut for ReferenceToReturnContextGatherer {
                 _ => false,
             })
         {
-            // Unwrap is safe as return type is evaluated by the check above
-            let return_type = pou.return_type.clone().unwrap();
+            let return_type = pou.return_type.clone().expect("return type is evaluated by the check above");
             let return_type_inner_type = match &return_type {
                 DataTypeDeclaration::Definition { data_type, .. } => match data_type.as_ref() {
                     DataType::PointerType { referenced_type, .. } => *referenced_type.clone(),
@@ -244,14 +261,21 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
         pou.walk(self);
 
         if self.pou_original_return_type_is_reference_to(&pou.name) {
-            // Steal the return type (unwrap is safe because it absolutely must be present to enter this conditional block)
-            let cloned_return_type = pou.return_type.clone().unwrap();
+            // Steal the return type
+            let cloned_return_type = pou
+                .return_type
+                .clone()
+                .expect("this absolutely must be present to enter this conditional block");
             pou.return_type = None;
 
             let location = SourceLocation::from(&cloned_return_type);
 
             // Construct the by reference variable used to fetch the return data
-            let current_context = self.pou_context.iter().find(|it| it.pou_name == pou.name).unwrap();
+            let current_context = self
+                .pou_context
+                .iter()
+                .find(|it| it.pou_name == pou.name)
+                .expect("context is required for this action");
             let return_type_inner_type = current_context.return_type_inner_type.clone();
 
             let new_data_type_name = format!("__{}{}", pou.name, self.get_return_variable_name_for_pou(pou));
@@ -312,8 +336,8 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                 let call = call_context.name;
                 let count = call_context.count;
 
-                // Unwrap is safe, this context must exist
-                let current_context = self.pou_context.iter().find(|it| it.pou_name == call).unwrap();
+                let current_context =
+                    self.pou_context.iter().find(|it| it.pou_name == call).expect("this context must exist");
                 let return_type_for_call = current_context.return_type.clone();
                 let return_type_inner_type_for_call = current_context.return_type_inner_type.clone();
                 let return_type_for_call_location = return_type_for_call.get_location().clone();
@@ -446,15 +470,20 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                     self.current_implementation_call_context.in_sub_call = true;
                 }
 
-                // Unwrap is safe, this must have a name
-                let call_statement_name =
-                    call_statement.operator.get_flat_reference_name().unwrap().to_string();
+                let call_statement_name = call_statement
+                    .operator
+                    .get_flat_reference_name()
+                    .expect("this must have a name")
+                    .to_string();
 
                 let current_index = self.get_and_bump_index_for_current_call_state(call_statement);
                 let return_variable_name =
                     format!("{}_{}", self.get_return_variable_name(&call_statement_name), current_index);
-                let return_variable_name_store =
-                    format!("{}_{}", self.get_return_variable_name_store(&call_statement_name), current_index);
+                let return_variable_name_store = format!(
+                    "{}_{}",
+                    self.get_return_variable_name_store(&call_statement_name),
+                    current_index
+                );
 
                 // Construct the new parameter
                 let param = AstFactory::create_member_reference(
@@ -809,7 +838,7 @@ mod tests {
             ```
         */
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let pous = &unit.pous;
         let implementations = &unit.implementations;
@@ -820,7 +849,7 @@ mod tests {
 
         assert_eq!(ref_func_pou.return_type, None);
 
-        // 2. Function "referenceFunc" should have a new `VAR_IN_OUT` variable: `__referenceFunc_return_val`
+        // 2. Function "referenceFunc" should have a new `VAR_INPUT` variable: `__referenceFunc_return_val`
         let ref_func_var_in_out_block = ref_func_pou
             .variable_blocks
             .iter()
@@ -917,7 +946,7 @@ mod tests {
             "#
         .into();
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
 
@@ -980,7 +1009,7 @@ mod tests {
             "#
         .into();
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
 
@@ -1038,7 +1067,7 @@ mod tests {
             "#
         .into();
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
 
@@ -1109,7 +1138,7 @@ mod tests {
             "#
         .into();
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
 
@@ -1163,7 +1192,7 @@ mod tests {
             "#
         .into();
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
 
@@ -1225,7 +1254,7 @@ mod tests {
             "#
         .into();
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
 
@@ -1285,7 +1314,7 @@ mod tests {
             "#
         .into();
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
 
@@ -1339,7 +1368,7 @@ mod tests {
             "#
         .into();
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
 
@@ -1390,7 +1419,7 @@ mod tests {
             "#
         .into();
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
 

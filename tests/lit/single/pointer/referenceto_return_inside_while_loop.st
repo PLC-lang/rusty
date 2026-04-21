@@ -19,7 +19,7 @@ FUNCTION main : DINT
     tmpVal := 0;
     refVal REF= tmpVal;
 
-    WHILE tmpVal < 3 DO
+    WHILE refVal < 3 DO
         refVal REF= referenceFunc(refVal);
     END_WHILE;
 
