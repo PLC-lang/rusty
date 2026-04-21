@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/icu_normalizer-2.2.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="icu_normalizer" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">icu_normalizer/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// This file is part of ICU4X. For terms of use, please see the file
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/icu_normalizer-2.2.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="icu_normalizer" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">icu_normalizer/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// This file is part of ICU4X. For terms of use, please see the file
 <a href=#2 id=2 data-nosnippet>2</a>// called LICENSE at the top level of the ICU4X source tree
 <a href=#3 id=3 data-nosnippet>3</a>// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -848,7 +848,7 @@
 <a href=#848 id=848 data-nosnippet>848</a>                            core::char::from_u32_unchecked(HANGUL_V_BASE + v)
 <a href=#849 id=849 data-nosnippet>849</a>                        }));
 <a href=#850 id=850 data-nosnippet>850</a>                        <span class="kw">let </span>first = <span class="kw">unsafe </span>{ core::char::from_u32_unchecked(HANGUL_L_BASE + l) };
-<a href=#851 id=851 data-nosnippet>851</a>                        <span class="kw">if </span><span class="macro">t !</span>= <span class="number">0 </span>{
+<a href=#851 id=851 data-nosnippet>851</a>                        <span class="kw">if </span>t != <span class="number">0 </span>{
 <a href=#852 id=852 data-nosnippet>852</a>                            <span class="self">self</span>.buffer.push(CharacterAndClass::new_starter(<span class="kw">unsafe </span>{
 <a href=#853 id=853 data-nosnippet>853</a>                                core::char::from_u32_unchecked(HANGUL_T_BASE + t)
 <a href=#854 id=854 data-nosnippet>854</a>                            }));
@@ -858,7 +858,7 @@
 <a href=#858 id=858 data-nosnippet>858</a>                        }
 <a href=#859 id=859 data-nosnippet>859</a>                    } <span class="kw">else </span>{
 <a href=#860 id=860 data-nosnippet>860</a>                        <span class="kw">let </span>singleton = decomposition <span class="kw">as </span>u16;
-<a href=#861 id=861 data-nosnippet>861</a>                        <span class="kw">if </span><span class="macro">singleton !</span>= FDFA_MARKER {
+<a href=#861 id=861 data-nosnippet>861</a>                        <span class="kw">if </span>singleton != FDFA_MARKER {
 <a href=#862 id=862 data-nosnippet>862</a>                            <span class="comment">// Decomposition into one BMP character
 <a href=#863 id=863 data-nosnippet>863</a>                            </span><span class="kw">let </span>starter = char_from_u16(singleton);
 <a href=#864 id=864 data-nosnippet>864</a>                            (starter, <span class="number">0</span>)
@@ -1214,7 +1214,7 @@
 <a href=#1214 id=1214 data-nosnippet>1214</a>                        </span><span class="kw">return </span><span class="prelude-val">Some</span>(starter);
 <a href=#1215 id=1215 data-nosnippet>1215</a>                    }
 <a href=#1216 id=1216 data-nosnippet>1216</a>                    <span class="macro">debug_assert!</span>(ccc &gt;= most_recent_skipped_ccc);
-<a href=#1217 id=1217 data-nosnippet>1217</a>                    <span class="kw">if </span><span class="macro">ccc !</span>= most_recent_skipped_ccc {
+<a href=#1217 id=1217 data-nosnippet>1217</a>                    <span class="kw">if </span>ccc != most_recent_skipped_ccc {
 <a href=#1218 id=1218 data-nosnippet>1218</a>                        <span class="comment">// Using the non-Hangul version as a micro-optimization, since
 <a href=#1219 id=1219 data-nosnippet>1219</a>                        // we already rejected the case where `second` is a starter
 <a href=#1220 id=1220 data-nosnippet>1220</a>                        // above, and conjoining jamo are starters.
@@ -1312,7 +1312,7 @@
 <a href=#1312 id=1312 data-nosnippet>1312</a>                    <span class="comment">// We don't know if a `REPLACEMENT_CHARACTER` occurred in the slice or
 <a href=#1313 id=1313 data-nosnippet>1313</a>                    // was returned in response to an error by the iterator. Assume the
 <a href=#1314 id=1314 data-nosnippet>1314</a>                    // latter for correctness even though it pessimizes the former.
-<a href=#1315 id=1315 data-nosnippet>1315</a>                    </span><span class="kw">if </span><span class="macro-nonterminal">$always_valid_utf </span>|| <span class="macro-nonterminal">$undecomposed_starter</span>.<span class="macro">character !</span>= REPLACEMENT_CHARACTER {
+<a href=#1315 id=1315 data-nosnippet>1315</a>                    </span><span class="kw">if </span><span class="macro-nonterminal">$always_valid_utf </span>|| <span class="macro-nonterminal">$undecomposed_starter</span>.character != REPLACEMENT_CHARACTER {
 <a href=#1316 id=1316 data-nosnippet>1316</a>                        <span class="kw">let </span><span class="macro-nonterminal">$pending_slice </span>= <span class="kw-2">&amp;</span><span class="macro-nonterminal">$text</span>[<span class="macro-nonterminal">$text</span>.len() - <span class="macro-nonterminal">$composition</span>.decomposition.delegate.<span class="macro-nonterminal">$as_slice</span>().len() - <span class="macro-nonterminal">$undecomposed_starter</span>.character.<span class="macro-nonterminal">$len_utf</span>()..];
 <a href=#1317 id=1317 data-nosnippet>1317</a>                        <span class="comment">// The `$fast` block must either:
 <a href=#1318 id=1318 data-nosnippet>1318</a>                        // 1. Return due to reaching EOF
@@ -1388,7 +1388,7 @@
 <a href=#1388 id=1388 data-nosnippet>1388</a>                                <span class="kw">continue </span><span class="lifetime">'bufferloop</span>;
 <a href=#1389 id=1389 data-nosnippet>1389</a>                            }
 <a href=#1390 id=1390 data-nosnippet>1390</a>                            <span class="macro">debug_assert!</span>(ccc &gt;= most_recent_skipped_ccc);
-<a href=#1391 id=1391 data-nosnippet>1391</a>                            <span class="kw">if </span><span class="macro">ccc !</span>= most_recent_skipped_ccc {
+<a href=#1391 id=1391 data-nosnippet>1391</a>                            <span class="kw">if </span>ccc != most_recent_skipped_ccc {
 <a href=#1392 id=1392 data-nosnippet>1392</a>                                <span class="comment">// Using the non-Hangul version as a micro-optimization, since
 <a href=#1393 id=1393 data-nosnippet>1393</a>                                // we already rejected the case where `second` is a starter
 <a href=#1394 id=1394 data-nosnippet>1394</a>                                // above, and conjoining jamo are starters.
@@ -2051,7 +2051,7 @@
 <a href=#2051 id=2051 data-nosnippet>2051</a>                </span><span class="kw">let </span>end: <span class="kw-2">*const </span>u16 = <span class="kw">unsafe </span>{ ptr.add(delegate_as_slice.len()) };
 <a href=#2052 id=2052 data-nosnippet>2052</a>                <span class="lifetime">'fast</span>: <span class="kw">loop </span>{
 <a href=#2053 id=2053 data-nosnippet>2053</a>                    <span class="comment">// if let Some(&amp;upcoming_code_unit) = code_unit_iter.next() {
-<a href=#2054 id=2054 data-nosnippet>2054</a>                    </span><span class="kw">if </span><span class="macro">ptr !</span>= end {
+<a href=#2054 id=2054 data-nosnippet>2054</a>                    </span><span class="kw">if </span>ptr != end {
 <a href=#2055 id=2055 data-nosnippet>2055</a>                        <span class="comment">// SAFETY: We just checked that `ptr` has not reached `end`.
 <a href=#2056 id=2056 data-nosnippet>2056</a>                        // `ptr` always advances by one, and we always have a check
 <a href=#2057 id=2057 data-nosnippet>2057</a>                        // per advancement.
@@ -2105,7 +2105,7 @@
 <a href=#2105 id=2105 data-nosnippet>2105</a>                            <span class="kw">if </span>likely(surrogate_base &lt;= (<span class="number">0xDBFF </span>- <span class="number">0xD800</span>)) {
 <a href=#2106 id=2106 data-nosnippet>2106</a>                                <span class="comment">// let iter_backup = code_unit_iter.clone();
 <a href=#2107 id=2107 data-nosnippet>2107</a>                                // if let Some(&amp;low) = code_unit_iter.next() {
-<a href=#2108 id=2108 data-nosnippet>2108</a>                                </span><span class="kw">if </span><span class="macro">ptr !</span>= end {
+<a href=#2108 id=2108 data-nosnippet>2108</a>                                </span><span class="kw">if </span>ptr != end {
 <a href=#2109 id=2109 data-nosnippet>2109</a>                                    <span class="comment">// SAFETY: We just checked that `ptr` has not reached `end`.
 <a href=#2110 id=2110 data-nosnippet>2110</a>                                    // `ptr` always advances by one, and we always have a check
 <a href=#2111 id=2111 data-nosnippet>2111</a>                                    // per advancement.
@@ -2698,7 +2698,7 @@
 <a href=#2698 id=2698 data-nosnippet>2698</a>
 <a href=#2699 id=2699 data-nosnippet>2699</a>                <span class="lifetime">'fast</span>: <span class="kw">loop </span>{
 <a href=#2700 id=2700 data-nosnippet>2700</a>                    <span class="comment">// if let Some(&amp;upcoming_code_unit) = code_unit_iter.next() {
-<a href=#2701 id=2701 data-nosnippet>2701</a>                    </span><span class="kw">if </span><span class="macro">ptr !</span>= end {
+<a href=#2701 id=2701 data-nosnippet>2701</a>                    </span><span class="kw">if </span>ptr != end {
 <a href=#2702 id=2702 data-nosnippet>2702</a>                        <span class="comment">// SAFETY: We just checked that `ptr` has not reached `end`.
 <a href=#2703 id=2703 data-nosnippet>2703</a>                        // `ptr` always advances by one, and we always have a check
 <a href=#2704 id=2704 data-nosnippet>2704</a>                        // per advancement.
@@ -2756,7 +2756,7 @@
 <a href=#2756 id=2756 data-nosnippet>2756</a>                            <span class="kw">if </span>likely(surrogate_base &lt;= (<span class="number">0xDBFF </span>- <span class="number">0xD800</span>)) {
 <a href=#2757 id=2757 data-nosnippet>2757</a>                                <span class="comment">// let iter_backup = code_unit_iter.clone();
 <a href=#2758 id=2758 data-nosnippet>2758</a>                                // if let Some(&amp;low) = code_unit_iter.next() {
-<a href=#2759 id=2759 data-nosnippet>2759</a>                                </span><span class="kw">if </span><span class="macro">ptr !</span>= end {
+<a href=#2759 id=2759 data-nosnippet>2759</a>                                </span><span class="kw">if </span>ptr != end {
 <a href=#2760 id=2760 data-nosnippet>2760</a>                                    <span class="comment">// SAFETY: We just checked that `ptr` has not reached `end`.
 <a href=#2761 id=2761 data-nosnippet>2761</a>                                    // `ptr` always advances by one, and we always have a check
 <a href=#2762 id=2762 data-nosnippet>2762</a>                                    // per advancement.

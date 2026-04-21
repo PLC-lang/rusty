@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.29/src/kv/value.rs`."><title>value.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="log" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="icon" href="https://prev.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">log/kv/</div>value.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Structured values.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/log-0.4.29/src/kv/value.rs`."><title>value.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="log" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="icon" href="https://prev.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">log/kv/</div>value.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Structured values.
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! This module defines the [`Value`] type and supporting APIs for
 <a href=#4 id=4 data-nosnippet>4</a>//! capturing and serializing them.
@@ -392,7 +392,7 @@
 <a href=#392 id=392 data-nosnippet>392</a>    <span class="kw">use </span>std::rc::Rc;
 <a href=#393 id=393 data-nosnippet>393</a>    <span class="kw">use </span>std::sync::Arc;
 <a href=#394 id=394 data-nosnippet>394</a>
-<a href=#395 id=395 data-nosnippet>395</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#395 id=395 data-nosnippet>395</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#396 id=396 data-nosnippet>396</a>
 <a href=#397 id=397 data-nosnippet>397</a>    <span class="kw">impl</span>&lt;T&gt; ToValue <span class="kw">for </span>Box&lt;T&gt;
 <a href=#398 id=398 data-nosnippet>398</a>    <span class="kw">where
@@ -607,7 +607,7 @@
 <a href=#607 id=607 data-nosnippet>607</a>    the codebase here. It's a general-purpose type-erasure library that handles mapping between
 <a href=#608 id=608 data-nosnippet>608</a>    more fully-featured serialization frameworks.
 <a href=#609 id=609 data-nosnippet>609</a>    */
-<a href=#610 id=610 data-nosnippet>610</a>    </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#610 id=610 data-nosnippet>610</a>    </span><span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#611 id=611 data-nosnippet>611</a>
 <a href=#612 id=612 data-nosnippet>612</a>    <span class="kw">pub use </span>value_bag::ValueBag <span class="kw">as </span>Inner;
 <a href=#613 id=613 data-nosnippet>613</a>
@@ -732,7 +732,7 @@
 <a href=#732 id=732 data-nosnippet>732</a>    2. VisitValues should always be called in the same way. If a particular type of value calls `visit_i64`,
 <a href=#733 id=733 data-nosnippet>733</a>       then the same `value_bag`-based visitor must also.
 <a href=#734 id=734 data-nosnippet>734</a>    */
-<a href=#735 id=735 data-nosnippet>735</a>    </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#735 id=735 data-nosnippet>735</a>    </span><span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#736 id=736 data-nosnippet>736</a>
 <a href=#737 id=737 data-nosnippet>737</a>    <span class="attr">#[derive(Clone)]
 <a href=#738 id=738 data-nosnippet>738</a>    </span><span class="kw">pub enum </span>Inner&lt;<span class="lifetime">'v</span>&gt; {
@@ -860,7 +860,7 @@
 <a href=#860 id=860 data-nosnippet>860</a>    <span class="kw">impl</span>&lt;<span class="lifetime">'v</span>&gt; fmt::Debug <span class="kw">for </span>Inner&lt;<span class="lifetime">'v</span>&gt; {
 <a href=#861 id=861 data-nosnippet>861</a>        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
 <a href=#862 id=862 data-nosnippet>862</a>            <span class="kw">match </span><span class="self">self </span>{
-<a href=#863 id=863 data-nosnippet>863</a>                Inner::None =&gt; fmt::Debug::fmt(<span class="kw-2">&amp;</span><span class="prelude-val">None</span>::&lt;()&gt;, f),
+<a href=#863 id=863 data-nosnippet>863</a>                Inner::None =&gt; fmt::Debug::fmt(<span class="kw-2">&amp;</span>None::&lt;()&gt;, f),
 <a href=#864 id=864 data-nosnippet>864</a>                Inner::Bool(v) =&gt; fmt::Debug::fmt(v, f),
 <a href=#865 id=865 data-nosnippet>865</a>                Inner::Str(v) =&gt; fmt::Debug::fmt(v, f),
 <a href=#866 id=866 data-nosnippet>866</a>                Inner::Char(v) =&gt; fmt::Debug::fmt(v, f),
@@ -878,7 +878,7 @@
 <a href=#878 id=878 data-nosnippet>878</a>    <span class="kw">impl</span>&lt;<span class="lifetime">'v</span>&gt; fmt::Display <span class="kw">for </span>Inner&lt;<span class="lifetime">'v</span>&gt; {
 <a href=#879 id=879 data-nosnippet>879</a>        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
 <a href=#880 id=880 data-nosnippet>880</a>            <span class="kw">match </span><span class="self">self </span>{
-<a href=#881 id=881 data-nosnippet>881</a>                Inner::None =&gt; fmt::Debug::fmt(<span class="kw-2">&amp;</span><span class="prelude-val">None</span>::&lt;()&gt;, f),
+<a href=#881 id=881 data-nosnippet>881</a>                Inner::None =&gt; fmt::Debug::fmt(<span class="kw-2">&amp;</span>None::&lt;()&gt;, f),
 <a href=#882 id=882 data-nosnippet>882</a>                Inner::Bool(v) =&gt; fmt::Display::fmt(v, f),
 <a href=#883 id=883 data-nosnippet>883</a>                Inner::Str(v) =&gt; fmt::Display::fmt(v, f),
 <a href=#884 id=884 data-nosnippet>884</a>                Inner::Char(v) =&gt; fmt::Display::fmt(v, f),
@@ -1174,7 +1174,7 @@
 <a href=#1174 id=1174 data-nosnippet>1174</a>
 <a href=#1175 id=1175 data-nosnippet>1175</a><span class="attr">#[cfg(test)]
 <a href=#1176 id=1176 data-nosnippet>1176</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>tests {
-<a href=#1177 id=1177 data-nosnippet>1177</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#1177 id=1177 data-nosnippet>1177</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#1178 id=1178 data-nosnippet>1178</a>
 <a href=#1179 id=1179 data-nosnippet>1179</a>    <span class="kw">impl</span>&lt;<span class="lifetime">'v</span>&gt; Value&lt;<span class="lifetime">'v</span>&gt; {
 <a href=#1180 id=1180 data-nosnippet>1180</a>        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; inner::Token {
@@ -1240,7 +1240,7 @@
 <a href=#1240 id=1240 data-nosnippet>1240</a>        <span class="macro">assert_eq!</span>(<span class="string">"a loong string"</span>.to_value().to_string(), <span class="string">"a loong string"</span>);
 <a href=#1241 id=1241 data-nosnippet>1241</a>        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="bool-val">true</span>).to_value().to_string(), <span class="string">"true"</span>);
 <a href=#1242 id=1242 data-nosnippet>1242</a>        <span class="macro">assert_eq!</span>(().to_value().to_string(), <span class="string">"None"</span>);
-<a href=#1243 id=1243 data-nosnippet>1243</a>        <span class="macro">assert_eq!</span>(<span class="prelude-val">None</span>::&lt;bool&gt;.to_value().to_string(), <span class="string">"None"</span>);
+<a href=#1243 id=1243 data-nosnippet>1243</a>        <span class="macro">assert_eq!</span>(None::&lt;bool&gt;.to_value().to_string(), <span class="string">"None"</span>);
 <a href=#1244 id=1244 data-nosnippet>1244</a>    }
 <a href=#1245 id=1245 data-nosnippet>1245</a>
 <a href=#1246 id=1246 data-nosnippet>1246</a>    <span class="attr">#[test]
@@ -1256,7 +1256,7 @@
 <a href=#1256 id=1256 data-nosnippet>1256</a>        );
 <a href=#1257 id=1257 data-nosnippet>1257</a>        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="bool-val">true</span>).to_value().to_token(), inner::Token::Bool(<span class="bool-val">true</span>));
 <a href=#1258 id=1258 data-nosnippet>1258</a>        <span class="macro">assert_eq!</span>(().to_value().to_token(), inner::Token::None);
-<a href=#1259 id=1259 data-nosnippet>1259</a>        <span class="macro">assert_eq!</span>(<span class="prelude-val">None</span>::&lt;bool&gt;.to_value().to_token(), inner::Token::None);
+<a href=#1259 id=1259 data-nosnippet>1259</a>        <span class="macro">assert_eq!</span>(None::&lt;bool&gt;.to_value().to_token(), inner::Token::None);
 <a href=#1260 id=1260 data-nosnippet>1260</a>    }
 <a href=#1261 id=1261 data-nosnippet>1261</a>
 <a href=#1262 id=1262 data-nosnippet>1262</a>    <span class="attr">#[test]

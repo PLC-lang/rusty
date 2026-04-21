@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/quick-xml-0.30.0/src/de/simple_type.rs`."><title>simple_type.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">quick_xml/de/</div>simple_type.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Contains Serde `Deserializer` for XML [simple types] [as defined] in the XML Schema.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/quick-xml-0.30.0/src/de/simple_type.rs`."><title>simple_type.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">quick_xml/de/</div>simple_type.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Contains Serde `Deserializer` for XML [simple types] [as defined] in the XML Schema.
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! [simple types]: https://www.w3schools.com/xml/el_simpletype.asp
 <a href=#4 id=4 data-nosnippet>4</a>//! [as defined]: https://www.w3.org/TR/xmlschema11-1/#Simple_Type_Definition
@@ -408,7 +408,7 @@
 <a href=#408 id=408 data-nosnippet>408</a>                    <span class="comment">// `content` started with a space, skip them all
 <a href=#409 id=409 data-nosnippet>409</a>                    </span><span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; {
 <a href=#410 id=410 data-nosnippet>410</a>                        <span class="comment">// Skip all spaces
-<a href=#411 id=411 data-nosnippet>411</a>                        </span><span class="kw">let </span>start = string.as_bytes().iter().position(|ch| <span class="kw-2">*</span><span class="macro">ch !</span>= DELIMITER);
+<a href=#411 id=411 data-nosnippet>411</a>                        </span><span class="kw">let </span>start = string.as_bytes().iter().position(|ch| <span class="kw-2">*</span>ch != DELIMITER);
 <a href=#412 id=412 data-nosnippet>412</a>                        content = <span class="kw">match </span>(start, content) {
 <a href=#413 id=413 data-nosnippet>413</a>                            <span class="comment">// We cannot find any non-space character, so string contains only spaces
 <a href=#414 id=414 data-nosnippet>414</a>                            </span>(<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -801,7 +801,7 @@
 <a href=#801 id=801 data-nosnippet>801</a>
 <a href=#802 id=802 data-nosnippet>802</a></span><span class="attr">#[cfg(test)]
 <a href=#803 id=803 data-nosnippet>803</a></span><span class="kw">mod </span>tests {
-<a href=#804 id=804 data-nosnippet>804</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#804 id=804 data-nosnippet>804</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#805 id=805 data-nosnippet>805</a>    <span class="kw">use </span><span class="kw">crate</span>::se::simple_type::{QuoteTarget, SimpleTypeSerializer};
 <a href=#806 id=806 data-nosnippet>806</a>    <span class="kw">use </span><span class="kw">crate</span>::se::{Indent, QuoteLevel};
 <a href=#807 id=807 data-nosnippet>807</a>    <span class="kw">use </span><span class="kw">crate</span>::utils::{ByteBuf, Bytes};
@@ -911,7 +911,7 @@
 <a href=#911 id=911 data-nosnippet>911</a>
 <a href=#912 id=912 data-nosnippet>912</a>    <span class="doccomment">/// Tests for deserialize atomic and union values, as defined in XSD specification
 <a href=#913 id=913 data-nosnippet>913</a>    </span><span class="kw">mod </span>atomic {
-<a href=#914 id=914 data-nosnippet>914</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#914 id=914 data-nosnippet>914</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#915 id=915 data-nosnippet>915</a>        <span class="kw">use </span><span class="kw">crate</span>::se::simple_type::AtomicSerializer;
 <a href=#916 id=916 data-nosnippet>916</a>        <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#917 id=917 data-nosnippet>917</a>
@@ -1088,7 +1088,7 @@
 <a href=#1088 id=1088 data-nosnippet>1088</a>
 <a href=#1089 id=1089 data-nosnippet>1089</a>    <span class="doccomment">/// Module for testing list accessor
 <a href=#1090 id=1090 data-nosnippet>1090</a>    </span><span class="kw">mod </span>list {
-<a href=#1091 id=1091 data-nosnippet>1091</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#1091 id=1091 data-nosnippet>1091</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#1092 id=1092 data-nosnippet>1092</a>        <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#1093 id=1093 data-nosnippet>1093</a>
 <a href=#1094 id=1094 data-nosnippet>1094</a>        <span class="attr">#[test]
@@ -1182,7 +1182,7 @@
 <a href=#1182 id=1182 data-nosnippet>1182</a>    }
 <a href=#1183 id=1183 data-nosnippet>1183</a>
 <a href=#1184 id=1184 data-nosnippet>1184</a>    <span class="kw">mod </span>utf8 {
-<a href=#1185 id=1185 data-nosnippet>1185</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#1185 id=1185 data-nosnippet>1185</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#1186 id=1186 data-nosnippet>1186</a>        <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#1187 id=1187 data-nosnippet>1187</a>
 <a href=#1188 id=1188 data-nosnippet>1188</a>        <span class="macro">simple!</span>(utf8, i8_:  i8  = <span class="string">"-2" </span>=&gt; -<span class="number">2</span>);
@@ -1252,7 +1252,7 @@
 <a href=#1252 id=1252 data-nosnippet>1252</a>
 <a href=#1253 id=1253 data-nosnippet>1253</a>    <span class="attr">#[cfg(feature = <span class="string">"encoding"</span>)]
 <a href=#1254 id=1254 data-nosnippet>1254</a>    </span><span class="kw">mod </span>utf16 {
-<a href=#1255 id=1255 data-nosnippet>1255</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#1255 id=1255 data-nosnippet>1255</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#1256 id=1256 data-nosnippet>1256</a>        <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#1257 id=1257 data-nosnippet>1257</a>
 <a href=#1258 id=1258 data-nosnippet>1258</a>        <span class="kw">fn </span>to_utf16(string: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;u8&gt; {

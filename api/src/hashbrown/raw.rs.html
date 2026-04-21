@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hashbrown-0.17.0/src/raw.rs`."><title>raw.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hashbrown" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">hashbrown/</div>raw.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::TryReserveError;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hashbrown-0.17.0/src/raw.rs`."><title>raw.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hashbrown" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">hashbrown/</div>raw.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::TryReserveError;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span><span class="kw">crate</span>::control::{BitMaskIter, Group, Tag, TagSliceExt};
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">crate</span>::scopeguard::{ScopeGuard, guard};
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::util::{invalid_mut, likely, unlikely};
@@ -170,7 +170,7 @@
 <a href=#170 id=170 data-nosnippet>170</a>// selection or growth policy changes, revisit `maximum_buckets_in`.
 <a href=#171 id=171 data-nosnippet>171</a></span><span class="attr">#[inline]
 <a href=#172 id=172 data-nosnippet>172</a></span><span class="kw">fn </span>ensure_bucket_bytes_at_least_ctrl_align(table_layout: TableLayout, buckets: usize) {
-<a href=#173 id=173 data-nosnippet>173</a>    <span class="kw">if </span>table_layout.<span class="macro">size !</span>= <span class="number">0 </span>{
+<a href=#173 id=173 data-nosnippet>173</a>    <span class="kw">if </span>table_layout.size != <span class="number">0 </span>{
 <a href=#174 id=174 data-nosnippet>174</a>        <span class="kw">let </span>prod = table_layout.size.saturating_mul(buckets);
 <a href=#175 id=175 data-nosnippet>175</a>        <span class="macro">debug_assert!</span>(prod &gt;= table_layout.ctrl_align);
 <a href=#176 id=176 data-nosnippet>176</a>    }
@@ -2209,7 +2209,7 @@
 <a href=#2209 id=2209 data-nosnippet>2209</a>    </span><span class="kw">unsafe fn </span>drop_elements&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
 <a href=#2210 id=2210 data-nosnippet>2210</a>        <span class="comment">// Check that `self.items != 0`. Protects against the possibility
 <a href=#2211 id=2211 data-nosnippet>2211</a>        // of creating an iterator on an table with uninitialized control bytes.
-<a href=#2212 id=2212 data-nosnippet>2212</a>        </span><span class="kw">if </span>T::NEEDS_DROP &amp;&amp; <span class="self">self</span>.<span class="macro">items !</span>= <span class="number">0 </span>{
+<a href=#2212 id=2212 data-nosnippet>2212</a>        </span><span class="kw">if </span>T::NEEDS_DROP &amp;&amp; <span class="self">self</span>.items != <span class="number">0 </span>{
 <a href=#2213 id=2213 data-nosnippet>2213</a>            <span class="comment">// SAFETY: We know for sure that RawTableInner will outlive the
 <a href=#2214 id=2214 data-nosnippet>2214</a>            // returned `RawIter` iterator, and the caller of this function
 <a href=#2215 id=2215 data-nosnippet>2215</a>            // must uphold the safety contract for `drop_elements` method.
@@ -3704,7 +3704,7 @@
 <a href=#3704 id=3704 data-nosnippet>3704</a>            <span class="kw">while let </span><span class="prelude-val">Some</span>(index) = <span class="self">self</span>.current_group.next() {
 <a href=#3705 id=3705 data-nosnippet>3705</a>                <span class="comment">// The returned `index` will always be in the range `0..Group::WIDTH`,
 <a href=#3706 id=3706 data-nosnippet>3706</a>                // so that calling `self.data.next_n(index)` is safe (see detailed explanation below).
-<a href=#3707 id=3707 data-nosnippet>3707</a>                </span><span class="macro">debug_assert!</span>(<span class="macro">n !</span>= <span class="number">0</span>);
+<a href=#3707 id=3707 data-nosnippet>3707</a>                </span><span class="macro">debug_assert!</span>(n != <span class="number">0</span>);
 <a href=#3708 id=3708 data-nosnippet>3708</a>                <span class="kw">let </span>bucket = <span class="kw">unsafe </span>{ <span class="self">self</span>.data.next_n(index) };
 <a href=#3709 id=3709 data-nosnippet>3709</a>                acc = f(acc, bucket);
 <a href=#3710 id=3710 data-nosnippet>3710</a>                n -= <span class="number">1</span>;
@@ -3817,7 +3817,7 @@
 <a href=#3817 id=3817 data-nosnippet>3817</a><span class="kw">impl</span>&lt;T&gt; RawIter&lt;T&gt; {
 <a href=#3818 id=3818 data-nosnippet>3818</a>    <span class="kw">unsafe fn </span>drop_elements(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
 <a href=#3819 id=3819 data-nosnippet>3819</a>        <span class="kw">unsafe </span>{
-<a href=#3820 id=3820 data-nosnippet>3820</a>            <span class="kw">if </span>T::NEEDS_DROP &amp;&amp; <span class="self">self</span>.<span class="macro">items !</span>= <span class="number">0 </span>{
+<a href=#3820 id=3820 data-nosnippet>3820</a>            <span class="kw">if </span>T::NEEDS_DROP &amp;&amp; <span class="self">self</span>.items != <span class="number">0 </span>{
 <a href=#3821 id=3821 data-nosnippet>3821</a>                <span class="kw">for </span>item <span class="kw">in </span><span class="self">self </span>{
 <a href=#3822 id=3822 data-nosnippet>3822</a>                    item.drop();
 <a href=#3823 id=3823 data-nosnippet>3823</a>                }
@@ -4340,7 +4340,7 @@
 <a href=#4340 id=4340 data-nosnippet>4340</a>
 <a href=#4341 id=4341 data-nosnippet>4341</a><span class="attr">#[cfg(test)]
 <a href=#4342 id=4342 data-nosnippet>4342</a></span><span class="kw">mod </span>test_map {
-<a href=#4343 id=4343 data-nosnippet>4343</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#4343 id=4343 data-nosnippet>4343</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#4344 id=4344 data-nosnippet>4344</a>
 <a href=#4345 id=4345 data-nosnippet>4345</a>    <span class="attr">#[test]
 <a href=#4346 id=4346 data-nosnippet>4346</a>    </span><span class="kw">fn </span>test_prev_pow2() {
@@ -4483,7 +4483,7 @@
 <a href=#4483 id=4483 data-nosnippet>4483</a>    </span><span class="attr">#[test]
 <a href=#4484 id=4484 data-nosnippet>4484</a>    #[cfg(panic = <span class="string">"unwind"</span>)]
 <a href=#4485 id=4485 data-nosnippet>4485</a>    </span><span class="kw">fn </span>test_catch_panic_clone_from() {
-<a href=#4486 id=4486 data-nosnippet>4486</a>        <span class="kw">use super</span>::{AllocError, Allocator, Global};
+<a href=#4486 id=4486 data-nosnippet>4486</a>        <span class="kw">use </span>super::{AllocError, Allocator, Global};
 <a href=#4487 id=4487 data-nosnippet>4487</a>        <span class="kw">use </span>core::sync::atomic::{AtomicI8, Ordering};
 <a href=#4488 id=4488 data-nosnippet>4488</a>        <span class="kw">use </span>std::thread;
 <a href=#4489 id=4489 data-nosnippet>4489</a>        <span class="kw">use </span>stdalloc::sync::Arc;

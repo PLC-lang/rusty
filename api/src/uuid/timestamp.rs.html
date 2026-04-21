@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.23.1/src/timestamp.rs`."><title>timestamp.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="uuid" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">uuid/</div>timestamp.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Generating UUIDs from timestamps.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/uuid-1.23.1/src/timestamp.rs`."><title>timestamp.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="uuid" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">uuid/</div>timestamp.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Generating UUIDs from timestamps.
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! Timestamps are used in a few UUID versions as a source of decentralized
 <a href=#4 id=4 data-nosnippet>4</a>//! uniqueness (as in versions 1 and 6), and as a way to enable sorting (as
@@ -480,7 +480,7 @@
 <a href=#480 id=480 data-nosnippet>480</a>
 <a href=#481 id=481 data-nosnippet>481</a>    <span class="attr">#[cfg(any(feature = <span class="string">"v1"</span>, feature = <span class="string">"v6"</span>))]
 <a href=#482 id=482 data-nosnippet>482</a>    </span><span class="kw">mod </span>v1_support {
-<a href=#483 id=483 data-nosnippet>483</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#483 id=483 data-nosnippet>483</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#484 id=484 data-nosnippet>484</a>
 <a href=#485 id=485 data-nosnippet>485</a>        <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, feature = <span class="string">"rng"</span>))]
 <a href=#486 id=486 data-nosnippet>486</a>        </span><span class="kw">use </span><span class="kw">crate</span>::std::sync::LazyLock;
@@ -561,7 +561,7 @@
 <a href=#561 id=561 data-nosnippet>561</a>        </span><span class="kw">mod </span>tests {
 <a href=#562 id=562 data-nosnippet>562</a>            <span class="kw">use </span><span class="kw">crate</span>::Timestamp;
 <a href=#563 id=563 data-nosnippet>563</a>
-<a href=#564 id=564 data-nosnippet>564</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#564 id=564 data-nosnippet>564</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#565 id=565 data-nosnippet>565</a>
 <a href=#566 id=566 data-nosnippet>566</a>            <span class="attr">#[test]
 <a href=#567 id=567 data-nosnippet>567</a>            </span><span class="kw">fn </span>context() {
@@ -603,7 +603,7 @@
 <a href=#603 id=603 data-nosnippet>603</a>
 <a href=#604 id=604 data-nosnippet>604</a>    <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 <a href=#605 id=605 data-nosnippet>605</a>    </span><span class="kw">mod </span>std_support {
-<a href=#606 id=606 data-nosnippet>606</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#606 id=606 data-nosnippet>606</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#607 id=607 data-nosnippet>607</a>
 <a href=#608 id=608 data-nosnippet>608</a>        <span class="kw">use </span>core::panic::{AssertUnwindSafe, RefUnwindSafe};
 <a href=#609 id=609 data-nosnippet>609</a>        <span class="kw">use </span>std::{sync::Mutex, thread::LocalKey};
@@ -704,7 +704,7 @@
 <a href=#704 id=704 data-nosnippet>704</a>
 <a href=#705 id=705 data-nosnippet>705</a>    <span class="attr">#[cfg(feature = <span class="string">"v7"</span>)]
 <a href=#706 id=706 data-nosnippet>706</a>    </span><span class="kw">mod </span>v7_support {
-<a href=#707 id=707 data-nosnippet>707</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#707 id=707 data-nosnippet>707</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#708 id=708 data-nosnippet>708</a>
 <a href=#709 id=709 data-nosnippet>709</a>        <span class="kw">use </span>core::{cell::Cell, cmp, panic::RefUnwindSafe};
 <a href=#710 id=710 data-nosnippet>710</a>
@@ -1049,9 +1049,9 @@
 <a href=#1049 id=1049 data-nosnippet>1049</a>        </span><span class="kw">mod </span>tests {
 <a href=#1050 id=1050 data-nosnippet>1050</a>            <span class="kw">use </span>core::time::Duration;
 <a href=#1051 id=1051 data-nosnippet>1051</a>
-<a href=#1052 id=1052 data-nosnippet>1052</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#1052 id=1052 data-nosnippet>1052</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#1053 id=1053 data-nosnippet>1053</a>
-<a href=#1054 id=1054 data-nosnippet>1054</a>            <span class="kw">use crate</span>::{Timestamp, Uuid};
+<a href=#1054 id=1054 data-nosnippet>1054</a>            <span class="kw">use </span>crate::{Timestamp, Uuid};
 <a href=#1055 id=1055 data-nosnippet>1055</a>
 <a href=#1056 id=1056 data-nosnippet>1056</a>            <span class="attr">#[test]
 <a href=#1057 id=1057 data-nosnippet>1057</a>            </span><span class="kw">fn </span>context() {
@@ -1203,7 +1203,7 @@
 <a href=#1203 id=1203 data-nosnippet>1203</a>
 <a href=#1204 id=1204 data-nosnippet>1204</a><span class="attr">#[cfg(all(test, any(feature = <span class="string">"v1"</span>, feature = <span class="string">"v6"</span>)))]
 <a href=#1205 id=1205 data-nosnippet>1205</a></span><span class="kw">mod </span>tests {
-<a href=#1206 id=1206 data-nosnippet>1206</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#1206 id=1206 data-nosnippet>1206</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#1207 id=1207 data-nosnippet>1207</a>
 <a href=#1208 id=1208 data-nosnippet>1208</a>    <span class="attr">#[cfg(all(target_arch = <span class="string">"wasm32"</span>, any(target_os = <span class="string">"unknown"</span>, target_os = <span class="string">"none"</span>)))]
 <a href=#1209 id=1209 data-nosnippet>1209</a>    </span><span class="kw">use </span>wasm_bindgen_test::<span class="kw-2">*</span>;
@@ -1254,7 +1254,7 @@
 <a href=#1254 id=1254 data-nosnippet>1254</a>
 <a href=#1255 id=1255 data-nosnippet>1255</a>    <span class="attr">#[cfg(all(test, feature = <span class="string">"std"</span>, not(miri)))]
 <a href=#1256 id=1256 data-nosnippet>1256</a>    </span><span class="kw">mod </span>std_support {
-<a href=#1257 id=1257 data-nosnippet>1257</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#1257 id=1257 data-nosnippet>1257</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#1258 id=1258 data-nosnippet>1258</a>
 <a href=#1259 id=1259 data-nosnippet>1259</a>        <span class="kw">use </span>std::time::{Duration, SystemTime};
 <a href=#1260 id=1260 data-nosnippet>1260</a>

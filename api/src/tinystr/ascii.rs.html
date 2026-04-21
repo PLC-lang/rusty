@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tinystr-0.8.3/src/ascii.rs`."><title>ascii.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tinystr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tinystr/</div>ascii.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// This file is part of ICU4X. For terms of use, please see the file
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tinystr-0.8.3/src/ascii.rs`."><title>ascii.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tinystr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">tinystr/</div>ascii.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// This file is part of ICU4X. For terms of use, please see the file
 <a href=#2 id=2 data-nosnippet>2</a>// called LICENSE at the top level of the ICU4X source tree
 <a href=#3 id=3 data-nosnippet>3</a>// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -285,7 +285,7 @@
 <a href=#285 id=285 data-nosnippet>285</a>        <span class="kw">let </span><span class="kw-2">mut </span>x = number;
 <a href=#286 id=286 data-nosnippet>286</a>        <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0usize</span>;
 <a href=#287 id=287 data-nosnippet>287</a>        <span class="attr">#[expect(clippy::indexing_slicing)] </span><span class="comment">// in-range: i &lt; N
-<a href=#288 id=288 data-nosnippet>288</a>        </span><span class="kw">while </span>i &lt; N &amp;&amp; (<span class="macro">x !</span>= <span class="number">0 </span>|| i == <span class="number">0</span>) {
+<a href=#288 id=288 data-nosnippet>288</a>        </span><span class="kw">while </span>i &lt; N &amp;&amp; (x != <span class="number">0 </span>|| i == <span class="number">0</span>) {
 <a href=#289 id=289 data-nosnippet>289</a>            bytes[N - i - <span class="number">1</span>] = AsciiByte::from_decimal_digit((x % <span class="number">10</span>) <span class="kw">as </span>u8);
 <a href=#290 id=290 data-nosnippet>290</a>            x /= <span class="number">10</span>;
 <a href=#291 id=291 data-nosnippet>291</a>            i += <span class="number">1</span>;
@@ -295,7 +295,7 @@
 <a href=#295 id=295 data-nosnippet>295</a>            bytes[i..N].fill(AsciiByte::B0);
 <a href=#296 id=296 data-nosnippet>296</a>        }
 <a href=#297 id=297 data-nosnippet>297</a>        <span class="kw">let </span>s = <span class="self">Self </span>{ bytes };
-<a href=#298 id=298 data-nosnippet>298</a>        <span class="kw">if </span><span class="macro">x !</span>= <span class="number">0 </span>{
+<a href=#298 id=298 data-nosnippet>298</a>        <span class="kw">if </span>x != <span class="number">0 </span>{
 <a href=#299 id=299 data-nosnippet>299</a>            <span class="prelude-val">Err</span>(s)
 <a href=#300 id=300 data-nosnippet>300</a>        } <span class="kw">else </span>{
 <a href=#301 id=301 data-nosnippet>301</a>            <span class="prelude-val">Ok</span>(s)
@@ -318,7 +318,7 @@
 <a href=#318 id=318 data-nosnippet>318</a>        } <span class="kw">else </span>{
 <a href=#319 id=319 data-nosnippet>319</a>            <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
 <a href=#320 id=320 data-nosnippet>320</a>            <span class="attr">#[expect(clippy::indexing_slicing)] </span><span class="comment">// &lt; N is safe
-<a href=#321 id=321 data-nosnippet>321</a>            </span><span class="kw">while </span>i &lt; N &amp;&amp; <span class="self">self</span>.bytes[i] <span class="kw">as </span><span class="macro">u8 !</span>= AsciiByte::B0 <span class="kw">as </span>u8 {
+<a href=#321 id=321 data-nosnippet>321</a>            </span><span class="kw">while </span>i &lt; N &amp;&amp; <span class="self">self</span>.bytes[i] <span class="kw">as </span>u8 != AsciiByte::B0 <span class="kw">as </span>u8 {
 <a href=#322 id=322 data-nosnippet>322</a>                i += <span class="number">1
 <a href=#323 id=323 data-nosnippet>323</a>            </span>}
 <a href=#324 id=324 data-nosnippet>324</a>            i
@@ -430,7 +430,7 @@
 <a href=#430 id=430 data-nosnippet>430</a>            Aligned8::from_ascii_bytes(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$self</span>.bytes).<span class="macro-nonterminal">$check_int</span>()
 <a href=#431 id=431 data-nosnippet>431</a>        } <span class="kw">else </span>{
 <a href=#432 id=432 data-nosnippet>432</a>            <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
-<a href=#433 id=433 data-nosnippet>433</a>            <span class="kw">while </span>i &lt; N &amp;&amp; <span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span><span class="macro">u8 !</span>= AsciiByte::B0 <span class="kw">as </span>u8 {
+<a href=#433 id=433 data-nosnippet>433</a>            <span class="kw">while </span>i &lt; N &amp;&amp; <span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span>u8 != AsciiByte::B0 <span class="kw">as </span>u8 {
 <a href=#434 id=434 data-nosnippet>434</a>                <span class="kw">if </span>!(<span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span>u8).<span class="macro-nonterminal">$check_u8</span>() {
 <a href=#435 id=435 data-nosnippet>435</a>                    <span class="kw">return </span><span class="bool-val">false</span>;
 <a href=#436 id=436 data-nosnippet>436</a>                }
@@ -450,7 +450,7 @@
 <a href=#450 id=450 data-nosnippet>450</a>                <span class="kw">return </span><span class="bool-val">false</span>;
 <a href=#451 id=451 data-nosnippet>451</a>            }
 <a href=#452 id=452 data-nosnippet>452</a>            <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">1</span>;
-<a href=#453 id=453 data-nosnippet>453</a>            <span class="kw">while </span>i &lt; N &amp;&amp; <span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span><span class="macro">u8 !</span>= AsciiByte::B0 <span class="kw">as </span>u8 {
+<a href=#453 id=453 data-nosnippet>453</a>            <span class="kw">while </span>i &lt; N &amp;&amp; <span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span>u8 != AsciiByte::B0 <span class="kw">as </span>u8 {
 <a href=#454 id=454 data-nosnippet>454</a>                <span class="kw">if </span>(<span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span>u8).<span class="macro-nonterminal">$check_u8_1_inv</span>() {
 <a href=#455 id=455 data-nosnippet>455</a>                    <span class="kw">return </span><span class="bool-val">false</span>;
 <a href=#456 id=456 data-nosnippet>456</a>                }
@@ -470,7 +470,7 @@
 <a href=#470 id=470 data-nosnippet>470</a>                <span class="kw">return </span><span class="bool-val">false</span>;
 <a href=#471 id=471 data-nosnippet>471</a>            }
 <a href=#472 id=472 data-nosnippet>472</a>            <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">1</span>;
-<a href=#473 id=473 data-nosnippet>473</a>            <span class="kw">while </span>i &lt; N &amp;&amp; <span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span><span class="macro">u8 !</span>= AsciiByte::B0 <span class="kw">as </span>u8 {
+<a href=#473 id=473 data-nosnippet>473</a>            <span class="kw">while </span>i &lt; N &amp;&amp; <span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span>u8 != AsciiByte::B0 <span class="kw">as </span>u8 {
 <a href=#474 id=474 data-nosnippet>474</a>                <span class="kw">if </span>!(<span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span>u8).<span class="macro-nonterminal">$check_u8_1_inv</span>() {
 <a href=#475 id=475 data-nosnippet>475</a>                    <span class="kw">return </span><span class="bool-val">false</span>;
 <a href=#476 id=476 data-nosnippet>476</a>                }
@@ -748,7 +748,7 @@
 <a href=#748 id=748 data-nosnippet>748</a>                i += <span class="number">1</span>;
 <a href=#749 id=749 data-nosnippet>749</a>            }
 <a href=#750 id=750 data-nosnippet>750</a>        } <span class="kw">else </span>{
-<a href=#751 id=751 data-nosnippet>751</a>            <span class="kw">while </span>i &lt; N &amp;&amp; <span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span><span class="macro">u8 !</span>= AsciiByte::B0 <span class="kw">as </span>u8 {
+<a href=#751 id=751 data-nosnippet>751</a>            <span class="kw">while </span>i &lt; N &amp;&amp; <span class="macro-nonterminal">$self</span>.bytes[i] <span class="kw">as </span>u8 != AsciiByte::B0 <span class="kw">as </span>u8 {
 <a href=#752 id=752 data-nosnippet>752</a>                <span class="macro-nonterminal">$self</span>.bytes[i] = <span class="macro-nonterminal">$self</span>.bytes[i].<span class="macro-nonterminal">$later_char_to</span>();
 <a href=#753 id=753 data-nosnippet>753</a>                i += <span class="number">1</span>;
 <a href=#754 id=754 data-nosnippet>754</a>            }
@@ -888,7 +888,7 @@
 <a href=#888 id=888 data-nosnippet>888</a>
 <a href=#889 id=889 data-nosnippet>889</a><span class="attr">#[cfg(test)]
 <a href=#890 id=890 data-nosnippet>890</a></span><span class="kw">mod </span>test {
-<a href=#891 id=891 data-nosnippet>891</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#891 id=891 data-nosnippet>891</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#892 id=892 data-nosnippet>892</a>    <span class="kw">use </span>rand::distr::Distribution;
 <a href=#893 id=893 data-nosnippet>893</a>    <span class="kw">use </span>rand::distr::StandardUniform;
 <a href=#894 id=894 data-nosnippet>894</a>    <span class="kw">use </span>rand::rngs::SmallRng;

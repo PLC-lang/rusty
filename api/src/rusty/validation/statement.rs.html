@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/validation/statement.rs`."><title>statement.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rusty/validation/</div>statement.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/validation/statement.rs`."><title>statement.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">rusty/validation/</div>statement.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>std::mem::discriminant;
 <a href=#3 id=3 data-nosnippet>3</a>
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>plc_ast::ast::Assignment;
@@ -14,13 +14,13 @@
 <a href=#14 id=14 data-nosnippet>14</a><span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <a href=#15 id=15 data-nosnippet>15</a><span class="kw">use </span>plc_source::source_location::SourceLocation;
 <a href=#16 id=16 data-nosnippet>16</a>
-<a href=#17 id=17 data-nosnippet>17</a><span class="kw">use super</span>::{array::validate_array_assignment, ValidationContext, Validator, Validators};
+<a href=#17 id=17 data-nosnippet>17</a><span class="kw">use </span>super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 <a href=#18 id=18 data-nosnippet>18</a><span class="kw">use </span><span class="kw">crate</span>::index::ImplementationType;
 <a href=#19 id=19 data-nosnippet>19</a><span class="kw">use </span><span class="kw">crate</span>::typesystem::VOID_TYPE;
 <a href=#20 id=20 data-nosnippet>20</a><span class="kw">use </span><span class="kw">crate</span>::validation::statement::helper::{
 <a href=#21 id=21 data-nosnippet>21</a>    get_literal_int_or_const_expr_value, is_literal_or_const_expr_value_zero,
 <a href=#22 id=22 data-nosnippet>22</a>};
-<a href=#23 id=23 data-nosnippet>23</a><span class="kw">use crate</span>::{
+<a href=#23 id=23 data-nosnippet>23</a><span class="kw">use </span>crate::{
 <a href=#24 id=24 data-nosnippet>24</a>    builtins::{<span class="self">self</span>, BuiltIn},
 <a href=#25 id=25 data-nosnippet>25</a>    codegen::generators::expression_generator::get_implicit_call_parameter,
 <a href=#26 id=26 data-nosnippet>26</a>    index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
@@ -708,7 +708,7 @@
 <a href=#708 id=708 data-nosnippet>708</a>}
 <a href=#709 id=709 data-nosnippet>709</a>
 <a href=#710 id=710 data-nosnippet>710</a><span class="kw">fn </span>validate_array_access_dimensions(ndims: usize, dims: usize, validator: <span class="kw-2">&amp;mut </span>Validator, access: <span class="kw-2">&amp;</span>AstNode) {
-<a href=#711 id=711 data-nosnippet>711</a>    <span class="kw">if </span><span class="macro">ndims !</span>= dims {
+<a href=#711 id=711 data-nosnippet>711</a>    <span class="kw">if </span>ndims != dims {
 <a href=#712 id=712 data-nosnippet>712</a>        validator.push_diagnostic(
 <a href=#713 id=713 data-nosnippet>713</a>            Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Expected array access with {ndims} dimensions, found {dims}"</span>))
 <a href=#714 id=714 data-nosnippet>714</a>                .with_error_code(<span class="string">"E045"</span>)
@@ -990,14 +990,14 @@
 <a href=#990 id=990 data-nosnippet>990</a>        <span class="kw">let </span>inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
 <a href=#991 id=991 data-nosnippet>991</a>        <span class="kw">let </span>inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
 <a href=#992 id=992 data-nosnippet>992</a>
-<a href=#993 id=993 data-nosnippet>993</a>        <span class="kw">if </span><span class="macro">len_lhs !</span>= len_rhs || <span class="macro">inner_ty_lhs !</span>= inner_ty_rhs {
+<a href=#993 id=993 data-nosnippet>993</a>        <span class="kw">if </span>len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
 <a href=#994 id=994 data-nosnippet>994</a>            validator.push_diagnostic(Diagnostic::invalid_assignment(
 <a href=#995 id=995 data-nosnippet>995</a>                <span class="kw-2">&amp;</span>validator.get_type_name_or_slice(type_rhs),
 <a href=#996 id=996 data-nosnippet>996</a>                <span class="kw-2">&amp;</span>validator.get_type_name_or_slice(type_lhs),
 <a href=#997 id=997 data-nosnippet>997</a>                assignment_location,
 <a href=#998 id=998 data-nosnippet>998</a>            ));
 <a href=#999 id=999 data-nosnippet>999</a>        }
-<a href=#1000 id=1000 data-nosnippet>1000</a>    } <span class="kw">else if </span><span class="macro">type_info_lhs !</span>= type_info_rhs {
+<a href=#1000 id=1000 data-nosnippet>1000</a>    } <span class="kw">else if </span>type_info_lhs != type_info_rhs {
 <a href=#1001 id=1001 data-nosnippet>1001</a>        <span class="kw">if </span>is_related_to(context, type_info_lhs.get_name(), type_info_rhs.get_name()) {
 <a href=#1002 id=1002 data-nosnippet>1002</a>            <span class="kw">return</span>;
 <a href=#1003 id=1003 data-nosnippet>1003</a>        }
@@ -1620,7 +1620,7 @@
 <a href=#1620 id=1620 data-nosnippet>1620</a>    <span class="kw">let </span>left_dims = left_type.get_type_information().get_dimension_count().unwrap();
 <a href=#1621 id=1621 data-nosnippet>1621</a>    <span class="kw">let </span>right_dims = right_type.get_type_information().get_dimension_count().unwrap();
 <a href=#1622 id=1622 data-nosnippet>1622</a>
-<a href=#1623 id=1623 data-nosnippet>1623</a>    <span class="kw">if </span><span class="macro">left_dt !</span>= right_dt || <span class="macro">left_dims !</span>= right_dims {
+<a href=#1623 id=1623 data-nosnippet>1623</a>    <span class="kw">if </span>left_dt != right_dt || left_dims != right_dims {
 <a href=#1624 id=1624 data-nosnippet>1624</a>        validator.push_diagnostic(Diagnostic::invalid_assignment(
 <a href=#1625 id=1625 data-nosnippet>1625</a>            <span class="kw-2">&amp;</span>validator.get_type_name_or_slice(right_type),
 <a href=#1626 id=1626 data-nosnippet>1626</a>            <span class="kw-2">&amp;</span>validator.get_type_name_or_slice(left_type),
@@ -1849,7 +1849,7 @@
 <a href=#1849 id=1849 data-nosnippet>1849</a>
 <a href=#1850 id=1850 data-nosnippet>1850</a>                <span class="comment">// mixing implicit and explicit arguments is not allowed
 <a href=#1851 id=1851 data-nosnippet>1851</a>                // allways compare to the first argument
-<a href=#1852 id=1852 data-nosnippet>1852</a>                </span><span class="kw">if </span><span class="macro">arguments_are_implicit !</span>= is_implicit {
+<a href=#1852 id=1852 data-nosnippet>1852</a>                </span><span class="kw">if </span>arguments_are_implicit != is_implicit {
 <a href=#1853 id=1853 data-nosnippet>1853</a>                    validator.push_diagnostic(
 <a href=#1854 id=1854 data-nosnippet>1854</a>                        Diagnostic::new(<span class="string">"Cannot mix implicit and explicit call parameters!"</span>)
 <a href=#1855 id=1855 data-nosnippet>1855</a>                            .with_error_code(<span class="string">"E031"</span>)
@@ -2227,7 +2227,7 @@
 <a href=#2227 id=2227 data-nosnippet>2227</a>    <span class="kw">use </span><span class="kw">crate</span>::index::VariableIndexEntry;
 <a href=#2228 id=2228 data-nosnippet>2228</a>    <span class="kw">use </span><span class="kw">crate</span>::resolver::AnnotationMap;
 <a href=#2229 id=2229 data-nosnippet>2229</a>    <span class="kw">use </span><span class="kw">crate</span>::validation::ValidationContext;
-<a href=#2230 id=2230 data-nosnippet>2230</a>    <span class="kw">use crate</span>::{index::Index, typesystem::DataTypeInformation};
+<a href=#2230 id=2230 data-nosnippet>2230</a>    <span class="kw">use </span>crate::{index::Index, typesystem::DataTypeInformation};
 <a href=#2231 id=2231 data-nosnippet>2231</a>
 <a href=#2232 id=2232 data-nosnippet>2232</a>    <span class="doccomment">/// Returns true if the current index is in the range for the given type
 <a href=#2233 id=2233 data-nosnippet>2233</a>    </span><span class="kw">pub fn </span>is_in_range(

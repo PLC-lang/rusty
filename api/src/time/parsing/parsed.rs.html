@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-0.3.47/src/parsing/parsed.rs`."><title>parsed.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.1 (01f6ddf75 2026-02-11)" data-channel="1.93.1" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-a3946164.js" data-settings-js="settings-c38705f0.js" ><script src="../../../static.files/storage-e2aeef58.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a410ff4d.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-263c88ec.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/parsing/</div>parsed.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Information parsed from an input and format description.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-0.3.47/src/parsing/parsed.rs`."><title>parsed.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">time/parsing/</div>parsed.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Information parsed from an input and format description.
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>core::num::NonZero;
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -22,13 +22,13 @@
 <a href=#22 id=22 data-nosnippet>22</a>    parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
 <a href=#23 id=23 data-nosnippet>23</a>    parse_subsecond, parse_unix_timestamp, parse_week_number, parse_weekday, parse_year,
 <a href=#24 id=24 data-nosnippet>24</a>};
-<a href=#25 id=25 data-nosnippet>25</a><span class="kw">use crate</span>::{
+<a href=#25 id=25 data-nosnippet>25</a><span class="kw">use </span>crate::{
 <a href=#26 id=26 data-nosnippet>26</a>    Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday, error,
 <a href=#27 id=27 data-nosnippet>27</a>};
 <a href=#28 id=28 data-nosnippet>28</a>
 <a href=#29 id=29 data-nosnippet>29</a><span class="doccomment">/// Sealed to prevent downstream implementations.
 <a href=#30 id=30 data-nosnippet>30</a></span><span class="kw">mod </span>sealed {
-<a href=#31 id=31 data-nosnippet>31</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#31 id=31 data-nosnippet>31</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
 <a href=#32 id=32 data-nosnippet>32</a>
 <a href=#33 id=33 data-nosnippet>33</a>    <span class="doccomment">/// A trait to allow `parse_item` to be generic.
 <a href=#34 id=34 data-nosnippet>34</a>    </span><span class="kw">pub trait </span>AnyFormatItem {
@@ -623,7 +623,7 @@
 <a href=#623 id=623 data-nosnippet>623</a>    </span><span class="attr">#[inline]
 <a href=#624 id=624 data-nosnippet>624</a>    </span><span class="kw">pub const fn </span>set_year_century(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i16, is_negative: bool) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
 <a href=#625 id=625 data-nosnippet>625</a>        <span class="self">self</span>.year_century = OptionRangedI16::Some(<span class="macro">const_try_opt!</span>(RangedI16::new(value)));
-<a href=#626 id=626 data-nosnippet>626</a>        <span class="kw">if </span><span class="macro">value !</span>= <span class="number">0 </span>{
+<a href=#626 id=626 data-nosnippet>626</a>        <span class="kw">if </span>value != <span class="number">0 </span>{
 <a href=#627 id=627 data-nosnippet>627</a>            <span class="self">self</span>.year_century_is_negative = value.is_negative();
 <a href=#628 id=628 data-nosnippet>628</a>        } <span class="kw">else </span>{
 <a href=#629 id=629 data-nosnippet>629</a>            <span class="self">self</span>.year_century_is_negative = is_negative;
@@ -644,7 +644,7 @@
 <a href=#644 id=644 data-nosnippet>644</a>    </span><span class="attr">#[inline]
 <a href=#645 id=645 data-nosnippet>645</a>    </span><span class="kw">pub const fn </span>set_iso_year_century(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: i16, is_negative: bool) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
 <a href=#646 id=646 data-nosnippet>646</a>        <span class="self">self</span>.iso_year_century = OptionRangedI16::Some(<span class="macro">const_try_opt!</span>(RangedI16::new(value)));
-<a href=#647 id=647 data-nosnippet>647</a>        <span class="kw">if </span><span class="macro">value !</span>= <span class="number">0 </span>{
+<a href=#647 id=647 data-nosnippet>647</a>        <span class="kw">if </span>value != <span class="number">0 </span>{
 <a href=#648 id=648 data-nosnippet>648</a>            <span class="self">self</span>.iso_year_century_is_negative = value.is_negative();
 <a href=#649 id=649 data-nosnippet>649</a>        } <span class="kw">else </span>{
 <a href=#650 id=650 data-nosnippet>650</a>            <span class="self">self</span>.iso_year_century_is_negative = is_negative;
@@ -722,7 +722,7 @@
 <a href=#722 id=722 data-nosnippet>722</a>    </span><span class="attr">#[inline]
 <a href=#723 id=723 data-nosnippet>723</a>    </span><span class="kw">pub const fn </span>with_year_century(<span class="kw-2">mut </span><span class="self">self</span>, value: i16, is_negative: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
 <a href=#724 id=724 data-nosnippet>724</a>        <span class="self">self</span>.year_century = OptionRangedI16::Some(<span class="macro">const_try_opt!</span>(RangedI16::new(value)));
-<a href=#725 id=725 data-nosnippet>725</a>        <span class="kw">if </span><span class="macro">value !</span>= <span class="number">0 </span>{
+<a href=#725 id=725 data-nosnippet>725</a>        <span class="kw">if </span>value != <span class="number">0 </span>{
 <a href=#726 id=726 data-nosnippet>726</a>            <span class="self">self</span>.year_century_is_negative = value.is_negative();
 <a href=#727 id=727 data-nosnippet>727</a>        } <span class="kw">else </span>{
 <a href=#728 id=728 data-nosnippet>728</a>            <span class="self">self</span>.year_century_is_negative = is_negative;
@@ -751,7 +751,7 @@
 <a href=#751 id=751 data-nosnippet>751</a>    </span><span class="attr">#[inline]
 <a href=#752 id=752 data-nosnippet>752</a>    </span><span class="kw">pub const fn </span>with_iso_year_century(<span class="kw-2">mut </span><span class="self">self</span>, value: i16, is_negative: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
 <a href=#753 id=753 data-nosnippet>753</a>        <span class="self">self</span>.iso_year_century = OptionRangedI16::Some(<span class="macro">const_try_opt!</span>(RangedI16::new(value)));
-<a href=#754 id=754 data-nosnippet>754</a>        <span class="kw">if </span><span class="macro">value !</span>= <span class="number">0 </span>{
+<a href=#754 id=754 data-nosnippet>754</a>        <span class="kw">if </span>value != <span class="number">0 </span>{
 <a href=#755 id=755 data-nosnippet>755</a>            <span class="self">self</span>.iso_year_century_is_negative = value.is_negative();
 <a href=#756 id=756 data-nosnippet>756</a>        } <span class="kw">else </span>{
 <a href=#757 id=757 data-nosnippet>757</a>            <span class="self">self</span>.iso_year_century_is_negative = is_negative;
