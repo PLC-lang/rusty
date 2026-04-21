@@ -517,35 +517,35 @@ fn constant_pragma_can_be_parsed_but_errs() {
     insta::assert_snapshot!(diagnostics, @r"
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:2:9
-      │
+      │  
     2 │ ╭         {constant}
     3 │ │         FUNCTION_BLOCK foo END_FUNCTION_BLOCK
       │ ╰──────────────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:4:9
-      │
+      │  
     4 │ ╭         {constant}
     5 │ │         PROGRAM bar END_PROGRAM
       │ ╰───────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:6:9
-      │
+      │  
     6 │ ╭         {constant}
     7 │ │         CLASS qux
       │ ╰─────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:8:13
-      │
+      │  
     8 │ ╭             {constant}
     9 │ │             METHOD quux : DINT END_METHOD
       │ ╰──────────────────^ Pragma {constant} is not allowed in POU declarations
 
     error[E105]: Pragma {constant} is not allowed in POU declarations
        ┌─ <internal>:11:9
-       │
+       │  
     11 │ ╭         {constant}
     12 │ │         FUNCTION corge  : BOOL END_FUNCTION
        │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
@@ -579,12 +579,12 @@ fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
                     end_get : DINT;
                     end_set : DINT;'
        ┌─ <internal>:4:24
-       │
+       │  
      4 │                   retain : DINT;
        │ ╭────────────────────────^
      5 │ │                 public : DINT;
      6 │ │                 property : DINT;
-     7 │ │
+     7 │ │ 
      8 │ │                 end_property : DINT;
      9 │ │                 end_get : DINT;
     10 │ │                 end_set : DINT;
@@ -656,33 +656,4 @@ fn get_and_set_can_be_used_as_method_parameters_and_named_arguments() {
 
     let (_, diagnostics) = parse(source);
     assert_eq!(diagnostics, vec![]);
-}
-#[test]
-fn use_incorrect_end_keyword() {
-    todo!("This should not be a problem anymore with the new syntax");
-    let source = r"
-        FUNCTION_BLOCK fb
-            PROPERTY_GET foo: DINT
-            END_PROPERTY;
-            PROPERTY_GET foo: DINT
-            END_PROPERTY;
-            PROPERTY_GET foo: DINT
-            END_PROPERTY;
-        END_FUNCTION_BLOCK
-    ";
-
-    let (_, diagnostics) = parse_buffered(source);
-    insta::assert_snapshot!(diagnostics, @"
-    error[E007]: Unexpected token: expected KeywordEndGet but found END_PROPERTY
-      ┌─ <internal>:5:21
-      │
-    5 │                     END_PROPERTY;
-      │                     ^^^^^^^ Unexpected token: expected KeywordEndGet but found END_PROPERTY
-
-    error[E007]: Unexpected token: expected KeywordEndGet but found END_PROPERTY
-      ┌─ <internal>:9:21
-      │
-    9 │                     END_PROPERTY;
-      │                     ^^^^^^^ Unexpected token: expected KeywordEndGet but found END_PROPERTY
-    ");
 }

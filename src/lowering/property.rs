@@ -247,15 +247,17 @@ pub fn lower_to_pou(
 
     for property_impl in property.implementations.clone() {
         let Identifier { name, location } = &property.ident;
+        let kind = property_impl.kind;
+        let datatype = property_impl.datatype.clone();
 
-        let mangled_name = format!("{parent}.__{kind}_{name}", kind = property_impl.kind);
+        let mangled_name = format!("{parent}.__{kind}_{name}");
 
         // First transform the property into a method (__get... or __set...)
         let mut pou = Pou {
             name: mangled_name,
             kind: PouType::Method {
                 parent: parent.to_string(),
-                property: Some((name.to_string(), property_impl.kind)),
+                property: Some((name.to_string(), kind)),
                 declaration_kind: DeclarationKind::Concrete,
             },
             variable_blocks: property_impl.variable_blocks,
@@ -288,7 +290,7 @@ pub fn lower_to_pou(
         };
 
         // ...then patch in local variables (and additionally some extra statements) for the implementation
-        match property_impl.kind {
+        match kind {
             PropertyKind::Get => {
                 pou.variable_blocks.push(VariableBlock {
                     access: AccessModifier::Public,
@@ -296,7 +298,7 @@ pub fn lower_to_pou(
                     retain: false,
                     variables: vec![Variable {
                         name: name.to_string(),
-                        data_type_declaration: property.datatype.clone(),
+                        data_type_declaration: datatype.clone(),
                         initializer: None,
                         address: None,
                         location: SourceLocation::internal(),
@@ -305,9 +307,9 @@ pub fn lower_to_pou(
                     linkage: LinkageType::Internal,
                     location: SourceLocation::internal(),
                 });
-                pou.return_type = Some(property.datatype.clone());
+                pou.return_type = Some(datatype);
 
-                let name_lhs = format!("__{}_{}", property_impl.kind, name);
+                let name_lhs = format!("__{kind}_{name}");
 
                 implementation.statements.push(create_internal_assignment(&mut provider, name_lhs, name));
             }
@@ -319,7 +321,7 @@ pub fn lower_to_pou(
                     retain: false,
                     variables: vec![Variable {
                         name: name.to_string(),
-                        data_type_declaration: property.datatype.clone(),
+                        data_type_declaration: datatype,
                         initializer: None,
                         address: None,
                         location: SourceLocation::internal(),

@@ -770,12 +770,12 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
        │
      3 │             METHOD bar : ARRAY[1..5, 1..5] OF STRING
        │                    ---   --------------------------- see also
-       │                    │
+       │                    │      
        │                    see also
        ·
     10 │             METHOD bar : ARRAY[1..5] OF STRING
        │                    ---   --------------------- see also
-       │                    │
+       │                    │      
        │                    see also
 
     error[E112]: Derived methods with conflicting signatures, return types do not match:
@@ -789,12 +789,12 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
        │
      5 │             METHOD baz : ARRAY[1..5] OF STRING
        │                    ---   --------------------- see also
-       │                    │
+       │                    │      
        │                    see also
        ·
     12 │             METHOD baz : ARRAY[1..5, 1..5] OF STRING
        │                    ---   --------------------------- see also
-       │                    │
+       │                    │      
        │                    see also
     ");
 }
@@ -881,12 +881,12 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
       │
     3 │             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
       │                    ---   ------------------------------------ see also
-      │                    │
+      │                    │      
       │                    see also
       ·
     8 │             METHOD bar : ARRAY[1..5, 1..5] OF STRING
       │                    ---   --------------------------- see also
-      │                    │
+      │                    │      
       │                    see also
 
     note[E118]: Expected array of type `foo.bar_` but got `STRING`
@@ -2214,21 +2214,21 @@ fn property_not_implemented() {
 
     insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
     error[E112]: Property `prop` (GET) defined in interface `intf` is missing in POU `fb`
-      ┌─ <internal>:9:20
+      ┌─ <internal>:7:20
       │
-    3 │         PROPERTY prop : DINT
-      │                  ---- see also
+    3 │         PROPERTY_GET prop: DINT END_PROPERTY
+      │                      ---- see also
       ·
-    9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
+    7 │     FUNCTION_BLOCK fb IMPLEMENTS intf
       │                    ^^ Property `prop` (GET) defined in interface `intf` is missing in POU `fb`
 
     error[E112]: Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
-      ┌─ <internal>:9:20
+      ┌─ <internal>:7:20
       │
-    3 │         PROPERTY prop : DINT
-      │                  ---- see also
+    3 │         PROPERTY_GET prop: DINT END_PROPERTY
+      │                      ---- see also
       ·
-    9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
+    7 │     FUNCTION_BLOCK fb IMPLEMENTS intf
       │                    ^^ Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
     ");
 }
@@ -2248,12 +2248,12 @@ fn property_partially_implemented() {
 
     insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
     error[E112]: Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
-      ┌─ <internal>:9:20
+      ┌─ <internal>:7:20
       │
-    3 │         PROPERTY prop : DINT
-      │                  ---- see also
+    3 │         PROPERTY_GET prop: DINT END_PROPERTY
+      │                      ---- see also
       ·
-    9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
+    7 │     FUNCTION_BLOCK fb IMPLEMENTS intf
       │                    ^^ Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
     ");
 }
@@ -2275,15 +2275,15 @@ fn property_with_conflicting_signatures() {
 
     insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
     error[E112]: Property `prop` defined in interface `intf2` and `intf1` have different datatypes
-       ┌─ <internal>:14:15
+       ┌─ <internal>:10:15
        │
-     3 │         PROPERTY prop : DINT
-       │                         ---- see also
+     3 │         PROPERTY_GET prop: DINT END_PROPERTY
+       │                            ---- see also
        ·
-     9 │         PROPERTY prop : STRING
-       │                         ------ see also
+     7 │         PROPERTY_GET prop: STRING END_PROPERTY
+       │                            ------ see also
        ·
-    14 │     INTERFACE intf3 EXTENDS intf1, intf2
+    10 │     INTERFACE intf3 EXTENDS intf1, intf2
        │               ^^^^^ Property `prop` defined in interface `intf2` and `intf1` have different datatypes
     ");
 }
@@ -2341,21 +2341,21 @@ fn missing_property_accessor_implementation() {
 
     insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
     error[E112]: Property `prop` (SET) defined in interface `intfB` is missing in POU `fb1`
-       ┌─ <internal>:17:20
+       ┌─ <internal>:13:20
        │
-     9 │         PROPERTY prop: DINT
-       │                  ---- see also
+     7 │         PROPERTY_SET prop: DINT END_PROPERTY
+       │                      ---- see also
        ·
-    17 │     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
+    13 │     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
        │                    ^^^ Property `prop` (SET) defined in interface `intfB` is missing in POU `fb1`
 
     error[E112]: Property `prop` (GET) defined in interface `intfA` is missing in POU `fb2`
-       ┌─ <internal>:23:20
+       ┌─ <internal>:17:20
        │
-     3 │         PROPERTY prop: DINT
-       │                  ---- see also
+     3 │         PROPERTY_GET prop: DINT END_PROPERTY
+       │                      ---- see also
        ·
-    23 │     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
+    17 │     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
        │                    ^^^ Property `prop` (GET) defined in interface `intfA` is missing in POU `fb2`
     ");
 }

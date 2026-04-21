@@ -831,18 +831,17 @@ fn lowercase_keywords_accepted() {
 #[test]
 fn property_related_keywords() {
     let mut lexer = lex(r"
-        PROPERTY END_PROPERTY PROPERTY_GET END_PROPERTY PROPERTY_SET END_PROPERTY
-        ENDPROPERTY ENDGET ENDSET
+        PROPERTY_GET PROPERTYGET
+        PROPERTY_SET PROPERTYSET
+        END_PROPERTY ENDPROPERTY
     ");
 
-    assert!(lexer.try_consume(KeywordProperty));
-    assert!(lexer.try_consume(KeywordEndProperty));
     assert!(lexer.try_consume(KeywordPropertyGet));
-    assert!(lexer.try_consume(KeywordEndGet));
+    assert!(lexer.try_consume(KeywordPropertyGet));
+
     assert!(lexer.try_consume(KeywordPropertySet));
-    assert!(lexer.try_consume(KeywordEndSet));
+    assert!(lexer.try_consume(KeywordPropertySet));
 
     assert!(lexer.try_consume(KeywordEndProperty));
-    assert!(lexer.try_consume(KeywordEndGet));
-    assert!(lexer.try_consume(KeywordEndSet));
+    assert!(lexer.try_consume(KeywordEndProperty));
 }

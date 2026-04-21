@@ -662,10 +662,10 @@ fn only_constant_builtins_are_allowed_in_initializer() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @"
+    assert_snapshot!(diagnostics, @r"
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:7:9
-      │
+      │  
     7 │ ╭         {constant}
     8 │ │         FUNCTION AlwaysTrue : BOOL
       │ ╰────────────────^ Pragma {constant} is not allowed in POU declarations
@@ -1334,11 +1334,11 @@ fn output_variables_must_not_be_assignable_outside_of_their_scope() {
        ",
     );
 
-    assert_snapshot!(&diagnostics, @"
+    assert_snapshot!(&diagnostics, @r"
     error[E037]: VAR_OUTPUT variables cannot be assigned outside of their scope.
-       ┌─ <internal>:41:13
+       ┌─ <internal>:40:13
        │
-    41 │             fb.out1 := 1;
+    40 │             fb.out1 := 1;
        │             ^^^^^^^^^^^^ VAR_OUTPUT variables cannot be assigned outside of their scope.
     ");
 }

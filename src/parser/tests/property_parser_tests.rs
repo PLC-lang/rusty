@@ -39,17 +39,17 @@ fn properties_can_be_parsed() {
             ident: Identifier {
                 name: "bar",
                 location: SourceLocation {
-                    span: Range(2:21 - 2:24),
+                    span: Range(2:25 - 2:28),
                 },
-            },
-            datatype: DataTypeReference {
-                referenced_type: "INT",
             },
             implementations: [
                 PropertyImplementation {
                     kind: Get,
+                    datatype: DataTypeReference {
+                        referenced_type: "INT",
+                    },
                     location: SourceLocation {
-                        span: Range(3:16 - 3:28),
+                        span: Range(2:12 - 2:24),
                     },
                     variable_blocks: [
                         VariableBlock {
@@ -80,13 +80,16 @@ fn properties_can_be_parsed() {
                         },
                     ],
                     end_location: SourceLocation {
-                        span: Range(9:16 - 9:23),
+                        span: Range(8:12 - 8:24),
                     },
                 },
                 PropertyImplementation {
                     kind: Set,
+                    datatype: DataTypeReference {
+                        referenced_type: "INT",
+                    },
                     location: SourceLocation {
-                        span: Range(10:16 - 10:28),
+                        span: Range(9:12 - 9:24),
                     },
                     variable_blocks: [
                         VariableBlock {
@@ -122,7 +125,7 @@ fn properties_can_be_parsed() {
                         },
                     ],
                     end_location: SourceLocation {
-                        span: Range(16:16 - 16:23),
+                        span: Range(15:12 - 15:24),
                     },
                 },
             ],
@@ -142,17 +145,30 @@ fn property_with_missing_name() {
 
     let (_, diagnostics) = parse_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
-    error[E007]: Unexpected token: expected Identifier but found :
-      ┌─ <internal>:3:22
-      │
-    3 │             PROPERTY : INT  // <- Missing name
-      │                      ^ Unexpected token: expected Identifier but found :
-
     error[E001]: Property definition is missing a name
-      ┌─ <internal>:3:22
+      ┌─ <internal>:3:26
       │
-    3 │             PROPERTY : INT  // <- Missing name
-      │                      ^ Property definition is missing a name
+    3 │             PROPERTY_GET : INT  // <- Missing name
+      │                          ^ Property definition is missing a name
+    ");
+}
+
+#[test]
+fn property_with_missing_colon() {
+    let source = r"
+        FUNCTION_BLOCK foo
+            PROPERTY_GET bar    // <- Missing colon and datatype
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+    ";
+
+    let (_, diagnostics) = parse_buffered(source);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E001]: Property definition is missing ':'
+      ┌─ <internal>:3:26
+      │
+    3 │             PROPERTY_GET bar    // <- Missing colon and datatype
+      │                          ^^^ Property definition is missing ':'
     ");
 }
 
@@ -160,7 +176,7 @@ fn property_with_missing_name() {
 fn property_with_missing_datatype() {
     let source = r"
         FUNCTION_BLOCK foo
-            PROPERTY_GET bar    // <- Missing datatype
+            PROPERTY_GET bar:    // <- Missing datatype
             END_PROPERTY
         END_FUNCTION_BLOCK
     ";
@@ -168,32 +184,9 @@ fn property_with_missing_datatype() {
     let (_, diagnostics) = parse_buffered(source);
     insta::assert_snapshot!(diagnostics, @r"
     error[E001]: Property definition is missing a datatype
-      ┌─ <internal>:3:22
+      ┌─ <internal>:3:29
       │
-    3 │             PROPERTY bar    // <- Missing datatype
-      │                      ^^^ Property definition is missing a datatype
-    ");
-}
-
-#[test]
-fn property_with_variable_block() {
-    let source = r"
-        FUNCTION_BLOCK foo
-            PROPERTY_GET bar: DINT
-                VAR
-                    // Invalid variable block, should be in a getter or setter
-                END_VAR
-                // ...
-            END_PROPERTY
-        END_FUNCTION_BLOCK
-    ";
-
-    let (_, diagnostics) = parse_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"
-    error[E007]: Variable blocks may only be defined within a PROPERTY_GET or PROPERTY_SET block in the context of properties
-      ┌─ <internal>:4:17
-      │
-    4 │                 VAR
-      │                 ^^^ Variable blocks may only be defined within a PROPERTY_GET or PROPERTY_SET block in the context of properties
+    3 │             PROPERTY_GET bar:    // <- Missing datatype
+      │                             ^ Property definition is missing a datatype
     ");
 }

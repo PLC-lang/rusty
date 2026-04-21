@@ -83,9 +83,11 @@ pub enum Token {
     KeywordThis,
 
     #[token("PROPERTY_GET", ignore(case))]
+    #[token("PROPERTYGET", ignore(case))]
     KeywordPropertyGet,
 
     #[token("PROPERTY_SET", ignore(case))]
+    #[token("PROPERTYSET", ignore(case))]
     KeywordPropertySet,
 
     #[token("END_PROPERTY", ignore(case))]
