@@ -577,7 +577,7 @@
 <a href=#577 id=577 data-nosnippet>577</a>        </span><span class="kw">match </span>ref_name {
 <a href=#578 id=578 data-nosnippet>578</a>            <span class="kw">_ if </span>ref_name.starts_with(<span class="string">"__set"</span>) =&gt; {
 <a href=#579 id=579 data-nosnippet>579</a>                validator.push_diagnostic(
-<a href=#580 id=580 data-nosnippet>580</a>                    Diagnostic::new(<span class="string">"SET property not defined"</span>)
+<a href=#580 id=580 data-nosnippet>580</a>                    Diagnostic::new(<span class="string">"PROPERTY_SET not defined"</span>)
 <a href=#581 id=581 data-nosnippet>581</a>                        .with_error_code(<span class="string">"E048"</span>)
 <a href=#582 id=582 data-nosnippet>582</a>                        .with_location(location),
 <a href=#583 id=583 data-nosnippet>583</a>                );
@@ -586,7 +586,7 @@
 <a href=#586 id=586 data-nosnippet>586</a>
 <a href=#587 id=587 data-nosnippet>587</a>            <span class="kw">_ if </span>ref_name.starts_with(<span class="string">"__get"</span>) =&gt; {
 <a href=#588 id=588 data-nosnippet>588</a>                validator.push_diagnostic(
-<a href=#589 id=589 data-nosnippet>589</a>                    Diagnostic::new(<span class="string">"GET property not defined"</span>)
+<a href=#589 id=589 data-nosnippet>589</a>                    Diagnostic::new(<span class="string">"PROPERTY_GET not defined"</span>)
 <a href=#590 id=590 data-nosnippet>590</a>                        .with_error_code(<span class="string">"E048"</span>)
 <a href=#591 id=591 data-nosnippet>591</a>                        .with_location(location),
 <a href=#592 id=592 data-nosnippet>592</a>                );

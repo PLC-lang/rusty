@@ -767,8 +767,8 @@
 <a href=#767 id=767 data-nosnippet>767</a>    <span class="kw">where
 <a href=#768 id=768 data-nosnippet>768</a>        </span>V: AstVisitor,
 <a href=#769 id=769 data-nosnippet>769</a>    {
-<a href=#770 id=770 data-nosnippet>770</a>        visitor.visit_data_type_declaration(<span class="kw-2">&amp;</span><span class="self">self</span>.datatype);
-<a href=#771 id=771 data-nosnippet>771</a>        <span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.implementations {
+<a href=#770 id=770 data-nosnippet>770</a>        <span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.implementations {
+<a href=#771 id=771 data-nosnippet>771</a>            visitor.visit_data_type_declaration(<span class="kw-2">&amp;</span>implementation.datatype);
 <a href=#772 id=772 data-nosnippet>772</a>            <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;</span>implementation.variable_blocks {
 <a href=#773 id=773 data-nosnippet>773</a>                visitor.visit_variable_block(block);
 <a href=#774 id=774 data-nosnippet>774</a>            }

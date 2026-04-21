@@ -444,8 +444,8 @@
 <a href=#444 id=444 data-nosnippet>444</a>    <span class="kw">where
 <a href=#445 id=445 data-nosnippet>445</a>        </span>V: AstVisitorMut,
 <a href=#446 id=446 data-nosnippet>446</a>    {
-<a href=#447 id=447 data-nosnippet>447</a>        visitor.visit_data_type_declaration(<span class="kw-2">&amp;mut </span><span class="self">self</span>.datatype);
-<a href=#448 id=448 data-nosnippet>448</a>        <span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.implementations {
+<a href=#447 id=447 data-nosnippet>447</a>        <span class="kw">for </span>implementation <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.implementations {
+<a href=#448 id=448 data-nosnippet>448</a>            visitor.visit_data_type_declaration(<span class="kw-2">&amp;mut </span>implementation.datatype);
 <a href=#449 id=449 data-nosnippet>449</a>            <span class="kw">for </span>block <span class="kw">in </span><span class="kw-2">&amp;mut </span>implementation.variable_blocks {
 <a href=#450 id=450 data-nosnippet>450</a>                visitor.visit_variable_block(block);
 <a href=#451 id=451 data-nosnippet>451</a>            }

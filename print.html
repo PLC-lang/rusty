@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-2b7089db.js";
+            window.path_to_searchindex_js = "searchindex-977a6999.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-ae9fca4f.js"></script>
+        <script src="toc-e891cefd.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1318,44 +1318,19 @@ END_FUNCTION_BLOCK
 <p>Errouneus code example:</p>
 <pre><code>FUNCTION foo
     // Invalid definition
-    PROPERTY bar : DINT
-        GET
-            bar := 42;
-        END_GET
+    PROPERTY_GET bar: DINT
+        bar := 42;
     END_PROPERTY
-END_FUNCTION</code></pre>
+END_FUNCTION
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="property-defined-in-unsupported-variable-block"><a class="header" href="#property-defined-in-unsupported-variable-block">Property defined in unsupported variable block</a></h1>
 <p>Properties only allow for variable blocks of type <code>VAR</code>.</p>
 <p>Errouneus code example:</p>
 <pre><code>FUNCTION foo
-    PROPERTY bar : DINT 
-        GET
-            VAR         /* ... */   END_VAR
-            VAR_INPUT   /* ... */   END_VAR // Invalid
-        END_GET
-    END_PROPERTY
-END_FUNCTION
-</code></pre>
-<div style="break-before: page; page-break-before: always;"></div>
-<h1 id="property-with-invalid-number-of-get-andor-set-blocks"><a class="header" href="#property-with-invalid-number-of-get-andor-set-blocks">Property with invalid number of GET and/or SET blocks</a></h1>
-<p>Properties must be non empty and <em>at most</em> contain one block of type GET or SET.</p>
-<p>Errouneus code example:</p>
-<pre><code>FUNCTION foo
-    PROPERTY bar : DINT 
-        // Invalid, empty (no GET or SET block)
-    END_PROPERTY
-
-    PROPERTY baz : DINT 
-        // Invalid, two GET blocks
-        GET END_GET
-        GET END_GET
-    END_PROPERTY
-
-    PROPERTY qux : DINT 
-        // Invalid, two SET blocks
-        SET END_SET
-        SET END_SET
+    PROPERTY_GET bar: DINT
+        VAR         /* ... */   END_VAR
+        VAR_INPUT   /* ... */   END_VAR // Invalid
     END_PROPERTY
 END_FUNCTION
 </code></pre>
