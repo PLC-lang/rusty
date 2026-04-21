@@ -807,7 +807,7 @@
 <a href=#807 id=807 data-nosnippet>807</a>) {
 <a href=#808 id=808 data-nosnippet>808</a>    <span class="kw">match </span>operator {
 <a href=#809 id=809 data-nosnippet>809</a>        Operator::Equal =&gt; {
-<a href=#810 id=810 data-nosnippet>810</a>            <span class="kw">if </span>context.annotations.get_type_hint(statement, context.index).is_none() {
+<a href=#810 id=810 data-nosnippet>810</a>            <span class="kw">if </span>!context.is_call() &amp;&amp; context.annotations.get_type_hint(statement, context.index).is_none() {
 <a href=#811 id=811 data-nosnippet>811</a>                <span class="kw">let </span>lhs = validator.context.slice(<span class="kw-2">&amp;</span>left.location);
 <a href=#812 id=812 data-nosnippet>812</a>                <span class="kw">let </span>rhs = validator.context.slice(<span class="kw-2">&amp;</span>right.location);
 <a href=#813 id=813 data-nosnippet>813</a>
