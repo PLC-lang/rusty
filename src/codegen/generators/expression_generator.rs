@@ -1267,7 +1267,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .and_then(|it| it.get_varargs().zip(Some(it.get_declaration_type())))
         {
             // For unsized variadics, we need to follow C ABI rules
-            let is_unsized = matches!(var_args, VarArgs::Unsized(_));
+            // Only untyped C-style variadics (e.g. `args: ...`) need promotion; typed ones
+            // like `IN2: T2...` resolve to concrete signatures (e.g. `(i64, f32)`) after
+            // generic instantiation, so promoting would break the ABI.
+            let is_unsized = matches!(var_args, VarArgs::Unsized(None));
 
             let generated_params = variadic_params
                 .iter()
