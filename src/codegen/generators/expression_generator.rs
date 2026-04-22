@@ -1173,7 +1173,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
 
-        result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
+        result.sort_by_key(|(idx_a, _)| *idx_a);
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
     }
 
@@ -2522,7 +2522,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             let struct_type = self.llvm_index.get_associated_type(struct_name)?.into_struct_type();
             if member_values.len() == struct_type.count_fields() as usize {
-                member_values.sort_by(|(a, _), (b, _)| a.cmp(b));
+                member_values.sort_by_key(|(a, _)| *a);
                 let ordered_values: Vec<BasicValueEnum<'ink>> =
                     member_values.iter().map(|(_, v)| *v).collect();
 

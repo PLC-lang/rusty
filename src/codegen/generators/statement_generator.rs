@@ -280,6 +280,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         left: &AstNode,
         right: &AstNode,
     ) -> Result<(), CodegenError> {
+        self.register_debug_location(left);
         let exp = self.create_expr_generator(llvm_index);
         let ref_builtin = self.index.get_builtin_function("REF").expect("REF must exist");
 

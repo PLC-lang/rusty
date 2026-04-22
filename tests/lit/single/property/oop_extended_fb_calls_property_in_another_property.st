@@ -1,18 +1,14 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 
 FUNCTION_BLOCK fb
-    PROPERTY foo: DINT
-        GET
-            foo := 69;
-        END_GET
+    PROPERTY_GET foo: DINT
+        foo := 69;
     END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fb2 EXTENDS fb
-    PROPERTY bar: DINT
-        GET
-            bar := foo;
-        END_GET
+    PROPERTY_GET bar: DINT
+        bar := foo;
     END_PROPERTY
 END_FUNCTION_BLOCK
 

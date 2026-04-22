@@ -477,3 +477,163 @@ fn arrays_and_strings_passed_as_pointers_in_unsized_variadics() {
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
+
+#[test]
+fn enum_initialized_with_typed_literal() {
+    let result = codegen(
+        r#"
+    PROGRAM mainProg
+        foo();
+    END_PROGRAM
+
+    FUNCTION foo
+        VAR
+            vEnum : myEnum := e2;
+        END_VAR
+    END_FUNCTION
+
+    TYPE
+        myEnum : (e1, e2:=BYTE#30) BYTE;
+    END_TYPE
+
+    FUNCTION main
+        mainProg();
+    END_FUNCTION
+    "#,
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type {}
+
+    @mainProg_instance = global %mainProg zeroinitializer
+    @myEnum.e2 = unnamed_addr constant i8 30
+    @myEnum.e1 = unnamed_addr constant i8 0
+
+    define void @mainProg(ptr %0) {
+    entry:
+      call void @foo()
+      ret void
+    }
+
+    define void @foo() {
+    entry:
+      %vEnum = alloca i8, align [filtered]
+      store i8 30, ptr %vEnum, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      call void @mainProg(ptr @mainProg_instance)
+      ret void
+    }
+    "#);
+}
+
+#[test]
+fn typed_enum_initialized_with_typed_literal_with_no_intermediate_function() {
+    let result = codegen(
+        r#"
+    PROGRAM mainProg
+        VAR
+            vEnum : myEnum := e2;
+        END_VAR
+    END_PROGRAM
+
+    TYPE
+        myEnum : (e1, e2:=BYTE#30) BYTE;
+    END_TYPE
+
+    FUNCTION main
+        mainProg();
+    END_FUNCTION
+    "#,
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type { i8 }
+
+    @mainProg_instance = global %mainProg { i8 30 }
+    @myEnum.e2 = unnamed_addr constant i8 30
+    @myEnum.e1 = unnamed_addr constant i8 0
+
+    define void @mainProg(ptr %0) {
+    entry:
+      %vEnum = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      call void @mainProg(ptr @mainProg_instance)
+      ret void
+    }
+    "#);
+}
+
+#[test]
+fn enum_initialized_with_typed_literal_using_differing_types() {
+    let result = codegen(
+        r#"
+    PROGRAM mainProg
+        foo();
+    END_PROGRAM
+
+    FUNCTION foo
+        VAR
+            vEnum : myEnum := e2;
+        END_VAR
+    END_FUNCTION
+
+    TYPE
+        myEnum : (e1 := LINT#20, e2:=BYTE#30) BYTE;
+    END_TYPE
+
+    FUNCTION main
+        mainProg();
+    END_FUNCTION
+    "#,
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type {}
+
+    @mainProg_instance = global %mainProg zeroinitializer
+    @myEnum.e2 = unnamed_addr constant i8 30
+    @myEnum.e1 = unnamed_addr constant i8 20
+
+    define void @mainProg(ptr %0) {
+    entry:
+      call void @foo()
+      ret void
+    }
+
+    define void @foo() {
+    entry:
+      %vEnum = alloca i8, align [filtered]
+      store i8 30, ptr %vEnum, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      call void @mainProg(ptr @mainProg_instance)
+      ret void
+    }
+    "#);
+}
