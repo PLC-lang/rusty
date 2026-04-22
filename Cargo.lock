@@ -2492,9 +2492,6 @@ dependencies = [
 [[package]]
 name = "plc_util"
 version = "0.4.1-dev"
-dependencies = [
- "insta",
-]
 
 [[package]]
 name = "plc_xml"
