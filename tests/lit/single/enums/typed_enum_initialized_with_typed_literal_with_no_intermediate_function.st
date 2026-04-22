@@ -4,7 +4,6 @@ PROGRAM mainProg
         vEnum : myEnum := e2;
     END_VAR
 
-    // CHECK: 30
     printf('%d$N', vEnum);
 END_PROGRAM
 
@@ -13,5 +12,6 @@ TYPE
 END_TYPE
 
 FUNCTION main
+    // CHECK: 30
     mainProg();
 END_FUNCTION

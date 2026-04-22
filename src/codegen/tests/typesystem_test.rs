@@ -580,3 +580,60 @@ fn typed_enum_initialized_with_typed_literal_with_no_intermediate_function() {
     }
     "#);
 }
+
+#[test]
+fn enum_initialized_with_typed_literal_using_differing_types() {
+    let result = codegen(
+        r#"
+    PROGRAM mainProg
+        foo();
+    END_PROGRAM
+
+    FUNCTION foo
+        VAR
+            vEnum : myEnum := e2;
+        END_VAR
+    END_FUNCTION
+
+    TYPE
+        myEnum : (e1 := LINT#20, e2:=BYTE#30) BYTE;
+    END_TYPE
+
+    FUNCTION main
+        mainProg();
+    END_FUNCTION
+    "#,
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type {}
+
+    @mainProg_instance = global %mainProg zeroinitializer
+    @myEnum.e2 = unnamed_addr constant i8 30
+    @myEnum.e1 = unnamed_addr constant i8 20
+
+    define void @mainProg(ptr %0) {
+    entry:
+      call void @foo()
+      ret void
+    }
+
+    define void @foo() {
+    entry:
+      %vEnum = alloca i8, align [filtered]
+      store i8 30, ptr %vEnum, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      call void @mainProg(ptr @mainProg_instance)
+      ret void
+    }
+    "#);
+}

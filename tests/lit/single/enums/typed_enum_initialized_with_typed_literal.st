@@ -8,7 +8,6 @@ FUNCTION foo
         vEnum : myEnum := e2;
     END_VAR
 
-    // CHECK: 30
     printf('%d$N', vEnum);
 
 END_FUNCTION
@@ -18,5 +17,6 @@ TYPE
 END_TYPE
 
 FUNCTION main
+    // CHECK: 30
     mainProg();
 END_FUNCTION
