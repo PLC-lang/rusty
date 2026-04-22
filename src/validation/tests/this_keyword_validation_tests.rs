@@ -320,13 +320,11 @@ fn this_in_property_calling_method_is_ok() {
                 DoubleX := 2 * THIS^.x;
             END_METHOD
 
-            PROPERTY Value : INT
-                GET
-                    Value := THIS^.DoubleX();
-                END_GET
-                SET
-                    this^.x := Value;
-                END_SET
+            PROPERTY_GET Value: INT
+                Value := THIS^.DoubleX();
+            END_PROPERTY
+            PROPERTY_SET Value: INT
+                this^.x := Value;
             END_PROPERTY
         END_FUNCTION_BLOCK
     "#,

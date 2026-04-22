@@ -577,7 +577,7 @@ fn validate_reference<T: AnnotationMap>(
         match ref_name {
             _ if ref_name.starts_with("__set") => {
                 validator.push_diagnostic(
-                    Diagnostic::new("SET property not defined")
+                    Diagnostic::new("PROPERTY_SET not defined")
                         .with_error_code("E048")
                         .with_location(location),
                 );
@@ -586,7 +586,7 @@ fn validate_reference<T: AnnotationMap>(
 
             _ if ref_name.starts_with("__get") => {
                 validator.push_diagnostic(
-                    Diagnostic::new("GET property not defined")
+                    Diagnostic::new("PROPERTY_GET not defined")
                         .with_error_code("E048")
                         .with_location(location),
                 );
@@ -807,7 +807,7 @@ fn visit_binary_expression<T: AnnotationMap>(
 ) {
     match operator {
         Operator::Equal => {
-            if context.annotations.get_type_hint(statement, context.index).is_none() {
+            if !context.is_call() && context.annotations.get_type_hint(statement, context.index).is_none() {
                 let lhs = validator.context.slice(&left.location);
                 let rhs = validator.context.slice(&right.location);
 
