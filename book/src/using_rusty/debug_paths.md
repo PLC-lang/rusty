@@ -90,6 +90,27 @@ plc -g \
   ...
 ```
 
+## Parent-relative source paths
+
+A common layout is invoking the compiler from a build/test subdirectory while compiling a parent file (for example `../main.st`).
+
+Example:
+
+```bash
+cd examples/test
+plc -g ../main.st \
+  --file-prefix-map "$(pwd)=/root" \
+  --debug-compilation-dir "$(pwd)"
+```
+
+With this setup, RuSTy emits compile-unit paths like:
+
+- `DW_AT_comp_dir = /root`
+- `DW_AT_name = ../main.st`
+
+This avoids embedding host-local absolute paths in compile-unit filenames for parent-relative sources.
+For this scenario, behavior aligns with clang when using `-ffile-prefix-map` together with `-fdebug-compilation-dir`.
+
 ## `plc build` usage
 
 The same options can be passed to the `build` subcommand:
@@ -119,6 +140,14 @@ set substitute-path /src/MyApp /home/bob/dev/MyApp
 set substitute-path /build/MyApp /home/bob/dev/MyApp/build
 target remote <host>:<port>
 ```
+
+### Windows note
+
+For cross-machine debugging on Windows, prefer virtual roots like `/src/MyApp` and `/build/MyApp`
+instead of drive-bound debug paths (`C:\...`).
+
+Drive letters can differ between systems (for example build machine on `C:` and debugger user on `D:`),
+while virtual roots keep `set substitute-path` stable across users and hosts.
 
 ## Mixed C/C++ and ST projects
 

@@ -177,22 +177,81 @@ struct DebugPathRemapper {
     prefix_maps: Vec<(PathBuf, PathBuf)>,
 }
 
+fn normalize_lexical_path(path: &Path) -> PathBuf {
+    let mut normalized = PathBuf::new();
+
+    for component in path.components() {
+        match component {
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                if !normalized.pop() {
+                    normalized.push(component.as_os_str());
+                }
+            }
+            std::path::Component::RootDir
+            | std::path::Component::Prefix(_)
+            | std::path::Component::Normal(_) => normalized.push(component.as_os_str()),
+        }
+    }
+
+    if normalized.as_os_str().is_empty() {
+        PathBuf::from(".")
+    } else {
+        normalized
+    }
+}
+
 impl DebugPathRemapper {
     fn new(prefix_maps: &[(PathBuf, PathBuf)]) -> Self {
         Self { prefix_maps: prefix_maps.to_vec() }
     }
 
-    fn remap_path(&self, path: &Path) -> PathBuf {
-        let best_match = self
-            .prefix_maps
-            .iter()
-            .filter_map(|(old, new)| {
-                path.strip_prefix(old).ok().map(|suffix| (old.components().count(), new, suffix))
-            })
-            .max_by_key(|(component_count, _, _)| *component_count);
+    fn match_candidates(&self, path: &Path) -> Vec<PathBuf> {
+        let mut candidates = vec![path.to_path_buf()];
 
-        if let Some((_, new, suffix)) = best_match {
-            let mut mapped = new.clone();
+        let normalized = if path.is_absolute() {
+            path.canonicalize().unwrap_or_else(|_| normalize_lexical_path(path))
+        } else {
+            env::current_dir()
+                .map(|cwd| {
+                    let joined = cwd.join(path);
+                    joined.canonicalize().unwrap_or_else(|_| normalize_lexical_path(&joined))
+                })
+                .unwrap_or_else(|_| path.to_path_buf())
+        };
+
+        if !candidates.iter().any(|candidate| candidate == &normalized) {
+            candidates.push(normalized);
+        }
+
+        candidates
+    }
+
+    fn remap_path(&self, path: &Path) -> PathBuf {
+        if path.to_string_lossy().starts_with('<') {
+            return path.to_path_buf();
+        }
+
+        let best_match = self
+            .match_candidates(path)
+            .iter()
+            .enumerate()
+            .flat_map(|(candidate_idx, candidate)| {
+                self.prefix_maps.iter().filter_map(move |(old, new)| {
+                    candidate.strip_prefix(old).ok().map(|suffix| {
+                        (
+                            old.components().count(),
+                            usize::MAX - candidate_idx,
+                            new.clone(),
+                            suffix.to_path_buf(),
+                        )
+                    })
+                })
+            })
+            .max_by_key(|(component_count, candidate_order, _, _)| (*component_count, *candidate_order));
+
+        if let Some((_, _, new, suffix)) = best_match {
+            let mut mapped = new;
             if !suffix.as_os_str().is_empty() {
                 mapped.push(suffix);
             }
@@ -265,6 +324,27 @@ fn relative_to_compile_dir(path: &Path, compile_dir: &Path) -> Option<PathBuf> {
     }
 }
 
+fn debug_display_path(
+    source_path: &Path,
+    compile_dir: &Path,
+    mapped_compile_dir: &Path,
+    path_remapper: &DebugPathRemapper,
+) -> PathBuf {
+    let mapped_source_path = path_remapper.remap_path(source_path);
+    let original_relative = relative_to_compile_dir(source_path, compile_dir);
+    let mapped_relative = relative_to_compile_dir(&mapped_source_path, mapped_compile_dir);
+
+    if mapped_source_path != source_path {
+        if mapped_source_path.strip_prefix(mapped_compile_dir).is_ok() {
+            mapped_relative.or(original_relative).unwrap_or(mapped_source_path)
+        } else {
+            mapped_source_path
+        }
+    } else {
+        original_relative.or(mapped_relative).unwrap_or(mapped_source_path)
+    }
+}
+
 /// Represents the debug builder and information for a compilation unit.
 pub struct DebugBuilder<'ink> {
     context: &'ink Context,
@@ -281,6 +361,8 @@ pub struct DebugBuilder<'ink> {
     optimization: OptimizationLevel,
     files: FxHashMap<&'static str, DIFile<'ink>>,
     target_data: TargetData,
+    compile_dir: PathBuf,
+    mapped_compile_dir: PathBuf,
     path_remapper: DebugPathRemapper,
 }
 
@@ -327,17 +409,19 @@ impl<'ink> DebugBuilderEnum<'ink> {
                 );
 
                 let path_remapper = DebugPathRemapper::new(debug_prefix_maps);
-                let path = Path::new(module.get_source_file_name().to_str().unwrap_or("")).to_path_buf();
-                let compile_dir = determine_compile_dir(root, debug_compilation_dir, &path);
-                let compile_dir = path_remapper.remap_path(&compile_dir);
-                let path = path_remapper.remap_path(&path);
-                let filename = relative_to_compile_dir(&path, &compile_dir).unwrap_or(path);
+                let source_path =
+                    Path::new(module.get_source_file_name().to_str().unwrap_or("")).to_path_buf();
+                let compile_dir = determine_compile_dir(root, debug_compilation_dir, &source_path);
+                let mapped_compile_dir = path_remapper.remap_path(&compile_dir);
+
+                let filename =
+                    debug_display_path(&source_path, &compile_dir, &mapped_compile_dir, &path_remapper);
                 let filename = filename.to_str().unwrap_or_default();
                 let (debug_info, compile_unit) = module.create_debug_info_builder(
                     true,
                     inkwell::debug_info::DWARFSourceLanguage::C, //TODO: Own lang
                     filename,
-                    compile_dir.to_str().unwrap_or_default(),
+                    mapped_compile_dir.to_str().unwrap_or_default(),
                     "RuSTy Structured text Compiler",
                     optimization.is_optimized(),
                     "",
@@ -364,6 +448,8 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     optimization,
                     files: Default::default(),
                     target_data,
+                    compile_dir,
+                    mapped_compile_dir,
                     path_remapper,
                 };
                 match debug_level {
@@ -946,13 +1032,26 @@ impl<'ink> DebugBuilder<'ink> {
     }
 
     fn get_or_create_debug_file(&mut self, location: &'static str) -> DIFile<'ink> {
-        let path = self.path_remapper.remap_path(Path::new(location));
-        let directory = path.parent().and_then(|it| it.to_str()).unwrap_or("");
-        let filename = path.file_name().and_then(|it| it.to_str()).unwrap_or(location);
-        *self.files.entry(location).or_insert_with(|| {
-            //split to dir and file
-            self.debug_info.create_file(filename, directory)
-        })
+        let path = debug_display_path(
+            Path::new(location),
+            &self.compile_dir,
+            &self.mapped_compile_dir,
+            &self.path_remapper,
+        );
+
+        let (filename, directory) = if path.is_absolute() {
+            (
+                path.file_name().and_then(|it| it.to_str()).unwrap_or(location).to_string(),
+                path.parent().and_then(|it| it.to_str()).unwrap_or_default().to_string(),
+            )
+        } else {
+            (
+                path.to_str().unwrap_or(location).to_string(),
+                self.mapped_compile_dir.to_str().unwrap_or_default().to_string(),
+            )
+        };
+
+        *self.files.entry(location).or_insert_with(|| self.debug_info.create_file(&filename, &directory))
     }
 
     fn get_debug_file(&self, location: &'static str) -> Option<DIFile<'ink>> {

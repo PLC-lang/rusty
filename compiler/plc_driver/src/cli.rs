@@ -600,7 +600,8 @@ fn resolve_old_prefix(path: &Path) -> Result<PathBuf, String> {
 fn normalize_new_prefix(path: &Path) -> Result<PathBuf, String> {
     let current_dir =
         env::current_dir().map_err(|err| format!("Failed to resolve current directory: {err}"))?;
-    let path = if path.is_absolute() { path.to_path_buf() } else { current_dir.join(path) };
+    let path =
+        if path.is_absolute() || path.has_root() { path.to_path_buf() } else { current_dir.join(path) };
     Ok(normalize_lexical_path(&path))
 }
 
@@ -1465,6 +1466,18 @@ mod cli_tests {
                 .unwrap();
 
         assert_eq!(parameters.debug_compilation_dir, Some(current_dir.join("virtual/root")));
+    }
+
+    #[test]
+    fn rooted_debug_compilation_dir_stays_rooted() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--debug-compilation-dir", "/BUILD_ROOT"))
+                .unwrap();
+
+        assert_eq!(
+            parameters.debug_compilation_dir,
+            Some(normalize_new_prefix(Path::new("/BUILD_ROOT")).unwrap())
+        );
     }
 
     #[test]
