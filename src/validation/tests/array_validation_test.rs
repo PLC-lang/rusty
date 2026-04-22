@@ -220,7 +220,7 @@ fn array_bounds_must_be_constants() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E131]: Only constants are allowed as array boundaries
+    error[E117]: Only constants are allowed as array boundaries
       ┌─ <internal>:5:28
       │
     5 │             arr : ARRAY[1..x] OF INT;

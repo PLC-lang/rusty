@@ -10,14 +10,12 @@ FUNCTION_BLOCK A
         _val : DINT := 5;
     END_VAR
 
-    PROPERTY value : DINT
-        GET
-            value := _val;
-        END_GET
+    PROPERTY_GET value: DINT
+        value := _val;
+    END_PROPERTY
 
-        SET
-            _val := value;
-        END_SET
+    PROPERTY_SET value: DINT
+        _val := value;
     END_PROPERTY
 
     METHOD doubleValue
@@ -31,10 +29,8 @@ END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK B EXTENDS A
     // Override only setter — adds 100
-    PROPERTY value : DINT
-        SET
-            _val := value + 100;
-        END_SET
+    PROPERTY_SET value: DINT
+        _val := value + 100;
     END_PROPERTY
 END_FUNCTION_BLOCK
 
