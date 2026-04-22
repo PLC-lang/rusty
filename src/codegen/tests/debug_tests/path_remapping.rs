@@ -75,14 +75,14 @@ fn normalize_snapshot_paths_handles_windows_runner_style_paths() {
         &[("D:/a/rusty/__virtual__/TestProject", "/src/TestProject"), ("D:/a/rusty/rusty", "/cwd")],
     );
 
-    assert_eq!(
+    assert_snapshot!(
         sanitized,
-        concat!(
-            "!2 = !DIFile(filename: \"main.st\", directory: \"/src/TestProject/rusty-codegen-prefix-[id]/src\")\n",
-            "!10 = !DIFile(filename: \"rusty-codegen-prefix-[id]/src/main.st\", directory: \"/src/TestProject\")\n",
-            "!2 = !DIFile(filename: \"main.st\", directory: \"/cwd/rusty-codegen-debug-[id]/src\")\n",
-            "!10 = !DIFile(filename: \"rusty-codegen-debug-[id]/src/main.st\", directory: \"/cwd\")"
-        )
+        @r#"
+!2 = !DIFile(filename: "main.st", directory: "/src/TestProject/rusty-codegen-prefix-[id]/src")
+!10 = !DIFile(filename: "rusty-codegen-prefix-[id]/src/main.st", directory: "/src/TestProject")
+!2 = !DIFile(filename: "main.st", directory: "/cwd/rusty-codegen-debug-[id]/src")
+!10 = !DIFile(filename: "rusty-codegen-debug-[id]/src/main.st", directory: "/cwd")
+"#
     );
 }
 

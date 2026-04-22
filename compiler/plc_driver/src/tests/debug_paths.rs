@@ -106,14 +106,38 @@ fn normalize_snapshot_paths_handles_windows_runner_style_paths() {
         &[("D:/a/rusty/__virtual__/TestProject", "/src/TestProject"), ("D:/a/rusty/rusty", "/cwd")],
     );
 
-    assert_eq!(
+    assert_snapshot!(
         sanitized,
-        concat!(
-            "!2 = !DIFile(filename: \"main.st\", directory: \"/src/TestProject/rusty-codegen-prefix-[id]/src\")\n",
-            "!10 = !DIFile(filename: \"rusty-codegen-prefix-[id]/src/main.st\", directory: \"/src/TestProject\")\n",
-            "!2 = !DIFile(filename: \"main.st\", directory: \"/cwd/rusty-codegen-debug-[id]/src\")\n",
-            "!10 = !DIFile(filename: \"rusty-codegen-debug-[id]/src/main.st\", directory: \"/cwd\")"
-        )
+        @r#"
+!2 = !DIFile(filename: "main.st", directory: "/src/TestProject/rusty-codegen-prefix-[id]/src")
+!10 = !DIFile(filename: "rusty-codegen-prefix-[id]/src/main.st", directory: "/src/TestProject")
+!2 = !DIFile(filename: "main.st", directory: "/cwd/rusty-codegen-debug-[id]/src")
+!10 = !DIFile(filename: "rusty-codegen-debug-[id]/src/main.st", directory: "/cwd")
+"#
+    );
+}
+
+#[test]
+fn sanitize_debug_snapshot_handles_absolute_filename_under_cwd_on_windows() {
+    let raw = r#"
+!2 = !DIFile(filename: "main.st", directory: "///D://a//rusty//rusty//rusty-debug-paths-[id]//src")
+!10 = !DIFile(filename: "///D://a//rusty//rusty//rusty-debug-paths-[id]//src//main.st", directory: "///D://a//rusty//rusty")
+"#;
+
+    let sanitized = sanitize_debug_snapshot(
+        raw,
+        &[
+            ("D:/a/rusty/rusty/rusty-debug-paths-[id]/src/main.st", "rusty-debug-paths-[id]/src/main.st"),
+            ("D:/a/rusty/rusty", "/cwd"),
+        ],
+    );
+
+    assert_snapshot!(
+        sanitized,
+        @r#"
+!2 = !DIFile(filename: "main.st", directory: "/cwd/rusty-debug-paths-[id]/src")
+!10 = !DIFile(filename: "rusty-debug-paths-[id]/src/main.st", directory: "/cwd")
+"#
     );
 }
 
@@ -127,7 +151,7 @@ fn debug_compile_unit_uses_path_relative_to_current_working_directory_by_default
     let relative = source.strip_prefix(&cwd).expect("source under cwd").to_string_lossy().to_string();
 
     let results = compile_to_string_with_options(
-        vec![source],
+        vec![source.clone()],
         vec![],
         CompileOptions {
             debug_level: DebugLevel::Full(plc::DEFAULT_DWARF_VERSION),
@@ -139,9 +163,11 @@ fn debug_compile_unit_uses_path_relative_to_current_working_directory_by_default
 
     let ir = results.join("\n");
     let tempdir_name = tempdir.path().file_name().unwrap().to_string_lossy().to_string();
+    let source_normalized = normalize_snapshot_paths(&source.to_string_lossy());
     let snapshot = sanitize_debug_snapshot(
         &ir,
         &[
+            (&source_normalized, "rusty-debug-paths-[id]/src/main.st"),
             (&normalize_snapshot_paths(&cwd.to_string_lossy()), "/cwd"),
             (&tempdir_name, "rusty-debug-paths-[id]"),
             (&normalize_snapshot_paths(&relative), "rusty-debug-paths-[id]/src/main.st"),
@@ -310,9 +336,11 @@ fn debug_constructor_generation_keeps_debug_paths_stable() {
     ])
     .expect("compile succeeded");
     let tempdir_name = tempdir.path().file_name().unwrap().to_string_lossy().to_string();
+    let source_normalized = normalize_snapshot_paths(&source.to_string_lossy());
     let snapshot = sanitize_debug_snapshot(
         &ir,
         &[
+            (&source_normalized, "rusty-ctors-[id]/test.st"),
             (&normalize_snapshot_paths(&cwd.to_string_lossy()), "/cwd"),
             (&tempdir_name, "rusty-ctors-[id]"),
             (&normalize_snapshot_paths(&relative), "rusty-ctors-[id]/test.st"),
