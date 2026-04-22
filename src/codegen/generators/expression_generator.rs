@@ -1266,11 +1266,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_variadic_member(pou.get_name())
             .and_then(|it| it.get_varargs().zip(Some(it.get_declaration_type())))
         {
-            // For unsized variadics, we need to follow C ABI rules
-            // Only untyped C-style variadics (e.g. `args: ...`) need promotion; typed ones
-            // like `IN2: T2...` resolve to concrete signatures (e.g. `(i64, f32)`) after
-            // generic instantiation, so promoting would break the ABI.
-            let is_unsized = matches!(var_args, VarArgs::Unsized(None));
+            let is_unsized = matches!(var_args, VarArgs::Unsized(_));
+            // Untyped C-style variadics (`args: ...`) need C default argument promotion.
+            // Typed unsized variadics like `IN2: T2...` have a concrete callee signature
+            // after generic instantiation, so promoting their scalar arguments would break the ABI.
+            let needs_c_promotion = matches!(var_args, VarArgs::Unsized(None));
 
             let generated_params = variadic_params
                 .iter()
@@ -1290,7 +1290,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         } else {
                             let value = self.generate_expression(param_statement)?;
                             // Apply C default argument promotions for unsized (C-ABI) variadics
-                            if is_unsized {
+                            if needs_c_promotion {
                                 match type_info.get_type_information() {
                                     DataTypeInformation::Integer { signed, size, .. } if *size < 32 => {
                                         let i32_type = self.llvm.context.i32_type();
