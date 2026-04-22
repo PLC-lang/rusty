@@ -36,13 +36,25 @@ fn sanitize_debug_snapshot(ir: &str, replacements: &[(&str, &str)]) -> String {
     sanitized
 }
 
+fn canonical_path(path: &Path) -> PathBuf {
+    path.canonicalize().expect("canonical path")
+}
+
+fn canonical_cwd() -> PathBuf {
+    canonical_path(&env::current_dir().expect("cwd available"))
+}
+
+fn virtual_root(cwd: &Path) -> PathBuf {
+    cwd.parent().unwrap_or(cwd).join("__virtual__/TestProject")
+}
+
 #[test]
 fn compile_unit_name_is_relative_to_root_in_codegen_debug_tests() {
-    let cwd = env::current_dir().expect("cwd available");
+    let cwd = canonical_cwd();
     let tempdir = Builder::new().prefix("rusty-codegen-debug-").tempdir_in(&cwd).expect("tempdir");
     let source = tempdir.path().join("src/main.st");
     write_test_source(&source);
-    let source = source.canonicalize().expect("canonical source path");
+    let source = canonical_path(&source);
     let relative = source.strip_prefix(&cwd).expect("source under cwd").to_string_lossy().to_string();
 
     let ir = codegen_multi_with_options(
@@ -76,13 +88,14 @@ fn compile_unit_name_is_relative_to_root_in_codegen_debug_tests() {
 
 #[test]
 fn prefix_map_and_debug_compilation_dir_are_applied_in_codegen_debug_tests() {
-    let cwd = env::current_dir().expect("cwd available");
+    let cwd = canonical_cwd();
     let tempdir = Builder::new().prefix("rusty-codegen-prefix-").tempdir_in(&cwd).expect("tempdir");
     let source = tempdir.path().join("src/main.st");
     write_test_source(&source);
-    let source = source.canonicalize().expect("canonical source path");
+    let source = canonical_path(&source);
     let relative = source.strip_prefix(&cwd).expect("source under cwd").to_string_lossy().to_string();
 
+    let virtual_root = virtual_root(&cwd);
     let ir = codegen_multi_with_options(
         vec![SourceCode::new(
             "PROGRAM prg\nVAR\n    x : INT;\nEND_VAR\n    x := 1;\nEND_PROGRAM\n",
@@ -90,8 +103,8 @@ fn prefix_map_and_debug_compilation_dir_are_applied_in_codegen_debug_tests() {
         )],
         None,
         DebugLevel::Full(DEFAULT_DWARF_VERSION),
-        &[(cwd.clone(), PathBuf::from("/src/TestProject"))],
-        Some(Path::new("/src/TestProject")),
+        &[(cwd.clone(), virtual_root.clone())],
+        Some(virtual_root.as_path()),
     )
     .join("\n");
 
@@ -100,6 +113,7 @@ fn prefix_map_and_debug_compilation_dir_are_applied_in_codegen_debug_tests() {
         &ir,
         &[
             (&normalize_snapshot_paths(&cwd.to_string_lossy()), "/cwd"),
+            (&normalize_snapshot_paths(&virtual_root.to_string_lossy()), "/src/TestProject"),
             (&tempdir_name, "rusty-codegen-prefix-[id]"),
             (&normalize_snapshot_paths(&relative), "rusty-codegen-prefix-[id]/src/main.st"),
         ],

@@ -804,7 +804,7 @@ impl CompileParameters {
 mod cli_tests {
     use crate::cli::{ConfigOption, GenerateLanguage, GenerateOption};
 
-    use super::{CompileParameters, SubCommands};
+    use super::{normalize_new_prefix, CompileParameters, SubCommands};
     use clap::ErrorKind;
     use plc::{
         output::{FormatOption, RelocationPreference},
@@ -812,7 +812,7 @@ mod cli_tests {
     };
     use pretty_assertions::assert_eq;
     use std::fmt::Debug;
-    use std::{env, ffi::OsStr, path::PathBuf};
+    use std::{env, ffi::OsStr, path::Path};
 
     #[test]
     fn verify_cli() {
@@ -1453,8 +1453,8 @@ mod cli_tests {
             prefix_maps[0].0,
             current_dir.join("src").canonicalize().unwrap_or(current_dir.join("src"))
         );
-        assert_eq!(prefix_maps[0].1, PathBuf::from("/src/TestProject"));
-        assert_eq!(prefix_maps[1].1, PathBuf::from("/build/TestProject"));
+        assert_eq!(prefix_maps[0].1, normalize_new_prefix(Path::new("/src/TestProject")).unwrap());
+        assert_eq!(prefix_maps[1].1, normalize_new_prefix(Path::new("/build/TestProject")).unwrap());
     }
 
     #[test]
