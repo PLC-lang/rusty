@@ -1409,6 +1409,30 @@ fn ref_assignment_with_reference_to_array_variable() {
 }
 
 #[test]
+fn reference_to_array_of_pointer_type_supports_ref_and_value_assignments() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE userType :
+            INT := 1;
+        END_TYPE
+
+        PROGRAM junit
+        VAR
+            a : REFERENCE TO ARRAY [1..2] OF POINTER TO userType;
+            b : ARRAY [1..2] OF POINTER TO userType;
+        END_VAR
+
+            a REF= b;
+            b := a;
+            a := b;
+        END_PROGRAM
+        ",
+    );
+
+    assert!(diagnostics.is_empty(), "{diagnostics}");
+}
+
+#[test]
 fn ref_assignment_with_reference_to_string_variable() {
     let diagnostics = parse_and_validate_buffered(
         "
