@@ -28,7 +28,20 @@ fn relevant_debug_lines(ir: &str) -> String {
 }
 
 fn normalize_snapshot_paths(value: &str) -> String {
-    value.replace("\\\\?\\", "").replace('\\', "/")
+    let mut normalized = value.replace("\\\\?\\", "").replace('\\', "/");
+
+    while normalized.contains("//") {
+        normalized = normalized.replace("//", "/");
+    }
+
+    for drive in 'A'..='Z' {
+        normalized = normalized.replace(&format!("/{drive}:/"), &format!("{drive}:/"));
+
+        let lower = drive.to_ascii_lowercase();
+        normalized = normalized.replace(&format!("/{lower}:/"), &format!("{lower}:/"));
+    }
+
+    normalized
 }
 
 fn sanitize_debug_snapshot(ir: &str, replacements: &[(&str, &str)]) -> String {
@@ -77,6 +90,31 @@ fn relative_path_from(base: &Path, path: &Path) -> PathBuf {
         relative.push(component.as_os_str());
     }
     relative
+}
+
+#[test]
+fn normalize_snapshot_paths_handles_windows_runner_style_paths() {
+    let raw = r#"
+!2 = !DIFile(filename: "main.st", directory: "///D://a//rusty//__virtual__//TestProject//rusty-codegen-prefix-[id]//src")
+!10 = !DIFile(filename: "rusty-codegen-prefix-[id]//src//main.st", directory: "///D://a//rusty//__virtual__//TestProject")
+!2 = !DIFile(filename: "main.st", directory: "///D://a//rusty//rusty//rusty-codegen-debug-[id]//src")
+!10 = !DIFile(filename: "rusty-codegen-debug-[id]//src//main.st", directory: "///D://a//rusty//rusty")
+"#;
+
+    let sanitized = sanitize_debug_snapshot(
+        raw,
+        &[("D:/a/rusty/__virtual__/TestProject", "/src/TestProject"), ("D:/a/rusty/rusty", "/cwd")],
+    );
+
+    assert_eq!(
+        sanitized,
+        concat!(
+            "!2 = !DIFile(filename: \"main.st\", directory: \"/src/TestProject/rusty-codegen-prefix-[id]/src\")\n",
+            "!10 = !DIFile(filename: \"rusty-codegen-prefix-[id]/src/main.st\", directory: \"/src/TestProject\")\n",
+            "!2 = !DIFile(filename: \"main.st\", directory: \"/cwd/rusty-codegen-debug-[id]/src\")\n",
+            "!10 = !DIFile(filename: \"rusty-codegen-debug-[id]/src/main.st\", directory: \"/cwd\")"
+        )
+    );
 }
 
 #[test]
