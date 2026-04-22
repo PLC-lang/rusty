@@ -75,6 +75,14 @@ fn validate_array<T: AnnotationMap>(
     rhs_stmt: &AstNode,
 ) {
     let stmt_rhs = peel(rhs_stmt);
+
+    // `DefaultValue` is a parser-inserted placeholder (e.g. for CONSTANT declarations without
+    // explicit initializers). Let constant/default resolution handle it instead of reporting
+    // array literal syntax errors.
+    if matches!(stmt_rhs.get_stmt(), AstStatement::DefaultValue(_)) {
+        return;
+    }
+
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference() || stmt_rhs.is_call()) {
         validator.push_diagnostic(
             Diagnostic::new("Array assignments must be surrounded with `[]`")

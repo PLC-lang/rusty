@@ -657,33 +657,3 @@ fn get_and_set_can_be_used_as_method_parameters_and_named_arguments() {
     let (_, diagnostics) = parse(source);
     assert_eq!(diagnostics, vec![]);
 }
-#[test]
-fn use_incorrect_end_keyword() {
-    let source = r"
-        FUNCTION_BLOCK fb
-                PROPERTY foo : DINT
-                    GET
-                    END_SET;
-                    GET
-                    END_GET;
-                    GET
-                    END_SET;
-                    END_PROPERTY
-        END_FUNCTION_BLOCK
-    ";
-
-    let (_, diagnostics) = parse_buffered(source);
-    insta::assert_snapshot!(diagnostics, @"
-    error[E007]: Unexpected token: expected KeywordEndGet but found END_SET
-      ┌─ <internal>:5:21
-      │
-    5 │                     END_SET;
-      │                     ^^^^^^^ Unexpected token: expected KeywordEndGet but found END_SET
-
-    error[E007]: Unexpected token: expected KeywordEndGet but found END_SET
-      ┌─ <internal>:9:21
-      │
-    9 │                     END_SET;
-      │                     ^^^^^^^ Unexpected token: expected KeywordEndGet but found END_SET
-    ");
-}

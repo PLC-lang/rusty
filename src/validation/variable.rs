@@ -300,6 +300,18 @@ where
     }
 }
 
+fn unresolved_constant_diagnostic_message(variable: &Variable, type_name: &str) -> String {
+    if variable.initializer.as_ref().is_some_and(|it| matches!(it.get_stmt(), AstStatement::DefaultValue(_)))
+    {
+        format!(
+            "Unresolved constant `{}` variable: no explicit initializer and no default value could be resolved for type `{type_name}`",
+            variable.name.as_str()
+        )
+    } else {
+        format!("Unresolved constant `{}` variable", variable.name.as_str())
+    }
+}
+
 fn validate_variable<T: AnnotationMap>(
     validator: &mut Validator,
     variable: &Variable,
@@ -383,18 +395,20 @@ fn validate_variable<T: AnnotationMap>(
                 }
                 Some(ConstExpression::Unresolved { statement, .. }) => {
                     validator.push_diagnostic(
-                        Diagnostic::new(
-                            format!("Unresolved constant `{}` variable", variable.name.as_str(),),
-                        )
+                        Diagnostic::new(unresolved_constant_diagnostic_message(
+                            variable,
+                            v_entry.get_type_name(),
+                        ))
                         .with_error_code("E033")
                         .with_location(statement.get_location()),
                     );
                 }
                 None if v_entry.is_constant() && !v_entry.is_var_external() => {
                     validator.push_diagnostic(
-                        Diagnostic::new(
-                            format!("Unresolved constant `{}` variable", variable.name.as_str(),),
-                        )
+                        Diagnostic::new(unresolved_constant_diagnostic_message(
+                            variable,
+                            v_entry.get_type_name(),
+                        ))
                         .with_error_code("E033")
                         .with_location(&variable.location),
                     );
