@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ReferenceToReturnImplementationCallContext","ReferenceToReturnImplementationContext","ReferenceToReturnImplementationContextCalls","ReferenceToReturnImplementationPouContext","ReferenceToReturnLowerer","ReferenceToReturnParticipant","ReferenceToReturnPouContext"]};

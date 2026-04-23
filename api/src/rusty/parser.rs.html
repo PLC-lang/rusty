@@ -1092,685 +1092,694 @@
 <a href=#1092 id=1092 data-nosnippet>1092</a>        parse_pointer_definition(lexer, name, start_pos, <span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>)
 <a href=#1093 id=1093 data-nosnippet>1093</a>    } <span class="kw">else if </span>lexer.try_consume(KeywordRef) {
 <a href=#1094 id=1094 data-nosnippet>1094</a>        parse_pointer_definition(lexer, name, lexer.last_range.start, <span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>)
-<a href=#1095 id=1095 data-nosnippet>1095</a>    } <span class="kw">else if </span>lexer.try_consume(KeywordParensOpen) {
-<a href=#1096 id=1096 data-nosnippet>1096</a>        parse_enum_type_definition(lexer, name)
-<a href=#1097 id=1097 data-nosnippet>1097</a>    } <span class="kw">else if </span>lexer.token == KeywordString || lexer.token == KeywordWideString {
-<a href=#1098 id=1098 data-nosnippet>1098</a>        parse_string_type_definition(lexer, name)
-<a href=#1099 id=1099 data-nosnippet>1099</a>    } <span class="kw">else if </span>lexer.token == Identifier {
-<a href=#1100 id=1100 data-nosnippet>1100</a>        parse_type_reference_type_definition(lexer, name)
-<a href=#1101 id=1101 data-nosnippet>1101</a>    } <span class="kw">else </span>{
-<a href=#1102 id=1102 data-nosnippet>1102</a>        <span class="comment">//no datatype?
-<a href=#1103 id=1103 data-nosnippet>1103</a>        </span>lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-<a href=#1104 id=1104 data-nosnippet>1104</a>            <span class="string">"DataTypeDefinition"</span>,
-<a href=#1105 id=1105 data-nosnippet>1105</a>            <span class="macro">format!</span>(<span class="string">"{:?}"</span>, lexer.token).as_str(),
-<a href=#1106 id=1106 data-nosnippet>1106</a>            lexer.location(),
-<a href=#1107 id=1107 data-nosnippet>1107</a>        ));
-<a href=#1108 id=1108 data-nosnippet>1108</a>        <span class="prelude-val">None
-<a href=#1109 id=1109 data-nosnippet>1109</a>    </span>}
-<a href=#1110 id=1110 data-nosnippet>1110</a>}
-<a href=#1111 id=1111 data-nosnippet>1111</a>
-<a href=#1112 id=1112 data-nosnippet>1112</a><span class="kw">fn </span>parse_pointer_definition(
-<a href=#1113 id=1113 data-nosnippet>1113</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-<a href=#1114 id=1114 data-nosnippet>1114</a>    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-<a href=#1115 id=1115 data-nosnippet>1115</a>    start_pos: usize,
-<a href=#1116 id=1116 data-nosnippet>1116</a>    auto_deref: <span class="prelude-ty">Option</span>&lt;AutoDerefType&gt;,
-<a href=#1117 id=1117 data-nosnippet>1117</a>    type_safe: bool,
-<a href=#1118 id=1118 data-nosnippet>1118</a>    is_function: bool,
-<a href=#1119 id=1119 data-nosnippet>1119</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
-<a href=#1120 id=1120 data-nosnippet>1120</a>    parse_data_type_definition(lexer, <span class="prelude-val">None</span>).map(|(decl, initializer)| {
-<a href=#1121 id=1121 data-nosnippet>1121</a>        (
-<a href=#1122 id=1122 data-nosnippet>1122</a>            DataTypeDeclaration::Definition {
-<a href=#1123 id=1123 data-nosnippet>1123</a>                data_type: Box::new(DataType::PointerType {
-<a href=#1124 id=1124 data-nosnippet>1124</a>                    name,
-<a href=#1125 id=1125 data-nosnippet>1125</a>                    referenced_type: Box::new(decl),
-<a href=#1126 id=1126 data-nosnippet>1126</a>                    auto_deref,
-<a href=#1127 id=1127 data-nosnippet>1127</a>                    type_safe,
-<a href=#1128 id=1128 data-nosnippet>1128</a>                    is_function,
-<a href=#1129 id=1129 data-nosnippet>1129</a>                }),
-<a href=#1130 id=1130 data-nosnippet>1130</a>                <span class="comment">// FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
-<a href=#1131 id=1131 data-nosnippet>1131</a>                </span>location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
-<a href=#1132 id=1132 data-nosnippet>1132</a>                scope: lexer.scope.clone(),
-<a href=#1133 id=1133 data-nosnippet>1133</a>            },
-<a href=#1134 id=1134 data-nosnippet>1134</a>            initializer,
-<a href=#1135 id=1135 data-nosnippet>1135</a>        )
-<a href=#1136 id=1136 data-nosnippet>1136</a>    })
-<a href=#1137 id=1137 data-nosnippet>1137</a>}
-<a href=#1138 id=1138 data-nosnippet>1138</a>
-<a href=#1139 id=1139 data-nosnippet>1139</a><span class="kw">fn </span>parse_type_reference_type_definition(
-<a href=#1140 id=1140 data-nosnippet>1140</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-<a href=#1141 id=1141 data-nosnippet>1141</a>    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-<a href=#1142 id=1142 data-nosnippet>1142</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
-<a href=#1143 id=1143 data-nosnippet>1143</a>    <span class="kw">let </span>start = lexer.range().start;
-<a href=#1144 id=1144 data-nosnippet>1144</a>
-<a href=#1145 id=1145 data-nosnippet>1145</a>    <span class="kw">let </span><span class="kw-2">mut </span>referenced_type = lexer.slice_and_advance();
-<a href=#1146 id=1146 data-nosnippet>1146</a>
-<a href=#1147 id=1147 data-nosnippet>1147</a>    <span class="kw">if </span>lexer.try_consume(KeywordDot) {
-<a href=#1148 id=1148 data-nosnippet>1148</a>        referenced_type = <span class="macro">format!</span>(<span class="string">"{referenced_type}.{}"</span>, lexer.slice_and_advance());
-<a href=#1149 id=1149 data-nosnippet>1149</a>    }
-<a href=#1150 id=1150 data-nosnippet>1150</a>
-<a href=#1151 id=1151 data-nosnippet>1151</a>    <span class="kw">let </span>bounds = <span class="kw">if </span>lexer.try_consume(KeywordParensOpen) {
-<a href=#1152 id=1152 data-nosnippet>1152</a>        <span class="comment">// INT (..) :=
-<a href=#1153 id=1153 data-nosnippet>1153</a>        </span><span class="kw">let </span>bounds = parse_expression(lexer);
-<a href=#1154 id=1154 data-nosnippet>1154</a>        <span class="macro">expect_token!</span>(lexer, KeywordParensClose, <span class="prelude-val">None</span>);
-<a href=#1155 id=1155 data-nosnippet>1155</a>        lexer.advance();
-<a href=#1156 id=1156 data-nosnippet>1156</a>        <span class="prelude-val">Some</span>(bounds)
-<a href=#1157 id=1157 data-nosnippet>1157</a>    } <span class="kw">else </span>{
-<a href=#1158 id=1158 data-nosnippet>1158</a>        <span class="prelude-val">None
-<a href=#1159 id=1159 data-nosnippet>1159</a>    </span>};
-<a href=#1160 id=1160 data-nosnippet>1160</a>
-<a href=#1161 id=1161 data-nosnippet>1161</a>    <span class="kw">let </span>end = lexer.last_range.end;
-<a href=#1162 id=1162 data-nosnippet>1162</a>
-<a href=#1163 id=1163 data-nosnippet>1163</a>    <span class="kw">let </span>initial_value: <span class="prelude-ty">Option</span>&lt;AstNode&gt; =
-<a href=#1164 id=1164 data-nosnippet>1164</a>        <span class="kw">if </span>lexer.try_consume(KeywordAssignment) || lexer.try_consume(KeywordReferenceAssignment) {
-<a href=#1165 id=1165 data-nosnippet>1165</a>            <span class="prelude-val">Some</span>(parse_expression(lexer))
-<a href=#1166 id=1166 data-nosnippet>1166</a>        } <span class="kw">else </span>{
-<a href=#1167 id=1167 data-nosnippet>1167</a>            <span class="prelude-val">None
-<a href=#1168 id=1168 data-nosnippet>1168</a>        </span>};
+<a href=#1095 id=1095 data-nosnippet>1095</a>    } <span class="kw">else if </span>lexer.try_consume(KeywordReferenceTo) {
+<a href=#1096 id=1096 data-nosnippet>1096</a>        parse_pointer_definition(
+<a href=#1097 id=1097 data-nosnippet>1097</a>            lexer,
+<a href=#1098 id=1098 data-nosnippet>1098</a>            name,
+<a href=#1099 id=1099 data-nosnippet>1099</a>            lexer.last_range.start,
+<a href=#1100 id=1100 data-nosnippet>1100</a>            <span class="prelude-val">Some</span>(AutoDerefType::Reference),
+<a href=#1101 id=1101 data-nosnippet>1101</a>            <span class="bool-val">true</span>,
+<a href=#1102 id=1102 data-nosnippet>1102</a>            <span class="bool-val">false</span>,
+<a href=#1103 id=1103 data-nosnippet>1103</a>        )
+<a href=#1104 id=1104 data-nosnippet>1104</a>    } <span class="kw">else if </span>lexer.try_consume(KeywordParensOpen) {
+<a href=#1105 id=1105 data-nosnippet>1105</a>        parse_enum_type_definition(lexer, name)
+<a href=#1106 id=1106 data-nosnippet>1106</a>    } <span class="kw">else if </span>lexer.token == KeywordString || lexer.token == KeywordWideString {
+<a href=#1107 id=1107 data-nosnippet>1107</a>        parse_string_type_definition(lexer, name)
+<a href=#1108 id=1108 data-nosnippet>1108</a>    } <span class="kw">else if </span>lexer.token == Identifier {
+<a href=#1109 id=1109 data-nosnippet>1109</a>        parse_type_reference_type_definition(lexer, name)
+<a href=#1110 id=1110 data-nosnippet>1110</a>    } <span class="kw">else </span>{
+<a href=#1111 id=1111 data-nosnippet>1111</a>        <span class="comment">//no datatype?
+<a href=#1112 id=1112 data-nosnippet>1112</a>        </span>lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+<a href=#1113 id=1113 data-nosnippet>1113</a>            <span class="string">"DataTypeDefinition"</span>,
+<a href=#1114 id=1114 data-nosnippet>1114</a>            <span class="macro">format!</span>(<span class="string">"{:?}"</span>, lexer.token).as_str(),
+<a href=#1115 id=1115 data-nosnippet>1115</a>            lexer.location(),
+<a href=#1116 id=1116 data-nosnippet>1116</a>        ));
+<a href=#1117 id=1117 data-nosnippet>1117</a>        <span class="prelude-val">None
+<a href=#1118 id=1118 data-nosnippet>1118</a>    </span>}
+<a href=#1119 id=1119 data-nosnippet>1119</a>}
+<a href=#1120 id=1120 data-nosnippet>1120</a>
+<a href=#1121 id=1121 data-nosnippet>1121</a><span class="kw">fn </span>parse_pointer_definition(
+<a href=#1122 id=1122 data-nosnippet>1122</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+<a href=#1123 id=1123 data-nosnippet>1123</a>    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+<a href=#1124 id=1124 data-nosnippet>1124</a>    start_pos: usize,
+<a href=#1125 id=1125 data-nosnippet>1125</a>    auto_deref: <span class="prelude-ty">Option</span>&lt;AutoDerefType&gt;,
+<a href=#1126 id=1126 data-nosnippet>1126</a>    type_safe: bool,
+<a href=#1127 id=1127 data-nosnippet>1127</a>    is_function: bool,
+<a href=#1128 id=1128 data-nosnippet>1128</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
+<a href=#1129 id=1129 data-nosnippet>1129</a>    parse_data_type_definition(lexer, <span class="prelude-val">None</span>).map(|(decl, initializer)| {
+<a href=#1130 id=1130 data-nosnippet>1130</a>        (
+<a href=#1131 id=1131 data-nosnippet>1131</a>            DataTypeDeclaration::Definition {
+<a href=#1132 id=1132 data-nosnippet>1132</a>                data_type: Box::new(DataType::PointerType {
+<a href=#1133 id=1133 data-nosnippet>1133</a>                    name,
+<a href=#1134 id=1134 data-nosnippet>1134</a>                    referenced_type: Box::new(decl),
+<a href=#1135 id=1135 data-nosnippet>1135</a>                    auto_deref,
+<a href=#1136 id=1136 data-nosnippet>1136</a>                    type_safe,
+<a href=#1137 id=1137 data-nosnippet>1137</a>                    is_function,
+<a href=#1138 id=1138 data-nosnippet>1138</a>                }),
+<a href=#1139 id=1139 data-nosnippet>1139</a>                <span class="comment">// FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
+<a href=#1140 id=1140 data-nosnippet>1140</a>                </span>location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
+<a href=#1141 id=1141 data-nosnippet>1141</a>                scope: lexer.scope.clone(),
+<a href=#1142 id=1142 data-nosnippet>1142</a>            },
+<a href=#1143 id=1143 data-nosnippet>1143</a>            initializer,
+<a href=#1144 id=1144 data-nosnippet>1144</a>        )
+<a href=#1145 id=1145 data-nosnippet>1145</a>    })
+<a href=#1146 id=1146 data-nosnippet>1146</a>}
+<a href=#1147 id=1147 data-nosnippet>1147</a>
+<a href=#1148 id=1148 data-nosnippet>1148</a><span class="kw">fn </span>parse_type_reference_type_definition(
+<a href=#1149 id=1149 data-nosnippet>1149</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+<a href=#1150 id=1150 data-nosnippet>1150</a>    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+<a href=#1151 id=1151 data-nosnippet>1151</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
+<a href=#1152 id=1152 data-nosnippet>1152</a>    <span class="kw">let </span>start = lexer.range().start;
+<a href=#1153 id=1153 data-nosnippet>1153</a>
+<a href=#1154 id=1154 data-nosnippet>1154</a>    <span class="kw">let </span><span class="kw-2">mut </span>referenced_type = lexer.slice_and_advance();
+<a href=#1155 id=1155 data-nosnippet>1155</a>
+<a href=#1156 id=1156 data-nosnippet>1156</a>    <span class="kw">if </span>lexer.try_consume(KeywordDot) {
+<a href=#1157 id=1157 data-nosnippet>1157</a>        referenced_type = <span class="macro">format!</span>(<span class="string">"{referenced_type}.{}"</span>, lexer.slice_and_advance());
+<a href=#1158 id=1158 data-nosnippet>1158</a>    }
+<a href=#1159 id=1159 data-nosnippet>1159</a>
+<a href=#1160 id=1160 data-nosnippet>1160</a>    <span class="kw">let </span>bounds = <span class="kw">if </span>lexer.try_consume(KeywordParensOpen) {
+<a href=#1161 id=1161 data-nosnippet>1161</a>        <span class="comment">// INT (..) :=
+<a href=#1162 id=1162 data-nosnippet>1162</a>        </span><span class="kw">let </span>bounds = parse_expression(lexer);
+<a href=#1163 id=1163 data-nosnippet>1163</a>        <span class="macro">expect_token!</span>(lexer, KeywordParensClose, <span class="prelude-val">None</span>);
+<a href=#1164 id=1164 data-nosnippet>1164</a>        lexer.advance();
+<a href=#1165 id=1165 data-nosnippet>1165</a>        <span class="prelude-val">Some</span>(bounds)
+<a href=#1166 id=1166 data-nosnippet>1166</a>    } <span class="kw">else </span>{
+<a href=#1167 id=1167 data-nosnippet>1167</a>        <span class="prelude-val">None
+<a href=#1168 id=1168 data-nosnippet>1168</a>    </span>};
 <a href=#1169 id=1169 data-nosnippet>1169</a>
-<a href=#1170 id=1170 data-nosnippet>1170</a>    <span class="kw">if </span>name.is_some() || bounds.is_some() {
-<a href=#1171 id=1171 data-nosnippet>1171</a>        <span class="kw">let </span>data_type = <span class="kw">match </span>bounds {
-<a href=#1172 id=1172 data-nosnippet>1172</a>            <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(expressions), id, location, .. }) =&gt; {
-<a href=#1173 id=1173 data-nosnippet>1173</a>                <span class="comment">//this is an enum
-<a href=#1174 id=1174 data-nosnippet>1174</a>                </span>DataTypeDeclaration::Definition {
-<a href=#1175 id=1175 data-nosnippet>1175</a>                    data_type: Box::new(DataType::EnumType {
-<a href=#1176 id=1176 data-nosnippet>1176</a>                        name,
-<a href=#1177 id=1177 data-nosnippet>1177</a>                        numeric_type: referenced_type,
-<a href=#1178 id=1178 data-nosnippet>1178</a>                        elements: AstFactory::create_expression_list(expressions, location, id),
-<a href=#1179 id=1179 data-nosnippet>1179</a>                    }),
-<a href=#1180 id=1180 data-nosnippet>1180</a>                    location: lexer.source_range_factory.create_range(start..end),
-<a href=#1181 id=1181 data-nosnippet>1181</a>                    scope: lexer.scope.clone(),
-<a href=#1182 id=1182 data-nosnippet>1182</a>                }
-<a href=#1183 id=1183 data-nosnippet>1183</a>            }
-<a href=#1184 id=1184 data-nosnippet>1184</a>            <span class="prelude-val">Some</span>(AstNode {
-<a href=#1185 id=1185 data-nosnippet>1185</a>                stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(<span class="kw">_</span>), .. }),
-<a href=#1186 id=1186 data-nosnippet>1186</a>                ..
-<a href=#1187 id=1187 data-nosnippet>1187</a>            }) =&gt; {
-<a href=#1188 id=1188 data-nosnippet>1188</a>                <span class="comment">// a enum with just one element
-<a href=#1189 id=1189 data-nosnippet>1189</a>                </span>DataTypeDeclaration::Definition {
-<a href=#1190 id=1190 data-nosnippet>1190</a>                    data_type: Box::new(DataType::EnumType {
-<a href=#1191 id=1191 data-nosnippet>1191</a>                        name,
-<a href=#1192 id=1192 data-nosnippet>1192</a>                        numeric_type: referenced_type,
-<a href=#1193 id=1193 data-nosnippet>1193</a>                        elements: bounds.unwrap(),
-<a href=#1194 id=1194 data-nosnippet>1194</a>                    }),
-<a href=#1195 id=1195 data-nosnippet>1195</a>                    location: lexer.source_range_factory.create_range(start..end),
-<a href=#1196 id=1196 data-nosnippet>1196</a>                    scope: lexer.scope.clone(),
-<a href=#1197 id=1197 data-nosnippet>1197</a>                }
-<a href=#1198 id=1198 data-nosnippet>1198</a>            }
-<a href=#1199 id=1199 data-nosnippet>1199</a>            <span class="kw">_ </span>=&gt; DataTypeDeclaration::Definition {
-<a href=#1200 id=1200 data-nosnippet>1200</a>                <span class="comment">//something else inside the brackets -&gt; probably a subrange?
-<a href=#1201 id=1201 data-nosnippet>1201</a>                </span>data_type: Box::new(DataType::SubRangeType { name, referenced_type, bounds }),
-<a href=#1202 id=1202 data-nosnippet>1202</a>                location: lexer.source_range_factory.create_range(start..end),
-<a href=#1203 id=1203 data-nosnippet>1203</a>                scope: lexer.scope.clone(),
-<a href=#1204 id=1204 data-nosnippet>1204</a>            },
-<a href=#1205 id=1205 data-nosnippet>1205</a>        };
-<a href=#1206 id=1206 data-nosnippet>1206</a>        <span class="prelude-val">Some</span>((data_type, initial_value))
-<a href=#1207 id=1207 data-nosnippet>1207</a>    } <span class="kw">else </span>{
-<a href=#1208 id=1208 data-nosnippet>1208</a>        <span class="prelude-val">Some</span>((
-<a href=#1209 id=1209 data-nosnippet>1209</a>            DataTypeDeclaration::Reference {
-<a href=#1210 id=1210 data-nosnippet>1210</a>                referenced_type,
+<a href=#1170 id=1170 data-nosnippet>1170</a>    <span class="kw">let </span>end = lexer.last_range.end;
+<a href=#1171 id=1171 data-nosnippet>1171</a>
+<a href=#1172 id=1172 data-nosnippet>1172</a>    <span class="kw">let </span>initial_value: <span class="prelude-ty">Option</span>&lt;AstNode&gt; =
+<a href=#1173 id=1173 data-nosnippet>1173</a>        <span class="kw">if </span>lexer.try_consume(KeywordAssignment) || lexer.try_consume(KeywordReferenceAssignment) {
+<a href=#1174 id=1174 data-nosnippet>1174</a>            <span class="prelude-val">Some</span>(parse_expression(lexer))
+<a href=#1175 id=1175 data-nosnippet>1175</a>        } <span class="kw">else </span>{
+<a href=#1176 id=1176 data-nosnippet>1176</a>            <span class="prelude-val">None
+<a href=#1177 id=1177 data-nosnippet>1177</a>        </span>};
+<a href=#1178 id=1178 data-nosnippet>1178</a>
+<a href=#1179 id=1179 data-nosnippet>1179</a>    <span class="kw">if </span>name.is_some() || bounds.is_some() {
+<a href=#1180 id=1180 data-nosnippet>1180</a>        <span class="kw">let </span>data_type = <span class="kw">match </span>bounds {
+<a href=#1181 id=1181 data-nosnippet>1181</a>            <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(expressions), id, location, .. }) =&gt; {
+<a href=#1182 id=1182 data-nosnippet>1182</a>                <span class="comment">//this is an enum
+<a href=#1183 id=1183 data-nosnippet>1183</a>                </span>DataTypeDeclaration::Definition {
+<a href=#1184 id=1184 data-nosnippet>1184</a>                    data_type: Box::new(DataType::EnumType {
+<a href=#1185 id=1185 data-nosnippet>1185</a>                        name,
+<a href=#1186 id=1186 data-nosnippet>1186</a>                        numeric_type: referenced_type,
+<a href=#1187 id=1187 data-nosnippet>1187</a>                        elements: AstFactory::create_expression_list(expressions, location, id),
+<a href=#1188 id=1188 data-nosnippet>1188</a>                    }),
+<a href=#1189 id=1189 data-nosnippet>1189</a>                    location: lexer.source_range_factory.create_range(start..end),
+<a href=#1190 id=1190 data-nosnippet>1190</a>                    scope: lexer.scope.clone(),
+<a href=#1191 id=1191 data-nosnippet>1191</a>                }
+<a href=#1192 id=1192 data-nosnippet>1192</a>            }
+<a href=#1193 id=1193 data-nosnippet>1193</a>            <span class="prelude-val">Some</span>(AstNode {
+<a href=#1194 id=1194 data-nosnippet>1194</a>                stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(<span class="kw">_</span>), .. }),
+<a href=#1195 id=1195 data-nosnippet>1195</a>                ..
+<a href=#1196 id=1196 data-nosnippet>1196</a>            }) =&gt; {
+<a href=#1197 id=1197 data-nosnippet>1197</a>                <span class="comment">// a enum with just one element
+<a href=#1198 id=1198 data-nosnippet>1198</a>                </span>DataTypeDeclaration::Definition {
+<a href=#1199 id=1199 data-nosnippet>1199</a>                    data_type: Box::new(DataType::EnumType {
+<a href=#1200 id=1200 data-nosnippet>1200</a>                        name,
+<a href=#1201 id=1201 data-nosnippet>1201</a>                        numeric_type: referenced_type,
+<a href=#1202 id=1202 data-nosnippet>1202</a>                        elements: bounds.unwrap(),
+<a href=#1203 id=1203 data-nosnippet>1203</a>                    }),
+<a href=#1204 id=1204 data-nosnippet>1204</a>                    location: lexer.source_range_factory.create_range(start..end),
+<a href=#1205 id=1205 data-nosnippet>1205</a>                    scope: lexer.scope.clone(),
+<a href=#1206 id=1206 data-nosnippet>1206</a>                }
+<a href=#1207 id=1207 data-nosnippet>1207</a>            }
+<a href=#1208 id=1208 data-nosnippet>1208</a>            <span class="kw">_ </span>=&gt; DataTypeDeclaration::Definition {
+<a href=#1209 id=1209 data-nosnippet>1209</a>                <span class="comment">//something else inside the brackets -&gt; probably a subrange?
+<a href=#1210 id=1210 data-nosnippet>1210</a>                </span>data_type: Box::new(DataType::SubRangeType { name, referenced_type, bounds }),
 <a href=#1211 id=1211 data-nosnippet>1211</a>                location: lexer.source_range_factory.create_range(start..end),
-<a href=#1212 id=1212 data-nosnippet>1212</a>            },
-<a href=#1213 id=1213 data-nosnippet>1213</a>            initial_value,
-<a href=#1214 id=1214 data-nosnippet>1214</a>        ))
-<a href=#1215 id=1215 data-nosnippet>1215</a>    }
-<a href=#1216 id=1216 data-nosnippet>1216</a>}
-<a href=#1217 id=1217 data-nosnippet>1217</a>
-<a href=#1218 id=1218 data-nosnippet>1218</a><span class="kw">fn </span>parse_string_size_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
-<a href=#1219 id=1219 data-nosnippet>1219</a>    <span class="kw">let </span>opening_token = lexer.token;
-<a href=#1220 id=1220 data-nosnippet>1220</a>    <span class="kw">if </span>lexer.try_consume(KeywordSquareParensOpen) || lexer.try_consume(KeywordParensOpen) {
-<a href=#1221 id=1221 data-nosnippet>1221</a>        <span class="kw">let </span>opening_location = lexer.range().start;
-<a href=#1222 id=1222 data-nosnippet>1222</a>        <span class="kw">let </span>closing_tokens = <span class="macro">vec!</span>[KeywordSquareParensClose, KeywordParensClose];
-<a href=#1223 id=1223 data-nosnippet>1223</a>        parse_any_in_region(lexer, closing_tokens, |lexer| {
-<a href=#1224 id=1224 data-nosnippet>1224</a>            <span class="kw">let </span>size_expr = parse_expression(lexer);
-<a href=#1225 id=1225 data-nosnippet>1225</a>            <span class="kw">let </span>error_range = lexer.source_range_factory.create_range(opening_location..lexer.range().end);
+<a href=#1212 id=1212 data-nosnippet>1212</a>                scope: lexer.scope.clone(),
+<a href=#1213 id=1213 data-nosnippet>1213</a>            },
+<a href=#1214 id=1214 data-nosnippet>1214</a>        };
+<a href=#1215 id=1215 data-nosnippet>1215</a>        <span class="prelude-val">Some</span>((data_type, initial_value))
+<a href=#1216 id=1216 data-nosnippet>1216</a>    } <span class="kw">else </span>{
+<a href=#1217 id=1217 data-nosnippet>1217</a>        <span class="prelude-val">Some</span>((
+<a href=#1218 id=1218 data-nosnippet>1218</a>            DataTypeDeclaration::Reference {
+<a href=#1219 id=1219 data-nosnippet>1219</a>                referenced_type,
+<a href=#1220 id=1220 data-nosnippet>1220</a>                location: lexer.source_range_factory.create_range(start..end),
+<a href=#1221 id=1221 data-nosnippet>1221</a>            },
+<a href=#1222 id=1222 data-nosnippet>1222</a>            initial_value,
+<a href=#1223 id=1223 data-nosnippet>1223</a>        ))
+<a href=#1224 id=1224 data-nosnippet>1224</a>    }
+<a href=#1225 id=1225 data-nosnippet>1225</a>}
 <a href=#1226 id=1226 data-nosnippet>1226</a>
-<a href=#1227 id=1227 data-nosnippet>1227</a>            <span class="comment">// Don't emit warnings if this looks like an enum (will be caught by validation).
-<a href=#1228 id=1228 data-nosnippet>1228</a>            // e.g. `TYPE attemptAtStringEnum : STRING (a := 1, b := 2);` should not warn about parentheses.
-<a href=#1229 id=1229 data-nosnippet>1229</a>            </span><span class="kw">let </span>is_enum_like = <span class="macro">matches!</span>(size_expr.get_stmt(), AstStatement::ExpressionList(<span class="kw">_</span>));
-<a href=#1230 id=1230 data-nosnippet>1230</a>
-<a href=#1231 id=1231 data-nosnippet>1231</a>            <span class="kw">if </span>(opening_token == KeywordParensOpen &amp;&amp; lexer.token == KeywordSquareParensClose)
-<a href=#1232 id=1232 data-nosnippet>1232</a>                || (opening_token == KeywordSquareParensOpen &amp;&amp; lexer.token == KeywordParensClose)
-<a href=#1233 id=1233 data-nosnippet>1233</a>            {
-<a href=#1234 id=1234 data-nosnippet>1234</a>                lexer.accept_diagnostic(
-<a href=#1235 id=1235 data-nosnippet>1235</a>                    Diagnostic::new(<span class="string">"Mismatched types of parentheses around string size expression"</span>)
-<a href=#1236 id=1236 data-nosnippet>1236</a>                        .with_location(error_range)
-<a href=#1237 id=1237 data-nosnippet>1237</a>                        .with_error_code(<span class="string">"E009"</span>),
-<a href=#1238 id=1238 data-nosnippet>1238</a>                );
-<a href=#1239 id=1239 data-nosnippet>1239</a>            } <span class="kw">else if </span>!is_enum_like
-<a href=#1240 id=1240 data-nosnippet>1240</a>                &amp;&amp; (opening_token == KeywordParensOpen || lexer.token == KeywordParensClose)
-<a href=#1241 id=1241 data-nosnippet>1241</a>            {
-<a href=#1242 id=1242 data-nosnippet>1242</a>                lexer.accept_diagnostic(Diagnostic::new(
-<a href=#1243 id=1243 data-nosnippet>1243</a>                    <span class="string">"Unusual type of parentheses around string size expression, consider using square parentheses '[]'"</span>).
-<a href=#1244 id=1244 data-nosnippet>1244</a>                    with_location(error_range)
-<a href=#1245 id=1245 data-nosnippet>1245</a>                    .with_error_code(<span class="string">"E014"</span>)
-<a href=#1246 id=1246 data-nosnippet>1246</a>                );
-<a href=#1247 id=1247 data-nosnippet>1247</a>            }
-<a href=#1248 id=1248 data-nosnippet>1248</a>
-<a href=#1249 id=1249 data-nosnippet>1249</a>            <span class="prelude-val">Some</span>(size_expr)
-<a href=#1250 id=1250 data-nosnippet>1250</a>        })
-<a href=#1251 id=1251 data-nosnippet>1251</a>    } <span class="kw">else </span>{
-<a href=#1252 id=1252 data-nosnippet>1252</a>        <span class="prelude-val">None
-<a href=#1253 id=1253 data-nosnippet>1253</a>    </span>}
-<a href=#1254 id=1254 data-nosnippet>1254</a>}
-<a href=#1255 id=1255 data-nosnippet>1255</a>
-<a href=#1256 id=1256 data-nosnippet>1256</a><span class="kw">fn </span>parse_string_type_definition(
-<a href=#1257 id=1257 data-nosnippet>1257</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-<a href=#1258 id=1258 data-nosnippet>1258</a>    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-<a href=#1259 id=1259 data-nosnippet>1259</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
-<a href=#1260 id=1260 data-nosnippet>1260</a>    <span class="kw">let </span>text = lexer.slice().to_string();
-<a href=#1261 id=1261 data-nosnippet>1261</a>    <span class="kw">let </span>start = lexer.range().start;
-<a href=#1262 id=1262 data-nosnippet>1262</a>    <span class="kw">let </span>is_wide = lexer.token == KeywordWideString;
-<a href=#1263 id=1263 data-nosnippet>1263</a>    lexer.advance();
+<a href=#1227 id=1227 data-nosnippet>1227</a><span class="kw">fn </span>parse_string_size_expression(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
+<a href=#1228 id=1228 data-nosnippet>1228</a>    <span class="kw">let </span>opening_token = lexer.token;
+<a href=#1229 id=1229 data-nosnippet>1229</a>    <span class="kw">if </span>lexer.try_consume(KeywordSquareParensOpen) || lexer.try_consume(KeywordParensOpen) {
+<a href=#1230 id=1230 data-nosnippet>1230</a>        <span class="kw">let </span>opening_location = lexer.range().start;
+<a href=#1231 id=1231 data-nosnippet>1231</a>        <span class="kw">let </span>closing_tokens = <span class="macro">vec!</span>[KeywordSquareParensClose, KeywordParensClose];
+<a href=#1232 id=1232 data-nosnippet>1232</a>        parse_any_in_region(lexer, closing_tokens, |lexer| {
+<a href=#1233 id=1233 data-nosnippet>1233</a>            <span class="kw">let </span>size_expr = parse_expression(lexer);
+<a href=#1234 id=1234 data-nosnippet>1234</a>            <span class="kw">let </span>error_range = lexer.source_range_factory.create_range(opening_location..lexer.range().end);
+<a href=#1235 id=1235 data-nosnippet>1235</a>
+<a href=#1236 id=1236 data-nosnippet>1236</a>            <span class="comment">// Don't emit warnings if this looks like an enum (will be caught by validation).
+<a href=#1237 id=1237 data-nosnippet>1237</a>            // e.g. `TYPE attemptAtStringEnum : STRING (a := 1, b := 2);` should not warn about parentheses.
+<a href=#1238 id=1238 data-nosnippet>1238</a>            </span><span class="kw">let </span>is_enum_like = <span class="macro">matches!</span>(size_expr.get_stmt(), AstStatement::ExpressionList(<span class="kw">_</span>));
+<a href=#1239 id=1239 data-nosnippet>1239</a>
+<a href=#1240 id=1240 data-nosnippet>1240</a>            <span class="kw">if </span>(opening_token == KeywordParensOpen &amp;&amp; lexer.token == KeywordSquareParensClose)
+<a href=#1241 id=1241 data-nosnippet>1241</a>                || (opening_token == KeywordSquareParensOpen &amp;&amp; lexer.token == KeywordParensClose)
+<a href=#1242 id=1242 data-nosnippet>1242</a>            {
+<a href=#1243 id=1243 data-nosnippet>1243</a>                lexer.accept_diagnostic(
+<a href=#1244 id=1244 data-nosnippet>1244</a>                    Diagnostic::new(<span class="string">"Mismatched types of parentheses around string size expression"</span>)
+<a href=#1245 id=1245 data-nosnippet>1245</a>                        .with_location(error_range)
+<a href=#1246 id=1246 data-nosnippet>1246</a>                        .with_error_code(<span class="string">"E009"</span>),
+<a href=#1247 id=1247 data-nosnippet>1247</a>                );
+<a href=#1248 id=1248 data-nosnippet>1248</a>            } <span class="kw">else if </span>!is_enum_like
+<a href=#1249 id=1249 data-nosnippet>1249</a>                &amp;&amp; (opening_token == KeywordParensOpen || lexer.token == KeywordParensClose)
+<a href=#1250 id=1250 data-nosnippet>1250</a>            {
+<a href=#1251 id=1251 data-nosnippet>1251</a>                lexer.accept_diagnostic(Diagnostic::new(
+<a href=#1252 id=1252 data-nosnippet>1252</a>                    <span class="string">"Unusual type of parentheses around string size expression, consider using square parentheses '[]'"</span>).
+<a href=#1253 id=1253 data-nosnippet>1253</a>                    with_location(error_range)
+<a href=#1254 id=1254 data-nosnippet>1254</a>                    .with_error_code(<span class="string">"E014"</span>)
+<a href=#1255 id=1255 data-nosnippet>1255</a>                );
+<a href=#1256 id=1256 data-nosnippet>1256</a>            }
+<a href=#1257 id=1257 data-nosnippet>1257</a>
+<a href=#1258 id=1258 data-nosnippet>1258</a>            <span class="prelude-val">Some</span>(size_expr)
+<a href=#1259 id=1259 data-nosnippet>1259</a>        })
+<a href=#1260 id=1260 data-nosnippet>1260</a>    } <span class="kw">else </span>{
+<a href=#1261 id=1261 data-nosnippet>1261</a>        <span class="prelude-val">None
+<a href=#1262 id=1262 data-nosnippet>1262</a>    </span>}
+<a href=#1263 id=1263 data-nosnippet>1263</a>}
 <a href=#1264 id=1264 data-nosnippet>1264</a>
-<a href=#1265 id=1265 data-nosnippet>1265</a>    <span class="kw">let </span>size = parse_string_size_expression(lexer);
-<a href=#1266 id=1266 data-nosnippet>1266</a>    <span class="kw">let </span>end = lexer.last_range.end;
-<a href=#1267 id=1267 data-nosnippet>1267</a>    <span class="kw">let </span>location = lexer.source_range_factory.create_range(start..end);
-<a href=#1268 id=1268 data-nosnippet>1268</a>
-<a href=#1269 id=1269 data-nosnippet>1269</a>    <span class="comment">// Check if this is actually an enum type (e.g., STRING (a := 1, b := 2))
-<a href=#1270 id=1270 data-nosnippet>1270</a>    </span><span class="kw">let </span>is_enum_like = <span class="macro">matches!</span>(<span class="kw-2">&amp;</span>size, <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(<span class="kw">_</span>), .. }));
-<a href=#1271 id=1271 data-nosnippet>1271</a>
-<a href=#1272 id=1272 data-nosnippet>1272</a>    <span class="kw">match </span>(size, <span class="kw-2">&amp;</span>name, is_enum_like) {
-<a href=#1273 id=1273 data-nosnippet>1273</a>        (<span class="prelude-val">Some</span>(size), <span class="kw">_</span>, <span class="bool-val">true</span>) =&gt; {
-<a href=#1274 id=1274 data-nosnippet>1274</a>            <span class="comment">// This looks like an enum definition with STRING/WSTRING as the type
-<a href=#1275 id=1275 data-nosnippet>1275</a>            // Create an EnumType so validation can catch it as invalid
-<a href=#1276 id=1276 data-nosnippet>1276</a>            </span><span class="prelude-val">Some</span>(DataTypeDeclaration::Definition {
-<a href=#1277 id=1277 data-nosnippet>1277</a>                data_type: Box::new(DataType::EnumType { name, numeric_type: text, elements: size }),
-<a href=#1278 id=1278 data-nosnippet>1278</a>                location,
-<a href=#1279 id=1279 data-nosnippet>1279</a>                scope: lexer.scope.clone(),
-<a href=#1280 id=1280 data-nosnippet>1280</a>            })
-<a href=#1281 id=1281 data-nosnippet>1281</a>        }
-<a href=#1282 id=1282 data-nosnippet>1282</a>        (<span class="prelude-val">Some</span>(size), <span class="kw">_</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::Definition {
-<a href=#1283 id=1283 data-nosnippet>1283</a>            data_type: Box::new(DataType::StringType { name, is_wide, size: <span class="prelude-val">Some</span>(size) }),
-<a href=#1284 id=1284 data-nosnippet>1284</a>            location,
-<a href=#1285 id=1285 data-nosnippet>1285</a>            scope: lexer.scope.clone(),
-<a href=#1286 id=1286 data-nosnippet>1286</a>        }),
-<a href=#1287 id=1287 data-nosnippet>1287</a>        (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(name), <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::Definition {
-<a href=#1288 id=1288 data-nosnippet>1288</a>            data_type: Box::new(DataType::SubRangeType {
-<a href=#1289 id=1289 data-nosnippet>1289</a>                name: <span class="prelude-val">Some</span>(name.into()),
-<a href=#1290 id=1290 data-nosnippet>1290</a>                referenced_type: text,
-<a href=#1291 id=1291 data-nosnippet>1291</a>                bounds: <span class="prelude-val">None</span>,
-<a href=#1292 id=1292 data-nosnippet>1292</a>            }),
+<a href=#1265 id=1265 data-nosnippet>1265</a><span class="kw">fn </span>parse_string_type_definition(
+<a href=#1266 id=1266 data-nosnippet>1266</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+<a href=#1267 id=1267 data-nosnippet>1267</a>    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+<a href=#1268 id=1268 data-nosnippet>1268</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
+<a href=#1269 id=1269 data-nosnippet>1269</a>    <span class="kw">let </span>text = lexer.slice().to_string();
+<a href=#1270 id=1270 data-nosnippet>1270</a>    <span class="kw">let </span>start = lexer.range().start;
+<a href=#1271 id=1271 data-nosnippet>1271</a>    <span class="kw">let </span>is_wide = lexer.token == KeywordWideString;
+<a href=#1272 id=1272 data-nosnippet>1272</a>    lexer.advance();
+<a href=#1273 id=1273 data-nosnippet>1273</a>
+<a href=#1274 id=1274 data-nosnippet>1274</a>    <span class="kw">let </span>size = parse_string_size_expression(lexer);
+<a href=#1275 id=1275 data-nosnippet>1275</a>    <span class="kw">let </span>end = lexer.last_range.end;
+<a href=#1276 id=1276 data-nosnippet>1276</a>    <span class="kw">let </span>location = lexer.source_range_factory.create_range(start..end);
+<a href=#1277 id=1277 data-nosnippet>1277</a>
+<a href=#1278 id=1278 data-nosnippet>1278</a>    <span class="comment">// Check if this is actually an enum type (e.g., STRING (a := 1, b := 2))
+<a href=#1279 id=1279 data-nosnippet>1279</a>    </span><span class="kw">let </span>is_enum_like = <span class="macro">matches!</span>(<span class="kw-2">&amp;</span>size, <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(<span class="kw">_</span>), .. }));
+<a href=#1280 id=1280 data-nosnippet>1280</a>
+<a href=#1281 id=1281 data-nosnippet>1281</a>    <span class="kw">match </span>(size, <span class="kw-2">&amp;</span>name, is_enum_like) {
+<a href=#1282 id=1282 data-nosnippet>1282</a>        (<span class="prelude-val">Some</span>(size), <span class="kw">_</span>, <span class="bool-val">true</span>) =&gt; {
+<a href=#1283 id=1283 data-nosnippet>1283</a>            <span class="comment">// This looks like an enum definition with STRING/WSTRING as the type
+<a href=#1284 id=1284 data-nosnippet>1284</a>            // Create an EnumType so validation can catch it as invalid
+<a href=#1285 id=1285 data-nosnippet>1285</a>            </span><span class="prelude-val">Some</span>(DataTypeDeclaration::Definition {
+<a href=#1286 id=1286 data-nosnippet>1286</a>                data_type: Box::new(DataType::EnumType { name, numeric_type: text, elements: size }),
+<a href=#1287 id=1287 data-nosnippet>1287</a>                location,
+<a href=#1288 id=1288 data-nosnippet>1288</a>                scope: lexer.scope.clone(),
+<a href=#1289 id=1289 data-nosnippet>1289</a>            })
+<a href=#1290 id=1290 data-nosnippet>1290</a>        }
+<a href=#1291 id=1291 data-nosnippet>1291</a>        (<span class="prelude-val">Some</span>(size), <span class="kw">_</span>, <span class="bool-val">false</span>) =&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::Definition {
+<a href=#1292 id=1292 data-nosnippet>1292</a>            data_type: Box::new(DataType::StringType { name, is_wide, size: <span class="prelude-val">Some</span>(size) }),
 <a href=#1293 id=1293 data-nosnippet>1293</a>            location,
 <a href=#1294 id=1294 data-nosnippet>1294</a>            scope: lexer.scope.clone(),
 <a href=#1295 id=1295 data-nosnippet>1295</a>        }),
-<a href=#1296 id=1296 data-nosnippet>1296</a>        <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::Reference { referenced_type: text, location }),
-<a href=#1297 id=1297 data-nosnippet>1297</a>    }
-<a href=#1298 id=1298 data-nosnippet>1298</a>    .zip(<span class="prelude-val">Some</span>(
-<a href=#1299 id=1299 data-nosnippet>1299</a>        (lexer.try_consume(KeywordAssignment) || lexer.try_consume(KeywordReferenceAssignment))
-<a href=#1300 id=1300 data-nosnippet>1300</a>            .then(|| parse_expression(lexer)),
-<a href=#1301 id=1301 data-nosnippet>1301</a>    ))
-<a href=#1302 id=1302 data-nosnippet>1302</a>}
-<a href=#1303 id=1303 data-nosnippet>1303</a>
-<a href=#1304 id=1304 data-nosnippet>1304</a><span class="kw">fn </span>parse_enum_type_definition(
-<a href=#1305 id=1305 data-nosnippet>1305</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-<a href=#1306 id=1306 data-nosnippet>1306</a>    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-<a href=#1307 id=1307 data-nosnippet>1307</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
-<a href=#1308 id=1308 data-nosnippet>1308</a>    <span class="kw">let </span>start = lexer.last_location();
-<a href=#1309 id=1309 data-nosnippet>1309</a>
-<a href=#1310 id=1310 data-nosnippet>1310</a>    <span class="kw">let </span>elements = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], parse_enum_elements)<span class="question-mark">?</span>;
-<a href=#1311 id=1311 data-nosnippet>1311</a>    <span class="comment">// Check for Codesys-style type specification after the enum list
-<a href=#1312 id=1312 data-nosnippet>1312</a>    // TYPE COLOR : (...) DWORD;
-<a href=#1313 id=1313 data-nosnippet>1313</a>    </span><span class="kw">let </span>numeric_type =
-<a href=#1314 id=1314 data-nosnippet>1314</a>        <span class="kw">if </span>lexer.token == Identifier { lexer.slice_and_advance() } <span class="kw">else </span>{ DINT_TYPE.to_string() };
-<a href=#1315 id=1315 data-nosnippet>1315</a>    <span class="kw">let </span>initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
-<a href=#1316 id=1316 data-nosnippet>1316</a>    <span class="prelude-val">Some</span>((
-<a href=#1317 id=1317 data-nosnippet>1317</a>        DataTypeDeclaration::Definition {
-<a href=#1318 id=1318 data-nosnippet>1318</a>            data_type: Box::new(DataType::EnumType { name, elements, numeric_type }),
-<a href=#1319 id=1319 data-nosnippet>1319</a>            location: start.span(<span class="kw-2">&amp;</span>lexer.last_location()),
-<a href=#1320 id=1320 data-nosnippet>1320</a>            scope: lexer.scope.clone(),
-<a href=#1321 id=1321 data-nosnippet>1321</a>        },
-<a href=#1322 id=1322 data-nosnippet>1322</a>        initializer,
-<a href=#1323 id=1323 data-nosnippet>1323</a>    ))
-<a href=#1324 id=1324 data-nosnippet>1324</a>}
-<a href=#1325 id=1325 data-nosnippet>1325</a>
-<a href=#1326 id=1326 data-nosnippet>1326</a><span class="doccomment">/// Parse comma-separated enum elements (identifier or identifier := literal)
-<a href=#1327 id=1327 data-nosnippet>1327</a></span><span class="kw">fn </span>parse_enum_elements(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
-<a href=#1328 id=1328 data-nosnippet>1328</a>    <span class="kw">let </span>start = lexer.location();
-<a href=#1329 id=1329 data-nosnippet>1329</a>    <span class="kw">let </span><span class="kw-2">mut </span>elements = <span class="macro">vec!</span>[];
-<a href=#1330 id=1330 data-nosnippet>1330</a>
-<a href=#1331 id=1331 data-nosnippet>1331</a>    <span class="kw">loop </span>{
-<a href=#1332 id=1332 data-nosnippet>1332</a>        <span class="comment">// Check if we've hit the closing token (e.g., ')') immediately
-<a href=#1333 id=1333 data-nosnippet>1333</a>        // This handles empty enums like `()` for error recovery
-<a href=#1334 id=1334 data-nosnippet>1334</a>        </span><span class="kw">if </span>lexer.closes_open_region(<span class="kw-2">&amp;</span>lexer.token) {
-<a href=#1335 id=1335 data-nosnippet>1335</a>            <span class="kw">break</span>;
-<a href=#1336 id=1336 data-nosnippet>1336</a>        }
-<a href=#1337 id=1337 data-nosnippet>1337</a>
-<a href=#1338 id=1338 data-nosnippet>1338</a>        <span class="kw">let </span>element = parse_enum_element(lexer)<span class="question-mark">?</span>;
-<a href=#1339 id=1339 data-nosnippet>1339</a>        elements.push(element);
-<a href=#1340 id=1340 data-nosnippet>1340</a>
-<a href=#1341 id=1341 data-nosnippet>1341</a>        <span class="kw">if </span>!lexer.try_consume(KeywordComma) {
-<a href=#1342 id=1342 data-nosnippet>1342</a>            <span class="kw">break</span>;
-<a href=#1343 id=1343 data-nosnippet>1343</a>        }
-<a href=#1344 id=1344 data-nosnippet>1344</a>
-<a href=#1345 id=1345 data-nosnippet>1345</a>        <span class="kw">if </span>lexer.closes_open_region(<span class="kw-2">&amp;</span>lexer.token) {
-<a href=#1346 id=1346 data-nosnippet>1346</a>            <span class="kw">break</span>;
-<a href=#1347 id=1347 data-nosnippet>1347</a>        }
-<a href=#1348 id=1348 data-nosnippet>1348</a>    }
+<a href=#1296 id=1296 data-nosnippet>1296</a>        (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(name), <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::Definition {
+<a href=#1297 id=1297 data-nosnippet>1297</a>            data_type: Box::new(DataType::SubRangeType {
+<a href=#1298 id=1298 data-nosnippet>1298</a>                name: <span class="prelude-val">Some</span>(name.into()),
+<a href=#1299 id=1299 data-nosnippet>1299</a>                referenced_type: text,
+<a href=#1300 id=1300 data-nosnippet>1300</a>                bounds: <span class="prelude-val">None</span>,
+<a href=#1301 id=1301 data-nosnippet>1301</a>            }),
+<a href=#1302 id=1302 data-nosnippet>1302</a>            location,
+<a href=#1303 id=1303 data-nosnippet>1303</a>            scope: lexer.scope.clone(),
+<a href=#1304 id=1304 data-nosnippet>1304</a>        }),
+<a href=#1305 id=1305 data-nosnippet>1305</a>        <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(DataTypeDeclaration::Reference { referenced_type: text, location }),
+<a href=#1306 id=1306 data-nosnippet>1306</a>    }
+<a href=#1307 id=1307 data-nosnippet>1307</a>    .zip(<span class="prelude-val">Some</span>(
+<a href=#1308 id=1308 data-nosnippet>1308</a>        (lexer.try_consume(KeywordAssignment) || lexer.try_consume(KeywordReferenceAssignment))
+<a href=#1309 id=1309 data-nosnippet>1309</a>            .then(|| parse_expression(lexer)),
+<a href=#1310 id=1310 data-nosnippet>1310</a>    ))
+<a href=#1311 id=1311 data-nosnippet>1311</a>}
+<a href=#1312 id=1312 data-nosnippet>1312</a>
+<a href=#1313 id=1313 data-nosnippet>1313</a><span class="kw">fn </span>parse_enum_type_definition(
+<a href=#1314 id=1314 data-nosnippet>1314</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+<a href=#1315 id=1315 data-nosnippet>1315</a>    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+<a href=#1316 id=1316 data-nosnippet>1316</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
+<a href=#1317 id=1317 data-nosnippet>1317</a>    <span class="kw">let </span>start = lexer.last_location();
+<a href=#1318 id=1318 data-nosnippet>1318</a>
+<a href=#1319 id=1319 data-nosnippet>1319</a>    <span class="kw">let </span>elements = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordParensClose], parse_enum_elements)<span class="question-mark">?</span>;
+<a href=#1320 id=1320 data-nosnippet>1320</a>    <span class="comment">// Check for Codesys-style type specification after the enum list
+<a href=#1321 id=1321 data-nosnippet>1321</a>    // TYPE COLOR : (...) DWORD;
+<a href=#1322 id=1322 data-nosnippet>1322</a>    </span><span class="kw">let </span>numeric_type =
+<a href=#1323 id=1323 data-nosnippet>1323</a>        <span class="kw">if </span>lexer.token == Identifier { lexer.slice_and_advance() } <span class="kw">else </span>{ DINT_TYPE.to_string() };
+<a href=#1324 id=1324 data-nosnippet>1324</a>    <span class="kw">let </span>initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
+<a href=#1325 id=1325 data-nosnippet>1325</a>    <span class="prelude-val">Some</span>((
+<a href=#1326 id=1326 data-nosnippet>1326</a>        DataTypeDeclaration::Definition {
+<a href=#1327 id=1327 data-nosnippet>1327</a>            data_type: Box::new(DataType::EnumType { name, elements, numeric_type }),
+<a href=#1328 id=1328 data-nosnippet>1328</a>            location: start.span(<span class="kw-2">&amp;</span>lexer.last_location()),
+<a href=#1329 id=1329 data-nosnippet>1329</a>            scope: lexer.scope.clone(),
+<a href=#1330 id=1330 data-nosnippet>1330</a>        },
+<a href=#1331 id=1331 data-nosnippet>1331</a>        initializer,
+<a href=#1332 id=1332 data-nosnippet>1332</a>    ))
+<a href=#1333 id=1333 data-nosnippet>1333</a>}
+<a href=#1334 id=1334 data-nosnippet>1334</a>
+<a href=#1335 id=1335 data-nosnippet>1335</a><span class="doccomment">/// Parse comma-separated enum elements (identifier or identifier := literal)
+<a href=#1336 id=1336 data-nosnippet>1336</a></span><span class="kw">fn </span>parse_enum_elements(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
+<a href=#1337 id=1337 data-nosnippet>1337</a>    <span class="kw">let </span>start = lexer.location();
+<a href=#1338 id=1338 data-nosnippet>1338</a>    <span class="kw">let </span><span class="kw-2">mut </span>elements = <span class="macro">vec!</span>[];
+<a href=#1339 id=1339 data-nosnippet>1339</a>
+<a href=#1340 id=1340 data-nosnippet>1340</a>    <span class="kw">loop </span>{
+<a href=#1341 id=1341 data-nosnippet>1341</a>        <span class="comment">// Check if we've hit the closing token (e.g., ')') immediately
+<a href=#1342 id=1342 data-nosnippet>1342</a>        // This handles empty enums like `()` for error recovery
+<a href=#1343 id=1343 data-nosnippet>1343</a>        </span><span class="kw">if </span>lexer.closes_open_region(<span class="kw-2">&amp;</span>lexer.token) {
+<a href=#1344 id=1344 data-nosnippet>1344</a>            <span class="kw">break</span>;
+<a href=#1345 id=1345 data-nosnippet>1345</a>        }
+<a href=#1346 id=1346 data-nosnippet>1346</a>
+<a href=#1347 id=1347 data-nosnippet>1347</a>        <span class="kw">let </span>element = parse_enum_element(lexer)<span class="question-mark">?</span>;
+<a href=#1348 id=1348 data-nosnippet>1348</a>        elements.push(element);
 <a href=#1349 id=1349 data-nosnippet>1349</a>
-<a href=#1350 id=1350 data-nosnippet>1350</a>    <span class="comment">// Handle empty enum case (no elements parsed)
-<a href=#1351 id=1351 data-nosnippet>1351</a>    </span><span class="kw">if </span>elements.is_empty() {
-<a href=#1352 id=1352 data-nosnippet>1352</a>        <span class="kw">return </span><span class="prelude-val">Some</span>(AstFactory::create_empty_statement(start, lexer.next_id()));
-<a href=#1353 id=1353 data-nosnippet>1353</a>    }
-<a href=#1354 id=1354 data-nosnippet>1354</a>
-<a href=#1355 id=1355 data-nosnippet>1355</a>    <span class="kw">if </span>elements.len() == <span class="number">1 </span>{
-<a href=#1356 id=1356 data-nosnippet>1356</a>        <span class="kw">return </span><span class="prelude-val">Some</span>(elements.into_iter().next().unwrap());
+<a href=#1350 id=1350 data-nosnippet>1350</a>        <span class="kw">if </span>!lexer.try_consume(KeywordComma) {
+<a href=#1351 id=1351 data-nosnippet>1351</a>            <span class="kw">break</span>;
+<a href=#1352 id=1352 data-nosnippet>1352</a>        }
+<a href=#1353 id=1353 data-nosnippet>1353</a>
+<a href=#1354 id=1354 data-nosnippet>1354</a>        <span class="kw">if </span>lexer.closes_open_region(<span class="kw-2">&amp;</span>lexer.token) {
+<a href=#1355 id=1355 data-nosnippet>1355</a>            <span class="kw">break</span>;
+<a href=#1356 id=1356 data-nosnippet>1356</a>        }
 <a href=#1357 id=1357 data-nosnippet>1357</a>    }
 <a href=#1358 id=1358 data-nosnippet>1358</a>
-<a href=#1359 id=1359 data-nosnippet>1359</a>    <span class="prelude-val">Some</span>(AstFactory::create_expression_list(elements, start.span(<span class="kw-2">&amp;</span>lexer.last_location()), lexer.next_id()))
-<a href=#1360 id=1360 data-nosnippet>1360</a>}
-<a href=#1361 id=1361 data-nosnippet>1361</a>
-<a href=#1362 id=1362 data-nosnippet>1362</a><span class="doccomment">/// Parse a single enum element: identifier or identifier := literal
-<a href=#1363 id=1363 data-nosnippet>1363</a></span><span class="kw">fn </span>parse_enum_element(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
-<a href=#1364 id=1364 data-nosnippet>1364</a>    <span class="kw">let </span>start = lexer.location();
-<a href=#1365 id=1365 data-nosnippet>1365</a>
-<a href=#1366 id=1366 data-nosnippet>1366</a>    <span class="kw">let </span>idfr = parse_identifier(lexer)<span class="question-mark">?</span>;
+<a href=#1359 id=1359 data-nosnippet>1359</a>    <span class="comment">// Handle empty enum case (no elements parsed)
+<a href=#1360 id=1360 data-nosnippet>1360</a>    </span><span class="kw">if </span>elements.is_empty() {
+<a href=#1361 id=1361 data-nosnippet>1361</a>        <span class="kw">return </span><span class="prelude-val">Some</span>(AstFactory::create_empty_statement(start, lexer.next_id()));
+<a href=#1362 id=1362 data-nosnippet>1362</a>    }
+<a href=#1363 id=1363 data-nosnippet>1363</a>
+<a href=#1364 id=1364 data-nosnippet>1364</a>    <span class="kw">if </span>elements.len() == <span class="number">1 </span>{
+<a href=#1365 id=1365 data-nosnippet>1365</a>        <span class="kw">return </span><span class="prelude-val">Some</span>(elements.into_iter().next().unwrap());
+<a href=#1366 id=1366 data-nosnippet>1366</a>    }
 <a href=#1367 id=1367 data-nosnippet>1367</a>
-<a href=#1368 id=1368 data-nosnippet>1368</a>    <span class="kw">let </span>identifier_node = AstFactory::create_identifier(<span class="kw-2">&amp;</span>idfr.<span class="number">0</span>, start, lexer.next_id());
-<a href=#1369 id=1369 data-nosnippet>1369</a>    <span class="kw">let </span>ref_expr = AstFactory::create_member_reference(identifier_node, <span class="prelude-val">None</span>, lexer.next_id());
+<a href=#1368 id=1368 data-nosnippet>1368</a>    <span class="prelude-val">Some</span>(AstFactory::create_expression_list(elements, start.span(<span class="kw-2">&amp;</span>lexer.last_location()), lexer.next_id()))
+<a href=#1369 id=1369 data-nosnippet>1369</a>}
 <a href=#1370 id=1370 data-nosnippet>1370</a>
-<a href=#1371 id=1371 data-nosnippet>1371</a>    <span class="kw">if </span>lexer.try_consume(KeywordAssignment) {
-<a href=#1372 id=1372 data-nosnippet>1372</a>        <span class="kw">let </span>value = parse_range_statement(lexer);
-<a href=#1373 id=1373 data-nosnippet>1373</a>        <span class="kw">let </span>result = AstFactory::create_assignment(ref_expr, value, lexer.next_id());
-<a href=#1374 id=1374 data-nosnippet>1374</a>        <span class="kw">return </span><span class="prelude-val">Some</span>(result);
-<a href=#1375 id=1375 data-nosnippet>1375</a>    }
+<a href=#1371 id=1371 data-nosnippet>1371</a><span class="doccomment">/// Parse a single enum element: identifier or identifier := literal
+<a href=#1372 id=1372 data-nosnippet>1372</a></span><span class="kw">fn </span>parse_enum_element(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
+<a href=#1373 id=1373 data-nosnippet>1373</a>    <span class="kw">let </span>start = lexer.location();
+<a href=#1374 id=1374 data-nosnippet>1374</a>
+<a href=#1375 id=1375 data-nosnippet>1375</a>    <span class="kw">let </span>idfr = parse_identifier(lexer)<span class="question-mark">?</span>;
 <a href=#1376 id=1376 data-nosnippet>1376</a>
-<a href=#1377 id=1377 data-nosnippet>1377</a>    <span class="prelude-val">Some</span>(ref_expr)
-<a href=#1378 id=1378 data-nosnippet>1378</a>}
+<a href=#1377 id=1377 data-nosnippet>1377</a>    <span class="kw">let </span>identifier_node = AstFactory::create_identifier(<span class="kw-2">&amp;</span>idfr.<span class="number">0</span>, start, lexer.next_id());
+<a href=#1378 id=1378 data-nosnippet>1378</a>    <span class="kw">let </span>ref_expr = AstFactory::create_member_reference(identifier_node, <span class="prelude-val">None</span>, lexer.next_id());
 <a href=#1379 id=1379 data-nosnippet>1379</a>
-<a href=#1380 id=1380 data-nosnippet>1380</a><span class="kw">fn </span>parse_array_type_definition(
-<a href=#1381 id=1381 data-nosnippet>1381</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-<a href=#1382 id=1382 data-nosnippet>1382</a>    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-<a href=#1383 id=1383 data-nosnippet>1383</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
-<a href=#1384 id=1384 data-nosnippet>1384</a>    <span class="kw">let </span>start = lexer.last_range.start;
-<a href=#1385 id=1385 data-nosnippet>1385</a>    <span class="kw">let </span>range = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordOf], |lexer| {
-<a href=#1386 id=1386 data-nosnippet>1386</a>        <span class="comment">// Parse Array range
-<a href=#1387 id=1387 data-nosnippet>1387</a>
-<a href=#1388 id=1388 data-nosnippet>1388</a>        </span><span class="macro">expect_token!</span>(lexer, KeywordSquareParensOpen, <span class="prelude-val">None</span>);
-<a href=#1389 id=1389 data-nosnippet>1389</a>        lexer.advance();
-<a href=#1390 id=1390 data-nosnippet>1390</a>
-<a href=#1391 id=1391 data-nosnippet>1391</a>        <span class="kw">let </span>range_statement = parse_expression(lexer);
-<a href=#1392 id=1392 data-nosnippet>1392</a>
-<a href=#1393 id=1393 data-nosnippet>1393</a>        <span class="macro">expect_token!</span>(lexer, KeywordSquareParensClose, <span class="prelude-val">None</span>);
-<a href=#1394 id=1394 data-nosnippet>1394</a>        lexer.advance();
-<a href=#1395 id=1395 data-nosnippet>1395</a>
-<a href=#1396 id=1396 data-nosnippet>1396</a>        <span class="prelude-val">Some</span>(range_statement)
-<a href=#1397 id=1397 data-nosnippet>1397</a>    })<span class="question-mark">?</span>;
-<a href=#1398 id=1398 data-nosnippet>1398</a>
-<a href=#1399 id=1399 data-nosnippet>1399</a>    <span class="kw">let </span>inner_type_defintion = parse_data_type_definition(lexer, <span class="prelude-val">None</span>);
-<a href=#1400 id=1400 data-nosnippet>1400</a>    inner_type_defintion.map(|(reference, initializer)| {
-<a href=#1401 id=1401 data-nosnippet>1401</a>        <span class="kw">let </span>reference_end = reference.get_location().to_range().map(|it| it.end).unwrap_or(<span class="number">0</span>);
-<a href=#1402 id=1402 data-nosnippet>1402</a>        <span class="kw">let </span>location = lexer.source_range_factory.create_range(start..reference_end);
-<a href=#1403 id=1403 data-nosnippet>1403</a>
-<a href=#1404 id=1404 data-nosnippet>1404</a>        <span class="kw">let </span>is_variable_length = <span class="kw">match </span><span class="kw-2">&amp;</span>range.get_stmt() {
-<a href=#1405 id=1405 data-nosnippet>1405</a>            <span class="comment">// Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
-<a href=#1406 id=1406 data-nosnippet>1406</a>            </span>AstStatement::RangeStatement { .. } =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
-<a href=#1407 id=1407 data-nosnippet>1407</a>            AstStatement::VlaRangeStatement =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
-<a href=#1408 id=1408 data-nosnippet>1408</a>
-<a href=#1409 id=1409 data-nosnippet>1409</a>            <span class="comment">// Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
-<a href=#1410 id=1410 data-nosnippet>1410</a>            </span>AstStatement::ExpressionList(expressions) =&gt; <span class="kw">match </span>expressions[<span class="number">0</span>].get_stmt() {
-<a href=#1411 id=1411 data-nosnippet>1411</a>                AstStatement::RangeStatement(..) =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
-<a href=#1412 id=1412 data-nosnippet>1412</a>                AstStatement::VlaRangeStatement =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
-<a href=#1413 id=1413 data-nosnippet>1413</a>                <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-<a href=#1414 id=1414 data-nosnippet>1414</a>            },
-<a href=#1415 id=1415 data-nosnippet>1415</a>
-<a href=#1416 id=1416 data-nosnippet>1416</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-<a href=#1417 id=1417 data-nosnippet>1417</a>        };
-<a href=#1418 id=1418 data-nosnippet>1418</a>
-<a href=#1419 id=1419 data-nosnippet>1419</a>        <span class="kw">let </span>is_variable_length = <span class="kw">match </span>is_variable_length {
-<a href=#1420 id=1420 data-nosnippet>1420</a>            <span class="prelude-val">Some</span>(val) =&gt; val,
-<a href=#1421 id=1421 data-nosnippet>1421</a>            <span class="prelude-val">None </span>=&gt; {
-<a href=#1422 id=1422 data-nosnippet>1422</a>                lexer.accept_diagnostic(
-<a href=#1423 id=1423 data-nosnippet>1423</a>                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Expected a range statement, got {range:?} instead"</span>))
-<a href=#1424 id=1424 data-nosnippet>1424</a>                        .with_location(range.get_location())
-<a href=#1425 id=1425 data-nosnippet>1425</a>                        .with_error_code(<span class="string">"E008"</span>),
-<a href=#1426 id=1426 data-nosnippet>1426</a>                );
-<a href=#1427 id=1427 data-nosnippet>1427</a>                <span class="bool-val">false
-<a href=#1428 id=1428 data-nosnippet>1428</a>            </span>}
-<a href=#1429 id=1429 data-nosnippet>1429</a>        };
-<a href=#1430 id=1430 data-nosnippet>1430</a>
-<a href=#1431 id=1431 data-nosnippet>1431</a>        (
-<a href=#1432 id=1432 data-nosnippet>1432</a>            DataTypeDeclaration::Definition {
-<a href=#1433 id=1433 data-nosnippet>1433</a>                data_type: Box::new(DataType::ArrayType {
-<a href=#1434 id=1434 data-nosnippet>1434</a>                    name,
-<a href=#1435 id=1435 data-nosnippet>1435</a>                    bounds: range,
-<a href=#1436 id=1436 data-nosnippet>1436</a>                    referenced_type: Box::new(reference),
-<a href=#1437 id=1437 data-nosnippet>1437</a>                    is_variable_length,
-<a href=#1438 id=1438 data-nosnippet>1438</a>                }),
-<a href=#1439 id=1439 data-nosnippet>1439</a>                location,
-<a href=#1440 id=1440 data-nosnippet>1440</a>                scope: lexer.scope.clone(),
-<a href=#1441 id=1441 data-nosnippet>1441</a>            },
-<a href=#1442 id=1442 data-nosnippet>1442</a>            initializer,
-<a href=#1443 id=1443 data-nosnippet>1443</a>        )
-<a href=#1444 id=1444 data-nosnippet>1444</a>    })
-<a href=#1445 id=1445 data-nosnippet>1445</a>}
-<a href=#1446 id=1446 data-nosnippet>1446</a>
-<a href=#1447 id=1447 data-nosnippet>1447</a><span class="doccomment">/// parse a body and recovers until the given `end_keywords`
-<a href=#1448 id=1448 data-nosnippet>1448</a></span><span class="kw">fn </span>parse_body_in_region(lexer: <span class="kw-2">&amp;mut </span>ParseSession, end_keywords: Vec&lt;Token&gt;) -&gt; Vec&lt;AstNode&gt; {
-<a href=#1449 id=1449 data-nosnippet>1449</a>    parse_any_in_region(lexer, end_keywords, parse_body_standalone)
-<a href=#1450 id=1450 data-nosnippet>1450</a>}
-<a href=#1451 id=1451 data-nosnippet>1451</a>
-<a href=#1452 id=1452 data-nosnippet>1452</a><span class="kw">fn </span>parse_body_standalone(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
-<a href=#1453 id=1453 data-nosnippet>1453</a>    <span class="kw">let </span><span class="kw-2">mut </span>statements = Vec::new();
-<a href=#1454 id=1454 data-nosnippet>1454</a>    <span class="kw">while </span>!lexer.closes_open_region(<span class="kw-2">&amp;</span>lexer.token) {
-<a href=#1455 id=1455 data-nosnippet>1455</a>        statements.push(parse_control(lexer));
-<a href=#1456 id=1456 data-nosnippet>1456</a>    }
-<a href=#1457 id=1457 data-nosnippet>1457</a>    statements
-<a href=#1458 id=1458 data-nosnippet>1458</a>}
-<a href=#1459 id=1459 data-nosnippet>1459</a>
-<a href=#1460 id=1460 data-nosnippet>1460</a><span class="doccomment">/// parses a statement ending with a ';'
-<a href=#1461 id=1461 data-nosnippet>1461</a></span><span class="kw">fn </span>parse_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
-<a href=#1462 id=1462 data-nosnippet>1462</a>    <span class="kw">let </span>result = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordSemicolon, KeywordColon], parse_expression);
-<a href=#1463 id=1463 data-nosnippet>1463</a>    <span class="kw">if </span>lexer.last_token == KeywordColon {
-<a href=#1464 id=1464 data-nosnippet>1464</a>        <span class="kw">let </span>location = result.location.span(<span class="kw-2">&amp;</span>lexer.last_location());
-<a href=#1465 id=1465 data-nosnippet>1465</a>        AstFactory::create_case_condition(result, location, lexer.next_id())
-<a href=#1466 id=1466 data-nosnippet>1466</a>    } <span class="kw">else </span>{
-<a href=#1467 id=1467 data-nosnippet>1467</a>        result
-<a href=#1468 id=1468 data-nosnippet>1468</a>    }
-<a href=#1469 id=1469 data-nosnippet>1469</a>}
-<a href=#1470 id=1470 data-nosnippet>1470</a>
-<a href=#1471 id=1471 data-nosnippet>1471</a><span class="kw">pub fn </span>with_scope&lt;T, F: FnOnce(<span class="kw-2">&amp;mut </span>ParseSession) -&gt; T&gt;(
-<a href=#1472 id=1472 data-nosnippet>1472</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-<a href=#1473 id=1473 data-nosnippet>1473</a>    scope: String,
-<a href=#1474 id=1474 data-nosnippet>1474</a>    parse_fn: F,
-<a href=#1475 id=1475 data-nosnippet>1475</a>) -&gt; T {
-<a href=#1476 id=1476 data-nosnippet>1476</a>    lexer.scope = <span class="prelude-val">Some</span>(scope);
-<a href=#1477 id=1477 data-nosnippet>1477</a>    <span class="kw">let </span>result = parse_fn(lexer);
-<a href=#1478 id=1478 data-nosnippet>1478</a>    lexer.scope = <span class="prelude-val">None</span>;
-<a href=#1479 id=1479 data-nosnippet>1479</a>    result
-<a href=#1480 id=1480 data-nosnippet>1480</a>}
-<a href=#1481 id=1481 data-nosnippet>1481</a>
-<a href=#1482 id=1482 data-nosnippet>1482</a><span class="kw">pub fn </span>parse_any_in_region&lt;T, F: FnOnce(<span class="kw-2">&amp;mut </span>ParseSession) -&gt; T&gt;(
-<a href=#1483 id=1483 data-nosnippet>1483</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-<a href=#1484 id=1484 data-nosnippet>1484</a>    closing_tokens: Vec&lt;Token&gt;,
-<a href=#1485 id=1485 data-nosnippet>1485</a>    parse_fn: F,
-<a href=#1486 id=1486 data-nosnippet>1486</a>) -&gt; T {
-<a href=#1487 id=1487 data-nosnippet>1487</a>    lexer.enter_region(closing_tokens);
-<a href=#1488 id=1488 data-nosnippet>1488</a>    <span class="kw">let </span>result = parse_fn(lexer);
-<a href=#1489 id=1489 data-nosnippet>1489</a>
-<a href=#1490 id=1490 data-nosnippet>1490</a>    <span class="comment">// try to recover by eating everything until
-<a href=#1491 id=1491 data-nosnippet>1491</a>    // we believe the parser is able to continue
-<a href=#1492 id=1492 data-nosnippet>1492</a>    </span>lexer.recover_until_close();
-<a href=#1493 id=1493 data-nosnippet>1493</a>    lexer.close_region();
-<a href=#1494 id=1494 data-nosnippet>1494</a>
-<a href=#1495 id=1495 data-nosnippet>1495</a>    result
-<a href=#1496 id=1496 data-nosnippet>1496</a>}
-<a href=#1497 id=1497 data-nosnippet>1497</a>
-<a href=#1498 id=1498 data-nosnippet>1498</a><span class="kw">fn </span>parse_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
-<a href=#1499 id=1499 data-nosnippet>1499</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(statement) = expressions_parser::parse_call_statement(lexer) {
-<a href=#1500 id=1500 data-nosnippet>1500</a>        statement
-<a href=#1501 id=1501 data-nosnippet>1501</a>    } <span class="kw">else </span>{
-<a href=#1502 id=1502 data-nosnippet>1502</a>        <span class="kw">let </span>statement = AstFactory::create_empty_statement(
-<a href=#1503 id=1503 data-nosnippet>1503</a>            lexer.diagnostics.last().map_or(SourceLocation::undefined(), |d| d.get_location()),
-<a href=#1504 id=1504 data-nosnippet>1504</a>            lexer.next_id(),
-<a href=#1505 id=1505 data-nosnippet>1505</a>        );
-<a href=#1506 id=1506 data-nosnippet>1506</a>        statement
-<a href=#1507 id=1507 data-nosnippet>1507</a>    }
-<a href=#1508 id=1508 data-nosnippet>1508</a>}
-<a href=#1509 id=1509 data-nosnippet>1509</a>
-<a href=#1510 id=1510 data-nosnippet>1510</a><span class="kw">fn </span>parse_control(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
-<a href=#1511 id=1511 data-nosnippet>1511</a>    parse_control_statement(lexer)
-<a href=#1512 id=1512 data-nosnippet>1512</a>}
-<a href=#1513 id=1513 data-nosnippet>1513</a>
-<a href=#1514 id=1514 data-nosnippet>1514</a><span class="kw">fn </span>parse_variable_block_type(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; VariableBlockType {
-<a href=#1515 id=1515 data-nosnippet>1515</a>    <span class="kw">let </span>block_type = lexer.token;
-<a href=#1516 id=1516 data-nosnippet>1516</a>    <span class="comment">//Consume the type token
-<a href=#1517 id=1517 data-nosnippet>1517</a>    </span>lexer.advance();
-<a href=#1518 id=1518 data-nosnippet>1518</a>    <span class="kw">let </span>argument_property = <span class="kw">if </span>lexer.try_consume(PropertyByRef) {
-<a href=#1519 id=1519 data-nosnippet>1519</a>        <span class="comment">//Report a diagnostic if blocktype is incompatible
-<a href=#1520 id=1520 data-nosnippet>1520</a>        </span><span class="kw">if </span>!<span class="macro">matches!</span>(block_type, KeywordVarInput) {
-<a href=#1521 id=1521 data-nosnippet>1521</a>            lexer.accept_diagnostic(
-<a href=#1522 id=1522 data-nosnippet>1522</a>                Diagnostic::new(<span class="string">"Invalid pragma location: Only VAR_INPUT support by ref properties"</span>)
-<a href=#1523 id=1523 data-nosnippet>1523</a>                    .with_error_code(<span class="string">"E024"</span>)
-<a href=#1524 id=1524 data-nosnippet>1524</a>                    .with_location(lexer.location()),
-<a href=#1525 id=1525 data-nosnippet>1525</a>            )
-<a href=#1526 id=1526 data-nosnippet>1526</a>        }
-<a href=#1527 id=1527 data-nosnippet>1527</a>        ArgumentProperty::ByRef
-<a href=#1528 id=1528 data-nosnippet>1528</a>    } <span class="kw">else </span>{
-<a href=#1529 id=1529 data-nosnippet>1529</a>        ArgumentProperty::ByVal
-<a href=#1530 id=1530 data-nosnippet>1530</a>    };
-<a href=#1531 id=1531 data-nosnippet>1531</a>    <span class="kw">match </span>block_type {
-<a href=#1532 id=1532 data-nosnippet>1532</a>        KeywordVar =&gt; VariableBlockType::Local,
-<a href=#1533 id=1533 data-nosnippet>1533</a>        KeywordVarTemp =&gt; VariableBlockType::Temp,
-<a href=#1534 id=1534 data-nosnippet>1534</a>        KeywordVarInput =&gt; VariableBlockType::Input(argument_property),
-<a href=#1535 id=1535 data-nosnippet>1535</a>        KeywordVarOutput =&gt; VariableBlockType::Output,
-<a href=#1536 id=1536 data-nosnippet>1536</a>        KeywordVarGlobal =&gt; VariableBlockType::Global,
-<a href=#1537 id=1537 data-nosnippet>1537</a>        KeywordVarInOut =&gt; VariableBlockType::InOut,
-<a href=#1538 id=1538 data-nosnippet>1538</a>        KeywordVarExternal =&gt; VariableBlockType::External,
-<a href=#1539 id=1539 data-nosnippet>1539</a>        <span class="kw">_ </span>=&gt; VariableBlockType::Local,
-<a href=#1540 id=1540 data-nosnippet>1540</a>    }
-<a href=#1541 id=1541 data-nosnippet>1541</a>}
-<a href=#1542 id=1542 data-nosnippet>1542</a>
-<a href=#1543 id=1543 data-nosnippet>1543</a><span class="kw">fn </span>parse_variable_block(lexer: <span class="kw-2">&amp;mut </span>ParseSession, linkage: LinkageType) -&gt; VariableBlock {
-<a href=#1544 id=1544 data-nosnippet>1544</a>    <span class="kw">let </span>location = lexer.location();
-<a href=#1545 id=1545 data-nosnippet>1545</a>    <span class="kw">let </span>variable_block_type = parse_variable_block_type(lexer);
-<a href=#1546 id=1546 data-nosnippet>1546</a>
-<a href=#1547 id=1547 data-nosnippet>1547</a>    <span class="kw">let </span>constant = lexer.try_consume(KeywordConstant);
-<a href=#1548 id=1548 data-nosnippet>1548</a>
-<a href=#1549 id=1549 data-nosnippet>1549</a>    <span class="kw">let </span>retain = lexer.try_consume(KeywordRetain);
-<a href=#1550 id=1550 data-nosnippet>1550</a>    lexer.try_consume(KeywordNonRetain);
+<a href=#1380 id=1380 data-nosnippet>1380</a>    <span class="kw">if </span>lexer.try_consume(KeywordAssignment) {
+<a href=#1381 id=1381 data-nosnippet>1381</a>        <span class="kw">let </span>value = parse_range_statement(lexer);
+<a href=#1382 id=1382 data-nosnippet>1382</a>        <span class="kw">let </span>result = AstFactory::create_assignment(ref_expr, value, lexer.next_id());
+<a href=#1383 id=1383 data-nosnippet>1383</a>        <span class="kw">return </span><span class="prelude-val">Some</span>(result);
+<a href=#1384 id=1384 data-nosnippet>1384</a>    }
+<a href=#1385 id=1385 data-nosnippet>1385</a>
+<a href=#1386 id=1386 data-nosnippet>1386</a>    <span class="prelude-val">Some</span>(ref_expr)
+<a href=#1387 id=1387 data-nosnippet>1387</a>}
+<a href=#1388 id=1388 data-nosnippet>1388</a>
+<a href=#1389 id=1389 data-nosnippet>1389</a><span class="kw">fn </span>parse_array_type_definition(
+<a href=#1390 id=1390 data-nosnippet>1390</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+<a href=#1391 id=1391 data-nosnippet>1391</a>    name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+<a href=#1392 id=1392 data-nosnippet>1392</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
+<a href=#1393 id=1393 data-nosnippet>1393</a>    <span class="kw">let </span>start = lexer.last_range.start;
+<a href=#1394 id=1394 data-nosnippet>1394</a>    <span class="kw">let </span>range = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordOf], |lexer| {
+<a href=#1395 id=1395 data-nosnippet>1395</a>        <span class="comment">// Parse Array range
+<a href=#1396 id=1396 data-nosnippet>1396</a>
+<a href=#1397 id=1397 data-nosnippet>1397</a>        </span><span class="macro">expect_token!</span>(lexer, KeywordSquareParensOpen, <span class="prelude-val">None</span>);
+<a href=#1398 id=1398 data-nosnippet>1398</a>        lexer.advance();
+<a href=#1399 id=1399 data-nosnippet>1399</a>
+<a href=#1400 id=1400 data-nosnippet>1400</a>        <span class="kw">let </span>range_statement = parse_expression(lexer);
+<a href=#1401 id=1401 data-nosnippet>1401</a>
+<a href=#1402 id=1402 data-nosnippet>1402</a>        <span class="macro">expect_token!</span>(lexer, KeywordSquareParensClose, <span class="prelude-val">None</span>);
+<a href=#1403 id=1403 data-nosnippet>1403</a>        lexer.advance();
+<a href=#1404 id=1404 data-nosnippet>1404</a>
+<a href=#1405 id=1405 data-nosnippet>1405</a>        <span class="prelude-val">Some</span>(range_statement)
+<a href=#1406 id=1406 data-nosnippet>1406</a>    })<span class="question-mark">?</span>;
+<a href=#1407 id=1407 data-nosnippet>1407</a>
+<a href=#1408 id=1408 data-nosnippet>1408</a>    <span class="kw">let </span>inner_type_defintion = parse_data_type_definition(lexer, <span class="prelude-val">None</span>);
+<a href=#1409 id=1409 data-nosnippet>1409</a>    inner_type_defintion.map(|(reference, initializer)| {
+<a href=#1410 id=1410 data-nosnippet>1410</a>        <span class="kw">let </span>reference_end = reference.get_location().to_range().map(|it| it.end).unwrap_or(<span class="number">0</span>);
+<a href=#1411 id=1411 data-nosnippet>1411</a>        <span class="kw">let </span>location = lexer.source_range_factory.create_range(start..reference_end);
+<a href=#1412 id=1412 data-nosnippet>1412</a>
+<a href=#1413 id=1413 data-nosnippet>1413</a>        <span class="kw">let </span>is_variable_length = <span class="kw">match </span><span class="kw-2">&amp;</span>range.get_stmt() {
+<a href=#1414 id=1414 data-nosnippet>1414</a>            <span class="comment">// Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
+<a href=#1415 id=1415 data-nosnippet>1415</a>            </span>AstStatement::RangeStatement { .. } =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+<a href=#1416 id=1416 data-nosnippet>1416</a>            AstStatement::VlaRangeStatement =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+<a href=#1417 id=1417 data-nosnippet>1417</a>
+<a href=#1418 id=1418 data-nosnippet>1418</a>            <span class="comment">// Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
+<a href=#1419 id=1419 data-nosnippet>1419</a>            </span>AstStatement::ExpressionList(expressions) =&gt; <span class="kw">match </span>expressions[<span class="number">0</span>].get_stmt() {
+<a href=#1420 id=1420 data-nosnippet>1420</a>                AstStatement::RangeStatement(..) =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+<a href=#1421 id=1421 data-nosnippet>1421</a>                AstStatement::VlaRangeStatement =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+<a href=#1422 id=1422 data-nosnippet>1422</a>                <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+<a href=#1423 id=1423 data-nosnippet>1423</a>            },
+<a href=#1424 id=1424 data-nosnippet>1424</a>
+<a href=#1425 id=1425 data-nosnippet>1425</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+<a href=#1426 id=1426 data-nosnippet>1426</a>        };
+<a href=#1427 id=1427 data-nosnippet>1427</a>
+<a href=#1428 id=1428 data-nosnippet>1428</a>        <span class="kw">let </span>is_variable_length = <span class="kw">match </span>is_variable_length {
+<a href=#1429 id=1429 data-nosnippet>1429</a>            <span class="prelude-val">Some</span>(val) =&gt; val,
+<a href=#1430 id=1430 data-nosnippet>1430</a>            <span class="prelude-val">None </span>=&gt; {
+<a href=#1431 id=1431 data-nosnippet>1431</a>                lexer.accept_diagnostic(
+<a href=#1432 id=1432 data-nosnippet>1432</a>                    Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Expected a range statement, got {range:?} instead"</span>))
+<a href=#1433 id=1433 data-nosnippet>1433</a>                        .with_location(range.get_location())
+<a href=#1434 id=1434 data-nosnippet>1434</a>                        .with_error_code(<span class="string">"E008"</span>),
+<a href=#1435 id=1435 data-nosnippet>1435</a>                );
+<a href=#1436 id=1436 data-nosnippet>1436</a>                <span class="bool-val">false
+<a href=#1437 id=1437 data-nosnippet>1437</a>            </span>}
+<a href=#1438 id=1438 data-nosnippet>1438</a>        };
+<a href=#1439 id=1439 data-nosnippet>1439</a>
+<a href=#1440 id=1440 data-nosnippet>1440</a>        (
+<a href=#1441 id=1441 data-nosnippet>1441</a>            DataTypeDeclaration::Definition {
+<a href=#1442 id=1442 data-nosnippet>1442</a>                data_type: Box::new(DataType::ArrayType {
+<a href=#1443 id=1443 data-nosnippet>1443</a>                    name,
+<a href=#1444 id=1444 data-nosnippet>1444</a>                    bounds: range,
+<a href=#1445 id=1445 data-nosnippet>1445</a>                    referenced_type: Box::new(reference),
+<a href=#1446 id=1446 data-nosnippet>1446</a>                    is_variable_length,
+<a href=#1447 id=1447 data-nosnippet>1447</a>                }),
+<a href=#1448 id=1448 data-nosnippet>1448</a>                location,
+<a href=#1449 id=1449 data-nosnippet>1449</a>                scope: lexer.scope.clone(),
+<a href=#1450 id=1450 data-nosnippet>1450</a>            },
+<a href=#1451 id=1451 data-nosnippet>1451</a>            initializer,
+<a href=#1452 id=1452 data-nosnippet>1452</a>        )
+<a href=#1453 id=1453 data-nosnippet>1453</a>    })
+<a href=#1454 id=1454 data-nosnippet>1454</a>}
+<a href=#1455 id=1455 data-nosnippet>1455</a>
+<a href=#1456 id=1456 data-nosnippet>1456</a><span class="doccomment">/// parse a body and recovers until the given `end_keywords`
+<a href=#1457 id=1457 data-nosnippet>1457</a></span><span class="kw">fn </span>parse_body_in_region(lexer: <span class="kw-2">&amp;mut </span>ParseSession, end_keywords: Vec&lt;Token&gt;) -&gt; Vec&lt;AstNode&gt; {
+<a href=#1458 id=1458 data-nosnippet>1458</a>    parse_any_in_region(lexer, end_keywords, parse_body_standalone)
+<a href=#1459 id=1459 data-nosnippet>1459</a>}
+<a href=#1460 id=1460 data-nosnippet>1460</a>
+<a href=#1461 id=1461 data-nosnippet>1461</a><span class="kw">fn </span>parse_body_standalone(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;AstNode&gt; {
+<a href=#1462 id=1462 data-nosnippet>1462</a>    <span class="kw">let </span><span class="kw-2">mut </span>statements = Vec::new();
+<a href=#1463 id=1463 data-nosnippet>1463</a>    <span class="kw">while </span>!lexer.closes_open_region(<span class="kw-2">&amp;</span>lexer.token) {
+<a href=#1464 id=1464 data-nosnippet>1464</a>        statements.push(parse_control(lexer));
+<a href=#1465 id=1465 data-nosnippet>1465</a>    }
+<a href=#1466 id=1466 data-nosnippet>1466</a>    statements
+<a href=#1467 id=1467 data-nosnippet>1467</a>}
+<a href=#1468 id=1468 data-nosnippet>1468</a>
+<a href=#1469 id=1469 data-nosnippet>1469</a><span class="doccomment">/// parses a statement ending with a ';'
+<a href=#1470 id=1470 data-nosnippet>1470</a></span><span class="kw">fn </span>parse_statement(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
+<a href=#1471 id=1471 data-nosnippet>1471</a>    <span class="kw">let </span>result = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordSemicolon, KeywordColon], parse_expression);
+<a href=#1472 id=1472 data-nosnippet>1472</a>    <span class="kw">if </span>lexer.last_token == KeywordColon {
+<a href=#1473 id=1473 data-nosnippet>1473</a>        <span class="kw">let </span>location = result.location.span(<span class="kw-2">&amp;</span>lexer.last_location());
+<a href=#1474 id=1474 data-nosnippet>1474</a>        AstFactory::create_case_condition(result, location, lexer.next_id())
+<a href=#1475 id=1475 data-nosnippet>1475</a>    } <span class="kw">else </span>{
+<a href=#1476 id=1476 data-nosnippet>1476</a>        result
+<a href=#1477 id=1477 data-nosnippet>1477</a>    }
+<a href=#1478 id=1478 data-nosnippet>1478</a>}
+<a href=#1479 id=1479 data-nosnippet>1479</a>
+<a href=#1480 id=1480 data-nosnippet>1480</a><span class="kw">pub fn </span>with_scope&lt;T, F: FnOnce(<span class="kw-2">&amp;mut </span>ParseSession) -&gt; T&gt;(
+<a href=#1481 id=1481 data-nosnippet>1481</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+<a href=#1482 id=1482 data-nosnippet>1482</a>    scope: String,
+<a href=#1483 id=1483 data-nosnippet>1483</a>    parse_fn: F,
+<a href=#1484 id=1484 data-nosnippet>1484</a>) -&gt; T {
+<a href=#1485 id=1485 data-nosnippet>1485</a>    lexer.scope = <span class="prelude-val">Some</span>(scope);
+<a href=#1486 id=1486 data-nosnippet>1486</a>    <span class="kw">let </span>result = parse_fn(lexer);
+<a href=#1487 id=1487 data-nosnippet>1487</a>    lexer.scope = <span class="prelude-val">None</span>;
+<a href=#1488 id=1488 data-nosnippet>1488</a>    result
+<a href=#1489 id=1489 data-nosnippet>1489</a>}
+<a href=#1490 id=1490 data-nosnippet>1490</a>
+<a href=#1491 id=1491 data-nosnippet>1491</a><span class="kw">pub fn </span>parse_any_in_region&lt;T, F: FnOnce(<span class="kw-2">&amp;mut </span>ParseSession) -&gt; T&gt;(
+<a href=#1492 id=1492 data-nosnippet>1492</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+<a href=#1493 id=1493 data-nosnippet>1493</a>    closing_tokens: Vec&lt;Token&gt;,
+<a href=#1494 id=1494 data-nosnippet>1494</a>    parse_fn: F,
+<a href=#1495 id=1495 data-nosnippet>1495</a>) -&gt; T {
+<a href=#1496 id=1496 data-nosnippet>1496</a>    lexer.enter_region(closing_tokens);
+<a href=#1497 id=1497 data-nosnippet>1497</a>    <span class="kw">let </span>result = parse_fn(lexer);
+<a href=#1498 id=1498 data-nosnippet>1498</a>
+<a href=#1499 id=1499 data-nosnippet>1499</a>    <span class="comment">// try to recover by eating everything until
+<a href=#1500 id=1500 data-nosnippet>1500</a>    // we believe the parser is able to continue
+<a href=#1501 id=1501 data-nosnippet>1501</a>    </span>lexer.recover_until_close();
+<a href=#1502 id=1502 data-nosnippet>1502</a>    lexer.close_region();
+<a href=#1503 id=1503 data-nosnippet>1503</a>
+<a href=#1504 id=1504 data-nosnippet>1504</a>    result
+<a href=#1505 id=1505 data-nosnippet>1505</a>}
+<a href=#1506 id=1506 data-nosnippet>1506</a>
+<a href=#1507 id=1507 data-nosnippet>1507</a><span class="kw">fn </span>parse_reference(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
+<a href=#1508 id=1508 data-nosnippet>1508</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(statement) = expressions_parser::parse_call_statement(lexer) {
+<a href=#1509 id=1509 data-nosnippet>1509</a>        statement
+<a href=#1510 id=1510 data-nosnippet>1510</a>    } <span class="kw">else </span>{
+<a href=#1511 id=1511 data-nosnippet>1511</a>        <span class="kw">let </span>statement = AstFactory::create_empty_statement(
+<a href=#1512 id=1512 data-nosnippet>1512</a>            lexer.diagnostics.last().map_or(SourceLocation::undefined(), |d| d.get_location()),
+<a href=#1513 id=1513 data-nosnippet>1513</a>            lexer.next_id(),
+<a href=#1514 id=1514 data-nosnippet>1514</a>        );
+<a href=#1515 id=1515 data-nosnippet>1515</a>        statement
+<a href=#1516 id=1516 data-nosnippet>1516</a>    }
+<a href=#1517 id=1517 data-nosnippet>1517</a>}
+<a href=#1518 id=1518 data-nosnippet>1518</a>
+<a href=#1519 id=1519 data-nosnippet>1519</a><span class="kw">fn </span>parse_control(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AstNode {
+<a href=#1520 id=1520 data-nosnippet>1520</a>    parse_control_statement(lexer)
+<a href=#1521 id=1521 data-nosnippet>1521</a>}
+<a href=#1522 id=1522 data-nosnippet>1522</a>
+<a href=#1523 id=1523 data-nosnippet>1523</a><span class="kw">fn </span>parse_variable_block_type(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; VariableBlockType {
+<a href=#1524 id=1524 data-nosnippet>1524</a>    <span class="kw">let </span>block_type = lexer.token;
+<a href=#1525 id=1525 data-nosnippet>1525</a>    <span class="comment">//Consume the type token
+<a href=#1526 id=1526 data-nosnippet>1526</a>    </span>lexer.advance();
+<a href=#1527 id=1527 data-nosnippet>1527</a>    <span class="kw">let </span>argument_property = <span class="kw">if </span>lexer.try_consume(PropertyByRef) {
+<a href=#1528 id=1528 data-nosnippet>1528</a>        <span class="comment">//Report a diagnostic if blocktype is incompatible
+<a href=#1529 id=1529 data-nosnippet>1529</a>        </span><span class="kw">if </span>!<span class="macro">matches!</span>(block_type, KeywordVarInput) {
+<a href=#1530 id=1530 data-nosnippet>1530</a>            lexer.accept_diagnostic(
+<a href=#1531 id=1531 data-nosnippet>1531</a>                Diagnostic::new(<span class="string">"Invalid pragma location: Only VAR_INPUT support by ref properties"</span>)
+<a href=#1532 id=1532 data-nosnippet>1532</a>                    .with_error_code(<span class="string">"E024"</span>)
+<a href=#1533 id=1533 data-nosnippet>1533</a>                    .with_location(lexer.location()),
+<a href=#1534 id=1534 data-nosnippet>1534</a>            )
+<a href=#1535 id=1535 data-nosnippet>1535</a>        }
+<a href=#1536 id=1536 data-nosnippet>1536</a>        ArgumentProperty::ByRef
+<a href=#1537 id=1537 data-nosnippet>1537</a>    } <span class="kw">else </span>{
+<a href=#1538 id=1538 data-nosnippet>1538</a>        ArgumentProperty::ByVal
+<a href=#1539 id=1539 data-nosnippet>1539</a>    };
+<a href=#1540 id=1540 data-nosnippet>1540</a>    <span class="kw">match </span>block_type {
+<a href=#1541 id=1541 data-nosnippet>1541</a>        KeywordVar =&gt; VariableBlockType::Local,
+<a href=#1542 id=1542 data-nosnippet>1542</a>        KeywordVarTemp =&gt; VariableBlockType::Temp,
+<a href=#1543 id=1543 data-nosnippet>1543</a>        KeywordVarInput =&gt; VariableBlockType::Input(argument_property),
+<a href=#1544 id=1544 data-nosnippet>1544</a>        KeywordVarOutput =&gt; VariableBlockType::Output,
+<a href=#1545 id=1545 data-nosnippet>1545</a>        KeywordVarGlobal =&gt; VariableBlockType::Global,
+<a href=#1546 id=1546 data-nosnippet>1546</a>        KeywordVarInOut =&gt; VariableBlockType::InOut,
+<a href=#1547 id=1547 data-nosnippet>1547</a>        KeywordVarExternal =&gt; VariableBlockType::External,
+<a href=#1548 id=1548 data-nosnippet>1548</a>        <span class="kw">_ </span>=&gt; VariableBlockType::Local,
+<a href=#1549 id=1549 data-nosnippet>1549</a>    }
+<a href=#1550 id=1550 data-nosnippet>1550</a>}
 <a href=#1551 id=1551 data-nosnippet>1551</a>
-<a href=#1552 id=1552 data-nosnippet>1552</a>    <span class="kw">let </span>access = parse_access_modifier(lexer);
-<a href=#1553 id=1553 data-nosnippet>1553</a>
-<a href=#1554 id=1554 data-nosnippet>1554</a>    <span class="kw">let </span><span class="kw-2">mut </span>variables = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordEndVar], parse_variable_list);
+<a href=#1552 id=1552 data-nosnippet>1552</a><span class="kw">fn </span>parse_variable_block(lexer: <span class="kw-2">&amp;mut </span>ParseSession, linkage: LinkageType) -&gt; VariableBlock {
+<a href=#1553 id=1553 data-nosnippet>1553</a>    <span class="kw">let </span>location = lexer.location();
+<a href=#1554 id=1554 data-nosnippet>1554</a>    <span class="kw">let </span>variable_block_type = parse_variable_block_type(lexer);
 <a href=#1555 id=1555 data-nosnippet>1555</a>
-<a href=#1556 id=1556 data-nosnippet>1556</a>    <span class="kw">if </span>constant &amp;&amp; !<span class="macro">matches!</span>(variable_block_type, VariableBlockType::External) {
-<a href=#1557 id=1557 data-nosnippet>1557</a>        <span class="comment">// sneak in the DefaultValue-Statements if no initializers were defined
-<a href=#1558 id=1558 data-nosnippet>1558</a>        </span>variables.iter_mut().filter(|it| it.initializer.is_none()).for_each(|it| {
-<a href=#1559 id=1559 data-nosnippet>1559</a>            it.initializer = <span class="prelude-val">Some</span>(AstFactory::create_default_value(it.location.clone(), lexer.next_id()));
-<a href=#1560 id=1560 data-nosnippet>1560</a>        });
-<a href=#1561 id=1561 data-nosnippet>1561</a>    }
+<a href=#1556 id=1556 data-nosnippet>1556</a>    <span class="kw">let </span>constant = lexer.try_consume(KeywordConstant);
+<a href=#1557 id=1557 data-nosnippet>1557</a>
+<a href=#1558 id=1558 data-nosnippet>1558</a>    <span class="kw">let </span>retain = lexer.try_consume(KeywordRetain);
+<a href=#1559 id=1559 data-nosnippet>1559</a>    lexer.try_consume(KeywordNonRetain);
+<a href=#1560 id=1560 data-nosnippet>1560</a>
+<a href=#1561 id=1561 data-nosnippet>1561</a>    <span class="kw">let </span>access = parse_access_modifier(lexer);
 <a href=#1562 id=1562 data-nosnippet>1562</a>
-<a href=#1563 id=1563 data-nosnippet>1563</a>    VariableBlock { access, constant, retain, variables, kind: variable_block_type, linkage, location }
-<a href=#1564 id=1564 data-nosnippet>1564</a>}
-<a href=#1565 id=1565 data-nosnippet>1565</a>
-<a href=#1566 id=1566 data-nosnippet>1566</a><span class="kw">fn </span>parse_variable_list(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;Variable&gt; {
-<a href=#1567 id=1567 data-nosnippet>1567</a>    <span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
-<a href=#1568 id=1568 data-nosnippet>1568</a>    <span class="kw">while </span>lexer.token.is_identifier_like() {
-<a href=#1569 id=1569 data-nosnippet>1569</a>        <span class="kw">let </span><span class="kw-2">mut </span>line_vars = parse_variable_line(lexer);
-<a href=#1570 id=1570 data-nosnippet>1570</a>        variables.append(<span class="kw-2">&amp;mut </span>line_vars);
-<a href=#1571 id=1571 data-nosnippet>1571</a>    }
-<a href=#1572 id=1572 data-nosnippet>1572</a>    variables
+<a href=#1563 id=1563 data-nosnippet>1563</a>    <span class="kw">let </span><span class="kw-2">mut </span>variables = parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordEndVar], parse_variable_list);
+<a href=#1564 id=1564 data-nosnippet>1564</a>
+<a href=#1565 id=1565 data-nosnippet>1565</a>    <span class="kw">if </span>constant &amp;&amp; !<span class="macro">matches!</span>(variable_block_type, VariableBlockType::External) {
+<a href=#1566 id=1566 data-nosnippet>1566</a>        <span class="comment">// sneak in the DefaultValue-Statements if no initializers were defined
+<a href=#1567 id=1567 data-nosnippet>1567</a>        </span>variables.iter_mut().filter(|it| it.initializer.is_none()).for_each(|it| {
+<a href=#1568 id=1568 data-nosnippet>1568</a>            it.initializer = <span class="prelude-val">Some</span>(AstFactory::create_default_value(it.location.clone(), lexer.next_id()));
+<a href=#1569 id=1569 data-nosnippet>1569</a>        });
+<a href=#1570 id=1570 data-nosnippet>1570</a>    }
+<a href=#1571 id=1571 data-nosnippet>1571</a>
+<a href=#1572 id=1572 data-nosnippet>1572</a>    VariableBlock { access, constant, retain, variables, kind: variable_block_type, linkage, location }
 <a href=#1573 id=1573 data-nosnippet>1573</a>}
 <a href=#1574 id=1574 data-nosnippet>1574</a>
-<a href=#1575 id=1575 data-nosnippet>1575</a><span class="kw">fn </span>parse_config_variables(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;ConfigVariable&gt; {
-<a href=#1576 id=1576 data-nosnippet>1576</a>    parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordEndVar], |lexer| {
-<a href=#1577 id=1577 data-nosnippet>1577</a>        lexer.advance();
-<a href=#1578 id=1578 data-nosnippet>1578</a>        <span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
-<a href=#1579 id=1579 data-nosnippet>1579</a>        <span class="kw">while </span>lexer.token == Identifier {
-<a href=#1580 id=1580 data-nosnippet>1580</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(configured_var) =
-<a href=#1581 id=1581 data-nosnippet>1581</a>                parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordSemicolon], try_parse_config_var)
-<a href=#1582 id=1582 data-nosnippet>1582</a>            {
-<a href=#1583 id=1583 data-nosnippet>1583</a>                variables.push(configured_var);
-<a href=#1584 id=1584 data-nosnippet>1584</a>            }
-<a href=#1585 id=1585 data-nosnippet>1585</a>        }
-<a href=#1586 id=1586 data-nosnippet>1586</a>        variables
-<a href=#1587 id=1587 data-nosnippet>1587</a>    })
-<a href=#1588 id=1588 data-nosnippet>1588</a>}
-<a href=#1589 id=1589 data-nosnippet>1589</a>
-<a href=#1590 id=1590 data-nosnippet>1590</a><span class="kw">fn </span>try_parse_config_var(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;ConfigVariable&gt; {
-<a href=#1591 id=1591 data-nosnippet>1591</a>    <span class="kw">let </span>start = lexer.location();
-<a href=#1592 id=1592 data-nosnippet>1592</a>    <span class="kw">let </span>qualified_reference = parse_reference(lexer);
-<a href=#1593 id=1593 data-nosnippet>1593</a>    <span class="kw">let </span>location = start.span(<span class="kw-2">&amp;</span>lexer.last_location());
-<a href=#1594 id=1594 data-nosnippet>1594</a>    <span class="kw">if </span>!lexer.try_consume(KeywordAt) {
-<a href=#1595 id=1595 data-nosnippet>1595</a>        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"AT"</span>, lexer.location()));
-<a href=#1596 id=1596 data-nosnippet>1596</a>    }
-<a href=#1597 id=1597 data-nosnippet>1597</a>
-<a href=#1598 id=1598 data-nosnippet>1598</a>    <span class="kw">let </span>HardwareAccess((direction, access_type)) = lexer.token <span class="kw">else </span>{
-<a href=#1599 id=1599 data-nosnippet>1599</a>        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"hardware access"</span>, lexer.location()));
-<a href=#1600 id=1600 data-nosnippet>1600</a>        <span class="kw">return </span><span class="prelude-val">None</span>;
-<a href=#1601 id=1601 data-nosnippet>1601</a>    };
-<a href=#1602 id=1602 data-nosnippet>1602</a>
-<a href=#1603 id=1603 data-nosnippet>1603</a>    <span class="kw">let </span>address = parse_hardware_access(lexer, direction, access_type)<span class="question-mark">?</span>;
-<a href=#1604 id=1604 data-nosnippet>1604</a>
-<a href=#1605 id=1605 data-nosnippet>1605</a>    <span class="kw">if </span>!lexer.try_consume(KeywordColon) {
-<a href=#1606 id=1606 data-nosnippet>1606</a>        lexer.accept_diagnostic(Diagnostic::missing_token(
-<a href=#1607 id=1607 data-nosnippet>1607</a>            <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
-<a href=#1608 id=1608 data-nosnippet>1608</a>            lexer.location(),
-<a href=#1609 id=1609 data-nosnippet>1609</a>        ));
-<a href=#1610 id=1610 data-nosnippet>1610</a>    }
+<a href=#1575 id=1575 data-nosnippet>1575</a><span class="kw">fn </span>parse_variable_list(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;Variable&gt; {
+<a href=#1576 id=1576 data-nosnippet>1576</a>    <span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
+<a href=#1577 id=1577 data-nosnippet>1577</a>    <span class="kw">while </span>lexer.token.is_identifier_like() {
+<a href=#1578 id=1578 data-nosnippet>1578</a>        <span class="kw">let </span><span class="kw-2">mut </span>line_vars = parse_variable_line(lexer);
+<a href=#1579 id=1579 data-nosnippet>1579</a>        variables.append(<span class="kw-2">&amp;mut </span>line_vars);
+<a href=#1580 id=1580 data-nosnippet>1580</a>    }
+<a href=#1581 id=1581 data-nosnippet>1581</a>    variables
+<a href=#1582 id=1582 data-nosnippet>1582</a>}
+<a href=#1583 id=1583 data-nosnippet>1583</a>
+<a href=#1584 id=1584 data-nosnippet>1584</a><span class="kw">fn </span>parse_config_variables(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;ConfigVariable&gt; {
+<a href=#1585 id=1585 data-nosnippet>1585</a>    parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordEndVar], |lexer| {
+<a href=#1586 id=1586 data-nosnippet>1586</a>        lexer.advance();
+<a href=#1587 id=1587 data-nosnippet>1587</a>        <span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
+<a href=#1588 id=1588 data-nosnippet>1588</a>        <span class="kw">while </span>lexer.token == Identifier {
+<a href=#1589 id=1589 data-nosnippet>1589</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(configured_var) =
+<a href=#1590 id=1590 data-nosnippet>1590</a>                parse_any_in_region(lexer, <span class="macro">vec!</span>[KeywordSemicolon], try_parse_config_var)
+<a href=#1591 id=1591 data-nosnippet>1591</a>            {
+<a href=#1592 id=1592 data-nosnippet>1592</a>                variables.push(configured_var);
+<a href=#1593 id=1593 data-nosnippet>1593</a>            }
+<a href=#1594 id=1594 data-nosnippet>1594</a>        }
+<a href=#1595 id=1595 data-nosnippet>1595</a>        variables
+<a href=#1596 id=1596 data-nosnippet>1596</a>    })
+<a href=#1597 id=1597 data-nosnippet>1597</a>}
+<a href=#1598 id=1598 data-nosnippet>1598</a>
+<a href=#1599 id=1599 data-nosnippet>1599</a><span class="kw">fn </span>try_parse_config_var(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; <span class="prelude-ty">Option</span>&lt;ConfigVariable&gt; {
+<a href=#1600 id=1600 data-nosnippet>1600</a>    <span class="kw">let </span>start = lexer.location();
+<a href=#1601 id=1601 data-nosnippet>1601</a>    <span class="kw">let </span>qualified_reference = parse_reference(lexer);
+<a href=#1602 id=1602 data-nosnippet>1602</a>    <span class="kw">let </span>location = start.span(<span class="kw-2">&amp;</span>lexer.last_location());
+<a href=#1603 id=1603 data-nosnippet>1603</a>    <span class="kw">if </span>!lexer.try_consume(KeywordAt) {
+<a href=#1604 id=1604 data-nosnippet>1604</a>        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"AT"</span>, lexer.location()));
+<a href=#1605 id=1605 data-nosnippet>1605</a>    }
+<a href=#1606 id=1606 data-nosnippet>1606</a>
+<a href=#1607 id=1607 data-nosnippet>1607</a>    <span class="kw">let </span>HardwareAccess((direction, access_type)) = lexer.token <span class="kw">else </span>{
+<a href=#1608 id=1608 data-nosnippet>1608</a>        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"hardware access"</span>, lexer.location()));
+<a href=#1609 id=1609 data-nosnippet>1609</a>        <span class="kw">return </span><span class="prelude-val">None</span>;
+<a href=#1610 id=1610 data-nosnippet>1610</a>    };
 <a href=#1611 id=1611 data-nosnippet>1611</a>
-<a href=#1612 id=1612 data-nosnippet>1612</a>    parse_data_type_definition(lexer, <span class="prelude-val">None</span>).map(|(dt, init)| {
-<a href=#1613 id=1613 data-nosnippet>1613</a>        <span class="kw">if </span>init.is_some() {
-<a href=#1614 id=1614 data-nosnippet>1614</a>            lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-<a href=#1615 id=1615 data-nosnippet>1615</a>                <span class="macro">format!</span>(<span class="string">"{KeywordSemicolon:?}"</span>).as_str(),
-<a href=#1616 id=1616 data-nosnippet>1616</a>                <span class="string">"Initializer"</span>,
-<a href=#1617 id=1617 data-nosnippet>1617</a>                lexer.last_location().span(<span class="kw-2">&amp;</span>lexer.location()),
-<a href=#1618 id=1618 data-nosnippet>1618</a>            ))
-<a href=#1619 id=1619 data-nosnippet>1619</a>        }
-<a href=#1620 id=1620 data-nosnippet>1620</a>        ConfigVariable::new(qualified_reference, dt, address, location)
-<a href=#1621 id=1621 data-nosnippet>1621</a>    })
-<a href=#1622 id=1622 data-nosnippet>1622</a>}
-<a href=#1623 id=1623 data-nosnippet>1623</a>
-<a href=#1624 id=1624 data-nosnippet>1624</a><span class="kw">fn </span>parse_aliasing(lexer: <span class="kw-2">&amp;mut </span>ParseSession, names: <span class="kw-2">&amp;</span>(String, Range&lt;usize&gt;)) -&gt; <span class="prelude-ty">Option</span>&lt;Variable&gt; {
-<a href=#1625 id=1625 data-nosnippet>1625</a>    <span class="kw">let </span>reference = parse_reference(lexer);
-<a href=#1626 id=1626 data-nosnippet>1626</a>    <span class="kw">if </span>!lexer.try_consume(KeywordColon) {
-<a href=#1627 id=1627 data-nosnippet>1627</a>        lexer.accept_diagnostic(Diagnostic::missing_token(
-<a href=#1628 id=1628 data-nosnippet>1628</a>            <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
-<a href=#1629 id=1629 data-nosnippet>1629</a>            lexer.location(),
-<a href=#1630 id=1630 data-nosnippet>1630</a>        ));
-<a href=#1631 id=1631 data-nosnippet>1631</a>    }
+<a href=#1612 id=1612 data-nosnippet>1612</a>    <span class="kw">let </span>address = parse_hardware_access(lexer, direction, access_type)<span class="question-mark">?</span>;
+<a href=#1613 id=1613 data-nosnippet>1613</a>
+<a href=#1614 id=1614 data-nosnippet>1614</a>    <span class="kw">if </span>!lexer.try_consume(KeywordColon) {
+<a href=#1615 id=1615 data-nosnippet>1615</a>        lexer.accept_diagnostic(Diagnostic::missing_token(
+<a href=#1616 id=1616 data-nosnippet>1616</a>            <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
+<a href=#1617 id=1617 data-nosnippet>1617</a>            lexer.location(),
+<a href=#1618 id=1618 data-nosnippet>1618</a>        ));
+<a href=#1619 id=1619 data-nosnippet>1619</a>    }
+<a href=#1620 id=1620 data-nosnippet>1620</a>
+<a href=#1621 id=1621 data-nosnippet>1621</a>    parse_data_type_definition(lexer, <span class="prelude-val">None</span>).map(|(dt, init)| {
+<a href=#1622 id=1622 data-nosnippet>1622</a>        <span class="kw">if </span>init.is_some() {
+<a href=#1623 id=1623 data-nosnippet>1623</a>            lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+<a href=#1624 id=1624 data-nosnippet>1624</a>                <span class="macro">format!</span>(<span class="string">"{KeywordSemicolon:?}"</span>).as_str(),
+<a href=#1625 id=1625 data-nosnippet>1625</a>                <span class="string">"Initializer"</span>,
+<a href=#1626 id=1626 data-nosnippet>1626</a>                lexer.last_location().span(<span class="kw-2">&amp;</span>lexer.location()),
+<a href=#1627 id=1627 data-nosnippet>1627</a>            ))
+<a href=#1628 id=1628 data-nosnippet>1628</a>        }
+<a href=#1629 id=1629 data-nosnippet>1629</a>        ConfigVariable::new(qualified_reference, dt, address, location)
+<a href=#1630 id=1630 data-nosnippet>1630</a>    })
+<a href=#1631 id=1631 data-nosnippet>1631</a>}
 <a href=#1632 id=1632 data-nosnippet>1632</a>
-<a href=#1633 id=1633 data-nosnippet>1633</a>    <span class="kw">let </span>start = <span class="kw-2">&amp;</span>lexer.location().get_span().to_range().unwrap_or(lexer.last_range.clone()).start;
-<a href=#1634 id=1634 data-nosnippet>1634</a>    <span class="kw">let </span>datatype = parse_pointer_definition(lexer, <span class="prelude-val">None</span>, <span class="kw-2">*</span>start, <span class="prelude-val">Some</span>(AutoDerefType::Alias), <span class="bool-val">true</span>, <span class="bool-val">false</span>);
-<a href=#1635 id=1635 data-nosnippet>1635</a>    <span class="kw">if </span>!lexer.try_consume(KeywordSemicolon) {
+<a href=#1633 id=1633 data-nosnippet>1633</a><span class="kw">fn </span>parse_aliasing(lexer: <span class="kw-2">&amp;mut </span>ParseSession, names: <span class="kw-2">&amp;</span>(String, Range&lt;usize&gt;)) -&gt; <span class="prelude-ty">Option</span>&lt;Variable&gt; {
+<a href=#1634 id=1634 data-nosnippet>1634</a>    <span class="kw">let </span>reference = parse_reference(lexer);
+<a href=#1635 id=1635 data-nosnippet>1635</a>    <span class="kw">if </span>!lexer.try_consume(KeywordColon) {
 <a href=#1636 id=1636 data-nosnippet>1636</a>        lexer.accept_diagnostic(Diagnostic::missing_token(
-<a href=#1637 id=1637 data-nosnippet>1637</a>            <span class="macro">format!</span>(<span class="string">"{KeywordSemicolon:?}"</span>).as_str(),
+<a href=#1637 id=1637 data-nosnippet>1637</a>            <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
 <a href=#1638 id=1638 data-nosnippet>1638</a>            lexer.location(),
 <a href=#1639 id=1639 data-nosnippet>1639</a>        ));
 <a href=#1640 id=1640 data-nosnippet>1640</a>    }
 <a href=#1641 id=1641 data-nosnippet>1641</a>
-<a href=#1642 id=1642 data-nosnippet>1642</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>((data_type, <span class="kw">_</span>)) = datatype {
-<a href=#1643 id=1643 data-nosnippet>1643</a>        <span class="kw">return </span><span class="prelude-val">Some</span>(Variable {
-<a href=#1644 id=1644 data-nosnippet>1644</a>            name: names.<span class="number">0</span>.clone(),
-<a href=#1645 id=1645 data-nosnippet>1645</a>            data_type_declaration: data_type,
-<a href=#1646 id=1646 data-nosnippet>1646</a>            location: lexer.source_range_factory.create_range(names.<span class="number">1</span>.clone()),
-<a href=#1647 id=1647 data-nosnippet>1647</a>            initializer: <span class="prelude-val">Some</span>(reference),
-<a href=#1648 id=1648 data-nosnippet>1648</a>            address: <span class="prelude-val">None</span>,
-<a href=#1649 id=1649 data-nosnippet>1649</a>        });
-<a href=#1650 id=1650 data-nosnippet>1650</a>    }
-<a href=#1651 id=1651 data-nosnippet>1651</a>
-<a href=#1652 id=1652 data-nosnippet>1652</a>    <span class="prelude-val">None
-<a href=#1653 id=1653 data-nosnippet>1653</a></span>}
-<a href=#1654 id=1654 data-nosnippet>1654</a>
-<a href=#1655 id=1655 data-nosnippet>1655</a><span class="kw">fn </span>parse_variable_line(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;Variable&gt; {
-<a href=#1656 id=1656 data-nosnippet>1656</a>    <span class="comment">// read in a comma separated list of variable names
-<a href=#1657 id=1657 data-nosnippet>1657</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>var_names: Vec&lt;(String, Range&lt;usize&gt;)&gt; = <span class="macro">vec!</span>[];
-<a href=#1658 id=1658 data-nosnippet>1658</a>    <span class="kw">while </span>lexer.token.is_identifier_like() {
-<a href=#1659 id=1659 data-nosnippet>1659</a>        <span class="kw">let </span>location = lexer.range();
-<a href=#1660 id=1660 data-nosnippet>1660</a>        <span class="kw">let </span>identifier_end = location.end;
-<a href=#1661 id=1661 data-nosnippet>1661</a>        var_names.push((lexer.slice_and_advance(), location));
-<a href=#1662 id=1662 data-nosnippet>1662</a>
-<a href=#1663 id=1663 data-nosnippet>1663</a>        <span class="kw">if </span>lexer.token == KeywordColon || lexer.token == KeywordAt {
-<a href=#1664 id=1664 data-nosnippet>1664</a>            <span class="kw">break</span>;
-<a href=#1665 id=1665 data-nosnippet>1665</a>        }
-<a href=#1666 id=1666 data-nosnippet>1666</a>
-<a href=#1667 id=1667 data-nosnippet>1667</a>        <span class="kw">if </span>!lexer.try_consume(KeywordComma) {
-<a href=#1668 id=1668 data-nosnippet>1668</a>            <span class="kw">let </span>next_token_start = lexer.range().start;
-<a href=#1669 id=1669 data-nosnippet>1669</a>            lexer.accept_diagnostic(Diagnostic::missing_token(
-<a href=#1670 id=1670 data-nosnippet>1670</a>                <span class="macro">format!</span>(<span class="string">"{KeywordColon:?} or {KeywordComma:?}"</span>).as_str(),
-<a href=#1671 id=1671 data-nosnippet>1671</a>                lexer.source_range_factory.create_range(identifier_end..next_token_start),
-<a href=#1672 id=1672 data-nosnippet>1672</a>            ));
-<a href=#1673 id=1673 data-nosnippet>1673</a>        }
-<a href=#1674 id=1674 data-nosnippet>1674</a>    }
+<a href=#1642 id=1642 data-nosnippet>1642</a>    <span class="kw">let </span>start = <span class="kw-2">&amp;</span>lexer.location().get_span().to_range().unwrap_or(lexer.last_range.clone()).start;
+<a href=#1643 id=1643 data-nosnippet>1643</a>    <span class="kw">let </span>datatype = parse_pointer_definition(lexer, <span class="prelude-val">None</span>, <span class="kw-2">*</span>start, <span class="prelude-val">Some</span>(AutoDerefType::Alias), <span class="bool-val">true</span>, <span class="bool-val">false</span>);
+<a href=#1644 id=1644 data-nosnippet>1644</a>    <span class="kw">if </span>!lexer.try_consume(KeywordSemicolon) {
+<a href=#1645 id=1645 data-nosnippet>1645</a>        lexer.accept_diagnostic(Diagnostic::missing_token(
+<a href=#1646 id=1646 data-nosnippet>1646</a>            <span class="macro">format!</span>(<span class="string">"{KeywordSemicolon:?}"</span>).as_str(),
+<a href=#1647 id=1647 data-nosnippet>1647</a>            lexer.location(),
+<a href=#1648 id=1648 data-nosnippet>1648</a>        ));
+<a href=#1649 id=1649 data-nosnippet>1649</a>    }
+<a href=#1650 id=1650 data-nosnippet>1650</a>
+<a href=#1651 id=1651 data-nosnippet>1651</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>((data_type, <span class="kw">_</span>)) = datatype {
+<a href=#1652 id=1652 data-nosnippet>1652</a>        <span class="kw">return </span><span class="prelude-val">Some</span>(Variable {
+<a href=#1653 id=1653 data-nosnippet>1653</a>            name: names.<span class="number">0</span>.clone(),
+<a href=#1654 id=1654 data-nosnippet>1654</a>            data_type_declaration: data_type,
+<a href=#1655 id=1655 data-nosnippet>1655</a>            location: lexer.source_range_factory.create_range(names.<span class="number">1</span>.clone()),
+<a href=#1656 id=1656 data-nosnippet>1656</a>            initializer: <span class="prelude-val">Some</span>(reference),
+<a href=#1657 id=1657 data-nosnippet>1657</a>            address: <span class="prelude-val">None</span>,
+<a href=#1658 id=1658 data-nosnippet>1658</a>        });
+<a href=#1659 id=1659 data-nosnippet>1659</a>    }
+<a href=#1660 id=1660 data-nosnippet>1660</a>
+<a href=#1661 id=1661 data-nosnippet>1661</a>    <span class="prelude-val">None
+<a href=#1662 id=1662 data-nosnippet>1662</a></span>}
+<a href=#1663 id=1663 data-nosnippet>1663</a>
+<a href=#1664 id=1664 data-nosnippet>1664</a><span class="kw">fn </span>parse_variable_line(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;Variable&gt; {
+<a href=#1665 id=1665 data-nosnippet>1665</a>    <span class="comment">// read in a comma separated list of variable names
+<a href=#1666 id=1666 data-nosnippet>1666</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>var_names: Vec&lt;(String, Range&lt;usize&gt;)&gt; = <span class="macro">vec!</span>[];
+<a href=#1667 id=1667 data-nosnippet>1667</a>    <span class="kw">while </span>lexer.token.is_identifier_like() {
+<a href=#1668 id=1668 data-nosnippet>1668</a>        <span class="kw">let </span>location = lexer.range();
+<a href=#1669 id=1669 data-nosnippet>1669</a>        <span class="kw">let </span>identifier_end = location.end;
+<a href=#1670 id=1670 data-nosnippet>1670</a>        var_names.push((lexer.slice_and_advance(), location));
+<a href=#1671 id=1671 data-nosnippet>1671</a>
+<a href=#1672 id=1672 data-nosnippet>1672</a>        <span class="kw">if </span>lexer.token == KeywordColon || lexer.token == KeywordAt {
+<a href=#1673 id=1673 data-nosnippet>1673</a>            <span class="kw">break</span>;
+<a href=#1674 id=1674 data-nosnippet>1674</a>        }
 <a href=#1675 id=1675 data-nosnippet>1675</a>
-<a href=#1676 id=1676 data-nosnippet>1676</a>    <span class="comment">//See if there's an AT keyword
-<a href=#1677 id=1677 data-nosnippet>1677</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>address: <span class="prelude-ty">Option</span>&lt;AstNode&gt; = <span class="prelude-val">None</span>;
-<a href=#1678 id=1678 data-nosnippet>1678</a>    <span class="kw">if </span>lexer.try_consume(KeywordAt) {
-<a href=#1679 id=1679 data-nosnippet>1679</a>        <span class="kw">match </span>lexer.token {
-<a href=#1680 id=1680 data-nosnippet>1680</a>            HardwareAccess((direction, access_type)) =&gt; {
-<a href=#1681 id=1681 data-nosnippet>1681</a>                address = parse_hardware_access(lexer, direction, access_type)
-<a href=#1682 id=1682 data-nosnippet>1682</a>            }
-<a href=#1683 id=1683 data-nosnippet>1683</a>
-<a href=#1684 id=1684 data-nosnippet>1684</a>            Identifier =&gt; {
-<a href=#1685 id=1685 data-nosnippet>1685</a>                <span class="kw">return match </span>parse_aliasing(lexer, <span class="kw-2">&amp;</span>var_names[<span class="number">0</span>]) {
-<a href=#1686 id=1686 data-nosnippet>1686</a>                    <span class="prelude-val">Some</span>(aliased_variable) =&gt; <span class="macro">vec!</span>[aliased_variable],
-<a href=#1687 id=1687 data-nosnippet>1687</a>                    <span class="prelude-val">None </span>=&gt; <span class="macro">vec!</span>[],
-<a href=#1688 id=1688 data-nosnippet>1688</a>                };
-<a href=#1689 id=1689 data-nosnippet>1689</a>            }
-<a href=#1690 id=1690 data-nosnippet>1690</a>
-<a href=#1691 id=1691 data-nosnippet>1691</a>            <span class="kw">_ </span>=&gt; {
-<a href=#1692 id=1692 data-nosnippet>1692</a>                lexer.accept_diagnostic(Diagnostic::missing_token(
-<a href=#1693 id=1693 data-nosnippet>1693</a>                    <span class="string">"hardware access or identifier"</span>,
-<a href=#1694 id=1694 data-nosnippet>1694</a>                    lexer.location(),
-<a href=#1695 id=1695 data-nosnippet>1695</a>                ));
-<a href=#1696 id=1696 data-nosnippet>1696</a>            }
-<a href=#1697 id=1697 data-nosnippet>1697</a>        }
-<a href=#1698 id=1698 data-nosnippet>1698</a>    };
+<a href=#1676 id=1676 data-nosnippet>1676</a>        <span class="kw">if </span>!lexer.try_consume(KeywordComma) {
+<a href=#1677 id=1677 data-nosnippet>1677</a>            <span class="kw">let </span>next_token_start = lexer.range().start;
+<a href=#1678 id=1678 data-nosnippet>1678</a>            lexer.accept_diagnostic(Diagnostic::missing_token(
+<a href=#1679 id=1679 data-nosnippet>1679</a>                <span class="macro">format!</span>(<span class="string">"{KeywordColon:?} or {KeywordComma:?}"</span>).as_str(),
+<a href=#1680 id=1680 data-nosnippet>1680</a>                lexer.source_range_factory.create_range(identifier_end..next_token_start),
+<a href=#1681 id=1681 data-nosnippet>1681</a>            ));
+<a href=#1682 id=1682 data-nosnippet>1682</a>        }
+<a href=#1683 id=1683 data-nosnippet>1683</a>    }
+<a href=#1684 id=1684 data-nosnippet>1684</a>
+<a href=#1685 id=1685 data-nosnippet>1685</a>    <span class="comment">//See if there's an AT keyword
+<a href=#1686 id=1686 data-nosnippet>1686</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>address: <span class="prelude-ty">Option</span>&lt;AstNode&gt; = <span class="prelude-val">None</span>;
+<a href=#1687 id=1687 data-nosnippet>1687</a>    <span class="kw">if </span>lexer.try_consume(KeywordAt) {
+<a href=#1688 id=1688 data-nosnippet>1688</a>        <span class="kw">match </span>lexer.token {
+<a href=#1689 id=1689 data-nosnippet>1689</a>            HardwareAccess((direction, access_type)) =&gt; {
+<a href=#1690 id=1690 data-nosnippet>1690</a>                address = parse_hardware_access(lexer, direction, access_type)
+<a href=#1691 id=1691 data-nosnippet>1691</a>            }
+<a href=#1692 id=1692 data-nosnippet>1692</a>
+<a href=#1693 id=1693 data-nosnippet>1693</a>            Identifier =&gt; {
+<a href=#1694 id=1694 data-nosnippet>1694</a>                <span class="kw">return match </span>parse_aliasing(lexer, <span class="kw-2">&amp;</span>var_names[<span class="number">0</span>]) {
+<a href=#1695 id=1695 data-nosnippet>1695</a>                    <span class="prelude-val">Some</span>(aliased_variable) =&gt; <span class="macro">vec!</span>[aliased_variable],
+<a href=#1696 id=1696 data-nosnippet>1696</a>                    <span class="prelude-val">None </span>=&gt; <span class="macro">vec!</span>[],
+<a href=#1697 id=1697 data-nosnippet>1697</a>                };
+<a href=#1698 id=1698 data-nosnippet>1698</a>            }
 <a href=#1699 id=1699 data-nosnippet>1699</a>
-<a href=#1700 id=1700 data-nosnippet>1700</a>    <span class="comment">// colon has to come before the data type
-<a href=#1701 id=1701 data-nosnippet>1701</a>    </span><span class="kw">if </span>!lexer.try_consume(KeywordColon) {
-<a href=#1702 id=1702 data-nosnippet>1702</a>        lexer.accept_diagnostic(Diagnostic::missing_token(
-<a href=#1703 id=1703 data-nosnippet>1703</a>            <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
-<a href=#1704 id=1704 data-nosnippet>1704</a>            lexer.location(),
-<a href=#1705 id=1705 data-nosnippet>1705</a>        ));
-<a href=#1706 id=1706 data-nosnippet>1706</a>    }
-<a href=#1707 id=1707 data-nosnippet>1707</a>
-<a href=#1708 id=1708 data-nosnippet>1708</a>    <span class="comment">// create variables with the same data type for each of the names
-<a href=#1709 id=1709 data-nosnippet>1709</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
-<a href=#1710 id=1710 data-nosnippet>1710</a>
-<a href=#1711 id=1711 data-nosnippet>1711</a>    <span class="kw">let </span>parse_definition_opt = <span class="kw">if </span>lexer.try_consume(KeywordReferenceTo) {
-<a href=#1712 id=1712 data-nosnippet>1712</a>        parse_pointer_definition(
-<a href=#1713 id=1713 data-nosnippet>1713</a>            lexer,
-<a href=#1714 id=1714 data-nosnippet>1714</a>            <span class="prelude-val">None</span>,
-<a href=#1715 id=1715 data-nosnippet>1715</a>            lexer.last_range.start,
-<a href=#1716 id=1716 data-nosnippet>1716</a>            <span class="prelude-val">Some</span>(AutoDerefType::Reference),
-<a href=#1717 id=1717 data-nosnippet>1717</a>            <span class="bool-val">true</span>,
-<a href=#1718 id=1718 data-nosnippet>1718</a>            <span class="bool-val">false</span>,
-<a href=#1719 id=1719 data-nosnippet>1719</a>        )
-<a href=#1720 id=1720 data-nosnippet>1720</a>    } <span class="kw">else if </span>lexer.try_consume(KeywordFunctionPointer) {
-<a href=#1721 id=1721 data-nosnippet>1721</a>        parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>)
-<a href=#1722 id=1722 data-nosnippet>1722</a>    } <span class="kw">else if </span>address.is_some() {
-<a href=#1723 id=1723 data-nosnippet>1723</a>        parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">Some</span>(AutoDerefType::Alias), <span class="bool-val">true</span>, <span class="bool-val">false</span>)
-<a href=#1724 id=1724 data-nosnippet>1724</a>    } <span class="kw">else </span>{
-<a href=#1725 id=1725 data-nosnippet>1725</a>        parse_full_data_type_definition(lexer, <span class="prelude-val">None</span>)
-<a href=#1726 id=1726 data-nosnippet>1726</a>    };
-<a href=#1727 id=1727 data-nosnippet>1727</a>
-<a href=#1728 id=1728 data-nosnippet>1728</a>    lexer.try_consume(KeywordSemicolon);
-<a href=#1729 id=1729 data-nosnippet>1729</a>
-<a href=#1730 id=1730 data-nosnippet>1730</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>((data_type, initializer)) = parse_definition_opt {
-<a href=#1731 id=1731 data-nosnippet>1731</a>        <span class="kw">for </span>(name, range) <span class="kw">in </span>var_names {
-<a href=#1732 id=1732 data-nosnippet>1732</a>            variables.push(Variable {
-<a href=#1733 id=1733 data-nosnippet>1733</a>                name,
-<a href=#1734 id=1734 data-nosnippet>1734</a>                data_type_declaration: data_type.clone(),
-<a href=#1735 id=1735 data-nosnippet>1735</a>                location: lexer.source_range_factory.create_range(range),
-<a href=#1736 id=1736 data-nosnippet>1736</a>                initializer: initializer.clone(),
-<a href=#1737 id=1737 data-nosnippet>1737</a>                address: address.clone(),
-<a href=#1738 id=1738 data-nosnippet>1738</a>            });
-<a href=#1739 id=1739 data-nosnippet>1739</a>        }
-<a href=#1740 id=1740 data-nosnippet>1740</a>    }
-<a href=#1741 id=1741 data-nosnippet>1741</a>
-<a href=#1742 id=1742 data-nosnippet>1742</a>    variables
-<a href=#1743 id=1743 data-nosnippet>1743</a>}
-<a href=#1744 id=1744 data-nosnippet>1744</a>
-<a href=#1745 id=1745 data-nosnippet>1745</a><span class="kw">fn </span>parse_hardware_access(
-<a href=#1746 id=1746 data-nosnippet>1746</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
-<a href=#1747 id=1747 data-nosnippet>1747</a>    hardware_access_type: HardwareAccessType,
-<a href=#1748 id=1748 data-nosnippet>1748</a>    access_type: DirectAccessType,
-<a href=#1749 id=1749 data-nosnippet>1749</a>) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
-<a href=#1750 id=1750 data-nosnippet>1750</a>    <span class="kw">let </span>start_location = lexer.last_location();
-<a href=#1751 id=1751 data-nosnippet>1751</a>    lexer.advance();
-<a href=#1752 id=1752 data-nosnippet>1752</a>    <span class="comment">//Folowed by an integer
-<a href=#1753 id=1753 data-nosnippet>1753</a>    </span><span class="kw">if </span>access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
-<a href=#1754 id=1754 data-nosnippet>1754</a>        <span class="kw">let </span><span class="kw-2">mut </span>address = <span class="macro">vec!</span>[];
-<a href=#1755 id=1755 data-nosnippet>1755</a>        <span class="kw">if </span>lexer.token == LiteralInteger {
-<a href=#1756 id=1756 data-nosnippet>1756</a>            <span class="kw">loop </span>{
-<a href=#1757 id=1757 data-nosnippet>1757</a>                <span class="kw">let </span>int = expressions_parser::parse_strict_literal_integer(lexer)<span class="question-mark">?</span>;
-<a href=#1758 id=1758 data-nosnippet>1758</a>                address.push(int);
-<a href=#1759 id=1759 data-nosnippet>1759</a>                <span class="kw">if </span>!lexer.try_consume(KeywordDot) {
-<a href=#1760 id=1760 data-nosnippet>1760</a>                    <span class="kw">break</span>;
-<a href=#1761 id=1761 data-nosnippet>1761</a>                }
-<a href=#1762 id=1762 data-nosnippet>1762</a>            }
-<a href=#1763 id=1763 data-nosnippet>1763</a>        }
-<a href=#1764 id=1764 data-nosnippet>1764</a>        <span class="prelude-val">Some</span>(AstFactory::create_hardware_access(
-<a href=#1765 id=1765 data-nosnippet>1765</a>            access_type,
-<a href=#1766 id=1766 data-nosnippet>1766</a>            hardware_access_type,
-<a href=#1767 id=1767 data-nosnippet>1767</a>            address,
-<a href=#1768 id=1768 data-nosnippet>1768</a>            start_location.span(<span class="kw-2">&amp;</span>lexer.last_location()),
-<a href=#1769 id=1769 data-nosnippet>1769</a>            lexer.next_id(),
-<a href=#1770 id=1770 data-nosnippet>1770</a>        ))
-<a href=#1771 id=1771 data-nosnippet>1771</a>    } <span class="kw">else </span>{
-<a href=#1772 id=1772 data-nosnippet>1772</a>        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"LiteralInteger"</span>, lexer.location()));
-<a href=#1773 id=1773 data-nosnippet>1773</a>        <span class="prelude-val">None
-<a href=#1774 id=1774 data-nosnippet>1774</a>    </span>}
-<a href=#1775 id=1775 data-nosnippet>1775</a>}
+<a href=#1700 id=1700 data-nosnippet>1700</a>            <span class="kw">_ </span>=&gt; {
+<a href=#1701 id=1701 data-nosnippet>1701</a>                lexer.accept_diagnostic(Diagnostic::missing_token(
+<a href=#1702 id=1702 data-nosnippet>1702</a>                    <span class="string">"hardware access or identifier"</span>,
+<a href=#1703 id=1703 data-nosnippet>1703</a>                    lexer.location(),
+<a href=#1704 id=1704 data-nosnippet>1704</a>                ));
+<a href=#1705 id=1705 data-nosnippet>1705</a>            }
+<a href=#1706 id=1706 data-nosnippet>1706</a>        }
+<a href=#1707 id=1707 data-nosnippet>1707</a>    };
+<a href=#1708 id=1708 data-nosnippet>1708</a>
+<a href=#1709 id=1709 data-nosnippet>1709</a>    <span class="comment">// colon has to come before the data type
+<a href=#1710 id=1710 data-nosnippet>1710</a>    </span><span class="kw">if </span>!lexer.try_consume(KeywordColon) {
+<a href=#1711 id=1711 data-nosnippet>1711</a>        lexer.accept_diagnostic(Diagnostic::missing_token(
+<a href=#1712 id=1712 data-nosnippet>1712</a>            <span class="macro">format!</span>(<span class="string">"{KeywordColon:?}"</span>).as_str(),
+<a href=#1713 id=1713 data-nosnippet>1713</a>            lexer.location(),
+<a href=#1714 id=1714 data-nosnippet>1714</a>        ));
+<a href=#1715 id=1715 data-nosnippet>1715</a>    }
+<a href=#1716 id=1716 data-nosnippet>1716</a>
+<a href=#1717 id=1717 data-nosnippet>1717</a>    <span class="comment">// create variables with the same data type for each of the names
+<a href=#1718 id=1718 data-nosnippet>1718</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
+<a href=#1719 id=1719 data-nosnippet>1719</a>
+<a href=#1720 id=1720 data-nosnippet>1720</a>    <span class="kw">let </span>parse_definition_opt = <span class="kw">if </span>lexer.try_consume(KeywordReferenceTo) {
+<a href=#1721 id=1721 data-nosnippet>1721</a>        parse_pointer_definition(
+<a href=#1722 id=1722 data-nosnippet>1722</a>            lexer,
+<a href=#1723 id=1723 data-nosnippet>1723</a>            <span class="prelude-val">None</span>,
+<a href=#1724 id=1724 data-nosnippet>1724</a>            lexer.last_range.start,
+<a href=#1725 id=1725 data-nosnippet>1725</a>            <span class="prelude-val">Some</span>(AutoDerefType::Reference),
+<a href=#1726 id=1726 data-nosnippet>1726</a>            <span class="bool-val">true</span>,
+<a href=#1727 id=1727 data-nosnippet>1727</a>            <span class="bool-val">false</span>,
+<a href=#1728 id=1728 data-nosnippet>1728</a>        )
+<a href=#1729 id=1729 data-nosnippet>1729</a>    } <span class="kw">else if </span>lexer.try_consume(KeywordFunctionPointer) {
+<a href=#1730 id=1730 data-nosnippet>1730</a>        parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>)
+<a href=#1731 id=1731 data-nosnippet>1731</a>    } <span class="kw">else if </span>address.is_some() {
+<a href=#1732 id=1732 data-nosnippet>1732</a>        parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">Some</span>(AutoDerefType::Alias), <span class="bool-val">true</span>, <span class="bool-val">false</span>)
+<a href=#1733 id=1733 data-nosnippet>1733</a>    } <span class="kw">else </span>{
+<a href=#1734 id=1734 data-nosnippet>1734</a>        parse_full_data_type_definition(lexer, <span class="prelude-val">None</span>)
+<a href=#1735 id=1735 data-nosnippet>1735</a>    };
+<a href=#1736 id=1736 data-nosnippet>1736</a>
+<a href=#1737 id=1737 data-nosnippet>1737</a>    lexer.try_consume(KeywordSemicolon);
+<a href=#1738 id=1738 data-nosnippet>1738</a>
+<a href=#1739 id=1739 data-nosnippet>1739</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>((data_type, initializer)) = parse_definition_opt {
+<a href=#1740 id=1740 data-nosnippet>1740</a>        <span class="kw">for </span>(name, range) <span class="kw">in </span>var_names {
+<a href=#1741 id=1741 data-nosnippet>1741</a>            variables.push(Variable {
+<a href=#1742 id=1742 data-nosnippet>1742</a>                name,
+<a href=#1743 id=1743 data-nosnippet>1743</a>                data_type_declaration: data_type.clone(),
+<a href=#1744 id=1744 data-nosnippet>1744</a>                location: lexer.source_range_factory.create_range(range),
+<a href=#1745 id=1745 data-nosnippet>1745</a>                initializer: initializer.clone(),
+<a href=#1746 id=1746 data-nosnippet>1746</a>                address: address.clone(),
+<a href=#1747 id=1747 data-nosnippet>1747</a>            });
+<a href=#1748 id=1748 data-nosnippet>1748</a>        }
+<a href=#1749 id=1749 data-nosnippet>1749</a>    }
+<a href=#1750 id=1750 data-nosnippet>1750</a>
+<a href=#1751 id=1751 data-nosnippet>1751</a>    variables
+<a href=#1752 id=1752 data-nosnippet>1752</a>}
+<a href=#1753 id=1753 data-nosnippet>1753</a>
+<a href=#1754 id=1754 data-nosnippet>1754</a><span class="kw">fn </span>parse_hardware_access(
+<a href=#1755 id=1755 data-nosnippet>1755</a>    lexer: <span class="kw-2">&amp;mut </span>ParseSession,
+<a href=#1756 id=1756 data-nosnippet>1756</a>    hardware_access_type: HardwareAccessType,
+<a href=#1757 id=1757 data-nosnippet>1757</a>    access_type: DirectAccessType,
+<a href=#1758 id=1758 data-nosnippet>1758</a>) -&gt; <span class="prelude-ty">Option</span>&lt;AstNode&gt; {
+<a href=#1759 id=1759 data-nosnippet>1759</a>    <span class="kw">let </span>start_location = lexer.last_location();
+<a href=#1760 id=1760 data-nosnippet>1760</a>    lexer.advance();
+<a href=#1761 id=1761 data-nosnippet>1761</a>    <span class="comment">//Folowed by an integer
+<a href=#1762 id=1762 data-nosnippet>1762</a>    </span><span class="kw">if </span>access_type == DirectAccessType::Template || lexer.token == LiteralInteger {
+<a href=#1763 id=1763 data-nosnippet>1763</a>        <span class="kw">let </span><span class="kw-2">mut </span>address = <span class="macro">vec!</span>[];
+<a href=#1764 id=1764 data-nosnippet>1764</a>        <span class="kw">if </span>lexer.token == LiteralInteger {
+<a href=#1765 id=1765 data-nosnippet>1765</a>            <span class="kw">loop </span>{
+<a href=#1766 id=1766 data-nosnippet>1766</a>                <span class="kw">let </span>int = expressions_parser::parse_strict_literal_integer(lexer)<span class="question-mark">?</span>;
+<a href=#1767 id=1767 data-nosnippet>1767</a>                address.push(int);
+<a href=#1768 id=1768 data-nosnippet>1768</a>                <span class="kw">if </span>!lexer.try_consume(KeywordDot) {
+<a href=#1769 id=1769 data-nosnippet>1769</a>                    <span class="kw">break</span>;
+<a href=#1770 id=1770 data-nosnippet>1770</a>                }
+<a href=#1771 id=1771 data-nosnippet>1771</a>            }
+<a href=#1772 id=1772 data-nosnippet>1772</a>        }
+<a href=#1773 id=1773 data-nosnippet>1773</a>        <span class="prelude-val">Some</span>(AstFactory::create_hardware_access(
+<a href=#1774 id=1774 data-nosnippet>1774</a>            access_type,
+<a href=#1775 id=1775 data-nosnippet>1775</a>            hardware_access_type,
+<a href=#1776 id=1776 data-nosnippet>1776</a>            address,
+<a href=#1777 id=1777 data-nosnippet>1777</a>            start_location.span(<span class="kw-2">&amp;</span>lexer.last_location()),
+<a href=#1778 id=1778 data-nosnippet>1778</a>            lexer.next_id(),
+<a href=#1779 id=1779 data-nosnippet>1779</a>        ))
+<a href=#1780 id=1780 data-nosnippet>1780</a>    } <span class="kw">else </span>{
+<a href=#1781 id=1781 data-nosnippet>1781</a>        lexer.accept_diagnostic(Diagnostic::missing_token(<span class="string">"LiteralInteger"</span>, lexer.location()));
+<a href=#1782 id=1782 data-nosnippet>1782</a>        <span class="prelude-val">None
+<a href=#1783 id=1783 data-nosnippet>1783</a>    </span>}
+<a href=#1784 id=1784 data-nosnippet>1784</a>}
 </code></pre></div></section></main></body></html>
