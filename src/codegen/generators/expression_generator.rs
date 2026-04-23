@@ -715,12 +715,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         };
                         pou_info
                             .iter()
-                            .find(|variable_index_entry| {
-                                variable_index_entry.get_name() == variable_name
-                            })
-                            .is_some_and(|var_index_entry| {
-                                var_index_entry.get_variable_type().is_output()
-                            })
+                            .find(|variable_index_entry| variable_index_entry.get_name() == variable_name)
+                            .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
                     }
                     // Reached only in mixed calls: `implicit` tracks the first arg's style,
                     // so an `Assignment`/`OutputAssignment` first arg makes `implicit = false`
@@ -1140,16 +1136,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // The `unwrap_or(arg_idx)` fallback fires for variadic overflow: surplus args past
             // the declared params carry their call index through to be collected as variadics
             // below (where `declared_parameters.get(i) == None` → push to `variadic_parameters`).
-            let effective_idx = if is_mixed
-                && !orig_argument.is_assignment()
-                && !orig_argument.is_output_assignment()
-            {
-                let idx = positional_positions.get(positional_cursor).copied().unwrap_or(arg_idx);
-                positional_cursor += 1;
-                idx
-            } else {
-                arg_idx
-            };
+            let effective_idx =
+                if is_mixed && !orig_argument.is_assignment() && !orig_argument.is_output_assignment() {
+                    let idx = positional_positions.get(positional_cursor).copied().unwrap_or(arg_idx);
+                    positional_cursor += 1;
+                    idx
+                } else {
+                    arg_idx
+                };
             let (i, argument, _) =
                 get_implicit_call_parameter(orig_argument, &declared_parameters, effective_idx)?;
             let argument_is_reference_to = self.is_member_reference_to_reference_to(argument);

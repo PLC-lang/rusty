@@ -1236,7 +1236,7 @@ fn mixed_implicit_explicit_named_non_first_param_then_positional() {
     "#;
     let mut maintype = MainType { result: 0 };
     let _: i32 = compile_and_run(src.to_string(), &mut maintype);
-    assert_eq!(maintype.result, 1 * 10 + 20);
+    assert_eq!(maintype.result, 10 + 20);
 }
 
 #[test]
@@ -1263,7 +1263,7 @@ fn mixed_implicit_explicit_multiple_positional_and_named() {
     "#;
     let mut maintype = MainType { result: 0 };
     let _: i32 = compile_and_run(src.to_string(), &mut maintype);
-    assert_eq!(maintype.result, 1 * 100 + 20 * 10 + 3);
+    assert_eq!(maintype.result, 100 + 20 * 10 + 3);
 }
 
 #[test]
@@ -1331,7 +1331,7 @@ fn mixed_implicit_explicit_function_block_instance() {
     "#;
     let mut maintype = MainType { fb_vtable: 0, fb_a: 0, fb_b: 0, fb_out: 0, _pad: 0, result: 0 };
     let _: i32 = compile_and_run(src.to_string(), &mut maintype);
-    assert_eq!(maintype.result, 1 * 10 + 20);
+    assert_eq!(maintype.result, 10 + 20);
 }
 
 #[test]

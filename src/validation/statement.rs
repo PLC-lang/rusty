@@ -1948,14 +1948,12 @@ fn validate_call<T: AnnotationMap>(
         if natural_slot >= parameters.len() {
             continue;
         }
-        let colliding_name = arguments.iter().enumerate().skip(pos_call_idx + 1).find_map(
-            |(named_call_idx, named_arg)| {
+        let colliding_name =
+            arguments.iter().enumerate().skip(pos_call_idx + 1).find_map(|(named_call_idx, named_arg)| {
                 let name = named_arg.get_assignment_identifier()?;
-                let named_slot =
-                    parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))?;
+                let named_slot = parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))?;
                 (named_slot == natural_slot).then_some(named_call_idx)
-            },
-        );
+            });
         if let Some(named_call_idx) = colliding_name {
             let param_name = parameters[natural_slot].get_name();
             validator.push_diagnostic(
