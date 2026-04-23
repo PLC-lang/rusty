@@ -2337,10 +2337,10 @@ fn global_enums_type_resolving2() {
 
     assert_eq!(
         vec![
-            (Some("DINT"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
+            (Some("DINT"), Some("BYTE")),
+            (Some("DINT"), Some("BYTE")),
+            (Some("DINT"), Some("BYTE")),
+            (Some("DINT"), Some("BYTE")),
         ],
         initalizer_types
     );
@@ -2372,10 +2372,10 @@ fn global_lint_enums_type_resolving() {
 
     assert_eq!(
         vec![
-            (Some("DINT"), Some("MyEnum")),
-            (Some("MyEnum"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
-            (Some("MyEnum"), Some("MyEnum")),
+            (Some("DINT"), Some("LINT")),
+            (Some("MyEnum"), Some("LINT")),
+            (Some("DINT"), Some("LINT")),
+            (Some("MyEnum"), Some("LINT")),
         ],
         initalizer_types
     );
@@ -2393,7 +2393,7 @@ fn enum_element_initialization_is_annotated_correctly() {
         if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
             flatten_expression_list(elements)[2]
         {
-            assert_type_and_hint!(&annotations, &index, right, "DINT", Some("MyEnum"));
+            assert_type_and_hint!(&annotations, &index, right, "DINT", Some("BYTE"));
         } else {
             unreachable!()
         }

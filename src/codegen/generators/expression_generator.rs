@@ -1099,21 +1099,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut passed_param_indices = Vec::new();
         for (i, argument) in arguments.iter().enumerate() {
             let (i, argument, _) = get_implicit_call_parameter(argument, &declared_parameters, i)?;
+            let argument_is_reference_to = self.is_member_reference_to_reference_to(argument);
 
             // parameter_info includes the declaration type and type name
             let parameter_info = declared_parameters
                 .get(i)
                 .map(|it| {
                     let name = it.get_type_name();
+                    let parameter_is_reference_to = self
+                        .index
+                        .find_effective_type_info(name)
+                        .map(|type_info| type_info.is_reference_to())
+                        .unwrap_or(false);
+                    let both_sides_are_reference_to = argument_is_reference_to && parameter_is_reference_to;
+
                     if let Some(DataTypeInformation::Pointer {
                         inner_type_name, auto_deref: Some(_), ..
                     }) = self.index.find_effective_type_info(name)
                     {
                         // for auto_deref pointers (VAR_INPUT {ref}, VAR_IN_OUT) we call generate_argument_by_ref()
                         // we need the inner_type and not pointer to type otherwise we would generate a double pointer
-                        Some((it.get_declaration_type(), inner_type_name.as_str()))
+                        // unless both sides are reference to, in which case the double pointer is required
+                        let type_name =
+                            if both_sides_are_reference_to { name } else { inner_type_name.as_str() };
+
+                        Some((it.get_declaration_type(), type_name, both_sides_are_reference_to))
                     } else {
-                        Some((it.get_declaration_type(), name))
+                        Some((it.get_declaration_type(), name, both_sides_are_reference_to))
                     }
                 })
                 // TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
@@ -1130,10 +1142,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 })?;
 
-            if let Some((declaration_type, type_name)) = parameter_info {
+            if let Some((declaration_type, type_name, both_sides_are_reference_to)) = parameter_info {
                 let argument: BasicValueEnum = if declaration_type.is_by_ref()
                     || (self.index.get_effective_type_or_void_by_name(type_name).is_aggregate_type()
                         && declaration_type.is_input())
+                    || both_sides_are_reference_to
                 {
                     let declared_parameter = declared_parameters.get(i);
                     self.generate_argument_by_ref(argument, type_name, declared_parameter.copied())?
@@ -1175,6 +1188,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         result.sort_by_key(|(idx_a, _)| *idx_a);
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
+    }
+
+    fn is_member_reference_to_reference_to(&self, node: &AstNode) -> bool {
+        match node.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(_), .. }) => {
+                self.is_reference_to(node)
+            }
+            _ => false,
+        }
+    }
+
+    fn is_reference_to(&self, node: &AstNode) -> bool {
+        self.annotations.get(node).is_some_and(|stmt_anno| stmt_anno.is_reference_to())
     }
 
     /// generates a value that is passed by reference
@@ -1266,8 +1292,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_variadic_member(pou.get_name())
             .and_then(|it| it.get_varargs().zip(Some(it.get_declaration_type())))
         {
-            // For unsized variadics, we need to follow C ABI rules
             let is_unsized = matches!(var_args, VarArgs::Unsized(_));
+            // Untyped C-style variadics (`args: ...`) need C default argument promotion.
+            // Typed unsized variadics like `IN2: T2...` have a concrete callee signature
+            // after generic instantiation, so promoting their scalar arguments would break the ABI.
+            let needs_c_promotion = matches!(var_args, VarArgs::Unsized(None));
 
             let generated_params = variadic_params
                 .iter()
@@ -1285,7 +1314,38 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 self.index.get_variadic_member(pou.get_name()),
                             )
                         } else {
-                            self.generate_expression(param_statement)
+                            let value = self.generate_expression(param_statement)?;
+                            // Apply C default argument promotions for unsized (C-ABI) variadics
+                            if needs_c_promotion {
+                                match type_info.get_type_information() {
+                                    DataTypeInformation::Integer { signed, size, .. } if *size < 32 => {
+                                        let i32_type = self.llvm.context.i32_type();
+                                        let int_val = value.into_int_value();
+                                        Ok(if *signed {
+                                            self.llvm
+                                                .builder
+                                                .build_int_s_extend(int_val, i32_type, "")?
+                                                .as_basic_value_enum()
+                                        } else {
+                                            self.llvm
+                                                .builder
+                                                .build_int_z_extend(int_val, i32_type, "")?
+                                                .as_basic_value_enum()
+                                        })
+                                    }
+                                    DataTypeInformation::Float { size, .. } if *size < 64 => {
+                                        let f64_type = self.llvm.context.f64_type();
+                                        Ok(self
+                                            .llvm
+                                            .builder
+                                            .build_float_ext(value.into_float_value(), f64_type, "")?
+                                            .as_basic_value_enum())
+                                    }
+                                    _ => Ok(value),
+                                }
+                            } else {
+                                Ok(value)
+                            }
                         }
                     })
                 })

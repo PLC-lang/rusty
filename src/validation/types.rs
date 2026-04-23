@@ -1,6 +1,7 @@
 use plc_ast::{
     ast::{
-        AstNode, AstStatement, DataType, DataTypeDeclaration, PouType, RangeStatement, UserTypeDeclaration,
+        AstNode, AstStatement, AutoDerefType, DataType, DataTypeDeclaration, PouType, RangeStatement,
+        UserTypeDeclaration,
     },
     literals::AstLiteral,
 };
@@ -55,15 +56,75 @@ pub fn visit_data_type<T: AnnotationMap>(
         DataType::ArrayType { referenced_type, bounds, is_variable_length: false, .. } => {
             visit_data_type_declaration(validator, referenced_type, context);
             validate_array_bounds(validator, bounds, context);
+
+            // Arrays of automatically dereferenced `REFERENCE TO` pointers are not allowed.
+            let declaration = referenced_type.as_ref();
+            if !declaration.get_location().is_internal() {
+                if let DataTypeDeclaration::Reference { referenced_type, location } = declaration {
+                    if let Some(data_type) = context.index.find_effective_type_by_name(referenced_type) {
+                        if let DataTypeInformation::Pointer {
+                            auto_deref: Some(AutoDerefType::Reference),
+                            ..
+                        } = data_type.get_type_information()
+                        {
+                            validator.push_diagnostic(
+                                Diagnostic::new("Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.")
+                                    .with_error_code("E099")
+                                    .with_location(location),
+                            );
+                        }
+                    };
+                }
+            }
         }
         DataType::ArrayType { referenced_type, .. } => {
-            visit_data_type_declaration(validator, referenced_type, context)
+            visit_data_type_declaration(validator, referenced_type, context);
+
+            // Arrays of automatically dereferenced `REFERENCE TO` pointers are not allowed.
+            let declaration = referenced_type.as_ref();
+            if !declaration.get_location().is_internal() {
+                if let DataTypeDeclaration::Reference { referenced_type, location } = declaration {
+                    if let Some(data_type) = context.index.find_effective_type_by_name(referenced_type) {
+                        if let DataTypeInformation::Pointer {
+                            auto_deref: Some(AutoDerefType::Reference),
+                            ..
+                        } = data_type.get_type_information()
+                        {
+                            validator.push_diagnostic(
+                                Diagnostic::new("Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.")
+                                .with_error_code("E099")
+                                .with_location(location),
+                            );
+                        }
+                    };
+                }
+            }
         }
         DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {
             visit_data_type_declaration(validator, referenced_type.as_ref(), context);
         }
         DataType::PointerType { referenced_type, .. } => {
             visit_data_type_declaration(validator, referenced_type.as_ref(), context);
+
+            // References to automatically dereferenced `REFERENCE TO` pointers are not allowed.
+            let declaration = referenced_type.as_ref();
+            if !declaration.get_location().is_internal() {
+                if let DataTypeDeclaration::Reference { referenced_type, location } = declaration {
+                    if let Some(data_type) = context.index.find_effective_type_by_name(referenced_type) {
+                        if let DataTypeInformation::Pointer {
+                            auto_deref: Some(AutoDerefType::Reference),
+                            ..
+                        } = data_type.get_type_information()
+                        {
+                            validator.push_diagnostic(
+                                Diagnostic::new("Invalid reference to declaration. References to automatically dereferenced references are not allowed.")
+                                .with_error_code("E099")
+                                .with_location(location),
+                            );
+                        }
+                    };
+                }
+            }
         }
         DataType::EnumType { numeric_type, .. } => {
             if let Some(resolved_type) = context.index.find_effective_type_by_name(numeric_type) {
@@ -142,9 +203,11 @@ fn check_array_bound_type<T: AnnotationMap>(
     let accepted = if type_info.is_void() {
         // Resolver didn't annotate — fall back to literal inspection. Accept integer
         // literals; reject any other literal form.
-        matches!(expr.get_stmt(), AstStatement::Literal(AstLiteral::Integer(_)))
-            || !matches!(expr.get_stmt(), AstStatement::Literal(_))
+        matches!(expr.get_stmt_peeled(), AstStatement::Literal(AstLiteral::Integer(_)))
+            || !matches!(expr.get_stmt_peeled(), AstStatement::Literal(_))
     } else {
+        // `is_int()` includes integer-backed semantic types (notably BOOL and date/time),
+        // so those must be excluded explicitly.
         type_info.is_int() && !type_info.is_bool() && !type_info.is_date_or_time_type()
     };
 

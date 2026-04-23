@@ -229,6 +229,21 @@ fn array_bounds_must_be_constants() {
 }
 
 #[test]
+fn array_bounds_with_parenthesized_integer_literals_are_valid() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM p
+        VAR
+            arr : ARRAY[((1)) .. ((10))] OF INT;
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
 fn assignment_1d() {
     let diagnostics = parse_and_validate_buffered(
         "
