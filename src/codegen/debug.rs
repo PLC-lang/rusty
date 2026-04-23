@@ -239,12 +239,7 @@ impl DebugPathRemapper {
             .flat_map(|(candidate_idx, candidate)| {
                 self.prefix_maps.iter().filter_map(move |(old, new)| {
                     candidate.strip_prefix(old).ok().map(|suffix| {
-                        (
-                            old.components().count(),
-                            usize::MAX - candidate_idx,
-                            new.clone(),
-                            suffix.to_path_buf(),
-                        )
+                        (old.components().count(), candidate_idx, new.clone(), suffix.to_path_buf())
                     })
                 })
             })
