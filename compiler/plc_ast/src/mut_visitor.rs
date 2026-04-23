@@ -444,8 +444,8 @@ impl WalkerMut for PropertyBlock {
     where
         V: AstVisitorMut,
     {
-        visitor.visit_data_type_declaration(&mut self.datatype);
         for implementation in &mut self.implementations {
+            visitor.visit_data_type_declaration(&mut implementation.datatype);
             for block in &mut implementation.variable_blocks {
                 visitor.visit_variable_block(block);
             }

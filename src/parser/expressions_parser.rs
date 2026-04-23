@@ -289,7 +289,7 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
                 ))
             })
         }
-        Identifier => Some(parse_identifier(lexer)),
+        token if token.is_identifier_like() => Some(parse_identifier(lexer)),
         KeywordSuper => {
             lexer.advance();
             Some(AstFactory::create_super_reference(
@@ -529,7 +529,7 @@ fn parse_direct_access(lexer: &mut ParseSession, access: DirectAccessType) -> Op
     //The next token can either be an integer or an identifier
     let index = match lexer.token {
         LiteralInteger => parse_strict_literal_integer(lexer),
-        Identifier => {
+        token if token.is_identifier_like() => {
             let location = lexer.location();
             Some(AstFactory::create_member_reference(
                 AstFactory::create_identifier(lexer.slice_and_advance().as_str(), location, lexer.next_id()),

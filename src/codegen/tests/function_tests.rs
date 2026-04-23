@@ -546,3 +546,91 @@ fn function_block_output_should_be_cast_if_needed() {
     }
     "#)
 }
+
+#[test]
+fn function_call_with_references_to_references_lowered() {
+    let result = codegen(
+        "
+        FUNCTION referenceFunc
+            VAR_INPUT
+                __referenceFunc_return_val : REFERENCE TO INT;
+                in	: REFERENCE TO INT;
+            END_VAR
+
+            in := in + 1;
+            __referenceFunc_return_val REF= in;
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                refVal : REFERENCE TO INT;
+                conVal : INT;
+                tmpVal : INT;
+            END_VAR
+
+            VAR_TEMP
+                __referenceFunc_return_val : REFERENCE TO INT;
+                __referenceFunc_return_val_store : INT;
+            END_VAR
+
+            tmpVal := 11;
+            refVal REF= tmpVal;
+            __referenceFunc_return_val REF= __referenceFunc_return_val_store;
+            referenceFunc(__referenceFunc_return_val, refVal);
+            refVal REF= __referenceFunc_return_val;
+            conVal := refVal;
+        END_FUNCTION
+    ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define void @referenceFunc(ptr %0, ptr %1) {
+    entry:
+      %__referenceFunc_return_val = alloca ptr, align [filtered]
+      store ptr %0, ptr %__referenceFunc_return_val, align [filtered]
+      %in = alloca ptr, align [filtered]
+      store ptr %1, ptr %in, align [filtered]
+      %deref = load ptr, ptr %in, align [filtered]
+      %deref1 = load ptr, ptr %in, align [filtered]
+      %load_in = load i16, ptr %deref1, align [filtered]
+      %2 = sext i16 %load_in to i32
+      %tmpVar = add i32 %2, 1
+      %3 = trunc i32 %tmpVar to i16
+      store i16 %3, ptr %deref, align [filtered]
+      %deref2 = load ptr, ptr %in, align [filtered]
+      store ptr %deref2, ptr %__referenceFunc_return_val, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %refVal = alloca ptr, align [filtered]
+      %conVal = alloca i16, align [filtered]
+      %tmpVal = alloca i16, align [filtered]
+      %__referenceFunc_return_val = alloca ptr, align [filtered]
+      %__referenceFunc_return_val_store = alloca i16, align [filtered]
+      store ptr null, ptr %refVal, align [filtered]
+      store i16 0, ptr %conVal, align [filtered]
+      store i16 0, ptr %tmpVal, align [filtered]
+      store ptr null, ptr %__referenceFunc_return_val, align [filtered]
+      store i16 0, ptr %__referenceFunc_return_val_store, align [filtered]
+      store i16 11, ptr %tmpVal, align [filtered]
+      store ptr %tmpVal, ptr %refVal, align [filtered]
+      store ptr %__referenceFunc_return_val_store, ptr %__referenceFunc_return_val, align [filtered]
+      %deref = load ptr, ptr %__referenceFunc_return_val, align [filtered]
+      %deref1 = load ptr, ptr %refVal, align [filtered]
+      call void @referenceFunc(ptr %deref, ptr %deref1)
+      %deref2 = load ptr, ptr %__referenceFunc_return_val, align [filtered]
+      store ptr %deref2, ptr %refVal, align [filtered]
+      %deref3 = load ptr, ptr %refVal, align [filtered]
+      %load_refVal = load i16, ptr %deref3, align [filtered]
+      store i16 %load_refVal, ptr %conVal, align [filtered]
+      ret void
+    }
+    "#)
+}

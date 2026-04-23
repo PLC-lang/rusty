@@ -5,23 +5,19 @@ FUNCTION_BLOCK fb1
         localPrivateVariable: DINT := 68;
     END_VAR
 
-    PROPERTY prop: DINT
-        GET
-            prop := localPrivateVariable;
-        END_GET
+    PROPERTY_GET prop: DINT
+        prop := localPrivateVariable;
     END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fb2 EXTENDS fb1
-    PROPERTY prop: DINT
-        SET
-            VAR
-                x: DINT;
-            END_VAR
+    PROPERTY_SET prop: DINT
+        VAR
+            x: DINT;
+        END_VAR
 
-            x := prop + 1;
-            localPrivateVariable := x;
-        END_SET
+        x := prop + 1;
+        localPrivateVariable := x;
     END_PROPERTY
 END_FUNCTION_BLOCK
 

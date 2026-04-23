@@ -1409,6 +1409,30 @@ fn ref_assignment_with_reference_to_array_variable() {
 }
 
 #[test]
+fn reference_to_array_of_pointer_type_supports_ref_and_value_assignments() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE userType :
+            INT := 1;
+        END_TYPE
+
+        PROGRAM junit
+        VAR
+            a : REFERENCE TO ARRAY [1..2] OF POINTER TO userType;
+            b : ARRAY [1..2] OF POINTER TO userType;
+        END_VAR
+
+            a REF= b;
+            b := a;
+            a := b;
+        END_PROGRAM
+        ",
+    );
+
+    assert!(diagnostics.is_empty(), "{diagnostics}");
+}
+
+#[test]
 fn ref_assignment_with_reference_to_string_variable() {
     let diagnostics = parse_and_validate_buffered(
         "
@@ -1442,8 +1466,6 @@ fn ref_assignment_with_reference_to_string_variable() {
     ");
 }
 
-// TODO(volsa): Improve the error messages here; these are the default messages returned by the parser
-//              without any modifications.
 #[test]
 fn invalid_reference_to_declaration() {
     let diagnostics = parse_and_validate_buffered(
@@ -1459,33 +1481,23 @@ fn invalid_reference_to_declaration() {
     );
 
     insta::assert_snapshot!(diagnostics, @"
-    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
-      ┌─ <internal>:4:38
+    error[E099]: Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.
+      ┌─ <internal>:4:23
       │
     4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
-      │                                      ^^^^^^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+      │                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'REFERENCE TO DINT'
-      ┌─ <internal>:4:38
-      │
-    4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
-      │                                      ^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'REFERENCE TO DINT'
-
-    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
-      ┌─ <internal>:5:36
+    error[E099]: Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+      ┌─ <internal>:5:23
       │
     5 │                 baz : REFERENCE TO REFERENCE TO DINT;
-      │                                    ^^^^^^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+      │                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference to declaration. References to automatically dereferenced references are not allowed.
 
-    error[E007]: Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
-                    qux : REF_TO REFERENCE TO DINT;'
-      ┌─ <internal>:5:36
-      │  
-    5 │                   baz : REFERENCE TO REFERENCE TO DINT;
-      │ ╭────────────────────────────────────^
-    6 │ │                 qux : REF_TO REFERENCE TO DINT;
-      │ ╰───────────────────────────────────────────────^ Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
-                    qux : REF_TO REFERENCE TO DINT;'
+    error[E099]: Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+      ┌─ <internal>:6:23
+      │
+    6 │                 qux : REF_TO REFERENCE TO DINT;
+      │                       ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference to declaration. References to automatically dereferenced references are not allowed.
     ");
 }
 

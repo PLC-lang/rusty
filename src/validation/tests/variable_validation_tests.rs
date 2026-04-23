@@ -33,6 +33,90 @@ fn uninitialized_constants_fall_back_to_the_default() {
 }
 
 #[test]
+fn uninitialized_derived_array_constants_do_not_report_array_literal_syntax_errors() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE internArraySint : ARRAY [1..3] OF SINT := [1,2,3]; END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            gVargDerivedArray : internArraySint;
+        END_VAR
+       ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn uninitialized_array_constants_without_type_default_report_e033() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE internArraySint : ARRAY [1..3] OF SINT; END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            gVargDerivedArray : internArraySint;
+        END_VAR
+       ",
+    );
+
+    assert_snapshot!(&diagnostics, @r"
+    error[E033]: Unresolved constant `gVargDerivedArray` variable: no explicit initializer and no default value could be resolved
+      ┌─ <internal>:5:13
+      │
+    5 │             gVargDerivedArray : internArraySint;
+      │             ^^^^^^^^^^^^^^^^^ Unresolved constant `gVargDerivedArray` variable: no explicit initializer and no default value could be resolved
+    ");
+}
+
+#[test]
+fn array_constants_with_non_constant_initializers_report_e033() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION F : INT
+            F := 1;
+        END_FUNCTION
+
+        VAR_GLOBAL CONSTANT
+            arr : ARRAY[1..2] OF INT := [F(), 2];
+        END_VAR
+       ",
+    );
+
+    assert_snapshot!(&diagnostics, @r"
+    error[E033]: Unresolved constant `arr` variable: Call-statement 'F' in initializer is not constant.
+      ┌─ <internal>:7:41
+      │
+    7 │             arr : ARRAY[1..2] OF INT := [F(), 2];
+      │                                         ^^^^^^^^ Unresolved constant `arr` variable: Call-statement 'F' in initializer is not constant.
+    ");
+}
+
+#[test]
+fn uninitialized_array_constants_with_unresolvable_type_default_report_e033() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION F : INT
+            F := 1;
+        END_FUNCTION
+
+        TYPE arr_t : ARRAY[1..2] OF INT := [F(), 2]; END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            a : arr_t;
+        END_VAR
+       ",
+    );
+
+    assert_snapshot!(&diagnostics, @r"
+    error[E033]: Unresolved constant `a` variable: Call-statement 'F' in initializer is not constant.
+      ┌─ <internal>:9:13
+      │
+    9 │             a : arr_t;
+      │             ^ Unresolved constant `a` variable: Call-statement 'F' in initializer is not constant.
+    ");
+}
+
+#[test]
 fn unresolvable_variables_are_reported() {
     let diagnostics = parse_and_validate_buffered(
         "
@@ -417,6 +501,64 @@ fn assignment_suggestion_for_equal_operation_with_no_effect() {
 }
 
 #[test]
+fn equal_operation_in_call_arguments_does_not_trigger_no_effect_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM mainProg
+        VAR
+            w1, w2 : WORD;
+        END_VAR
+
+            foo(w1 = w2);
+            foo2(w1 = w2);
+
+        END_PROGRAM
+
+        FUNCTION foo
+            VAR_INPUT
+                b : BOOL;
+            END_VAR
+        END_FUNCTION
+
+        {external}
+        FUNCTION foo2
+            VAR_INPUT
+                b : ...;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn equal_operation_as_statement_still_triggers_no_effect_warning() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM mainProg
+        VAR
+            w1, w2 : WORD;
+        END_VAR
+
+            foo2(w1 = w2);
+            w1 = w2;
+
+        END_PROGRAM
+
+        {external}
+        FUNCTION foo2
+            VAR_INPUT
+                b : ...;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_eq!(diagnostics.matches("warning[E023]").count(), 1);
+}
+
+#[test]
 fn invalid_initial_constant_values_in_pou_variables() {
     let diagnostics = parse_and_validate_buffered(
         r#"
@@ -662,7 +804,7 @@ fn only_constant_builtins_are_allowed_in_initializer() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @"
+    assert_snapshot!(diagnostics, @r"
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:7:9
       │  
@@ -1308,11 +1450,10 @@ fn output_variables_must_not_be_assignable_outside_of_their_scope() {
                 out1 := 1;
             END_METHOD
 
-            PROPERTY someProperty : DINT
-                GET
-                    out1 := 1;
-                END_GET
-                SET END_SET
+            PROPERTY_GET someProperty: DINT
+                out1 := 1;
+            END_PROPERTY
+            PROPERTY_SET someProperty: DINT
             END_PROPERTY
 
             out1 := 1;
@@ -1335,11 +1476,11 @@ fn output_variables_must_not_be_assignable_outside_of_their_scope() {
        ",
     );
 
-    assert_snapshot!(&diagnostics, @"
+    assert_snapshot!(&diagnostics, @r"
     error[E037]: VAR_OUTPUT variables cannot be assigned outside of their scope.
-       ┌─ <internal>:41:13
+       ┌─ <internal>:40:13
        │
-    41 │             fb.out1 := 1;
+    40 │             fb.out1 := 1;
        │             ^^^^^^^^^^^^ VAR_OUTPUT variables cannot be assigned outside of their scope.
     ");
 }
@@ -1380,11 +1521,10 @@ fn output_variables_must_be_assignable_within_the_scope_of_inheritance() {
                 out1 := 1;
             END_METHOD
 
-            PROPERTY someProperty : DINT
-                GET
-                    out1 := 1;
-                END_GET
-                SET END_SET
+            PROPERTY_GET someProperty: DINT
+                out1 := 1;
+            END_PROPERTY
+            PROPERTY_SET someProperty: DINT
             END_PROPERTY
 
             out1 := 1;

@@ -77,7 +77,6 @@ pub struct Identifier {
 #[serde(bound(deserialize = "'de: 'static"))]
 pub struct PropertyBlock {
     pub ident: Identifier,
-    pub datatype: DataTypeDeclaration,
     pub implementations: Vec<PropertyImplementation>,
 }
 
@@ -86,8 +85,6 @@ impl Eq for PropertyBlock {}
 impl Hash for PropertyBlock {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.ident.hash(state);
-        self.datatype.get_name().hash(state);
-        self.datatype.get_location().hash(state);
     }
 }
 
@@ -95,6 +92,7 @@ impl Hash for PropertyBlock {
 #[serde(bound(deserialize = "'de: 'static"))]
 pub struct PropertyImplementation {
     pub kind: PropertyKind,
+    pub datatype: DataTypeDeclaration,
     pub location: SourceLocation,
     pub variable_blocks: Vec<VariableBlock>,
     pub body: Vec<AstNode>,
@@ -618,6 +616,10 @@ impl VariableBlock {
 
     pub fn is_temp(&self) -> bool {
         matches!(self.kind, VariableBlockType::Temp)
+    }
+
+    pub fn is_input_by_val(&self) -> bool {
+        matches!(self.kind, VariableBlockType::Input(ArgumentProperty::ByVal))
     }
 }
 

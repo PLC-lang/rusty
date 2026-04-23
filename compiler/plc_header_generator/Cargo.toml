@@ -1,15 +1,15 @@
 [package]
 name = "plc_header_generator"
-version = "0.4.0-dev"
+version = "0.4.1-dev"
 edition = "2021"
 license = "LGPL-3.0"
 description = "C header file generator for the PLC Structured Text compiler"
 
 [dependencies]
-plc = { path = "../..", package = "plc-compiler", version = "0.4.0-dev" }
-plc_diagnostics = { path = "../plc_diagnostics/", version = "0.4.0-dev" }
-plc_ast = { path = "../plc_ast/", version = "0.4.0-dev" }
-plc_source = { path = "../plc_source/", version = "0.4.0-dev" }
+plc = { path = "../..", package = "plc-compiler", version = "0.4.1-dev" }
+plc_diagnostics = { path = "../plc_diagnostics/", version = "0.4.1-dev" }
+plc_ast = { path = "../plc_ast/", version = "0.4.1-dev" }
+plc_source = { path = "../plc_source/", version = "0.4.1-dev" }
 tera = "1"
 clap = { version = "3.0", features = ["derive"] }
 regex = "1"
