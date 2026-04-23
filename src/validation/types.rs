@@ -1,5 +1,9 @@
-use plc_ast::ast::{
-    AstNode, AstStatement, AutoDerefType, DataType, DataTypeDeclaration, PouType, UserTypeDeclaration,
+use plc_ast::{
+    ast::{
+        AstNode, AstStatement, AutoDerefType, DataType, DataTypeDeclaration, PouType, RangeStatement,
+        UserTypeDeclaration,
+    },
+    literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -48,6 +52,30 @@ pub fn visit_data_type<T: AnnotationMap>(
     match data_type {
         DataType::StructType { variables, .. } => {
             variables.iter().for_each(|v| visit_variable(validator, v, context))
+        }
+        DataType::ArrayType { referenced_type, bounds, is_variable_length: false, .. } => {
+            visit_data_type_declaration(validator, referenced_type, context);
+            validate_array_bounds(validator, bounds, context);
+
+            // Arrays of automatically dereferenced `REFERENCE TO` pointers are not allowed.
+            let declaration = referenced_type.as_ref();
+            if !declaration.get_location().is_internal() {
+                if let DataTypeDeclaration::Reference { referenced_type, location } = declaration {
+                    if let Some(data_type) = context.index.find_effective_type_by_name(referenced_type) {
+                        if let DataTypeInformation::Pointer {
+                            auto_deref: Some(AutoDerefType::Reference),
+                            ..
+                        } = data_type.get_type_information()
+                        {
+                            validator.push_diagnostic(
+                                Diagnostic::new("Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.")
+                                .with_error_code("E099")
+                                .with_location(location),
+                            );
+                        }
+                    };
+                }
+            }
         }
         DataType::ArrayType { referenced_type, .. } => {
             visit_data_type_declaration(validator, referenced_type, context);
@@ -145,6 +173,56 @@ fn validate_data_type(validator: &mut Validator, data_type: &DataType, location:
         ),
         _ => {}
     }
+}
+
+/// Validate that each range bound of a statically-sized array has an integer type.
+/// Rejects non-integer bounds (REAL, STRING, TIME, ...) and also BOOL — BOOL is
+/// represented as an integer internally, but its literal form does not lower to an
+/// integer constant expression and would otherwise crash codegen.
+fn validate_array_bounds<T: AnnotationMap>(
+    validator: &mut Validator,
+    bounds: &AstNode,
+    context: &ValidationContext<T>,
+) {
+    for bound in bounds.get_as_list() {
+        let AstStatement::RangeStatement(RangeStatement { start, end }) = bound.get_stmt() else {
+            continue;
+        };
+        check_array_bound_type(validator, start, context);
+        check_array_bound_type(validator, end, context);
+    }
+}
+
+fn check_array_bound_type<T: AnnotationMap>(
+    validator: &mut Validator,
+    expr: &AstNode,
+    context: &ValidationContext<T>,
+) {
+    let type_info = context.annotations.get_type_or_void(expr, context.index).get_type_information();
+
+    let accepted = if type_info.is_void() {
+        // Resolver didn't annotate — fall back to literal inspection. Accept integer
+        // literals; reject any other literal form.
+        matches!(expr.get_stmt_peeled(), AstStatement::Literal(AstLiteral::Integer(_)))
+            || !matches!(expr.get_stmt_peeled(), AstStatement::Literal(_))
+    } else {
+        // `is_int()` includes integer-backed semantic types (notably BOOL and date/time),
+        // so those must be excluded explicitly.
+        type_info.is_int() && !type_info.is_bool() && !type_info.is_date_or_time_type()
+    };
+
+    if accepted {
+        return;
+    }
+
+    let type_name = type_info.get_name();
+    validator.push_diagnostic(
+        Diagnostic::new(format!(
+            "Invalid type '{type_name}' for array bounds. Only integer types are allowed"
+        ))
+        .with_error_code("E008")
+        .with_location(expr.get_location()),
+    );
 }
 
 pub fn visit_user_type_declaration<T: AnnotationMap>(
