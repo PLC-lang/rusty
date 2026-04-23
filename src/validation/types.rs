@@ -142,9 +142,11 @@ fn check_array_bound_type<T: AnnotationMap>(
     let accepted = if type_info.is_void() {
         // Resolver didn't annotate — fall back to literal inspection. Accept integer
         // literals; reject any other literal form.
-        matches!(expr.get_stmt(), AstStatement::Literal(AstLiteral::Integer(_)))
-            || !matches!(expr.get_stmt(), AstStatement::Literal(_))
+        matches!(expr.get_stmt_peeled(), AstStatement::Literal(AstLiteral::Integer(_)))
+            || !matches!(expr.get_stmt_peeled(), AstStatement::Literal(_))
     } else {
+        // `is_int()` includes integer-backed semantic types (notably BOOL and date/time),
+        // so those must be excluded explicitly.
         type_info.is_int() && !type_info.is_bool() && !type_info.is_date_or_time_type()
     };
 
