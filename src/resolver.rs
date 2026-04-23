@@ -308,6 +308,11 @@ impl TypeAnnotator<'_> {
             implementation.map(|it| it.get_type_name().to_string()).unwrap_or(name)
         };
 
+        // Three variants, not one generalized routine: each has a distinct param-lookup
+        // strategy that doesn't compose cleanly in a single loop.
+        //   - all-positional: zip params with args in order (no per-arg name lookup)
+        //   - all-named:      resolve each arg by name (ignoring declaration order)
+        //   - mixed:          named args claim slots first, positional args fill the gaps
         let has_named = arguments.iter().any(|arg| arg.is_assignment() || arg.is_output_assignment());
         let has_positional = arguments.iter().any(|arg| !arg.is_assignment() && !arg.is_output_assignment());
         let generics = if has_named && has_positional {
@@ -321,6 +326,16 @@ impl TypeAnnotator<'_> {
         self.update_generic_call_statement(generics, &pou_name, operator, arguments_node, ctx.to_owned());
     }
 
+    /// Annotate call arguments when the caller mixes positional and named args,
+    /// e.g. `foo(1, b := 20)` or `foo(a := 10, 2, c := 30)`.
+    ///
+    /// The resolution rule matches `generate_function_arguments` in the codegen: named args
+    /// claim their slots first, then positional args fill the remaining slots left-to-right.
+    /// **Both sides must stay in sync** — if this rule changes, update the codegen too.
+    ///
+    /// Invariant: this is only called when the argument list contains AT LEAST one named and
+    /// one positional arg; otherwise `annotate_arguments_named` / `annotate_arguments_positional`
+    /// handle the pure cases.
     fn annotate_arguments_mixed(
         &mut self,
         pou_name: &str,
@@ -329,7 +344,7 @@ impl TypeAnnotator<'_> {
         let mut generics_candidates = FxHashMap::<String, Vec<String>>::default();
         let parameters = self.index.get_available_parameters(pou_name);
 
-        // Collect parameter indices already claimed by named args
+        // Slots that named args have already claimed — positional fill skips these.
         let named_positions: FxHashSet<usize> = arguments
             .iter()
             .filter_map(|arg| {
@@ -338,14 +353,15 @@ impl TypeAnnotator<'_> {
             })
             .collect();
 
-        // Ordered list of positions available for positional args
+        // Remaining slots in declaration order — consumed by positional args one by one.
         let positional_positions: Vec<usize> =
             (0..parameters.len()).filter(|i| !named_positions.contains(i)).collect();
         let mut positional_cursor = 0;
 
         for argument in arguments {
             if let Some(var_name) = argument.get_assignment_identifier() {
-                // Named arg: look up parameter by name
+                // Named arg (`x := value` or `x => value`): resolve by name, honouring
+                // inheritance (`find_pou_member_and_depth` walks the supertype chain).
                 let Some((parameter, depth)) =
                     TypeAnnotator::find_pou_member_and_depth(self.index, pou_name, var_name)
                 else {
@@ -366,12 +382,12 @@ impl TypeAnnotator<'_> {
                     );
                 }
             } else {
-                // Positional arg: use next available parameter position
-                let Some(&pos) = positional_positions.get(positional_cursor) else {
-                    positional_cursor += 1;
-                    continue;
-                };
+                // Positional arg: consume the next free slot. Advance the cursor unconditionally
+                // so surplus positionals (beyond the declared params) are simply dropped — the
+                // arity check in the validator (E032) surfaces this as a user-facing error.
+                let pos = positional_positions.get(positional_cursor).copied();
                 positional_cursor += 1;
+                let Some(pos) = pos else { continue };
 
                 let Some(parameter) = parameters.get(pos) else { continue };
                 let type_name = parameter.get_type_name();

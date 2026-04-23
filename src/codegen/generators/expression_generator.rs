@@ -722,7 +722,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 var_index_entry.get_variable_type().is_output()
                             })
                     }
-                    // positional args in mixed calls are never outputs
+                    // Reached only in mixed calls: `implicit` tracks the first arg's style,
+                    // so an `Assignment`/`OutputAssignment` first arg makes `implicit = false`
+                    // and any later positional arg lands here. Outputs are written post-call
+                    // only for `=>`, so a bare positional never triggers the copy.
                     _ => false,
                 }
             };
@@ -1100,8 +1103,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut result = Vec::new();
         let mut variadic_parameters = Vec::new();
         let mut passed_param_indices = Vec::new();
-        // For mixed implicit/explicit calls, positional args must skip positions
-        // already claimed by named args rather than using their argument index.
+
+        // Mixed-call resolution: named args claim their slots first, then positional args
+        // fill the remaining slots in declaration order. **This rule must match
+        // `TypeAnnotator::annotate_arguments_mixed` in the resolver** — the resolver uses it
+        // for type hinting, we use it here to compute the LLVM argument index.
+        //
+        // Why duplicated? The function-call codegen path threads args through
+        // `get_implicit_call_parameter`, which was designed for pure-positional / pure-named
+        // calls and expects the caller to pre-compute the slot. FB/PROGRAM calls use the
+        // resolver's `Argument` hint directly and don't need this.
         let is_mixed = arguments.iter().any(|a| a.is_assignment() || a.is_output_assignment())
             && arguments.iter().any(|a| !a.is_assignment() && !a.is_output_assignment());
         let named_positions: Vec<usize> = if is_mixed {
@@ -1123,6 +1134,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut positional_cursor = 0usize;
 
         for (arg_idx, orig_argument) in arguments.iter().enumerate() {
+            // For mixed calls, positional args are remapped to the next free slot; named args
+            // and all args in pure calls keep their natural call index.
+            //
+            // The `unwrap_or(arg_idx)` fallback fires for variadic overflow: surplus args past
+            // the declared params carry their call index through to be collected as variadics
+            // below (where `declared_parameters.get(i) == None` → push to `variadic_parameters`).
             let effective_idx = if is_mixed
                 && !orig_argument.is_assignment()
                 && !orig_argument.is_output_assignment()

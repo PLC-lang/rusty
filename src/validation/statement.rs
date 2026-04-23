@@ -1917,46 +1917,55 @@ fn validate_call<T: AnnotationMap>(
         visit_statement(validator, argument, context);
     }
 
-    // Flag positional args whose natural slot is also named by a LATER arg.
-    // Under the resolver's "skip named slots" rule, the positional silently spills into
-    // the next free slot — almost always a mistake. `myfunc(1, a := 10)` becomes
-    // `a := 10, b := 1` without warning; E131 makes the ambiguity explicit.
+    // E131: flag positional args whose natural slot is also named by a LATER arg.
+    //
+    // Rule: a positional arg at call-index P collides if any named arg at call-index > P
+    // targets the slot P would naturally fill (= the number of positional args before it).
+    //
+    // Why only "later" named args? Because names that appear *before* a positional are how
+    // the caller reshuffles the default filling order — `myfunc(b := 20, 1, 3)` is a clear
+    // use of mixing where positional `1` cleanly takes slot 0 and `3` takes slot 2. That is
+    // not a collision; the user saw the name first and chose the positional below it.
+    //
+    // A name coming *after* the positional is different: the positional reads like it fills
+    // slot N, but the resolver actually spills it past the named slot. E.g. `myfunc(1, a := 10)`
+    // silently becomes `a := 10, b := 1`. Almost always a mistake — hence error, not warning.
     let mut positional_ordinal = 0usize;
     let positionals: Vec<(usize, usize)> = arguments
         .iter()
         .enumerate()
         .filter_map(|(call_idx, arg)| {
             if arg.is_assignment() || arg.is_output_assignment() {
-                None
-            } else {
-                let entry = (call_idx, positional_ordinal);
-                positional_ordinal += 1;
-                Some(entry)
+                return None;
             }
+            let entry = (call_idx, positional_ordinal);
+            positional_ordinal += 1;
+            Some(entry)
         })
         .collect();
     for (pos_call_idx, natural_slot) in positionals {
+        // Overflow past declared params — already flagged by the arity check (E032).
         if natural_slot >= parameters.len() {
             continue;
         }
-        for (named_call_idx, named_arg) in arguments.iter().enumerate().skip(pos_call_idx + 1) {
-            let Some(name) = named_arg.get_assignment_identifier() else { continue };
-            let Some(named_slot) = parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))
-            else {
-                continue;
-            };
-            if named_slot == natural_slot {
-                let param_name = parameters[natural_slot].get_name();
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Positional argument collides with later named argument `{param_name}`"
-                    ))
-                    .with_error_code("E131")
-                    .with_location(arguments[pos_call_idx])
-                    .with_secondary_location(arguments[named_call_idx]),
-                );
-                break;
-            }
+        let colliding_name = arguments.iter().enumerate().skip(pos_call_idx + 1).find_map(
+            |(named_call_idx, named_arg)| {
+                let name = named_arg.get_assignment_identifier()?;
+                let named_slot =
+                    parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))?;
+                (named_slot == natural_slot).then_some(named_call_idx)
+            },
+        );
+        if let Some(named_call_idx) = colliding_name {
+            let param_name = parameters[natural_slot].get_name();
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Positional argument collides with later named argument `{param_name}`"
+                ))
+                .with_error_code("E131")
+                .with_location(arguments[pos_call_idx])
+                .with_secondary_location(arguments[named_call_idx]),
+            );
         }
     }
 
