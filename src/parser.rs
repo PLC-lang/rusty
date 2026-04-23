@@ -1092,6 +1092,15 @@ fn parse_data_type_definition(
         parse_pointer_definition(lexer, name, start_pos, None, false, false)
     } else if lexer.try_consume(KeywordRef) {
         parse_pointer_definition(lexer, name, lexer.last_range.start, None, true, false)
+    } else if lexer.try_consume(KeywordReferenceTo) {
+        parse_pointer_definition(
+            lexer,
+            name,
+            lexer.last_range.start,
+            Some(AutoDerefType::Reference),
+            true,
+            false,
+        )
     } else if lexer.try_consume(KeywordParensOpen) {
         parse_enum_type_definition(lexer, name)
     } else if lexer.token == KeywordString || lexer.token == KeywordWideString {

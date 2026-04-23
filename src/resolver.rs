@@ -1976,7 +1976,8 @@ impl<'i> TypeAnnotator<'i> {
                 let ctx = ctx.with_qualifier(name);
                 variables.iter().for_each(|v| self.visit_variable(&ctx, v))
             }
-            DataType::ArrayType { referenced_type, .. } => {
+            DataType::ArrayType { referenced_type, bounds, .. } => {
+                self.visit_statement(ctx, bounds);
                 self.visit_data_type_declaration(ctx, referenced_type)
             }
             DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {
