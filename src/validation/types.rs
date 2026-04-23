@@ -56,6 +56,26 @@ pub fn visit_data_type<T: AnnotationMap>(
         DataType::ArrayType { referenced_type, bounds, is_variable_length: false, .. } => {
             visit_data_type_declaration(validator, referenced_type, context);
             validate_array_bounds(validator, bounds, context);
+
+            // Arrays of automatically dereferenced `REFERENCE TO` pointers are not allowed.
+            let declaration = referenced_type.as_ref();
+            if !declaration.get_location().is_internal() {
+                if let DataTypeDeclaration::Reference { referenced_type, location } = declaration {
+                    if let Some(data_type) = context.index.find_effective_type_by_name(referenced_type) {
+                        if let DataTypeInformation::Pointer {
+                            auto_deref: Some(AutoDerefType::Reference),
+                            ..
+                        } = data_type.get_type_information()
+                        {
+                            validator.push_diagnostic(
+                                Diagnostic::new("Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.")
+                                .with_error_code("E099")
+                                .with_location(location),
+                            );
+                        }
+                    };
+                }
+            }
         }
         DataType::ArrayType { referenced_type, .. } => {
             visit_data_type_declaration(validator, referenced_type, context);
