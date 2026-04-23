@@ -35,7 +35,7 @@
             const path_to_root = "../../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../../searchindex-a0526a18.js";
+            window.path_to_searchindex_js = "../../searchindex-b1a3a376.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../toc-e891cefd.js"></script>
@@ -174,7 +174,55 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="invalid-range"><a class="header" href="#invalid-range">Invalid Range</a></h1>
+                        <h1 id="e008-invalid-range"><a class="header" href="#e008-invalid-range">E008: Invalid Range</a></h1>
+<p>This error is emitted when an array range declaration is malformed. There are two
+cases that trigger it.</p>
+<h2 id="1-missing-or-malformed-range"><a class="header" href="#1-missing-or-malformed-range">1. Missing or malformed range</a></h2>
+<p>An array dimension must be written as <code>start .. end</code>. A bare literal or any
+other expression in a dimension slot is rejected, including in multi-dimensional
+arrays where any single dimension is not a range.</p>
+<p>Invalid:</p>
+<pre><code class="language-st">VAR
+    arr1 : ARRAY[5] OF DINT;           // bare literal, no range
+    arr2 : ARRAY[0..5, 5] OF DINT;     // second dimension is not a range
+END_VAR
+</code></pre>
+<h2 id="how-to-fix"><a class="header" href="#how-to-fix">How to fix</a></h2>
+<p>Use <code>start .. end</code> for every dimension:</p>
+<pre><code class="language-st">VAR
+    arr1 : ARRAY[0..5] OF DINT;
+    arr2 : ARRAY[0..5, 0..5] OF DINT;
+END_VAR
+</code></pre>
+<h2 id="2-non-integer-range-bounds"><a class="header" href="#2-non-integer-range-bounds">2. Non-integer range bounds</a></h2>
+<p>Array range bounds must be of an integer type. <code>BOOL</code>, <code>REAL</code> / <code>LREAL</code>,
+<code>STRING</code> / <code>WSTRING</code>, time/date types, and other non-integer types are
+rejected. This matches the IEC 61131-3 requirement that array dimensions are
+integer-indexable.</p>
+<p>Invalid:</p>
+<pre><code class="language-st">VAR
+    a : ARRAY[FALSE .. TRUE] OF BOOL;       // BOOL bounds
+    b : ARRAY[1.5 .. 3.5] OF INT;           // REAL bounds
+    c : ARRAY['a' .. 'z'] OF INT;           // STRING bounds
+    d : ARRAY[T#0s .. T#1s] OF INT;         // TIME bounds
+END_VAR
+</code></pre>
+<h2 id="how-to-fix-1"><a class="header" href="#how-to-fix-1">How to fix</a></h2>
+<p>Use integer literals, integer constants, or integer-typed expressions:</p>
+<pre><code class="language-st">VAR_GLOBAL CONSTANT
+    LO : DINT := 0;
+    HI : DINT := 10;
+END_VAR
+
+VAR
+    a : ARRAY[0..1] OF BOOL;
+    b : ARRAY[LO..HI] OF INT;
+END_VAR
+</code></pre>
+<h2 id="valid-integer-types"><a class="header" href="#valid-integer-types">Valid integer types</a></h2>
+<p>The valid integer types for array bounds are the same as for enum base types
+(see <a href="./E122.html"><code>E122</code></a>): <code>SINT</code>, <code>USINT</code>, <code>INT</code>, <code>UINT</code>, <code>DINT</code>, <code>UDINT</code>,
+<code>LINT</code>, <code>ULINT</code>, <code>BYTE</code>, <code>WORD</code>, <code>DWORD</code>, <code>LWORD</code>.</p>
 
                     </main>
 
