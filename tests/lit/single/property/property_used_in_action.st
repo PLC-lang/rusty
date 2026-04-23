@@ -3,10 +3,8 @@ FUNCTION_BLOCK A
     VAR
         x : DINT := 42;
     END_VAR
-    PROPERTY foo : DINT
-        GET
-            foo := x;
-        END_GET
+    PROPERTY_GET foo: DINT
+        foo := x;
     END_PROPERTY
 
     METHOD bar : DINT
@@ -14,12 +12,12 @@ FUNCTION_BLOCK A
     END_METHOD
 END_FUNCTION_BLOCK
 
-ACTIONS 
-    ACTION baz 
+ACTIONS
+    ACTION baz
         // CHECK: 42
         printf('%d$N', bar());
         // CHECK: 42
-        printf('%d$N', foo); 
+        printf('%d$N', foo);
     END_ACTION
 END_ACTIONS
 

@@ -1701,7 +1701,11 @@ mod tests {
         assert_eq!(implementation.name, "mainProg");
 
         let statement = &implementation.statements[0];
-        assert_snapshot!(AstSerializer::format(statement), @"alloca __libFunction_result0: REAL, libFunction(inVar1 := 0, inVar2 := 0.0, result => __libFunction_result0), i1 := __libFunction_result0");
+        assert_snapshot!(AstSerializer::format(statement), @"
+        alloca __libFunction_result0: REAL;
+        libFunction(inVar1 := 0, inVar2 := 0.0, result => __libFunction_result0);
+        i1 := __libFunction_result0;
+        ");
     }
 
     #[test]

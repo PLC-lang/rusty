@@ -1249,6 +1249,7 @@ impl<'i> TypeAnnotator<'i> {
         {
             //Add to dependency map
             visitor.dependencies.insert(Dependency::Variable(enum_element.get_qualified_name().to_string()));
+
             if let Some((Some(statement), scope)) =
                 enum_element.initial_value.map(|i| index.get_const_expressions().find_expression(&i))
             {
@@ -1256,6 +1257,18 @@ impl<'i> TypeAnnotator<'i> {
                     visitor.visit_statement(&ctx.with_pou(scope), statement);
                 } else {
                     visitor.visit_statement(ctx, statement);
+                }
+
+                let enum_type = index.find_type(enum_element.get_type_name());
+                if let Some(enum_type_info) = enum_type {
+                    if let DataTypeInformation::Enum { referenced_type, .. } =
+                        enum_type_info.get_type_information()
+                    {
+                        if let Some(effective_type) = index.find_effective_type_by_name(referenced_type) {
+                            // Update the type hint to use the underlying referenced type for proper initialization
+                            visitor.update_expected_types(effective_type, statement);
+                        }
+                    }
                 }
             }
         }

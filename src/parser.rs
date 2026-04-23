@@ -24,6 +24,7 @@ use plc_util::convention::qualified_name;
 
 use crate::{
     expect_token,
+    index::FxIndexMap,
     lexer::{
         self, ParseSession,
         Token::{self, *},
@@ -203,8 +204,8 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
 
     let mut extensions = Vec::new();
     let mut methods = Vec::new();
+    let mut properties = FxIndexMap::default();
     let mut implementations = Vec::new();
-    let mut properties = Vec::new();
 
     if lexer.try_consume(KeywordExtends) {
         while let Identifier = lexer.token {
@@ -233,17 +234,18 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
                 }
             }
 
-            KeywordProperty => {
-                if let Some(property) = parse_property(lexer) {
-                    for property in property.implementations.iter().filter(|imp| !imp.body.is_empty()) {
+            KeywordPropertyGet | KeywordPropertySet => {
+                if let Some((ident, property_implementation)) = parse_property(lexer, &[KeywordEndInterface])
+                {
+                    if !property_implementation.body.is_empty() {
                         lexer.accept_diagnostic(
                             Diagnostic::new("Interfaces can not have a default implementation")
                                 .with_error_code("E113")
-                                .with_location(&property.body.first().unwrap().location),
+                                .with_location(&property_implementation.body.first().unwrap().location),
                         );
                     }
 
-                    properties.push(property);
+                    insert_property(&mut properties, ident, property_implementation);
                 }
             }
 
@@ -261,7 +263,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
             methods,
             extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
-            properties,
+            properties: properties.into_values().collect(),
         },
         implementations,
     )
@@ -335,8 +337,8 @@ fn parse_pou(
             }
 
             let mut impl_pous = Vec::new();
+            let mut properties = FxIndexMap::default();
             let mut implementations = Vec::new();
-            let mut properties = Vec::new();
 
             // classes and function blocks can have methods. methods consist of a Pou part
             // and an implementation part. That's why we get another (Pou, Implementation)
@@ -344,29 +346,92 @@ fn parse_pou(
             // implementations. Note that function blocks have to start with the method
             // declarations before their implementation.
             // all other Pous need to be checked in the validator if they can have methods.
-            while matches!(lexer.token, KeywordMethod | KeywordProperty | PropertyConstant) {
-                if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
-                    let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
-                    let pre = if matches!(lexer.token, KeywordProperty) { "Properties" } else { "Methods" };
+            while matches!(
+                lexer.token,
+                KeywordMethod | KeywordPropertyGet | KeywordPropertySet | PropertyConstant
+            ) {
+                match lexer.token {
+                    KeywordMethod => {
+                        if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
+                            let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
+                            lexer.accept_diagnostic(
+                                Diagnostic::new(format!("Methods cannot be declared in a {kind}"))
+                                    .with_location(location),
+                            );
+                        }
 
-                    lexer.accept_diagnostic(
-                        Diagnostic::new(format!("{pre} cannot be declared in a {kind}"))
-                            .with_location(location),
-                    );
-                }
+                        if let Some((pou, implementation)) =
+                            parse_method(lexer, &name, DeclarationKind::Concrete, linkage, false)
+                        {
+                            impl_pous.push(pou);
+                            implementations.push(implementation);
+                        }
+                    }
+                    KeywordPropertyGet | KeywordPropertySet => {
+                        if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
+                            let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
+                            lexer.accept_diagnostic(
+                                Diagnostic::new(format!("Properties cannot be declared in a {kind}"))
+                                    .with_location(location),
+                            );
+                        }
 
-                if lexer.token == KeywordProperty {
-                    if let Some(property) = parse_property(lexer) {
-                        properties.push(property);
+                        if let Some((ident, property_implementation)) =
+                            parse_property(lexer, &[expected_end_token])
+                        {
+                            insert_property(&mut properties, ident, property_implementation);
+                        }
                     }
-                } else {
-                    let is_const = lexer.try_consume(PropertyConstant);
-                    if let Some((pou, implementation)) =
-                        parse_method(lexer, &name, DeclarationKind::Concrete, linkage, is_const)
-                    {
-                        impl_pous.push(pou);
-                        implementations.push(implementation);
+                    PropertyConstant => {
+                        let pragma_location = lexer.location();
+                        lexer.advance();
+
+                        match lexer.token {
+                            KeywordMethod => {
+                                if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program)
+                                {
+                                    lexer.accept_diagnostic(
+                                        Diagnostic::new(format!("Methods cannot be declared in a {kind}"))
+                                            .with_location(pragma_location.clone()),
+                                    );
+                                }
+
+                                if let Some((pou, implementation)) =
+                                    parse_method(lexer, &name, DeclarationKind::Concrete, linkage, true)
+                                {
+                                    impl_pous.push(pou);
+                                    implementations.push(implementation);
+                                }
+                            }
+                            KeywordPropertyGet | KeywordPropertySet => {
+                                if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program)
+                                {
+                                    lexer.accept_diagnostic(
+                                        Diagnostic::new(format!("Properties cannot be declared in a {kind}"))
+                                            .with_location(pragma_location.clone()),
+                                    );
+                                }
+
+                                lexer.accept_diagnostic(Diagnostic::const_pragma_is_not_allowed(
+                                    pragma_location.span(&lexer.location()),
+                                ));
+
+                                if let Some((ident, property_implementation)) =
+                                    parse_property(lexer, &[expected_end_token])
+                                {
+                                    insert_property(&mut properties, ident, property_implementation);
+                                }
+                            }
+                            _ => {
+                                lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+                                    "KeywordMethod",
+                                    lexer.slice(),
+                                    lexer.location(),
+                                ));
+                            }
+                        }
                     }
+                    _ => unreachable!(),
                 }
             }
 
@@ -396,7 +461,7 @@ fn parse_pou(
                 super_class,
                 interfaces,
                 is_const: constant,
-                properties,
+                properties: properties.into_values().collect(),
             }];
             pous.append(&mut impl_pous);
 
@@ -671,75 +736,140 @@ fn parse_method(
     })
 }
 
-fn parse_property(lexer: &mut ParseSession) -> Option<PropertyBlock> {
-    lexer.advance(); // Move past `PROPERTY` keyword
-
-    let mut has_error = false;
-
-    let identifier = parse_identifier(lexer);
-    if identifier.is_none() {
-        has_error = true;
-        lexer.accept_diagnostic(
-            Diagnostic::new("Property definition is missing a name").with_location(lexer.location()),
-        );
-    }
-
-    let datatype = parse_return_type(lexer);
-    if datatype.is_none() {
-        has_error = true;
-        lexer.accept_diagnostic(
-            Diagnostic::new("Property definition is missing a datatype").with_location(lexer.last_location()),
-        );
+fn parse_property(
+    lexer: &mut ParseSession,
+    outer_end_tokens: &[Token],
+) -> Option<(Identifier, PropertyImplementation)> {
+    let kind_location = lexer.location();
+    let kind = match lexer.token {
+        KeywordPropertyGet => PropertyKind::Get,
+        KeywordPropertySet => PropertyKind::Set,
+        _ => return None,
     };
+    lexer.advance();
 
-    // This is kind of common, hence we parse invalid variable blocks to have useful error messages
-    while lexer.token.is_var() {
-        let block = parse_variable_block(lexer, LinkageType::Internal);
+    let (name, name_location) = if lexer.token.is_identifier_like() {
+        let name = lexer.slice_and_advance();
+        (name, lexer.last_location())
+    } else {
         lexer.accept_diagnostic(
-            Diagnostic::new(
-                "Variable blocks may only be defined within a GET or SET block in the context of properties",
-            )
-            .with_location(&block.location)
-            .with_error_code("E007"),
+            Diagnostic::new("Property definition is missing a name")
+                .with_location(lexer.location())
+                .with_error_code("E001"),
         );
-    }
-
-    let mut implementations = Vec::new();
-    while matches!(lexer.token, KeywordGet | KeywordSet) {
-        let location = lexer.location();
-        let kind = if lexer.token == KeywordGet { PropertyKind::Get } else { PropertyKind::Set };
-        lexer.advance(); // Move past `GET` or `SET` keyword
-
-        let mut variable_blocks = Vec::new();
-        while lexer.token.is_var() {
-            variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
-        }
-
-        let statements = parse_body_in_region(
-            lexer,
-            match kind {
-                PropertyKind::Get => vec![Token::KeywordEndGet],
-                PropertyKind::Set => vec![Token::KeywordEndSet],
-            },
-        );
-        implementations.push(PropertyImplementation {
-            kind,
-            variable_blocks,
-            body: statements,
-            location,
-            end_location: lexer.last_location(),
-        });
-    }
-
-    lexer.try_consume_or_report(Token::KeywordEndProperty); // Move past `END_PROPERTY` keyword
-
-    if has_error {
+        recover_property(lexer, outer_end_tokens);
         return None;
     };
 
-    let (name, name_location) = identifier.expect("covered above");
-    let datatype = datatype.expect("covered above");
-    Some(PropertyBlock { ident: Identifier { name, location: name_location }, datatype, implementations })
+    if !lexer.try_consume(KeywordColon) {
+        lexer.accept_diagnostic(
+            Diagnostic::new("Property definition is missing ':'")
+                .with_location(name_location.clone())
+                .with_error_code("E001"),
+        );
+        recover_property(lexer, outer_end_tokens);
+        return None;
+    }
+
+    if !is_property_datatype_start(&lexer.token) {
+        lexer.accept_diagnostic(
+            Diagnostic::new("Property definition is missing a datatype")
+                .with_location(lexer.last_location())
+                .with_error_code("E001"),
+        );
+        recover_property(lexer, outer_end_tokens);
+        return None;
+    }
+
+    let Some((datatype, initializer)) = parse_data_type_definition(lexer, None) else {
+        recover_property(lexer, outer_end_tokens);
+        return None;
+    };
+
+    if let Some(init) = initializer {
+        lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+            format!("{KeywordEndProperty:?}").as_str(),
+            "Initializer",
+            init.get_location(),
+        ));
+    }
+
+    let allowed_var_types =
+        [KeywordVar, KeywordVarInput, KeywordVarOutput, KeywordVarInOut, KeywordVarTemp, KeywordVarExternal];
+    let mut variable_blocks = Vec::new();
+    while allowed_var_types.contains(&lexer.token) {
+        variable_blocks.push(parse_variable_block(lexer, LinkageType::Internal));
+    }
+
+    let mut body = Vec::new();
+    while lexer.token != End && lexer.token != KeywordEndProperty && !outer_end_tokens.contains(&lexer.token)
+    {
+        body.push(parse_control(lexer));
+    }
+
+    let end_location = lexer.location();
+    if lexer.token == KeywordEndProperty {
+        lexer.advance();
+    } else {
+        lexer.accept_diagnostic(Diagnostic::missing_token(
+            format!("{KeywordEndProperty:?}").as_str(),
+            lexer.location(),
+        ));
+    }
+
+    Some((
+        Identifier { name, location: name_location },
+        PropertyImplementation {
+            kind,
+            datatype,
+            location: kind_location,
+            variable_blocks,
+            body,
+            end_location,
+        },
+    ))
+}
+
+fn insert_property(
+    properties: &mut FxIndexMap<String, PropertyBlock>,
+    ident: Identifier,
+    implementation: PropertyImplementation,
+) {
+    let key = ident.name.to_ascii_lowercase();
+
+    match properties.entry(key) {
+        indexmap::map::Entry::Occupied(mut entry) => {
+            entry.get_mut().implementations.push(implementation);
+        }
+        indexmap::map::Entry::Vacant(entry) => {
+            entry.insert(PropertyBlock { ident, implementations: vec![implementation] });
+        }
+    }
+}
+
+fn recover_property(lexer: &mut ParseSession, outer_end_tokens: &[Token]) {
+    while lexer.token != End && lexer.token != KeywordEndProperty && !outer_end_tokens.contains(&lexer.token)
+    {
+        lexer.advance();
+    }
+
+    if lexer.token == KeywordEndProperty {
+        lexer.advance();
+    }
+}
+
+fn is_property_datatype_start(token: &Token) -> bool {
+    matches!(
+        token,
+        KeywordStruct
+            | KeywordArray
+            | KeywordPointer
+            | KeywordRef
+            | KeywordParensOpen
+            | KeywordString
+            | KeywordWideString
+            | Identifier
+    )
 }
 
 fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {
@@ -760,7 +890,7 @@ fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {
 /// returns the identifier as a String and the SourceRange of the parsed name
 fn parse_identifier(lexer: &mut ParseSession) -> Option<(String, SourceLocation)> {
     let pou_name = lexer.slice().to_string();
-    if lexer.token == Identifier {
+    if lexer.token.is_identifier_like() {
         lexer.advance();
         Some((pou_name, lexer.last_location()))
     } else {
@@ -1444,7 +1574,7 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
 
 fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
     let mut variables = vec![];
-    while lexer.token == Identifier {
+    while lexer.token.is_identifier_like() {
         let mut line_vars = parse_variable_line(lexer);
         variables.append(&mut line_vars);
     }
@@ -1534,7 +1664,7 @@ fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> O
 fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     // read in a comma separated list of variable names
     let mut var_names: Vec<(String, Range<usize>)> = vec![];
-    while lexer.token == Identifier {
+    while lexer.token.is_identifier_like() {
         let location = lexer.range();
         let identifier_end = location.end;
         var_names.push((lexer.slice_and_advance(), location));

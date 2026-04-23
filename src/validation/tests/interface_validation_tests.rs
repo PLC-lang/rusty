@@ -49,7 +49,7 @@ fn not_supported_pou_type_implements_interface() {
         // Valid
         CLASS           foo IMPLEMENTS interfaceA             /* ... */ END_CLASS
         FUNCTION_BLOCK  bar IMPLEMENTS interfaceA, interfaceB /* ... */ END_FUNCTION_BLOCK
-        
+
         // Invalid
         PROGRAM     baz IMPLEMENTS interfaceA            /* ... */ END_PROGRAM
         FUNCTION    qux IMPLEMENTS interfaceA, interfaceB /* ... */ END_FUNCTION
@@ -231,7 +231,7 @@ fn pou_with_incorrect_parameter_type_in_interface_implementation() {
         END_VAR
         END_METHOD
     END_INTERFACE
-        
+
     FUNCTION_BLOCK fb IMPLEMENTS interfaceA
         METHOD methodA
         VAR_INPUT
@@ -474,7 +474,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_type
             END_VAR
         END_METHOD
         END_INTERFACE
-        
+
         INTERFACE interfaceB
             METHOD foo : INT
             VAR_INPUT
@@ -553,7 +553,7 @@ fn interfaces_with_same_method_name_but_different_signatures_parameter_list_decl
             END_VAR
             END_METHOD
         END_INTERFACE
-        
+
         FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
             METHOD foo : INT
             VAR_INPUT
@@ -610,7 +610,7 @@ fn interface_with_aggregate_return_type_string() {
             METHOD bar : STRING
             END_METHOD
         END_INTERFACE
-            
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : STRING
             END_METHOD
@@ -628,7 +628,7 @@ fn interface_with_aggregate_return_type_string_mismatch() {
             METHOD bar : STRING
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : WSTRING
             END_METHOD
@@ -662,7 +662,7 @@ fn interface_with_aliased_aggregate_return_type_string() {
             METHOD bar : myString
             END_METHOD
         END_INTERFACE
-        
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : STRING
             END_METHOD
@@ -695,7 +695,7 @@ fn interface_with_aggregate_return_type_array() {
             METHOD bar : ARRAY[1..5] OF STRING
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : ARRAY[1..5] OF STRING
             END_METHOD
@@ -713,7 +713,7 @@ fn interface_with_aggregate_return_type_array_length_mismatch() {
             METHOD bar : ARRAY[1..6] OF STRING
             END_METHOD
         END_INTERFACE
-            
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : ARRAY[1..5] OF STRING
             END_METHOD
@@ -748,7 +748,7 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
             METHOD baz : ARRAY[1..5] OF STRING
             END_METHOD
         END_INTERFACE
-            
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : ARRAY[1..5] OF STRING
             END_METHOD
@@ -806,7 +806,7 @@ fn interface_with_aggregate_return_type_array_inner_type_mismatch() {
             METHOD bar : ARRAY[1..5] OF STRING
             END_METHOD
         END_INTERFACE
-            
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : ARRAY[1..5] OF WSTRING
             END_METHOD
@@ -841,13 +841,13 @@ fn interface_with_aggregate_return_type_nested_arrays() {
             METHOD baz : ARRAY[1..5] OF ARRAY[1..5] OF STRING
             END_METHOD
         END_INTERFACE
-            
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : ARRAY[1..5, 1..5] OF STRING
             END_METHOD
             METHOD baz : ARRAY[1..5] OF ARRAY[1..5] OF STRING
             END_METHOD
-        END_FUNCTION_BLOCK        
+        END_FUNCTION_BLOCK
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
@@ -861,11 +861,11 @@ fn interface_with_aggregate_return_type_nested_arrays_mismatch() {
             METHOD bar : ARRAY[1..5] OF ARRAY[1..5] OF STRING
             END_METHOD
         END_INTERFACE
-            
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : ARRAY[1..5, 1..5] OF STRING
             END_METHOD
-        END_FUNCTION_BLOCK        
+        END_FUNCTION_BLOCK
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
@@ -907,12 +907,12 @@ fn interface_with_aggregate_return_type_nested_arrays_dimension_mismatch() {
             METHOD bar : ARRAY[1..5] OF ARRAY[2..20] OF ARRAY[3..10] OF ARRAY[1..5] OF STRING
             END_METHOD
         END_INTERFACE
-            
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : ARRAY[1..5] OF ARRAY[1..100] OF ARRAY[-2..5] OF ARRAY[1..5] OF STRING
             //                                ^^^^^^           ^^^^^ <--- Mismatch
             END_METHOD
-        END_FUNCTION_BLOCK        
+        END_FUNCTION_BLOCK
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
@@ -951,7 +951,7 @@ fn interface_with_aggregate_return_type_struct() {
                 block   : DINT;
                 values  : STRING;
             END_STRUCT END_TYPE
-            
+
             INTERFACE foo
                 METHOD bar : txn
                 END_METHOD
@@ -977,7 +977,7 @@ fn interface_with_aliased_aggregate_return_type_struct() {
             END_STRUCT END_TYPE
 
             TYPE myTxn : txn; END_TYPE
-            
+
             INTERFACE foo
                 METHOD bar : txn
                 END_METHOD
@@ -1000,7 +1000,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl() {
             METHOD bar : STRING
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : DINT
             END_METHOD
@@ -1033,7 +1033,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl() {
             METHOD bar : DINT
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : STRING
             END_METHOD
@@ -1070,21 +1070,21 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
             END_VAR
             END_METHOD
 
-            METHOD baz : STRING 
+            METHOD baz : STRING
             VAR_INPUT
                 a : DINT;
             END_VAR
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : DINT
             VAR_INPUT
                 a : DINT;
             END_VAR
             END_METHOD
-            
-            METHOD baz : DINT 
+
+            METHOD baz : DINT
             VAR_INPUT
                 a : DINT;
                 b : DINT;
@@ -1134,10 +1134,10 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
     note[E118]: Type `STRING` declared in `foo.baz` but `fb.baz` declared type `DINT`
        ┌─ <internal>:10:20
        │
-    10 │             METHOD baz : STRING 
+    10 │             METHOD baz : STRING
        │                    --- see also
        ·
-    24 │             METHOD baz : DINT 
+    24 │             METHOD baz : DINT
        │                    --- see also
 
     error[E112]: Derived methods with conflicting signatures, parameters do not match:
@@ -1149,7 +1149,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
     note[E118]: `baz` has more parameters than the method defined in `foo`
        ┌─ <internal>:10:20
        │
-    10 │             METHOD baz : STRING 
+    10 │             METHOD baz : STRING
        │                    --- see also
        ·
     27 │                 b : DINT;
@@ -1168,21 +1168,21 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
             END_VAR
             END_METHOD
 
-            METHOD baz : DINT 
+            METHOD baz : DINT
             VAR_INPUT
                 a : DINT;
             END_VAR
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : STRING
             VAR_INPUT
                 a : DINT;
             END_VAR
             END_METHOD
-            
-            METHOD baz : STRING 
+
+            METHOD baz : STRING
             VAR_INPUT
                 a : DINT;
                 b : DINT;
@@ -1232,10 +1232,10 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
     note[E118]: Type `DINT` declared in `foo.baz` but `fb.baz` declared type `STRING`
        ┌─ <internal>:10:20
        │
-    10 │             METHOD baz : DINT 
+    10 │             METHOD baz : DINT
        │                    --- see also
        ·
-    24 │             METHOD baz : STRING 
+    24 │             METHOD baz : STRING
        │                    --- see also
 
     error[E112]: Derived methods with conflicting signatures, parameters do not match:
@@ -1247,7 +1247,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
     note[E118]: `baz` has more parameters than the method defined in `foo`
        ┌─ <internal>:10:20
        │
-    10 │             METHOD baz : DINT 
+    10 │             METHOD baz : DINT
        │                    --- see also
        ·
     27 │                 b : DINT;
@@ -1262,7 +1262,7 @@ fn pointer_return() {
             METHOD bar : REF_TO DINT
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : REF_TO DINT
             END_METHOD
@@ -1280,7 +1280,7 @@ fn pointer_return_type_mismatch() {
             METHOD bar : REF_TO INT
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : REF_TO DINT
             END_METHOD
@@ -1313,7 +1313,7 @@ fn pointer_to_pointer_return() {
             METHOD bar : REF_TO REF_TO DINT
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : REF_TO REF_TO DINT
             END_METHOD
@@ -1331,7 +1331,7 @@ fn pointer_to_pointer_return_inner_type_mismatch() {
             METHOD bar : REF_TO REF_TO DINT
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : REF_TO REF_TO INT
             END_METHOD
@@ -1364,7 +1364,7 @@ fn pointer_to_pointer_return_indirection_level_mismatch() {
             METHOD bar : REF_TO DINT
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar : REF_TO REF_TO DINT
             END_METHOD
@@ -1403,7 +1403,7 @@ fn pointer_fields() {
             END_VAR
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar
             VAR_INPUT
@@ -1433,7 +1433,7 @@ fn pointer_fields_type_mismatch() {
             END_VAR
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar
             VAR_INPUT
@@ -1539,7 +1539,7 @@ fn pointer_fields_indirection_mismatch() {
             END_VAR
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar
             VAR_INPUT
@@ -1606,7 +1606,7 @@ fn subranges() {
             END_VAR
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar
             VAR_INPUT
@@ -1630,7 +1630,7 @@ fn subranges_type_mismatch() {
             END_VAR
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar
             VAR_INPUT
@@ -1679,7 +1679,7 @@ fn pointer_to_array_mismatch() {
             END_VAR
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS foo
             METHOD bar
             VAR_INPUT
@@ -1748,7 +1748,7 @@ fn pou_implementing_all_methods_of_extended_interface_does_not_err() {
             METHOD qux
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS baz
             METHOD bar
             END_METHOD
@@ -1774,7 +1774,7 @@ fn pou_missing_methods_of_extended_interface() {
             METHOD qux
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS baz
         END_FUNCTION_BLOCK
         ";
@@ -1818,7 +1818,7 @@ fn pou_missing_methods_of_nested_extended_interface() {
             METHOD corge
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS quux
         END_FUNCTION_BLOCK
         ";
@@ -1889,7 +1889,7 @@ fn pou_missing_methods_of_multiple_nested_interfaces() {
             METHOD fred
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS quxar
         END_FUNCTION_BLOCK
         ";
@@ -1995,7 +1995,7 @@ fn pou_implementing_methods_of_multiple_nested_interfaces_does_not_err() {
             METHOD fred
             END_METHOD
         END_INTERFACE
-                
+
         FUNCTION_BLOCK fb IMPLEMENTS quxar
             METHOD bar
             END_METHOD
@@ -2204,10 +2204,8 @@ fn function_block_implementing_erroneous_interface() {
 fn property_not_implemented() {
     let source = r"
     INTERFACE intf
-        PROPERTY prop : DINT
-            GET END_GET
-            SET END_SET
-        END_PROPERTY
+        PROPERTY_GET prop: DINT END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_INTERFACE
 
     FUNCTION_BLOCK fb IMPLEMENTS intf
@@ -2216,21 +2214,21 @@ fn property_not_implemented() {
 
     insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
     error[E112]: Property `prop` (GET) defined in interface `intf` is missing in POU `fb`
-      ┌─ <internal>:9:20
+      ┌─ <internal>:7:20
       │
-    3 │         PROPERTY prop : DINT
-      │                  ---- see also
+    3 │         PROPERTY_GET prop: DINT END_PROPERTY
+      │                      ---- see also
       ·
-    9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
+    7 │     FUNCTION_BLOCK fb IMPLEMENTS intf
       │                    ^^ Property `prop` (GET) defined in interface `intf` is missing in POU `fb`
 
     error[E112]: Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
-      ┌─ <internal>:9:20
+      ┌─ <internal>:7:20
       │
-    3 │         PROPERTY prop : DINT
-      │                  ---- see also
+    3 │         PROPERTY_GET prop: DINT END_PROPERTY
+      │                      ---- see also
       ·
-    9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
+    7 │     FUNCTION_BLOCK fb IMPLEMENTS intf
       │                    ^^ Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
     ");
 }
@@ -2239,27 +2237,23 @@ fn property_not_implemented() {
 fn property_partially_implemented() {
     let source = r"
     INTERFACE intf
-        PROPERTY prop : DINT
-            GET END_GET
-            SET END_SET
-        END_PROPERTY
+        PROPERTY_GET prop: DINT END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_INTERFACE
 
     FUNCTION_BLOCK fb IMPLEMENTS intf
-        PROPERTY prop : DINT
-            GET END_GET
-        END_PROPERTY
+        PROPERTY_GET prop: DINT END_PROPERTY
     END_FUNCTION_BLOCK
     ";
 
     insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
     error[E112]: Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
-      ┌─ <internal>:9:20
+      ┌─ <internal>:7:20
       │
-    3 │         PROPERTY prop : DINT
-      │                  ---- see also
+    3 │         PROPERTY_GET prop: DINT END_PROPERTY
+      │                      ---- see also
       ·
-    9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
+    7 │     FUNCTION_BLOCK fb IMPLEMENTS intf
       │                    ^^ Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
     ");
 }
@@ -2268,15 +2262,11 @@ fn property_partially_implemented() {
 fn property_with_conflicting_signatures() {
     let source = r"
     INTERFACE intf1
-        PROPERTY prop : DINT
-            GET END_GET
-        END_PROPERTY
+        PROPERTY_GET prop: DINT END_PROPERTY
     END_INTERFACE
 
     INTERFACE intf2
-        PROPERTY prop : STRING
-            GET END_GET
-        END_PROPERTY
+        PROPERTY_GET prop: STRING END_PROPERTY
     END_INTERFACE
 
     INTERFACE intf3 EXTENDS intf1, intf2
@@ -2284,17 +2274,17 @@ fn property_with_conflicting_signatures() {
     ";
 
     insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
-    error[E112]: Property `prop` defined in interface `intf1` and `intf2` have different datatypes
-       ┌─ <internal>:14:15
+    error[E112]: Property `prop` defined in interface `intf2` and `intf1` have different datatypes
+       ┌─ <internal>:10:15
        │
-     3 │         PROPERTY prop : DINT
-       │                         ---- see also
+     3 │         PROPERTY_GET prop: DINT END_PROPERTY
+       │                            ---- see also
        ·
-     9 │         PROPERTY prop : STRING
-       │                         ------ see also
+     7 │         PROPERTY_GET prop: STRING END_PROPERTY
+       │                            ------ see also
        ·
-    14 │     INTERFACE intf3 EXTENDS intf1, intf2
-       │               ^^^^^ Property `prop` defined in interface `intf1` and `intf2` have different datatypes
+    10 │     INTERFACE intf3 EXTENDS intf1, intf2
+       │               ^^^^^ Property `prop` defined in interface `intf2` and `intf1` have different datatypes
     ");
 }
 
@@ -2302,32 +2292,24 @@ fn property_with_conflicting_signatures() {
 fn interface_with_property_set_extending_other_interface_with_property_get() {
     let source = r"
     INTERFACE intfA
-        PROPERTY prop: DINT
-            GET END_GET
-        END_PROPERTY
+        PROPERTY_GET prop: DINT END_PROPERTY
     END_INTERFACE
 
     INTERFACE intfB
-        PROPERTY prop: DINT
-            SET END_SET
-        END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_INTERFACE
 
     INTERFACE intfC EXTENDS intfA, intfB
     END_INTERFACE
 
     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
-        PROPERTY prop: DINT
-            GET END_GET
-            SET END_SET
-        END_PROPERTY
+        PROPERTY_GET prop: DINT END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
-        PROPERTY prop: DINT
-            GET END_GET
-            SET END_SET
-        END_PROPERTY
+        PROPERTY_GET prop: DINT END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_FUNCTION_BLOCK
     ";
 
@@ -2338,50 +2320,42 @@ fn interface_with_property_set_extending_other_interface_with_property_get() {
 fn missing_property_accessor_implementation() {
     let source = r"
     INTERFACE intfA
-        PROPERTY prop: DINT
-            GET END_GET
-        END_PROPERTY
+        PROPERTY_GET prop: DINT END_PROPERTY
     END_INTERFACE
 
     INTERFACE intfB
-        PROPERTY prop: DINT
-            SET END_SET
-        END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_INTERFACE
 
     INTERFACE intfC EXTENDS intfA, intfB
     END_INTERFACE
 
     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
-        PROPERTY prop: DINT
-            GET END_GET
-        END_PROPERTY
+        PROPERTY_GET prop: DINT END_PROPERTY
     END_FUNCTION_BLOCK
 
     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
-        PROPERTY prop: DINT
-            SET END_SET
-        END_PROPERTY
+        PROPERTY_SET prop: DINT END_PROPERTY
     END_FUNCTION_BLOCK
   ";
 
     insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
     error[E112]: Property `prop` (SET) defined in interface `intfB` is missing in POU `fb1`
-       ┌─ <internal>:17:20
+       ┌─ <internal>:13:20
        │
-     9 │         PROPERTY prop: DINT
-       │                  ---- see also
+     7 │         PROPERTY_SET prop: DINT END_PROPERTY
+       │                      ---- see also
        ·
-    17 │     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
+    13 │     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
        │                    ^^^ Property `prop` (SET) defined in interface `intfB` is missing in POU `fb1`
 
     error[E112]: Property `prop` (GET) defined in interface `intfA` is missing in POU `fb2`
-       ┌─ <internal>:23:20
+       ┌─ <internal>:17:20
        │
-     3 │         PROPERTY prop: DINT
-       │                  ---- see also
+     3 │         PROPERTY_GET prop: DINT END_PROPERTY
+       │                      ---- see also
        ·
-    23 │     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
+    17 │     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
        │                    ^^^ Property `prop` (GET) defined in interface `intfA` is missing in POU `fb2`
     ");
 }

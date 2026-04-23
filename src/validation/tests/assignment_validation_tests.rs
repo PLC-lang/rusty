@@ -1409,6 +1409,30 @@ fn ref_assignment_with_reference_to_array_variable() {
 }
 
 #[test]
+fn reference_to_array_of_pointer_type_supports_ref_and_value_assignments() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE userType :
+            INT := 1;
+        END_TYPE
+
+        PROGRAM junit
+        VAR
+            a : REFERENCE TO ARRAY [1..2] OF POINTER TO userType;
+            b : ARRAY [1..2] OF POINTER TO userType;
+        END_VAR
+
+            a REF= b;
+            b := a;
+            a := b;
+        END_PROGRAM
+        ",
+    );
+
+    assert!(diagnostics.is_empty(), "{diagnostics}");
+}
+
+#[test]
 fn ref_assignment_with_reference_to_string_variable() {
     let diagnostics = parse_and_validate_buffered(
         "
@@ -1442,8 +1466,6 @@ fn ref_assignment_with_reference_to_string_variable() {
     ");
 }
 
-// TODO(volsa): Improve the error messages here; these are the default messages returned by the parser
-//              without any modifications.
 #[test]
 fn invalid_reference_to_declaration() {
     let diagnostics = parse_and_validate_buffered(
@@ -1459,62 +1481,23 @@ fn invalid_reference_to_declaration() {
     );
 
     insta::assert_snapshot!(diagnostics, @"
-    error[E099]: Invalid REFERENCE TO declaration
-      ┌─ <internal>:4:17
+    error[E099]: Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.
+      ┌─ <internal>:4:23
       │
     4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
-      │                 ^^^ Invalid REFERENCE TO declaration
+      │                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.
 
-    error[E099]: Invalid REFERENCE TO declaration
-      ┌─ <internal>:5:17
+    error[E099]: Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+      ┌─ <internal>:5:23
       │
     5 │                 baz : REFERENCE TO REFERENCE TO DINT;
-      │                 ^^^ Invalid REFERENCE TO declaration
+      │                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference to declaration. References to automatically dereferenced references are not allowed.
 
-    error[E099]: Invalid REFERENCE TO declaration
-      ┌─ <internal>:6:17
+    error[E099]: Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+      ┌─ <internal>:6:23
       │
     6 │                 qux : REF_TO REFERENCE TO DINT;
-      │                 ^^^ Invalid REFERENCE TO declaration
-    ");
-}
-
-#[test]
-fn invalid_reference_to_declaration_via_aliases() {
-    let diagnostics = parse_and_validate_buffered(
-        r"
-        TYPE
-            RefDint : REFERENCE TO DINT;
-        END_TYPE
-
-        FUNCTION foo
-            VAR
-                nestedA : REFERENCE TO RefDint;
-                nestedB : ARRAY[1..2] OF RefDint;
-                nestedC : REF_TO RefDint;
-            END_VAR
-        END_FUNCTION
-        ",
-    );
-
-    insta::assert_snapshot!(diagnostics, @"
-    error[E099]: Invalid REFERENCE TO declaration
-      ┌─ <internal>:8:17
-      │
-    8 │                 nestedA : REFERENCE TO RefDint;
-      │                 ^^^^^^^ Invalid REFERENCE TO declaration
-
-    error[E099]: Invalid REFERENCE TO declaration
-      ┌─ <internal>:9:17
-      │
-    9 │                 nestedB : ARRAY[1..2] OF RefDint;
-      │                 ^^^^^^^ Invalid REFERENCE TO declaration
-
-    error[E099]: Invalid REFERENCE TO declaration
-       ┌─ <internal>:10:17
-       │
-    10 │                 nestedC : REF_TO RefDint;
-       │                 ^^^^^^^ Invalid REFERENCE TO declaration
+      │                       ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference to declaration. References to automatically dereferenced references are not allowed.
     ");
 }
 

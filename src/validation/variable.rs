@@ -1,9 +1,8 @@
 use plc_ast::ast::{
-    ArgumentProperty, AstNode, AstStatement, AutoDerefType, CallStatement, ConfigVariable, Pou, PouType,
-    Variable, VariableBlock, VariableBlockType,
+    ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Pou, PouType, Variable,
+    VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use rustc_hash::FxHashSet;
 
 use super::{
     array::validate_array_assignment,
@@ -301,6 +300,18 @@ where
     }
 }
 
+fn unresolved_constant_diagnostic_message(variable: &Variable, type_name: &str) -> String {
+    if variable.initializer.as_ref().is_some_and(|it| matches!(it.get_stmt(), AstStatement::DefaultValue(_)))
+    {
+        format!(
+            "Unresolved constant `{}` variable: no explicit initializer and no default value could be resolved for type `{type_name}`",
+            variable.name.as_str()
+        )
+    } else {
+        format!("Unresolved constant `{}` variable", variable.name.as_str())
+    }
+}
+
 fn validate_variable<T: AnnotationMap>(
     validator: &mut Validator,
     variable: &Variable,
@@ -384,18 +395,20 @@ fn validate_variable<T: AnnotationMap>(
                 }
                 Some(ConstExpression::Unresolved { statement, .. }) => {
                     validator.push_diagnostic(
-                        Diagnostic::new(
-                            format!("Unresolved constant `{}` variable", variable.name.as_str(),),
-                        )
+                        Diagnostic::new(unresolved_constant_diagnostic_message(
+                            variable,
+                            v_entry.get_type_name(),
+                        ))
                         .with_error_code("E033")
                         .with_location(statement.get_location()),
                     );
                 }
                 None if v_entry.is_constant() && !v_entry.is_var_external() => {
                     validator.push_diagnostic(
-                        Diagnostic::new(
-                            format!("Unresolved constant `{}` variable", variable.name.as_str(),),
-                        )
+                        Diagnostic::new(unresolved_constant_diagnostic_message(
+                            variable,
+                            v_entry.get_type_name(),
+                        ))
                         .with_error_code("E033")
                         .with_location(&variable.location),
                     );
@@ -517,39 +530,6 @@ fn report_temporary_address_in_pointer_initializer<T: AnnotationMap>(
     );
 }
 
-fn has_invalid_nested_reference_to<T: AnnotationMap>(
-    context: &ValidationContext<T>,
-    type_name: &str,
-    allow_top_level_reference: bool,
-    visited: &mut FxHashSet<String>,
-) -> bool {
-    // Guard against cycles in malformed recursive type declarations.
-    if !visited.insert(type_name.to_lowercase()) {
-        return false;
-    }
-
-    let ty_info = context.index.get_type_information_or_void(type_name);
-
-    let result = match ty_info {
-        DataTypeInformation::Array { inner_type_name, .. } => {
-            has_invalid_nested_reference_to(context, inner_type_name, false, visited)
-        }
-        DataTypeInformation::Pointer { inner_type_name, auto_deref, .. } => {
-            let is_reference_to = matches!(auto_deref, Some(AutoDerefType::Reference));
-
-            if is_reference_to && !allow_top_level_reference {
-                true
-            } else {
-                has_invalid_nested_reference_to(context, inner_type_name, false, visited)
-            }
-        }
-        _ => false,
-    };
-
-    visited.remove(&type_name.to_lowercase());
-    result
-}
-
 /// Returns a diagnostic if a `REFERENCE TO` variable is incorrectly declared.
 fn validate_reference_to_declaration<T: AnnotationMap>(
     validator: &mut Validator,
@@ -557,23 +537,6 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
     variable: &Variable,
     variable_entry: &VariableIndexEntry,
 ) {
-    // Invalid forms (E099):
-    // - foo : REFERENCE TO REFERENCE TO ...
-    // - foo : ARRAY[...] OF REFERENCE TO ...
-    // - foo : REF_TO REFERENCE TO ...
-    if has_invalid_nested_reference_to(
-        context,
-        variable_entry.get_type_name(),
-        true,
-        &mut FxHashSet::default(),
-    ) {
-        validator.push_diagnostic(
-            Diagnostic::new("Invalid REFERENCE TO declaration")
-                .with_location(&variable.location)
-                .with_error_code("E099"),
-        );
-    }
-
     let Some(variable_ty) = context.index.find_effective_type_by_name(variable_entry.get_type_name()) else {
         return;
     };
