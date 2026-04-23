@@ -122,19 +122,24 @@ The `package_commands` keyword is optional.
 
 ## Build Parameters
 
-The `build` subcommand exposes the following optional parameters:
-
 ### `--build-location`
 
-The build location is the location all build files will be copied to. </br>
-By default the build location is the `build` folder in the root of the project (the location of the `plc.json`).</br>
-This can be overriden with the `--build-location` command line parameter.
+`--build-location` is a global `plc` option.</br>
+It controls where intermediate build artifacts are written.
+
+- With `plc build`, the default is `build` in the project root (the location of `plc.json`)
+- With non-`build` commands, no default build directory is used unless `--build-location` is provided
+
+When `--build-location` is not provided for non-`build` commands, RuSTy may place intermediate object files in the OS temporary directory. This is especially relevant for multi-file compilation, where intermediate objects are generated first and then passed to the linker to produce the final output artifact.
 
 ### `--lib-location`
 
-The lib location is where all libraries marked with `Copy` will be copied. </br>
-By default it is the same as the `build-location`.</br>
-This can be overriden with the `--lib-location` command line parameter.
+`--lib-location` is available on the `build` subcommand.</br>
+It controls where libraries marked with `Copy` are copied.
+
+For `plc build`, if `--lib-location` is not set, RuSTy falls back to:
+1. `--build-location` (if set)
+2. `build`
 
 ### Additional linker options
 
@@ -167,13 +172,14 @@ Example targets are:
 
 ### `BUILD_LOCATION`
 
-`BUILD_LOCATION` is the folder where the build will be saved.
-This is the value of either the [`--build-location`](#build-location) parameter or the default build location.
+`BUILD_LOCATION` is the folder where build artifacts are written.
+For `plc build`, this is either [`--build-location`](#build-location) or the default `build` directory.
+For non-`build` commands, it is only set when `--build-location` is provided.
 
 ### `LIB_LOCATION`
 
-`LIB_LOCATION` is the folder where the lib will be saved.
-This is the value of either the [`--lib-location`](#lib-location) parameter or the [build location](#build-location).
+`LIB_LOCATION` is the folder where libraries marked with `Copy` are saved.
+This is the value of [`--lib-location`](#lib-location), or the [build location](#build-location) fallback used by `plc build`.
 
 ### Usage
 
