@@ -1,0 +1,31 @@
+---
+source: src/codegen/tests/function_tests.rs
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+@utf08_literal_0 = private unnamed_addr constant [3 x i8] c"%u\00"
+
+declare i32 @printf(ptr, ...)
+
+define void @foo() {
+entry:
+  %vTrue = alloca i8, align [filtered]
+  %arrLword = alloca i64, align [filtered]
+  store i8 1, ptr %vTrue, align [filtered]
+  store i64 -6066929601824707635, ptr %arrLword, align [filtered]
+  %load_arrLword = load i64, ptr %arrLword, align [filtered]
+  %shift = lshr i64 %load_arrLword, 27
+  %0 = trunc i64 %shift to i8
+  %1 = and i8 %0, 1
+  %2 = icmp ne i8 %1, 0
+  %load_vTrue = load i8, ptr %vTrue, align [filtered]
+  %3 = icmp ne i8 %load_vTrue, 0
+  %4 = xor i1 %2, %3
+  %5 = zext i1 %4 to i32
+  %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %5)
+  ret void
+}
