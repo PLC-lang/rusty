@@ -1158,3 +1158,245 @@ fn function_with_optional_params() {
     assert_eq!(maintype.c, 33);
     assert_eq!(maintype.d, 60);
 }
+
+// ----- mixed implicit/explicit call argument tests -----
+
+#[test]
+fn mixed_implicit_explicit_positional_before_named() {
+    // myfunc(1, b := 20) — first arg is positional, second is named
+    #[repr(C)]
+    struct MainType {
+        result: i32,
+    }
+    let src = r#"
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : INT;
+        END_VAR
+            myfunc := a * 10 + b;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR result : INT; END_VAR
+            result := myfunc(1, b := 20);
+        END_PROGRAM
+    "#;
+    let mut maintype = MainType { result: 0 };
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(maintype.result, 10 + 20);
+}
+
+#[test]
+fn mixed_implicit_explicit_named_before_positional() {
+    // myfunc(a := 10, 2) — first arg is named, second is positional
+    #[repr(C)]
+    struct MainType {
+        result: i32,
+    }
+    let src = r#"
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : INT;
+        END_VAR
+            myfunc := a * 10 + b;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR result : INT; END_VAR
+            result := myfunc(a := 10, 2);
+        END_PROGRAM
+    "#;
+    let mut maintype = MainType { result: 0 };
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(maintype.result, 10 * 10 + 2);
+}
+
+#[test]
+fn mixed_implicit_explicit_named_non_first_param_then_positional() {
+    // myfunc(b := 20, 1) — named arg is NOT the first param; positional should fill 'a'
+    #[repr(C)]
+    struct MainType {
+        result: i32,
+    }
+    let src = r#"
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : INT;
+        END_VAR
+            myfunc := a * 10 + b;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR result : INT; END_VAR
+            result := myfunc(b := 20, 1);
+        END_PROGRAM
+    "#;
+    let mut maintype = MainType { result: 0 };
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(maintype.result, 1 * 10 + 20);
+}
+
+#[test]
+fn mixed_implicit_explicit_multiple_positional_and_named() {
+    // Three-param function: myfunc(b := 20, 1, 3) fills a=1, b=20, c=3
+    #[repr(C)]
+    struct MainType {
+        result: i32,
+    }
+    let src = r#"
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : INT;
+            c : INT;
+        END_VAR
+            myfunc := a * 100 + b * 10 + c;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR result : INT; END_VAR
+            result := myfunc(b := 20, 1, 3);
+        END_PROGRAM
+    "#;
+    let mut maintype = MainType { result: 0 };
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(maintype.result, 1 * 100 + 20 * 10 + 3);
+}
+
+#[test]
+fn mixed_implicit_explicit_with_default_values() {
+    // Omitted params use their defaults; positional fills first, named fills specific
+    #[repr(C)]
+    struct MainType {
+        r1: i32,
+        r2: i32,
+    }
+    let src = r#"
+        FUNCTION myfunc : DINT
+        VAR_INPUT
+            a : DINT := 1;
+            b : DINT := 2;
+            c : DINT := 3;
+        END_VAR
+            myfunc := a * 100 + b * 10 + c;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR r1, r2 : DINT; END_VAR
+            r1 := myfunc(10, c := 30);     // a=10, b=2(default), c=30
+            r2 := myfunc(a := 10, 30);     // a=10, b=30, c=3(default)
+        END_PROGRAM
+    "#;
+    let mut maintype = MainType { r1: 0, r2: 0 };
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(maintype.r1, 10 * 100 + 2 * 10 + 30);
+    assert_eq!(maintype.r2, 10 * 100 + 30 * 10 + 3);
+}
+
+#[test]
+fn mixed_implicit_explicit_function_block_instance() {
+    // %MyFB = { ptr (vtable, 8 bytes), i32 (a), i32 (b), i32 (out) } — 20 bytes, padded to 24
+    // %main = { %MyFB (24 bytes), i32 (result) }
+    #[repr(C)]
+    struct MainType {
+        fb_vtable: u64, // 8 bytes vtable ptr
+        fb_a: i32,
+        fb_b: i32,
+        fb_out: i32,
+        _pad: i32, // 4 bytes padding so %MyFB is 24 bytes
+        result: i32,
+    }
+    let src = r#"
+        FUNCTION_BLOCK MyFB
+        VAR_INPUT
+            a : DINT;
+            b : DINT;
+        END_VAR
+        VAR_OUTPUT
+            out : DINT;
+        END_VAR
+            out := a * 10 + b;
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+        VAR
+            fb : MyFB;
+            result : DINT;
+        END_VAR
+            fb(1, b := 20, out => result);
+        END_PROGRAM
+    "#;
+    let mut maintype = MainType { fb_vtable: 0, fb_a: 0, fb_b: 0, fb_out: 0, _pad: 0, result: 0 };
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(maintype.result, 1 * 10 + 20);
+}
+
+#[test]
+fn mixed_implicit_explicit_output_among_positional() {
+    // Output via `=>` counts as named; positional inputs fill remaining slots
+    #[repr(C)]
+    struct MainType {
+        out1: i32,
+        out2: i32,
+    }
+    let src = r#"
+        FUNCTION myfunc : DINT
+        VAR_INPUT
+            a : DINT;
+            b : DINT;
+        END_VAR
+        VAR_OUTPUT
+            s : DINT;
+            p : DINT;
+        END_VAR
+            s := a + b;
+            p := a * b;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR out1, out2 : DINT; END_VAR
+            myfunc(3, 4, s => out1, p => out2);
+        END_PROGRAM
+    "#;
+    let mut maintype = MainType { out1: 0, out2: 0 };
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(maintype.out1, 3 + 4);
+    assert_eq!(maintype.out2, 3 * 4);
+}
+
+#[test]
+fn mixed_implicit_explicit_var_in_out() {
+    // VAR_IN_OUT is passed by reference — the callee mutates `x` through the pointer.
+    // Exercises both: positional VAR_IN_OUT + named VAR_INPUT, and the reverse.
+    #[repr(C)]
+    struct MainType {
+        v1: i32,
+        v2: i32,
+    }
+    let src = r#"
+        FUNCTION bump
+        VAR_IN_OUT
+            x : DINT;
+        END_VAR
+        VAR_INPUT
+            step : DINT;
+        END_VAR
+            x := x + step;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR v1, v2 : DINT; END_VAR
+            v1 := 10;
+            v2 := 100;
+            bump(v1, step := 5);    // positional inout, named input
+            bump(x := v2, 7);       // named inout, positional input
+        END_PROGRAM
+    "#;
+    let mut maintype = MainType { v1: 0, v2: 0 };
+    let _: i32 = compile_and_run(src.to_string(), &mut maintype);
+    assert_eq!(maintype.v1, 15);
+    assert_eq!(maintype.v2, 107);
+}

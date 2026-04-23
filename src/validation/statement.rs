@@ -1892,12 +1892,12 @@ fn validate_call<T: AnnotationMap>(
                     }
                 }
 
-                // mixing implicit and explicit arguments is not allowed
-                // allways compare to the first argument
+                // mixing implicit and explicit arguments is discouraged
+                // always compare to the first argument
                 if arguments_are_implicit != is_implicit {
                     validator.push_diagnostic(
-                        Diagnostic::new("Cannot mix implicit and explicit call parameters!")
-                            .with_error_code("E031")
+                        Diagnostic::new("Mixing implicit and explicit call parameters")
+                            .with_error_code("E117")
                             .with_location(*argument),
                     );
                 }
@@ -1915,6 +1915,49 @@ fn validate_call<T: AnnotationMap>(
         }
 
         visit_statement(validator, argument, context);
+    }
+
+    // Flag positional args whose natural slot is also named by a LATER arg.
+    // Under the resolver's "skip named slots" rule, the positional silently spills into
+    // the next free slot — almost always a mistake. `myfunc(1, a := 10)` becomes
+    // `a := 10, b := 1` without warning; E131 makes the ambiguity explicit.
+    let mut positional_ordinal = 0usize;
+    let positionals: Vec<(usize, usize)> = arguments
+        .iter()
+        .enumerate()
+        .filter_map(|(call_idx, arg)| {
+            if arg.is_assignment() || arg.is_output_assignment() {
+                None
+            } else {
+                let entry = (call_idx, positional_ordinal);
+                positional_ordinal += 1;
+                Some(entry)
+            }
+        })
+        .collect();
+    for (pos_call_idx, natural_slot) in positionals {
+        if natural_slot >= parameters.len() {
+            continue;
+        }
+        for (named_call_idx, named_arg) in arguments.iter().enumerate().skip(pos_call_idx + 1) {
+            let Some(name) = named_arg.get_assignment_identifier() else { continue };
+            let Some(named_slot) = parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))
+            else {
+                continue;
+            };
+            if named_slot == natural_slot {
+                let param_name = parameters[natural_slot].get_name();
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Positional argument collides with later named argument `{param_name}`"
+                    ))
+                    .with_error_code("E131")
+                    .with_location(arguments[pos_call_idx])
+                    .with_secondary_location(arguments[named_call_idx]),
+                );
+                break;
+            }
+        }
     }
 
     // for PROGRAM/FB we need special inout validation

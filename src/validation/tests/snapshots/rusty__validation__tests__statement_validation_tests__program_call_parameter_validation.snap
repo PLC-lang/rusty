@@ -2,17 +2,17 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-error[E031]: Cannot mix implicit and explicit call parameters!
+warning[E117]: Mixing implicit and explicit call parameters
    ┌─ <internal>:23:35
    │
 23 │             prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
-   │                                   ^^^^ Cannot mix implicit and explicit call parameters!
+   │                                   ^^^^ Mixing implicit and explicit call parameters
 
-error[E031]: Cannot mix implicit and explicit call parameters!
+warning[E117]: Mixing implicit and explicit call parameters
    ┌─ <internal>:23:41
    │
 23 │             prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
-   │                                         ^^^^ Cannot mix implicit and explicit call parameters!
+   │                                         ^^^^ Mixing implicit and explicit call parameters
 
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
    ┌─ <internal>:25:18
