@@ -15,6 +15,7 @@ use crate::{
     index::{Index, PouIndexEntry},
     resolver::AnnotationMap,
     typesystem::DataType,
+    validation::types,
 };
 
 use super::{ValidationContext, Validator, Validators};
@@ -50,11 +51,15 @@ fn property_datatype<'idx>(index: &'idx Index, property: &PropertyBlock) -> Opti
     })
 }
 
+fn property_types_match(index: &Index, left: Option<&DataType>, right: Option<&DataType>) -> bool {
+    matches!((left, right), (Some(left), Some(right)) if types::are_equal_types(index, left, right))
+}
+
 fn local_property_types_conflict(index: &Index, property: &PropertyBlock) -> bool {
     let get = property_accessor_datatype(index, property, PropertyKind::Get);
     let set = property_accessor_datatype(index, property, PropertyKind::Set);
 
-    matches!((get, set), (Some(get), Some(set)) if get != set)
+    matches!((get, set), (Some(get), Some(set)) if !types::are_equal_types(index, get, set))
 }
 
 fn validate_property_definition(validator: &mut Validator, index: &Index, property: &PropertyBlock) {
@@ -224,7 +229,7 @@ fn validate_overridden_signatures<T>(
                 let child_type = property_datatype(context.index, property_child);
                 let parent_type = property_datatype(context.index, property_parent);
 
-                if child_type != parent_type {
+                if !property_types_match(context.index, child_type, parent_type) {
                     validator.push_diagnostic(
                         Diagnostic::new(format!(
                             "Overridden property `{}` has different signatures in POU `{}` and `{}`",
@@ -279,7 +284,7 @@ pub(crate) fn validate_properties_in_interfaces<T>(
         let left_type = property_datatype(context.index, left_property);
         let right_type = property_datatype(context.index, right_property);
 
-        if left_type.is_none() || right_type.is_none() || left_type != right_type {
+        if !property_types_match(context.index, left_type, right_type) {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
                     "Property `{}` defined in interface `{}` and `{}` have different datatypes",

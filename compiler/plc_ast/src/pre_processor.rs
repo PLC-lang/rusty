@@ -7,8 +7,8 @@ use plc_util::convention::internal_type_name;
 use crate::{
     ast::{
         flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit,
-        ConfigVariable, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, UserTypeDeclaration,
-        Variable, VariableBlock, VariableBlockType,
+        ConfigVariable, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PropertyBlock,
+        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -26,8 +26,14 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
         process_pou_variables(pou, &mut unit.user_types);
     }
 
-    for interface in unit.interfaces.iter_mut().flat_map(|it| &mut it.methods) {
-        process_pou_variables(interface, &mut unit.user_types);
+    for interface in unit.interfaces.iter_mut() {
+        for method in &mut interface.methods {
+            process_pou_variables(method, &mut unit.user_types);
+        }
+
+        for property in &mut interface.properties {
+            process_property(property, &interface.ident.name, LinkageType::Internal, &mut unit.user_types);
+        }
     }
 
     // XXX: Track which hardware-backing globals (__PI_*, __M_*, __G_*) have already been created.
@@ -169,6 +175,10 @@ fn process_pou_variables(pou: &mut Pou, user_types: &mut Vec<UserTypeDeclaration
 
     for var in local_variables {
         pre_process_variable_data_type(pou.name.as_str(), var, user_types, pou.linkage)
+    }
+
+    for property in &mut pou.properties {
+        process_property(property, &pou.name, pou.linkage, user_types);
     }
 
     //Generate implicit type for returns
@@ -377,12 +387,24 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
         types.push(data_type);
         generic_types.insert(binding.name.clone(), new_name);
     }
+
     for var in pou.variable_blocks.iter_mut().flat_map(|it| it.variables.iter_mut()) {
         replace_generic_type_name(&mut var.data_type_declaration, &generic_types);
     }
+
     if let Some(datatype) = pou.return_type.as_mut() {
         replace_generic_type_name(datatype, &generic_types);
     };
+
+    for property in &mut pou.properties {
+        for implementation in &mut property.implementations {
+            replace_generic_type_name(&mut implementation.datatype, &generic_types);
+            for var in implementation.variable_blocks.iter_mut().flat_map(|it| it.variables.iter_mut()) {
+                replace_generic_type_name(&mut var.data_type_declaration, &generic_types);
+            }
+        }
+    }
+
     types
 }
 
@@ -407,6 +429,65 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                     linkage,
                 };
                 types.push(data_type);
+            }
+        }
+    }
+}
+
+fn process_property(
+    property: &mut PropertyBlock,
+    container_name: &str,
+    linkage: LinkageType,
+    user_types: &mut Vec<UserTypeDeclaration>,
+) {
+    for (index, implementation) in property.implementations.iter_mut().enumerate() {
+        let property_container_name = format!(
+            "{container_name}_property_{}_{}_{}",
+            property.ident.name,
+            implementation.kind.to_string().to_ascii_lowercase(),
+            index,
+        );
+
+        for var in implementation
+            .variable_blocks
+            .iter_mut()
+            .flat_map(|it| it.variables.iter_mut())
+            .filter(|it| should_generate_implicit_type(it))
+        {
+            pre_process_variable_data_type(property_container_name.as_str(), var, user_types, linkage);
+        }
+
+        if should_generate_implicit(&implementation.datatype) {
+            let type_name = internal_type_name(
+                format!("{container_name}_property_"),
+                format!(
+                    "{}_{}_{}",
+                    property.ident.name,
+                    implementation.kind.to_string().to_ascii_lowercase(),
+                    index,
+                ),
+            );
+            let type_ref = DataTypeDeclaration::Reference {
+                referenced_type: type_name.clone(),
+                location: implementation.datatype.get_location(),
+            };
+            let datatype = std::mem::replace(&mut implementation.datatype, type_ref);
+            if let DataTypeDeclaration::Definition { mut data_type, location, scope } = datatype {
+                data_type.set_name(type_name);
+                add_nested_datatypes(
+                    property_container_name.as_str(),
+                    &mut data_type,
+                    user_types,
+                    &location,
+                    linkage,
+                );
+                user_types.push(UserTypeDeclaration {
+                    data_type: *data_type,
+                    initializer: None,
+                    location,
+                    scope,
+                    linkage,
+                });
             }
         }
     }
