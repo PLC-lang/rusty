@@ -300,6 +300,54 @@ where
     }
 }
 
+fn validate_array_bounds_are_constant<T: AnnotationMap>(
+    validator: &mut Validator,
+    variable: &Variable,
+    context: &ValidationContext<T>,
+) {
+    let ty_name = variable.data_type_declaration.get_name().unwrap_or_default();
+    let ty_info = context.index.get_effective_type_or_void_by_name(ty_name).get_type_information();
+
+    if !ty_info.is_array() {
+        return;
+    }
+
+    let mut types = vec![];
+    ty_info.get_inner_array_types(&mut types, context.index);
+
+    for ty in types {
+        let DataTypeInformation::Array { dimensions, .. } = ty else {
+            unreachable!("`get_inner_types()` only operates on Arrays");
+        };
+
+        for expr in dimensions.iter().flat_map(|it| {
+            [
+                it.start_offset.as_const_expression(context.index),
+                it.end_offset.as_const_expression(context.index),
+            ]
+        }) {
+            let Some(expr) = expr else { continue };
+            let Some(reference_name) = expr.get_flat_reference_name() else { continue };
+
+            let qualifier = context.qualifier.unwrap_or_default();
+            let is_non_constant_variable = context
+                .index
+                .find_member(qualifier, reference_name)
+                .map(|it| !it.is_constant())
+                .or_else(|| context.index.find_global_variable(reference_name).map(|it| !it.is_constant()))
+                .unwrap_or(false);
+
+            if is_non_constant_variable {
+                validator.push_diagnostic(
+                    Diagnostic::new("Only constants are allowed as array boundaries")
+                        .with_error_code("E117")
+                        .with_location(expr.get_location()),
+                );
+            }
+        }
+    }
+}
+
 fn unresolved_constant_diagnostic_message(variable: &Variable, type_name: &str) -> String {
     if variable.initializer.as_ref().is_some_and(|it| matches!(it.get_stmt(), AstStatement::DefaultValue(_)))
     {
@@ -319,6 +367,7 @@ fn validate_variable<T: AnnotationMap>(
 ) {
     validate_variable_redeclaration(validator, variable, context);
 
+    validate_array_bounds_are_constant(validator, variable, context);
     validate_array_ranges(validator, variable, context);
     validate_array_size(validator, variable, context);
 

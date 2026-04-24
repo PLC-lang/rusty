@@ -207,6 +207,28 @@ fn array_bounds_with_const_integer_variables_are_valid() {
 }
 
 #[test]
+fn array_bounds_must_be_constants() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            x : INT := 5;
+            arr : ARRAY[1..x] OF INT;
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E117]: Only constants are allowed as array boundaries
+      ┌─ <internal>:5:28
+      │
+    5 │             arr : ARRAY[1..x] OF INT;
+      │                            ^ Only constants are allowed as array boundaries
+    ");
+}
+
+#[test]
 fn array_bounds_with_parenthesized_integer_literals_are_valid() {
     let diagnostics = parse_and_validate_buffered(
         "
