@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-b1a3a376.js";
+            window.path_to_searchindex_js = "searchindex-c919ca7c.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-e891cefd.js"></script>
+        <script src="toc-ae9fca4f.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1408,6 +1408,14 @@ END_FUNCTION
     END_PROPERTY
 END_FUNCTION
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="non-constant-array-boundary"><a class="header" href="#non-constant-array-boundary">Non-constant array boundary</a></h1>
+<p>Array boundaries must be compile-time constants.</p>
+<p>Examples of invalid boundaries:</p>
+<ul>
+<li>Local variables declared without <code>CONSTANT</code></li>
+<li>Expressions that are not compile-time evaluable constants</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="signature-mismatch"><a class="header" href="#signature-mismatch">Signature mismatch</a></h1>
 <p>This error is generally a follow-up error to “E112” to give more detailed information about why the error occured. Please use <code>plc explain E112</code> get more information about the general causes of these errors.</p>

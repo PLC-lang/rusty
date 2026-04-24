@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>E111 - RuSTy User Documentation</title>
+        <title>E117 - RuSTy User Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -174,47 +174,23 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="duplicate-interface-methods-with-different-signatures"><a class="header" href="#duplicate-interface-methods-with-different-signatures">Duplicate interface methods with different signatures</a></h1>
-<p>POUs implementing multiple interfaces where both interfaces define a method with the same name are required
-to have the same signature for the method. A method signature is thereby defined by its name, return type and
-parameter list.</p>
-<p>Errouneus code example:</p>
-<pre><code class="language-iecst">INTERFACE interfaceA
-    METHOD foo : INT
-        VAR_INPUT
-            a : INT;
-        END_VAR
-    END_METHOD
-END_INTERFACE
-
-INTERFACE interfaceB
-    METHOD foo : DINT
-        VAR_OUTPUT
-            a : INT;
-        END_VAR
-    END_METHOD
-END_INTERFACE
-
-FUNCTION_BLOCK fb IMPLEMENTS interfaceA, interfaceB
-    // Signatures for foo differs, do we implement foo as defined in interfaceA or interfaceB?
-END_FUNCTION_BLOCK
-
-</code></pre>
-<p>In the example above, the method <code>foo</code> is defined in both interfaces <code>interfaceA</code> and <code>interfaceB</code>.
-However, the return type of <code>foo</code> in <code>interfaceA</code> is <code>INT</code> whereas in <code>interfaceB</code> it is <code>DINT</code>. Futhermore,
-the parameter <code>a</code> in <code>interfaceA</code> is an input parameter whereas in <code>interfaceB</code> it is an output parameter.
-As a result both you and the compiler are left in doubt as to which method signature to implement in the
-function block <code>fb</code> and as a result the compiler will raise this error.</p>
+                        <h1 id="non-constant-array-boundary"><a class="header" href="#non-constant-array-boundary">Non-constant array boundary</a></h1>
+<p>Array boundaries must be compile-time constants.</p>
+<p>Examples of invalid boundaries:</p>
+<ul>
+<li>Local variables declared without <code>CONSTANT</code></li>
+<li>Expressions that are not compile-time evaluable constants</li>
+</ul>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../using_rusty/error_configuration.md/E110.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../using_rusty/error_configuration.md/E116.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E112.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E118.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -224,11 +200,11 @@ function block <code>fb</code> and as a result the compiler will raise this erro
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../using_rusty/error_configuration.md/E110.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../using_rusty/error_configuration.md/E116.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E112.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E118.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
