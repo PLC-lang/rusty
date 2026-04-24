@@ -69,8 +69,8 @@ pub fn visit_data_type<T: AnnotationMap>(
                         {
                             validator.push_diagnostic(
                                 Diagnostic::new("Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.")
-                                .with_error_code("E099")
-                                .with_location(location),
+                                    .with_error_code("E099")
+                                    .with_location(location),
                             );
                         }
                     };
