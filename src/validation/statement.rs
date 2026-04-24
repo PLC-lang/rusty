@@ -1897,7 +1897,7 @@ fn validate_call<T: AnnotationMap>(
                 if arguments_are_implicit != is_implicit {
                     validator.push_diagnostic(
                         Diagnostic::new("Mixing implicit and explicit call parameters")
-                            .with_error_code("E117")
+                            .with_error_code("E132")
                             .with_location(*argument),
                     );
                 }

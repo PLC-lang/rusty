@@ -2,13 +2,13 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
-warning[E117]: Mixing implicit and explicit call parameters
+warning[E132]: Mixing implicit and explicit call parameters
    ┌─ <internal>:23:35
    │
 23 │             prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
    │                                   ^^^^ Mixing implicit and explicit call parameters
 
-warning[E117]: Mixing implicit and explicit call parameters
+warning[E132]: Mixing implicit and explicit call parameters
    ┌─ <internal>:23:41
    │
 23 │             prog(output1 => var1, var1, var1); // invalid cannot mix explicit and implicit
