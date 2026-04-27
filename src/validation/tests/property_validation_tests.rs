@@ -566,7 +566,7 @@ fn properties_with_same_name_but_different_datatypes_are_not_ok() {
       │
     8 │         PROPERTY_GET propertyB: DINT END_PROPERTY
       │                      ^^^^^^^^^  ---- see also
-      │                      │           
+      │                      │
       │                      Property `propertyB` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET
     9 │         PROPERTY_SET propertyB: INT END_PROPERTY
       │                                 --- see also
@@ -576,7 +576,7 @@ fn properties_with_same_name_but_different_datatypes_are_not_ok() {
        │
     13 │         PROPERTY_GET propertyC: SINT END_PROPERTY
        │                      ^^^^^^^^^  ---- see also
-       │                      │           
+       │                      │
        │                      Property `propertyC` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET
     14 │         PROPERTY_SET propertyC: DINT END_PROPERTY
        │                                 ---- see also
@@ -586,7 +586,7 @@ fn properties_with_same_name_but_different_datatypes_are_not_ok() {
       │
     3 │         PROPERTY_GET propertyA: INT END_PROPERTY
       │                      ^^^^^^^^^  --- see also
-      │                      │           
+      │                      │
       │                      Property `propertyA` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET
     4 │         PROPERTY_SET propertyA: DINT END_PROPERTY
       │                                 ---- see also
@@ -805,17 +805,73 @@ fn undefined_references_inheritance() {
     );
 
     insta::assert_snapshot!(diagnostics, @r"
-    error[E048]: Could not resolve reference to myProp
+    error[E048]: PROPERTY_SET for property `myProp` is not defined
       ┌─ <internal>:7:13
       │
     7 │             myProp := 5;    // Error, this represents a PROPERTY_SET which is not defined in here
-      │             ^^^^^^ Could not resolve reference to myProp
+      │             ^^^^^^ PROPERTY_SET for property `myProp` is not defined
 
-    error[E048]: Could not resolve reference to myProp
+    error[E048]: PROPERTY_SET for property `myProp` is not defined
        ┌─ <internal>:24:23
        │
     24 │             parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a PROPERTY_SET
-       │                       ^^^^^^ Could not resolve reference to myProp
+       │                       ^^^^^^ PROPERTY_SET for property `myProp` is not defined
+    ");
+}
+
+#[test]
+fn missing_property_get_reports_property_diagnostic() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb
+            PROPERTY_SET foo: DINT END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance : fb;
+                x : DINT;
+            END_VAR
+
+            x := instance.foo;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E048]: PROPERTY_GET for property `foo` is not defined
+       ┌─ <internal>:12:27
+       │
+    12 │             x := instance.foo;
+       │                           ^^^ PROPERTY_GET for property `foo` is not defined
+    ");
+}
+
+#[test]
+fn missing_property_set_reports_property_diagnostic() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb
+            PROPERTY_GET foo: DINT END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance : fb;
+                x : DINT;
+            END_VAR
+
+            instance.foo := 5;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E048]: PROPERTY_SET for property `foo` is not defined
+       ┌─ <internal>:12:22
+       │
+    12 │             instance.foo := 5;
+       │                      ^^^ PROPERTY_SET for property `foo` is not defined
     ");
 }
 

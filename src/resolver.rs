@@ -3002,34 +3002,73 @@ impl ResolvingStrategy {
         qualifier: &str,
         property_set: bool,
     ) -> Option<StatementAnnotation> {
-        let accessor = if property_set { "set" } else { "get" };
-        let name = format!("__{accessor}_{name}");
+        let requested_kind = if property_set { ast::PropertyKind::Set } else { ast::PropertyKind::Get };
+        let requested_accessor = if property_set { "set" } else { "get" };
+        let requested_name = format!("__{requested_accessor}_{name}");
 
         // if our current context is a method or action, we need to look for the property in the parent
         let qualifier =
             index.find_pou(qualifier).and_then(|pou| pou.get_parent_pou_name()).unwrap_or(qualifier);
 
+        // Try to find the requested property method directly on the qualifier or, for interfaces,
+        // on any ancestor interface. This is the normal, valid property access path.
+        if Self::find_property_method(index, qualifier, &requested_name).is_some() {
+            return Some(StatementAnnotation::Property { name: requested_name });
+        }
+
+        // If the requested accessor is missing, still preserve the fact that this reference targets a
+        // known property when the opposite accessor exists. The property lowerer will then rewrite the
+        // reference to the intended internal accessor, allowing validation to report a focused
+        // "PROPERTY_GET/PROPERTY_SET not defined" diagnostic instead of a generic unresolved reference.
+        let opposite_kind = match requested_kind {
+            ast::PropertyKind::Get => ast::PropertyKind::Set,
+            ast::PropertyKind::Set => ast::PropertyKind::Get,
+        };
+        let opposite_accessor = match opposite_kind {
+            ast::PropertyKind::Get => "get",
+            ast::PropertyKind::Set => "set",
+        };
+        let opposite_name = format!("__{opposite_accessor}_{name}");
+
+        Self::find_property_method(index, qualifier, &opposite_name)
+            .filter(|method| Self::is_property_accessor(method, name, opposite_kind))
+            .map(|_| StatementAnnotation::Property { name: requested_name })
+    }
+
+    fn find_property_method<'idx>(
+        index: &'idx Index,
+        qualifier: &str,
+        method_name: &str,
+    ) -> Option<&'idx PouIndexEntry> {
         // Try to find the property method directly on the qualifier (works for POUs and
         // for the interface that originally declared the property).
-        if index.find_method(qualifier, &name).is_some() {
-            return Some(StatementAnnotation::Property { name });
+        if let Some(method) = index.find_method(qualifier, method_name) {
+            return Some(method);
         }
 
         // If the qualifier is an interface, walk its inheritance chain (extensions) to
         // find property methods declared on ancestor interfaces.
         if let Some(interface) = index.find_interface(qualifier) {
             for ancestor in interface.get_interface_hierarchy(index) {
-                // Skip self — already checked above via `find_method(qualifier, &name)`.
+                // Skip self — already checked above via `find_method(qualifier, method_name)`.
                 if ancestor.get_name() == qualifier {
                     continue;
                 }
-                if index.find_method(ancestor.get_name(), &name).is_some() {
-                    return Some(StatementAnnotation::Property { name });
+                if let Some(method) = index.find_method(ancestor.get_name(), method_name) {
+                    return Some(method);
                 }
             }
         }
 
         None
+    }
+
+    fn is_property_accessor(method: &PouIndexEntry, property_name: &str, kind: ast::PropertyKind) -> bool {
+        matches!(
+            method,
+            PouIndexEntry::Method { property: Some((name, accessor_kind)), .. }
+                if name.eq_ignore_ascii_case(property_name) && *accessor_kind == kind
+        )
     }
 
     /// tries to resolve the given name using the reprsented scope

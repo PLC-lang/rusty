@@ -575,20 +575,26 @@ fn validate_reference<T: AnnotationMap>(
         //      then we'd get two similar error, one describing what the exact issue is (i.e. no get/set) and
         //      the other describing that it cant find a reference to "__{get,set}_<property name>"
         match ref_name {
-            _ if ref_name.starts_with("__set") => {
+            _ if ref_name.starts_with("__set_") => {
                 validator.push_diagnostic(
-                    Diagnostic::new("PROPERTY_SET not defined")
-                        .with_error_code("E048")
-                        .with_location(location),
+                    Diagnostic::new(format!(
+                        "PROPERTY_SET for property `{}` is not defined",
+                        ref_name.strip_prefix("__set_").unwrap_or(ref_name)
+                    ))
+                    .with_error_code("E048")
+                    .with_location(location),
                 );
                 return;
             }
 
-            _ if ref_name.starts_with("__get") => {
+            _ if ref_name.starts_with("__get_") => {
                 validator.push_diagnostic(
-                    Diagnostic::new("PROPERTY_GET not defined")
-                        .with_error_code("E048")
-                        .with_location(location),
+                    Diagnostic::new(format!(
+                        "PROPERTY_GET for property `{}` is not defined",
+                        ref_name.strip_prefix("__get_").unwrap_or(ref_name)
+                    ))
+                    .with_error_code("E048")
+                    .with_location(location),
                 );
                 return;
             }
