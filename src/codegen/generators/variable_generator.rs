@@ -29,9 +29,11 @@ pub struct VariableGenerator<'ctx, 'b> {
     types_index: &'b LlvmTypedIndex<'ctx>,
     debug: &'b mut DebugBuilderEnum<'ctx>,
     online_change: &'b OnlineChange,
+    compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
 }
 
 impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         module: &'b Module<'ctx>,
         llvm: &'b Llvm<'ctx>,
@@ -40,8 +42,18 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         types_index: &'b LlvmTypedIndex<'ctx>,
         debug: &'b mut DebugBuilderEnum<'ctx>,
         online_change: &'b OnlineChange,
+        compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
     ) -> Self {
-        VariableGenerator { module, llvm, global_index, annotations, types_index, debug, online_change }
+        VariableGenerator {
+            module,
+            llvm,
+            global_index,
+            annotations,
+            types_index,
+            debug,
+            online_change,
+            compatibility_profile,
+        }
     }
 
     pub fn generate_global_variables(
@@ -143,6 +155,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                     self.global_index,
                     self.annotations,
                     self.types_index,
+                    self.compatibility_profile,
                 );
 
                 //see if this value was compile-time evaluated ...

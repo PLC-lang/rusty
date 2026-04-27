@@ -1,7 +1,10 @@
+use std::sync::Arc;
+
 use annotate_snippets::Renderer;
 use encoding_rs::Encoding;
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::profiles::CompatibilityProfile;
 use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
 use rustc_hash::FxHashMap;
@@ -28,6 +31,8 @@ pub struct GlobalContext {
     error_fmt: ErrorFormat,
     // TODO: Move to a dedicated CompilerOptions struct — this is a compile flag, not global context.
     generate_external_constructors: bool,
+    #[serde(skip)]
+    compatibility_profile: Arc<CompatibilityProfile>,
 }
 
 // XXX: Temporary
@@ -88,6 +93,14 @@ impl GlobalContext {
 
     pub fn should_generate_external_constructors(&self) -> bool {
         self.generate_external_constructors
+    }
+
+    pub fn set_compatibility_profile(&mut self, profile: Arc<CompatibilityProfile>) {
+        self.compatibility_profile = profile;
+    }
+
+    pub fn compatibility_profile(&self) -> &Arc<CompatibilityProfile> {
+        &self.compatibility_profile
     }
 
     /// Returns some [`SourceCode`] based on the given key

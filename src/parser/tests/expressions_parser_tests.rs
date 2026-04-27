@@ -1015,6 +1015,132 @@ fn amp_as_and_test() {
 }
 
 #[test]
+fn and_then_test() {
+    let src = "
+        PROGRAM prg
+        b AND_THEN c;
+        END_PROGRAM
+        ";
+    let result = parse(src).0;
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    assert_debug_snapshot!(statement, @r#"
+    BinaryExpression {
+        operator: AndThen,
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "b",
+                },
+            ),
+            base: None,
+        },
+        right: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "c",
+                },
+            ),
+            base: None,
+        },
+    }
+    "#);
+}
+
+#[test]
+fn or_else_test() {
+    let src = "
+        PROGRAM prg
+        b OR_ELSE c;
+        END_PROGRAM
+        ";
+    let result = parse(src).0;
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    assert_debug_snapshot!(statement, @r#"
+    BinaryExpression {
+        operator: OrElse,
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "b",
+                },
+            ),
+            base: None,
+        },
+        right: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "c",
+                },
+            ),
+            base: None,
+        },
+    }
+    "#);
+}
+
+#[test]
+fn boolean_priority_with_and_then_or_else_test() {
+    // AND_THEN has same precedence as AND, OR_ELSE same as OR
+    // Precedence: AND/AND_THEN > XOR > OR/OR_ELSE
+    let src = "
+        PROGRAM exp
+        a AND_THEN b XOR c OR_ELSE d;
+        END_PROGRAM
+        ";
+    let result = parse(src).0;
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+
+    assert_debug_snapshot!(statement, @r#"
+    BinaryExpression {
+        operator: OrElse,
+        left: BinaryExpression {
+            operator: Xor,
+            left: BinaryExpression {
+                operator: AndThen,
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "a",
+                        },
+                    ),
+                    base: None,
+                },
+                right: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "b",
+                        },
+                    ),
+                    base: None,
+                },
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "c",
+                    },
+                ),
+                base: None,
+            },
+        },
+        right: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "d",
+                },
+            ),
+            base: None,
+        },
+    }
+    "#);
+}
+
+#[test]
 fn boolean_priority_test() {
     let src = "
         PROGRAM exp

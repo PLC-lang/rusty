@@ -17,14 +17,8 @@ entry:
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %load_x = load i8, ptr %x, align [filtered]
   %1 = icmp ne i8 %load_x, 0
-  br i1 %1, label %4, label %2
-
-2:                                                ; preds = %entry
   %load_y = load i8, ptr %y, align [filtered]
-  %3 = icmp ne i8 %load_y, 0
-  br label %4
-
-4:                                                ; preds = %2, %entry
-  %5 = phi i1 [ %1, %entry ], [ %3, %2 ]
+  %2 = icmp ne i8 %load_y, 0
+  %3 = or i1 %1, %2
   ret void
 }

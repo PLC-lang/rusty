@@ -806,6 +806,24 @@ fn visit_binary_expression<T: AnnotationMap>(
     context: &ValidationContext<T>,
 ) {
     match operator {
+        Operator::AndThen | Operator::OrElse => {
+            let left_type = context.annotations.get_type_or_void(left, context.index).get_type_information();
+            let right_type =
+                context.annotations.get_type_or_void(right, context.index).get_type_information();
+
+            if !left_type.is_bool() || !right_type.is_bool() {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "`{operator}` requires boolean operands, use `{}` for bitwise operations on non-boolean types",
+                        if matches!(operator, Operator::AndThen) { "AND" } else { "OR" },
+                    ))
+                    .with_error_code("E133")
+                    .with_location(statement),
+                );
+            }
+
+            validate_binary_expression(validator, statement, operator, left, right, context)
+        }
         Operator::Equal => {
             if !context.is_call() && context.annotations.get_type_hint(statement, context.index).is_none() {
                 let lhs = validator.context.slice(&left.location);

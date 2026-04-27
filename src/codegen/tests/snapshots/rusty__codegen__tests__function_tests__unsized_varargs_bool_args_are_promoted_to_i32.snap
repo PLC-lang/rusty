@@ -22,54 +22,31 @@ entry:
   %call1 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 1)
   %call2 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 1)
   %call3 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 0)
-  br i1 true, label %1, label %2
-
-1:                                                ; preds = %entry
-  br label %2
-
-2:                                                ; preds = %1, %entry
-  %3 = phi i1 [ true, %entry ], [ false, %1 ]
-  %4 = zext i1 %3 to i32
-  %call4 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %4)
-  br i1 true, label %5, label %6
-
-5:                                                ; preds = %2
-  br label %6
-
-6:                                                ; preds = %5, %2
-  %7 = phi i1 [ true, %2 ], [ false, %5 ]
-  %tmpVar = xor i1 %7, true
-  %8 = zext i1 %tmpVar to i32
-  %call5 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %8)
+  %call4 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 0)
+  %call5 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 1)
   %load_vFalse = load i8, ptr %vFalse, align [filtered]
-  %9 = zext i8 %load_vFalse to i32
-  %call6 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %9)
+  %1 = zext i8 %load_vFalse to i32
+  %call6 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %1)
   %load_vTrue = load i8, ptr %vTrue, align [filtered]
-  %10 = zext i8 %load_vTrue to i32
-  %call7 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %10)
+  %2 = zext i8 %load_vTrue to i32
+  %call7 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %2)
   %load_vFalse8 = load i8, ptr %vFalse, align [filtered]
-  %11 = icmp ne i8 %load_vFalse8, 0
-  %tmpVar9 = xor i1 %11, true
-  %12 = zext i1 %tmpVar9 to i32
-  %call10 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %12)
-  %load_vTrue11 = load i8, ptr %vTrue, align [filtered]
-  %13 = icmp ne i8 %load_vTrue11, 0
-  %tmpVar12 = xor i1 %13, true
-  %14 = zext i1 %tmpVar12 to i32
-  %call13 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %14)
-  %load_vTrue14 = load i8, ptr %vTrue, align [filtered]
-  %15 = icmp ne i8 %load_vTrue14, 0
-  br i1 %15, label %16, label %18
-
-16:                                               ; preds = %6
-  %load_vFalse15 = load i8, ptr %vFalse, align [filtered]
-  %17 = icmp ne i8 %load_vFalse15, 0
-  br label %18
-
-18:                                               ; preds = %16, %6
-  %19 = phi i1 [ %15, %6 ], [ %17, %16 ]
-  %tmpVar16 = xor i1 %19, true
-  %20 = zext i1 %tmpVar16 to i32
-  %call17 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %20)
+  %3 = icmp ne i8 %load_vFalse8, 0
+  %tmpVar = xor i1 %3, true
+  %4 = zext i1 %tmpVar to i32
+  %call9 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %4)
+  %load_vTrue10 = load i8, ptr %vTrue, align [filtered]
+  %5 = icmp ne i8 %load_vTrue10, 0
+  %tmpVar11 = xor i1 %5, true
+  %6 = zext i1 %tmpVar11 to i32
+  %call12 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %6)
+  %load_vTrue13 = load i8, ptr %vTrue, align [filtered]
+  %7 = icmp ne i8 %load_vTrue13, 0
+  %load_vFalse14 = load i8, ptr %vFalse, align [filtered]
+  %8 = icmp ne i8 %load_vFalse14, 0
+  %9 = and i1 %7, %8
+  %tmpVar15 = xor i1 %9, true
+  %10 = zext i1 %tmpVar15 to i32
+  %call16 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %10)
   ret void
 }

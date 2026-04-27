@@ -248,6 +248,27 @@ pub mod tests {
         debug_level: DebugLevel,
         online_change: OnlineChange,
     ) -> Result<String, String> {
+        codegen_full(
+            src,
+            debug_level,
+            online_change,
+            plc_diagnostics::profiles::CompatibilityProfile::default(),
+        )
+    }
+
+    pub fn codegen_with_profile_without_unwrap(
+        src: &str,
+        profile: plc_diagnostics::profiles::CompatibilityProfile,
+    ) -> Result<String, String> {
+        codegen_full(src, DebugLevel::None, OnlineChange::Disabled, profile)
+    }
+
+    fn codegen_full(
+        src: &str,
+        debug_level: DebugLevel,
+        online_change: OnlineChange,
+        compatibility_profile: plc_diagnostics::profiles::CompatibilityProfile,
+    ) -> Result<String, String> {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();
@@ -274,14 +295,22 @@ pub mod tests {
             &Target::System,
         );
         let llvm_index = code_generator
-            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout)
+            .generate_llvm_index(
+                &context,
+                &annotations,
+                &literals,
+                &dependencies,
+                &index,
+                &got_layout,
+                &compatibility_profile,
+            )
             .map_err(|err| {
                 reporter.handle(&[err.into()]);
                 reporter.buffer().unwrap()
             })?;
 
         code_generator
-            .generate(&context, &unit, &annotations, &index, llvm_index, false)
+            .generate(&context, &unit, &annotations, &index, llvm_index, false, &compatibility_profile)
             .map(|module| module.persist_to_string())
             .map_err(|err| {
                 reporter.handle(&[err.into()]);
@@ -295,6 +324,13 @@ pub mod tests {
 
     pub fn codegen(src: &str) -> String {
         codegen_without_unwrap(src).map_err(|it| panic!("{it}")).unwrap()
+    }
+
+    pub fn codegen_with_profile(
+        src: &str,
+        profile: plc_diagnostics::profiles::CompatibilityProfile,
+    ) -> String {
+        codegen_with_profile_without_unwrap(src, profile).map_err(|it| panic!("{it}")).unwrap()
     }
 
     fn codegen_into_modules<T: Compilable>(
@@ -343,6 +379,7 @@ pub mod tests {
                 );
                 let got_layout = Mutex::new(HashMap::default());
 
+                let compatibility_profile = plc_diagnostics::profiles::CompatibilityProfile::default();
                 let llvm_index = code_generator.generate_llvm_index(
                     context,
                     &annotations,
@@ -350,10 +387,11 @@ pub mod tests {
                     &dependencies,
                     &index,
                     &got_layout,
+                    &compatibility_profile,
                 )?;
 
                 code_generator
-                    .generate(context, &unit, &annotations, &index, llvm_index, false)
+                    .generate(context, &unit, &annotations, &index, llvm_index, false, &compatibility_profile)
                     .map_err(Diagnostic::from)
             })
             .collect::<Result<Vec<_>, Diagnostic>>()

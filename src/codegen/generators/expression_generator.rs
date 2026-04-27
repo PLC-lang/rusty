@@ -62,6 +62,8 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
 
     // the function on how to obtain the the length to use for the string
     string_len_provider: fn(type_length_declaration: usize, actual_length: usize) -> usize,
+
+    pub compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
 }
 
 /// context information to generate a parameter
@@ -144,6 +146,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         llvm_index: &'b LlvmTypedIndex<'ink>,
         function_context: &'b FunctionContext<'ink, 'b>,
         debug: &'b DebugBuilderEnum<'ink>,
+        compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
     ) -> ExpressionCodeGenerator<'ink, 'b> {
         ExpressionCodeGenerator {
             llvm,
@@ -155,6 +158,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
             string_len_provider: |_, actual_length| actual_length, //when generating string-literals in a body, use the actual length
+            compatibility_profile,
         }
     }
 
@@ -170,6 +174,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         index: &'b Index,
         annotations: &'b AstAnnotations,
         llvm_index: &'b LlvmTypedIndex<'ink>,
+        compatibility_profile: &'b plc_diagnostics::profiles::CompatibilityProfile,
     ) -> ExpressionCodeGenerator<'ink, 'b> {
         ExpressionCodeGenerator {
             llvm,
@@ -181,6 +186,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             temp_variable_prefix: "load_".to_string(),
             temp_variable_suffix: "".to_string(),
             string_len_provider: |type_length_declaration, _| type_length_declaration, //when generating string-literals in declarations, use the declared length
+            compatibility_profile,
         }
     }
 
@@ -2249,8 +2255,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.llvm.builder.build_int_compare(IntPredicate::SGE, int_lvalue, int_rvalue, "tmpVar")?
             }
             Operator::Xor => self.llvm.builder.build_xor(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::And => self.llvm.builder.build_and(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::Or => self.llvm.builder.build_or(int_lvalue, int_rvalue, "tmpVar")?,
+            Operator::And | Operator::AndThen => {
+                self.llvm.builder.build_and(int_lvalue, int_rvalue, "tmpVar")?
+            }
+            Operator::Or | Operator::OrElse => {
+                self.llvm.builder.build_or(int_lvalue, int_rvalue, "tmpVar")?
+            }
             _ => Err(Diagnostic::codegen_error(
                 format!("Operator '{operator}' unimplemented for int").as_str(),
                 SourceLocation::undefined(),
@@ -2715,6 +2725,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.index,
             self.annotations,
             self.llvm_index,
+            self.compatibility_profile,
         );
         for e in elements {
             //generate with correct type hint using context-free generator
@@ -2763,7 +2774,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(array_value.as_basic_value_enum())
     }
 
-    /// generates a phi-expression (&& or || expression) with respect to short-circuit evaluation
+    /// Generates a boolean binary expression (AND, OR, AND_THEN, OR_ELSE).
+    ///
+    /// `AND_THEN` and `OR_ELSE` always use short-circuit (phi-based) evaluation.
+    /// `AND` and `OR` use short-circuit or eager evaluation depending on the
+    /// active compatibility profile's `short_circuit_bool_ops` flag.
     ///
     /// - `operator` an operator suitable for bool variables
     /// - `left` the left side of the expression
@@ -2775,9 +2790,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         right: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         match operator {
-            Operator::And | Operator::Or => {
+            // AND_THEN / OR_ELSE always short-circuit regardless of profile
+            Operator::AndThen | Operator::OrElse => {
                 self.generate_bool_short_circuit_expression(operator, left, right)
             }
+            // AND / OR short-circuit only when the profile enables it
+            Operator::And | Operator::Or if self.compatibility_profile.behaviors.short_circuit_bool_ops => {
+                self.generate_bool_short_circuit_expression(operator, left, right)
+            }
+            // AND / OR eager evaluation (no short-circuit)
+            Operator::And => Ok(self
+                .llvm
+                .builder
+                .build_and(
+                    to_i1(self.generate_expression(left)?.into_int_value(), &self.llvm.builder)?,
+                    to_i1(self.generate_expression(right)?.into_int_value(), &self.llvm.builder)?,
+                    "",
+                )?
+                .as_basic_value_enum()),
+            Operator::Or => Ok(self
+                .llvm
+                .builder
+                .build_or(
+                    to_i1(self.generate_expression(left)?.into_int_value(), &self.llvm.builder)?,
+                    to_i1(self.generate_expression(right)?.into_int_value(), &self.llvm.builder)?,
+                    "",
+                )?
+                .as_basic_value_enum()),
             Operator::Equal => Ok(self
                 .llvm
                 .builder
@@ -2837,8 +2876,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //Compare left to 0
 
         match operator {
-            Operator::Or => builder.build_conditional_branch(lhs, continue_branch, right_branch)?,
-            Operator::And => builder.build_conditional_branch(lhs, right_branch, continue_branch)?,
+            Operator::Or | Operator::OrElse => {
+                builder.build_conditional_branch(lhs, continue_branch, right_branch)?
+            }
+            Operator::And | Operator::AndThen => {
+                builder.build_conditional_branch(lhs, right_branch, continue_branch)?
+            }
             _ => {
                 return Err(Diagnostic::codegen_error(
                     format!("Cannot generate phi-expression for operator {operator:}"),

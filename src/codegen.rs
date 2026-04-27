@@ -140,6 +140,7 @@ impl<'ink> CodeGen<'ink> {
         CodeGen { module, debug, module_location: module_location.to_string(), online_change }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn generate_llvm_index(
         &mut self,
         context: &'ink CodegenContext,
@@ -148,6 +149,7 @@ impl<'ink> CodeGen<'ink> {
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
         got_layout: &Mutex<HashMap<String, u64>>,
+        compatibility_profile: &plc_diagnostics::profiles::CompatibilityProfile,
     ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
@@ -158,6 +160,7 @@ impl<'ink> CodeGen<'ink> {
             dependencies,
             global_index,
             annotations,
+            compatibility_profile,
         )?;
         index.merge(llvm_type_index);
 
@@ -169,6 +172,7 @@ impl<'ink> CodeGen<'ink> {
             &index,
             &mut self.debug,
             &self.online_change,
+            compatibility_profile,
         );
 
         //Generate global variables
@@ -270,6 +274,7 @@ impl<'ink> CodeGen<'ink> {
             &mut self.debug,
             &self.online_change,
             &self.module_location,
+            compatibility_profile,
         )?;
         let llvm = Llvm::new(context, context.create_builder());
         index.merge(llvm_impl_index);
@@ -281,6 +286,7 @@ impl<'ink> CodeGen<'ink> {
             annotations,
             &index,
             &self.module_location,
+            compatibility_profile,
         )?;
         index.merge(llvm_values_index);
 
@@ -322,6 +328,7 @@ impl<'ink> CodeGen<'ink> {
     }
 
     /// generates all TYPEs, GLOBAL-sections and POUs of the given CompilationUnit
+    #[allow(clippy::too_many_arguments)]
     pub fn generate(
         self,
         context: &'ink CodegenContext,
@@ -330,11 +337,18 @@ impl<'ink> CodeGen<'ink> {
         global_index: &Index,
         llvm_index: LlvmTypedIndex<'ink>,
         constructors_only: bool,
+        compatibility_profile: &plc_diagnostics::profiles::CompatibilityProfile,
     ) -> Result<GeneratedModule<'ink>, CodegenError> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
-        let pou_generator =
-            PouGenerator::new(llvm, global_index, annotations, &llvm_index, &self.online_change);
+        let pou_generator = PouGenerator::new(
+            llvm,
+            global_index,
+            annotations,
+            &llvm_index,
+            &self.online_change,
+            compatibility_profile,
+        );
 
         //Generate the POU stubs in the first go to make sure they can be referenced.
         for implementation in &unit.implementations {

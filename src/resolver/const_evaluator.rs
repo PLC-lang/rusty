@@ -519,7 +519,9 @@ fn evaluate_with_target_hint(
                     Operator::Less => compare_expression!(left, <, right, "<", id)?,
                     Operator::LessOrEqual => compare_expression!(left, <=, right, "<=", id)?,
                     Operator::And => bitwise_expression!(left, & , right, "AND", id)?,
+                    Operator::AndThen => bitwise_expression!(left, & , right, "AND_THEN", id)?,
                     Operator::Or => bitwise_expression!(left, | , right, "OR", id)?,
+                    Operator::OrElse => bitwise_expression!(left, | , right, "OR_ELSE", id)?,
                     Operator::Xor => bitwise_expression!(left, ^, right, "XOR", id)?,
                     _ => {
                         return Err(UnresolvableKind::Misc(format!(
