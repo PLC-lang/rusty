@@ -280,105 +280,111 @@
 <a href=#280 id=280 data-nosnippet>280</a>    }
 <a href=#281 id=281 data-nosnippet>281</a>
 <a href=#282 id=282 data-nosnippet>282</a>    <span class="kw">fn </span>post_annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotated_project: AnnotatedProject) -&gt; AnnotatedProject {
-<a href=#283 id=283 data-nosnippet>283</a>        <span class="kw">let </span>AnnotatedProject { <span class="kw-2">mut </span>units, index, annotations } = annotated_project;
+<a href=#283 id=283 data-nosnippet>283</a>        <span class="kw">let </span>AnnotatedProject { <span class="kw-2">mut </span>units, index, annotations, diagnostics } = annotated_project;
 <a href=#284 id=284 data-nosnippet>284</a>        <span class="self">self</span>.annotations = <span class="prelude-val">Some</span>(Box::new(annotations));
 <a href=#285 id=285 data-nosnippet>285</a>        <span class="self">self</span>.index = <span class="prelude-val">Some</span>(index);
 <a href=#286 id=286 data-nosnippet>286</a>        units.iter_mut().for_each(|unit| <span class="self">self</span>.visit_unit(<span class="kw-2">&amp;mut </span>unit.unit));
 <a href=#287 id=287 data-nosnippet>287</a>        <span class="kw">let </span>index = <span class="self">self</span>.index.take().expect(<span class="string">"Index should be present"</span>);
 <a href=#288 id=288 data-nosnippet>288</a>        <span class="comment">// re-resolve
-<a href=#289 id=289 data-nosnippet>289</a>        </span>IndexedProject {
+<a href=#289 id=289 data-nosnippet>289</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>project = IndexedProject {
 <a href=#290 id=290 data-nosnippet>290</a>            project: ParsedProject {
 <a href=#291 id=291 data-nosnippet>291</a>                units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
 <a href=#292 id=292 data-nosnippet>292</a>            },
 <a href=#293 id=293 data-nosnippet>293</a>            index,
 <a href=#294 id=294 data-nosnippet>294</a>            _unresolvables: <span class="macro">vec!</span>[],
 <a href=#295 id=295 data-nosnippet>295</a>        }
-<a href=#296 id=296 data-nosnippet>296</a>        .annotate(<span class="self">self</span>.provider())
-<a href=#297 id=297 data-nosnippet>297</a>    }
-<a href=#298 id=298 data-nosnippet>298</a>}
-<a href=#299 id=299 data-nosnippet>299</a>
-<a href=#300 id=300 data-nosnippet>300</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>AggregateTypeLowerer {
-<a href=#301 id=301 data-nosnippet>301</a>    <span class="kw">fn </span>post_annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotated_project: AnnotatedProject) -&gt; AnnotatedProject {
-<a href=#302 id=302 data-nosnippet>302</a>        <span class="kw">let </span>AnnotatedProject { units, index, annotations } = annotated_project;
-<a href=#303 id=303 data-nosnippet>303</a>        <span class="self">self</span>.index = <span class="prelude-val">Some</span>(index);
-<a href=#304 id=304 data-nosnippet>304</a>        <span class="self">self</span>.annotation = <span class="prelude-val">Some</span>(Box::new(annotations));
-<a href=#305 id=305 data-nosnippet>305</a>
-<a href=#306 id=306 data-nosnippet>306</a>        <span class="kw">let </span>units = units
-<a href=#307 id=307 data-nosnippet>307</a>            .into_iter()
-<a href=#308 id=308 data-nosnippet>308</a>            .map(|AnnotatedUnit { <span class="kw-2">mut </span>unit, .. }| {
-<a href=#309 id=309 data-nosnippet>309</a>                <span class="self">self</span>.visit_unit(<span class="kw-2">&amp;mut </span>unit);
-<a href=#310 id=310 data-nosnippet>310</a>                unit
-<a href=#311 id=311 data-nosnippet>311</a>            })
-<a href=#312 id=312 data-nosnippet>312</a>            .collect();
-<a href=#313 id=313 data-nosnippet>313</a>
-<a href=#314 id=314 data-nosnippet>314</a>        <span class="comment">// Re-index from modified units so the index reflects POU signature
-<a href=#315 id=315 data-nosnippet>315</a>        // changes (e.g. aggregate returns converted to VAR_IN_OUT parameters).
-<a href=#316 id=316 data-nosnippet>316</a>        </span><span class="kw">let </span>project = ParsedProject { units };
-<a href=#317 id=317 data-nosnippet>317</a>        project.index(<span class="self">self</span>.id_provider.clone()).annotate(<span class="self">self</span>.id_provider.clone())
-<a href=#318 id=318 data-nosnippet>318</a>    }
-<a href=#319 id=319 data-nosnippet>319</a>}
-<a href=#320 id=320 data-nosnippet>320</a>
-<a href=#321 id=321 data-nosnippet>321</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>PolymorphismLowerer {
-<a href=#322 id=322 data-nosnippet>322</a>    <span class="kw">fn </span>post_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, indexed_project: IndexedProject) -&gt; IndexedProject {
-<a href=#323 id=323 data-nosnippet>323</a>        <span class="kw">let </span>IndexedProject { <span class="kw-2">mut </span>project, index, .. } = indexed_project;
+<a href=#296 id=296 data-nosnippet>296</a>        .annotate(<span class="self">self</span>.provider());
+<a href=#297 id=297 data-nosnippet>297</a>        project.diagnostics = diagnostics;
+<a href=#298 id=298 data-nosnippet>298</a>        project
+<a href=#299 id=299 data-nosnippet>299</a>    }
+<a href=#300 id=300 data-nosnippet>300</a>}
+<a href=#301 id=301 data-nosnippet>301</a>
+<a href=#302 id=302 data-nosnippet>302</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>AggregateTypeLowerer {
+<a href=#303 id=303 data-nosnippet>303</a>    <span class="kw">fn </span>post_annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotated_project: AnnotatedProject) -&gt; AnnotatedProject {
+<a href=#304 id=304 data-nosnippet>304</a>        <span class="kw">let </span>AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
+<a href=#305 id=305 data-nosnippet>305</a>        <span class="self">self</span>.index = <span class="prelude-val">Some</span>(index);
+<a href=#306 id=306 data-nosnippet>306</a>        <span class="self">self</span>.annotation = <span class="prelude-val">Some</span>(Box::new(annotations));
+<a href=#307 id=307 data-nosnippet>307</a>
+<a href=#308 id=308 data-nosnippet>308</a>        <span class="kw">let </span>units = units
+<a href=#309 id=309 data-nosnippet>309</a>            .into_iter()
+<a href=#310 id=310 data-nosnippet>310</a>            .map(|AnnotatedUnit { <span class="kw-2">mut </span>unit, .. }| {
+<a href=#311 id=311 data-nosnippet>311</a>                <span class="self">self</span>.visit_unit(<span class="kw-2">&amp;mut </span>unit);
+<a href=#312 id=312 data-nosnippet>312</a>                unit
+<a href=#313 id=313 data-nosnippet>313</a>            })
+<a href=#314 id=314 data-nosnippet>314</a>            .collect();
+<a href=#315 id=315 data-nosnippet>315</a>
+<a href=#316 id=316 data-nosnippet>316</a>        <span class="comment">// Re-index from modified units so the index reflects POU signature
+<a href=#317 id=317 data-nosnippet>317</a>        // changes (e.g. aggregate returns converted to VAR_IN_OUT parameters).
+<a href=#318 id=318 data-nosnippet>318</a>        </span><span class="kw">let </span>project = ParsedProject { units };
+<a href=#319 id=319 data-nosnippet>319</a>        <span class="kw">let </span><span class="kw-2">mut </span>project = project.index(<span class="self">self</span>.id_provider.clone()).annotate(<span class="self">self</span>.id_provider.clone());
+<a href=#320 id=320 data-nosnippet>320</a>        project.diagnostics = diagnostics;
+<a href=#321 id=321 data-nosnippet>321</a>        project
+<a href=#322 id=322 data-nosnippet>322</a>    }
+<a href=#323 id=323 data-nosnippet>323</a>}
 <a href=#324 id=324 data-nosnippet>324</a>
-<a href=#325 id=325 data-nosnippet>325</a>        <span class="self">self</span>.table(<span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;mut </span>project.units);
-<a href=#326 id=326 data-nosnippet>326</a>
-<a href=#327 id=327 data-nosnippet>327</a>        project.index(<span class="self">self</span>.ids.clone())
-<a href=#328 id=328 data-nosnippet>328</a>    }
-<a href=#329 id=329 data-nosnippet>329</a>
-<a href=#330 id=330 data-nosnippet>330</a>    <span class="kw">fn </span>post_annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotated_project: AnnotatedProject) -&gt; AnnotatedProject {
-<a href=#331 id=331 data-nosnippet>331</a>        <span class="kw">let </span>AnnotatedProject { units, index, annotations } = annotated_project;
-<a href=#332 id=332 data-nosnippet>332</a>        <span class="kw">let </span><span class="kw-2">mut </span>units: Vec&lt;<span class="kw">_</span>&gt; = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
+<a href=#325 id=325 data-nosnippet>325</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>PolymorphismLowerer {
+<a href=#326 id=326 data-nosnippet>326</a>    <span class="kw">fn </span>post_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, indexed_project: IndexedProject) -&gt; IndexedProject {
+<a href=#327 id=327 data-nosnippet>327</a>        <span class="kw">let </span>IndexedProject { <span class="kw-2">mut </span>project, index, .. } = indexed_project;
+<a href=#328 id=328 data-nosnippet>328</a>
+<a href=#329 id=329 data-nosnippet>329</a>        <span class="self">self</span>.table(<span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;mut </span>project.units);
+<a href=#330 id=330 data-nosnippet>330</a>
+<a href=#331 id=331 data-nosnippet>331</a>        project.index(<span class="self">self</span>.ids.clone())
+<a href=#332 id=332 data-nosnippet>332</a>    }
 <a href=#333 id=333 data-nosnippet>333</a>
-<a href=#334 id=334 data-nosnippet>334</a>        <span class="kw">let </span>diagnostics = <span class="self">self</span>.dispatch(index, annotations.annotation_map, <span class="kw-2">&amp;mut </span>units);
-<a href=#335 id=335 data-nosnippet>335</a>        <span class="self">self</span>.stash_diagnostics(diagnostics);
-<a href=#336 id=336 data-nosnippet>336</a>        <span class="kw">let </span>project = ParsedProject { units };
+<a href=#334 id=334 data-nosnippet>334</a>    <span class="kw">fn </span>post_annotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotated_project: AnnotatedProject) -&gt; AnnotatedProject {
+<a href=#335 id=335 data-nosnippet>335</a>        <span class="kw">let </span>AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
+<a href=#336 id=336 data-nosnippet>336</a>        <span class="kw">let </span><span class="kw-2">mut </span>units: Vec&lt;<span class="kw">_</span>&gt; = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
 <a href=#337 id=337 data-nosnippet>337</a>
-<a href=#338 id=338 data-nosnippet>338</a>        <span class="comment">// Dispatch lowering may inject new types (e.g. `__FATPOINTER` and itables for interface
-<a href=#339 id=339 data-nosnippet>339</a>        // dispatch) into the compilation units' `user_types`. Re-indexing from the units ensures
-<a href=#340 id=340 data-nosnippet>340</a>        // these types are present in the index for the subsequent re-annotation.
-<a href=#341 id=341 data-nosnippet>341</a>        </span>project.index(<span class="self">self</span>.ids.clone()).annotate(<span class="self">self</span>.ids.clone())
-<a href=#342 id=342 data-nosnippet>342</a>    }
-<a href=#343 id=343 data-nosnippet>343</a>
-<a href=#344 id=344 data-nosnippet>344</a>    <span class="kw">fn </span>diagnostics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Diagnostic&gt; {
-<a href=#345 id=345 data-nosnippet>345</a>        <span class="self">self</span>.take_diagnostics()
-<a href=#346 id=346 data-nosnippet>346</a>    }
-<a href=#347 id=347 data-nosnippet>347</a>}
-<a href=#348 id=348 data-nosnippet>348</a>
-<a href=#349 id=349 data-nosnippet>349</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>RetainParticipant {
-<a href=#350 id=350 data-nosnippet>350</a>    <span class="kw">fn </span>post_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, indexed_project: IndexedProject) -&gt; IndexedProject {
-<a href=#351 id=351 data-nosnippet>351</a>        <span class="kw">let </span>IndexedProject { <span class="kw-2">mut </span>project, index, .. } = indexed_project;
-<a href=#352 id=352 data-nosnippet>352</a>        <span class="self">self</span>.lower_retain(<span class="kw-2">&amp;mut </span>project.units, index);
-<a href=#353 id=353 data-nosnippet>353</a>
-<a href=#354 id=354 data-nosnippet>354</a>        <span class="comment">// Re-index
-<a href=#355 id=355 data-nosnippet>355</a>        </span>project.index(<span class="self">self</span>.ids.clone())
-<a href=#356 id=356 data-nosnippet>356</a>    }
-<a href=#357 id=357 data-nosnippet>357</a>}
-<a href=#358 id=358 data-nosnippet>358</a>
-<a href=#359 id=359 data-nosnippet>359</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>ControlStatementParticipant {
-<a href=#360 id=360 data-nosnippet>360</a>    <span class="kw">fn </span>pre_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parsed_project: ParsedProject) -&gt; ParsedProject {
-<a href=#361 id=361 data-nosnippet>361</a>        <span class="kw">let </span>ParsedProject { <span class="kw-2">mut </span>units } = parsed_project;
-<a href=#362 id=362 data-nosnippet>362</a>        <span class="self">self</span>.lower_control_statements(<span class="kw-2">&amp;mut </span>units);
-<a href=#363 id=363 data-nosnippet>363</a>
-<a href=#364 id=364 data-nosnippet>364</a>        ParsedProject { units }
-<a href=#365 id=365 data-nosnippet>365</a>    }
-<a href=#366 id=366 data-nosnippet>366</a>}
-<a href=#367 id=367 data-nosnippet>367</a>
-<a href=#368 id=368 data-nosnippet>368</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>LoopDesugarer {
-<a href=#369 id=369 data-nosnippet>369</a>    <span class="kw">fn </span>pre_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parsed_project: ParsedProject) -&gt; ParsedProject {
-<a href=#370 id=370 data-nosnippet>370</a>        <span class="kw">let </span>ParsedProject { <span class="kw-2">mut </span>units } = parsed_project;
-<a href=#371 id=371 data-nosnippet>371</a>        <span class="self">self</span>.desugar(<span class="kw-2">&amp;mut </span>units);
-<a href=#372 id=372 data-nosnippet>372</a>
-<a href=#373 id=373 data-nosnippet>373</a>        ParsedProject { units }
-<a href=#374 id=374 data-nosnippet>374</a>    }
-<a href=#375 id=375 data-nosnippet>375</a>}
-<a href=#376 id=376 data-nosnippet>376</a>
-<a href=#377 id=377 data-nosnippet>377</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>ReferenceToReturnParticipant {
-<a href=#378 id=378 data-nosnippet>378</a>    <span class="kw">fn </span>pre_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parsed_project: ParsedProject) -&gt; ParsedProject {
-<a href=#379 id=379 data-nosnippet>379</a>        <span class="kw">let </span>ParsedProject { <span class="kw-2">mut </span>units } = parsed_project;
-<a href=#380 id=380 data-nosnippet>380</a>        <span class="self">self</span>.lower_reference_to_return(<span class="kw-2">&amp;mut </span>units);
-<a href=#381 id=381 data-nosnippet>381</a>        ParsedProject { units }
-<a href=#382 id=382 data-nosnippet>382</a>    }
-<a href=#383 id=383 data-nosnippet>383</a>}
+<a href=#338 id=338 data-nosnippet>338</a>        <span class="kw">let </span>new_diagnostics = <span class="self">self</span>.dispatch(index, annotations.annotation_map, <span class="kw-2">&amp;mut </span>units);
+<a href=#339 id=339 data-nosnippet>339</a>        <span class="self">self</span>.stash_diagnostics(new_diagnostics);
+<a href=#340 id=340 data-nosnippet>340</a>        <span class="kw">let </span>project = ParsedProject { units };
+<a href=#341 id=341 data-nosnippet>341</a>
+<a href=#342 id=342 data-nosnippet>342</a>        <span class="comment">// Dispatch lowering may inject new types (e.g. `__FATPOINTER` and itables for interface
+<a href=#343 id=343 data-nosnippet>343</a>        // dispatch) into the compilation units' `user_types`. Re-indexing from the units ensures
+<a href=#344 id=344 data-nosnippet>344</a>        // these types are present in the index for the subsequent re-annotation.
+<a href=#345 id=345 data-nosnippet>345</a>        </span><span class="kw">let </span><span class="kw-2">mut </span>project = project.index(<span class="self">self</span>.ids.clone()).annotate(<span class="self">self</span>.ids.clone());
+<a href=#346 id=346 data-nosnippet>346</a>        project.diagnostics = diagnostics;
+<a href=#347 id=347 data-nosnippet>347</a>        project
+<a href=#348 id=348 data-nosnippet>348</a>    }
+<a href=#349 id=349 data-nosnippet>349</a>
+<a href=#350 id=350 data-nosnippet>350</a>    <span class="kw">fn </span>diagnostics(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Diagnostic&gt; {
+<a href=#351 id=351 data-nosnippet>351</a>        <span class="self">self</span>.take_diagnostics()
+<a href=#352 id=352 data-nosnippet>352</a>    }
+<a href=#353 id=353 data-nosnippet>353</a>}
+<a href=#354 id=354 data-nosnippet>354</a>
+<a href=#355 id=355 data-nosnippet>355</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>RetainParticipant {
+<a href=#356 id=356 data-nosnippet>356</a>    <span class="kw">fn </span>post_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, indexed_project: IndexedProject) -&gt; IndexedProject {
+<a href=#357 id=357 data-nosnippet>357</a>        <span class="kw">let </span>IndexedProject { <span class="kw-2">mut </span>project, index, .. } = indexed_project;
+<a href=#358 id=358 data-nosnippet>358</a>        <span class="self">self</span>.lower_retain(<span class="kw-2">&amp;mut </span>project.units, index);
+<a href=#359 id=359 data-nosnippet>359</a>
+<a href=#360 id=360 data-nosnippet>360</a>        <span class="comment">// Re-index
+<a href=#361 id=361 data-nosnippet>361</a>        </span>project.index(<span class="self">self</span>.ids.clone())
+<a href=#362 id=362 data-nosnippet>362</a>    }
+<a href=#363 id=363 data-nosnippet>363</a>}
+<a href=#364 id=364 data-nosnippet>364</a>
+<a href=#365 id=365 data-nosnippet>365</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>ControlStatementParticipant {
+<a href=#366 id=366 data-nosnippet>366</a>    <span class="kw">fn </span>pre_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parsed_project: ParsedProject) -&gt; ParsedProject {
+<a href=#367 id=367 data-nosnippet>367</a>        <span class="kw">let </span>ParsedProject { <span class="kw-2">mut </span>units } = parsed_project;
+<a href=#368 id=368 data-nosnippet>368</a>        <span class="self">self</span>.lower_control_statements(<span class="kw-2">&amp;mut </span>units);
+<a href=#369 id=369 data-nosnippet>369</a>
+<a href=#370 id=370 data-nosnippet>370</a>        ParsedProject { units }
+<a href=#371 id=371 data-nosnippet>371</a>    }
+<a href=#372 id=372 data-nosnippet>372</a>}
+<a href=#373 id=373 data-nosnippet>373</a>
+<a href=#374 id=374 data-nosnippet>374</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>LoopDesugarer {
+<a href=#375 id=375 data-nosnippet>375</a>    <span class="kw">fn </span>pre_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parsed_project: ParsedProject) -&gt; ParsedProject {
+<a href=#376 id=376 data-nosnippet>376</a>        <span class="kw">let </span>ParsedProject { <span class="kw-2">mut </span>units } = parsed_project;
+<a href=#377 id=377 data-nosnippet>377</a>        <span class="self">self</span>.desugar(<span class="kw-2">&amp;mut </span>units);
+<a href=#378 id=378 data-nosnippet>378</a>
+<a href=#379 id=379 data-nosnippet>379</a>        ParsedProject { units }
+<a href=#380 id=380 data-nosnippet>380</a>    }
+<a href=#381 id=381 data-nosnippet>381</a>}
+<a href=#382 id=382 data-nosnippet>382</a>
+<a href=#383 id=383 data-nosnippet>383</a><span class="kw">impl </span>PipelineParticipantMut <span class="kw">for </span>ReferenceToReturnParticipant {
+<a href=#384 id=384 data-nosnippet>384</a>    <span class="kw">fn </span>pre_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, parsed_project: ParsedProject) -&gt; ParsedProject {
+<a href=#385 id=385 data-nosnippet>385</a>        <span class="kw">let </span>ParsedProject { <span class="kw-2">mut </span>units } = parsed_project;
+<a href=#386 id=386 data-nosnippet>386</a>        <span class="self">self</span>.lower_reference_to_return(<span class="kw-2">&amp;mut </span>units);
+<a href=#387 id=387 data-nosnippet>387</a>        ParsedProject { units }
+<a href=#388 id=388 data-nosnippet>388</a>    }
+<a href=#389 id=389 data-nosnippet>389</a>}
 </code></pre></div></section></main></body></html>
