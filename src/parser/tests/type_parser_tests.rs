@@ -297,6 +297,84 @@ fn ref_type_test() {
 }
 
 #[test]
+fn reference_to_int_type_can_be_parsed() {
+    let (result, diagnostics) = parse(
+        r#"
+        TYPE refInt :
+            REFERENCE TO INT;
+        END_TYPE
+        "#,
+    );
+
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: PointerType {
+            name: Some(
+                "refInt",
+            ),
+            referenced_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+            auto_deref: Some(
+                Reference,
+            ),
+            type_safe: true,
+            is_function: false,
+        },
+        initializer: None,
+        scope: None,
+    }
+    "#);
+    assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn reference_to_array_type_can_be_parsed() {
+    let (result, diagnostics) = parse(
+        r#"
+        TYPE refArrInt :
+            REFERENCE TO ARRAY[0..1] OF INT;
+        END_TYPE
+        "#,
+    );
+
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: PointerType {
+            name: Some(
+                "refArrInt",
+            ),
+            referenced_type: DataTypeDefinition {
+                data_type: ArrayType {
+                    name: None,
+                    bounds: RangeStatement {
+                        start: LiteralInteger {
+                            value: 0,
+                        },
+                        end: LiteralInteger {
+                            value: 1,
+                        },
+                    },
+                    referenced_type: DataTypeReference {
+                        referenced_type: "INT",
+                    },
+                    is_variable_length: false,
+                },
+            },
+            auto_deref: Some(
+                Reference,
+            ),
+            type_safe: true,
+            is_function: false,
+        },
+        initializer: None,
+        scope: None,
+    }
+    "#);
+    assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
 fn global_pointer_declaration() {
     let (result, diagnostics) = parse_buffered(
         r#"
