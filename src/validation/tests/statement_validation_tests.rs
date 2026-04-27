@@ -760,11 +760,11 @@ fn builtin_functions_named_arguments_mixed_with_positional_arguments() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E031]: Cannot mix implicit and explicit call parameters!
+    warning[E132]: Mixing implicit and explicit call parameters
       ┌─ <internal>:9:42
       │
     9 │             a := SEL(G := sel, IN0 := a, b);
-      │                                          ^ Cannot mix implicit and explicit call parameters!
+      │                                          ^ Mixing implicit and explicit call parameters
 
     error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
        ┌─ <internal>:20:30
@@ -772,11 +772,11 @@ fn builtin_functions_named_arguments_mixed_with_positional_arguments() {
     20 │             a := UPPER_BOUND(arr := arr, 1);
        │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
 
-    error[E031]: Cannot mix implicit and explicit call parameters!
+    warning[E132]: Mixing implicit and explicit call parameters
        ┌─ <internal>:20:42
        │
     20 │             a := UPPER_BOUND(arr := arr, 1);
-       │                                          ^ Cannot mix implicit and explicit call parameters!
+       │                                          ^ Mixing implicit and explicit call parameters
 
     warning[E067]: Implicit downcast from 'DINT' to 'INT'.
        ┌─ <internal>:20:18
@@ -790,11 +790,11 @@ fn builtin_functions_named_arguments_mixed_with_positional_arguments() {
     23 │             a := LOWER_BOUND(arr := arr, 1);
        │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
 
-    error[E031]: Cannot mix implicit and explicit call parameters!
+    warning[E132]: Mixing implicit and explicit call parameters
        ┌─ <internal>:23:42
        │
     23 │             a := LOWER_BOUND(arr := arr, 1);
-       │                                          ^ Cannot mix implicit and explicit call parameters!
+       │                                          ^ Mixing implicit and explicit call parameters
 
     warning[E067]: Implicit downcast from 'DINT' to 'INT'.
        ┌─ <internal>:23:18
@@ -802,17 +802,380 @@ fn builtin_functions_named_arguments_mixed_with_positional_arguments() {
     23 │             a := LOWER_BOUND(arr := arr, 1);
        │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
 
-    error[E031]: Cannot mix implicit and explicit call parameters!
+    warning[E132]: Mixing implicit and explicit call parameters
        ┌─ <internal>:26:32
        │
     26 │             a := DIV(IN1 := a, b);
-       │                                ^ Cannot mix implicit and explicit call parameters!
+       │                                ^ Mixing implicit and explicit call parameters
 
-    error[E031]: Cannot mix implicit and explicit call parameters!
+    warning[E132]: Mixing implicit and explicit call parameters
        ┌─ <internal>:29:32
        │
     29 │             a := SUB(IN1 := a, b);
-       │                                ^ Cannot mix implicit and explicit call parameters!
+       │                                ^ Mixing implicit and explicit call parameters
+    ");
+}
+
+#[test]
+fn mixed_implicit_explicit_user_function_call() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT := 1;
+            b : INT := 2;
+            c : INT := 3;
+        END_VAR
+            myfunc := a + b + c;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR x : INT; END_VAR
+            // pure calls — no warnings
+            x := myfunc();
+            x := myfunc(10, 20, 30);
+            x := myfunc(a := 10, b := 20, c := 30);
+
+            // mixed calls — each positional arg after/before named gets E132
+            x := myfunc(10, b := 20);
+            x := myfunc(a := 10, 20);
+            x := myfunc(10, b := 20, c := 30);
+            x := myfunc(a := 10, 20, c := 30);
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics, @"
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:19:29
+       │
+    19 │             x := myfunc(10, b := 20);
+       │                             ^^^^^^^ Mixing implicit and explicit call parameters
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:20:34
+       │
+    20 │             x := myfunc(a := 10, 20);
+       │                                  ^^ Mixing implicit and explicit call parameters
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:21:29
+       │
+    21 │             x := myfunc(10, b := 20, c := 30);
+       │                             ^^^^^^^ Mixing implicit and explicit call parameters
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:21:38
+       │
+    21 │             x := myfunc(10, b := 20, c := 30);
+       │                                      ^^^^^^^ Mixing implicit and explicit call parameters
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:22:34
+       │
+    22 │             x := myfunc(a := 10, 20, c := 30);
+       │                                  ^^ Mixing implicit and explicit call parameters
+    ");
+}
+
+#[test]
+fn mixed_implicit_explicit_program_call() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM myprog
+        VAR_INPUT
+            a : INT;
+            b : INT;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM main
+        VAR x : INT; END_VAR
+            myprog(10, b := 20);
+            myprog(a := 10, 20);
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics, @"
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:11:24
+       │
+    11 │             myprog(10, b := 20);
+       │                        ^^^^^^^ Mixing implicit and explicit call parameters
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:12:29
+       │
+    12 │             myprog(a := 10, 20);
+       │                             ^^ Mixing implicit and explicit call parameters
+    ");
+}
+
+#[test]
+fn mixed_implicit_explicit_function_block_call() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK MyFB
+        VAR_INPUT
+            a : INT;
+            b : INT;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+        VAR fb : MyFB; END_VAR
+            fb(10, b := 20);
+            fb(a := 10, 20);
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics, @"
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:11:20
+       │
+    11 │             fb(10, b := 20);
+       │                    ^^^^^^^ Mixing implicit and explicit call parameters
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:12:25
+       │
+    12 │             fb(a := 10, 20);
+       │                         ^^ Mixing implicit and explicit call parameters
+    ");
+}
+
+#[test]
+fn mixed_implicit_explicit_type_errors_still_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : STRING;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            x : INT;
+            s : STRING;
+        END_VAR
+            // type error on the positional arg + mixing warning
+            x := myfunc(a := x, x);
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics, @"
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'STRING'
+       ┌─ <internal>:15:33
+       │
+    15 │             x := myfunc(a := x, x);
+       │                                 ^ Invalid assignment: cannot assign 'INT' to 'STRING'
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:15:33
+       │
+    15 │             x := myfunc(a := x, x);
+       │                                 ^ Mixing implicit and explicit call parameters
+    ");
+}
+
+#[test]
+fn mixed_implicit_explicit_named_first_general_case() {
+    // named arg that is NOT the first parameter, followed by a positional arg
+    // i.e. myfunc(b := 20, 1) where params are (a, b)
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : INT;
+            c : INT;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR x : INT; END_VAR
+            // b named, then 1 positional -> 1 should fill 'a', 2 should fill 'c'
+            x := myfunc(b := 20, 1, 3);
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics, @r"
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:13:34
+       │
+    13 │             x := myfunc(b := 20, 1, 3);
+       │                                  ^ Mixing implicit and explicit call parameters
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:13:37
+       │
+    13 │             x := myfunc(b := 20, 1, 3);
+       │                                     ^ Mixing implicit and explicit call parameters
+    ");
+}
+
+#[test]
+fn mixed_implicit_explicit_collision_positional_and_named_same_param() {
+    // The positional arg `1` would naturally fill param `a`, but the caller also supplies `a := 10`.
+    // E131 flags the collision so the ambiguity is visible — without it the resolver would silently
+    // reinterpret `myfunc(1, a := 10)` as `a := 10, b := 1`.
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : INT;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR x : INT; END_VAR
+            x := myfunc(1, a := 10);
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics, @"
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:11:28
+       │
+    11 │             x := myfunc(1, a := 10);
+       │                            ^^^^^^^ Mixing implicit and explicit call parameters
+
+    error[E131]: Positional argument collides with later named argument `a`
+       ┌─ <internal>:11:25
+       │
+    11 │             x := myfunc(1, a := 10);
+       │                         ^  ------- see also
+       │                         │   
+       │                         Positional argument collides with later named argument `a`
+    ");
+}
+
+#[test]
+fn mixed_implicit_explicit_var_in_out_is_resolved() {
+    // VAR_IN_OUT passed by reference in a mixed call, both as positional and as named.
+    // Only E132 (mixing) fires — VAR_IN_OUT itself resolves cleanly.
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION foo : DINT
+        VAR_INPUT
+            input1 : DINT;
+        END_VAR
+        VAR_IN_OUT
+            inout1 : DINT;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            v1 : DINT;
+            v2 : DINT;
+        END_VAR
+            foo(v1, inout1 := v2);       // positional input, named inout
+            foo(input1 := v1, v2);       // named input, positional inout
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics, @r"
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:16:21
+       │
+    16 │             foo(v1, inout1 := v2);       // positional input, named inout
+       │                     ^^^^^^^^^^^^ Mixing implicit and explicit call parameters
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:17:31
+       │
+    17 │             foo(input1 := v1, v2);       // named input, positional inout
+       │                               ^^ Mixing implicit and explicit call parameters
+    ");
+}
+
+#[test]
+fn mixed_implicit_explicit_non_trailing_default_is_rejected() {
+    // Gap — pinned for future reference:
+    //
+    // IEC 61131-3 treats every input as zero-initialized, so semantically
+    // `myfunc(a := 0, 2)` with signature `(a, b := 1, c)` should resolve to
+    // a=0, b=2, c=0 (implicit zero-default for c). Today the arity check at
+    // validate_argument_count uses `take_while` from the END of the param list,
+    // so only TRAILING defaults count as optional. A default sandwiched between
+    // non-default params (here: b) doesn't make the call arity-flexible.
+    //
+    // Both forms below are rejected — mixed and all-named — so the mixing
+    // feature in this branch is not the cause.
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : INT := 1;
+            c : INT;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR x : INT; END_VAR
+            x := myfunc(a := 0, 2);        // mixed
+            x := myfunc(a := 0, c := 2);   // all named, still rejected
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E032]: this POU takes 3 arguments but 2 arguments were supplied
+       ┌─ <internal>:12:18
+       │
+    12 │             x := myfunc(a := 0, 2);        // mixed
+       │                  ^^^^^^ this POU takes 3 arguments but 2 arguments were supplied
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:12:33
+       │
+    12 │             x := myfunc(a := 0, 2);        // mixed
+       │                                 ^ Mixing implicit and explicit call parameters
+
+    error[E032]: this POU takes 3 arguments but 2 arguments were supplied
+       ┌─ <internal>:13:18
+       │
+    13 │             x := myfunc(a := 0, c := 2);   // all named, still rejected
+       │                  ^^^^^^ this POU takes 3 arguments but 2 arguments were supplied
+    ");
+}
+
+#[test]
+fn mixed_implicit_explicit_missing_required_param() {
+    // `b` has no default. `myfunc(1, c := 3)` fills a=1 via positional, skips b, names c.
+    // The arity check (E032) catches this — the resolver doesn't track per-param coverage, but
+    // counting args is enough to flag the hole when no param has a default.
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION myfunc : INT
+        VAR_INPUT
+            a : INT;
+            b : INT;
+            c : INT;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR x : INT; END_VAR
+            x := myfunc(1, c := 3);
+        END_PROGRAM
+        ",
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E032]: this POU takes 3 arguments but 2 arguments were supplied
+       ┌─ <internal>:12:18
+       │
+    12 │             x := myfunc(1, c := 3);
+       │                  ^^^^^^ this POU takes 3 arguments but 2 arguments were supplied
+
+    warning[E132]: Mixing implicit and explicit call parameters
+       ┌─ <internal>:12:28
+       │
+    12 │             x := myfunc(1, c := 3);
+       │                            ^^^^^^ Mixing implicit and explicit call parameters
     ");
 }
 
