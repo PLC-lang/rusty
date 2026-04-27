@@ -41,7 +41,7 @@ continue:                                         ; preds = %else, %case1, %case
 
 !0 = !{i32 2, !"Dwarf Version", i32 5}
 !1 = !{i32 2, !"Debug Info Version", i32 3}
-!2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+!2 = distinct !DICompileUnit(language: DW_LANG_Pascal83, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
 !3 = !DIFile(filename: "<internal>", directory: "src")
 !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
 !5 = !DIFile(filename: "<internal>", directory: "")

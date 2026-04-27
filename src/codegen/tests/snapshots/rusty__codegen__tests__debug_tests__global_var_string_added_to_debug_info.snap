@@ -28,5 +28,5 @@ target triple = "[filtered]"
 !12 = !DIBasicType(name: "WCHAR", size: 16, encoding: DW_ATE_UTF, flags: DIFlagPublic)
 !13 = !{i32 2, !"Dwarf Version", i32 5}
 !14 = !{i32 2, !"Debug Info Version", i32 3}
-!15 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !16, splitDebugInlining: false)
+!15 = distinct !DICompileUnit(language: DW_LANG_Pascal83, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !16, splitDebugInlining: false, nameTableKind: None)
 !16 = !{!0, !8}
