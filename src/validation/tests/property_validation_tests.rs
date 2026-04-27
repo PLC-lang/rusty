@@ -594,6 +594,72 @@ fn properties_with_same_name_but_different_datatypes_are_not_ok() {
 }
 
 #[test]
+fn properties_with_same_array_datatype_using_different_const_expressions_are_ok() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        VAR_GLOBAL CONSTANT
+            start_a : INT := 1;
+            end_a : INT := 5;
+            start_b : INT := 1;
+            end_b : INT := 5;
+        END_VAR
+
+        FUNCTION_BLOCK FbA
+            PROPERTY_GET foo: ARRAY[start_a..end_a] OF DINT END_PROPERTY
+            PROPERTY_SET foo: ARRAY[start_b..end_b] OF DINT END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn properties_with_same_struct_datatype_using_different_case_are_ok() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        TYPE Position:
+            STRUCT
+                x: DINT;
+                y: DINT;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+            PROPERTY_GET position: Position END_PROPERTY
+            PROPERTY_SET position: position END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn properties_with_different_array_ranges_are_not_ok() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        VAR_GLOBAL CONSTANT
+            start_a : INT := 1;
+            end_a : INT := 5;
+            start_b : INT := 1;
+            end_b : INT := 6;
+        END_VAR
+
+        FUNCTION_BLOCK FbA
+            PROPERTY_GET foo: ARRAY[start_a..end_a] OF DINT END_PROPERTY
+            PROPERTY_SET foo: ARRAY[start_b..end_b] OF DINT END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert!(
+        diagnostics.contains("Property `foo` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET"),
+        "{diagnostics}"
+    );
+}
+
+#[test]
 fn extending_interface_property_by_getter_with_same_datatype_is_ok() {
     let source = r"
     INTERFACE intf1
