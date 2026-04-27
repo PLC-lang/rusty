@@ -201,10 +201,8 @@ impl AstVisitor for AstSerializer<'_> {
 
                 self.visit_data_type_declaration(referenced_type.as_ref());
             }
-            DataType::StructType { name, .. } => {
-                if let Some(name) = name {
-                    self.result.push_str(name);
-                }
+            DataType::StructType { name: Some(name), .. } => {
+                self.result.push_str(name);
             }
             // TODO: For now we aren't interested in non-pointer types, but this should be expanded
             _ => (),
