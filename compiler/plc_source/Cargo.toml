@@ -1,6 +1,6 @@
 [package]
 name = "plc_source"
-version = "0.4.1-dev"
+version = "0.5.0"
 edition = "2021"
 license = "LGPL-3.0"
 description = "Source file handling for the PLC Structured Text compiler"
