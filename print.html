@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c919ca7c.js";
+            window.path_to_searchindex_js = "searchindex-03f28fd9.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-ae9fca4f.js"></script>
+        <script src="toc-2697711a.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1998,6 +1998,60 @@ END_VAR
 the platform supports it.</li>
 <li>Split the data across multiple smaller arrays.</li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="positional-argument-collides-with-later-named-argument"><a class="header" href="#positional-argument-collides-with-later-named-argument">Positional argument collides with later named argument</a></h1>
+<p>In a mixed implicit/explicit call, a positional argument would naturally fill the same
+parameter that a <em>later</em> named argument also targets. The positional would spill into
+the next free slot - a silent reinterpretation that is almost never what the caller
+intended. This is an error because no legitimate code should depend on that
+disambiguation.</p>
+<pre><code class="language-iecst">FUNCTION myfunc : INT
+VAR_INPUT
+    a : INT;
+    b : INT;
+END_VAR
+END_FUNCTION
+
+PROGRAM main
+VAR x : INT; END_VAR
+    // `1` sits in position 0 (param `a`), but `a := 10` also targets `a`.
+    x := myfunc(1, a := 10);
+END_PROGRAM
+</code></pre>
+<p>Rewrite the call so the intent is unambiguous - either name both arguments or drop the
+duplicate name.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="mixing-implicit-and-explicit-call-parameters"><a class="header" href="#mixing-implicit-and-explicit-call-parameters">Mixing implicit and explicit call parameters</a></h1>
+<p>A call mixes positional (implicit) arguments with named (explicit) arguments.
+The compiler accepts this, but the resolution is order-sensitive: named args
+first claim their slots, and any remaining positional args fill the leftover
+slots left-to-right. This is easy to misread and easy to break by reordering.</p>
+<p>Example:</p>
+<pre><code class="language-st">FUNCTION myfunc : INT
+VAR_INPUT
+    a : INT;
+    b : INT;
+    c : INT;
+END_VAR
+END_FUNCTION
+
+PROGRAM main
+VAR x : INT; END_VAR
+    // `b := 20` claims slot 1; positional `1` fills slot 0 (a), `3` fills slot 2 (c).
+    x := myfunc(b := 20, 1, 3);
+END_PROGRAM
+</code></pre>
+<p>Prefer one style per call - fully positional or fully named - so a reader can
+see the mapping at a glance. If a mix is genuinely the clearest option (e.g. to
+override one default in the middle of a long parameter list), name every
+argument whose position isn’t obvious.</p>
+<p>To silence this warning, rewrite the call with a single convention:</p>
+<pre><code class="language-st">    x := myfunc(1, 20, 3);                    // all positional
+    x := myfunc(a := 1, b := 20, c := 3);     // all named
+</code></pre>
+<p>See also <code>E131</code> — positional arg collides with later named arg — which catches
+the more dangerous case where a positional argument’s natural slot is also
+named, and the resolver silently shifts it to a different parameter.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
