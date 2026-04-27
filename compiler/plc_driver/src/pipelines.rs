@@ -203,6 +203,8 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 relocation_preference,
                 error_format: params.error_format,
                 debug_level: params.debug_level(),
+                debug_prefix_maps: params.debug_prefix_maps(),
+                debug_compilation_dir: params.debug_compilation_dir.clone(),
                 single_module: params.single_module,
                 online_change: if params.online_change {
                     OnlineChange::Enabled {
@@ -914,6 +916,8 @@ impl AnnotatedProject {
             unit.file,
             compile_options.optimization,
             compile_options.debug_level,
+            &compile_options.debug_prefix_maps,
+            compile_options.debug_compilation_dir.as_deref(),
             //FIXME don't clone here
             compile_options.online_change.clone(),
             target,
@@ -927,6 +931,7 @@ impl AnnotatedProject {
             dependencies,
             &self.index,
             got_layout,
+            compile_options.constructors_only,
         )?;
         code_generator
             .generate(

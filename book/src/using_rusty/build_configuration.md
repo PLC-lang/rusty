@@ -147,6 +147,16 @@ All regular linker options from `plc` can also be used with the `build` subcomma
 - `--nolibc`
 - `--fpic` / `--fno-pic` (relocation model)
 
+### Additional debug path options
+
+The `build` subcommand also accepts the debug path remapping flags:
+
+- `--file-prefix-map OLD=NEW`
+- `--debug-prefix-map OLD=NEW`
+- `--debug-compilation-dir <dir>`
+
+These are especially useful for shipped builds and remote debugging. See [Debug Path Remapping](./debug_paths.md).
+
 ## Environment Variables
 
 Environment variables can be used inside the build description file, the variables are evaluated before an entry is evaluated.

@@ -1,6 +1,9 @@
-use std::{fmt::Debug, path::PathBuf};
+use std::{
+    fmt::Debug,
+    path::{Path, PathBuf},
+};
 
-use plc::DebugLevel;
+use plc::{codegen::CodegenContext, DebugLevel};
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use plc_index::GlobalContext;
 use project::project::Project;
@@ -12,6 +15,7 @@ use crate::{
     CompileOptions,
 };
 
+mod debug_paths;
 mod external_files;
 mod header_generator;
 mod multi_files;
@@ -60,20 +64,30 @@ where
     S: SourceContainer + Debug,
     T: IntoIterator<Item = S>,
 {
-    let path: Option<PathBuf> = root.map(|it| it.into());
+    let compile_options = CompileOptions {
+        root: root.map(PathBuf::from),
+        debug_level,
+        optimization: plc::OptimizationLevel::None,
+        ..Default::default()
+    };
+    compile_to_string_with_options(sources, includes, compile_options)
+}
+
+pub fn compile_to_string_with_options<S, T>(
+    sources: T,
+    includes: T,
+    compile_options: CompileOptions,
+) -> Result<Vec<String>, Diagnostic>
+where
+    S: SourceContainer + Debug,
+    T: IntoIterator<Item = S>,
+{
     let mut diagnostician = Diagnostician::null_diagnostician();
     //Create a project
     let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
     let ctxt = GlobalContext::new()
         .with_source(project.get_sources(), None)?
         .with_source(project.get_includes(), None)?;
-    //Parse
-    let compile_options = CompileOptions {
-        root: path,
-        debug_level,
-        optimization: plc::OptimizationLevel::None,
-        ..Default::default()
-    };
     //TODO: participants
     pipelines::ParsedProject::parse(&ctxt, &project, &mut diagnostician)?
         //Index
@@ -82,6 +96,37 @@ where
         .annotate(ctxt.provider())
         //Codegen
         .codegen_to_string(&compile_options)
+}
+
+pub fn compile_args_to_string(args: &[String]) -> Result<String, Diagnostic> {
+    let mut pipeline = BuildPipeline::new(args).map_err(|err| Diagnostic::new(err.to_string()))?;
+    pipeline.register_default_mut_participants();
+    let project = pipeline.parse()?;
+    let project = pipeline.index(project)?;
+    let project = pipeline.annotate(project)?;
+    project.validate(&pipeline.context, &mut pipeline.diagnostician)?;
+
+    let context = CodegenContext::create();
+    let module =
+        project.generate_single_module(&context, pipeline.get_compile_options().as_ref().unwrap(), None)?;
+    module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new("Cannot generate module"))
+}
+
+pub fn compile_build_config_to_string(
+    build_config: &Path,
+    extra_args: &[&str],
+) -> Result<String, Diagnostic> {
+    let mut args = vec![
+        "plc".to_string(),
+        "build".to_string(),
+        build_config.to_string_lossy().to_string(),
+        "--ir".to_string(),
+        "--single-module".to_string(),
+        "-O".to_string(),
+        "none".to_string(),
+    ];
+    args.extend(extra_args.iter().map(|it| it.to_string()));
+    compile_args_to_string(&args)
 }
 
 pub fn progress_pipeline_to_step_parsed<S, T>(
