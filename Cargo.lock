@@ -392,9 +392,9 @@ checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
 name = "cc"
-version = "1.2.60"
+version = "1.2.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43c5703da9466b66a946814e1adf53ea2c90f10063b86290cc9eb67ce3478a20"
+checksum = "d16d90359e986641506914ba71350897565610e87ce0ad9e6f28569db3dd5c6d"
 dependencies = [
  "find-msvc-tools",
  "shlex",
@@ -614,9 +614,9 @@ dependencies = [
 
 [[package]]
 name = "crc-catalog"
-version = "2.4.0"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19d374276b40fb8bbdee95aef7c7fa6b5316ec764510eb64b8dd0e2ed0d7e7f5"
+checksum = "217698eaf96b4a3f0bc4f3662aaa55bdf913cd54d7204591faa790070c6d0853"
 
 [[package]]
 name = "crossbeam-deque"
@@ -800,7 +800,7 @@ dependencies = [
 
 [[package]]
 name = "errorcode_book_generator"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "clap 4.6.1",
  "mdbook-preprocessor",
@@ -1468,7 +1468,7 @@ dependencies = [
 
 [[package]]
 name = "iec61131std"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "cc",
  "chrono",
@@ -1693,9 +1693,9 @@ checksum = "09edd9e8b54e49e587e4f6295a7d29c3ea94d469cb40ab8ca70b288248a81db2"
 
 [[package]]
 name = "libc"
-version = "0.2.185"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52ff2c0fe9bc6cb6b14a0592c2ff4fa9ceb83eea9db979b0487cd054946a2b8f"
+checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "libloading"
@@ -2297,7 +2297,7 @@ checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
 
 [[package]]
 name = "plc-compiler"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2340,7 +2340,7 @@ dependencies = [
 
 [[package]]
 name = "plc_ast"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "chrono",
  "derive_more",
@@ -2353,7 +2353,7 @@ dependencies = [
 
 [[package]]
 name = "plc_derive"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "quote 0.6.13",
  "syn 0.15.44",
@@ -2361,7 +2361,7 @@ dependencies = [
 
 [[package]]
 name = "plc_diagnostics"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "codespan-reporting",
@@ -2377,7 +2377,7 @@ dependencies = [
 
 [[package]]
 name = "plc_driver"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "clap 3.2.25",
@@ -2408,7 +2408,7 @@ dependencies = [
 
 [[package]]
 name = "plc_header_generator"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "clap 3.2.25",
  "insta",
@@ -2426,7 +2426,7 @@ dependencies = [
 
 [[package]]
 name = "plc_index"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "annotate-snippets",
  "encoding_rs",
@@ -2440,7 +2440,7 @@ dependencies = [
 
 [[package]]
 name = "plc_llvm"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "cc",
  "inkwell",
@@ -2449,7 +2449,7 @@ dependencies = [
 
 [[package]]
 name = "plc_lowering"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "insta",
  "log",
@@ -2462,7 +2462,7 @@ dependencies = [
 
 [[package]]
 name = "plc_project"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "encoding_rs",
@@ -2480,7 +2480,7 @@ dependencies = [
 
 [[package]]
 name = "plc_source"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "encoding_rs",
  "encoding_rs_io",
@@ -2491,11 +2491,11 @@ dependencies = [
 
 [[package]]
 name = "plc_util"
-version = "0.4.1-dev"
+version = "0.5.0"
 
 [[package]]
 name = "plc_xml"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "html-escape",
  "indexmap 2.14.0",
@@ -2961,7 +2961,7 @@ checksum = "490dcfcbfef26be6800d11870ff2df8774fa6e86d047e3e8c8a76b25655e41ca"
 
 [[package]]
 name = "section_mangler"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "nom 7.1.3",
 ]
@@ -3595,7 +3595,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "plc-compiler",
  "plc_ast",
@@ -3765,7 +3765,7 @@ version = "1.1.2+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2abe9b86193656635d2411dc43050282ca48aa31c2451210f4202550afb7526"
 dependencies = [
- "winnow 1.0.1",
+ "winnow 1.0.2",
 ]
 
 [[package]]
@@ -4385,9 +4385,9 @@ checksum = "df79d97927682d2fd8adb29682d1140b343be4ac0f08fd68b7765d9c059d3945"
 
 [[package]]
 name = "winnow"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09dac053f1cd375980747450bfc7250c264eaae0583872e845c0c7cd578872b5"
+checksum = "2ee1708bef14716a11bae175f579062d4554d95be2c6829f518df847b7b3fdd0"
 
 [[package]]
 name = "winreg"
@@ -4516,7 +4516,7 @@ checksum = "32ac00cd3f8ec9c1d33fb3e7958a82df6989c42d747bd326c822b1d625283547"
 
 [[package]]
 name = "xtask"
-version = "0.4.1-dev"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "async-std",
