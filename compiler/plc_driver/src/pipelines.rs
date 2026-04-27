@@ -345,13 +345,13 @@ impl<T: SourceContainer> BuildPipeline<T> {
             )),
             Box::new(ControlStatementParticipant::new(self.context.provider())),
             Box::new(ReferenceToReturnParticipant::new(self.context.provider())),
-            Box::new(RetainParticipant::new(self.context.provider())),
-            Box::new(AggregateTypeLowerer::new(self.context.provider())),
-            Box::new(InheritanceLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(
                 self.context.provider(),
                 self.context.should_generate_external_constructors(),
             )),
+            Box::new(RetainParticipant::new(self.context.provider())),
+            Box::new(AggregateTypeLowerer::new(self.context.provider())),
+            Box::new(InheritanceLowerer::new(self.context.provider())),
             Box::new(ArrayLowerer::new(self.context.provider())),
         ];
         mut_participants

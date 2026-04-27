@@ -2875,3 +2875,215 @@ fn function_with_output_used_in_main_by_extension() {
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
+
+#[test]
+fn properties_with_reference_to_are_methods_with_lowered_access() {
+    let property = codegen(
+        "
+        PROGRAM test
+        VAR
+            fb : fb;
+            y : INT;
+        END_VAR
+
+        y := fb.myStructuredVar.x;
+
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb
+        VAR
+            _myStructuredVar	: structuredTypeOrFb;
+        END_VAR
+
+        PROPERTY_GET myStructuredVar : REFERENCE TO structuredTypeOrFb
+            myStructuredVar REF= _myStructuredVar;
+        END_PROPERTY
+
+        END_FUNCTION_BLOCK
+
+        TYPE structuredTypeOrFb :
+            STRUCT
+                x	: INT := 42;
+            END_STRUCT
+        END_TYPE
+        ",
+    );
+
+    filtered_assert_snapshot!(property, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %__vtable_fb = type { ptr, ptr }
+    %test = type { %fb, i16 }
+    %fb = type { ptr, %structuredTypeOrFb }
+    %structuredTypeOrFb = type { i16 }
+
+    @__vtable_fb_instance = global %__vtable_fb zeroinitializer
+    @test_instance = global %test { %fb { ptr null, %structuredTypeOrFb { i16 42 } }, i16 0 }
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+
+    define void @fb(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
+      %_myStructuredVar = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @fb____get_myStructuredVar(ptr %0, ptr %1) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
+      %_myStructuredVar = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 1
+      %myStructuredVar = alloca ptr, align [filtered]
+      %__get_myStructuredVar_return_val = alloca ptr, align [filtered]
+      store ptr %1, ptr %__get_myStructuredVar_return_val, align [filtered]
+      store ptr null, ptr %myStructuredVar, align [filtered]
+      %deref = load ptr, ptr %myStructuredVar, align [filtered]
+      call void @__fb.__get_myStructuredVar_myStructuredVar__ctor(ptr %deref)
+      store ptr %_myStructuredVar, ptr %__get_myStructuredVar_return_val, align [filtered]
+      ret void
+    }
+
+    define void @test(ptr %0) {
+    entry:
+      %fb = getelementptr inbounds nuw %test, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %test, ptr %0, i32 0, i32 1
+      %__get_myStructuredVar_return_val_1 = alloca ptr, align [filtered]
+      %__get_myStructuredVar_return_val_store_1 = alloca %structuredTypeOrFb, align [filtered]
+      store ptr null, ptr %__get_myStructuredVar_return_val_1, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %__get_myStructuredVar_return_val_store_1, i8 0, i64 ptrtoint (ptr getelementptr (%structuredTypeOrFb, ptr null, i32 1) to i64), i1 false)
+      %deref = load ptr, ptr %__get_myStructuredVar_return_val_1, align [filtered]
+      call void @__test__get_myStructuredVar_return_val_1__ctor(ptr %deref)
+      call void @structuredTypeOrFb__ctor(ptr %__get_myStructuredVar_return_val_store_1)
+      store ptr %__get_myStructuredVar_return_val_store_1, ptr %__get_myStructuredVar_return_val_1, align [filtered]
+      %deref1 = load ptr, ptr %__get_myStructuredVar_return_val_1, align [filtered]
+      call void @fb____get_myStructuredVar(ptr %fb, ptr %deref1)
+      %deref2 = load ptr, ptr %__get_myStructuredVar_return_val_1, align [filtered]
+      %x = getelementptr inbounds nuw %structuredTypeOrFb, ptr %deref2, i32 0, i32 0
+      %load_x = load i16, ptr %x, align [filtered]
+      store i16 %load_x, ptr %y, align [filtered]
+      ret void
+    }
+
+    define void @test__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %fb = getelementptr inbounds nuw %test, ptr %deref, i32 0, i32 0
+      call void @fb__ctor(ptr %fb)
+      ret void
+    }
+
+    define void @fb__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
+      call void @__fb___vtable__ctor(ptr %__vtable)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %_myStructuredVar = getelementptr inbounds nuw %fb, ptr %deref1, i32 0, i32 1
+      call void @structuredTypeOrFb__ctor(ptr %_myStructuredVar)
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__vtable3 = getelementptr inbounds nuw %fb, ptr %deref2, i32 0, i32 0
+      store ptr @__vtable_fb_instance, ptr %__vtable3, align [filtered]
+      ret void
+    }
+
+    define void @structuredTypeOrFb__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %x = getelementptr inbounds nuw %structuredTypeOrFb, ptr %deref, i32 0, i32 0
+      store i16 42, ptr %x, align [filtered]
+      ret void
+    }
+
+    define void @__fb.__get_myStructuredVar_myStructuredVar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__fb.__get_myStructuredVar_return__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__vtable_fb__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      %deref = load ptr, ptr %self, align [filtered]
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
+      call void @____vtable_fb___body__ctor(ptr %__body)
+      %deref1 = load ptr, ptr %self, align [filtered]
+      %__body2 = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 0
+      store ptr @fb, ptr %__body2, align [filtered]
+      %deref3 = load ptr, ptr %self, align [filtered]
+      %__get_myStructuredVar = getelementptr inbounds nuw %__vtable_fb, ptr %deref3, i32 0, i32 1
+      call void @____vtable_fb___get_myStructuredVar__ctor(ptr %__get_myStructuredVar)
+      %deref4 = load ptr, ptr %self, align [filtered]
+      %__get_myStructuredVar5 = getelementptr inbounds nuw %__vtable_fb, ptr %deref4, i32 0, i32 1
+      store ptr @fb____get_myStructuredVar, ptr %__get_myStructuredVar5, align [filtered]
+      ret void
+    }
+
+    define void @__fb___vtable__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_fb___body__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____vtable_fb___get_myStructuredVar__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__test__get_myStructuredVar_return_val_1__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__fb.__get_myStructuredVar__get_myStructuredVar_return_val__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__unit___internal____ctor() {
+    entry:
+      call void @__vtable_fb__ctor(ptr @__vtable_fb_instance)
+      call void @test__ctor(ptr @test_instance)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    "#);
+}

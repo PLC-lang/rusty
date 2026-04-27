@@ -234,19 +234,19 @@ impl InitParticipant {
 }
 
 impl PipelineParticipantMut for InitParticipant {
-    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         // Create a new init lowerer
-        let IndexedProject { project: ParsedProject { units }, index, .. } = indexed_project;
+        let AnnotatedProject { units, index, .. } = annotated_project;
         let mut resulting_units = vec![];
         let index = Rc::new(index);
         for unit in units {
             let initializer = Initializer::new(self.id_provider.clone(), self.generate_externals);
-            let unit = initializer.apply_initialization(unit, index.clone());
+            let unit = initializer.apply_initialization(unit.unit, index.clone());
             resulting_units.push(unit);
         }
         // Append new units and constructor to the ast and re-index
         let project = ParsedProject { units: resulting_units };
-        project.index(self.id_provider.clone())
+        project.index(self.id_provider.clone()).annotate(self.id_provider.clone())
     }
 }
 
@@ -261,14 +261,15 @@ impl ArrayLowerer {
 }
 
 impl PipelineParticipantMut for ArrayLowerer {
-    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { project: ParsedProject { mut units }, index, .. } = indexed_project;
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { mut units, index, .. } = annotated_project;
         for unit in &mut units {
-            array_lowering::lower_literal_arrays(unit, &index, &mut self.id_provider);
+            array_lowering::lower_literal_arrays(&mut unit.unit, &index, &mut self.id_provider);
         }
         // Re-index since we modified the AST (new statements, possible new alloca variables)
-        let project = ParsedProject { units };
-        project.index(self.id_provider.clone())
+        let project =
+            ParsedProject { units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect() };
+        project.index(self.id_provider.clone()).annotate(self.id_provider.clone())
     }
 }
 
@@ -377,7 +378,19 @@ impl PipelineParticipantMut for LoopDesugarer {
 impl PipelineParticipantMut for ReferenceToReturnParticipant {
     fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         let ParsedProject { mut units } = parsed_project;
-        self.lower_reference_to_return(&mut units);
+        self.gather_context(&mut units);
         ParsedProject { units }
+    }
+
+    // Had to move this step post annotate to ensure that the property lowerer has a chance to run
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { units, .. } = annotated_project;
+        let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
+
+        self.lower_reference_to_return(&mut units);
+
+        let project = ParsedProject { units };
+
+        project.index(self.ids.clone()).annotate(self.ids.clone())
     }
 }

@@ -182,26 +182,33 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_data_type(&mut self, data_type: &DataType) {
-        if let DataType::PointerType { referenced_type, auto_deref, type_safe, .. } = data_type {
-            match auto_deref {
-                Some(AutoDerefType::Reference) => {
-                    self.result.push_str("REFERENCE TO ");
-                }
-                // TODO: We also want to handle these cases at some point
-                Some(AutoDerefType::Alias) | Some(AutoDerefType::Default) => (),
-                _ => {
-                    if *type_safe {
-                        self.result.push_str("REF_TO ");
-                    } else {
-                        self.result.push_str("POINTER TO ");
+        match data_type {
+            DataType::PointerType { referenced_type, auto_deref, type_safe, .. } => {
+                match auto_deref {
+                    Some(AutoDerefType::Reference) => {
+                        self.result.push_str("REFERENCE TO ");
+                    }
+                    // TODO: We also want to handle these cases at some point
+                    Some(AutoDerefType::Alias) | Some(AutoDerefType::Default) => (),
+                    _ => {
+                        if *type_safe {
+                            self.result.push_str("REF_TO ");
+                        } else {
+                            self.result.push_str("POINTER TO ");
+                        }
                     }
                 }
+
+                self.visit_data_type_declaration(referenced_type.as_ref());
             }
-
-            self.visit_data_type_declaration(referenced_type.as_ref());
+            DataType::StructType { name, .. } => {
+                if let Some(name) = name {
+                    self.result.push_str(name);
+                }
+            }
+            // TODO: For now we aren't interested in non-pointer types, but this should be expanded
+            _ => (),
         }
-
-        // TODO: For now we aren't interested in non-pointer types, but this should be expanded
     }
 
     fn visit_pou(&mut self, _: &Pou) {
