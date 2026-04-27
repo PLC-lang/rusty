@@ -2083,7 +2083,7 @@ mod resolve_bases_tests {
             "#
         .into();
 
-        let (_, AnnotatedProject { units, index: _index, annotations }) =
+        let (_, AnnotatedProject { units, index: _index, annotations, .. }) =
             parse_and_annotate("test", vec![src]).unwrap();
         let unit = &units[0].get_unit().implementations[3];
         let statement = &unit.statements[0];

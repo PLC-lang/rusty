@@ -231,7 +231,9 @@ lazy_static! {
         E128,   Error,      include_str!("./error_codes/E128.md"),  // Invalid nested property assignment target
         E129,   Error,      include_str!("./error_codes/E129.md"),  // Direct interface reference call
         E130,   Error,      include_str!("./error_codes/E130.md"),  // Array size exceeds supported limit
-        // XXX: Use E117 when introducing a new error, it has been removed from the registry (also delete me afterwards)
+        E117,   Error,      include_str!("./error_codes/E117.md"),  // Non-constant array boundary
+        E131,   Error,      include_str!("./error_codes/E131.md"),  // Positional argument collides with later named argument
+        E132,   Warning,    include_str!("./error_codes/E132.md"),  // Mixing implicit and explicit call parameters
     );
 }
 
