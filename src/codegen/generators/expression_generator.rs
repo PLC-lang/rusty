@@ -701,27 +701,29 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .get(index)
                     .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
             }
-            // else, the parameters are named and may not be in order, so we need to retrieve the information about the parameter from the assignment
+            // else, the parameters are named (or mixed) and may not be in order
             else {
-                // Now we can fetch the identifier for the assignment statement and extract the name
-                let variable_name = match assignment_statement.get_stmt() {
+                match assignment_statement.get_stmt() {
                     AstStatement::OutputAssignment(assignment) | AstStatement::Assignment(assignment) => {
-                        if let Some(identifier) = assignment.left.get_identifier() {
+                        let variable_name = if let Some(identifier) = assignment.left.get_identifier() {
                             match identifier.get_stmt() {
                                 AstStatement::Identifier(value) => value,
                                 _ => unreachable!("this is definitely an identifier"),
                             }
                         } else {
                             unreachable!("assignment must have an identifier")
-                        }
+                        };
+                        pou_info
+                            .iter()
+                            .find(|variable_index_entry| variable_index_entry.get_name() == variable_name)
+                            .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
                     }
-                    _ => unreachable!("non-implicit statement must be an assignment"),
-                };
-
-                pou_info
-                    .iter()
-                    .find(|variable_index_entry| variable_index_entry.get_name() == variable_name)
-                    .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
+                    // Reached only in mixed calls: `implicit` tracks the first arg's style,
+                    // so an `Assignment`/`OutputAssignment` first arg makes `implicit = false`
+                    // and any later positional arg lands here. Outputs are written post-call
+                    // only for `=>`, so a bare positional never triggers the copy.
+                    _ => false,
+                }
             };
 
             if assignment_statement.is_output_assignment() || (implicit && is_output) {
@@ -1097,8 +1099,53 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut result = Vec::new();
         let mut variadic_parameters = Vec::new();
         let mut passed_param_indices = Vec::new();
-        for (i, argument) in arguments.iter().enumerate() {
-            let (i, argument, _) = get_implicit_call_parameter(argument, &declared_parameters, i)?;
+
+        // Mixed-call resolution: named args claim their slots first, then positional args
+        // fill the remaining slots in declaration order. **This rule must match
+        // `TypeAnnotator::annotate_arguments_mixed` in the resolver** — the resolver uses it
+        // for type hinting, we use it here to compute the LLVM argument index.
+        //
+        // Why duplicated? The function-call codegen path threads args through
+        // `get_implicit_call_parameter`, which was designed for pure-positional / pure-named
+        // calls and expects the caller to pre-compute the slot. FB/PROGRAM calls use the
+        // resolver's `Argument` hint directly and don't need this.
+        let is_mixed = arguments.iter().any(|a| a.is_assignment() || a.is_output_assignment())
+            && arguments.iter().any(|a| !a.is_assignment() && !a.is_output_assignment());
+        let named_positions: Vec<usize> = if is_mixed {
+            arguments
+                .iter()
+                .filter_map(|arg| match arg.get_stmt() {
+                    AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
+                        let name = data.left.get_flat_reference_name()?;
+                        declared_parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))
+                    }
+                    _ => None,
+                })
+                .collect()
+        } else {
+            vec![]
+        };
+        let positional_positions: Vec<usize> =
+            (0..declared_parameters.len()).filter(|i| !named_positions.contains(i)).collect();
+        let mut positional_cursor = 0usize;
+
+        for (arg_idx, orig_argument) in arguments.iter().enumerate() {
+            // For mixed calls, positional args are remapped to the next free slot; named args
+            // and all args in pure calls keep their natural call index.
+            //
+            // The `unwrap_or(arg_idx)` fallback fires for variadic overflow: surplus args past
+            // the declared params carry their call index through to be collected as variadics
+            // below (where `declared_parameters.get(i) == None` → push to `variadic_parameters`).
+            let effective_idx =
+                if is_mixed && !orig_argument.is_assignment() && !orig_argument.is_output_assignment() {
+                    let idx = positional_positions.get(positional_cursor).copied().unwrap_or(arg_idx);
+                    positional_cursor += 1;
+                    idx
+                } else {
+                    arg_idx
+                };
+            let (i, argument, _) =
+                get_implicit_call_parameter(orig_argument, &declared_parameters, effective_idx)?;
             let argument_is_reference_to = self.is_member_reference_to_reference_to(argument);
 
             // parameter_info includes the declaration type and type name
