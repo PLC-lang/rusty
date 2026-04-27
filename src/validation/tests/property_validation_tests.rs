@@ -560,13 +560,13 @@ fn properties_with_same_name_but_different_datatypes_are_not_ok() {
     END_CLASS
     ";
 
-    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
+    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @"
     error[E112]: Property `propertyB` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET
       ┌─ <internal>:8:22
       │
     8 │         PROPERTY_GET propertyB: DINT END_PROPERTY
       │                      ^^^^^^^^^  ---- see also
-      │                      │
+      │                      │           
       │                      Property `propertyB` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET
     9 │         PROPERTY_SET propertyB: INT END_PROPERTY
       │                                 --- see also
@@ -576,7 +576,7 @@ fn properties_with_same_name_but_different_datatypes_are_not_ok() {
        │
     13 │         PROPERTY_GET propertyC: SINT END_PROPERTY
        │                      ^^^^^^^^^  ---- see also
-       │                      │
+       │                      │           
        │                      Property `propertyC` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET
     14 │         PROPERTY_SET propertyC: DINT END_PROPERTY
        │                                 ---- see also
@@ -586,7 +586,7 @@ fn properties_with_same_name_but_different_datatypes_are_not_ok() {
       │
     3 │         PROPERTY_GET propertyA: INT END_PROPERTY
       │                      ^^^^^^^^^  --- see also
-      │                      │
+      │                      │           
       │                      Property `propertyA` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET
     4 │         PROPERTY_SET propertyA: DINT END_PROPERTY
       │                                 ---- see also
