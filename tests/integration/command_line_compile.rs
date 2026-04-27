@@ -1,11 +1,29 @@
 use std::fs;
 use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 
 use insta::assert_snapshot;
 
 use crate::get_test_file;
 use driver::compile;
+
+fn contains_file_recursive(path: &Path) -> bool {
+    let Ok(entries) = fs::read_dir(path) else {
+        return false;
+    };
+
+    entries.flatten().any(|entry| {
+        let entry_path = entry.path();
+        if entry_path.is_file() {
+            true
+        } else if entry_path.is_dir() {
+            contains_file_recursive(&entry_path)
+        } else {
+            false
+        }
+    })
+}
 
 #[test]
 fn ir_generation_full_pass() {
@@ -77,6 +95,22 @@ fn stdlib_string_function_headers_compile_to_ir() {
         compile(&["plc", file.as_str(), "-o", &path, "--ir"]).is_ok(),
         "Expected file to compile without errors"
     )
+}
+
+#[test]
+fn global_build_location_is_used_for_non_build_compile_temp_artifacts() {
+    let file = get_test_file("json/simple_program.st");
+    let build_dir = tempfile::tempdir().unwrap();
+    let output_dir = tempfile::tempdir().unwrap();
+    let output_file = output_dir.path().join("simple_program.o");
+    let build_dir_str = build_dir.path().to_string_lossy().to_string();
+    let output_file_str = output_file.to_string_lossy().to_string();
+
+    compile(&["plc", file.as_str(), "--build-location", &build_dir_str, "-c", "-o", &output_file_str])
+        .unwrap();
+
+    assert!(output_file.is_file());
+    assert!(contains_file_recursive(build_dir.path()));
 }
 
 #[test]

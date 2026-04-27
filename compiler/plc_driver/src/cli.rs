@@ -372,6 +372,14 @@ pub struct CompileParameters {
     )]
     pub header_output: Option<String>,
 
+    #[clap(
+        name = "build-location",
+        long,
+        help = "Write intermediate build artifacts to the given directory",
+        global = true
+    )]
+    pub build_location: Option<String>,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
@@ -393,10 +401,11 @@ pub enum SubCommands {
         )]
         build_config: Option<String>,
 
-        #[clap(name = "build-location", long)]
-        build_location: Option<String>,
-
-        #[clap(name = "lib-location", long)]
+        #[clap(
+            name = "lib-location",
+            long,
+            help = "Copy libraries marked as `Copy` to the given directory (build subcommand only)"
+        )]
         lib_location: Option<String>,
     },
 
@@ -629,19 +638,20 @@ impl CompileParameters {
 
     /// Returns the location where the build artifacts should be stored / output
     pub fn get_build_location(&self) -> Option<PathBuf> {
-        match &self.commands {
-            Some(SubCommands::Build { build_location, .. }) => {
-                build_location.as_deref().or(Some("build")).map(PathBuf::from)
-            }
-            _ => None,
+        if matches!(&self.commands, Some(SubCommands::Build { .. })) {
+            self.build_location.as_deref().or(Some("build")).map(PathBuf::from)
+        } else {
+            self.build_location.as_deref().map(PathBuf::from)
         }
     }
 
     pub fn get_lib_location(&self) -> Option<PathBuf> {
         match &self.commands {
-            Some(SubCommands::Build { build_location, lib_location, .. }) => {
-                lib_location.as_deref().or(build_location.as_deref()).or(Some("build")).map(PathBuf::from)
-            }
+            Some(SubCommands::Build { lib_location, .. }) => lib_location
+                .as_deref()
+                .or(self.build_location.as_deref())
+                .or(Some("build"))
+                .map(PathBuf::from),
             _ => None,
         }
     }
@@ -714,6 +724,7 @@ mod cli_tests {
     use pretty_assertions::assert_eq;
     use std::ffi::OsStr;
     use std::fmt::Debug;
+    use std::path::PathBuf;
 
     #[test]
     fn verify_cli() {
@@ -1132,17 +1143,49 @@ mod cli_tests {
         .unwrap();
         if let Some(commands) = parameters.commands {
             match commands {
-                SubCommands::Build { build_config, build_location, lib_location, .. } => {
+                SubCommands::Build { build_config, lib_location, .. } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
-                    assert_eq!(build_location, Some("bin/build".to_string()));
                     assert_eq!(lib_location, Some("bin/build/libs".to_string()));
                 }
                 _ => panic!("Unexpected command"),
             };
+            assert_eq!(parameters.build_location, Some("bin/build".to_string()));
             assert_eq!(parameters.sysroot, Some("sysroot1".to_string()));
             assert_eq!(parameters.target, Some("targettest".into()));
             assert_eq!(parameters.linker, Some("cc".to_string()));
         }
+    }
+
+    #[test]
+    fn global_build_location_available_for_non_build_commands() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--build-location", "bin/build", "-c"))
+                .unwrap();
+
+        assert_eq!(parameters.get_build_location(), Some(PathBuf::from("bin/build")));
+        assert_eq!(parameters.get_lib_location(), None);
+    }
+
+    #[test]
+    fn build_subcommand_lib_location_falls_back_to_global_build_location() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "build",
+            "src/ProjectPlc.json",
+            "--build-location",
+            "bin/build"
+        ))
+        .unwrap();
+
+        assert_eq!(parameters.get_build_location(), Some(PathBuf::from("bin/build")));
+        assert_eq!(parameters.get_lib_location(), Some(PathBuf::from("bin/build")));
+    }
+
+    #[test]
+    fn build_subcommand_defaults_build_and_lib_locations_to_build() {
+        let parameters = CompileParameters::parse(vec_of_strings!("build", "src/ProjectPlc.json")).unwrap();
+
+        assert_eq!(parameters.get_build_location(), Some(PathBuf::from("build")));
+        assert_eq!(parameters.get_lib_location(), Some(PathBuf::from("build")));
     }
 
     #[test]
