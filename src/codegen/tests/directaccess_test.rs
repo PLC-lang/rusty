@@ -513,3 +513,67 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
+
+#[test]
+fn direct_access_in_output_assignment_of_function() {
+    let ir = codegen(
+        r"
+        FUNCTION FLIP
+            VAR_INPUT
+                in: BYTE;
+            END_VAR
+            VAR_OUTPUT
+                out : BYTE;
+            END_VAR
+            out := NOT(in);
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                wordVar : WORD;
+            END_VAR
+
+            wordVar := 0;
+            FLIP(2#01010101, wordVar.%b0);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(ir, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define void @FLIP(i8 %0, ptr %1) {
+    entry:
+      %in = alloca i8, align [filtered]
+      store i8 %0, ptr %in, align [filtered]
+      %out = alloca ptr, align [filtered]
+      store ptr %1, ptr %out, align [filtered]
+      %deref = load ptr, ptr %out, align [filtered]
+      %2 = load i8, ptr %in, align [filtered]
+      %tmpVar = xor i8 %2, -1
+      store i8 %tmpVar, ptr %deref, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %wordVar = alloca i16, align [filtered]
+      store i16 0, ptr %wordVar, align [filtered]
+      store i16 0, ptr %wordVar, align [filtered]
+      %__FLIP_out0 = alloca i8, align [filtered]
+      store i8 0, ptr %__FLIP_out0, align [filtered]
+      call void @FLIP(i8 85, ptr %__FLIP_out0)
+      %0 = load i16, ptr %wordVar, align [filtered]
+      %load___FLIP_out0 = load i8, ptr %__FLIP_out0, align [filtered]
+      %erase = and i16 %0, -256
+      %1 = zext i8 %load___FLIP_out0 to i16
+      %value = shl i16 %1, 0
+      %or = or i16 %erase, %value
+      store i16 %or, ptr %wordVar, align [filtered]
+      ret void
+    }
+    "#);
+}

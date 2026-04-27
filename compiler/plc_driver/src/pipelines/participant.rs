@@ -22,7 +22,8 @@ use plc::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
     array_lowering, control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
-    initializer::Initializer, loops::LoopDesugarer, retain::RetainParticipant,
+    initializer::Initializer, loops::LoopDesugarer, reference_to_return::ReferenceToReturnParticipant,
+    retain::RetainParticipant,
 };
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
@@ -369,6 +370,14 @@ impl PipelineParticipantMut for LoopDesugarer {
         let ParsedProject { mut units } = parsed_project;
         self.desugar(&mut units);
 
+        ParsedProject { units }
+    }
+}
+
+impl PipelineParticipantMut for ReferenceToReturnParticipant {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        self.lower_reference_to_return(&mut units);
         ParsedProject { units }
     }
 }

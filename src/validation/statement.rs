@@ -24,7 +24,7 @@ use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
-    resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
+    resolver::{const_evaluator, AnnotationMap, AutoDerefType, StatementAnnotation},
     typesystem::{
         self, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
@@ -153,7 +153,7 @@ pub fn visit_statement<T: AnnotationMap>(
                         .with_location(statement.get_location()).with_error_code("E119"));
             }
         }
-        AstStatement::This => {
+        AstStatement::This
             if !context.qualifier.is_some_and(|it| {
                 context
                     .index
@@ -165,15 +165,15 @@ pub fn visit_statement<T: AnnotationMap>(
                         _ => None,
                     })
                     .is_some_and(|it| it.is_function_block())
-            }) {
-                validator.push_diagnostic(
+            }) =>
+        {
+            validator.push_diagnostic(
                     Diagnostic::new(
                         "Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s.",
                     )
                     .with_error_code("E120")
                     .with_location(statement),
                 );
-            }
         }
         _ => {}
     }
@@ -577,7 +577,7 @@ fn validate_reference<T: AnnotationMap>(
         match ref_name {
             _ if ref_name.starts_with("__set") => {
                 validator.push_diagnostic(
-                    Diagnostic::new("SET property not defined")
+                    Diagnostic::new("PROPERTY_SET not defined")
                         .with_error_code("E048")
                         .with_location(location),
                 );
@@ -586,7 +586,7 @@ fn validate_reference<T: AnnotationMap>(
 
             _ if ref_name.starts_with("__get") => {
                 validator.push_diagnostic(
-                    Diagnostic::new("GET property not defined")
+                    Diagnostic::new("PROPERTY_GET not defined")
                         .with_error_code("E048")
                         .with_location(location),
                 );
@@ -620,7 +620,7 @@ fn validate_reference<T: AnnotationMap>(
     }
 
     match context.annotations.get(statement) {
-        Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) => {
+        Some(StatementAnnotation::Variable { qualified_name, argument_type, .. })
             // check if we're accessing a private variable AND the variable's qualifier is not the
             // POU we're accessing it from.
             if argument_type.is_private()
@@ -631,21 +631,20 @@ fn validate_reference<T: AnnotationMap>(
                     .is_some_and(|(pou, container)| {
                         !variable_is_in_pou_or_container(pou, container, context, qualified_name, location)
                     })
-            {
+            => {
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Illegal access to private member {qualified_name}"))
                         .with_error_code("E049")
                         .with_location(location),
                 );
             }
-        }
-        Some(StatementAnnotation::Program { qualified_name }) => {
+        Some(StatementAnnotation::Program { qualified_name })
             if !context.is_call()
                 && context
                     .index
                     .find_implementation_by_name(qualified_name)
                     .is_some_and(|it| matches!(it.get_implementation_type(), ImplementationType::Action))
-            {
+            => {
                 // we parsed a reference expression to an action but we are not in a call-context: likely an action call without parentheses
                 validator.push_diagnostic(
                     Diagnostic::new(format!("A reference to {qualified_name} exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `{qualified_name}()`"))
@@ -653,7 +652,6 @@ fn validate_reference<T: AnnotationMap>(
                         .with_location(location)
                 );
             }
-        }
         _ => (),
     }
 }
@@ -827,7 +825,7 @@ fn visit_binary_expression<T: AnnotationMap>(
             validate_binary_expression(validator, statement, operator, left, right, context)
         }
         Operator::Equal => {
-            if context.annotations.get_type_hint(statement, context.index).is_none() {
+            if !context.is_call() && context.annotations.get_type_hint(statement, context.index).is_none() {
                 let lhs = validator.context.slice(&left.location);
                 let rhs = validator.context.slice(&right.location);
 
@@ -1010,7 +1008,18 @@ pub fn validate_assignment_mismatch<T>(
         let inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
         let inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
 
-        if len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
+        let inner_types_match = match (inner_ty_lhs, inner_ty_rhs) {
+            (Some(lhs), Some(rhs)) if lhs == rhs => true,
+            (Some(lhs), Some(rhs))
+                if lhs.get_type_information().is_pointer() && rhs.get_type_information().is_pointer() =>
+            {
+                context.index.find_elementary_pointer_type(lhs.get_type_information())
+                    == context.index.find_elementary_pointer_type(rhs.get_type_information())
+            }
+            _ => false,
+        };
+
+        if len_lhs != len_rhs || !inner_types_match {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
                 &validator.get_type_name_or_slice(type_rhs),
                 &validator.get_type_name_or_slice(type_lhs),
@@ -1185,12 +1194,25 @@ fn validate_ref_assignment<T: AnnotationMap>(
     // For REF= semantics: `px REF= x` means "assign the address of x to px"
     // So if LHS is a pointer type, we need to compare the inner type with the RHS type
     if assignment.right.is_reference() {
-        let inner_type_lhs =
-            if let DataTypeInformation::Pointer { inner_type_name, .. } = type_lhs.get_type_information() {
-                context.index.get_type(inner_type_name).unwrap_or(type_lhs)
-            } else {
-                type_lhs
-            };
+        let effective_lhs = context.index.find_effective_type(type_lhs).unwrap_or(type_lhs);
+        let inner_type_lhs = if let DataTypeInformation::Pointer { inner_type_name, .. } =
+            effective_lhs.get_type_information()
+        {
+            context.index.get_effective_type_or_void_by_name(inner_type_name)
+        } else if let Some(StatementAnnotation::Variable {
+            auto_deref: Some(AutoDerefType::Reference(pointer_type) | AutoDerefType::Alias(pointer_type)),
+            ..
+        }) = annotation_lhs
+        {
+            context
+                .index
+                .find_effective_type_by_name(pointer_type)
+                .and_then(|ty| ty.get_type_information().get_inner_pointer_type_name())
+                .map(|inner| context.index.get_effective_type_or_void_by_name(inner))
+                .unwrap_or(type_lhs)
+        } else {
+            type_lhs
+        };
         validate_assignment_mismatch(context, validator, inner_type_lhs, type_rhs, assignment_location);
     }
 }
@@ -1335,6 +1357,7 @@ fn validate_assignment<T: AnnotationMap>(
         // implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
         // we need the inner type unless the RHS is a reference (e.g. REF(...) or ADR(...))
         let left_type = normalized_left_type_for_assignment(context, left_type, right);
+        let right_type = normalized_right_type_for_assignment(context, right_type, right);
 
         // VLA <- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
         // are no longer allowed inside a POU body
@@ -1398,13 +1421,33 @@ fn normalized_left_type_for_assignment<'a, T: AnnotationMap>(
         return left_type;
     }
 
+    let effective_left_type = context.index.find_effective_type(left_type).unwrap_or(left_type);
     if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
-        left_type.get_type_information()
+        effective_left_type.get_type_information()
     {
         return context.index.get_effective_type_or_void_by_name(inner_type_name);
     }
 
     left_type
+}
+
+fn normalized_right_type_for_assignment<'a, T: AnnotationMap>(
+    context: &'a ValidationContext<'a, T>,
+    right_type: &'a typesystem::DataType,
+    right: &'a AstNode,
+) -> &'a typesystem::DataType {
+    if is_ref_or_adr_call(right, context) {
+        return right_type;
+    }
+
+    let effective_right_type = context.index.find_effective_type(right_type).unwrap_or(right_type);
+    if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
+        effective_right_type.get_type_information()
+    {
+        return context.index.get_effective_type_or_void_by_name(inner_type_name);
+    }
+
+    right_type
 }
 
 fn is_ref_or_adr_call<T: AnnotationMap>(node: &AstNode, context: &ValidationContext<T>) -> bool {

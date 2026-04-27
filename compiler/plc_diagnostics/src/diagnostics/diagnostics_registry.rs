@@ -218,7 +218,7 @@ lazy_static! {
         E114,   Error,      include_str!("./error_codes/E114.md"),  // Multiple extensions of same POU
         E115,   Error,      include_str!("./error_codes/E115.md"),  // Property in unsupported POU type
         E116,   Error,      include_str!("./error_codes/E116.md"),  // Property defined in unsupported variable block
-        E117,   Error,      include_str!("./error_codes/E117.md"),  // Property with invalid number of GET and/or SET blocks
+        E117,   Error,      include_str!("./error_codes/E117.md"),  // Non-constant array boundary
         E118,   Info,       include_str!("./error_codes/E118.md"),  // Follow-up error to 112
         E119,   Error,      include_str!("./error_codes/E119.md"),  // Invalid use of `SUPER` keyword
         E120,   Error,      include_str!("./error_codes/E120.md"),  // Invalid use of `THIS` keyword

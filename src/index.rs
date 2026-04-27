@@ -235,6 +235,10 @@ impl VariableIndexEntry {
         self.get_variable_type() == VariableType::InOut
     }
 
+    pub fn is_output(&self) -> bool {
+        self.get_variable_type().is_output()
+    }
+
     pub fn is_constant(&self) -> bool {
         self.is_constant
     }
@@ -801,10 +805,10 @@ impl PouIndexEntry {
         match self {
             PouIndexEntry::Program { properties, .. }
             | PouIndexEntry::FunctionBlock { properties, .. }
-            | PouIndexEntry::Class { properties, .. } => {
-                if !properties.is_empty() {
-                    return Some(properties);
-                }
+            | PouIndexEntry::Class { properties, .. }
+                if !properties.is_empty() =>
+            {
+                return Some(properties);
             }
 
             _ => (),
@@ -1949,21 +1953,21 @@ impl Index {
         }
     }
 
-    /// Returns the initioal value registered for the given data_type.
-    /// If the given dataType has no initial value AND it is an Alias or SubRange (referencing another type)
+    /// Returns the initial value registered for the given data type.
+    /// If the given data type has no initial value and it is an Alias or SubRange (referencing another type),
     /// this method tries to obtain the default value from the referenced type.
     pub fn get_initial_value_for_type(&self, type_name: &str) -> Option<&AstNode> {
         let mut dt = self.type_index.find_type(type_name);
         let mut initial_value = dt.and_then(|it| it.initial_value);
 
-        //check if we have no initial value AND this type is an alias to another type
+        // check if we have no initial value and this type is an alias to another type
         while initial_value.is_none()
             && matches!(
                 dt.map(|it| &it.information),
                 Some(DataTypeInformation::Alias { .. } | DataTypeInformation::SubRange { .. })
             )
         {
-            //try to fetch initial value of the aliased type
+            // try to fetch initial value of the aliased type
             dt = dt.and_then(|it| self.get_aliased_target_type(&it.information));
             initial_value = dt.and_then(|it| it.initial_value);
         }

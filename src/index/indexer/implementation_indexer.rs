@@ -16,14 +16,16 @@ impl<'i> ImplementationIndexer<'i> {
 
     pub fn index_implementation(&mut self, implementation: &Implementation) {
         let pou_type = &implementation.pou_type;
+        // Pick the first user-authored statement's location. Synthetic statements inserted by
+        // lowering passes (e.g. `__<fn>_<var>__ctor` calls from initializer lowering) carry an
+        // internal location; using them here would make the whole implementation look internal
+        // and silently strip its debug info.
         let start_location = implementation
             .statements
-            .first()
+            .iter()
             .map(|it| it.get_location())
-            .as_ref()
-            .or(Some(&implementation.location))
-            .cloned()
-            .unwrap();
+            .find(|loc| !loc.is_internal())
+            .unwrap_or_else(|| implementation.location.clone());
         self.index.register_implementation(
             &implementation.name,
             &implementation.type_name,
