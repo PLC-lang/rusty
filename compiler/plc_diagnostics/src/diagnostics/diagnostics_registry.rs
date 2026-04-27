@@ -232,7 +232,7 @@ lazy_static! {
         E128,   Error,      include_str!("./error_codes/E128.md"),  // Invalid nested property assignment target
         E129,   Error,      include_str!("./error_codes/E129.md"),  // Direct interface reference call
         E130,   Error,      include_str!("./error_codes/E130.md"),  // Array size exceeds supported limit
-        E131,   Error,      include_str!("./error_codes/E131.md"),  // AND_THEN/OR_ELSE with non-boolean operands
+        E133,   Error,      include_str!("./error_codes/E133.md"),  // AND_THEN/OR_ELSE with non-boolean operands
     );
 }
 

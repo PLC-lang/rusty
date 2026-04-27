@@ -817,7 +817,7 @@ fn visit_binary_expression<T: AnnotationMap>(
                         "`{operator}` requires boolean operands, use `{}` for bitwise operations on non-boolean types",
                         if matches!(operator, Operator::AndThen) { "AND" } else { "OR" },
                     ))
-                    .with_error_code("E131")
+                    .with_error_code("E133")
                     .with_location(statement),
                 );
             }

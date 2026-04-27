@@ -2759,8 +2759,8 @@ fn and_then_with_non_bool_operands_is_an_error() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"
-    error[E131]: `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
+    assert_snapshot!(diagnostics, @"
+    error[E133]: `AND_THEN` requires boolean operands, use `AND` for bitwise operations on non-boolean types
       ┌─ <internal>:8:18
       │
     8 │             c := a AND_THEN b;
@@ -2783,8 +2783,8 @@ fn or_else_with_non_bool_operands_is_an_error() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"
-    error[E131]: `OR_ELSE` requires boolean operands, use `OR` for bitwise operations on non-boolean types
+    assert_snapshot!(diagnostics, @"
+    error[E133]: `OR_ELSE` requires boolean operands, use `OR` for bitwise operations on non-boolean types
       ┌─ <internal>:8:18
       │
     8 │             c := a OR_ELSE b;
