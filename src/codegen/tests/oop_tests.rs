@@ -3006,6 +3006,13 @@ fn properties_with_reference_to_are_methods_with_lowered_access() {
       ret void
     }
 
+    define void @__fb_property_myStructuredVar_get_0__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
     define void @__fb.__get_myStructuredVar_myStructuredVar__ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
