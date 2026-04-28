@@ -1,8 +1,7 @@
 // Import common functionality into the integration tests
 mod common;
-use crate::common::compile_and_run_no_params;
+use crate::common::{compile_and_run_no_params, get_includes};
 use chrono::NaiveDate;
-use common::add_std;
 
 const DURATION_MILLIS: i64 = (22 * 3600 + 22 * 60 + 22) * 1000;
 const DURATION_NANOS: i64 = DURATION_MILLIS * 1000000;
@@ -15,8 +14,9 @@ fn test_to_big_endian_int() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i16::to_be(0x1001))
 }
 
@@ -27,8 +27,9 @@ fn test_to_little_endian_int() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i16::to_le(0x1001))
 }
 
@@ -39,8 +40,9 @@ fn test_from_big_endian_int() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i16::from_be(0x1001))
 }
 
@@ -51,8 +53,9 @@ fn test_from_little_endian_int() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i16::from_le(0x1001))
 }
 
@@ -64,8 +67,9 @@ fn test_to_big_endian_dint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i32::to_be(0x10010A0B))
 }
 
@@ -76,8 +80,9 @@ fn test_to_little_endian_dint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i32::to_le(0x10010A0B))
 }
 
@@ -88,8 +93,9 @@ fn test_from_big_endian_dint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i32::from_be(0x10010A0B))
 }
 
@@ -100,8 +106,9 @@ fn test_from_little_endian_dint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i32::from_le(0x10010A0B))
 }
 
@@ -113,8 +120,9 @@ fn test_to_big_endian_lint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i64::to_be(0x10010A0B10010A0B))
 }
 
@@ -125,8 +133,9 @@ fn test_to_little_endian_lint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i64::to_le(0x10010A0B10010A0B))
 }
 
@@ -137,8 +146,9 @@ fn test_from_big_endian_lint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i64::from_be(0x10010A0B10010A0B))
 }
 
@@ -149,8 +159,9 @@ fn test_from_little_endian_lint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i64::from_le(0x10010A0B10010A0B))
 }
 
@@ -162,8 +173,9 @@ fn test_to_big_endian_uint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::to_be(0xABBA))
 }
 
@@ -174,8 +186,9 @@ fn test_to_little_endian_uint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::to_le(0x1001))
 }
 
@@ -186,8 +199,9 @@ fn test_from_big_endian_uint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::from_be(0x1001))
 }
 
@@ -198,8 +212,9 @@ fn test_from_little_endian_uint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::from_le(0xABBA))
 }
 
@@ -211,8 +226,9 @@ fn test_to_big_endian_udint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u32::to_be(0x10010A0B))
 }
 
@@ -223,8 +239,9 @@ fn test_to_little_endian_udint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u32::to_le(0x10010A0B))
 }
 
@@ -235,8 +252,9 @@ fn test_from_big_endian_udint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u32::from_be(0x10010A0B))
 }
 
@@ -247,8 +265,9 @@ fn test_from_little_endian_udint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u32::from_le(0x10010A0B))
 }
 
@@ -260,8 +279,9 @@ fn test_to_big_endian_ulint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u64::to_be(0x10010A0B10010A0B))
 }
 
@@ -272,8 +292,9 @@ fn test_to_little_endian_ulint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u64::to_le(0x10010A0B10010A0B))
 }
 
@@ -284,8 +305,9 @@ fn test_from_big_endian_ulint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u64::from_be(0x10010A0B10010A0B))
 }
 
@@ -296,8 +318,9 @@ fn test_from_little_endian_ulint() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u64::from_le(0x10010A0B10010A0B))
 }
 
@@ -309,8 +332,9 @@ fn test_to_big_endian_f32() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: f32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: f32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, f32::from_ne_bytes(12.5_f32.to_be_bytes()))
 }
 
@@ -321,8 +345,9 @@ fn test_to_little_endian_f32() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: f32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: f32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, f32::from_ne_bytes(12.5_f32.to_le_bytes()))
 }
 
@@ -333,8 +358,9 @@ fn test_from_big_endian_f32() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: f32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: f32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, f32::from_be_bytes(12.5_f32.to_ne_bytes()))
 }
 
@@ -345,8 +371,9 @@ fn test_from_little_endian_f32() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: f32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: f32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, f32::from_le_bytes(12.5_f32.to_ne_bytes()))
 }
 
@@ -358,8 +385,9 @@ fn test_to_big_endian_f64() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: f64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: f64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, f64::from_ne_bytes(12.5_f64.to_be_bytes()))
 }
 
@@ -370,8 +398,9 @@ fn test_to_little_endian_f64() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: f64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: f64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, f64::from_ne_bytes(12.5_f64.to_le_bytes()))
 }
 
@@ -382,8 +411,9 @@ fn test_from_big_endian_f64() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: f64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: f64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, f64::from_be_bytes(12.5_f64.to_ne_bytes()))
 }
 
@@ -394,8 +424,9 @@ fn test_from_little_endian_f64() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: f64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: f64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, f64::from_le_bytes(12.5_f64.to_ne_bytes()))
 }
 
@@ -407,8 +438,9 @@ fn test_to_big_endian_word() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::to_be(0xABBA))
 }
 
@@ -419,8 +451,9 @@ fn test_to_little_endian_word() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::to_le(0x1001))
 }
 
@@ -431,8 +464,9 @@ fn test_from_big_endian_word() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::from_be(0x1001))
 }
 
@@ -443,8 +477,9 @@ fn test_from_little_endian_word() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::from_le(0xABBA))
 }
 
@@ -456,8 +491,9 @@ fn test_to_big_endian_dword() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u32::to_be(0x10010A0B))
 }
 
@@ -468,8 +504,9 @@ fn test_to_little_endian_dword() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u32::to_le(0x10010A0B))
 }
 
@@ -480,8 +517,9 @@ fn test_from_big_endian_dword() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u32::from_be(0x10010A0B))
 }
 
@@ -492,8 +530,9 @@ fn test_from_little_endian_dword() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u32 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u32 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u32::from_le(0x10010A0B))
 }
 
@@ -505,8 +544,9 @@ fn test_to_big_endian_lword() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u64::to_be(0x10010A0B10010A0B))
 }
 
@@ -517,8 +557,9 @@ fn test_to_little_endian_lword() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u64::to_le(0x10010A0B10010A0B))
 }
 
@@ -529,8 +570,9 @@ fn test_from_big_endian_lword() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u64::from_be(0x10010A0B10010A0B))
 }
 
@@ -541,8 +583,9 @@ fn test_from_little_endian_lword() {
         END_FUNCTION
     "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u64::from_le(0x10010A0B10010A0B))
 }
 
@@ -554,8 +597,9 @@ fn test_to_big_endian_wchar() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::to_be('C' as u16))
 }
 
@@ -566,8 +610,9 @@ fn test_to_little_endian_wchar() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::to_le('C' as u16))
 }
 
@@ -578,8 +623,9 @@ fn test_from_big_endian_wchar() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::from_be('C' as u16))
 }
 
@@ -590,8 +636,9 @@ fn test_from_little_endian_wchar() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: u16 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: u16 = compile_and_run_no_params(src, includes);
     assert_eq!(res, u16::from_le('C' as u16))
 }
 
@@ -602,8 +649,9 @@ fn test_to_big_endian_date() {
     main := TO_BIG_ENDIAN(DATE#1984-06-25);
     END_FUNCTION
 "#;
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         NaiveDate::from_ymd_opt(1984, 6, 25)
@@ -623,8 +671,9 @@ fn test_to_little_endian_date() {
     main := TO_LITTLE_ENDIAN(DATE#1984-06-25);
     END_FUNCTION
 "#;
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         NaiveDate::from_ymd_opt(1984, 6, 25)
@@ -644,8 +693,9 @@ fn test_from_big_endian_date() {
     main := FROM_BIG_ENDIAN(DATE#1984-06-25);
     END_FUNCTION
 "#;
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         i64::from_be(
@@ -666,8 +716,9 @@ fn test_from_little_endian_date() {
     main := FROM_LITTLE_ENDIAN(DATE#1984-06-25);
     END_FUNCTION
 "#;
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         i64::from_le(
@@ -690,8 +741,9 @@ fn test_to_big_endian_tod() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, DURATION_NANOS.to_be())
 }
 
@@ -702,8 +754,9 @@ fn test_to_little_endian_tod() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, DURATION_NANOS.to_le())
 }
 
@@ -714,8 +767,9 @@ fn test_from_big_endian_tod() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i64::from_be(DURATION_NANOS))
 }
 
@@ -726,8 +780,9 @@ fn test_from_little_endian_tod() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i64::from_le(DURATION_NANOS))
 }
 
@@ -739,8 +794,9 @@ fn test_to_big_endian_dt() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         NaiveDate::from_ymd_opt(1984, 6, 25)
@@ -761,8 +817,9 @@ fn test_to_little_endian_dt() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         NaiveDate::from_ymd_opt(1984, 6, 25)
@@ -783,8 +840,9 @@ fn test_from_big_endian_dt() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         i64::from_be(
@@ -806,8 +864,9 @@ fn test_from_little_endian_dt() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         i64::from_le(
@@ -831,8 +890,9 @@ fn test_to_big_endian_ldate_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         NaiveDate::from_ymd_opt(1984, 6, 25)
@@ -853,8 +913,9 @@ fn test_to_little_endian_ldate_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         NaiveDate::from_ymd_opt(1984, 6, 25)
@@ -875,8 +936,9 @@ fn test_from_big_endian_ldate_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         i64::from_be(
@@ -898,8 +960,9 @@ fn test_from_little_endian_ldate_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         i64::from_le(
@@ -922,8 +985,9 @@ fn test_to_big_endian_ldt_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
 
     assert_eq!(
         res,
@@ -945,8 +1009,9 @@ fn test_to_little_endian_ldt_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         NaiveDate::from_ymd_opt(1984, 6, 25)
@@ -967,8 +1032,9 @@ fn test_from_big_endian_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         i64::from_be(
@@ -990,8 +1056,9 @@ fn test_from_little_endian_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(
         res,
         i64::from_le(
@@ -1014,8 +1081,9 @@ fn test_to_big_endian_ltod_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, DURATION_NANOS.to_be())
 }
 
@@ -1026,8 +1094,9 @@ fn test_to_little_endian_ltod_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, DURATION_NANOS.to_le())
 }
 
@@ -1038,8 +1107,9 @@ fn test_from_big_endian_ltod_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i64::from_be(DURATION_NANOS))
 }
 
@@ -1050,7 +1120,8 @@ fn test_from_little_endian_ltod_nanos() {
     END_FUNCTION
 "#;
 
-    let src = add_std!(src, "endianness_conversion_functions.st");
-    let res: i64 = compile_and_run_no_params(src);
+    let src = vec![src.into()];
+    let includes = get_includes(&["endianness_conversion_functions.st"]);
+    let res: i64 = compile_and_run_no_params(src, includes);
     assert_eq!(res, i64::from_le(DURATION_NANOS))
 }

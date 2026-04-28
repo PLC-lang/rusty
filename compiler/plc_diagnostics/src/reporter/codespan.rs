@@ -115,7 +115,7 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
                 labels.push(
                     Label::primary(
                         d.main_location.file_handle,
-                        d.main_location.span.to_range().unwrap_or_else(|| 0..0),
+                        d.main_location.span.to_range().unwrap_or(0..0),
                     )
                     .with_message(d.message.as_str()),
                 );
@@ -125,7 +125,7 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
                 labels.extend(additional_locations.iter().filter_map(|it| {
                     if !matches!(it.span, CodeSpan::None) {
                         Some(
-                            Label::secondary(it.file_handle, it.span.to_range().unwrap_or_else(|| 0..0))
+                            Label::secondary(it.file_handle, it.span.to_range().unwrap_or(0..0))
                                 .with_message("see also"),
                         )
                     } else {

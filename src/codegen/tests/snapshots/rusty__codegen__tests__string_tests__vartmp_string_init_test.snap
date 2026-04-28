@@ -14,10 +14,10 @@ target triple = "[filtered]"
 
 define void @prg(ptr %0) {
 entry:
-  %y = alloca [16 x i8], align 1
-  %z = alloca [31 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %y, i8 0, i64 ptrtoint (ptr getelementptr ([16 x i8], ptr null, i32 1) to i64), i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %z, ptr align 1 @__prg.z__init, i64 ptrtoint (ptr getelementptr ([31 x i8], ptr null, i32 1) to i64), i1 false)
+  %y = alloca [16 x i8], align [filtered]
+  %z = alloca [31 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %y, i8 0, i64 ptrtoint (ptr getelementptr ([16 x i8], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %z, ptr align [filtered] @__prg.z__init, i64 ptrtoint (ptr getelementptr ([31 x i8], ptr null, i32 1) to i64), i1 false)
   ret void
 }
 

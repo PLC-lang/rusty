@@ -39,6 +39,7 @@ impl<'i> PouIndexer<'i> {
                     variable_type_name: return_type_name,
                     is_constant: false,     //return variables are not constants
                     is_var_external: false, // see above
+                    is_retain: false,       // return variables cannot be in retain blocks
                     binding: None,
                     varargs: None,
                 },
@@ -60,6 +61,7 @@ impl<'i> PouIndexer<'i> {
             },
             nature: TypeNature::Any,
             location: pou.name_location.clone(),
+            linkage: pou.linkage,
         };
 
         match &pou.kind {
@@ -252,6 +254,7 @@ impl<'i> PouIndexer<'i> {
                         variable_type_name: &type_name,
                         is_constant: block.constant,
                         is_var_external: matches!(block.kind, VariableBlockType::External),
+                        is_retain: block.retain,
                         binding,
                         varargs,
                     },
@@ -316,6 +319,7 @@ pub fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str,
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
+            linkage: ast::LinkageType::Internal,
         });
     }
 

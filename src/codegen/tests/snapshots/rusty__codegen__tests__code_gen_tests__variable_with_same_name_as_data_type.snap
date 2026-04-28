@@ -13,11 +13,11 @@ target triple = "[filtered]"
 
 define i64 @func() {
 entry:
-  %func = alloca i64, align 8
-  %TIME = alloca i64, align 8
-  store i64 0, ptr %TIME, align 8
-  store i64 0, ptr %func, align 8
-  %func_ret = load i64, ptr %func, align 8
+  %func = alloca i64, align [filtered]
+  %TIME = alloca i64, align [filtered]
+  store i64 0, ptr %TIME, align [filtered]
+  store i64 0, ptr %func, align [filtered]
+  %func_ret = load i64, ptr %func, align [filtered]
   ret i64 %func_ret
 }
 

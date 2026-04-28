@@ -9,25 +9,25 @@ target triple = "[filtered]"
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  %x1 = alloca float, align 4
-  %x2 = alloca float, align 4
-  %x3 = alloca float, align 4
-  %l1 = alloca i64, align 8
-  store float 0.000000e+00, ptr %x1, align 4
-  store float 0.000000e+00, ptr %x2, align 4
-  store float 0.000000e+00, ptr %x3, align 4
-  store i64 0, ptr %l1, align 8
-  store i32 0, ptr %main, align 4
-  %load_x1 = load float, ptr %x1, align 4
-  %load_x2 = load float, ptr %x2, align 4
+  %main = alloca i32, align [filtered]
+  %x1 = alloca float, align [filtered]
+  %x2 = alloca float, align [filtered]
+  %x3 = alloca float, align [filtered]
+  %l1 = alloca i64, align [filtered]
+  store float 0.000000e+00, ptr %x1, align [filtered]
+  store float 0.000000e+00, ptr %x2, align [filtered]
+  store float 0.000000e+00, ptr %x3, align [filtered]
+  store i64 0, ptr %l1, align [filtered]
+  store i32 0, ptr %main, align [filtered]
+  %load_x1 = load float, ptr %x1, align [filtered]
+  %load_x2 = load float, ptr %x2, align [filtered]
   %tmpVar = fmul float %load_x1, %load_x2
-  %load_x3 = load float, ptr %x3, align 4
+  %load_x3 = load float, ptr %x3, align [filtered]
   %tmpVar1 = fmul float %tmpVar, %load_x3
   %0 = fpext float %tmpVar1 to double
-  %load_l1 = load i64, ptr %l1, align 8
+  %load_l1 = load i64, ptr %l1, align [filtered]
   %1 = sitofp i64 %load_l1 to double
   %tmpVar2 = fmul double %0, %1
-  %main_ret = load i32, ptr %main, align 4
+  %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }

@@ -14,15 +14,15 @@ target triple = "[filtered]"
 
 define i32 @drive() {
 entry:
-  %drive = alloca i32, align 4
-  %input = alloca i32, align 4
-  %horiz = alloca i32, align 4
-  %depth = alloca i32, align 4
-  store i32 0, ptr %input, align 4
-  store i32 0, ptr %horiz, align 4
-  store i32 0, ptr %depth, align 4
-  store i32 0, ptr %drive, align 4
-  %load_input = load i32, ptr %input, align 4
+  %drive = alloca i32, align [filtered]
+  %input = alloca i32, align [filtered]
+  %horiz = alloca i32, align [filtered]
+  %depth = alloca i32, align [filtered]
+  store i32 0, ptr %input, align [filtered]
+  store i32 0, ptr %horiz, align [filtered]
+  store i32 0, ptr %depth, align [filtered]
+  store i32 0, ptr %drive, align [filtered]
+  %load_input = load i32, ptr %input, align [filtered]
   switch i32 %load_input, label %else [
     i32 7, label %case
     i32 14, label %case1
@@ -31,33 +31,33 @@ entry:
   ]
 
 case:                                             ; preds = %entry
-  %load_horiz = load i32, ptr %horiz, align 4
+  %load_horiz = load i32, ptr %horiz, align [filtered]
   %tmpVar = add i32 %load_horiz, 1
-  store i32 %tmpVar, ptr %horiz, align 4
+  store i32 %tmpVar, ptr %horiz, align [filtered]
   br label %continue
 
 case1:                                            ; preds = %entry
-  %load_horiz2 = load i32, ptr %horiz, align 4
+  %load_horiz2 = load i32, ptr %horiz, align [filtered]
   %tmpVar3 = add i32 %load_horiz2, 2
-  store i32 %tmpVar3, ptr %horiz, align 4
+  store i32 %tmpVar3, ptr %horiz, align [filtered]
   br label %continue
 
 case4:                                            ; preds = %entry
-  %load_depth = load i32, ptr %depth, align 4
+  %load_depth = load i32, ptr %depth, align [filtered]
   %tmpVar5 = sub i32 %load_depth, 1
-  store i32 %tmpVar5, ptr %depth, align 4
+  store i32 %tmpVar5, ptr %depth, align [filtered]
   br label %continue
 
 case6:                                            ; preds = %entry
-  %load_depth7 = load i32, ptr %depth, align 4
+  %load_depth7 = load i32, ptr %depth, align [filtered]
   %tmpVar8 = add i32 %load_depth7, 1
-  store i32 %tmpVar8, ptr %depth, align 4
+  store i32 %tmpVar8, ptr %depth, align [filtered]
   br label %continue
 
 else:                                             ; preds = %entry
   br label %continue
 
 continue:                                         ; preds = %else, %case6, %case4, %case1, %case
-  %drive_ret = load i32, ptr %drive, align 4
+  %drive_ret = load i32, ptr %drive, align [filtered]
   ret i32 %drive_ret
 }

@@ -32,17 +32,23 @@ error[E007]: Unexpected token: expected KeywordParensClose but found ';'
 16 │             arr := (1, 2, 3, 4, 5];
    │                                   ^ Unexpected token: expected KeywordParensClose but found ';'
 
-error[E043]: Array `arr` has a size of 5, but 6 elements were provided
+error[E043]: Too many initial values for array `arr`. Expected 5, found 6.
   ┌─ <internal>:4:54
   │
 4 │                 arr         : ARRAY[1..5] OF DINT := [1, 2, 3, 4, 5, 6];
-  │                                                      ^^^^^^^^^^^^^^^^^^ Array `arr` has a size of 5, but 6 elements were provided
+  │                                                      ^^^^^^^^^^^^^^^^^^ Too many initial values for array `arr`. Expected 5, found 6.
 
 error[E043]: Array assignments must be surrounded with `[]`
   ┌─ <internal>:5:55
   │
 5 │                 arr_alt     : ARRAY[1..5] OF DINT := (1, 2, 3, 4, 5, 6);
   │                                                       ^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+warning[E127]: Fewer initial values for array `arr` than expected. Expected 5, found 4.
+  ┌─ <internal>:8:20
+  │
+8 │             arr := [1, 2, 3, 4];    // Valid
+  │                    ^^^^^^^^^^^^ Fewer initial values for array `arr` than expected. Expected 5, found 4.
 
 error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:11:21
@@ -62,11 +68,11 @@ error[E043]: Array assignments must be surrounded with `[]`
 13 │             arr := (1, 2, 3, 4, 5, 6);
    │                     ^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
-error[E043]: Array `arr` has a size of 5, but 6 elements were provided
+error[E043]: Too many initial values for array `arr`. Expected 5, found 6.
    ┌─ <internal>:14:20
    │
 14 │             arr := [1, 2, 3, 4, 5, 6];
-   │                    ^^^^^^^^^^^^^^^^^^ Array `arr` has a size of 5, but 6 elements were provided
+   │                    ^^^^^^^^^^^^^^^^^^ Too many initial values for array `arr`. Expected 5, found 6.
 
 error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:15:34

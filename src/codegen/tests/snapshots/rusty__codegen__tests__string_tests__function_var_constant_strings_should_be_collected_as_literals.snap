@@ -14,15 +14,15 @@ target triple = "[filtered]"
 
 define i64 @FSTRING_TO_DT() {
 entry:
-  %FSTRING_TO_DT = alloca i64, align 8
-  %ignore = alloca [2 x i8], align 1
-  %fchar = alloca [2 x i8], align 1
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %ignore, ptr align 1 @__FSTRING_TO_DT.ignore__init, i64 ptrtoint (ptr getelementptr ([2 x i8], ptr null, i32 1) to i64), i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fchar, ptr align 1 @__FSTRING_TO_DT.fchar__init, i64 ptrtoint (ptr getelementptr ([2 x i8], ptr null, i32 1) to i64), i1 false)
-  store i64 0, ptr %FSTRING_TO_DT, align 8
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %fchar, ptr align 1 @utf08_literal_0, i32 1, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %ignore, ptr align 1 @utf08_literal_1, i32 1, i1 false)
-  %FSTRING_TO_DT_ret = load i64, ptr %FSTRING_TO_DT, align 8
+  %FSTRING_TO_DT = alloca i64, align [filtered]
+  %ignore = alloca [2 x i8], align [filtered]
+  %fchar = alloca [2 x i8], align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %ignore, ptr align [filtered] @__FSTRING_TO_DT.ignore__init, i64 ptrtoint (ptr getelementptr ([2 x i8], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fchar, ptr align [filtered] @__FSTRING_TO_DT.fchar__init, i64 ptrtoint (ptr getelementptr ([2 x i8], ptr null, i32 1) to i64), i1 false)
+  store i64 0, ptr %FSTRING_TO_DT, align [filtered]
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %fchar, ptr align [filtered] @utf08_literal_0, i32 1, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %ignore, ptr align [filtered] @utf08_literal_1, i32 1, i1 false)
+  %FSTRING_TO_DT_ret = load i64, ptr %FSTRING_TO_DT, align [filtered]
   ret i64 %FSTRING_TO_DT_ret
 }
 

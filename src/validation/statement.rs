@@ -17,12 +17,14 @@ use plc_source::source_location::SourceLocation;
 use super::{array::validate_array_assignment, ValidationContext, Validator, Validators};
 use crate::index::ImplementationType;
 use crate::typesystem::VOID_TYPE;
-use crate::validation::statement::helper::get_literal_int_or_const_expr_value;
+use crate::validation::statement::helper::{
+    get_literal_int_or_const_expr_value, is_literal_or_const_expr_value_zero,
+};
 use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
-    resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
+    resolver::{const_evaluator, AnnotationMap, AutoDerefType, StatementAnnotation},
     typesystem::{
         self, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
@@ -151,7 +153,7 @@ pub fn visit_statement<T: AnnotationMap>(
                         .with_location(statement.get_location()).with_error_code("E119"));
             }
         }
-        AstStatement::This => {
+        AstStatement::This
             if !context.qualifier.is_some_and(|it| {
                 context
                     .index
@@ -163,15 +165,15 @@ pub fn visit_statement<T: AnnotationMap>(
                         _ => None,
                     })
                     .is_some_and(|it| it.is_function_block())
-            }) {
-                validator.push_diagnostic(
+            }) =>
+        {
+            validator.push_diagnostic(
                     Diagnostic::new(
                         "Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s.",
                     )
                     .with_error_code("E120")
                     .with_location(statement),
                 );
-            }
         }
         _ => {}
     }
@@ -388,6 +390,9 @@ where
 
         validator.push_diagnostic(diagnostic)
     }
+
+    // We should walk the condition like it is any other statement to validate references and so on
+    visit_statement(validator, condition, context);
 }
 
 fn validate_control_statement<T: AnnotationMap>(
@@ -570,20 +575,26 @@ fn validate_reference<T: AnnotationMap>(
         //      then we'd get two similar error, one describing what the exact issue is (i.e. no get/set) and
         //      the other describing that it cant find a reference to "__{get,set}_<property name>"
         match ref_name {
-            _ if ref_name.starts_with("__set") => {
+            _ if ref_name.starts_with("__set_") => {
                 validator.push_diagnostic(
-                    Diagnostic::new("SET property not defined")
-                        .with_error_code("E048")
-                        .with_location(location),
+                    Diagnostic::new(format!(
+                        "PROPERTY_SET for property `{}` is not defined",
+                        ref_name.strip_prefix("__set_").unwrap_or(ref_name)
+                    ))
+                    .with_error_code("E048")
+                    .with_location(location),
                 );
                 return;
             }
 
-            _ if ref_name.starts_with("__get") => {
+            _ if ref_name.starts_with("__get_") => {
                 validator.push_diagnostic(
-                    Diagnostic::new("GET property not defined")
-                        .with_error_code("E048")
-                        .with_location(location),
+                    Diagnostic::new(format!(
+                        "PROPERTY_GET for property `{}` is not defined",
+                        ref_name.strip_prefix("__get_").unwrap_or(ref_name)
+                    ))
+                    .with_error_code("E048")
+                    .with_location(location),
                 );
                 return;
             }
@@ -602,9 +613,11 @@ fn validate_reference<T: AnnotationMap>(
             if alternative_target_type.is_numerical() || alternative_target_type.is_enum() {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
                 validator.push_diagnostic(
-                    Diagnostic::new(format!("If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."))
+                    Diagnostic::new(format!(
+                        "If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."
+                    ))
                     .with_error_code("E060")
-                    .with_location(location)
+                    .with_location(location),
                 );
             }
         }
@@ -613,7 +626,7 @@ fn validate_reference<T: AnnotationMap>(
     }
 
     match context.annotations.get(statement) {
-        Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) => {
+        Some(StatementAnnotation::Variable { qualified_name, argument_type, .. })
             // check if we're accessing a private variable AND the variable's qualifier is not the
             // POU we're accessing it from.
             if argument_type.is_private()
@@ -624,21 +637,20 @@ fn validate_reference<T: AnnotationMap>(
                     .is_some_and(|(pou, container)| {
                         !variable_is_in_pou_or_container(pou, container, context, qualified_name, location)
                     })
-            {
+            => {
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Illegal access to private member {qualified_name}"))
                         .with_error_code("E049")
                         .with_location(location),
                 );
             }
-        }
-        Some(StatementAnnotation::Program { qualified_name }) => {
+        Some(StatementAnnotation::Program { qualified_name })
             if !context.is_call()
                 && context
                     .index
                     .find_implementation_by_name(qualified_name)
                     .is_some_and(|it| matches!(it.get_implementation_type(), ImplementationType::Action))
-            {
+            => {
                 // we parsed a reference expression to an action but we are not in a call-context: likely an action call without parentheses
                 validator.push_diagnostic(
                     Diagnostic::new(format!("A reference to {qualified_name} exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `{qualified_name}()`"))
@@ -646,7 +658,6 @@ fn validate_reference<T: AnnotationMap>(
                         .with_location(location)
                 );
             }
-        }
         _ => (),
     }
 }
@@ -802,7 +813,7 @@ fn visit_binary_expression<T: AnnotationMap>(
 ) {
     match operator {
         Operator::Equal => {
-            if context.annotations.get_type_hint(statement, context.index).is_none() {
+            if !context.is_call() && context.annotations.get_type_hint(statement, context.index).is_none() {
                 let lhs = validator.context.slice(&left.location);
                 let rhs = validator.context.slice(&right.location);
 
@@ -831,6 +842,10 @@ fn visit_binary_expression<T: AnnotationMap>(
             validate_binary_expression(validator, statement, &Operator::Less, left, right, context);
             // check for the = operator
             validate_binary_expression(validator, statement, &Operator::Equal, left, right, context);
+        }
+        Operator::Division => {
+            validate_binary_expression(validator, statement, operator, left, right, context);
+            validate_zero_diviser(context, validator, right, &statement.location);
         }
         _ => validate_binary_expression(validator, statement, operator, left, right, context),
     }
@@ -981,7 +996,18 @@ pub fn validate_assignment_mismatch<T>(
         let inner_ty_lhs = context.index.find_effective_type_by_name(inner_ty_name_lhs);
         let inner_ty_rhs = context.index.find_effective_type_by_name(inner_ty_name_rhs);
 
-        if len_lhs != len_rhs || inner_ty_lhs != inner_ty_rhs {
+        let inner_types_match = match (inner_ty_lhs, inner_ty_rhs) {
+            (Some(lhs), Some(rhs)) if lhs == rhs => true,
+            (Some(lhs), Some(rhs))
+                if lhs.get_type_information().is_pointer() && rhs.get_type_information().is_pointer() =>
+            {
+                context.index.find_elementary_pointer_type(lhs.get_type_information())
+                    == context.index.find_elementary_pointer_type(rhs.get_type_information())
+            }
+            _ => false,
+        };
+
+        if len_lhs != len_rhs || !inner_types_match {
             validator.push_diagnostic(Diagnostic::invalid_assignment(
                 &validator.get_type_name_or_slice(type_rhs),
                 &validator.get_type_name_or_slice(type_lhs),
@@ -1030,6 +1056,82 @@ where
     }
 }
 
+/// For `POINTER TO` assignments involving classes/function blocks, validates that
+/// the pointee types are in a valid inheritance relationship (child→parent only).
+/// Returns `true` if this was a POU pointer case (handled), `false` otherwise
+/// (meaning the caller should fall through to existing validation).
+/// For `POINTER TO` assignments involving classes/function blocks, validates that
+/// the pointee types are in a valid inheritance relationship (child→parent only).
+/// Returns `true` if this was a POU pointer case (handled), `false` otherwise
+/// (meaning the caller should fall through to existing validation).
+fn validate_pou_pointer_assignment<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    left_type: &DataType,
+    right_type: &DataType,
+    right: &AstNode,
+    location: &SourceLocation,
+) -> bool {
+    // Only applies to non-type-safe POINTER TO on the LHS; type-safe pointers have their own rules and should
+    // be unaffected by this validation
+    if !left_type.is_pointer() || left_type.is_type_safe_pointer() {
+        return false;
+    }
+
+    let Some(lhs_inner) = left_type.get_type_information().get_inner_pointer_type_name() else {
+        return false;
+    };
+
+    let is_class_or_fb = |name: &str| {
+        context.index.find_pou(name).is_some_and(|opt| opt.is_function_block() || opt.is_class())
+    };
+
+    if !is_class_or_fb(lhs_inner) {
+        return false;
+    }
+
+    let Some(rhs_inner) = get_pointee_type_name(context, right_type, right) else {
+        return false;
+    };
+
+    if !is_class_or_fb(rhs_inner) {
+        return false;
+    }
+
+    // Same type or valid upcast (child→parent) — no error
+    if is_related_to(context, lhs_inner, rhs_inner) || lhs_inner.eq_ignore_ascii_case(rhs_inner) {
+        return true;
+    }
+
+    validator.push_diagnostic(Diagnostic::invalid_polymorphic_assignment(rhs_inner, lhs_inner, location));
+    true
+}
+
+/// Returns the pointee type name for the right-hand side of a pointer assignment.
+/// For pointer types (`POINTER TO X`), returns the inner type name directly.
+/// For `ADR(instance)` / `REF(instance)` calls, extracts the argument's type name.
+fn get_pointee_type_name<'a, T: AnnotationMap>(
+    context: &'a ValidationContext<'a, T>,
+    right_type: &'a DataType,
+    right: &AstNode,
+) -> Option<&'a str> {
+    if let DataTypeInformation::Pointer { inner_type_name, .. } = right_type.get_type_information() {
+        return Some(inner_type_name.as_str());
+    }
+
+    // ADR/REF returns LWORD, so the pointer's inner type is lost — recover it from the call argument
+    if !is_ref_or_adr_call(right, context) {
+        return None;
+    }
+
+    let AstStatement::CallStatement(CallStatement { parameters, .. }) = right.get_stmt_peeled() else {
+        return None;
+    };
+
+    let arg = flatten_expression_list(parameters.as_ref()?).first().copied()?;
+    Some(context.annotations.get_type_or_void(arg, context.index).get_type_information().get_name())
+}
+
 /// Checks if `REF=` assignments are correct, specifically if the left-hand side is a reference declared
 /// as `REFERENCE TO` and the right hand side is a lvalue of the same type that is being referenced.
 fn validate_ref_assignment<T: AnnotationMap>(
@@ -1039,8 +1141,21 @@ fn validate_ref_assignment<T: AnnotationMap>(
     assignment_location: &SourceLocation,
 ) {
     let annotation_lhs = context.annotations.get(&assignment.left);
+    let rhs_is_constant = matches!(
+        context.annotations.get(&assignment.right),
+        Some(StatementAnnotation::Variable { constant: true, .. })
+    );
     let type_lhs = context.annotations.get_type_or_void(&assignment.left, context.index);
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
+
+    // Assert that the right-hand side is not a constant
+    if rhs_is_constant {
+        validator.push_diagnostic(
+            Diagnostic::new("Invalid assignment, cannot ensure constant is used as read-only")
+                .with_location(&assignment.right.location)
+                .with_error_code("E098"),
+        );
+    }
 
     // Assert that the right-hand side is a reference
     if !(assignment.right.get_node_peeled().is_reference()
@@ -1064,8 +1179,29 @@ fn validate_ref_assignment<T: AnnotationMap>(
     }
 
     // If the right side is a reference, validate type mismatches
+    // For REF= semantics: `px REF= x` means "assign the address of x to px"
+    // So if LHS is a pointer type, we need to compare the inner type with the RHS type
     if assignment.right.is_reference() {
-        validate_assignment_mismatch(context, validator, type_lhs, type_rhs, assignment_location);
+        let effective_lhs = context.index.find_effective_type(type_lhs).unwrap_or(type_lhs);
+        let inner_type_lhs = if let DataTypeInformation::Pointer { inner_type_name, .. } =
+            effective_lhs.get_type_information()
+        {
+            context.index.get_effective_type_or_void_by_name(inner_type_name)
+        } else if let Some(StatementAnnotation::Variable {
+            auto_deref: Some(AutoDerefType::Reference(pointer_type) | AutoDerefType::Alias(pointer_type)),
+            ..
+        }) = annotation_lhs
+        {
+            context
+                .index
+                .find_effective_type_by_name(pointer_type)
+                .and_then(|ty| ty.get_type_information().get_inner_pointer_type_name())
+                .map(|inner| context.index.get_effective_type_or_void_by_name(inner))
+                .unwrap_or(type_lhs)
+        } else {
+            type_lhs
+        };
+        validate_assignment_mismatch(context, validator, inner_type_lhs, type_rhs, assignment_location);
     }
 }
 
@@ -1100,10 +1236,17 @@ fn validate_assignment<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    let mut is_output_assignment = false;
+
     if let Some(left) = left {
         // Check if we are assigning to a...
-        if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
-            context.annotations.get(left)
+        if let Some(StatementAnnotation::Variable {
+            constant,
+            qualified_name,
+            argument_type,
+            auto_deref,
+            resulting_type,
+        }) = context.annotations.get(left)
         {
             // ...constant variable
             if *constant {
@@ -1132,8 +1275,10 @@ fn validate_assignment<T: AnnotationMap>(
                     );
             }
 
-            if (matches!(argument_type, ArgumentType::ByRef(VariableType::Output))
-                || matches!(argument_type, ArgumentType::ByVal(VariableType::Output)))
+            is_output_assignment = matches!(argument_type, ArgumentType::ByRef(VariableType::Output))
+                || matches!(argument_type, ArgumentType::ByVal(VariableType::Output));
+
+            if is_output_assignment
                 && !variable_is_in_inherited_or_self_scope(
                     context.qualifier.and_then(|qualifier| context.index.find_pou(qualifier)),
                     context,
@@ -1146,6 +1291,27 @@ fn validate_assignment<T: AnnotationMap>(
                     Diagnostic::new("VAR_OUTPUT variables cannot be assigned outside of their scope.")
                         .with_error_code("E037")
                         .with_location(location),
+                );
+            }
+
+            // Auto deref in assignment on the left implies that this variable was specified as "REFERENCE TO"
+            // If the right side of the assignment is using the builtin "ADR" we should return an invalid assignment error
+            if auto_deref.is_some() && node_is_builtin_adr(right, context) {
+                validator.push_diagnostic(
+                    Diagnostic::new(
+                        "ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?")
+                        .with_error_code("E037")
+                        .with_location(location),
+                );
+            }
+
+            if call_returns_void(context, right) {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Invalid assignment: cannot assign 'VOID' to '{resulting_type}'"
+                    ))
+                    .with_error_code("E037")
+                    .with_location(location),
                 );
             }
         }
@@ -1177,14 +1343,9 @@ fn validate_assignment<T: AnnotationMap>(
 
     if let (Some(right_type), Some(left_type)) = (right_type, left_type) {
         // implicit call parameter assignments are annotated to auto_deref pointers for ´ByRef` parameters
-        // we need the inner type
-        let left_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
-            left_type.get_type_information()
-        {
-            context.index.get_effective_type_or_void_by_name(inner_type_name)
-        } else {
-            left_type
-        };
+        // we need the inner type unless the RHS is a reference (e.g. REF(...) or ADR(...))
+        let left_type = normalized_left_type_for_assignment(context, left_type, right);
+        let right_type = normalized_right_type_for_assignment(context, right_type, right);
 
         // VLA <- ARRAY assignments are valid when the array is passed to a function expecting a VLA, but
         // are no longer allowed inside a POU body
@@ -1193,7 +1354,10 @@ fn validate_assignment<T: AnnotationMap>(
             return;
         }
 
-        if !(left_type.is_compatible_with_type(right_type)
+        // Validate POU pointer assignments (POINTER TO class/FB) for inheritance compatibility
+        if validate_pou_pointer_assignment(context, validator, left_type, right_type, right, location) {
+            // Handled — either a valid upcast or an error was already emitted
+        } else if !(left_type.is_compatible_with_type(right_type)
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             // TODO: #THIS && !left_type.is_this()
@@ -1210,10 +1374,92 @@ fn validate_assignment<T: AnnotationMap>(
             } else {
                 validate_assignment_mismatch(context, validator, left_type, right_type, location);
             }
+        } else if is_output_assignment && context.is_call() {
+            // If this is an output assignment (and the context is a call), then we need to swap the types for type size validation
+            // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
+            validate_assignment_type_sizes(validator, right_type, left.unwrap(), context);
         } else {
-            validate_assignment_type_sizes(validator, left_type, right, context)
+            validate_assignment_type_sizes(validator, left_type, right, context);
         }
     }
+}
+
+fn node_is_builtin_adr<T: AnnotationMap>(node: &AstNode, context: &ValidationContext<T>) -> bool {
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = node.get_stmt_peeled() else {
+        return false;
+    };
+
+    let Some(call_name) = context.annotations.get_call_name(operator.as_ref()) else {
+        return false;
+    };
+
+    let Some(adr_builtin) = builtins::get_builtin("ADR") else {
+        return false;
+    };
+
+    context.index.get_builtin_function(call_name).is_some_and(|builtin| std::ptr::eq(builtin, adr_builtin))
+}
+
+fn normalized_left_type_for_assignment<'a, T: AnnotationMap>(
+    context: &'a ValidationContext<'a, T>,
+    left_type: &'a typesystem::DataType,
+    right: &'a AstNode,
+) -> &'a typesystem::DataType {
+    if is_ref_or_adr_call(right, context) {
+        return left_type;
+    }
+
+    let effective_left_type = context.index.find_effective_type(left_type).unwrap_or(left_type);
+    if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
+        effective_left_type.get_type_information()
+    {
+        return context.index.get_effective_type_or_void_by_name(inner_type_name);
+    }
+
+    left_type
+}
+
+fn normalized_right_type_for_assignment<'a, T: AnnotationMap>(
+    context: &'a ValidationContext<'a, T>,
+    right_type: &'a typesystem::DataType,
+    right: &'a AstNode,
+) -> &'a typesystem::DataType {
+    if is_ref_or_adr_call(right, context) {
+        return right_type;
+    }
+
+    let effective_right_type = context.index.find_effective_type(right_type).unwrap_or(right_type);
+    if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
+        effective_right_type.get_type_information()
+    {
+        return context.index.get_effective_type_or_void_by_name(inner_type_name);
+    }
+
+    right_type
+}
+
+fn is_ref_or_adr_call<T: AnnotationMap>(node: &AstNode, context: &ValidationContext<T>) -> bool {
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = node.get_stmt_peeled() else {
+        return false;
+    };
+
+    let Some(call_name) = context.annotations.get_call_name(operator.as_ref()) else {
+        return false;
+    };
+
+    let Some(adr_builtin) = builtins::get_builtin("ADR") else {
+        return false;
+    };
+
+    let Some(ref_builtin) = builtins::get_builtin("REF") else {
+        return false;
+    };
+
+    context.index.get_builtin_function(call_name).is_some_and(|builtin| std::ptr::eq(builtin, adr_builtin))
+        || context
+            .index
+            .get_builtin_function(call_name)
+            .is_some_and(|builtin| std::ptr::eq(builtin, ref_builtin))
 }
 
 fn variable_is_in_inherited_or_self_scope<T: AnnotationMap>(
@@ -1322,6 +1568,25 @@ where
     }
 
     false
+}
+
+fn call_returns_void<T>(context: &ValidationContext<T>, right: &AstNode) -> bool
+where
+    T: AnnotationMap,
+{
+    let AstStatement::CallStatement(CallStatement { operator, .. }) = right.get_stmt_peeled() else {
+        return false;
+    };
+
+    let Some(call_name) = context.annotations.get_call_name(operator.as_ref()) else {
+        return false;
+    };
+
+    let Some(pou) = context.index.find_pou(call_name) else {
+        return false;
+    };
+
+    pou.get_return_type().is_none()
 }
 
 pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
@@ -1489,6 +1754,11 @@ fn is_invalid_pointer_assignment(
     location: &SourceLocation,
     validator: &mut Validator,
 ) -> bool {
+    // Skip validation for internal/builtin code (e.g., generated initializers)
+    if location.is_builtin_internal() {
+        return false;
+    }
+
     if left_type.is_pointer() & right_type.is_pointer() {
         return !typesystem::is_same_type_class(left_type, right_type, index);
     }
@@ -1622,15 +1892,18 @@ fn validate_call<T: AnnotationMap>(
                 // explicit call parameter assignments will be handled by
                 // `visit_statement()` via `Assignment` and `OutputAssignment`
                 if is_implicit {
-                    validate_assignment(validator, right, None, &argument.get_location(), context);
+                    let builtin_name = fn_ident.get_flat_reference_name().unwrap_or_default();
+                    if !matches!(builtin_name, "REF" | "ADR") {
+                        validate_assignment(validator, right, None, &argument.get_location(), context);
+                    }
                 }
 
-                // mixing implicit and explicit arguments is not allowed
-                // allways compare to the first argument
+                // mixing implicit and explicit arguments is discouraged
+                // always compare to the first argument
                 if arguments_are_implicit != is_implicit {
                     validator.push_diagnostic(
-                        Diagnostic::new("Cannot mix implicit and explicit call parameters!")
-                            .with_error_code("E031")
+                        Diagnostic::new("Mixing implicit and explicit call parameters")
+                            .with_error_code("E132")
                             .with_location(*argument),
                     );
                 }
@@ -1648,6 +1921,56 @@ fn validate_call<T: AnnotationMap>(
         }
 
         visit_statement(validator, argument, context);
+    }
+
+    // E131: flag positional args whose natural slot is also named by a LATER arg.
+    //
+    // Rule: a positional arg at call-index P collides if any named arg at call-index > P
+    // targets the slot P would naturally fill (= the number of positional args before it).
+    //
+    // Why only "later" named args? Because names that appear *before* a positional are how
+    // the caller reshuffles the default filling order — `myfunc(b := 20, 1, 3)` is a clear
+    // use of mixing where positional `1` cleanly takes slot 0 and `3` takes slot 2. That is
+    // not a collision; the user saw the name first and chose the positional below it.
+    //
+    // A name coming *after* the positional is different: the positional reads like it fills
+    // slot N, but the resolver actually spills it past the named slot. E.g. `myfunc(1, a := 10)`
+    // silently becomes `a := 10, b := 1`. Almost always a mistake — hence error, not warning.
+    let mut positional_ordinal = 0usize;
+    let positionals: Vec<(usize, usize)> = arguments
+        .iter()
+        .enumerate()
+        .filter_map(|(call_idx, arg)| {
+            if arg.is_assignment() || arg.is_output_assignment() {
+                return None;
+            }
+            let entry = (call_idx, positional_ordinal);
+            positional_ordinal += 1;
+            Some(entry)
+        })
+        .collect();
+    for (pos_call_idx, natural_slot) in positionals {
+        // Overflow past declared params — already flagged by the arity check (E032).
+        if natural_slot >= parameters.len() {
+            continue;
+        }
+        let colliding_name =
+            arguments.iter().enumerate().skip(pos_call_idx + 1).find_map(|(named_call_idx, named_arg)| {
+                let name = named_arg.get_assignment_identifier()?;
+                let named_slot = parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))?;
+                (named_slot == natural_slot).then_some(named_call_idx)
+            });
+        if let Some(named_call_idx) = colliding_name {
+            let param_name = parameters[natural_slot].get_name();
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Positional argument collides with later named argument `{param_name}`"
+                ))
+                .with_error_code("E131")
+                .with_location(arguments[pos_call_idx])
+                .with_secondary_location(arguments[named_call_idx]),
+            );
+        }
     }
 
     // for PROGRAM/FB we need special inout validation
@@ -1905,10 +2228,14 @@ fn validate_assignment_type_sizes<T: AnnotationMap>(
     }
 
     let lhs = left.get_type_information();
-    let Ok(lhs_size) = lhs.get_size(context.index) else { return };
+    let Ok(lhs_size) = lhs.get_size(context.index) else {
+        return;
+    };
     let results_in_truncation = |rhs: &DataType| {
         let rhs = rhs.get_type_information();
-        let Ok(rhs_size) = rhs.get_size(context.index) else { return false };
+        let Ok(rhs_size) = rhs.get_size(context.index) else {
+            return false;
+        };
         lhs_size < rhs_size
             || (lhs_size == rhs_size
                 && ((lhs.is_signed_int() && rhs.is_unsigned_int()) || (lhs.is_int() && rhs.is_float())))
@@ -1950,9 +2277,14 @@ fn validate_argument_count<T: AnnotationMap>(
     let argument_count_is_incorrect = match pou {
         PouIndexEntry::Function { .. } => {
             // parameters with default values are optional, so the argument count can be less than
-            // the parameter count. This only works if the parameters with default values are at the end
-            let optional_parameters =
-                parameters.iter().rev().take_while(|p| p.initial_value.is_some()).count();
+            // the parameter count. This only works if the parameters with default values are at the end.
+            // Only input variables are optional (so only they should be treated as such)
+            let optional_parameters = parameters
+                .iter()
+                .rev()
+                .filter(|p| p.is_input())
+                .take_while(|p| p.initial_value.is_some())
+                .count();
             let min_required_parameters = parameters.len() - optional_parameters;
             arguments.len() < min_required_parameters
                 || (!has_variadic_parameter && arguments.len() > parameters.len())
@@ -1971,6 +2303,20 @@ fn validate_argument_count<T: AnnotationMap>(
             arguments.len(),
             operator_location,
         ));
+    }
+}
+
+/// Validates an expression to ensure that the given literal or constant is not 0
+fn validate_zero_diviser<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    validator: &mut Validator,
+    statement: &AstNode,
+    location: &SourceLocation,
+) {
+    if is_literal_or_const_expr_value_zero(statement, context) {
+        validator.push_diagnostic(
+            Diagnostic::new("Division by Zero").with_error_code("E123").with_location(location),
+        );
     }
 }
 
@@ -2043,5 +2389,33 @@ pub(crate) mod helper {
         }
 
         variant_const_values
+    }
+
+    pub fn is_literal_or_const_expr_value_zero<T>(right: &AstNode, context: &ValidationContext<T>) -> bool
+    where
+        T: AnnotationMap,
+    {
+        let right = right.get_node_peeled();
+        if right.is_zero() {
+            return true;
+        }
+
+        if let Some(statement_annotation) = context.annotations.get(right) {
+            if let Some(path) = statement_annotation.qualified_name() {
+                if let Some(element) = context.index.find_fully_qualified_variable(path) {
+                    if statement_annotation.is_const() {
+                        if let Some(constant_statement) = context
+                            .index
+                            .get_const_expressions()
+                            .maybe_get_constant_statement(&element.initial_value)
+                        {
+                            return constant_statement.is_zero();
+                        }
+                    }
+                }
+            }
+        }
+
+        false
     }
 }

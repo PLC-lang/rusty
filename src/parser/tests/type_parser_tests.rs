@@ -2,7 +2,7 @@ use crate::test_utils::tests::{parse, parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{DataType, DataTypeDeclaration, UserTypeDeclaration, Variable};
 use plc_source::source_location::SourceLocation;
-use pretty_assertions::*;
+use pretty_assertions::assert_eq;
 
 #[test]
 fn multi_type_declaration() {
@@ -78,6 +78,7 @@ fn simple_struct_type_can_be_parsed() {
             initializer: None,
             location: SourceLocation::internal(),
             scope: None,
+            linkage: plc_ast::ast::LinkageType::Internal,
         }
     );
     assert_eq!(ast_string, expected_ast);
@@ -199,6 +200,7 @@ fn type_alias_can_be_parsed() {
             initializer: None,
             location: SourceLocation::internal(),
             scope: None,
+            linkage: plc_ast::ast::LinkageType::Internal,
         }
     );
 
@@ -292,6 +294,84 @@ fn ref_type_test() {
     );
     assert_debug_snapshot!(result.user_types[0]);
     assert_eq!(diagnostics.len(), 0)
+}
+
+#[test]
+fn reference_to_int_type_can_be_parsed() {
+    let (result, diagnostics) = parse(
+        r#"
+        TYPE refInt :
+            REFERENCE TO INT;
+        END_TYPE
+        "#,
+    );
+
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: PointerType {
+            name: Some(
+                "refInt",
+            ),
+            referenced_type: DataTypeReference {
+                referenced_type: "INT",
+            },
+            auto_deref: Some(
+                Reference,
+            ),
+            type_safe: true,
+            is_function: false,
+        },
+        initializer: None,
+        scope: None,
+    }
+    "#);
+    assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn reference_to_array_type_can_be_parsed() {
+    let (result, diagnostics) = parse(
+        r#"
+        TYPE refArrInt :
+            REFERENCE TO ARRAY[0..1] OF INT;
+        END_TYPE
+        "#,
+    );
+
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: PointerType {
+            name: Some(
+                "refArrInt",
+            ),
+            referenced_type: DataTypeDefinition {
+                data_type: ArrayType {
+                    name: None,
+                    bounds: RangeStatement {
+                        start: LiteralInteger {
+                            value: 0,
+                        },
+                        end: LiteralInteger {
+                            value: 1,
+                        },
+                    },
+                    referenced_type: DataTypeReference {
+                        referenced_type: "INT",
+                    },
+                    is_variable_length: false,
+                },
+            },
+            auto_deref: Some(
+                Reference,
+            ),
+            type_safe: true,
+            is_function: false,
+        },
+        initializer: None,
+        scope: None,
+    }
+    "#);
+    assert_eq!(diagnostics.len(), 0);
 }
 
 #[test]

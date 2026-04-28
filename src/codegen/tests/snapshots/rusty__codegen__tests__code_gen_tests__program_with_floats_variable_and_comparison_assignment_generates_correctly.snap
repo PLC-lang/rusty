@@ -15,29 +15,29 @@ define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  %load_x = load float, ptr %x, align 4
+  %load_x = load float, ptr %x, align [filtered]
   %tmpVar = fcmp oeq float %load_x, 1.000000e+00
   %1 = zext i1 %tmpVar to i8
-  store i8 %1, ptr %y, align 1
-  %load_x1 = load float, ptr %x, align 4
+  store i8 %1, ptr %y, align [filtered]
+  %load_x1 = load float, ptr %x, align [filtered]
   %tmpVar2 = fcmp ogt float %load_x1, 2.000000e+00
   %2 = zext i1 %tmpVar2 to i8
-  store i8 %2, ptr %y, align 1
-  %load_x3 = load float, ptr %x, align 4
+  store i8 %2, ptr %y, align [filtered]
+  %load_x3 = load float, ptr %x, align [filtered]
   %tmpVar4 = fcmp olt float %load_x3, 3.000000e+00
   %3 = zext i1 %tmpVar4 to i8
-  store i8 %3, ptr %y, align 1
-  %load_x5 = load float, ptr %x, align 4
+  store i8 %3, ptr %y, align [filtered]
+  %load_x5 = load float, ptr %x, align [filtered]
   %tmpVar6 = fcmp one float %load_x5, 4.000000e+00
   %4 = zext i1 %tmpVar6 to i8
-  store i8 %4, ptr %y, align 1
-  %load_x7 = load float, ptr %x, align 4
+  store i8 %4, ptr %y, align [filtered]
+  %load_x7 = load float, ptr %x, align [filtered]
   %tmpVar8 = fcmp oge float %load_x7, 5.000000e+00
   %5 = zext i1 %tmpVar8 to i8
-  store i8 %5, ptr %y, align 1
-  %load_x9 = load float, ptr %x, align 4
+  store i8 %5, ptr %y, align [filtered]
+  %load_x9 = load float, ptr %x, align [filtered]
   %tmpVar10 = fcmp ole float %load_x9, 6.000000e+00
   %6 = zext i1 %tmpVar10 to i8
-  store i8 %6, ptr %y, align 1
+  store i8 %6, ptr %y, align [filtered]
   ret void
 }

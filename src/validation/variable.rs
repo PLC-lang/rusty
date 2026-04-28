@@ -126,7 +126,7 @@ pub fn visit_variable_block<T: AnnotationMap>(
         visit_variable(validator, variable, context);
 
         if let Some(referenced_type) = variable.data_type_declaration.get_referenced_type() {
-            if context.index.get_type_information_or_void(&referenced_type).is_vla() {
+            if context.index.get_type_information_or_void(referenced_type).is_vla() {
                 validate_vla(validator, pou, block, variable);
             }
         }
@@ -249,6 +249,117 @@ where
     }
 }
 
+/// Formats a number with `_` as thousands separator for readability (e.g. `4_294_967_295`).
+fn fmt_thousands(n: u64) -> String {
+    let s = n.to_string();
+    let mut result = String::with_capacity(s.len() + s.len() / 3);
+    for (i, c) in s.chars().enumerate() {
+        if i > 0 && (s.len() - i).is_multiple_of(3) {
+            result.push('_');
+        }
+        result.push(c);
+    }
+    result
+}
+
+fn validate_array_size<T>(validator: &mut Validator, variable: &Variable, context: &ValidationContext<T>)
+where
+    T: AnnotationMap,
+{
+    let ty_name = variable.data_type_declaration.get_name().unwrap_or_default();
+    let effective_type = context.index.get_effective_type_or_void_by_name(ty_name);
+    let ty_info = effective_type.get_type_information();
+
+    let DataTypeInformation::Array { dimensions, .. } = ty_info else {
+        return;
+    };
+
+    // Skip if any dimension has an invalid range (start > end) — already reported as E097.
+    let has_invalid_range =
+        dimensions.iter().any(|dim| dim.get_range(context.index).is_ok_and(|range| range.start > range.end));
+    if has_invalid_range {
+        return;
+    }
+
+    // Compute total element count in u64 to detect when it exceeds u32::MAX.
+    let element_count: u64 =
+        dimensions.iter().map(|dim| dim.get_length(context.index).unwrap_or(0) as u64).product();
+
+    if element_count > u32::MAX as u64 {
+        let name = &variable.name;
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Array `{name}` has {} elements which exceeds the maximum \
+                 supported array size of UDINT#{} elements.",
+                fmt_thousands(element_count),
+                fmt_thousands(u32::MAX as u64),
+            ))
+            .with_error_code("E130")
+            .with_location(&variable.location),
+        );
+    }
+}
+
+fn validate_array_bounds_are_constant<T: AnnotationMap>(
+    validator: &mut Validator,
+    variable: &Variable,
+    context: &ValidationContext<T>,
+) {
+    let ty_name = variable.data_type_declaration.get_name().unwrap_or_default();
+    let ty_info = context.index.get_effective_type_or_void_by_name(ty_name).get_type_information();
+
+    if !ty_info.is_array() {
+        return;
+    }
+
+    let mut types = vec![];
+    ty_info.get_inner_array_types(&mut types, context.index);
+
+    for ty in types {
+        let DataTypeInformation::Array { dimensions, .. } = ty else {
+            unreachable!("`get_inner_types()` only operates on Arrays");
+        };
+
+        for expr in dimensions.iter().flat_map(|it| {
+            [
+                it.start_offset.as_const_expression(context.index),
+                it.end_offset.as_const_expression(context.index),
+            ]
+        }) {
+            let Some(expr) = expr else { continue };
+            let Some(reference_name) = expr.get_flat_reference_name() else { continue };
+
+            let qualifier = context.qualifier.unwrap_or_default();
+            let is_non_constant_variable = context
+                .index
+                .find_member(qualifier, reference_name)
+                .map(|it| !it.is_constant())
+                .or_else(|| context.index.find_global_variable(reference_name).map(|it| !it.is_constant()))
+                .unwrap_or(false);
+
+            if is_non_constant_variable {
+                validator.push_diagnostic(
+                    Diagnostic::new("Only constants are allowed as array boundaries")
+                        .with_error_code("E117")
+                        .with_location(expr.get_location()),
+                );
+            }
+        }
+    }
+}
+
+fn unresolved_constant_diagnostic_message(variable: &Variable, type_name: &str) -> String {
+    if variable.initializer.as_ref().is_some_and(|it| matches!(it.get_stmt(), AstStatement::DefaultValue(_)))
+    {
+        format!(
+            "Unresolved constant `{}` variable: no explicit initializer and no default value could be resolved for type `{type_name}`",
+            variable.name.as_str()
+        )
+    } else {
+        format!("Unresolved constant `{}` variable", variable.name.as_str())
+    }
+}
+
 fn validate_variable<T: AnnotationMap>(
     validator: &mut Validator,
     variable: &Variable,
@@ -256,10 +367,24 @@ fn validate_variable<T: AnnotationMap>(
 ) {
     validate_variable_redeclaration(validator, variable, context);
 
+    validate_array_bounds_are_constant(validator, variable, context);
     validate_array_ranges(validator, variable, context);
+    validate_array_size(validator, variable, context);
 
     if let Some(v_entry) = context.index.find_variable(context.qualifier, &[&variable.name]) {
         validate_reference_to_declaration(validator, context, variable, v_entry);
+
+        let is_struct_type = context
+            .index
+            .get_effective_type_or_void_by_name(variable.data_type_declaration.get_name().unwrap_or_default())
+            .get_type_information()
+            .is_struct();
+
+        let is_struct_literal = is_struct_type
+            && variable
+                .initializer
+                .as_ref()
+                .is_some_and(|initializer| initializer.is_struct_literal_initializer());
 
         if let Some(initializer) = &variable.initializer {
             // Assume `foo : ARRAY[1..5] OF DINT := [...]`, here the first function call validates the
@@ -269,72 +394,84 @@ fn validate_variable<T: AnnotationMap>(
             visit_statement(validator, initializer, context);
         }
 
-        match v_entry
-            .initial_value
-            .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(&initial_id))
-        {
-            Some(ConstExpression::Unresolvable { reason, statement }) => {
-                match reason.as_ref() {
-                    UnresolvableKind::Misc(reason) => validator.push_diagnostic(
-                        Diagnostic::new(format!(
-                            "Unresolved constant `{}` variable: {}",
-                            variable.name.as_str(),
-                            reason
+        if !is_struct_literal {
+            match v_entry.initial_value.and_then(|initial_id| {
+                context.index.get_const_expressions().find_const_expression(&initial_id)
+            }) {
+                Some(ConstExpression::Unresolvable { reason, statement }) => {
+                    match reason.as_ref() {
+                        UnresolvableKind::Misc(reason) => validator.push_diagnostic(
+                            Diagnostic::new(format!(
+                                "Unresolved constant `{}` variable: {}",
+                                variable.name.as_str(),
+                                reason
+                            ))
+                            .with_error_code("E033")
+                            .with_location(statement.get_location()),
+                        ),
+                        UnresolvableKind::Overflow(..) => (),
+                        UnresolvableKind::Address(init) => {
+                            let Some(node) = init.initializer.as_ref() else {
+                                return;
+                            };
+
+                            let Some(rhs_ty) = context.annotations.get_type(node, context.index) else {
+                                return;
+                            };
+
+                            if context
+                                .index
+                                .find_elementary_pointer_type(rhs_ty.get_type_information())
+                                .is_void()
+                            {
+                                // we could not find the type in the index, a validation for this exists elsewhere
+                                return;
+                            }
+
+                            report_temporary_address_in_pointer_initializer(
+                                validator, context, v_entry, node,
+                            );
+
+                            validate_assignment_mismatch(
+                                context,
+                                validator,
+                                context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
+                                rhs_ty,
+                                &node.get_location(),
+                            );
+                        }
+                    };
+                }
+                Some(ConstExpression::Unresolved { statement, .. }) => {
+                    validator.push_diagnostic(
+                        Diagnostic::new(unresolved_constant_diagnostic_message(
+                            variable,
+                            v_entry.get_type_name(),
                         ))
                         .with_error_code("E033")
                         .with_location(statement.get_location()),
-                    ),
-                    UnresolvableKind::Overflow(..) => (),
-                    UnresolvableKind::Address(init) => {
-                        let Some(node) = init.initializer.as_ref() else {
-                            return;
-                        };
-
-                        let Some(rhs_ty) = context.annotations.get_type(node, context.index) else {
-                            return;
-                        };
-
-                        if context.index.find_elementary_pointer_type(rhs_ty.get_type_information()).is_void()
-                        {
-                            // we could not find the type in the index, a validation for this exists elsewhere
-                            return;
-                        };
-
-                        report_temporary_address_in_pointer_initializer(validator, context, v_entry, node);
-
-                        validate_assignment_mismatch(
-                            context,
-                            validator,
-                            context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
-                            rhs_ty,
-                            &node.get_location(),
-                        );
-                    }
-                };
-            }
-            Some(ConstExpression::Unresolved { statement, .. }) => {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
-                        .with_error_code("E033")
-                        .with_location(statement.get_location()),
-                );
-            }
-            None if v_entry.is_constant() && !v_entry.is_var_external() => {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!("Unresolved constant `{}` variable", variable.name.as_str(),))
+                    );
+                }
+                None if v_entry.is_constant() && !v_entry.is_var_external() => {
+                    validator.push_diagnostic(
+                        Diagnostic::new(unresolved_constant_diagnostic_message(
+                            variable,
+                            v_entry.get_type_name(),
+                        ))
                         .with_error_code("E033")
                         .with_location(&variable.location),
-                );
-            }
-            _ => {
-                if let Some(rhs) = variable.initializer.as_ref() {
-                    validate_enum_variant_assignment(
-                        context,
-                        validator,
-                        v_entry.get_qualified_name(),
-                        context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
-                        rhs,
-                    )
+                    );
+                }
+                _ => {
+                    if let Some(rhs) = variable.initializer.as_ref() {
+                        validate_enum_variant_assignment(
+                            context,
+                            validator,
+                            v_entry.get_qualified_name(),
+                            context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
+                            rhs,
+                        )
+                    }
                 }
             }
         }

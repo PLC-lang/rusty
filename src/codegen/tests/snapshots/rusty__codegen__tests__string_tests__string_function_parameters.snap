@@ -15,16 +15,16 @@ target triple = "[filtered]"
 
 define i16 @foo(ptr %0) {
 entry:
-  %foo = alloca i16, align 2
-  %s = alloca [81 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %s, i8 0, i64 81, i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %s, ptr align 1 %0, i64 80, i1 false)
-  store i16 0, ptr %foo, align 2
-  %foo_ret = load i16, ptr %foo, align 2
+  %foo = alloca i16, align [filtered]
+  %s = alloca [81 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 81, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %s, ptr align [filtered] %0, i64 80, i1 false)
+  store i16 0, ptr %foo, align [filtered]
+  %foo_ret = load i16, ptr %foo, align [filtered]
   ret i16 %foo_ret
 
 buffer_block:                                     ; No predecessors!
-  %foo_ret1 = load i16, ptr %foo, align 2
+  %foo_ret1 = load i16, ptr %foo, align [filtered]
   ret i16 %foo_ret1
 }
 
@@ -32,8 +32,8 @@ define void @prg(ptr %0) {
 entry:
   %s = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %a, ptr align 1 %s, i32 11, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %a, ptr align 1 @utf08_literal_0, i32 6, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %a, ptr align [filtered] %s, i32 11, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %a, ptr align [filtered] @utf08_literal_0, i32 6, i1 false)
   %call = call i16 @foo(ptr %s)
   %call1 = call i16 @foo(ptr @utf08_literal_0)
   ret void

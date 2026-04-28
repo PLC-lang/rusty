@@ -6,7 +6,7 @@ use plc_ast::ast::{
     VariableBlock, VariableBlockType,
 };
 use plc_source::source_location::SourceLocation;
-use pretty_assertions::*;
+use pretty_assertions::assert_eq;
 
 /*
  * These tests deal with parsing-behavior in the expressions: ()  expressions: ()  presence of errors.
@@ -1135,6 +1135,7 @@ fn pointer_type_without_to_test() {
         location: SourceLocation::internal(),
         initializer: None,
         scope: None,
+        linkage: LinkageType::Internal,
     };
     assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
 
@@ -1164,6 +1165,7 @@ fn pointer_type_with_wrong_keyword_to_test() {
         location: SourceLocation::internal(),
         initializer: None,
         scope: None,
+        linkage: LinkageType::Internal,
     };
     assert_eq!(format!("{expected:#?}"), format!("{pointer_type:#?}").as_str());
     assert_snapshot!(diagnostics);

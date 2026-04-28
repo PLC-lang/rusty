@@ -9,8 +9,8 @@ target triple = "[filtered]"
 
 define ptr @func() {
 entry:
-  %func = alloca ptr, align 8
-  store ptr null, ptr %func, align 8
-  %func_ret = load ptr, ptr %func, align 8
+  %func = alloca ptr, align [filtered]
+  store ptr null, ptr %func, align [filtered]
+  %func_ret = load ptr, ptr %func, align [filtered]
   ret ptr %func_ret
 }

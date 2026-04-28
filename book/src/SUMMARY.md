@@ -5,6 +5,7 @@
 - [Using RuSTy](./using_rusty.md)
   - [Build Configuration](using_rusty/build_configuration.md)
   - [Error Configuration](using_rusty/error_configuration.md)
+  - [Header Generation](using_rusty/header_generation.md)
 - [Writing ST Programs]()
   - [Libraries](libraries.md)
     - [External Functions](libraries/external_functions.md)

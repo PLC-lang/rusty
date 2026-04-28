@@ -3,7 +3,9 @@ use crate::codegen::debug::Debug;
 use crate::codegen::CodegenError;
 use crate::index::{FxIndexSet, Index, VariableIndexEntry, VariableType};
 use crate::resolver::{AstAnnotations, Dependency};
-use crate::typesystem::{self, DataTypeInformation, Dimension, StringEncoding, StructSource};
+use crate::typesystem::{
+    self, DataTypeInformation, DataTypeInformationProvider, Dimension, StringEncoding, StructSource,
+};
 use crate::{
     codegen::{
         debug::DebugBuilderEnum,
@@ -12,13 +14,14 @@ use crate::{
     },
     typesystem::DataType,
 };
+use plc_ast::ast::AstStatement;
 
 use inkwell::types::{AnyType, AnyTypeEnum, BasicTypeEnum};
 use inkwell::{
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
-use plc_ast::ast::{AstNode, AstStatement};
+use plc_ast::ast::AstNode;
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -97,7 +100,12 @@ pub fn generate_data_types<'ink>(
     }
 
     // now create all other types (enum's, arrays, etc.)
-    for (name, user_type) in &types {
+    for (name, user_type) in types.iter() {
+        if user_type.get_type_information().is_interface() {
+            // Interface types are replaced by `__FATPOINTERS` by the `polymorphism/` lowering module.
+            continue;
+        }
+
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_type(name, gen_type)?
         //Get and associate debug type
@@ -155,6 +163,7 @@ pub fn generate_data_types<'ink>(
     //If we didn't resolve anything this cycle, report the remaining issues and exit
     if !types_to_init.is_empty() {
         //Report each error as a new diagnostic, add the type's location as related to the error
+        let failed_names: Vec<&str> = types_to_init.iter().map(|(name, _)| *name).collect();
         let diags = types_to_init
             .into_iter()
             .map(|(name, ty)| {
@@ -166,13 +175,23 @@ pub fn generate_data_types<'ink>(
             .collect::<Vec<_>>();
         if !diags.is_empty() {
             //Report the operation failure
-            return Err(Diagnostic::new("Some initial values were not generated")
-                .with_error_code("E075")
-                .with_sub_diagnostics(diags)
-                .into()); // FIXME: these sub-diagnostics aren't printed to the console
+            let message = format!("Could not generate initial value(s) for: {}", failed_names.join(", "));
+            return Err(Diagnostic::new(message).with_error_code("E075").with_sub_diagnostics(diags).into());
         }
     }
     Ok(generator.types_index)
+}
+
+/// Checks if an initializer is a struct literal wrapped in exactly one ParenExpression,
+/// e.g. `(a := 1, b := 2)`. Unlike [`AstNode::is_struct_literal_initializer`] which peels
+/// through all paren layers, this only checks one level because the parser always produces
+/// exactly one `ParenExpression` wrapper for struct literals. Matching more broadly here
+/// would cause compile-time-evaluable struct constants to be replaced with `zeroinitializer`.
+fn is_paren_struct_literal(node: &AstNode) -> bool {
+    match node.get_stmt() {
+        AstStatement::ParenExpression(inner) => inner.is_struct_literal_initializer(),
+        _ => false,
+    }
 }
 
 impl<'ink> DataTypeGenerator<'ink, '_> {
@@ -280,6 +299,9 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             DataTypeInformation::Generic { .. } => {
                 unreachable!("Generic types should not be generated")
             }
+            DataTypeInformation::Interface { .. } => {
+                unreachable!("Interface types should not be generated")
+            }
         }
     }
 
@@ -320,7 +342,26 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 }?
                 .into_struct_type();
 
-                Ok(Some(struct_type.const_named_struct(&member_values).as_basic_value_enum()))
+                // If any member is a large array (> 1M elements) with no explicit initializer,
+                // use zeroinitializer for the whole struct instead of const_named_struct.
+                // This avoids materializing huge zero arrays (e.g. multi-GB) in the .data
+                // section. The lowering phase generates __ctor functions that handle non-zero
+                // member initialization at runtime, so zeroinitializer + constructor is correct.
+                let has_oversized_default_array = members
+                    .iter()
+                    .filter(|it| it.get_variable_type() != VariableType::Temp)
+                    .filter(|it| it.initial_value.is_none())
+                    .any(|it| {
+                        self.types_index
+                            .find_associated_type(it.get_type_name())
+                            .is_some_and(|ty| ty.is_array_type() && ty.into_array_type().len() > 1_000_000)
+                    });
+
+                if has_oversized_default_array {
+                    Ok(Some(struct_type.const_zero().as_basic_value_enum()))
+                } else {
+                    Ok(Some(struct_type.const_named_struct(&member_values).as_basic_value_enum()))
+                }
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
                 data_type,
@@ -353,9 +394,14 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         &mut self,
         variable: &VariableIndexEntry,
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
-        let initializer = variable
-            .initial_value
-            .and_then(|it| self.index.get_const_expressions().get_constant_statement(&it));
+        let initializer = variable.initial_value.and_then(|it| {
+            let const_exprs = self.index.get_const_expressions();
+            if const_exprs.find_const_expression(&it).is_some_and(|expr| expr.is_address_unresolvable()) {
+                None
+            } else {
+                const_exprs.get_resolved_constant_statement(&it)
+            }
+        });
         self.generate_initializer(variable.get_qualified_name(), initializer, variable.get_type_name())
     }
 
@@ -367,11 +413,15 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         data_type: &DataType,
         referenced_type: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
-        self.generate_initializer(
-            data_type.get_name(),
-            self.index.get_const_expressions().maybe_get_constant_statement(&data_type.initial_value),
-            referenced_type,
-        )
+        let initializer = data_type.initial_value.and_then(|it| {
+            let const_exprs = self.index.get_const_expressions();
+            if const_exprs.find_const_expression(&it).is_some_and(|expr| expr.is_address_unresolvable()) {
+                None
+            } else {
+                const_exprs.get_resolved_constant_statement(&it)
+            }
+        });
+        self.generate_initializer(data_type.get_name(), initializer, referenced_type)
     }
 
     /// generates the given initializer-statement if one is present
@@ -393,6 +443,20 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             );
 
             let lhs_type = self.index.get_type_information_or_void(data_type_name);
+            let is_effective_struct =
+                self.index.find_effective_type_info(data_type_name).is_some_and(|ti| ti.is_struct());
+
+            // For struct-literal initializers (ParenExpression containing assignments),
+            // we cannot generate compile-time values. These are handled by constructors at runtime.
+            // Fall back to the effective type's default value (covers alias chains too).
+            if is_paren_struct_literal(initializer) && is_effective_struct {
+                return self
+                    .index
+                    .get_effective_type_by_name(data_type_name)
+                    .map_err(Into::into)
+                    .and_then(|referenced_data_type| self.generate_initial_value(referenced_data_type));
+            }
+
             if !initializer.is_literal() && (lhs_type.is_pointer() || lhs_type.is_alias()) {
                 return Ok(self
                     .types_index
@@ -420,9 +484,15 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         predicate: fn(&AstNode) -> bool,
         expected_ast: &str,
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
-        if let Some(initializer) =
-            self.index.get_const_expressions().maybe_get_constant_statement(&data_type.initial_value)
-        {
+        let initializer = data_type.initial_value.and_then(|it| {
+            let const_exprs = self.index.get_const_expressions();
+            if const_exprs.find_const_expression(&it).is_some_and(|expr| expr.is_address_unresolvable()) {
+                None
+            } else {
+                const_exprs.get_resolved_constant_statement(&it)
+            }
+        });
+        if let Some(initializer) = initializer {
             if predicate(initializer) {
                 let generator = ExpressionCodeGenerator::new_context_free(
                     self.llvm,
@@ -487,7 +557,11 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
 
     fn generate_debug_types(&mut self, types: &VecDeque<(&str, &DataType)>) -> Result<(), CodegenError> {
         for (_, data_type) in types.iter().filter(|(_, data_type)| data_type.is_backed_by_struct()) {
-            self.debug.register_debug_type(data_type.get_name(), data_type, self.index, &self.types_index)?;
+            if let Err(err) =
+                self.debug.register_debug_type(data_type.get_name(), data_type, self.index, &self.types_index)
+            {
+                log::debug!("Skipping debug info for type {}: {err}", data_type.get_name());
+            }
         }
 
         Ok(())

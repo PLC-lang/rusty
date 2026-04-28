@@ -14,13 +14,13 @@ target triple = "[filtered]"
 define void @prg(ptr %0) {
 entry:
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-  store i64 0, ptr %y, align 8
-  store i64 3600000000000, ptr %y, align 8
-  store i64 3600001000000, ptr %y, align 8
-  store i64 3661000000000, ptr %y, align 8
-  store i64 72900000000000, ptr %y, align 8
-  store i64 72900000000000, ptr %y, align 8
-  store i64 40260000000000, ptr %y, align 8
-  store i64 40260000000000, ptr %y, align 8
+  store i64 0, ptr %y, align [filtered]
+  store i64 3600000000000, ptr %y, align [filtered]
+  store i64 3600001000000, ptr %y, align [filtered]
+  store i64 3661000000000, ptr %y, align [filtered]
+  store i64 72900000000000, ptr %y, align [filtered]
+  store i64 72900000000000, ptr %y, align [filtered]
+  store i64 40260000000000, ptr %y, align [filtered]
+  store i64 40260000000000, ptr %y, align [filtered]
   ret void
 }

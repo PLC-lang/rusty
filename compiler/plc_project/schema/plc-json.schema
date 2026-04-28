@@ -36,6 +36,9 @@
                     "path": {
                       "type": "string"
                     },
+                    "link_path": {
+                      "type": "string"
+                    },
                     "package": {
                       "type": "string"
                     },

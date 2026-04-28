@@ -2,11 +2,11 @@
 source: src/validation/tests/array_validation_test.rs
 expression: diagnostics
 ---
-error[E043]: Array `arr` has a size of 10, but 11 elements were provided
+error[E043]: Too many initial values for array `arr`. Expected 10, found 11.
   ┌─ <internal>:4:64
   │
 4 │                 arr             : ARRAY[1..2, 1..5] OF DINT := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-  │                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array `arr` has a size of 10, but 11 elements were provided
+  │                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Too many initial values for array `arr`. Expected 10, found 11.
 
 error[E043]: Array assignments must be surrounded with `[]`
   ┌─ <internal>:5:65
@@ -14,17 +14,23 @@ error[E043]: Array assignments must be surrounded with `[]`
 5 │                 arr_alt         : ARRAY[1..2, 1..5] OF DINT := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
   │                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
-error[E043]: Array `arr_nested` has a size of 10, but 15 elements were provided
+error[E043]: Too many initial values for array `arr_nested`. Expected 10, found 15.
   ┌─ <internal>:7:73
   │
 7 │                 arr_nested      : ARRAY[1..2] OF ARRAY[1..5] OF DINT := [ [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] ];
-  │                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array `arr_nested` has a size of 10, but 15 elements were provided
+  │                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Too many initial values for array `arr_nested`. Expected 10, found 15.
 
 error[E043]: Array assignments must be surrounded with `[]`
   ┌─ <internal>:8:75
   │
 8 │                 arr_nested_alt  : ARRAY[1..2] OF ARRAY[1..5] OF DINT := ( [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] );
   │                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
+
+warning[E127]: Fewer initial values for array `arr` than expected. Expected 10, found 9.
+   ┌─ <internal>:11:20
+   │
+11 │             arr := [1, 2, 3, 4, 5, 6, 7, 8, 9];     // Valid
+   │                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Fewer initial values for array `arr` than expected. Expected 10, found 9.
 
 error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:14:21
@@ -44,17 +50,17 @@ error[E043]: Array assignments must be surrounded with `[]`
 16 │             arr := (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
    │                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
 
-error[E043]: Array `arr` has a size of 10, but 11 elements were provided
+error[E043]: Too many initial values for array `arr`. Expected 10, found 11.
    ┌─ <internal>:17:20
    │
 17 │             arr := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-   │                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array `arr` has a size of 10, but 11 elements were provided
+   │                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Too many initial values for array `arr`. Expected 10, found 11.
 
-error[E043]: Array `arr_nested` has a size of 10, but 15 elements were provided
+error[E043]: Too many initial values for array `arr_nested`. Expected 10, found 15.
    ┌─ <internal>:20:32
    │
 20 │             arr_nested      := [ [1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15] ];
-   │                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array `arr_nested` has a size of 10, but 15 elements were provided
+   │                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Too many initial values for array `arr_nested`. Expected 10, found 15.
 
 error[E043]: Array assignments must be surrounded with `[]`
    ┌─ <internal>:21:34

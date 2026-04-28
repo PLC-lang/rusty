@@ -1,10 +1,9 @@
 // Import common functionality into the integration tests
 mod common;
 
-use common::add_std;
 use plc_source::SourceCode;
 
-use crate::common::compile_and_run;
+use crate::common::{compile_and_run, get_includes};
 
 #[derive(Default, Debug)]
 #[repr(C)]
@@ -33,7 +32,7 @@ fn shift_left_test() {
         ";
     let sources = SourceCode::new(src, "main.st");
     let mut maintype = MainType::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, "".into(), &mut maintype);
     assert_eq!(maintype.byte, 0b1100_1000);
     assert_eq!(maintype.word, 0b1100_1000_0000_0000);
     assert_eq!(maintype.dword, 0b1100_1000_0000_0000_0000_0000_0000_0000);
@@ -61,11 +60,39 @@ fn shift_right_test() {
         ";
     let sources = SourceCode::new(src, "main.st");
     let mut maintype = MainType::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, "".into(), &mut maintype);
     assert_eq!(maintype.byte, 0x2);
     assert_eq!(maintype.word, 0x20);
     assert_eq!(maintype.dword, 0x2000);
     assert_eq!(maintype.lword, 0x2000_0000_0000);
+}
+
+#[test]
+fn shift_right_unsigned_uses_logical_shift() {
+    #[derive(Default, Debug)]
+    #[repr(C)]
+    struct Main {
+        unsigned_result: u8,
+        signed_result: i8,
+    }
+
+    let src = "
+        PROGRAM main
+        VAR
+           unsigned_result : BYTE;
+           signed_result : SINT;
+        END_VAR
+        unsigned_result := SHR(BYTE#251, SINT#1);
+        signed_result := SHR(SINT#-4, SINT#1);
+        END_PROGRAM
+        ";
+    let sources = SourceCode::new(src, "main.st");
+    let mut maintype = Main::default();
+    let _res: u32 = compile_and_run(sources, "".into(), &mut maintype);
+    // BYTE#251 = 0b11111011 → logical shift right by 1 → 0b01111101 = 125
+    assert_eq!(maintype.unsigned_result, 125);
+    // SINT#-4 = 0b11111100 → arithmetic shift right by 1 → 0b11111110 = -2
+    assert_eq!(maintype.signed_result, -2);
 }
 
 #[test]
@@ -84,9 +111,10 @@ fn rotate_left_test() {
         l := ROL(LWORD#16#8000_0000_0000_0001,3);
         END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_shift_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_shift_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.byte, 0xC);
     assert_eq!(maintype.word, 0xC);
     assert_eq!(maintype.dword, 0xC);
@@ -109,9 +137,10 @@ fn rotate_right_test() {
         l := ROR(LWORD#16#8000_0000_0000_0001,3);
         END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_shift_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["bit_shift_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.byte, 0x30);
     assert_eq!(maintype.word, 0x3000);
     assert_eq!(maintype.dword, 0x3000_0000);

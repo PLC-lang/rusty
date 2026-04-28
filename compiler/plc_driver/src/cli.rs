@@ -2,17 +2,43 @@ use anyhow::{bail, Result};
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
+use log::LevelFilter;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
+use plc_header_generator::GenerateLanguage;
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
-use plc::output::FormatOption;
+use plc::output::{FormatOption, RelocationPreference};
 use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
 
 pub type ParameterError = clap::Error;
 
+#[derive(clap::ArgEnum, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LogLevel {
+    Off,
+    Error,
+    Warn,
+    Info,
+    Debug,
+    Trace,
+}
+
+impl From<LogLevel> for LevelFilter {
+    fn from(level: LogLevel) -> Self {
+        match level {
+            LogLevel::Off => LevelFilter::Off,
+            LogLevel::Error => LevelFilter::Error,
+            LogLevel::Warn => LevelFilter::Warn,
+            LogLevel::Info => LevelFilter::Info,
+            LogLevel::Debug => LevelFilter::Debug,
+            LogLevel::Trace => LevelFilter::Trace,
+        }
+    }
+}
+
 #[derive(Parser, Debug)]
 #[clap(
     group = ArgGroup::new("format"),
+    group = ArgGroup::new("relocation-model").args(&["fpic", "fno-pic"]),
     about = "IEC61131-3 Structured Text compiler powered by Rust & LLVM ",
 )]
 #[clap(subcommand_negates_reqs = true)]
@@ -20,6 +46,24 @@ pub type ParameterError = clap::Error;
 pub struct CompileParameters {
     #[clap(short, long, global = true, name = "output-file", help = "Write output to <output-file>")]
     pub output: Option<String>,
+
+    #[clap(
+        long = "log-level",
+        name = "log-level",
+        global = true,
+        help = "Set log verbosity (off, error, warn, info, debug, trace)",
+        conflicts_with = "verbose",
+        arg_enum
+    )]
+    pub log_level: Option<LogLevel>,
+
+    #[clap(
+        short = 'v',
+        long = "verbose",
+        global = true,
+        help = "Enable verbose output (equivalent to --log-level=debug)"
+    )]
+    pub verbose: bool,
 
     #[clap(
         long = "ast",
@@ -51,10 +95,22 @@ pub struct CompileParameters {
     #[clap(long = "shared", group = "format", global = true, help = "Emit a shared object as output")]
     pub output_shared_obj: bool,
 
-    #[clap(long = "pic", group = "format", global = true, help = "Equivalent to --shared")]
+    #[clap(
+        long = "pic",
+        group = "format",
+        conflicts_with = "fno-pic",
+        global = true,
+        help = "[deprecated: use --shared --fpic] Emit a PIC shared object"
+    )]
     pub output_pic_obj: bool,
 
-    #[clap(long = "no-pic", group = "format", global = true, help = "Emit a no PIC shared object")]
+    #[clap(
+        long = "no-pic",
+        group = "format",
+        conflicts_with = "fpic",
+        global = true,
+        help = "[deprecated: use --shared --fno-pic] Emit a no-PIC shared object"
+    )]
     pub output_no_pic_obj: bool,
 
     #[clap(long = "static", group = "format", global = true, help = "Emit an object as output")]
@@ -73,6 +129,12 @@ pub struct CompileParameters {
 
     #[clap(short = 'c', global = true, help = "Do not link after compiling object code")]
     pub compile_only: bool,
+
+    #[clap(long = "fpic", global = true, help = "Generate position-independent code where applicable")]
+    pub fpic: bool,
+
+    #[clap(long = "fno-pic", global = true, help = "Generate non-PIC code where applicable")]
+    pub fno_pic: bool,
 
     #[clap(long, name = "target-triple", global = true, help = "A target-triple supported by LLVM")]
     pub target: Option<Target>,
@@ -120,10 +182,26 @@ pub struct CompileParameters {
         name = "no-linker-script",
         long,
         global = true,
-        group = "linker_script",
         help = "Specify that no linker script should be used"
     )]
+    #[deprecated = "Does nothing"]
     pub no_linker_script: bool,
+
+    #[clap(
+        name = "generate-external-constructors",
+        long,
+        global = true,
+        help = "Generate constructor for units marked as {external} but not for any included files (with '-i') or any library. This is useful when compiling external libraries."
+    )]
+    pub generate_external_constructors: bool,
+
+    #[clap(
+        name = "constructors-only",
+        long,
+        global = true,
+        help = "Emit only compiler-generated constructors (no user-defined bodies). Implies --generate-external-constructors."
+    )]
+    pub constructors_only: bool,
 
     #[clap(
         name = "hardware-conf",
@@ -173,6 +251,39 @@ pub struct CompileParameters {
 
     #[clap(name = "linker", long, help = "Define a custom (cc compatible) linker command", global = true)]
     pub linker: Option<String>,
+
+    #[clap(
+        name = "linker-arg",
+        long = "linker-arg",
+        help = "Pass a single argument directly to the linker (repeatable)",
+        global = true
+    )]
+    pub linker_args: Vec<String>,
+
+    #[clap(
+        name = "fuse-ld",
+        long = "fuse-ld",
+        alias = "fuse",
+        help = "When using cc/clang-style drivers, pass a custom backend linker (maps to -fuse-ld=<value>)",
+        global = true
+    )]
+    pub fuse_linker: Option<String>,
+
+    #[clap(
+        name = "nocrt",
+        long = "nocrt",
+        help = "Do not link C runtime startup files (for cc/clang driver mode)",
+        global = true
+    )]
+    pub no_crt: bool,
+
+    #[clap(
+        name = "nolibc",
+        long = "nolibc",
+        help = "Do not link default C libraries (for cc/clang driver mode)",
+        global = true
+    )]
+    pub no_libc: bool,
 
     #[clap(
         name = "debug",
@@ -250,6 +361,17 @@ pub struct CompileParameters {
     )]
     pub online_change: bool,
 
+    #[clap(name = "generate-headers", long, help = "Generate headers only, do not compile.", global = true)]
+    pub generate_headers_only: bool,
+
+    #[clap(
+        name = "header-output",
+        long,
+        help = "The output folder where generated headers will be placed.",
+        global = true
+    )]
+    pub header_output: Option<String>,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
@@ -311,6 +433,20 @@ pub enum SubCommands {
         #[clap(help = "Error code to explain, for example `E001`")]
         error: String,
     },
+
+    /// Generates code for a given project
+    ///
+    /// Sub-command(s):
+    ///     Header : Generates the Header files
+    Generate {
+        #[clap(
+            parse(try_from_str = validate_config)
+        )]
+        build_config: Option<String>,
+
+        #[clap(subcommand)]
+        option: GenerateOption,
+    },
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
@@ -321,11 +457,40 @@ pub enum ConfigOption {
     Diagnostics,
 }
 
+#[derive(Debug, Subcommand)]
+pub enum GenerateOption {
+    Headers {
+        #[clap(
+            name = "include-stubs",
+            long,
+            help = "Whether or not to include generated code stubs for the library."
+        )]
+        include_stubs: bool,
+
+        #[clap(
+            name = "header-language",
+            long,
+            arg_enum,
+            help = "The language used to generate the header file. Currently supported language(s) are: C",
+            default_value = "c"
+        )]
+        language: GenerateLanguage,
+
+        #[clap(
+            name = "header-prefix",
+            long,
+            help = "The prefix for the generated header file(s). Will default to the project name if not supplied."
+        )]
+        prefix: Option<String>,
+    },
+}
+
 impl SubCommands {
     pub fn get_build_configuration(&self) -> Option<&str> {
         let (SubCommands::Build { build_config, .. }
         | SubCommands::Check { build_config }
-        | SubCommands::Config { build_config, .. }) = self
+        | SubCommands::Config { build_config, .. }
+        | SubCommands::Generate { build_config, .. }) = self
         else {
             return None;
         };
@@ -368,6 +533,16 @@ impl CompileParameters {
         CompileParameters::try_parse_from(args)
     }
 
+    /// Returns the log level filter resolved from `--verbose` / `--log-level`.
+    /// Returns `None` if neither flag is set (caller should fall back to `RUST_LOG`).
+    pub fn log_level_filter(&self) -> Option<LevelFilter> {
+        if self.verbose {
+            Some(LevelFilter::Debug)
+        } else {
+            self.log_level.map(LevelFilter::from)
+        }
+    }
+
     pub fn debug_level(&self) -> DebugLevel {
         if self.generate_debug {
             return DebugLevel::Full(plc::DEFAULT_DWARF_VERSION);
@@ -385,6 +560,16 @@ impl CompileParameters {
         DebugLevel::None
     }
 
+    pub fn relocation_preference(&self) -> RelocationPreference {
+        if self.fpic || self.output_pic_obj {
+            RelocationPreference::Pic
+        } else if self.fno_pic || self.output_no_pic_obj {
+            RelocationPreference::NoPic
+        } else {
+            RelocationPreference::Default
+        }
+    }
+
     // convert the scattered bools from structopt into an enum
     pub fn output_format(&self) -> Option<FormatOption> {
         if self.output_bit_code {
@@ -392,11 +577,13 @@ impl CompileParameters {
         } else if self.output_ir {
             Some(FormatOption::IR)
         } else if self.output_pic_obj {
-            Some(FormatOption::PIC)
+            log::warn!("--pic is deprecated, use --shared --fpic instead");
+            Some(FormatOption::Shared)
         } else if self.output_shared_obj {
             Some(FormatOption::Shared)
         } else if self.output_no_pic_obj {
-            Some(FormatOption::NoPIC)
+            log::warn!("--no-pic is deprecated, use --shared --fno-pic instead");
+            Some(FormatOption::Shared)
         } else if self.compile_only {
             Some(FormatOption::Object)
         } else if self.output_obj_code {
@@ -412,6 +599,15 @@ impl CompileParameters {
     /// If set, no files will be generated
     pub fn is_check(&self) -> bool {
         self.check_only || matches!(self.commands, Some(SubCommands::Check { .. }))
+    }
+
+    /// If set, header files will be generated
+    pub fn is_header_generator(&self) -> bool {
+        self.generate_headers_only
+            || matches!(
+                self.commands,
+                Some(SubCommands::Generate { option: GenerateOption::Headers { .. }, .. })
+            )
     }
 
     /// return the selected output format, or the default if none.
@@ -485,6 +681,7 @@ impl CompileParameters {
                 let current_dir = env::current_dir()?;
                 build_config.is_some() || super::get_config(&current_dir).exists()
             }
+            Some(SubCommands::Generate { build_config, .. }) => build_config.is_some(),
         };
         Ok(res)
     }
@@ -506,11 +703,14 @@ impl CompileParameters {
 
 #[cfg(test)]
 mod cli_tests {
-    use crate::cli::ConfigOption;
+    use crate::cli::{ConfigOption, GenerateLanguage, GenerateOption};
 
     use super::{CompileParameters, SubCommands};
     use clap::ErrorKind;
-    use plc::{output::FormatOption, ConfigFormat, ErrorFormat, OptimizationLevel};
+    use plc::{
+        output::{FormatOption, RelocationPreference},
+        ConfigFormat, ErrorFormat, OptimizationLevel,
+    };
     use pretty_assertions::assert_eq;
     use std::ffi::OsStr;
     use std::fmt::Debug;
@@ -644,8 +844,9 @@ mod cli_tests {
         let parameters = CompileParameters::parse(vec_of_strings!("bravo", "--shared")).unwrap();
         assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
 
+        // --pic is deprecated, maps to Shared
         let parameters = CompileParameters::parse(vec_of_strings!("charlie", "--pic")).unwrap();
-        assert_eq!(parameters.output_format_or_default(), FormatOption::PIC);
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
 
         let parameters =
             CompileParameters::parse(vec_of_strings!("examples/test/delta.st", "--static")).unwrap();
@@ -794,6 +995,69 @@ mod cli_tests {
     }
 
     #[test]
+    fn fuse_ld_is_parsed() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--fuse-ld", "mold")).unwrap();
+        assert_eq!(parameters.fuse_linker, Some("mold".to_string()));
+    }
+
+    #[test]
+    fn no_crt_and_no_libc_are_parsed() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--nocrt", "--nolibc")).unwrap();
+        assert!(parameters.no_crt);
+        assert!(parameters.no_libc);
+    }
+
+    #[test]
+    fn linker_args_are_parsed() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--linker-arg=-z", "--linker-arg=defs"))
+                .unwrap();
+        assert_eq!(parameters.linker_args, vec!["-z", "defs"]);
+    }
+
+    #[test]
+    fn relocation_preference_flags_are_parsed() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--fpic")).unwrap();
+        assert_eq!(parameters.relocation_preference(), RelocationPreference::Pic);
+
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--fno-pic")).unwrap();
+        assert_eq!(parameters.relocation_preference(), RelocationPreference::NoPic);
+    }
+
+    #[test]
+    fn relocation_preference_flags_conflict() {
+        expect_argument_error(
+            vec_of_strings!("input.st", "--fpic", "--fno-pic"),
+            ErrorKind::ArgumentConflict,
+        );
+    }
+
+    #[test]
+    fn deprecated_pic_conflicts_with_fno_pic() {
+        expect_argument_error(vec_of_strings!("input.st", "--pic", "--fno-pic"), ErrorKind::ArgumentConflict);
+    }
+
+    #[test]
+    fn deprecated_no_pic_conflicts_with_fpic() {
+        expect_argument_error(vec_of_strings!("input.st", "--no-pic", "--fpic"), ErrorKind::ArgumentConflict);
+    }
+
+    #[test]
+    fn deprecated_pic_maps_to_shared_with_pic_reloc() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--pic")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
+        assert_eq!(parameters.relocation_preference(), RelocationPreference::Pic);
+    }
+
+    #[test]
+    fn deprecated_no_pic_maps_to_shared_with_nopic_reloc() {
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--no-pic")).unwrap();
+        assert_eq!(parameters.output_format_or_default(), FormatOption::Shared);
+        assert_eq!(parameters.relocation_preference(), RelocationPreference::NoPic);
+    }
+
+    #[test]
     fn cli_supports_version() {
         match CompileParameters::parse(vec_of_strings!("input.st", "--version")) {
             Ok(version) => assert!(version.build_info),
@@ -807,6 +1071,46 @@ mod cli_tests {
             Ok(_) => panic!("expected help output, but found OK"),
             Err(e) => assert_eq!(e.kind(), ErrorKind::DisplayHelp),
         }
+    }
+
+    #[test]
+    fn verbose_flag_sets_debug_level() {
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--verbose")).unwrap();
+        assert!(params.verbose);
+        assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Debug));
+    }
+
+    #[test]
+    fn short_verbose_flag() {
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "-v")).unwrap();
+        assert!(params.verbose);
+        assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Debug));
+    }
+
+    #[test]
+    fn log_level_flag() {
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "trace")).unwrap();
+        assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Trace));
+
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "error")).unwrap();
+        assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Error));
+
+        let params = CompileParameters::parse(vec_of_strings!("input.st", "--log-level", "off")).unwrap();
+        assert_eq!(params.log_level_filter(), Some(log::LevelFilter::Off));
+    }
+
+    #[test]
+    fn no_log_flags_returns_none() {
+        let params = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
+        assert_eq!(params.log_level_filter(), None);
+    }
+
+    #[test]
+    fn verbose_and_log_level_conflict() {
+        expect_argument_error(
+            vec_of_strings!("input.st", "--verbose", "--log-level", "trace"),
+            ErrorKind::ArgumentConflict,
+        );
     }
 
     #[test]
@@ -878,6 +1182,53 @@ mod cli_tests {
                     assert_eq!(build_config, None);
                     assert_eq!(option, ConfigOption::Schema);
                     assert_eq!(format, ConfigFormat::TOML)
+                }
+                _ => panic!("Unexpected command"),
+            };
+        }
+    }
+
+    #[test]
+    fn generate_subcommand() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("generate", "src/ProjectPlc.json", "headers")).unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Generate { build_config, option, .. } => {
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    match option {
+                        GenerateOption::Headers { include_stubs, language, .. } => {
+                            assert_eq!(include_stubs, false);
+                            assert_eq!(language, GenerateLanguage::C);
+                        }
+                    }
+                }
+                _ => panic!("Unexpected command"),
+            };
+        }
+
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "generate",
+            "src/ProjectPlc.json",
+            "headers",
+            "--include-stubs",
+            "--header-language",
+            "rust",
+            "--header-prefix",
+            "myLib"
+        ))
+        .unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Generate { build_config, option, .. } => {
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    match option {
+                        GenerateOption::Headers { include_stubs, language, prefix } => {
+                            assert_eq!(include_stubs, true);
+                            assert_eq!(language, GenerateLanguage::Rust);
+                            assert_eq!(prefix, Some("myLib".to_string()));
+                        }
+                    }
                 }
                 _ => panic!("Unexpected command"),
             };

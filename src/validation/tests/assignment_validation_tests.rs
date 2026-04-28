@@ -1409,6 +1409,30 @@ fn ref_assignment_with_reference_to_array_variable() {
 }
 
 #[test]
+fn reference_to_array_of_pointer_type_supports_ref_and_value_assignments() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE userType :
+            INT := 1;
+        END_TYPE
+
+        PROGRAM junit
+        VAR
+            a : REFERENCE TO ARRAY [1..2] OF POINTER TO userType;
+            b : ARRAY [1..2] OF POINTER TO userType;
+        END_VAR
+
+            a REF= b;
+            b := a;
+            a := b;
+        END_PROGRAM
+        ",
+    );
+
+    assert!(diagnostics.is_empty(), "{diagnostics}");
+}
+
+#[test]
 fn ref_assignment_with_reference_to_string_variable() {
     let diagnostics = parse_and_validate_buffered(
         "
@@ -1442,8 +1466,6 @@ fn ref_assignment_with_reference_to_string_variable() {
     ");
 }
 
-// TODO(volsa): Improve the error messages here; these are the default messages returned by the parser
-//              without any modifications.
 #[test]
 fn invalid_reference_to_declaration() {
     let diagnostics = parse_and_validate_buffered(
@@ -1458,34 +1480,63 @@ fn invalid_reference_to_declaration() {
         ",
     );
 
-    insta::assert_snapshot!(diagnostics, @r"
-    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
-      ┌─ <internal>:4:38
+    insta::assert_snapshot!(diagnostics, @"
+    error[E099]: Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.
+      ┌─ <internal>:4:23
       │
     4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
-      │                                      ^^^^^^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+      │                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'REFERENCE TO DINT'
-      ┌─ <internal>:4:38
-      │
-    4 │                 bar : ARRAY[1..5] OF REFERENCE TO DINT;
-      │                                      ^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'REFERENCE TO DINT'
-
-    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
-      ┌─ <internal>:5:36
+    error[E099]: Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+      ┌─ <internal>:5:23
       │
     5 │                 baz : REFERENCE TO REFERENCE TO DINT;
-      │                                    ^^^^^^^^^^^^ Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
+      │                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference to declaration. References to automatically dereferenced references are not allowed.
 
-    error[E007]: Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
-                    qux : REF_TO REFERENCE TO DINT;'
-      ┌─ <internal>:5:36
-      │  
-    5 │                   baz : REFERENCE TO REFERENCE TO DINT;
-      │ ╭────────────────────────────────────^
-    6 │ │                 qux : REF_TO REFERENCE TO DINT;
-      │ ╰───────────────────────────────────────────────^ Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
-                    qux : REF_TO REFERENCE TO DINT;'
+    error[E099]: Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+      ┌─ <internal>:6:23
+      │
+    6 │                 qux : REF_TO REFERENCE TO DINT;
+      │                       ^^^^^^^^^^^^^^^^^^^^^^^^ Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+    ");
+}
+
+#[test]
+fn invalid_reference_to_declaration_via_aliases() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        TYPE
+            RefDint : REFERENCE TO DINT;
+        END_TYPE
+
+        FUNCTION foo
+            VAR
+                nestedA : REFERENCE TO RefDint;
+                nestedB : ARRAY[1..2] OF RefDint;
+                nestedC : REF_TO RefDint;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E099]: Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+      ┌─ <internal>:8:40
+      │
+    8 │                 nestedA : REFERENCE TO RefDint;
+      │                                        ^^^^^^^ Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+
+    error[E099]: Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.
+      ┌─ <internal>:9:42
+      │
+    9 │                 nestedB : ARRAY[1..2] OF RefDint;
+      │                                          ^^^^^^^ Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.
+
+    error[E099]: Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+       ┌─ <internal>:10:34
+       │
+    10 │                 nestedC : REF_TO RefDint;
+       │                                  ^^^^^^^ Invalid reference to declaration. References to automatically dereferenced references are not allowed.
     ");
 }
 
@@ -1672,5 +1723,94 @@ fn assigning_arrays_with_same_size_and_type_class_but_different_inner_type_is_an
        │
     18 │             foo(var3, var4);
        │                 ^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LWORD' to 'ARRAY[0..1] OF LINT'
+    ");
+}
+
+#[test]
+fn assigning_adr_to_reference_to_var_must_result_in_validation_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM mainProg
+            VAR
+                refe: REFERENCE TO DINT;
+                myDint : DINT;
+            END_VAR
+
+            myDint := 10;
+            refe := ADR(myDint);
+
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E037]: ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?
+      ┌─ <internal>:9:13
+      │
+    9 │             refe := ADR(myDint);
+      │             ^^^^^^^^^^^^^^^^^^^ ADR call cannot be assigned to variable declared as 'REFERENCE TO'. Did you mean to use 'REF='?
+    ");
+}
+
+#[test]
+fn assigning_void_call_result_to_a_pointer_must_result_in_validation_error() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fb_t
+        VAR_INPUT
+            x : DINT;
+        END_VAR
+        METHOD iAlsoDontReturnAValue
+        VAR_INPUT
+            x : DINT;
+        END_VAR
+        END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION iDontReturnAValue
+        VAR_INPUT
+            x : DINT;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            fb : fb_t;
+            x : STRING := 'hello';
+            y : STRING := 'there';
+            z : STRING := 'general';
+        END_VAR
+            fb := fb(1); // panics
+            x := fb(1); // panics
+            y := fb.iAlsoDontReturnAValue(1); // panics
+            z := iDontReturnAValue(1); // panics
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @"
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'fb_t'
+       ┌─ <internal>:26:13
+       │
+    26 │             fb := fb(1); // panics
+       │             ^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'fb_t'
+
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'STRING'
+       ┌─ <internal>:27:13
+       │
+    27 │             x := fb(1); // panics
+       │             ^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'STRING'
+       ┌─ <internal>:28:13
+       │
+    28 │             y := fb.iAlsoDontReturnAValue(1); // panics
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'STRING'
+
+    error[E037]: Invalid assignment: cannot assign 'VOID' to 'STRING'
+       ┌─ <internal>:29:13
+       │
+    29 │             z := iDontReturnAValue(1); // panics
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'STRING'
     ");
 }

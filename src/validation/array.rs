@@ -10,7 +10,7 @@
 //! introduced to make the validation code as generic as possible.
 
 use plc_ast::{
-    ast::{AstNode, AstStatement, Variable},
+    ast::{AstNode, AstStatement, UserTypeDeclaration, Variable},
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -20,11 +20,12 @@ use crate::{resolver::AnnotationMap, typesystem::DataTypeInformation};
 
 use super::{ValidationContext, Validator, Validators};
 
-/// Indicates whether an array was assigned in a VAR block or a POU body
+/// Indicates whether an array was assigned in a VAR block, a POU body, or a TYPE declaration
 #[derive(Debug, Clone, Copy)]
 pub(super) enum StatementWrapper<'a> {
     Statement(&'a AstNode),
     Variable(&'a Variable),
+    TypeDeclaration(&'a UserTypeDeclaration),
 }
 
 impl<'a> From<&'a AstNode> for StatementWrapper<'a> {
@@ -36,6 +37,12 @@ impl<'a> From<&'a AstNode> for StatementWrapper<'a> {
 impl<'a> From<&'a Variable> for StatementWrapper<'a> {
     fn from(value: &'a Variable) -> Self {
         Self::Variable(value)
+    }
+}
+
+impl<'a> From<&'a UserTypeDeclaration> for StatementWrapper<'a> {
+    fn from(value: &'a UserTypeDeclaration) -> Self {
+        Self::TypeDeclaration(value)
     }
 }
 
@@ -68,6 +75,14 @@ fn validate_array<T: AnnotationMap>(
     rhs_stmt: &AstNode,
 ) {
     let stmt_rhs = peel(rhs_stmt);
+
+    // `DefaultValue` is a parser-inserted placeholder (e.g. for CONSTANT declarations without
+    // explicit initializers). Let constant/default resolution handle it instead of reporting
+    // array literal syntax errors.
+    if matches!(stmt_rhs.get_stmt(), AstStatement::DefaultValue(_)) {
+        return;
+    }
+
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference() || stmt_rhs.is_call()) {
         validator.push_diagnostic(
             Diagnostic::new("Array assignments must be surrounded with `[]`")
@@ -78,7 +93,7 @@ fn validate_array<T: AnnotationMap>(
     }
 
     let len_lhs = lhs_type.get_array_length(context.index).unwrap_or(0);
-    let len_rhs = statement_to_array_length(context, stmt_rhs);
+    let Some(len_rhs) = statement_to_array_length(context, stmt_rhs) else { return };
 
     if len_lhs == 0 {
         return;
@@ -89,12 +104,30 @@ fn validate_array<T: AnnotationMap>(
         let location = stmt_rhs.get_location();
         validator.push_diagnostic(
             Diagnostic::new(format!(
-                "Array `{name}` has a size of {len_lhs}, but {len_rhs} elements were provided"
+                "Too many initial values for array `{name}`. Expected {len_lhs}, found {len_rhs}."
             ))
             .with_error_code("E043")
             .with_location(location),
         );
+    } else if len_rhs < len_lhs {
+        let name = statement.lhs_name(validator.context);
+        let location = stmt_rhs.get_location();
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Fewer initial values for array `{name}` than expected. Expected {len_lhs}, found {len_rhs}."
+            ))
+            .with_error_code("E127")
+            .with_location(location),
+        );
     }
+}
+
+/// Checks if an expression is a valid element in an array of structs.
+/// Valid elements are:
+/// - Parenthesized expressions (struct initializers like `(a := 1, b := 2)`)
+/// - Reference expressions (variable references like `str`)
+fn is_valid_struct_array_element(node: &AstNode) -> bool {
+    matches!(node.get_stmt(), AstStatement::ParenExpression(_) | AstStatement::ReferenceExpr(_))
 }
 
 fn validate_array_of_structs<T: AnnotationMap>(
@@ -114,7 +147,7 @@ fn validate_array_of_structs<T: AnnotationMap>(
 
     match elements {
         AstStatement::ExpressionList(expressions) => {
-            for invalid in expressions.iter().filter(|it| !it.is_paren()) {
+            for invalid in expressions.iter().filter(|it| !is_valid_struct_array_element(it)) {
                 validator.push_diagnostic(
                     Diagnostic::new("Struct initializers within arrays have to be wrapped by `()`")
                         .with_error_code("E043")
@@ -137,35 +170,64 @@ fn validate_array_of_structs<T: AnnotationMap>(
 }
 
 /// Takes an [`AstStatementKind`] and returns its length as if it was an array. For example calling this function
-/// on an expression-list such as `[(...), (...)]` would return 2.
-fn statement_to_array_length<T: AnnotationMap>(context: &ValidationContext<T>, statement: &AstNode) -> usize {
+/// on an expression-list such as `[(...), (...)]` would return 2. Returns `None` if the length could not be
+/// determined (e.g. for unresolved calls or unknown AST nodes), signaling that size validation should be skipped.
+fn statement_to_array_length<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    statement: &AstNode,
+) -> Option<usize> {
     match statement.get_stmt() {
         AstStatement::Literal(AstLiteral::Array(arr)) => match arr.elements() {
             Some(AstNode { stmt: AstStatement::ExpressionList(expressions), .. }) => {
-                expressions.iter().map(|it| statement_to_array_length(context, it)).sum::<usize>()
+                let mut total = 0;
+                for it in expressions {
+                    total += array_element_length(context, it)?;
+                }
+                Some(total)
             }
 
-            Some(any) => statement_to_array_length(context, any),
-            None => 0,
+            Some(any) => array_element_length(context, any),
+            None => Some(0),
         },
 
         AstStatement::CallStatement(_) => context
             .annotations
             .get_type(statement, context.index)
-            .and_then(|it| it.information.get_array_length(context.index))
-            .unwrap_or(0),
+            .and_then(|it| it.information.get_array_length(context.index)),
 
-        AstStatement::MultipliedStatement(data) => data.multiplier as usize,
-        AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(_) => 1,
+        // At the top level, a reference to a variable is not an array initializer — skip
+        // validation. References inside array literals are handled by `array_element_length`.
+        AstStatement::ReferenceExpr(_) => None,
+
+        AstStatement::MultipliedStatement(data) => Some(data.multiplier as usize),
+        AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(_) => Some(1),
 
         // Any literal other than an array can be counted as 1
-        AstStatement::Literal { .. } => 1,
+        AstStatement::Literal { .. } => Some(1),
 
         _any => {
-            // XXX: Not sure what else could be in here
-            log::debug!("Array size-counting for {statement:?} not covered; validation _might_ be wrong");
-            0
+            log::debug!("Array size-counting for {statement:?} not covered; skipping validation");
+            None
         }
+    }
+}
+
+/// Returns the length of an element inside an array literal.
+/// Unlike [`statement_to_array_length`], non-array references are counted as 1 element
+/// since they represent individual values in the initializer list.
+fn array_element_length<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    statement: &AstNode,
+) -> Option<usize> {
+    match statement.get_stmt() {
+        AstStatement::ReferenceExpr(_) => {
+            let len = context
+                .annotations
+                .get_type(statement, context.index)
+                .and_then(|it| it.information.get_array_length(context.index));
+            Some(len.unwrap_or(1))
+        }
+        _ => statement_to_array_length(context, statement),
     }
 }
 
@@ -177,6 +239,9 @@ impl<'a> StatementWrapper<'a> {
                 let AstStatement::Assignment(data) = &statement.stmt else { return "".to_string() };
                 context.slice(&data.left.location)
             }
+            StatementWrapper::TypeDeclaration(utd) => {
+                utd.data_type.get_name().map(|s| s.to_string()).unwrap_or_default()
+            }
         }
     }
 
@@ -187,6 +252,7 @@ impl<'a> StatementWrapper<'a> {
                 let AstStatement::Assignment(data) = &statement.stmt else { return None };
                 Some(&data.right)
             }
+            StatementWrapper::TypeDeclaration(utd) => utd.initializer.as_ref(),
         }
     }
 
@@ -203,7 +269,11 @@ impl<'a> StatementWrapper<'a> {
             StatementWrapper::Variable(variable) => variable
                 .data_type_declaration
                 .get_referenced_type()
-                .and_then(|it| context.index.find_effective_type_info(&it)),
+                .and_then(|it| context.index.find_effective_type_info(it)),
+
+            StatementWrapper::TypeDeclaration(utd) => {
+                utd.data_type.get_name().and_then(|name| context.index.find_effective_type_info(name))
+            }
         }?;
 
         match ty {

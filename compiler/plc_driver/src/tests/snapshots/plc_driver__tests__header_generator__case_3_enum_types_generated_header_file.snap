@@ -1,0 +1,46 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef ENUM_TYPES_H_
+#define ENUM_TYPES_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <time.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef int32_t SimpleEnumType;
+#define SimpleEnumType_red ((SimpleEnumType)0)
+#define SimpleEnumType_green ((SimpleEnumType)1)
+#define SimpleEnumType_blue ((SimpleEnumType)2)
+
+typedef int32_t ComplexEnumType;
+#define ComplexEnumType_orange ((ComplexEnumType)10)
+#define ComplexEnumType_yellow ((ComplexEnumType)20)
+#define ComplexEnumType_purple ((ComplexEnumType)30)
+
+typedef int16_t CodesysStyleEnumType;
+#define CodesysStyleEnumType_Crimson ((CodesysStyleEnumType)100)
+#define CodesysStyleEnumType_Emerald ((CodesysStyleEnumType)200)
+#define CodesysStyleEnumType_Topaz ((CodesysStyleEnumType)300)
+
+typedef uint32_t ComplexCodesysStyleEnumType;
+#define ComplexCodesysStyleEnumType_Black ((ComplexCodesysStyleEnumType)2281701376)
+#define ComplexCodesysStyleEnumType_White ((ComplexCodesysStyleEnumType)4294967040)
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !ENUM_TYPES_H_ */

@@ -16,15 +16,15 @@ target triple = "[filtered]"
 define void @foo(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-  %y = alloca i16, align 2
-  %z = alloca i16, align 2
-  store i16 0, ptr %y, align 2
-  store i16 9, ptr %z, align 2
-  %load_z = load i16, ptr %z, align 2
+  %y = alloca i16, align [filtered]
+  %z = alloca i16, align [filtered]
+  store i16 0, ptr %y, align [filtered]
+  store i16 9, ptr %z, align [filtered]
+  %load_z = load i16, ptr %z, align [filtered]
   %1 = sext i16 %load_z to i32
   %tmpVar = add i32 %1, 1
   %2 = trunc i32 %tmpVar to i16
-  store i16 %2, ptr %y, align 2
+  store i16 %2, ptr %y, align [filtered]
   ret void
 }
 

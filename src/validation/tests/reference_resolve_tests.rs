@@ -285,7 +285,7 @@ fn resolve_array_of_struct_as_member_of_another_struct_initializer() {
 
         TYPE STRUCT1 :
             STRUCT
-                myArr : ARRAY[0..10] OF STRUCT2;
+                myArr : ARRAY[0..0] OF STRUCT2;
             END_STRUCT
         END_TYPE
 
@@ -310,7 +310,7 @@ fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initi
         "
         PROGRAM mainProg
         VAR
-            var_str1 : ARRAY[1..5] OF STRUCT1 := [
+            var_str1 : ARRAY[1..2] OF STRUCT1 := [
                 (myInt := 1, myArr := [(x1 := TRUE, x2 := 128), (x1 := FALSE, x2 := 1024)]),
                 (myInt := 2, myArr := [(x1 := TRUE, x2 := 256), (x1 := FALSE, x2 := 2048)])
             ];
@@ -320,7 +320,7 @@ fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initi
         TYPE STRUCT1 :
             STRUCT
                 myInt : INT;
-                myArr : ARRAY[0..4] OF STRUCT2;
+                myArr : ARRAY[0..1] OF STRUCT2;
             END_STRUCT
         END_TYPE
 

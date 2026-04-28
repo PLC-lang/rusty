@@ -150,4 +150,5 @@ VariableBlock {
         },
     ],
     variable_block_type: Global,
+    constant: true,
 }

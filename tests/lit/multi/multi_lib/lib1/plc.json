@@ -1,0 +1,11 @@
+{
+	"name" : "parentLib",
+	"files" : [
+        "./src/base.st"
+	],
+    "output": "libparent.so",
+	"compile_type" : "Shared",
+	"libraries" : [
+	]
+}
+

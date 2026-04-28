@@ -50,8 +50,9 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
-                validation: Some(|validator, operator, parameters, _, _| {
+                validation: Some(|validator, operator, parameters, annotations, _| {
                     validate_argument_count(validator, operator, &parameters, 1);
+                    validate_constant_parameters(validator, &parameters, annotations);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -65,13 +66,12 @@ lazy_static! {
                                 }
                             }
 
-                            Some(StatementAnnotation::Type { type_name }) => {
-                                if generator.index.find_type(type_name).is_some_and(|opt| opt.information.is_function_block()) {
+                            Some(StatementAnnotation::Type { type_name })
+                                if generator.index.find_type(type_name).is_some_and(|opt| opt.information.is_function_block()) => {
                                     if let Some(fn_value) = generator.llvm_index.find_associated_implementation(type_name) {
                                         return Ok(ExpressionValue::RValue(fn_value.as_global_value().as_pointer_value().as_basic_value_enum()));
                                     }
                                 }
-                            }
 
                             _ => (),
                         };
@@ -116,17 +116,18 @@ lazy_static! {
                         true,
                     );
 
-                    if input.first().is_some_and(|opt| opt.is_assignment()){
-                        annotator.annotation_map.annotate_type_hint(actual_input, StatementAnnotation::value(input_type));
-                    }
+                    annotator
+                        .annotation_map
+                        .annotate_type_hint(actual_input, StatementAnnotation::value(input_type));
                     annotator.annotate(
                         operator, resolver::StatementAnnotation::Function {
                             return_type: ptr_type, qualified_name: "REF".to_string(), generic_name: None, call_name: None
                         }
                     );
                 }),
-                validation: Some(|validator, operator, parameters, _, _| {
+                validation: Some(|validator, operator, parameters, annotations, _| {
                     validate_argument_count(validator, operator, &parameters, 1);
+                    validate_constant_parameters(validator, &parameters, annotations);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -670,7 +671,11 @@ lazy_static! {
                     let left = generator.generate_expression(actual_in)?.into_int_value();
                     let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(actual_n, actual_in)?.into_int_value();
 
-                    let shr = generator.llvm.builder.build_right_shift(left, right, left.get_type().is_sized(), "")?;
+                    let is_signed = generator.annotations
+                        .get_type(actual_in, generator.index)
+                        .map(|it| it.get_type_information().is_signed_int())
+                        .unwrap_or(false);
+                    let shr = generator.llvm.builder.build_right_shift(left, right, is_signed, "")?;
 
                     Ok(ExpressionValue::RValue(shr.as_basic_value_enum()))
                 }
@@ -1002,6 +1007,29 @@ fn validate_argument_count(
 
     if params.len() != expected {
         validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, params.len(), operator));
+    }
+}
+
+fn validate_constant_parameters(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+) {
+    let Some(params) = parameters else {
+        // If there are no parameters, then there is nothing to evaluate
+        return;
+    };
+
+    let params = flatten_expression_list(params);
+
+    for param in params {
+        if let Some(StatementAnnotation::Variable { constant: true, .. }) = annotations.get(param) {
+            validator.push_diagnostic(
+                Diagnostic::new("Invalid assignment, cannot ensure constant is used as read-only")
+                    .with_location(param.location.clone())
+                    .with_error_code("E098"),
+            );
+        }
     }
 }
 

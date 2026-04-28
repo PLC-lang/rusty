@@ -2,7 +2,7 @@
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: msg
 ---
-error[E075]: Some initial values were not generated
+error[E075]: Could not generate initial value(s) for: MyType, MyStruct
 
 error[E041]: Cannot generate literal initializer for 'MyType': Value cannot be derived
   ┌─ <internal>:7:30

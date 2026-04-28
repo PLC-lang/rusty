@@ -1,10 +1,8 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 
 INTERFACE intf
-    PROPERTY prop: DINT
-        GET END_GET
-        SET END_SET
-    END_PROPERTY
+    PROPERTY_GET prop: DINT END_PROPERTY
+    PROPERTY_SET prop: DINT END_PROPERTY
 END_INTERFACE
 
 FUNCTION_BLOCK fb IMPLEMENTS intf
@@ -12,23 +10,19 @@ FUNCTION_BLOCK fb IMPLEMENTS intf
         localPrivateVariable: DINT := 69;
     END_VAR
 
-    PROPERTY prop: DINT
-        GET
-            prop := localPrivateVariable;
-        END_GET
+    PROPERTY_GET prop: DINT
+        prop := localPrivateVariable;
+    END_PROPERTY
 
-        SET
-            // This should never be called when using fb2 because it will be overridden
-            localPrivateVariable := 0;
-        END_SET
+    PROPERTY_SET prop: DINT
+        // This should never be called when using fb2 because it will be overridden
+        localPrivateVariable := 0;
     END_PROPERTY
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fb2 EXTENDS fb
-    PROPERTY prop: DINT
-        SET
-            localPrivateVariable := prop;
-        END_SET
+    PROPERTY_SET prop: DINT
+        localPrivateVariable := prop;
     END_PROPERTY
 END_FUNCTION_BLOCK
 

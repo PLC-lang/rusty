@@ -843,6 +843,30 @@ mod units_tests {
             linkage: Internal,
             pou_type: Function,
             statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__main_arr__ctor",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "arr",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ],
+                        },
+                    ),
+                },
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
@@ -1334,39 +1358,23 @@ mod units_tests {
                     operator: ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "__init_child",
+                                name: "child__ctor",
                             },
                         ),
                         base: None,
                     },
                     parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "fb",
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "fb",
+                                        },
+                                    ),
+                                    base: None,
                                 },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__user_init_child",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "fb",
-                                },
-                            ),
-                            base: None,
+                            ],
                         },
                     ),
                 },
@@ -1848,19 +1856,23 @@ mod units_tests {
                     operator: ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "__init_foo",
+                                name: "foo__ctor",
                             },
                         ),
                         base: None,
                     },
                     parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo_inst",
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "foo_inst",
+                                        },
+                                    ),
+                                    base: None,
                                 },
-                            ),
-                            base: None,
+                            ],
                         },
                     ),
                 },
@@ -1868,59 +1880,23 @@ mod units_tests {
                     operator: ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "__init_foo2",
+                                name: "foo2__ctor",
                             },
                         ),
                         base: None,
                     },
                     parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo2_inst",
+                        ExpressionList {
+                            expressions: [
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "foo2_inst",
+                                        },
+                                    ),
+                                    base: None,
                                 },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__user_init_foo",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo_inst",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__user_init_foo2",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo2_inst",
-                                },
-                            ),
-                            base: None,
+                            ],
                         },
                     ),
                 },
@@ -2123,7 +2099,7 @@ mod resolve_bases_tests {
             "#
         .into();
 
-        let (_, AnnotatedProject { units, index: _index, annotations }) =
+        let (_, AnnotatedProject { units, index: _index, annotations, .. }) =
             parse_and_annotate("test", vec![src]).unwrap();
         let unit = &units[0].get_unit().implementations[3];
         let statement = &unit.statements[0];
@@ -2195,10 +2171,8 @@ mod inherited_properties {
     fn reference_to_property_declared_in_parent_is_called_correctly() {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
-            PROPERTY foo : INT
-                GET END_GET
-                SET END_SET
-            END_PROPERTY
+                PROPERTY_GET foo: INT END_PROPERTY
+                PROPERTY_SET foo: INT END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb2 EXTENDS fb
@@ -2213,23 +2187,88 @@ mod inherited_properties {
         assert_debug_snapshot!(stmt, @r#"
         CallStatement {
             operator: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "__get_foo",
-                    },
-                ),
+                kind: Deref,
                 base: Some(
                     ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "__fb",
+                                name: "__get_foo",
                             },
                         ),
-                        base: None,
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Cast(
+                                    ParenExpression {
+                                        expression: ReferenceExpr {
+                                            kind: Deref,
+                                            base: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "__vtable",
+                                                        },
+                                                    ),
+                                                    base: Some(
+                                                        ReferenceExpr {
+                                                            kind: Member(
+                                                                Identifier {
+                                                                    name: "__fb",
+                                                                },
+                                                            ),
+                                                            base: Some(
+                                                                ReferenceExpr {
+                                                                    kind: Deref,
+                                                                    base: Some(
+                                                                        This,
+                                                                    ),
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                        },
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__vtable_fb2",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
                     },
                 ),
             },
-            parameters: None,
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Cast(
+                        ParenExpression {
+                            expression: ReferenceExpr {
+                                kind: Deref,
+                                base: Some(
+                                    This,
+                                ),
+                            },
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "fb",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            ),
         }
         "#);
     }
@@ -2238,10 +2277,8 @@ mod inherited_properties {
     fn reference_to_property_declared_in_grandparent_is_called_correctly() {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
-            PROPERTY foo : INT
-                GET END_GET
-                SET END_SET
-            END_PROPERTY
+                PROPERTY_GET foo: INT END_PROPERTY
+                PROPERTY_SET foo: INT END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb2 EXTENDS fb
@@ -2259,32 +2296,97 @@ mod inherited_properties {
         assert_debug_snapshot!(stmt, @r#"
         CallStatement {
             operator: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "__get_foo",
-                    },
-                ),
+                kind: Deref,
                 base: Some(
                     ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "__fb",
+                                name: "__get_foo",
                             },
                         ),
                         base: Some(
                             ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__fb2",
+                                kind: Cast(
+                                    ParenExpression {
+                                        expression: ReferenceExpr {
+                                            kind: Deref,
+                                            base: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "__vtable",
+                                                        },
+                                                    ),
+                                                    base: Some(
+                                                        ReferenceExpr {
+                                                            kind: Member(
+                                                                Identifier {
+                                                                    name: "__fb",
+                                                                },
+                                                            ),
+                                                            base: Some(
+                                                                ReferenceExpr {
+                                                                    kind: Member(
+                                                                        Identifier {
+                                                                            name: "__fb2",
+                                                                        },
+                                                                    ),
+                                                                    base: Some(
+                                                                        ReferenceExpr {
+                                                                            kind: Deref,
+                                                                            base: Some(
+                                                                                This,
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                        },
                                     },
                                 ),
-                                base: None,
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__vtable_fb3",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
                             },
                         ),
                     },
                 ),
             },
-            parameters: None,
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Cast(
+                        ParenExpression {
+                            expression: ReferenceExpr {
+                                kind: Deref,
+                                base: Some(
+                                    This,
+                                ),
+                            },
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "fb",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            ),
         }
         "#);
     }
@@ -2293,15 +2395,13 @@ mod inherited_properties {
     fn extended_prop() {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
-            PROPERTY foo : INT
-                GET END_GET
-            END_PROPERTY
+                PROPERTY_GET foo: INT
+                END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb2 EXTENDS fb
-            PROPERTY FOO : INT
-                SET END_SET
-            END_PROPERTY
+                PROPERTY_SET foo: INT
+                END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb3 EXTENDS fb2
@@ -2318,42 +2418,63 @@ mod inherited_properties {
         assert_debug_snapshot!(stmt, @r#"
         CallStatement {
             operator: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "__set_foo",
-                    },
-                ),
+                kind: Deref,
                 base: Some(
                     ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "__fb2",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-            parameters: Some(
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__get_foo",
+                                name: "__set_foo",
                             },
                         ),
                         base: Some(
                             ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__fb",
+                                kind: Cast(
+                                    ParenExpression {
+                                        expression: ReferenceExpr {
+                                            kind: Deref,
+                                            base: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "__vtable",
+                                                        },
+                                                    ),
+                                                    base: Some(
+                                                        ReferenceExpr {
+                                                            kind: Member(
+                                                                Identifier {
+                                                                    name: "__fb",
+                                                                },
+                                                            ),
+                                                            base: Some(
+                                                                ReferenceExpr {
+                                                                    kind: Member(
+                                                                        Identifier {
+                                                                            name: "__fb2",
+                                                                        },
+                                                                    ),
+                                                                    base: Some(
+                                                                        ReferenceExpr {
+                                                                            kind: Deref,
+                                                                            base: Some(
+                                                                                This,
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                        },
+                                                    ),
+                                                },
+                                            ),
+                                        },
                                     },
                                 ),
                                 base: Some(
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
-                                                name: "__fb2",
+                                                name: "__vtable_fb3",
                                             },
                                         ),
                                         base: None,
@@ -2362,7 +2483,128 @@ mod inherited_properties {
                             },
                         ),
                     },
-                    parameters: None,
+                ),
+            },
+            parameters: Some(
+                ExpressionList {
+                    expressions: [
+                        ReferenceExpr {
+                            kind: Cast(
+                                ParenExpression {
+                                    expression: ReferenceExpr {
+                                        kind: Deref,
+                                        base: Some(
+                                            This,
+                                        ),
+                                    },
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "fb2",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Deref,
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__get_foo",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Cast(
+                                                    ParenExpression {
+                                                        expression: ReferenceExpr {
+                                                            kind: Deref,
+                                                            base: Some(
+                                                                ReferenceExpr {
+                                                                    kind: Member(
+                                                                        Identifier {
+                                                                            name: "__vtable",
+                                                                        },
+                                                                    ),
+                                                                    base: Some(
+                                                                        ReferenceExpr {
+                                                                            kind: Member(
+                                                                                Identifier {
+                                                                                    name: "__fb",
+                                                                                },
+                                                                            ),
+                                                                            base: Some(
+                                                                                ReferenceExpr {
+                                                                                    kind: Member(
+                                                                                        Identifier {
+                                                                                            name: "__fb2",
+                                                                                        },
+                                                                                    ),
+                                                                                    base: Some(
+                                                                                        ReferenceExpr {
+                                                                                            kind: Deref,
+                                                                                            base: Some(
+                                                                                                This,
+                                                                                            ),
+                                                                                        },
+                                                                                    ),
+                                                                                },
+                                                                            ),
+                                                                        },
+                                                                    ),
+                                                                },
+                                                            ),
+                                                        },
+                                                    },
+                                                ),
+                                                base: Some(
+                                                    ReferenceExpr {
+                                                        kind: Member(
+                                                            Identifier {
+                                                                name: "__vtable_fb3",
+                                                            },
+                                                        ),
+                                                        base: None,
+                                                    },
+                                                ),
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                            parameters: Some(
+                                ReferenceExpr {
+                                    kind: Cast(
+                                        ParenExpression {
+                                            expression: ReferenceExpr {
+                                                kind: Deref,
+                                                base: Some(
+                                                    This,
+                                                ),
+                                            },
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "fb",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ],
                 },
             ),
         }

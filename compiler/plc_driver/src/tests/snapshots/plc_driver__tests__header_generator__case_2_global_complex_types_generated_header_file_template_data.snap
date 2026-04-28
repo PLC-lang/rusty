@@ -1,0 +1,112 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [
+        {
+          "data_type": "int16_t",
+          "name": "__global_gVarArrayOfArrayOfIntArray__",
+          "variable_type": {
+            "Array": 12
+          }
+        },
+        {
+          "data_type": "__global_gVarArrayOfArrayOfIntArray__",
+          "name": "__global_gVarArrayOfArrayOfIntArray_",
+          "variable_type": {
+            "Array": 12
+          }
+        },
+        {
+          "data_type": "int16_t",
+          "name": "__global_gVarArrayOfIntArray_",
+          "variable_type": {
+            "Array": 12
+          }
+        }
+      ],
+      "structs": [],
+      "enums": []
+    },
+    "global_variables": [
+      {
+        "data_type": "char",
+        "name": "gVarString",
+        "variable_type": {
+          "Array": 256
+        }
+      },
+      {
+        "data_type": "int16_t",
+        "name": "gVarWString",
+        "variable_type": {
+          "Array": 6001
+        }
+      },
+      {
+        "data_type": "int16_t",
+        "name": "gVarIntArray",
+        "variable_type": {
+          "Array": 12
+        }
+      },
+      {
+        "data_type": "__global_gVarArrayOfIntArray_",
+        "name": "gVarArrayOfIntArray",
+        "variable_type": {
+          "Array": 12
+        }
+      },
+      {
+        "data_type": "__global_gVarArrayOfArrayOfIntArray_",
+        "name": "gVarArrayOfArrayOfIntArray",
+        "variable_type": {
+          "Array": 12
+        }
+      },
+      {
+        "data_type": "int16_t",
+        "name": "gVarAltSyntaxArrayOfIntArray",
+        "variable_type": {
+          "MultidimensionalArray": [
+            12,
+            12
+          ]
+        }
+      },
+      {
+        "data_type": "int16_t*",
+        "name": "gVarRefToInt",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "int16_t*",
+        "name": "gVarPointerToInt",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "time_t*",
+        "name": "gVarRefToDate",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "time_t*",
+        "name": "gVarPointerToDate",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "int16_t",
+        "name": "gVarIntWithRange",
+        "variable_type": "Default"
+      }
+    ],
+    "functions": []
+  },
+  "directory": "",
+  "path": "global_complex_types.h",
+  "file_name": "GLOBAL_COMPLEX_TYPES",
+  "formatted_path": "GLOBAL_COMPLEX_TYPES_H_"
+}

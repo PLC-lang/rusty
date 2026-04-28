@@ -1,0 +1,53 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [],
+      "enums": []
+    },
+    "global_variables": [],
+    "functions": [
+      {
+        "return_type": "int16_t",
+        "name": "Util_PackBitsToDWORD",
+        "parameters": [
+          {
+            "data_type": "bool",
+            "name": "ValueRef",
+            "variable_type": {
+              "Array": 0
+            }
+          },
+          {
+            "data_type": "int16_t",
+            "name": "StartIndex",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int16_t",
+            "name": "Length",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int16_t",
+            "name": "Offset",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "uint32_t*",
+            "name": "Result",
+            "variable_type": "Default"
+          }
+        ]
+      }
+    ]
+  },
+  "directory": "",
+  "path": "reference_to_array.h",
+  "file_name": "REFERENCE_TO_ARRAY",
+  "formatted_path": "REFERENCE_TO_ARRAY_H_"
+}

@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: diagnostics
+---
+warning[E127]: Fewer initial values for array `partial` than expected. Expected 3, found 1.
+  ┌─ <internal>:9:45
+  │
+9 │             partial : ARRAY[1..3] OF FOO := [(idx := 1)];
+  │                                             ^^^^^^^^^^^^ Fewer initial values for array `partial` than expected. Expected 3, found 1.

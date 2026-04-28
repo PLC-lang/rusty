@@ -4,6 +4,62 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
+
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug codelldb empty project",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=plc",
+                    "--package=plc_driver"
+                ],
+                "filter": {
+                    "name": "plc",
+                    "kind": "bin"
+                }
+            },
+            "program": "target/debug/plc",
+            "args": [
+                "build",
+                "./tests/integration/data/empty_proj/conf/plc.json",
+                "--debug"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_LOG": "rusty"
+            },
+            "terminal": "integrated",
+            "initCommands":["settings set target.disable-aslr false"]
+        },
+        {
+            "type": "codelldb",
+            "request": "launch",
+            "name": "Debug codelldb empty project",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=plc",
+                    "--package=plc_driver"
+                ],
+                "filter": {
+                    "name": "plc",
+                    "kind": "bin"
+                }
+            },
+            "program": "target/debug/plc",
+            "args": [
+                "build",
+                "tests/integration/data/empty_proj/conf/plc.json"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_LOG": "rusty"
+            },
+            "terminal": "integrated"
+        },
         {
             "type": "codelldb",
             "request": "launch",

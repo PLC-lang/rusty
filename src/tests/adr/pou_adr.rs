@@ -68,6 +68,7 @@ fn programs_state_is_stored_in_a_struct() {
                         ),
                         is_constant: false,
                         is_var_external: false,
+                        is_retain: false,
                         data_type_name: "INT",
                         location_in_parent: 0,
                         linkage: Internal,
@@ -89,6 +90,7 @@ fn programs_state_is_stored_in_a_struct() {
                         ),
                         is_constant: false,
                         is_var_external: false,
+                        is_retain: false,
                         data_type_name: "__auto_pointer_to_INT",
                         location_in_parent: 1,
                         linkage: Internal,
@@ -110,6 +112,7 @@ fn programs_state_is_stored_in_a_struct() {
                         ),
                         is_constant: false,
                         is_var_external: false,
+                        is_retain: false,
                         data_type_name: "INT",
                         location_in_parent: 2,
                         linkage: Internal,
@@ -131,6 +134,7 @@ fn programs_state_is_stored_in_a_struct() {
                         ),
                         is_constant: false,
                         is_var_external: false,
+                        is_retain: false,
                         data_type_name: "INT",
                         location_in_parent: 3,
                         linkage: Internal,
@@ -152,6 +156,7 @@ fn programs_state_is_stored_in_a_struct() {
                         ),
                         is_constant: false,
                         is_var_external: false,
+                        is_retain: false,
                         data_type_name: "INT",
                         location_in_parent: 4,
                         linkage: Internal,
@@ -176,6 +181,7 @@ fn programs_state_is_stored_in_a_struct() {
                     "<internal>",
                 ),
             },
+            linkage: Internal,
         },
     )
     "#);
@@ -205,8 +211,8 @@ fn codegen_of_a_program_pou() {
       %io = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 1
       %o = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 2
       %v = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 3
-      %vt = alloca i16, align 2
-      store i16 0, ptr %vt, align 2
+      %vt = alloca i16, align [filtered]
+      store i16 0, ptr %vt, align [filtered]
       ret void
     }
     "#);
@@ -241,18 +247,18 @@ fn calling_a_program() {
 
     define i16 @foo() {
     entry:
-      %foo = alloca i16, align 2
-      %x = alloca i16, align 2
-      %y = alloca i16, align 2
-      store i16 0, ptr %x, align 2
-      store i16 0, ptr %y, align 2
-      store i16 0, ptr %foo, align 2
-      store i16 1, ptr @main_prg_instance, align 2
-      store ptr %y, ptr getelementptr inbounds (%main_prg, ptr @main_prg_instance, i32 0, i32 1), align 8
+      %foo = alloca i16, align [filtered]
+      %x = alloca i16, align [filtered]
+      %y = alloca i16, align [filtered]
+      store i16 0, ptr %x, align [filtered]
+      store i16 0, ptr %y, align [filtered]
+      store i16 0, ptr %foo, align [filtered]
+      store i16 1, ptr @main_prg_instance, align [filtered]
+      store ptr %y, ptr getelementptr inbounds (%main_prg, ptr @main_prg_instance, i32 0, i32 1), align [filtered]
       call void @main_prg(ptr @main_prg_instance)
-      %0 = load i16, ptr getelementptr inbounds (%main_prg, ptr @main_prg_instance, i32 0, i32 2), align 2
-      store i16 %0, ptr %x, align 2
-      %foo_ret = load i16, ptr %foo, align 2
+      %0 = load i16, ptr getelementptr inbounds (%main_prg, ptr @main_prg_instance, i32 0, i32 2), align [filtered]
+      store i16 %0, ptr %x, align [filtered]
+      %foo_ret = load i16, ptr %foo, align [filtered]
       ret i16 %foo_ret
     }
 
@@ -262,8 +268,8 @@ fn calling_a_program() {
       %io = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 1
       %o = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 2
       %v = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 3
-      %vt = alloca i16, align 2
-      store i16 0, ptr %vt, align 2
+      %vt = alloca i16, align [filtered]
+      store i16 0, ptr %vt, align [filtered]
       ret void
     }
     "#);
@@ -289,7 +295,7 @@ const DEFAULT_FB: &str = r#"
 ///  ... generate a struct-type with all persistent fields (`main_fb_interface`)
 ///  ... generate the body of the function_block (`void @main_fb`). All state variables are auto-loaded into
 ///         local variables. VAR_TEMPs (`vt`) get allocated and initialized on the stack.
-///  ... a global variable with the FB's default values (`main_fb__init`), used to initialize function block instances.
+///  ... a constructor function (`main_fb__ctor`) used to initialize function block instances.
 ///  ... note that no global instance is created (as you would get for PROGRAMs)
 
 #[test]
@@ -302,18 +308,16 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
 
     %main_fb = type { i16, ptr, i16, i16 }
 
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, ptr null, i16 0, i16 1 }
-
     define void @main_fb(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %i = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 0
       %io = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 1
       %o = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 2
       %v = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 3
-      %vt = alloca i16, align 2
-      store i16 2, ptr %vt, align 2
+      %vt = alloca i16, align [filtered]
+      store i16 2, ptr %vt, align [filtered]
       ret void
     }
     "#);
@@ -347,7 +351,6 @@ fn calling_a_function_block() {
     %main_fb = type { i16, ptr, i16, i16 }
 
     @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, ptr null, i16 0, i16 1 } }
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, ptr null, i16 0, i16 1 }
 
     define void @foo(ptr %0) {
     entry:
@@ -355,26 +358,26 @@ fn calling_a_function_block() {
       %y = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
       %fb = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 2
       %1 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 0
-      store i16 1, ptr %1, align 2
+      store i16 1, ptr %1, align [filtered]
       %2 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 1
-      store ptr %y, ptr %2, align 8
+      store ptr %y, ptr %2, align [filtered]
       call void @main_fb(ptr %fb)
       %3 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 2
-      %4 = load i16, ptr %3, align 2
-      store i16 %4, ptr %x, align 2
+      %4 = load i16, ptr %3, align [filtered]
+      store i16 %4, ptr %x, align [filtered]
       ret void
     }
 
     define void @main_fb(ptr %0) {
     entry:
-      %this = alloca ptr, align 8
-      store ptr %0, ptr %this, align 8
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
       %i = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 0
       %io = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 1
       %o = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 2
       %v = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 3
-      %vt = alloca i16, align 2
-      store i16 2, ptr %vt, align 2
+      %vt = alloca i16, align [filtered]
+      store i16 2, ptr %vt, align [filtered]
       ret void
     }
     "#);
@@ -407,19 +410,19 @@ fn function_get_a_method_with_by_ref_parameters() {
 
     define i32 @main_fun(i16 %0, ptr %1, ptr %2) {
     entry:
-      %main_fun = alloca i32, align 4
-      %i = alloca i16, align 2
-      store i16 %0, ptr %i, align 2
-      %io = alloca ptr, align 8
-      store ptr %1, ptr %io, align 8
-      %o = alloca ptr, align 8
-      store ptr %2, ptr %o, align 8
-      %v = alloca i16, align 2
-      %vt = alloca i16, align 2
-      store i16 1, ptr %v, align 2
-      store i16 2, ptr %vt, align 2
-      store i32 0, ptr %main_fun, align 4
-      %main_fun_ret = load i32, ptr %main_fun, align 4
+      %main_fun = alloca i32, align [filtered]
+      %i = alloca i16, align [filtered]
+      store i16 %0, ptr %i, align [filtered]
+      %io = alloca ptr, align [filtered]
+      store ptr %1, ptr %io, align [filtered]
+      %o = alloca ptr, align [filtered]
+      store ptr %2, ptr %o, align [filtered]
+      %v = alloca i16, align [filtered]
+      %vt = alloca i16, align [filtered]
+      store i16 1, ptr %v, align [filtered]
+      store i16 2, ptr %vt, align [filtered]
+      store i32 0, ptr %main_fun, align [filtered]
+      %main_fun_ret = load i32, ptr %main_fun, align [filtered]
       ret i32 %main_fun_ret
     }
     "#);
@@ -457,27 +460,27 @@ fn calling_a_function() {
     entry:
       %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
       %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-      %load_x = load i16, ptr %x, align 2
-      %1 = alloca i64, align 8
+      %load_x = load i16, ptr %x, align [filtered]
+      %1 = alloca i64, align [filtered]
       %call = call i32 @main_fun(i16 %load_x, ptr %z, ptr %1)
       ret void
     }
 
     define i32 @main_fun(i16 %0, ptr %1, ptr %2) {
     entry:
-      %main_fun = alloca i32, align 4
-      %i = alloca i16, align 2
-      store i16 %0, ptr %i, align 2
-      %io = alloca ptr, align 8
-      store ptr %1, ptr %io, align 8
-      %o = alloca ptr, align 8
-      store ptr %2, ptr %o, align 8
-      %v = alloca i16, align 2
-      %vt = alloca i16, align 2
-      store i16 1, ptr %v, align 2
-      store i16 2, ptr %vt, align 2
-      store i32 0, ptr %main_fun, align 4
-      %main_fun_ret = load i32, ptr %main_fun, align 4
+      %main_fun = alloca i32, align [filtered]
+      %i = alloca i16, align [filtered]
+      store i16 %0, ptr %i, align [filtered]
+      %io = alloca ptr, align [filtered]
+      store ptr %1, ptr %io, align [filtered]
+      %o = alloca ptr, align [filtered]
+      store ptr %2, ptr %o, align [filtered]
+      %v = alloca i16, align [filtered]
+      %vt = alloca i16, align [filtered]
+      store i16 1, ptr %v, align [filtered]
+      store i16 2, ptr %vt, align [filtered]
+      store i32 0, ptr %main_fun, align [filtered]
+      %main_fun_ret = load i32, ptr %main_fun, align [filtered]
       ret i32 %main_fun_ret
     }
     "#);
@@ -520,20 +523,20 @@ fn return_a_complex_type_from_function() {
 
     define void @foo(ptr %0) {
     entry:
-      %foo = alloca ptr, align 8
-      store ptr %0, ptr %foo, align 8
-      %deref = load ptr, ptr %foo, align 8
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref, ptr align 1 @utf08_literal_0, i32 13, i1 false)
+      %foo = alloca ptr, align [filtered]
+      store ptr %0, ptr %foo, align [filtered]
+      %deref = load ptr, ptr %foo, align [filtered]
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref, ptr align [filtered] @utf08_literal_0, i32 13, i1 false)
       ret void
     }
 
     define void @prg(ptr %0) {
     entry:
       %s = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-      %__foo0 = alloca [81 x i8], align 1
-      call void @llvm.memset.p0.i64(ptr align 1 %__foo0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      %__foo0 = alloca [81 x i8], align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %__foo0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
       call void @foo(ptr %__foo0)
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %__foo0, i32 80, i1 false)
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %s, ptr align [filtered] %__foo0, i32 80, i1 false)
       ret void
     }
 
@@ -592,24 +595,23 @@ fn passing_aggregate_types_to_functions_by_value() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %myStruct = type { i32, i32, i32, [81 x i8] }
     %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
+    %myStruct = type { i32, i32, i32, [81 x i8] }
 
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
     @main_instance = global %main zeroinitializer
 
     define void @foo(ptr %0, ptr %1, ptr %2, ptr %3) {
     entry:
-      %s = alloca [81 x i8], align 1
-      call void @llvm.memset.p0.i64(ptr align 1 %s, i8 0, i64 81, i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %s, ptr align 1 %0, i64 80, i1 false)
-      %ws = alloca [81 x i16], align 2
-      call void @llvm.memset.p0.i64(ptr align 2 %ws, i8 0, i64 162, i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 2 %ws, ptr align 2 %1, i64 160, i1 false)
-      %arr = alloca [30000 x i32], align 4
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 %2, i64 ptrtoint (ptr getelementptr ([30000 x i32], ptr null, i32 1) to i64), i1 false)
-      %st = alloca %myStruct, align 8
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %st, ptr align 1 %3, i64 ptrtoint (ptr getelementptr (%myStruct, ptr null, i32 1) to i64), i1 false)
+      %s = alloca [81 x i8], align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 81, i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %s, ptr align [filtered] %0, i64 80, i1 false)
+      %ws = alloca [81 x i16], align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %ws, i8 0, i64 162, i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %ws, ptr align [filtered] %1, i64 160, i1 false)
+      %arr = alloca [30000 x i32], align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] %2, i64 ptrtoint (ptr getelementptr ([30000 x i32], ptr null, i32 1) to i64), i1 false)
+      %st = alloca %myStruct, align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %st, ptr align [filtered] %3, i64 ptrtoint (ptr getelementptr (%myStruct, ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
@@ -673,13 +675,13 @@ fn passing_by_ref_to_functions() {
 
     define i8 @StrEqual(ptr %0, ptr %1) {
     entry:
-      %StrEqual = alloca i8, align 1
-      %o1 = alloca ptr, align 8
-      store ptr %0, ptr %o1, align 8
-      %o2 = alloca ptr, align 8
-      store ptr %1, ptr %o2, align 8
-      store i8 0, ptr %StrEqual, align 1
-      %StrEqual_ret = load i8, ptr %StrEqual, align 1
+      %StrEqual = alloca i8, align [filtered]
+      %o1 = alloca ptr, align [filtered]
+      store ptr %0, ptr %o1, align [filtered]
+      %o2 = alloca ptr, align [filtered]
+      store ptr %1, ptr %o2, align [filtered]
+      store i8 0, ptr %StrEqual, align [filtered]
+      %StrEqual_ret = load i8, ptr %StrEqual, align [filtered]
       ret i8 %StrEqual_ret
     }
 

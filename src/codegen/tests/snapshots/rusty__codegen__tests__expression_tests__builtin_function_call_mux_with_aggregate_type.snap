@@ -18,7 +18,7 @@ target triple = "[filtered]"
 define void @main(ptr %0) {
 entry:
   %str1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
-  %1 = alloca [81 x i8], align 1
+  %1 = alloca [81 x i8], align [filtered]
   switch i32 3, label %continue_block [
     i32 0, label %2
     i32 1, label %3
@@ -27,23 +27,23 @@ entry:
   ]
 
 2:                                                ; preds = %entry
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %1, ptr align 1 @utf08_literal_2, i32 6, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %1, ptr align [filtered] @utf08_literal_2, i32 6, i1 false)
   br label %continue_block
 
 3:                                                ; preds = %entry
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %1, ptr align 1 @utf08_literal_1, i32 6, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %1, ptr align [filtered] @utf08_literal_1, i32 6, i1 false)
   br label %continue_block
 
 4:                                                ; preds = %entry
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %1, ptr align 1 @utf08_literal_0, i32 6, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %1, ptr align [filtered] @utf08_literal_0, i32 6, i1 false)
   br label %continue_block
 
 5:                                                ; preds = %entry
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %1, ptr align 1 @utf08_literal_3, i32 4, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %1, ptr align [filtered] @utf08_literal_3, i32 4, i1 false)
   br label %continue_block
 
 continue_block:                                   ; preds = %entry, %5, %4, %3, %2
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %str1, ptr align 1 %1, i32 80, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %str1, ptr align [filtered] %1, i32 80, i1 false)
   ret void
 }
 

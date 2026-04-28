@@ -7,13 +7,15 @@ use plc_ast::{
 };
 
 use plc_source::source_location::SourceLocation;
+use serde::{Deserialize, Serialize};
 
 pub type ConstId = generational_arena::Index;
 
 /// wrapper around ConstExpression stored in the arena
 /// changing expr allows to change the referenced const-expression
 /// without aquiring a new ID in the arena
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 struct ConstWrapper {
     /// the constant expression
     expr: ConstExpression,
@@ -30,7 +32,8 @@ impl ConstWrapper {
 /// constant expressions registered here are wrapped behind this enum to indicate
 /// whether this expression was already (potentially) resolved or not, or if a
 /// resolving failed.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub enum ConstExpression {
     Unresolved {
         statement: AstNode,
@@ -93,7 +96,8 @@ impl ConstExpression {
 
 /// Initializers which rely on code-execution/allocated memory addresses and are
 /// therefore not resolvable before the codegen stage
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct InitData {
     pub initializer: Box<Option<AstNode>>,
     pub target_type_name: Option<String>,
@@ -117,7 +121,8 @@ impl InitData {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub enum UnresolvableKind {
     /// Indicates that the const expression was not resolvable for any reason not listed in [`UnresolvableKind`].
     Misc(String),
@@ -150,7 +155,8 @@ impl UnresolvableKind {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct ConstExpressions {
     expressions: Arena<ConstWrapper>,
 }

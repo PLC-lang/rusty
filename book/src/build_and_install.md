@@ -14,11 +14,12 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # Install LLVM 21, see https://apt.llvm.org/
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
-./llvm.sh 21 && sudo apt install libpolly-21-dev
+sudo ./llvm.sh 21 && sudo apt install libpolly-21-dev
 
 # Install uv, see https://docs.astral.sh/uv/getting-started/installation/
 # (Optional, but required for development)
 curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
 uv tool install lit
 ```
 
@@ -31,14 +32,14 @@ Follow the Ubuntu 24.04 instructions, but omit `software-properties-common` whic
 Install the [Xcode Command Line Tools](https://developer.apple.com/downloads/) and the LLVM toolchain using [Homebrew](https://brew.sh):
 
 ```bash
-brew install llvm@21 gnu-getopt lit
+brew install llvm@21 lld gnu-getopt lit
 ```
 
 After installation, ensure the Homebrew binaries are in your PATH:
 
 ```bash
-echo 'export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"' >> ~/.zshrc
-echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"' >> ~/.zprofile
+echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' >> ~/.zprofile
 ```
 
 The `lit` test suite expects `FileCheck-21` to be available. If not present, create a symlink:

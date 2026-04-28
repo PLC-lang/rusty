@@ -3,9 +3,11 @@ use std::sync::{
     Arc,
 };
 
+use serde::{Deserialize, Serialize};
+
 use crate::ast::AstId;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct IdProvider {
     current_id: Arc<AtomicUsize>,
 }

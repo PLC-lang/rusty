@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: diagnostics
+---
+error[E043]: Too many initial values for array `arraytype`. Expected 2, found 3.
+  ┌─ <internal>:7:54
+  │
+7 │         TYPE arraytype : ARRAY [1..2] OF myStruct := [(first := 5, second := FALSE), (first := 10, second := TRUE), (first := 15, second := FALSE)];
+  │                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Too many initial values for array `arraytype`. Expected 2, found 3.

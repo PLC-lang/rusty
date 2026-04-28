@@ -8,64 +8,70 @@ Implementation {
     linkage: Internal,
     pou_type: Function,
     statements: [
-        ExpressionList {
-            expressions: [
-                Allocation {
-                    name: "__complexFunc0",
-                    reference_type: "STRING",
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "complexFunc",
-                            },
-                        ),
-                        base: None,
+        IfStatement {
+            blocks: [
+                ConditionalBlock {
+                    condition: LiteralBool {
+                        value: true,
                     },
-                    parameters: Some(
-                        ExpressionList {
-                            expressions: [
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__complexFunc0",
+                    body: [],
+                },
+            ],
+            else_block: [
+                ExpressionList {
+                    expressions: [
+                        Allocation {
+                            name: "__complexFunc0",
+                            reference_type: "STRING",
+                        },
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "complexFunc",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                ExpressionList {
+                                    expressions: [
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__complexFunc0",
+                                                },
+                                            ),
+                                            base: None,
                                         },
-                                    ),
-                                    base: None,
+                                    ],
+                                },
+                            ),
+                        },
+                        IfStatement {
+                            blocks: [
+                                ConditionalBlock {
+                                    condition: BinaryExpression {
+                                        operator: Equal,
+                                        left: ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "__complexFunc0",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                        right: LiteralString {
+                                            value: "hello",
+                                            is_wide: false,
+                                        },
+                                    },
+                                    body: [],
                                 },
                             ],
-                        },
-                    ),
-                },
-                IfStatement {
-                    blocks: [
-                        ConditionalBlock {
-                            condition: LiteralBool {
-                                value: true,
-                            },
-                            body: [],
-                        },
-                        ConditionalBlock {
-                            condition: BinaryExpression {
-                                operator: Equal,
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__complexFunc0",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                right: LiteralString {
-                                    value: "hello",
-                                    is_wide: false,
-                                },
-                            },
-                            body: [],
+                            else_block: [],
                         },
                     ],
-                    else_block: [],
                 },
             ],
         },

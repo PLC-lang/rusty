@@ -20,7 +20,7 @@ use crate::{
     test_utils::tests::{annotate_with_ids, index_with_ids},
     typesystem::{
         DataTypeInformation, Dimension, TypeSize, BOOL_TYPE, BYTE_TYPE, DINT_TYPE, DWORD_TYPE, INT_TYPE,
-        LINT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
+        LINT_TYPE, LREAL_TYPE, REAL_TYPE, SINT_TYPE, UDINT_TYPE, UINT_TYPE, USINT_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 
@@ -559,6 +559,58 @@ fn parenthesized_expression_assignment() {
 }
 
 #[test]
+fn binary_expression_with_parenthesized_different_types() {
+    // Regression test: Multiplying REAL by parenthesized INT expression should work
+    // The parenthesized (b - c) expression should get proper type promotion to REAL
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "PROGRAM main
+            VAR
+                a : REAL;
+                b : INT;
+                c : INT;
+                result : REAL;
+            END_VAR
+
+            result := (a) * (b - c);
+        END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    // The assignment should resolve correctly
+    let stmt = &unit.implementations[0].statements[0];
+    let AstStatement::Assignment(Assignment { right, .. }) = &stmt.stmt else { panic!() };
+
+    // The outer binary expression (a) * (b - c) should be REAL
+    assert_eq!(annotations.get_type_or_void(right, &index).get_name(), "REAL");
+
+    // Extract the binary expression
+    let AstStatement::BinaryExpression(BinaryExpression { left, right: rhs, .. }) = right.get_stmt() else {
+        panic!()
+    };
+
+    // left = (a), should be REAL
+    assert!(left.is_paren());
+    assert_eq!(annotations.get_type_or_void(left, &index).get_name(), "REAL");
+
+    // right = (b - c), should have type DINT (result of INT - INT) but hint REAL for promotion
+    assert!(rhs.is_paren());
+    let rhs_type = annotations.get_type_or_void(rhs, &index);
+    // The inner expression b - c is DINT, but it should be promotable to REAL
+    assert!(rhs_type.get_name() == "DINT" || rhs_type.get_name() == "REAL");
+
+    // Check that the right-hand side (b - c) has a type hint for promotion to REAL
+    let rhs_hint = annotations.get_type_hint(rhs, &index);
+    assert!(rhs_hint.is_some(), "Parenthesized expression (b - c) should have a type hint for promotion");
+    assert_eq!(
+        rhs_hint.unwrap().get_name(),
+        "REAL",
+        "Type hint should be REAL for promotion in REAL * (INT - INT)"
+    );
+}
+
+#[test]
 fn unary_expressions_resolves_types() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
@@ -834,8 +886,9 @@ fn resolve_binary_expressions() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
+    // We expect promoted unsigned types to hold sign information
     let expected_types = vec![
-        "BYTE", "WORD", "DWORD", "LWORD", "DINT", "DINT", "DINT", "DINT", "DINT", "DINT", "LINT", "ULINT",
+        "BYTE", "WORD", "DWORD", "LWORD", "DINT", "UDINT", "DINT", "UDINT", "DINT", "UDINT", "LINT", "ULINT",
     ];
     let type_names: Vec<&str> =
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
@@ -1330,6 +1383,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
                         ),
                         is_constant: false,
                         is_var_external: false,
+                        is_retain: false,
                         data_type_name: "INT",
                         location_in_parent: 0,
                         linkage: Internal,
@@ -1354,6 +1408,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
                     "<internal>",
                 ),
             },
+            linkage: Internal,
         },
     )
     "#);
@@ -2282,10 +2337,10 @@ fn global_enums_type_resolving2() {
 
     assert_eq!(
         vec![
-            (Some("DINT"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
+            (Some("DINT"), Some("BYTE")),
+            (Some("DINT"), Some("BYTE")),
+            (Some("DINT"), Some("BYTE")),
+            (Some("DINT"), Some("BYTE")),
         ],
         initalizer_types
     );
@@ -2317,10 +2372,10 @@ fn global_lint_enums_type_resolving() {
 
     assert_eq!(
         vec![
-            (Some("DINT"), Some("MyEnum")),
-            (Some("MyEnum"), Some("MyEnum")),
-            (Some("DINT"), Some("MyEnum")),
-            (Some("MyEnum"), Some("MyEnum")),
+            (Some("DINT"), Some("LINT")),
+            (Some("MyEnum"), Some("LINT")),
+            (Some("DINT"), Some("LINT")),
+            (Some("MyEnum"), Some("LINT")),
         ],
         initalizer_types
     );
@@ -2338,7 +2393,7 @@ fn enum_element_initialization_is_annotated_correctly() {
         if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
             flatten_expression_list(elements)[2]
         {
-            assert_type_and_hint!(&annotations, &index, right, "DINT", Some("MyEnum"));
+            assert_type_and_hint!(&annotations, &index, right, "DINT", Some("BYTE"));
         } else {
             unreachable!()
         }
@@ -3793,7 +3848,7 @@ fn undeclared_varargs_type_hint_promoted_correctly() {
         assert_type_and_hint!(&annotations, &index, parameters[0], REAL_TYPE, Some(LREAL_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[1], LREAL_TYPE, Some(LREAL_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[2], BOOL_TYPE, None);
-        assert_type_and_hint!(&annotations, &index, parameters[3], USINT_TYPE, Some(DINT_TYPE));
+        assert_type_and_hint!(&annotations, &index, parameters[3], USINT_TYPE, Some(UDINT_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[4], INT_TYPE, Some(DINT_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[5], DINT_TYPE, Some(DINT_TYPE));
         assert_type_and_hint!(&annotations, &index, parameters[6], LINT_TYPE, Some(LINT_TYPE));
@@ -4041,7 +4096,7 @@ fn multiple_pointer_referencing_annotates_correctly() {
 
     let parameters = parameters.as_ref().unwrap();
 
-    assert_type_and_hint!(&annotations, &index, &parameters, "BYTE", None);
+    assert_type_and_hint!(&annotations, &index, &parameters, "BYTE", Some("BYTE"));
 }
 
 #[test]
@@ -4077,7 +4132,13 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
     let AstStatement::CallStatement(CallStatement { parameters, .. }) = value.get_stmt_peeled() else {
         unreachable!()
     };
-    assert_type_and_hint!(&annotations, &index, parameters.as_ref().unwrap(), "__POINTER_TO_BYTE", None);
+    assert_type_and_hint!(
+        &annotations,
+        &index,
+        parameters.as_ref().unwrap(),
+        "__POINTER_TO_BYTE",
+        Some("__POINTER_TO_BYTE")
+    );
 
     // (REF(REF(a)))^
     //          ^
@@ -4086,7 +4147,7 @@ fn multiple_pointer_with_dereference_annotates_and_nests_correctly() {
     else {
         unreachable!()
     };
-    assert_type_and_hint!(&annotations, &index, parameters.as_ref().unwrap(), "BYTE", None);
+    assert_type_and_hint!(&annotations, &index, parameters.as_ref().unwrap(), "BYTE", Some("BYTE"));
 }
 
 #[test]
@@ -6757,4 +6818,63 @@ fn named_arguments_are_annotated_with_location_and_depth() {
         ),
     ]
     "#);
+}
+
+#[test]
+fn array_literal_passed_to_function_var_input_gets_type_hint_propagated() {
+    // GIVEN a function with a VAR_INPUT array parameter and a call passing an array literal
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        r#"
+        FUNCTION foo : DINT
+            VAR_INPUT
+                arr : ARRAY[1..5] OF DINT;
+            END_VAR
+            foo := arr[1];
+        END_FUNCTION
+
+        PROGRAM main
+            foo([1, 2, 3, 4, 5]);
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+
+    // WHEN the code is annotated
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let call_stmt = &unit.implementations[1].statements[0];
+
+    // THEN the array literal argument and its inner elements receive correct type hints
+    if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = call_stmt {
+        let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
+        let array_arg = parameters[0];
+
+        // The top-level array literal should have an Argument type hint with the array type
+        let hint = annotations.get_type_hint(array_arg, &index);
+        assert!(hint.is_some(), "array literal argument should have a type hint");
+        assert_eq!(hint.unwrap().get_name(), "__foo_arr");
+
+        // Drill into the array literal's inner ExpressionList and check element hints
+        if let AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) =
+            array_arg.get_stmt()
+        {
+            // The ExpressionList itself should have the array type hint
+            let list_hint = annotations.get_type_hint(elements, &index);
+            assert!(list_hint.is_some(), "expression list inside array literal should have a type hint");
+            assert_eq!(list_hint.unwrap().get_name(), "__foo_arr");
+
+            // Each element in the expression list should have a DINT type hint
+            if let AstStatement::ExpressionList(elems, ..) = elements.get_stmt() {
+                for elem in elems {
+                    assert_type_and_hint!(&annotations, &index, elem, DINT_TYPE, Some(DINT_TYPE));
+                }
+            } else {
+                unreachable!("expected ExpressionList inside array literal");
+            }
+        } else {
+            unreachable!("expected array literal as first argument");
+        }
+    } else {
+        unreachable!("expected CallStatement");
+    }
 }

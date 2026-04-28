@@ -1,13 +1,15 @@
 [package]
 name = "plc_source"
-version = "0.1.0"
+version = "0.4.1-dev"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "LGPL-3.0"
+description = "Source file handling for the PLC Structured Text compiler"
 
 [dependencies]
 encoding_rs.workspace = true
 encoding_rs_io.workspace = true
+serde_json.workspace = true
+serde.workspace = true
 
 [dev-dependencies]
 insta = "1.31.0"

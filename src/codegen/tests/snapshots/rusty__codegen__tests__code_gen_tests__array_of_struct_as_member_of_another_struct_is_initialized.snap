@@ -12,8 +12,6 @@ target triple = "[filtered]"
 %STRUCT2 = type { i8, i32 }
 
 @mainProg_instance = global %mainProg { %STRUCT1 { i16 10, [11 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] } }
-@__STRUCT1__init = unnamed_addr constant %STRUCT1 zeroinitializer
-@__STRUCT2__init = unnamed_addr constant %STRUCT2 zeroinitializer
 @__mainProg.var_str1__init = unnamed_addr constant %STRUCT1 { i16 10, [11 x %STRUCT2] [%STRUCT2 { i8 1, i32 128 }, %STRUCT2 { i8 0, i32 1024 }, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer, %STRUCT2 zeroinitializer] }
 
 define void @mainProg(ptr %0) {

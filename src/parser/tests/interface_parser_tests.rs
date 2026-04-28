@@ -410,10 +410,8 @@ fn interface_deriving_from_multiple_interfaces() {
 fn interface_with_property() {
     let source = r"
     INTERFACE myInterface
-        PROPERTY foo : INT
-            GET END_GET
-            SET END_SET
-        END_PROPERTY
+        PROPERTY_GET foo: INT END_PROPERTY
+        PROPERTY_SET foo: INT END_PROPERTY
     END_INTERFACE
     ";
 
@@ -430,33 +428,36 @@ fn interface_with_property() {
             ident: Identifier {
                 name: "foo",
                 location: SourceLocation {
-                    span: Range(2:17 - 2:20),
+                    span: Range(2:21 - 2:24),
                 },
-            },
-            datatype: DataTypeReference {
-                referenced_type: "INT",
             },
             implementations: [
                 PropertyImplementation {
                     kind: Get,
+                    datatype: DataTypeReference {
+                        referenced_type: "INT",
+                    },
                     location: SourceLocation {
-                        span: Range(3:12 - 3:15),
+                        span: Range(2:8 - 2:20),
                     },
                     variable_blocks: [],
                     body: [],
                     end_location: SourceLocation {
-                        span: Range(3:16 - 3:23),
+                        span: Range(2:30 - 2:42),
                     },
                 },
                 PropertyImplementation {
                     kind: Set,
+                    datatype: DataTypeReference {
+                        referenced_type: "INT",
+                    },
                     location: SourceLocation {
-                        span: Range(4:12 - 4:15),
+                        span: Range(3:8 - 3:20),
                     },
                     variable_blocks: [],
                     body: [],
                     end_location: SourceLocation {
-                        span: Range(4:16 - 4:23),
+                        span: Range(3:30 - 3:42),
                     },
                 },
             ],
@@ -477,14 +478,12 @@ mod error_handling {
                 methodA := 5;
             END_METHOD
 
-            PROPERTY propA : INT
-                GET
-                    1 > 2;
-                END_GET
+            PROPERTY_GET propA: INT
+                1 > 2;
+            END_PROPERTY
 
-                SET
-                    1 > 2;
-                END_SET
+            PROPERTY_SET propA: INT
+                1 > 2;
             END_PROPERTY
         END_INTERFACE
         ";
@@ -498,16 +497,16 @@ mod error_handling {
           │                 ^^^^^ Interfaces can not have a default implementation
 
         error[E113]: Interfaces can not have a default implementation
-           ┌─ <internal>:10:21
-           │
-        10 │                     1 > 2;
-           │                     ^^^^^ Interfaces can not have a default implementation
+          ┌─ <internal>:9:17
+          │
+        9 │                 1 > 2;
+          │                 ^^^^^ Interfaces can not have a default implementation
 
         error[E113]: Interfaces can not have a default implementation
-           ┌─ <internal>:14:21
+           ┌─ <internal>:13:17
            │
-        14 │                     1 > 2;
-           │                     ^^^^^ Interfaces can not have a default implementation
+        13 │                 1 > 2;
+           │                 ^^^^^ Interfaces can not have a default implementation
         ");
     }
 

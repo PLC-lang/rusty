@@ -9,7 +9,9 @@ use crate::ast::{
     JumpStatement, MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr,
     UnaryExpression, UserTypeDeclaration, Variable, VariableBlock,
 };
-use crate::control_statements::{AstControlStatement, ConditionalBlock, ReturnStatement};
+use crate::control_statements::{
+    AstControlStatement, ConditionalBlock, ForLoopStatement, LoopStatement, ReturnStatement,
+};
 use crate::literals::AstLiteral;
 use crate::try_from_mut;
 
@@ -45,6 +47,15 @@ pub trait WalkerMut {
 pub trait AstVisitorMut: Sized {
     fn visit(&mut self, node: &mut AstNode) {
         node.walk(self)
+    }
+
+    /// Called when visiting a list of statements (e.g. implementation bodies, control flow branches).
+    /// Override this to intercept statement-list processing — for example, to drain-and-rebuild the
+    /// list for 1→N statement expansion.
+    fn visit_statement_list(&mut self, stmts: &mut Vec<AstNode>) {
+        for node in stmts.iter_mut() {
+            self.visit(node);
+        }
     }
 
     //Takes ownership of the node, manipulates it and returns a new node
@@ -171,7 +182,40 @@ pub trait AstVisitorMut: Sized {
 
     fn visit_control_statement(&mut self, node: &mut AstNode) {
         let stmt = try_from_mut!(node, AstControlStatement).expect("AstControlStatement");
-        stmt.walk(self)
+        match stmt {
+            AstControlStatement::ForLoop(for_stmt) => self.visit_for_loop_statement(for_stmt),
+            AstControlStatement::WhileLoop(loop_stmt) => self.visit_while_loop_statement(loop_stmt),
+            AstControlStatement::RepeatLoop(loop_stmt) => self.visit_repeat_loop_statement(loop_stmt),
+            _ => stmt.walk(self),
+        }
+    }
+
+    /// Visits a `ForLoop` control statement.
+    /// Make sure to visit the counter, bounds, optional step and body to continue the traversal.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `ForLoopStatement` node to visit.
+    fn visit_for_loop_statement(&mut self, stmt: &mut ForLoopStatement) {
+        visit_nodes_mut!(self, &mut stmt.counter, &mut stmt.start, &mut stmt.end);
+        visit_all_nodes_mut!(self, &mut stmt.by_step);
+        self.visit_statement_list(&mut stmt.body);
+    }
+
+    /// Visits a `WhileLoop` control statement.
+    /// Make sure to visit the condition and body to continue the traversal.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `LoopStatement` node to visit.
+    fn visit_while_loop_statement(&mut self, stmt: &mut LoopStatement) {
+        visit_nodes_mut!(self, &mut stmt.condition);
+        self.visit_statement_list(&mut stmt.body);
+    }
+
+    /// Visits a `RepeatLoop` control statement.
+    /// Make sure to visit the condition and body to continue the traversal.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `LoopStatement` node to visit.
+    fn visit_repeat_loop_statement(&mut self, stmt: &mut LoopStatement) {
+        visit_nodes_mut!(self, &mut stmt.condition);
+        self.visit_statement_list(&mut stmt.body);
     }
 
     fn visit_case_condition(&mut self, node: &mut AstNode) {
@@ -207,9 +251,13 @@ pub trait AstVisitorMut: Sized {
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
     fn visit_allocation(&mut self, _node: &mut AstNode) {}
 
-    fn visit_interface(&mut self, _interface: &mut Interface) {}
+    fn visit_interface(&mut self, interface: &mut Interface) {
+        interface.walk(self);
+    }
 
-    fn visit_property(&mut self, _property: &mut PropertyBlock) {}
+    fn visit_property(&mut self, property: &mut PropertyBlock) {
+        property.walk(self);
+    }
 
     fn visit_super(&mut self, _node: &mut AstNode) {}
 
@@ -325,7 +373,7 @@ impl WalkerMut for Vec<ConditionalBlock> {
     {
         for b in self {
             visit_nodes_mut!(visitor, &mut b.condition);
-            visit_all_nodes_mut!(visitor, &mut b.body);
+            visitor.visit_statement_list(&mut b.body);
         }
     }
 }
@@ -338,21 +386,21 @@ impl WalkerMut for AstControlStatement {
         match self {
             AstControlStatement::If(stmt) => {
                 stmt.blocks.walk(visitor);
-                visit_all_nodes_mut!(visitor, &mut stmt.else_block);
+                visitor.visit_statement_list(&mut stmt.else_block);
             }
             AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
                 visit_nodes_mut!(visitor, &mut stmt.condition);
-                visit_all_nodes_mut!(visitor, &mut stmt.body);
+                visitor.visit_statement_list(&mut stmt.body);
             }
             AstControlStatement::ForLoop(stmt) => {
                 visit_nodes_mut!(visitor, &mut stmt.counter, &mut stmt.start, &mut stmt.end);
                 visit_all_nodes_mut!(visitor, &mut stmt.by_step);
-                visit_all_nodes_mut!(visitor, &mut stmt.body);
+                visitor.visit_statement_list(&mut stmt.body);
             }
             AstControlStatement::Case(stmt) => {
                 visit_nodes_mut!(visitor, &mut stmt.selector);
                 stmt.case_blocks.walk(visitor);
-                visit_all_nodes_mut!(visitor, &mut stmt.else_block);
+                visitor.visit_statement_list(&mut stmt.else_block);
             }
         }
     }
@@ -373,6 +421,36 @@ impl WalkerMut for JumpStatement {
         V: AstVisitorMut,
     {
         visit_nodes_mut!(visitor, &mut self.condition, &mut self.target);
+    }
+}
+
+impl WalkerMut for Interface {
+    fn walk<V>(&mut self, visitor: &mut V)
+    where
+        V: AstVisitorMut,
+    {
+        for method in &mut self.methods {
+            visitor.visit_pou(method);
+        }
+
+        for property in &mut self.properties {
+            visitor.visit_property(property);
+        }
+    }
+}
+
+impl WalkerMut for PropertyBlock {
+    fn walk<V>(&mut self, visitor: &mut V)
+    where
+        V: AstVisitorMut,
+    {
+        for implementation in &mut self.implementations {
+            visitor.visit_data_type_declaration(&mut implementation.datatype);
+            for block in &mut implementation.variable_blocks {
+                visitor.visit_variable_block(block);
+            }
+            visitor.visit_statement_list(&mut implementation.body);
+        }
     }
 }
 
@@ -560,8 +638,6 @@ impl WalkerMut for Implementation {
     where
         V: AstVisitorMut,
     {
-        for n in &mut self.statements {
-            visitor.visit(n);
-        }
+        visitor.visit_statement_list(&mut self.statements);
     }
 }

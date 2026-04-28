@@ -1,0 +1,2 @@
+RUN: %LIBCOMPILE lib1/plc.json  && %COMPILE build lib2/plc.json && %APPRUN | %CHECK %s
+CHECK: 36

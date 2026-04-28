@@ -13,39 +13,39 @@ target triple = "[filtered]"
 
 define i32 @func(ptr %0, ptr %1, i16 %2, i32 %3) {
 entry:
-  %func = alloca i32, align 4
-  %byRef1 = alloca ptr, align 8
-  store ptr %0, ptr %byRef1, align 8
-  %byRef2 = alloca ptr, align 8
-  store ptr %1, ptr %byRef2, align 8
-  %byVal1 = alloca i16, align 2
-  store i16 %2, ptr %byVal1, align 2
-  %byVal2 = alloca i32, align 4
-  store i32 %3, ptr %byVal2, align 4
-  store i32 0, ptr %func, align 4
-  %deref = load ptr, ptr %byRef1, align 8
-  %load_byRef1 = load i16, ptr %deref, align 2
+  %func = alloca i32, align [filtered]
+  %byRef1 = alloca ptr, align [filtered]
+  store ptr %0, ptr %byRef1, align [filtered]
+  %byRef2 = alloca ptr, align [filtered]
+  store ptr %1, ptr %byRef2, align [filtered]
+  %byVal1 = alloca i16, align [filtered]
+  store i16 %2, ptr %byVal1, align [filtered]
+  %byVal2 = alloca i32, align [filtered]
+  store i32 %3, ptr %byVal2, align [filtered]
+  store i32 0, ptr %func, align [filtered]
+  %deref = load ptr, ptr %byRef1, align [filtered]
+  %load_byRef1 = load i16, ptr %deref, align [filtered]
   %4 = sext i16 %load_byRef1 to i32
-  %deref1 = load ptr, ptr %byRef2, align 8
-  %load_byRef2 = load i32, ptr %deref1, align 4
+  %deref1 = load ptr, ptr %byRef2, align [filtered]
+  %load_byRef2 = load i32, ptr %deref1, align [filtered]
   %tmpVar = mul i32 %4, %load_byRef2
-  %load_byVal1 = load i16, ptr %byVal1, align 2
+  %load_byVal1 = load i16, ptr %byVal1, align [filtered]
   %5 = sext i16 %load_byVal1 to i32
   %tmpVar2 = mul i32 %tmpVar, %5
-  %deref3 = load ptr, ptr %byRef2, align 8
-  %load_byRef24 = load i32, ptr %deref3, align 4
+  %deref3 = load ptr, ptr %byRef2, align [filtered]
+  %load_byRef24 = load i32, ptr %deref3, align [filtered]
   %tmpVar5 = mul i32 %tmpVar2, %load_byRef24
-  store i32 %tmpVar5, ptr %func, align 4
-  %func_ret = load i32, ptr %func, align 4
+  store i32 %tmpVar5, ptr %func, align [filtered]
+  %func_ret = load i32, ptr %func, align [filtered]
   ret i32 %func_ret
 }
 
 define void @main(ptr %0) {
 entry:
-  %1 = alloca i16, align 2
-  store i16 1, ptr %1, align 2
-  %2 = alloca i32, align 4
-  store i32 2, ptr %2, align 4
+  %1 = alloca i16, align [filtered]
+  store i16 1, ptr %1, align [filtered]
+  %2 = alloca i32, align [filtered]
+  store i32 2, ptr %2, align [filtered]
   %call = call i32 @func(ptr %1, ptr %2, i16 3, i32 4)
   ret void
 }

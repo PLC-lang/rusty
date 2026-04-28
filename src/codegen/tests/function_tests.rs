@@ -297,6 +297,77 @@ fn function_with_varargs_called_in_program() {
 }
 
 #[test]
+fn unsized_varargs_bitaccess_xor_bool_is_promoted_to_i32() {
+    // A bit-access XOR expression passed to a variadic must be promoted to i32.
+    // Without promotion the i1 result can be clobbered by a subsequent call
+    // (e.g. MUX), producing a different value when the same expression is
+    // printed a second time.
+    let result = codegen(
+        "
+        @EXTERNAL
+        FUNCTION printf : DINT
+        VAR_INPUT {ref}
+          str : STRING;
+        END_VAR
+        VAR_INPUT
+          args : ...;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION foo
+        VAR
+            vTrue    : BOOL := TRUE;
+            arrLword : LWORD := 16#abcdefabcdefabcd;
+        END_VAR
+            printf('%u', arrLword.%x27 XOR vTrue);
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
+fn unsized_varargs_bool_args_are_promoted_to_i32() {
+    // BOOL and boolean expressions must be zero-extended to i32 when passed as
+    // unsized variadic arguments (C default argument promotion). Without the
+    // promotion an i1/i8 value reaches printf and produces 255/254 at -Onone.
+    let result = codegen(
+        "
+        @EXTERNAL
+        FUNCTION printf : DINT
+        VAR_INPUT {ref}
+          str : STRING;
+        END_VAR
+        VAR_INPUT
+          args : ...;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM prg
+        VAR
+            vTrue  : BOOL := TRUE;
+            vFalse : BOOL := FALSE;
+        END_VAR
+            printf('%u', FALSE);
+            printf('%u', TRUE);
+            printf('%u', NOT FALSE);
+            printf('%u', NOT TRUE);
+            printf('%u', TRUE AND FALSE);
+            printf('%u', NOT (TRUE AND FALSE));
+            printf('%u', vFalse);
+            printf('%u', vTrue);
+            printf('%u', NOT vFalse);
+            printf('%u', NOT vTrue);
+            printf('%u', NOT (vTrue AND vFalse));
+        END_PROGRAM
+        ",
+    );
+
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
 fn function_with_sized_varargs_called_in_program() {
     let result = codegen(
         "
@@ -423,4 +494,214 @@ fn function_call_with_array_access() {
     );
 
     filtered_assert_snapshot!(result)
+}
+
+#[test]
+fn function_output_should_be_cast_if_needed() {
+    let result = codegen(
+        "
+        FUNCTION libFunction : INT
+        VAR_INPUT
+            inVar1 : INT;
+            inVar2 : REAL;
+        END_VAR
+        VAR_OUTPUT
+            result : REAL;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                i1 : INT;
+            END_VAR
+
+            libFunction(
+                inVar1 := 0,
+                inVar2 := 0.0,
+                result => i1
+            );
+        END_PROGRAM
+       ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type { i16 }
+
+    @mainProg_instance = global %mainProg zeroinitializer
+
+    define i16 @libFunction(i16 %0, float %1, ptr %2) {
+    entry:
+      %libFunction = alloca i16, align [filtered]
+      %inVar1 = alloca i16, align [filtered]
+      store i16 %0, ptr %inVar1, align [filtered]
+      %inVar2 = alloca float, align [filtered]
+      store float %1, ptr %inVar2, align [filtered]
+      %result = alloca ptr, align [filtered]
+      store ptr %2, ptr %result, align [filtered]
+      store i16 0, ptr %libFunction, align [filtered]
+      %libFunction_ret = load i16, ptr %libFunction, align [filtered]
+      ret i16 %libFunction_ret
+    }
+
+    define void @mainProg(ptr %0) {
+    entry:
+      %i1 = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
+      %__libFunction_result0 = alloca float, align [filtered]
+      store float 0.000000e+00, ptr %__libFunction_result0, align [filtered]
+      %call = call i16 @libFunction(i16 0, float 0.000000e+00, ptr %__libFunction_result0)
+      %load___libFunction_result0 = load float, ptr %__libFunction_result0, align [filtered]
+      %1 = fptosi float %load___libFunction_result0 to i16
+      store i16 %1, ptr %i1, align [filtered]
+      ret void
+    }
+    "#)
+}
+
+#[test]
+fn function_block_output_should_be_cast_if_needed() {
+    let result = codegen(
+        "
+        FUNCTION_BLOCK libFunction_fb
+        VAR_OUTPUT
+            result : REAL;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM mainProg
+            VAR
+                libFunction : libFunction_fb;
+                i1 : INT;
+            END_VAR
+
+            libFunction(
+                result => i1
+            );
+        END_PROGRAM
+       ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type { %libFunction_fb, i16 }
+    %libFunction_fb = type { float }
+
+    @mainProg_instance = global %mainProg zeroinitializer
+
+    define void @libFunction_fb(ptr %0) {
+    entry:
+      %this = alloca ptr, align [filtered]
+      store ptr %0, ptr %this, align [filtered]
+      %result = getelementptr inbounds nuw %libFunction_fb, ptr %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @mainProg(ptr %0) {
+    entry:
+      %libFunction = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
+      %i1 = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 1
+      call void @libFunction_fb(ptr %libFunction)
+      %1 = getelementptr inbounds %libFunction_fb, ptr %libFunction, i32 0, i32 0
+      %2 = load float, ptr %1, align [filtered]
+      %3 = fptosi float %2 to i16
+      store i16 %3, ptr %i1, align [filtered]
+      ret void
+    }
+    "#)
+}
+
+#[test]
+fn function_call_with_references_to_references_lowered() {
+    let result = codegen(
+        "
+        FUNCTION referenceFunc
+            VAR_INPUT
+                __referenceFunc_return_val : REFERENCE TO INT;
+                in	: REFERENCE TO INT;
+            END_VAR
+
+            in := in + 1;
+            __referenceFunc_return_val REF= in;
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                refVal : REFERENCE TO INT;
+                conVal : INT;
+                tmpVal : INT;
+            END_VAR
+
+            VAR_TEMP
+                __referenceFunc_return_val : REFERENCE TO INT;
+                __referenceFunc_return_val_store : INT;
+            END_VAR
+
+            tmpVal := 11;
+            refVal REF= tmpVal;
+            __referenceFunc_return_val REF= __referenceFunc_return_val_store;
+            referenceFunc(__referenceFunc_return_val, refVal);
+            refVal REF= __referenceFunc_return_val;
+            conVal := refVal;
+        END_FUNCTION
+    ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define void @referenceFunc(ptr %0, ptr %1) {
+    entry:
+      %__referenceFunc_return_val = alloca ptr, align [filtered]
+      store ptr %0, ptr %__referenceFunc_return_val, align [filtered]
+      %in = alloca ptr, align [filtered]
+      store ptr %1, ptr %in, align [filtered]
+      %deref = load ptr, ptr %in, align [filtered]
+      %deref1 = load ptr, ptr %in, align [filtered]
+      %load_in = load i16, ptr %deref1, align [filtered]
+      %2 = sext i16 %load_in to i32
+      %tmpVar = add i32 %2, 1
+      %3 = trunc i32 %tmpVar to i16
+      store i16 %3, ptr %deref, align [filtered]
+      %deref2 = load ptr, ptr %in, align [filtered]
+      store ptr %deref2, ptr %__referenceFunc_return_val, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %refVal = alloca ptr, align [filtered]
+      %conVal = alloca i16, align [filtered]
+      %tmpVal = alloca i16, align [filtered]
+      %__referenceFunc_return_val = alloca ptr, align [filtered]
+      %__referenceFunc_return_val_store = alloca i16, align [filtered]
+      store ptr null, ptr %refVal, align [filtered]
+      store i16 0, ptr %conVal, align [filtered]
+      store i16 0, ptr %tmpVal, align [filtered]
+      store ptr null, ptr %__referenceFunc_return_val, align [filtered]
+      store i16 0, ptr %__referenceFunc_return_val_store, align [filtered]
+      store i16 11, ptr %tmpVal, align [filtered]
+      store ptr %tmpVal, ptr %refVal, align [filtered]
+      store ptr %__referenceFunc_return_val_store, ptr %__referenceFunc_return_val, align [filtered]
+      %deref = load ptr, ptr %__referenceFunc_return_val, align [filtered]
+      %deref1 = load ptr, ptr %refVal, align [filtered]
+      call void @referenceFunc(ptr %deref, ptr %deref1)
+      %deref2 = load ptr, ptr %__referenceFunc_return_val, align [filtered]
+      store ptr %deref2, ptr %refVal, align [filtered]
+      %deref3 = load ptr, ptr %refVal, align [filtered]
+      %load_refVal = load i16, ptr %deref3, align [filtered]
+      store i16 %load_refVal, ptr %conVal, align [filtered]
+      ret void
+    }
+    "#)
 }

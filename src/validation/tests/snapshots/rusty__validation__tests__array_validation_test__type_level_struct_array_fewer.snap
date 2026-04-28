@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: diagnostics
+---
+warning[E127]: Fewer initial values for array `arraytype` than expected. Expected 5, found 1.
+  ┌─ <internal>:7:54
+  │
+7 │         TYPE arraytype : ARRAY [1..5] OF myStruct := [(first := 5, second := FALSE)];
+  │                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Fewer initial values for array `arraytype` than expected. Expected 5, found 1.

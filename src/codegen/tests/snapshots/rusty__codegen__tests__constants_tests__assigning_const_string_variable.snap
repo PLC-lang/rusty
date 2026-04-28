@@ -15,7 +15,7 @@ target triple = "[filtered]"
 define void @main(ptr %0) {
 entry:
   %str = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %str, ptr align 1 @const_str, i32 80, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %str, ptr align [filtered] @const_str, i32 80, i1 false)
   ret void
 }
 

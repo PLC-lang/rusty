@@ -25,11 +25,11 @@ entry:
 define void @foo(ptr %0) {
 entry:
   %inout = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-  %deref = load ptr, ptr %inout, align 8
-  store ptr %deref, ptr @foo2_instance, align 8
-  %deref1 = load ptr, ptr %inout, align 8
-  %load_inout = load i32, ptr %deref1, align 4
-  store i32 %load_inout, ptr getelementptr inbounds (%foo2, ptr @foo2_instance, i32 0, i32 1), align 4
+  %deref = load ptr, ptr %inout, align [filtered]
+  store ptr %deref, ptr @foo2_instance, align [filtered]
+  %deref1 = load ptr, ptr %inout, align [filtered]
+  %load_inout = load i32, ptr %deref1, align [filtered]
+  store i32 %load_inout, ptr getelementptr inbounds (%foo2, ptr @foo2_instance, i32 0, i32 1), align [filtered]
   call void @foo2(ptr @foo2_instance)
   ret void
 }
@@ -37,7 +37,7 @@ entry:
 define void @prg(ptr %0) {
 entry:
   %baz = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-  store ptr %baz, ptr @foo_instance, align 8
+  store ptr %baz, ptr @foo_instance, align [filtered]
   call void @foo(ptr @foo_instance)
   ret void
 }

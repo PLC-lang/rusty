@@ -352,18 +352,18 @@ fn enum_typed_varargs_get_promoted() {
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %e1 = alloca i16, align 2
-      %i1 = alloca i16, align 2
-      store i16 10, ptr %e1, align 2
-      store i16 10, ptr %i1, align 2
-      store i32 0, ptr %main, align 4
-      %load_e1 = load i16, ptr %e1, align 2
+      %main = alloca i32, align [filtered]
+      %e1 = alloca i16, align [filtered]
+      %i1 = alloca i16, align [filtered]
+      store i16 10, ptr %e1, align [filtered]
+      store i16 10, ptr %i1, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      %load_e1 = load i16, ptr %e1, align [filtered]
       %0 = sext i16 %load_e1 to i32
-      %load_i1 = load i16, ptr %i1, align 2
+      %load_i1 = load i16, ptr %i1, align [filtered]
       %1 = sext i16 %load_i1 to i32
       %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %0, i32 %1)
-      %main_ret = load i32, ptr %main, align 4
+      %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }
     "#);
@@ -401,20 +401,19 @@ fn self_referential_struct_via_reference_codegen() {
     %Node = type { i32, ptr }
 
     @main_instance = global %main zeroinitializer
-    @__Node__init = unnamed_addr constant %Node zeroinitializer
 
     define void @main(ptr %0) {
     entry:
       %node1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
       %node2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       %data = getelementptr inbounds nuw %Node, ptr %node1, i32 0, i32 0
-      store i32 42, ptr %data, align 4
+      store i32 42, ptr %data, align [filtered]
       %data1 = getelementptr inbounds nuw %Node, ptr %node2, i32 0, i32 0
-      store i32 84, ptr %data1, align 4
+      store i32 84, ptr %data1, align [filtered]
       %next = getelementptr inbounds nuw %Node, ptr %node1, i32 0, i32 1
-      store ptr %node2, ptr %next, align 8
+      store ptr %node2, ptr %next, align [filtered]
       %next2 = getelementptr inbounds nuw %Node, ptr %node2, i32 0, i32 1
-      store ptr %node1, ptr %next2, align 8
+      store ptr %node1, ptr %next2, align [filtered]
       ret void
     }
     "#);
@@ -463,10 +462,10 @@ fn arrays_and_strings_passed_as_pointers_in_unsized_variadics() {
 
     define void @main(ptr %0) {
     entry:
-      %myString = alloca [81 x i8], align 1
-      %myArray = alloca [3 x i16], align 2
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %myString, ptr align 1 @__main.myString__init, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %myArray, ptr align 1 @__main.myArray__init, i64 ptrtoint (ptr getelementptr ([3 x i16], ptr null, i32 1) to i64), i1 false)
+      %myString = alloca [81 x i8], align [filtered]
+      %myArray = alloca [3 x i16], align [filtered]
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %myString, ptr align [filtered] @__main.myString__init, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %myArray, ptr align [filtered] @__main.myArray__init, i64 ptrtoint (ptr getelementptr ([3 x i16], ptr null, i32 1) to i64), i1 false)
       %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_1, ptr %myString)
       %call1 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, ptr %myArray)
       ret void
@@ -476,5 +475,165 @@ fn arrays_and_strings_passed_as_pointers_in_unsized_variadics() {
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    "#);
+}
+
+#[test]
+fn enum_initialized_with_typed_literal() {
+    let result = codegen(
+        r#"
+    PROGRAM mainProg
+        foo();
+    END_PROGRAM
+
+    FUNCTION foo
+        VAR
+            vEnum : myEnum := e2;
+        END_VAR
+    END_FUNCTION
+
+    TYPE
+        myEnum : (e1, e2:=BYTE#30) BYTE;
+    END_TYPE
+
+    FUNCTION main
+        mainProg();
+    END_FUNCTION
+    "#,
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type {}
+
+    @mainProg_instance = global %mainProg zeroinitializer
+    @myEnum.e2 = unnamed_addr constant i8 30
+    @myEnum.e1 = unnamed_addr constant i8 0
+
+    define void @mainProg(ptr %0) {
+    entry:
+      call void @foo()
+      ret void
+    }
+
+    define void @foo() {
+    entry:
+      %vEnum = alloca i8, align [filtered]
+      store i8 30, ptr %vEnum, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      call void @mainProg(ptr @mainProg_instance)
+      ret void
+    }
+    "#);
+}
+
+#[test]
+fn typed_enum_initialized_with_typed_literal_with_no_intermediate_function() {
+    let result = codegen(
+        r#"
+    PROGRAM mainProg
+        VAR
+            vEnum : myEnum := e2;
+        END_VAR
+    END_PROGRAM
+
+    TYPE
+        myEnum : (e1, e2:=BYTE#30) BYTE;
+    END_TYPE
+
+    FUNCTION main
+        mainProg();
+    END_FUNCTION
+    "#,
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type { i8 }
+
+    @mainProg_instance = global %mainProg { i8 30 }
+    @myEnum.e2 = unnamed_addr constant i8 30
+    @myEnum.e1 = unnamed_addr constant i8 0
+
+    define void @mainProg(ptr %0) {
+    entry:
+      %vEnum = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      call void @mainProg(ptr @mainProg_instance)
+      ret void
+    }
+    "#);
+}
+
+#[test]
+fn enum_initialized_with_typed_literal_using_differing_types() {
+    let result = codegen(
+        r#"
+    PROGRAM mainProg
+        foo();
+    END_PROGRAM
+
+    FUNCTION foo
+        VAR
+            vEnum : myEnum := e2;
+        END_VAR
+    END_FUNCTION
+
+    TYPE
+        myEnum : (e1 := LINT#20, e2:=BYTE#30) BYTE;
+    END_TYPE
+
+    FUNCTION main
+        mainProg();
+    END_FUNCTION
+    "#,
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %mainProg = type {}
+
+    @mainProg_instance = global %mainProg zeroinitializer
+    @myEnum.e2 = unnamed_addr constant i8 30
+    @myEnum.e1 = unnamed_addr constant i8 20
+
+    define void @mainProg(ptr %0) {
+    entry:
+      call void @foo()
+      ret void
+    }
+
+    define void @foo() {
+    entry:
+      %vEnum = alloca i8, align [filtered]
+      store i8 30, ptr %vEnum, align [filtered]
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      call void @mainProg(ptr @mainProg_instance)
+      ret void
+    }
     "#);
 }

@@ -9,13 +9,13 @@ target triple = "[filtered]"
 
 define i32 @foo() !dbg !4 {
 entry:
-  %foo = alloca i32, align 4
-  %a = alloca [64 x i32], align 4
+  %foo = alloca i32, align [filtered]
+  %a = alloca [64 x i32], align [filtered]
     #dbg_declare(ptr %a, !9, !DIExpression(), !14)
-  call void @llvm.memset.p0.i64(ptr align 1 %a, i8 0, i64 ptrtoint (ptr getelementptr ([64 x i32], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0.i64(ptr align [filtered] %a, i8 0, i64 ptrtoint (ptr getelementptr ([64 x i32], ptr null, i32 1) to i64), i1 false)
     #dbg_declare(ptr %foo, !15, !DIExpression(), !16)
-  store i32 0, ptr %foo, align 4
-  %foo_ret = load i32, ptr %foo, align 4, !dbg !17
+  store i32 0, ptr %foo, align [filtered]
+  %foo_ret = load i32, ptr %foo, align [filtered], !dbg !17
   ret i32 %foo_ret, !dbg !17
 }
 
@@ -36,12 +36,12 @@ attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
 !7 = !{null}
 !8 = !{}
-!9 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !10, align: 32)
-!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 2048, align: 32, elements: !12)
+!9 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !10, align [filtered])
+!10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 2048, align [filtered], elements: !12)
 !11 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !12 = !{!13}
 !13 = !DISubrange(count: 64, lowerBound: 1)
 !14 = !DILocation(line: 4, column: 12, scope: !4)
-!15 = !DILocalVariable(name: "foo", scope: !4, file: !5, line: 2, type: !11, align: 32)
+!15 = !DILocalVariable(name: "foo", scope: !4, file: !5, line: 2, type: !11, align [filtered])
 !16 = !DILocation(line: 2, column: 17, scope: !4)
 !17 = !DILocation(line: 6, column: 8, scope: !4)

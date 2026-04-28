@@ -104,3 +104,112 @@ fn literal_cast_with_space() {
     // THEN this should work
     assert_eq!(Vec::<Diagnostic>::new(), diagnostics);
 }
+
+// ── E124: invalid escape sequences in string literals ─────────────────────────
+//
+// NOTE: A trailing '$' immediately before the closing delimiter (e.g. 'hello$')
+// is NOT reachable as an E124 diagnostic. The lexer regex treats '$X' (dollar
+// followed by any character) as an atomic unit, so '$' before the closing quote
+// is consumed as the '$'' quote-escape, leaving the string unterminated. The
+// compiler rejects these inputs at the lexer level (E007), not via E124.
+// The lit tests in tests/lit/single/string_escapes/string_trailing_dollar.st
+// and wstring_trailing_dollar.st document this behaviour at the integration level.
+
+#[test]
+fn string_with_unrecognized_escape_emits_diagnostic() {
+    let src = r#"
+        PROGRAM exp
+        VAR s : STRING[20]; END_VAR
+            s := 'test$Qtest';
+        END_PROGRAM
+    "#;
+    let (_, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @"
+    error[E124]: Invalid escape sequence in string literal: '$Q' is not a valid escape sequence
+      ┌─ <internal>:4:18
+      │
+    4 │             s := 'test$Qtest';
+      │                  ^^^^^^^^^^^^ Invalid escape sequence in string literal: '$Q' is not a valid escape sequence
+    ");
+}
+
+#[test]
+fn string_with_incomplete_hex_escape_emits_diagnostic() {
+    let src = r#"
+        PROGRAM exp
+        VAR s : STRING[10]; END_VAR
+            s := '$A';
+        END_PROGRAM
+    "#;
+    let (_, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @"
+    error[E124]: Invalid escape sequence in string literal: incomplete hex escape, expected 2 hex digits after '$'
+      ┌─ <internal>:4:18
+      │
+    4 │             s := '$A';
+      │                  ^^^^ Invalid escape sequence in string literal: incomplete hex escape, expected 2 hex digits after '$'
+    ");
+}
+
+#[test]
+fn wstring_with_unrecognized_escape_emits_diagnostic() {
+    let src = r#"
+        PROGRAM exp
+        VAR s : WSTRING[20]; END_VAR
+            s := "test$Qtest";
+        END_PROGRAM
+    "#;
+    let (_, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @r#"
+    error[E124]: Invalid escape sequence in string literal: '$Q' is not a valid escape sequence
+      ┌─ <internal>:4:18
+      │
+    4 │             s := "test$Qtest";
+      │                  ^^^^^^^^^^^^ Invalid escape sequence in string literal: '$Q' is not a valid escape sequence
+    "#);
+}
+
+#[test]
+fn wstring_with_incomplete_hex_escape_emits_diagnostic() {
+    let src = r#"
+        PROGRAM exp
+        VAR s : WSTRING[10]; END_VAR
+            s := "$004";
+        END_PROGRAM
+    "#;
+    let (_, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @r#"
+    error[E124]: Invalid escape sequence in string literal: incomplete hex escape, expected 4 hex digits after '$'
+      ┌─ <internal>:4:18
+      │
+    4 │             s := "$004";
+      │                  ^^^^^^ Invalid escape sequence in string literal: incomplete hex escape, expected 4 hex digits after '$'
+    "#);
+}
+
+#[test]
+fn string_with_multiple_invalid_escapes_emits_multiple_diagnostics() {
+    // '$Q$Z': two consecutive unrecognised escapes in a properly-terminated string.
+    // Note: '$' immediately before the closing delimiter (e.g. 'hello$') is a lexer-level
+    // error, not E124, so such cases are not tested here.
+    let src = r#"
+        PROGRAM exp
+        VAR s : STRING[20]; END_VAR
+            s := '$Q$Z';
+        END_PROGRAM
+    "#;
+    let (_, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @"
+    error[E124]: Invalid escape sequence in string literal: '$Q' is not a valid escape sequence
+      ┌─ <internal>:4:18
+      │
+    4 │             s := '$Q$Z';
+      │                  ^^^^^^ Invalid escape sequence in string literal: '$Q' is not a valid escape sequence
+
+    error[E124]: Invalid escape sequence in string literal: '$Z' is not a valid escape sequence
+      ┌─ <internal>:4:18
+      │
+    4 │             s := '$Q$Z';
+      │                  ^^^^^^ Invalid escape sequence in string literal: '$Z' is not a valid escape sequence
+    ");
+}

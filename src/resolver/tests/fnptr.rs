@@ -535,6 +535,7 @@ fn function_pointer_arguments_have_correct_type_hint() {
                 location: SourceLocation {
                     span: None,
                 },
+                linkage: Internal,
             },
         )
         "#);
@@ -554,6 +555,7 @@ fn function_pointer_arguments_have_correct_type_hint() {
                 location: SourceLocation {
                     span: None,
                 },
+                linkage: BuiltIn,
             },
         )
         "#);
@@ -603,6 +605,7 @@ fn function_pointer_arguments_have_correct_type_hint() {
                 location: SourceLocation {
                     span: None,
                 },
+                linkage: Internal,
             },
         )
         "#);
@@ -622,6 +625,7 @@ fn function_pointer_arguments_have_correct_type_hint() {
                 location: SourceLocation {
                     span: None,
                 },
+                linkage: BuiltIn,
             },
         )
         "#);

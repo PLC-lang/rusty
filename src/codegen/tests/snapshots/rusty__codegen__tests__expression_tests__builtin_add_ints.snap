@@ -9,29 +9,29 @@ target triple = "[filtered]"
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  %x1 = alloca i32, align 4
-  %x2 = alloca i32, align 4
-  %x3 = alloca i32, align 4
-  %l1 = alloca i64, align 8
-  %s1 = alloca i8, align 1
-  store i32 0, ptr %x1, align 4
-  store i32 0, ptr %x2, align 4
-  store i32 0, ptr %x3, align 4
-  store i64 0, ptr %l1, align 8
-  store i8 0, ptr %s1, align 1
-  store i32 0, ptr %main, align 4
-  %load_x1 = load i32, ptr %x1, align 4
-  %load_x2 = load i32, ptr %x2, align 4
+  %main = alloca i32, align [filtered]
+  %x1 = alloca i32, align [filtered]
+  %x2 = alloca i32, align [filtered]
+  %x3 = alloca i32, align [filtered]
+  %l1 = alloca i64, align [filtered]
+  %s1 = alloca i8, align [filtered]
+  store i32 0, ptr %x1, align [filtered]
+  store i32 0, ptr %x2, align [filtered]
+  store i32 0, ptr %x3, align [filtered]
+  store i64 0, ptr %l1, align [filtered]
+  store i8 0, ptr %s1, align [filtered]
+  store i32 0, ptr %main, align [filtered]
+  %load_x1 = load i32, ptr %x1, align [filtered]
+  %load_x2 = load i32, ptr %x2, align [filtered]
   %tmpVar = add i32 %load_x1, %load_x2
-  %load_x3 = load i32, ptr %x3, align 4
+  %load_x3 = load i32, ptr %x3, align [filtered]
   %tmpVar1 = add i32 %tmpVar, %load_x3
   %0 = sext i32 %tmpVar1 to i64
-  %load_l1 = load i64, ptr %l1, align 8
+  %load_l1 = load i64, ptr %l1, align [filtered]
   %tmpVar2 = add i64 %0, %load_l1
-  %load_s1 = load i8, ptr %s1, align 1
+  %load_s1 = load i8, ptr %s1, align [filtered]
   %1 = sext i8 %load_s1 to i64
   %tmpVar3 = add i64 %tmpVar2, %1
-  %main_ret = load i32, ptr %main, align 4
+  %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }

@@ -18,6 +18,12 @@ use plc::output::FormatOption;
 pub struct LibraryConfig {
     pub name: String,
     pub path: PathBuf,
+    /// Optional explicit library file to link against (e.g. `libfoo.so.1`).
+    ///
+    /// Relative paths are resolved against `path`.
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub link_path: Option<PathBuf>,
     pub package: LinkageInfo,
     pub include_path: Vec<PathBuf>,
     #[serde(default = "default_targets")]
@@ -274,6 +280,7 @@ mod tests {
                 LibraryConfig {
                     name: String::from("copy"),
                     path: PathBuf::from("libs/"),
+                    link_path: None,
                     package: LinkageInfo::Copy,
                     include_path: vec![PathBuf::from("simple_program.st")],
                     architectures: default_targets(),
@@ -281,6 +288,7 @@ mod tests {
                 LibraryConfig {
                     name: String::from("nocopy"),
                     path: PathBuf::from("libs/"),
+                    link_path: None,
                     package: LinkageInfo::System,
                     include_path: vec![PathBuf::from("simple_program.st")],
                     architectures: default_targets(),
@@ -288,6 +296,7 @@ mod tests {
                 LibraryConfig {
                     name: String::from("static"),
                     path: PathBuf::from("libs/"),
+                    link_path: None,
                     package: LinkageInfo::Static,
                     include_path: vec![PathBuf::from("simple_program.st")],
                     architectures: default_targets(),
@@ -295,6 +304,7 @@ mod tests {
                 LibraryConfig {
                     name: String::from("withTargets"),
                     path: PathBuf::from("libs/"),
+                    link_path: None,
                     package: LinkageInfo::Static,
                     include_path: vec![PathBuf::from("simple_program.st")],
                     architectures: vec!["myArch".into(), "myArch2".into()],
@@ -320,6 +330,32 @@ mod tests {
         assert_eq!(testproj_lib[1].path, proj_lib[1].path);
         assert_eq!(testproj_lib[1].package, proj_lib[1].package);
         assert_eq!(testproj_lib[1].include_path, proj_lib[1].include_path);
+    }
+
+    #[test]
+    fn link_path_is_parsed_when_present() {
+        let proj = ProjectConfig::try_parse(
+            r#"
+            {
+                "name": "MyProject",
+                "files" : ["simple_program.st"],
+                "compile_type" : "Shared",
+                "libraries" : [
+                    {
+                        "name" : "foo",
+                        "path" : "libs/",
+                        "link_path" : "libfoo.so.1",
+                        "package" : "System",
+                        "include_path" : ["simple_program.st"]
+                    }
+                ]
+            }
+            "#
+            .into(),
+        )
+        .unwrap();
+
+        assert_eq!(proj.libraries[0].link_path, Some(PathBuf::from("libfoo.so.1")));
     }
 
     #[test]

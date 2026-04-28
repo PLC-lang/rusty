@@ -24,7 +24,7 @@ fn chaining_super_is_invalid() {
     ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E119]: `SUPER` is not allowed in member-access position.
        ┌─ <internal>:16:20
        │
@@ -587,13 +587,11 @@ fn super_with_property_access() {
                 _prop_val : INT := 10;
             END_VAR
 
-            PROPERTY prop : INT
-                GET
-                    prop := _prop_val;
-                END_GET
-                SET
-                    _prop_val := prop;
-                END_SET
+            PROPERTY_GET prop: INT
+                prop := _prop_val;
+            END_PROPERTY
+            PROPERTY_SET prop: INT
+                _prop_val := prop;
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -602,13 +600,11 @@ fn super_with_property_access() {
                 local : INT;
             END_VAR
 
-            PROPERTY prop : INT // Override property
-                GET
-                    prop := _prop_val * 2;
-                END_GET
-                SET
-                    _prop_val := prop / 2;
-                END_SET
+            PROPERTY_GET prop: INT
+                prop := _prop_val * 2;
+            END_PROPERTY
+            PROPERTY_SET prop: INT
+                _prop_val := prop / 2;
             END_PROPERTY
 
             METHOD test
@@ -820,7 +816,13 @@ fn super_in_nested_conditionals() {
     ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
+    warning[E049]: Illegal access to private member parent.value
+       ┌─ <internal>:16:27
+       │
+    16 │                 IF SUPER^.value > 0 THEN
+       │                           ^^^^^ Illegal access to private member parent.value
+
     warning[E049]: Illegal access to private member parent.value
        ┌─ <internal>:18:32
        │
@@ -1341,13 +1343,11 @@ fn super_with_property_access_errors() {
                 _value: INT;
             END_VAR
 
-            PROPERTY prop : INT
-                GET
-                    prop := _value;
-                END_GET
-                SET
-                    _value := prop;
-                END_SET
+            PROPERTY_GET prop: INT
+                prop := _value;
+            END_PROPERTY
+            PROPERTY_SET prop: INT
+                _value := prop;
             END_PROPERTY
         END_FUNCTION_BLOCK
 
@@ -1368,21 +1368,21 @@ fn super_with_property_access_errors() {
 
     assert_snapshot!(diagnostics, @r"
     error[E119]: `SUPER` must be dereferenced to access its members.
-       ┌─ <internal>:23:19
+       ┌─ <internal>:21:19
        │
-    23 │             SUPER.prop := 10;    // Should be SUPER^.prop
+    21 │             SUPER.prop := 10;    // Should be SUPER^.prop
        │                   ^^^^ `SUPER` must be dereferenced to access its members.
 
     error[E119]: `SUPER` must be dereferenced to access its members.
-       ┌─ <internal>:24:24
+       ┌─ <internal>:22:24
        │
-    24 │             x := SUPER.prop;     // Should be SUPER^.prop
+    22 │             x := SUPER.prop;     // Should be SUPER^.prop
        │                        ^^^^ `SUPER` must be dereferenced to access its members.
 
     error[E007]: Properties cannot be called like functions. Remove `()`
-       ┌─ <internal>:27:13
+       ┌─ <internal>:25:13
        │
-    27 │             SUPER^.prop();
+    25 │             SUPER^.prop();
        │             ^^^^^^^^^^^ Properties cannot be called like functions. Remove `()`
     ");
 }

@@ -15,21 +15,21 @@ define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %b1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  %load_x = load i32, ptr %x, align 4
+  %load_x = load i32, ptr %x, align [filtered]
   %tmpVar = icmp sgt i32 %load_x, 1
   %1 = zext i1 %tmpVar to i8
   %2 = icmp ne i8 %1, 0
   br i1 %2, label %5, label %3
 
 condition_body:                                   ; preds = %5
-  %load_x1 = load i32, ptr %x, align 4
+  %load_x1 = load i32, ptr %x, align [filtered]
   br label %continue
 
 continue:                                         ; preds = %condition_body, %5
   ret void
 
 3:                                                ; preds = %entry
-  %load_b1 = load i8, ptr %b1, align 1
+  %load_b1 = load i8, ptr %b1, align [filtered]
   %4 = icmp ne i8 %load_b1, 0
   br label %5
 

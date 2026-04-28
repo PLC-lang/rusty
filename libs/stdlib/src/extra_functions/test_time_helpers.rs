@@ -44,6 +44,18 @@ impl MockClock {
     }
 }
 
+#[cfg(feature = "mock_time")]
+#[no_mangle]
+pub extern "C" fn __mock_time_set_u32(secs: u32) {
+    MockClock::set_time(secs);
+}
+
+#[cfg(feature = "mock_time")]
+#[no_mangle]
+pub extern "C" fn __mock_time_advance_u32(secs: u32) {
+    MockClock::advance(secs);
+}
+
 // a mock local timezone struct to use instead of chrono::Local during testing
 #[derive(Copy, Clone, Debug)]
 pub struct Local;

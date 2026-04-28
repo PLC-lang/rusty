@@ -1,0 +1,12 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: RuSTy
+Upstream-Contact: https://github.com/PLC-lang/rusty
+Source: https://github.com/PLC-lang/rusty
+
+Files: *
+Copyright: 2020-2026, PLC-lang contributors
+License: LGPL-3.0-or-later
+ On Debian systems, the full text of the GNU Lesser General Public
+ License version 3 can be found in /usr/share/common-licenses/LGPL-3.
+ The full text of the GNU General Public License version 3 can be found
+ in /usr/share/common-licenses/GPL-3.

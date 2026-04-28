@@ -13,13 +13,13 @@ target triple = "[filtered]"
 
 define i32 @MAX__DINT(i32 %0, i32 %1) {
 entry:
-  %MAX__DINT = alloca i32, align 4
-  %in1 = alloca i32, align 4
-  store i32 %0, ptr %in1, align 4
-  %in2 = alloca i32, align 4
-  store i32 %1, ptr %in2, align 4
-  store i32 0, ptr %MAX__DINT, align 4
-  %MAX__DINT_ret = load i32, ptr %MAX__DINT, align 4
+  %MAX__DINT = alloca i32, align [filtered]
+  %in1 = alloca i32, align [filtered]
+  store i32 %0, ptr %in1, align [filtered]
+  %in2 = alloca i32, align [filtered]
+  store i32 %1, ptr %in2, align [filtered]
+  store i32 0, ptr %MAX__DINT, align [filtered]
+  %MAX__DINT_ret = load i32, ptr %MAX__DINT, align [filtered]
   ret i32 %MAX__DINT_ret
 }
 
@@ -28,8 +28,8 @@ entry:
   %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %call = call i32 @MAX__DINT(i32 1, i32 2)
-  %load_a = load i16, ptr %a, align 2
-  %load_b = load i16, ptr %b, align 2
+  %load_a = load i16, ptr %a, align [filtered]
+  %load_b = load i16, ptr %b, align [filtered]
   %call1 = call i16 @MAX__INT(i16 %load_a, i16 %load_b)
   ret void
 }

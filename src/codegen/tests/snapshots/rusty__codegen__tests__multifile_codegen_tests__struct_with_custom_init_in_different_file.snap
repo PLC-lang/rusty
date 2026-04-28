@@ -7,18 +7,10 @@ source_filename = "myStruct.st"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%myStruct = type { i32, i16 }
-
-@__myStruct__init = unnamed_addr constant %myStruct { i32 6, i16 2 }
-
 ; ModuleID = 'myStruct2.st'
 source_filename = "myStruct2.st"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
-
-%myStruct2 = type { i32, i16 }
-
-@__myStruct2__init = unnamed_addr constant %myStruct2 { i32 6, i16 2 }
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
@@ -30,8 +22,6 @@ target triple = "[filtered]"
 %myStruct2.3 = type { i32, i16 }
 
 @prog_instance = global %prog { %myStruct.2 { i32 5, i16 2 }, %myStruct2.3 { i32 6, i16 2 } }
-@__myStruct__init = external unnamed_addr constant %myStruct.2
-@__myStruct2__init = external unnamed_addr constant %myStruct2.3
 @__prog.x__init = unnamed_addr constant %myStruct.2 { i32 5, i16 2 }
 
 define void @prog(ptr %0) {

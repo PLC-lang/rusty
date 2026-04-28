@@ -16,10 +16,10 @@ entry:
   %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %c = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
-  %load_b = load i8, ptr %b, align 1
+  %load_b = load i8, ptr %b, align [filtered]
   %1 = sext i8 %load_b to i32
-  %load_c = load i32, ptr %c, align 4
+  %load_c = load i32, ptr %c, align [filtered]
   %tmpVar = add i32 %1, %load_c
-  store i32 %tmpVar, ptr %x, align 4
+  store i32 %tmpVar, ptr %x, align [filtered]
   ret void
 }

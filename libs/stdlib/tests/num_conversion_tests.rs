@@ -1,9 +1,7 @@
-use common::compile_and_run;
+use common::{compile_and_run, get_includes};
 
 // Import common functionality into the integration tests
 mod common;
-
-use common::add_std;
 
 #[derive(Default)]
 struct I64Type {
@@ -132,9 +130,10 @@ fn lreal_to_real_conversion() {
         ret.positive := LREAL_to_REAL(LREAL#1.7e+10);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F32Type::default();
-    let _res: f32 = compile_and_run(sources, &mut maintype);
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
     assert_eq!(maintype.negative, -17000000000.0f32);
     assert_eq!(maintype.positive, 17000000000.0f32);
@@ -156,9 +155,10 @@ fn lreal_to_lint_conversion() {
         ret.positive := LREAL_to_LINT(LREAL#9.2233714871e+18);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.negative, -9223371487100000256i64);
     assert_eq!(maintype.positive, 9223371487100000256i64);
@@ -180,9 +180,10 @@ fn lreal_to_dint_conversion() {
         ret.positive := LREAL_to_DINT(LREAL#2.147483520e+9);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.negative, -2147483520i32);
     assert_eq!(maintype.positive, 2147483520i32);
@@ -204,9 +205,10 @@ fn lreal_to_int_conversion() {
         ret.positive := LREAL_to_INT(LREAL#3.2767e+4);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.negative, -32767i16);
     assert_eq!(maintype.positive, 32767i16);
@@ -228,9 +230,10 @@ fn lreal_to_sint_conversion() {
         ret.positive := LREAL_to_SINT(LREAL#1.27e+2);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.negative, -127i8);
     assert_eq!(maintype.positive, 127i8);
@@ -257,9 +260,10 @@ fn lreal_to_ulint_conversion() {
         ret.positive := LREAL_to_ULINT(LREAL#1.84467429742e+19);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.positive, 18446742974200000512u64);
 }
@@ -285,9 +289,10 @@ fn lreal_to_udint_conversion() {
         ret.positive := LREAL_to_UDINT(LREAL#4.294967040e+9);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.positive, 4294967040u32);
 }
@@ -313,9 +318,10 @@ fn lreal_to_uint_conversion() {
         ret.positive := LREAL_to_UINT(LREAL#6.5535e+4);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.positive, 65535u16);
 }
@@ -341,9 +347,10 @@ fn lreal_to_usint_conversion() {
         ret.positive := LREAL_to_USINT(LREAL#2.25e+2);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.positive, 225u8);
 }
@@ -364,9 +371,10 @@ fn real_to_lreal_conversion() {
         ret.positive := REAL_to_LREAL(REAL#2.2e+5);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F64Type::default();
-    let _res: f64 = compile_and_run(sources, &mut maintype);
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
     assert_eq!(maintype.negative, -220000.0f64);
     assert_eq!(maintype.positive, 220000.0f64);
@@ -388,9 +396,10 @@ fn real_to_lint_conversion() {
         ret.positive := REAL_to_LINT(REAL#9.2233714871e+18);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.negative, -9223371487098961920i64);
     assert_eq!(maintype.positive, 9223371487098961920i64);
@@ -412,9 +421,10 @@ fn real_to_dint_conversion() {
         ret.positive := REAL_to_DINT(REAL#2.147483520e+9);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.negative, -2147483520i32);
     assert_eq!(maintype.positive, 2147483520i32);
@@ -436,9 +446,10 @@ fn real_to_int_conversion() {
         ret.positive := REAL_to_INT(REAL#3.2767e+4);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.negative, -32767i16);
     assert_eq!(maintype.positive, 32767i16);
@@ -460,9 +471,10 @@ fn real_to_sint_conversion() {
         ret.positive := REAL_to_SINT(REAL#1.27e+2);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.negative, -127i8);
     assert_eq!(maintype.positive, 127i8);
@@ -489,9 +501,10 @@ fn real_to_ulint_conversion() {
         ret.positive := REAL_to_ULINT(REAL#1.84467429742e+19);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.positive, 18446742974197923840u64);
 }
@@ -517,9 +530,10 @@ fn real_to_udint_conversion() {
         ret.positive := REAL_to_UDINT(REAL#4.294967040e+9);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.positive, 4294967040u32);
 }
@@ -545,9 +559,10 @@ fn real_to_uint_conversion() {
         ret.positive := REAL_to_UINT(REAL#6.5535e+4);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.positive, 65535u16);
 }
@@ -573,9 +588,10 @@ fn real_to_usint_conversion() {
         ret.positive := REAL_to_USINT(REAL#2.25e+2);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = MainType::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.positive, 225u8);
 }
@@ -606,9 +622,10 @@ fn lint_to_lreal_conversion() {
         ret.min_overflow := LINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F64Type::default();
-    let _res: f64 = compile_and_run(sources, &mut maintype);
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
     assert_eq!(maintype.negative, -11.0f64);
     assert_eq!(maintype.positive, 22.0f64);
@@ -644,9 +661,10 @@ fn lint_to_real_conversion() {
         ret.min_overflow := LINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F32Type::default();
-    let _res: f32 = compile_and_run(sources, &mut maintype);
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
     assert_eq!(maintype.negative, -11.0f32);
     assert_eq!(maintype.positive, 22.0f32);
@@ -682,9 +700,10 @@ fn lint_to_dint_conversion() {
         ret.min_overflow := LINT_to_DINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.negative, -11i32);
     assert_eq!(maintype.positive, 22i32);
@@ -720,9 +739,10 @@ fn lint_to_int_conversion() {
         ret.min_overflow := LINT_to_INT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.negative, -11i16);
     assert_eq!(maintype.positive, 22i16);
@@ -758,9 +778,10 @@ fn lint_to_sint_conversion() {
         ret.min_overflow := LINT_to_SINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.negative, -11i8);
     assert_eq!(maintype.positive, 22i8);
@@ -796,9 +817,10 @@ fn lint_to_ulint_conversion() {
         ret.min_overflow := LINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.negative, 18446744073709551615u64);
     assert_eq!(maintype.positive, 22u64);
@@ -834,9 +856,10 @@ fn lint_to_udint_conversion() {
         ret.min_overflow := LINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.negative, 4294967295u32);
     assert_eq!(maintype.positive, 22u32);
@@ -872,9 +895,10 @@ fn lint_to_uint_conversion() {
         ret.min_overflow := LINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.negative, 65535u16);
     assert_eq!(maintype.positive, 22u16);
@@ -910,9 +934,10 @@ fn lint_to_usint_conversion() {
         ret.min_overflow := LINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.negative, 255u8);
     assert_eq!(maintype.positive, 22u8);
@@ -948,9 +973,10 @@ fn dint_to_lreal_conversion() {
         ret.min_overflow := DINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F64Type::default();
-    let _res: f64 = compile_and_run(sources, &mut maintype);
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
     assert_eq!(maintype.negative, -11.0f64);
     assert_eq!(maintype.positive, 22.0f64);
@@ -986,9 +1012,10 @@ fn dint_to_real_conversion() {
         ret.min_overflow := DINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F32Type::default();
-    let _res: f32 = compile_and_run(sources, &mut maintype);
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
     assert_eq!(maintype.negative, -11.0f32);
     assert_eq!(maintype.positive, 22.0f32);
@@ -1024,9 +1051,10 @@ fn dint_to_lint_conversion() {
         ret.min_overflow := DINT_to_LINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.negative, -11i64);
     assert_eq!(maintype.positive, 22i64);
@@ -1062,9 +1090,10 @@ fn dint_to_int_conversion() {
         ret.min_overflow := DINT_to_INT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.negative, -11i16);
     assert_eq!(maintype.positive, 22i16);
@@ -1100,9 +1129,10 @@ fn dint_to_sint_conversion() {
         ret.min_overflow := DINT_to_SINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.negative, -11i8);
     assert_eq!(maintype.positive, 22i8);
@@ -1138,9 +1168,10 @@ fn dint_to_ulint_conversion() {
         ret.min_overflow := DINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.negative, 18446744073709551615u64);
     assert_eq!(maintype.positive, 22u64);
@@ -1176,9 +1207,10 @@ fn dint_to_udint_conversion() {
         ret.min_overflow := DINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.negative, 4294967295u32);
     assert_eq!(maintype.positive, 22u32);
@@ -1214,9 +1246,10 @@ fn dint_to_uint_conversion() {
         ret.min_overflow := DINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.negative, 65535u16);
     assert_eq!(maintype.positive, 22u16);
@@ -1252,9 +1285,10 @@ fn dint_to_usint_conversion() {
         ret.min_overflow := DINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.negative, 255u8);
     assert_eq!(maintype.positive, 22u8);
@@ -1290,9 +1324,10 @@ fn int_to_lreal_conversion() {
         ret.min_overflow := INT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F64Type::default();
-    let _res: f64 = compile_and_run(sources, &mut maintype);
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
     assert_eq!(maintype.negative, -11.0f64);
     assert_eq!(maintype.positive, 22.0f64);
@@ -1328,9 +1363,10 @@ fn int_to_real_conversion() {
         ret.min_overflow := INT_to_REAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F32Type::default();
-    let _res: f32 = compile_and_run(sources, &mut maintype);
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
     assert_eq!(maintype.negative, -11.0f32);
     assert_eq!(maintype.positive, 22.0f32);
@@ -1366,9 +1402,10 @@ fn int_to_lint_conversion() {
         ret.min_overflow := INT_to_LINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.negative, -11i64);
     assert_eq!(maintype.positive, 22i64);
@@ -1404,9 +1441,10 @@ fn int_to_dint_conversion() {
         ret.min_overflow := INT_to_DINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.negative, -11i32);
     assert_eq!(maintype.positive, 22i32);
@@ -1442,9 +1480,10 @@ fn int_to_sint_conversion() {
         ret.min_overflow := INT_to_SINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.negative, -11i8);
     assert_eq!(maintype.positive, 22i8);
@@ -1480,9 +1519,10 @@ fn int_to_ulint_conversion() {
         ret.min_overflow := INT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.negative, 18446744073709551615u64);
     assert_eq!(maintype.positive, 22u64);
@@ -1518,9 +1558,10 @@ fn int_to_udint_conversion() {
         ret.min_overflow := INT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.negative, 4294967295u32);
     assert_eq!(maintype.positive, 22u32);
@@ -1556,9 +1597,10 @@ fn int_to_uint_conversion() {
         ret.min_overflow := INT_to_UINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.negative, 65535u16);
     assert_eq!(maintype.positive, 22u16);
@@ -1594,9 +1636,10 @@ fn int_to_usint_conversion() {
         ret.min_overflow := INT_to_USINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.negative, 255u8);
     assert_eq!(maintype.positive, 22u8);
@@ -1632,9 +1675,10 @@ fn sint_to_lreal_conversion() {
         ret.min_overflow := SINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F64Type::default();
-    let _res: f64 = compile_and_run(sources, &mut maintype);
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
     assert_eq!(maintype.negative, -11.0f64);
     assert_eq!(maintype.positive, 22.0f64);
@@ -1670,9 +1714,10 @@ fn sint_to_real_conversion() {
         ret.min_overflow := SINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F32Type::default();
-    let _res: f32 = compile_and_run(sources, &mut maintype);
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
     assert_eq!(maintype.negative, -11.0f32);
     assert_eq!(maintype.positive, 22.0f32);
@@ -1708,9 +1753,10 @@ fn sint_to_lint_conversion() {
         ret.min_overflow := SINT_to_LINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.negative, -11i64);
     assert_eq!(maintype.positive, 22i64);
@@ -1746,9 +1792,10 @@ fn sint_to_dint_conversion() {
         ret.min_overflow := SINT_to_DINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.negative, -11i32);
     assert_eq!(maintype.positive, 22i32);
@@ -1784,9 +1831,10 @@ fn sint_to_int_conversion() {
         ret.min_overflow := SINT_to_INT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.negative, -11i16);
     assert_eq!(maintype.positive, 22i16);
@@ -1822,9 +1870,10 @@ fn sint_to_ulint_conversion() {
         ret.min_overflow := SINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.negative, 18446744073709551615u64);
     assert_eq!(maintype.positive, 22u64);
@@ -1860,9 +1909,10 @@ fn sint_to_udint_conversion() {
         ret.min_overflow := SINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.negative, 4294967295u32);
     assert_eq!(maintype.positive, 22u32);
@@ -1898,9 +1948,10 @@ fn sint_to_uint_conversion() {
         ret.min_overflow := SINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.negative, 65535u16);
     assert_eq!(maintype.positive, 22u16);
@@ -1936,9 +1987,10 @@ fn sint_to_usint_conversion() {
         ret.min_overflow := SINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.negative, 255u8);
     assert_eq!(maintype.positive, 22u8);
@@ -1974,9 +2026,10 @@ fn ulint_to_lreal_conversion() {
         ret.min_overflow := ULINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F64Type::default();
-    let _res: f64 = compile_and_run(sources, &mut maintype);
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
     assert_eq!(maintype.negative, 18446744073709551614.0f64);
     assert_eq!(maintype.positive, 22.0f64);
@@ -2012,9 +2065,10 @@ fn ulint_to_real_conversion() {
         ret.min_overflow := ULINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F32Type::default();
-    let _res: f32 = compile_and_run(sources, &mut maintype);
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
     assert_eq!(maintype.negative, 18446744073709551614.0f32);
     assert_eq!(maintype.positive, 22.0f32);
@@ -2048,9 +2102,10 @@ fn ulint_to_lint_conversion() {
         ret.max_overflow := ULINT_to_LINT(MAX+1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.positive, 22i64);
     assert_eq!(maintype.max_minus_one, 9223372036854775806i64);
@@ -2082,9 +2137,10 @@ fn ulint_to_dint_conversion() {
         ret.max_overflow := ULINT_to_DINT(MAX+1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.positive, 22i32);
     assert_eq!(maintype.max_minus_one, 2147483646i32);
@@ -2116,9 +2172,10 @@ fn ulint_to_int_conversion() {
         ret.max_overflow := ULINT_to_INT(MAX+1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.positive, 22i16);
     assert_eq!(maintype.max_minus_one, 32766i16);
@@ -2150,9 +2207,10 @@ fn ulint_to_sint_conversion() {
         ret.max_overflow := ULINT_to_SINT(MAX+1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.positive, 22i8);
     assert_eq!(maintype.max_minus_one, 126i8);
@@ -2186,9 +2244,10 @@ fn ulint_to_udint_conversion() {
         ret.min_overflow := ULINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.negative, 4294967295u32);
     assert_eq!(maintype.positive, 22u32);
@@ -2224,9 +2283,10 @@ fn ulint_to_uint_conversion() {
         ret.min_overflow := ULINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.negative, 65535u16);
     assert_eq!(maintype.positive, 22u16);
@@ -2262,9 +2322,10 @@ fn ulint_to_usint_conversion() {
         ret.min_overflow := ULINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.negative, 255u8);
     assert_eq!(maintype.positive, 22u8);
@@ -2300,9 +2361,10 @@ fn udint_to_lreal_conversion() {
         ret.min_overflow := UDINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F64Type::default();
-    let _res: f64 = compile_and_run(sources, &mut maintype);
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
     assert_eq!(maintype.negative, 4294967294.0f64);
     assert_eq!(maintype.positive, 22.0f64);
@@ -2338,9 +2400,10 @@ fn udint_to_real_conversion() {
         ret.min_overflow := UDINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F32Type::default();
-    let _res: f32 = compile_and_run(sources, &mut maintype);
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
     assert_eq!(maintype.negative, 4294967294.0f32);
     assert_eq!(maintype.positive, 22.0f32);
@@ -2376,9 +2439,10 @@ fn udint_to_lint_conversion() {
         ret.min_overflow := UDINT_to_LINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.negative, 4294967295i64);
     assert_eq!(maintype.positive, 22i64);
@@ -2412,9 +2476,10 @@ fn udint_to_dint_conversion() {
         ret.max_overflow := UDINT_to_DINT(MAX+1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.positive, 22i32);
     assert_eq!(maintype.max_minus_one, 2147483646i32);
@@ -2446,9 +2511,10 @@ fn udint_to_int_conversion() {
         ret.max_overflow := UDINT_to_INT(MAX+1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.positive, 22i16);
     assert_eq!(maintype.max_minus_one, 32766i16);
@@ -2480,9 +2546,10 @@ fn udint_to_sint_conversion() {
         ret.max_overflow := UDINT_to_SINT(MAX+1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.positive, 22i8);
     assert_eq!(maintype.max_minus_one, 126i8);
@@ -2516,9 +2583,10 @@ fn udint_to_ulint_conversion() {
         ret.min_overflow := UDINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.negative, 4294967295u64);
     assert_eq!(maintype.positive, 22u64);
@@ -2554,9 +2622,10 @@ fn udint_to_uint_conversion() {
         ret.min_overflow := UDINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.negative, 65535u16);
     assert_eq!(maintype.positive, 22u16);
@@ -2592,9 +2661,10 @@ fn udint_to_usint_conversion() {
         ret.min_overflow := UDINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.negative, 255u8);
     assert_eq!(maintype.positive, 22u8);
@@ -2630,9 +2700,10 @@ fn uint_to_lreal_conversion() {
         ret.min_overflow := UINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F64Type::default();
-    let _res: f64 = compile_and_run(sources, &mut maintype);
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
     assert_eq!(maintype.negative, 65534.0f64);
     assert_eq!(maintype.positive, 22.0f64);
@@ -2668,9 +2739,10 @@ fn uint_to_real_conversion() {
         ret.min_overflow := UINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F32Type::default();
-    let _res: f32 = compile_and_run(sources, &mut maintype);
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
     assert_eq!(maintype.negative, 65534.0f32);
     assert_eq!(maintype.positive, 22.0f32);
@@ -2706,9 +2778,10 @@ fn uint_to_lint_conversion() {
         ret.min_overflow := UINT_to_LINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.negative, 65535i64);
     assert_eq!(maintype.positive, 22i64);
@@ -2744,9 +2817,10 @@ fn uint_to_dint_conversion() {
         ret.min_overflow := UINT_to_DINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.negative, 65535i32);
     assert_eq!(maintype.positive, 22i32);
@@ -2780,9 +2854,10 @@ fn uint_to_int_conversion() {
         ret.max_overflow := UINT_to_INT(MAX+1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.positive, 22i16);
     assert_eq!(maintype.max_minus_one, 32766i16);
@@ -2814,9 +2889,10 @@ fn uint_to_sint_conversion() {
         ret.max_overflow := UINT_to_SINT(MAX+1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.positive, 22i8);
     assert_eq!(maintype.max_minus_one, 126i8);
@@ -2850,9 +2926,10 @@ fn uint_to_ulint_conversion() {
         ret.min_overflow := UINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.negative, 65535u64);
     assert_eq!(maintype.positive, 22u64);
@@ -2888,9 +2965,10 @@ fn uint_to_udint_conversion() {
         ret.min_overflow := UINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.negative, 65535u32);
     assert_eq!(maintype.positive, 22u32);
@@ -2926,9 +3004,10 @@ fn uint_to_usint_conversion() {
         ret.min_overflow := UINT_to_USINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U8Type::default();
-    let _res: u8 = compile_and_run(sources, &mut maintype);
+    let _res: u8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u8);
     assert_eq!(maintype.negative, 255u8);
     assert_eq!(maintype.positive, 22u8);
@@ -2964,9 +3043,10 @@ fn usint_to_lreal_conversion() {
         ret.min_overflow := USINT_to_LREAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F64Type::default();
-    let _res: f64 = compile_and_run(sources, &mut maintype);
+    let _res: f64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f64);
     assert_eq!(maintype.negative, 254.0f64);
     assert_eq!(maintype.positive, 22.0f64);
@@ -3002,9 +3082,10 @@ fn usint_to_real_conversion() {
         ret.min_overflow := USINT_to_REAL(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = F32Type::default();
-    let _res: f32 = compile_and_run(sources, &mut maintype);
+    let _res: f32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0.0f32);
     assert_eq!(maintype.negative, 254.0f32);
     assert_eq!(maintype.positive, 22.0f32);
@@ -3040,9 +3121,10 @@ fn usint_to_lint_conversion() {
         ret.min_overflow := USINT_to_LINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I64Type::default();
-    let _res: i64 = compile_and_run(sources, &mut maintype);
+    let _res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i64);
     assert_eq!(maintype.negative, 255i64);
     assert_eq!(maintype.positive, 22i64);
@@ -3078,9 +3160,10 @@ fn usint_to_dint_conversion() {
         ret.min_overflow := USINT_to_DINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I32Type::default();
-    let _res: i32 = compile_and_run(sources, &mut maintype);
+    let _res: i32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i32);
     assert_eq!(maintype.negative, 255i32);
     assert_eq!(maintype.positive, 22i32);
@@ -3116,9 +3199,10 @@ fn usint_to_int_conversion() {
         ret.min_overflow := USINT_to_INT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I16Type::default();
-    let _res: i16 = compile_and_run(sources, &mut maintype);
+    let _res: i16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i16);
     assert_eq!(maintype.negative, 255i16);
     assert_eq!(maintype.positive, 22i16);
@@ -3152,9 +3236,10 @@ fn usint_to_sint_conversion() {
         ret.max_overflow := USINT_to_SINT(MAX+1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = I8Type::default();
-    let _res: i8 = compile_and_run(sources, &mut maintype);
+    let _res: i8 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0i8);
     assert_eq!(maintype.positive, 22i8);
     assert_eq!(maintype.max_minus_one, 126i8);
@@ -3188,9 +3273,10 @@ fn usint_to_ulint_conversion() {
         ret.min_overflow := USINT_to_ULINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U64Type::default();
-    let _res: u64 = compile_and_run(sources, &mut maintype);
+    let _res: u64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u64);
     assert_eq!(maintype.negative, 255u64);
     assert_eq!(maintype.positive, 22u64);
@@ -3226,9 +3312,10 @@ fn usint_to_udint_conversion() {
         ret.min_overflow := USINT_to_UDINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U32Type::default();
-    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let _res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u32);
     assert_eq!(maintype.negative, 255u32);
     assert_eq!(maintype.positive, 22u32);
@@ -3264,9 +3351,10 @@ fn usint_to_uint_conversion() {
         ret.min_overflow := USINT_to_UINT(MIN-1);
     END_PROGRAM
         ";
-    let sources = add_std!(src, "num_conversion.st", "numerical_functions.st");
+    let sources = vec![src.into()];
+    let includes = get_includes(&["num_conversion.st", "numerical_functions.st"]);
     let mut maintype = U16Type::default();
-    let _res: u16 = compile_and_run(sources, &mut maintype);
+    let _res: u16 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(maintype.zero, 0u16);
     assert_eq!(maintype.negative, 255u16);
     assert_eq!(maintype.positive, 22u16);

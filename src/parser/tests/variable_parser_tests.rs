@@ -368,6 +368,7 @@ fn var_config_test() {
         file: File(
             "test.st",
         ),
+        linkage: Internal,
     }
     "#);
 }
@@ -388,12 +389,12 @@ fn var_config_location() {
 #[test]
 fn var_external() {
     let src = r#"
-    VAR_GLOBAL 
-        arr: ARRAY [0..100] OF INT; 
+    VAR_GLOBAL
+        arr: ARRAY [0..100] OF INT;
     END_VAR
 
     FUNCTION foo
-    VAR_EXTERNAL 
+    VAR_EXTERNAL
         arr : ARRAY [0..100] OF INT;
     END_VAR
     END_FUNCTION
@@ -493,6 +494,7 @@ fn var_external() {
         file: File(
             "test.st",
         ),
+        linkage: Internal,
     }
     "#);
 }
@@ -500,8 +502,8 @@ fn var_external() {
 #[test]
 fn var_external_constant() {
     let src = r#"
-    VAR_GLOBAL 
-        arr: ARRAY [0..100] OF INT; 
+    VAR_GLOBAL
+        arr: ARRAY [0..100] OF INT;
     END_VAR
 
     FUNCTION foo
@@ -571,6 +573,7 @@ fn var_external_constant() {
                             },
                         ],
                         variable_block_type: External,
+                        constant: true,
                     },
                 ],
                 pou_type: Function,
@@ -605,6 +608,7 @@ fn var_external_constant() {
         file: File(
             "test.st",
         ),
+        linkage: Internal,
     }
     "#);
 }
@@ -706,4 +710,52 @@ fn function_pointer() {
         properties: [],
     }
     "#);
+}
+
+#[test]
+fn retain_global_block() {
+    let src = r#"
+    VAR_GLOBAL RETAIN
+        x : INT;
+        y : BOOL;
+    END_VAR
+    "#;
+
+    let (result, _) = parse(src);
+
+    let var_block = &result.global_vars[0];
+    assert!(var_block.retain);
+}
+
+#[test]
+fn retain_block_in_program() {
+    let src = r#"
+    PROGRAM main
+    VAR RETAIN
+        x : INT;
+        y : BOOL;
+    END_VAR
+    END_PROGRAM
+    "#;
+
+    let (result, _) = parse(src);
+
+    let var_block = &result.pous[0].variable_blocks[0];
+    assert!(var_block.retain);
+}
+
+#[test]
+fn retain_block_in_function_block() {
+    let src = r#"
+    FUNCTION_BLOCK Fb
+    VAR RETAIN
+        x : INT;
+        y : BOOL;
+    END_VAR
+    END_FUNCTION_BLOCK
+    "#;
+
+    let (result, _) = parse(src);
+    let var_block = &result.pous[0].variable_blocks[0];
+    assert!(var_block.retain);
 }

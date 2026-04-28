@@ -830,6 +830,7 @@ pub unsafe extern "C-unwind" fn __WSTRING_LESS(argc: i32, argv: *const *const u1
 
 // -------------------------------------------------unit tests-----------------------------------------
 #[cfg(test)]
+#[allow(clippy::manual_c_str_literals)]
 mod test {
     use super::*;
     use std::ffi::CStr;

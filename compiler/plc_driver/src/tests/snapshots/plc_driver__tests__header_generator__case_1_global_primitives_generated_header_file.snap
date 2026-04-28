@@ -1,0 +1,41 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef GLOBAL_PRIMITIVES_H_
+#define GLOBAL_PRIMITIVES_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <time.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern bool gVarBool;
+extern int8_t gVarSInt;
+extern int16_t gVarInt;
+extern int32_t gVarDInt;
+extern int64_t gVarLInt;
+extern uint8_t gVarByte;
+extern uint16_t gVarWord;
+extern uint32_t gVarDWord;
+extern uint64_t gVarLWord;
+extern float_t gVarReal;
+extern double_t gVarLReal;
+extern time_t gVarDate;
+extern time_t gVarDateAndTime;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !GLOBAL_PRIMITIVES_H_ */

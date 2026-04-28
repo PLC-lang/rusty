@@ -9,7 +9,7 @@ fn multiple_source_files_generated() {
     //Given 2 sources
     let src1 = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR_INPUT
 
     END_VAR
@@ -34,7 +34,7 @@ fn multiple_source_files_generated() {
     );
     //When the are generated
     let results = compile_with_root(vec![src1, src2], vec![], "root", DebugLevel::None).unwrap();
-    assert_eq!(results.len(), 4);
+    assert_eq!(results.len(), 2);
     //The datatypes do not conflics
     //The functions are defined correctly
     filtered_assert_snapshot!(results.join("\n"));
@@ -45,7 +45,7 @@ fn multiple_files_with_debug_info() {
     //Given 2 sources
     let src1: SourceCode = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR_INPUT
 
     END_VAR
@@ -73,7 +73,7 @@ fn multiple_files_with_debug_info() {
     let results =
         compile_with_root(vec![src1, src2], vec![], "root", DebugLevel::Full(plc::DEFAULT_DWARF_VERSION))
             .unwrap();
-    assert_eq!(results.len(), 4);
+    assert_eq!(results.len(), 2);
     //The datatypes do not conflics
     //The functions are defined correctly
     filtered_assert_snapshot!(results.join("\n"));
@@ -84,7 +84,7 @@ fn multiple_files_in_different_locations_with_debug_info() {
     //Given 2 sources
     let src1: SourceCode = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR_INPUT
 
     END_VAR
@@ -112,7 +112,7 @@ fn multiple_files_in_different_locations_with_debug_info() {
     let results =
         compile_with_root(vec![src1, src2], vec![], "root", DebugLevel::Full(plc::DEFAULT_DWARF_VERSION))
             .unwrap();
-    assert_eq!(results.len(), 4);
+    assert_eq!(results.len(), 2);
     //The datatypes do not conflics
     //The functions are defined correctly
     filtered_assert_snapshot!(results.join("\n"));
@@ -125,7 +125,7 @@ fn forward_declared_constant_is_also_marked_constant() {
     // and the other with the definition of that constant.
     let src1 = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
     VAR
         f: foo;
     END_VAR

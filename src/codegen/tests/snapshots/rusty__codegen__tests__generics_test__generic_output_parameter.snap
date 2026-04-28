@@ -13,13 +13,13 @@ target triple = "[filtered]"
 
 define i16 @foo__INT(i64 %0, ptr %1) {
 entry:
-  %foo__INT = alloca i16, align 2
-  %in1 = alloca i64, align 8
-  store i64 %0, ptr %in1, align 8
-  %out1 = alloca ptr, align 8
-  store ptr %1, ptr %out1, align 8
-  store i16 0, ptr %foo__INT, align 2
-  %foo__INT_ret = load i16, ptr %foo__INT, align 2
+  %foo__INT = alloca i16, align [filtered]
+  %in1 = alloca i64, align [filtered]
+  store i64 %0, ptr %in1, align [filtered]
+  %out1 = alloca ptr, align [filtered]
+  store ptr %1, ptr %out1, align [filtered]
+  store i16 0, ptr %foo__INT, align [filtered]
+  %foo__INT_ret = load i16, ptr %foo__INT, align [filtered]
   ret i16 %foo__INT_ret
 }
 
@@ -28,8 +28,8 @@ entry:
   %theInt = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %iResult = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %data = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
-  %load_data = load i64, ptr %data, align 8
+  %load_data = load i64, ptr %data, align [filtered]
   %call = call i16 @foo__INT(i64 %load_data, ptr %theInt)
-  store i16 %call, ptr %iResult, align 2
+  store i16 %call, ptr %iResult, align [filtered]
   ret void
 }

@@ -1,0 +1,73 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [],
+      "enums": []
+    },
+    "global_variables": [],
+    "functions": [
+      {
+        "return_type": "void",
+        "name": "fnThatIsVoid",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntInput",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "int16_t",
+        "name": "fnThatReturnsInt",
+        "parameters": [
+          {
+            "data_type": "float_t",
+            "name": "varRealInputToFunc",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int16_t",
+            "name": "varIntInputToFunc",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "time_t",
+            "name": "varDateAndTimeInputToFunc",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "float_t*",
+            "name": "varRealInOutFunc",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int16_t*",
+            "name": "varIntOutputFunc",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "time_t",
+        "name": "fnThatReturnsTimeOfDay",
+        "parameters": [
+          {
+            "data_type": "time_t",
+            "name": "varDateTimeInput",
+            "variable_type": "Default"
+          }
+        ]
+      }
+    ]
+  },
+  "directory": "",
+  "path": "functions_with_primitive_types.h",
+  "file_name": "FUNCTIONS_WITH_PRIMITIVE_TYPES",
+  "formatted_path": "FUNCTIONS_WITH_PRIMITIVE_TYPES_H_"
+}

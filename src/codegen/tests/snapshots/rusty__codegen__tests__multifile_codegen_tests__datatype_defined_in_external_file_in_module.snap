@@ -7,10 +7,6 @@ source_filename = "myStruct.st"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%myStruct = type { i32, ptr }
-
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
-
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
 target datalayout = "[filtered]"
@@ -20,7 +16,6 @@ target triple = "[filtered]"
 %myStruct.1 = type { i32, ptr }
 
 @prog_instance = global %prog zeroinitializer
-@__myStruct__init = external unnamed_addr constant %myStruct.1
 
 define void @prog(ptr %0) {
 entry:

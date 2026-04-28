@@ -2,8 +2,9 @@ name: Deploy Documentation
 
 on:
   push:
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 env:
   IMAGE_NAME: rust-llvm
@@ -14,7 +15,7 @@ jobs:
     name: Build book
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Run Documentation Build
         run: |
@@ -33,7 +34,7 @@ jobs:
 
       - name: Deploy to github pages
         if: ${{ github.ref == 'refs/heads/master' }}
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./pages

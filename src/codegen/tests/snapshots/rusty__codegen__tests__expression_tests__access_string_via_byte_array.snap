@@ -16,7 +16,7 @@ entry:
   %str = getelementptr inbounds nuw %baz, ptr %0, i32 0, i32 0
   %ptr = getelementptr inbounds nuw %baz, ptr %0, i32 0, i32 1
   %bytes = getelementptr inbounds nuw %baz, ptr %0, i32 0, i32 2
-  store ptr %str, ptr %ptr, align 8
-  store ptr %str, ptr %bytes, align 8
+  store ptr %str, ptr %ptr, align [filtered]
+  store ptr %str, ptr %bytes, align [filtered]
   ret void
 }

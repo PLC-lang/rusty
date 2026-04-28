@@ -118,8 +118,7 @@ impl Preprocessor for ErrorCodeGenerator {
                 if chapter.source_path == Some(target.clone()) {
                     let mut parents = chapter.parent_names.clone();
                     parents.push(chapter.name.clone());
-                    let mut number = 1;
-                    for file in &files {
+                    for (number, file) in (1..).zip(files.iter()) {
                         //Add each file to the book
                         let name = file.file_stem().and_then(|it| it.to_str()).unwrap_or_default();
                         let content = std::fs::read_to_string(file).unwrap();
@@ -133,7 +132,6 @@ impl Preprocessor for ErrorCodeGenerator {
                         chapter_number.push(number);
                         error_chapter.number = Some(chapter_number);
                         chapter.sub_items.push(error_chapter.into());
-                        number += 1;
                     }
                 }
             }

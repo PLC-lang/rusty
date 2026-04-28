@@ -5,12 +5,15 @@ pub mod tests {
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
+        mut_visitor::AstVisitorMut,
         provider::IdProvider,
     };
     use plc_diagnostics::{
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use plc_index::GlobalContext;
+    use plc_lowering::reference_to_return::ReferenceToReturnParticipant;
+    use plc_lowering::{control_statement::ControlStatementLowerer, loops::LoopDesugarer};
     use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
     use crate::{
@@ -140,7 +143,26 @@ pub mod tests {
         index: Index,
         id_provider: IdProvider,
     ) -> Lowered {
+        // Mirror the relevant pre-index lowering participants used by the real pipeline so codegen tests
+        // operate on the same loop/control-flow shape as the compiler.
+        let loop_desugarer = LoopDesugarer::new(id_provider.clone());
+        loop_desugarer.desugar(std::slice::from_mut(&mut unit));
+
+        // TODO: Added the control statement lowerer for now... but maybe we should be using the pipeline participants for codegen as well
+        // so that we can get a "true" representation of what would be generated when the compiler is run.
+        let mut control_statement_lowerer = ControlStatementLowerer::new(id_provider.clone());
+        control_statement_lowerer.visit_compilation_unit(&mut unit);
+
         let (mut index, _) = evaluate_constants(index);
+
+        // Add the reference to return participant
+        let mut reference_to_return_participant = ReferenceToReturnParticipant::new(id_provider.clone());
+        let mut units = vec![unit];
+        reference_to_return_participant.lower_reference_to_return(&mut units);
+
+        // Steal the unit back after we're done
+        let mut unit = units.remove(0);
+
         let mut all_annotations = AnnotationMapImpl::default();
 
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
@@ -259,7 +281,7 @@ pub mod tests {
             })?;
 
         code_generator
-            .generate(&context, &unit, &annotations, &index, llvm_index)
+            .generate(&context, &unit, &annotations, &index, llvm_index, false)
             .map(|module| module.persist_to_string())
             .map_err(|err| {
                 reporter.handle(&[err.into()]);
@@ -331,7 +353,7 @@ pub mod tests {
                 )?;
 
                 code_generator
-                    .generate(context, &unit, &annotations, &index, llvm_index)
+                    .generate(context, &unit, &annotations, &index, llvm_index, false)
                     .map_err(Diagnostic::from)
             })
             .collect::<Result<Vec<_>, Diagnostic>>()

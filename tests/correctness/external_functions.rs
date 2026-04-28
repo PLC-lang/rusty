@@ -27,7 +27,7 @@ fn test_external_function_called() {
     let source = SourceCode::new(prog, "external_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("times_two", times_two as usize);
+    module.add_global_function_mapping("times_two", times_two as *const () as usize);
 
     let res: i32 = module.run_no_param("main");
     assert_eq!(res, 200)
@@ -79,7 +79,7 @@ fn sized_variadic_call() {
     let source = SourceCode::new(src, "external_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("add_local", add_local as usize);
+    module.add_global_function_mapping("add_local", add_local as *const () as usize);
 
     let res: i32 = module.run_no_param("main");
     assert_eq!(res, 6)
@@ -104,7 +104,7 @@ fn sized_pointer_variadic_call() {
     let source = SourceCode::new(src, "external_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("add_ref", add_ref as usize);
+    module.add_global_function_mapping("add_ref", add_ref as *const () as usize);
 
     let res: i32 = module.run_no_param("main");
     assert_eq!(res, 6)
@@ -163,7 +163,7 @@ fn string_sized_variadic_call() {
     let source = SourceCode::new(src, "external_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("verify_string", verify_string as usize);
+    module.add_global_function_mapping("verify_string", verify_string as *const () as usize);
 
     let res: bool = module.run_no_param("main");
     assert!(res)
@@ -188,7 +188,7 @@ fn string_sized_pointer_variadic_call() {
     let source = SourceCode::new(src, "external_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("verify_string_ref", verify_string_ref as usize);
+    module.add_global_function_mapping("verify_string_ref", verify_string_ref as *const () as usize);
 
     let res: bool = module.run_no_param("main");
     assert!(res)
@@ -222,7 +222,7 @@ fn generic_external_function_having_same_name_as_local_variable() {
     let source = SourceCode::new(src, "external_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("echo__DINT", echo__DINT as usize);
+    module.add_global_function_mapping("echo__DINT", echo__DINT as *const () as usize);
 
     let res: i32 = module.run_no_param("main");
     assert_eq!(res, 12345)

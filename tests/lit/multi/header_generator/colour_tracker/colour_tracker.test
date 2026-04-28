@@ -1,0 +1,1 @@
+RUN: %COMPILE %S/colour_tracker_prog.st && %RUN | %CHECK %S/colour_tracker_prog.st

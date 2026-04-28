@@ -7,7 +7,7 @@ use crate::diagnostician::DiagnosticAssessor;
 
 use super::{
     Diagnostic,
-    Severity::{self, Error, Info, Warning},
+    Severity::{self, Error, Ignore, Info, Warning},
 };
 
 macro_rules! add_diagnostic {
@@ -116,7 +116,7 @@ lazy_static! {
         E012,   Error,      include_str!("./error_codes/E012.md"), // Missing Case Condition
         E013,   Warning,    include_str!("./error_codes/E013.md"), // Keywords shoud contain underscores
         E014,   Warning,    include_str!("./error_codes/E014.md"), // Wrong parantheses type
-        E015,   Warning,    include_str!("./error_codes/E015.md"), // Pointer is not standard
+        E015,   Ignore,     include_str!("./error_codes/E015.md"), // Pointer is not standard; ignored due to internal feedback it being too noisy
         E016,   Warning,    include_str!("./error_codes/E016.md"), // Return types cannot have a default value
         E017,   Error,      include_str!("./error_codes/E017.md"), // Classes cannot contain implementations
         E018,   Error,      include_str!("./error_codes/E018.md"), // Duplicate Label
@@ -218,12 +218,22 @@ lazy_static! {
         E114,   Error,      include_str!("./error_codes/E114.md"),  // Multiple extensions of same POU
         E115,   Error,      include_str!("./error_codes/E115.md"),  // Property in unsupported POU type
         E116,   Error,      include_str!("./error_codes/E116.md"),  // Property defined in unsupported variable block
-        E117,   Error,      include_str!("./error_codes/E117.md"),  // Property with invalid number of GET and/or SET blocks
         E118,   Info,       include_str!("./error_codes/E118.md"),  // Follow-up error to 112
         E119,   Error,      include_str!("./error_codes/E119.md"),  // Invalid use of `SUPER` keyword
         E120,   Error,      include_str!("./error_codes/E120.md"),  // Invalid use of `THIS` keyword
         E121,   Error,      include_str!("./error_codes/E121.md"),  // Recursive type alias
         E122,   Error,      include_str!("./error_codes/E122.md"),  // Invalid enum base type
+        E123,   Error,      include_str!("./error_codes/E123.md"),  // Division by zero
+        E124,   Error,      include_str!("./error_codes/E124.md"),  // Invalid escape sequence in string literal
+        E125,   Error,      include_str!("./error_codes/E125.md"),  // Incompatible POINTER TO types in class/FB hierarchy
+        E126,   Error,      include_str!("./error_codes/E126.md"),  // Incompatible types in interface polymorphism
+        E127,   Warning,    include_str!("./error_codes/E127.md"),  // Array initialized with fewer elements than expected
+        E128,   Error,      include_str!("./error_codes/E128.md"),  // Invalid nested property assignment target
+        E129,   Error,      include_str!("./error_codes/E129.md"),  // Direct interface reference call
+        E130,   Error,      include_str!("./error_codes/E130.md"),  // Array size exceeds supported limit
+        E117,   Error,      include_str!("./error_codes/E117.md"),  // Non-constant array boundary
+        E131,   Error,      include_str!("./error_codes/E131.md"),  // Positional argument collides with later named argument
+        E132,   Warning,    include_str!("./error_codes/E132.md"),  // Mixing implicit and explicit call parameters
     );
 }
 

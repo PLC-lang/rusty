@@ -13,11 +13,11 @@ target triple = "[filtered]"
 
 define float @foo__REAL(float %0) {
 entry:
-  %foo__REAL = alloca float, align 4
-  %in1 = alloca float, align 4
-  store float %0, ptr %in1, align 4
-  store float 0.000000e+00, ptr %foo__REAL, align 4
-  %foo__REAL_ret = load float, ptr %foo__REAL, align 4
+  %foo__REAL = alloca float, align [filtered]
+  %in1 = alloca float, align [filtered]
+  store float %0, ptr %in1, align [filtered]
+  store float 0.000000e+00, ptr %foo__REAL, align [filtered]
+  %foo__REAL_ret = load float, ptr %foo__REAL, align [filtered]
   ret float %foo__REAL_ret
 }
 
@@ -31,30 +31,30 @@ entry:
   %res_uint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 5
   %res_udint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 6
   %res_ulint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 7
-  %v_dint = alloca i32, align 4
-  %v_udint = alloca i32, align 4
-  store i32 1, ptr %v_dint, align 4
-  store i32 1, ptr %v_udint, align 4
+  %v_dint = alloca i32, align [filtered]
+  %v_udint = alloca i32, align [filtered]
+  store i32 1, ptr %v_dint, align [filtered]
+  store i32 1, ptr %v_udint, align [filtered]
   %call = call float @foo__REAL(float 1.000000e+00)
-  store float %call, ptr %res_sint, align 4
+  store float %call, ptr %res_sint, align [filtered]
   %call1 = call float @foo__REAL(float 1.000000e+00)
-  store float %call1, ptr %res_int, align 4
-  %load_v_dint = load i32, ptr %v_dint, align 4
+  store float %call1, ptr %res_int, align [filtered]
+  %load_v_dint = load i32, ptr %v_dint, align [filtered]
   %1 = sitofp i32 %load_v_dint to float
   %call2 = call float @foo__REAL(float %1)
-  store float %call2, ptr %res_dint, align 4
+  store float %call2, ptr %res_dint, align [filtered]
   %call3 = call double @foo__LREAL(double 1.000000e+00)
-  store double %call3, ptr %res_lint, align 8
+  store double %call3, ptr %res_lint, align [filtered]
   %call4 = call float @foo__REAL(float 1.000000e+00)
-  store float %call4, ptr %res_usint, align 4
+  store float %call4, ptr %res_usint, align [filtered]
   %call5 = call float @foo__REAL(float 1.000000e+00)
-  store float %call5, ptr %res_uint, align 4
-  %load_v_udint = load i32, ptr %v_udint, align 4
+  store float %call5, ptr %res_uint, align [filtered]
+  %load_v_udint = load i32, ptr %v_udint, align [filtered]
   %2 = sitofp i32 %load_v_udint to float
   %call6 = call float @foo__REAL(float %2)
-  store float %call6, ptr %res_udint, align 4
+  store float %call6, ptr %res_udint, align [filtered]
   %call7 = call double @foo__LREAL(double 1.000000e+00)
-  store double %call7, ptr %res_ulint, align 8
+  store double %call7, ptr %res_ulint, align [filtered]
   ret void
 }
 

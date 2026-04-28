@@ -1,0 +1,7 @@
+{
+    "ignore": [],
+    "warning": [],
+    "error": [
+        "E127"
+    ]
+}

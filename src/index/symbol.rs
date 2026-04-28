@@ -2,14 +2,19 @@
 
 use crate::index::FxIndexMap;
 use indexmap::Equivalent;
+use serde::{Deserialize, Serialize};
 use std::hash::Hash;
 
 /// A multi-map implementation with a stable order of elements. When iterating
 /// the keys or the values, the iterator reflects the order of insertion.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SymbolMap<K, V> {
     /// internal storage of the SymbolMap that uses an *
     /// IndexMap of Vectors
+    #[serde(bound(
+        serialize = "FxIndexMap<K, Vec<V>>: Serialize",
+        deserialize = "FxIndexMap<K, Vec<V>>: Deserialize<'de>"
+    ))]
     inner_map: FxIndexMap<K, Vec<V>>,
 }
 

@@ -137,3 +137,46 @@ will yield an executable called `ExternalFunctions`.
 > since the embedded linker cannot generate executable files.
 
 The executable can then be started with `./ExternalFunctions`.
+
+## Using Timers
+
+Timers are used for measuring and actioning on real time delays or periods.
+
+They are Function Blocks which may only be used in Programs or other Function Blocks. This is because Functions should ideally have no state side effects. Not only RuSTy supports this model of Structured Text but also other compiler environments, such as Sysmac Studio. You must use a `main` function as the entrypoint and ensure it does not reference a Function Block.
+
+To use timers with the RuSTy compiler, include the header using the `-i ./stdlib/includes/timers.st` CLI argument. You must link with the Standard Library to execute this example program by passing the `-l iec61131std` CLI argument. The Standard Library can be retrieved as an Artifact from any of the RuSTy [Build Pipelines](https://github.com/PLC-lang/rusty/actions).
+
+```iecst
+{external}
+FUNCTION_BLOCK TON
+VAR_INPUT
+    IN: BOOL;
+    PT: TIME;
+END_VAR
+VAR_OUTPUT
+    Q: BOOL;
+    ET: TIME;
+END_VAR
+VAR
+    __signal__ : BOOL; (* Value representing the internal signal *)
+    __is_running__: BOOL; (* Internal flag to track timer on/off state *)
+    __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
+END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION main : DINT
+    MyTimerExample();
+END_FUNCTION
+
+PROGRAM MyTimerExample
+    VAR
+        timer: TON;
+    END_VAR
+
+    timer(IN:=TRUE, T#3s);
+
+    IF timer.Q THEN //evaluates to true after 3 seconds
+        timer(IN:=FALSE, T#3s);
+    END_IF
+END_PROGRAM
+```

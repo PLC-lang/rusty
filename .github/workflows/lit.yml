@@ -1,10 +1,11 @@
 name: Build
 
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
+  merge_group:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -12,10 +13,15 @@ on:
 jobs:
   lit-linux-debug:
     name: lit tests (Linux, debug build)
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - { os: "ubuntu-latest" }
+          - { os: "ubuntu-24.04-arm" }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Run `build.sh --lit`
         shell: bash
@@ -24,10 +30,15 @@ jobs:
 
   lit-linux-release:
     name: lit tests (Linux, release build)
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - { os: "ubuntu-latest" }
+          - { os: "ubuntu-24.04-arm" }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Run `build.sh --lit --release`
         shell: bash

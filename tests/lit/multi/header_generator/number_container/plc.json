@@ -1,0 +1,11 @@
+{
+	"name" : "HeaderGeneratorProject",
+	"files" : [
+		"number_container.pli"
+	],
+	"compile_type" : "Shared",
+	"output" : "prog.so",
+	"libraries" : [
+	]
+}
+

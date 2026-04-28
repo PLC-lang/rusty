@@ -16,11 +16,11 @@ entry:
   %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %c = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
-  %load_c = load float, ptr %c, align 4
+  %load_c = load float, ptr %c, align [filtered]
   %1 = fptosi float %load_c to i16
-  store i16 %1, ptr %a, align 2
-  %load_c1 = load float, ptr %c, align 4
+  store i16 %1, ptr %a, align [filtered]
+  %load_c1 = load float, ptr %c, align [filtered]
   %2 = fptoui float %load_c1 to i16
-  store i16 %2, ptr %b, align 2
+  store i16 %2, ptr %b, align [filtered]
   ret void
 }

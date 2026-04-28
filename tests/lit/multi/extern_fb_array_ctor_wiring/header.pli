@@ -1,0 +1,7 @@
+{external}
+FUNCTION_BLOCK myFb
+VAR_OUTPUT
+    arr : ARRAY[0..4] OF DINT := [10, 20, 30, 40, 50];
+    x   : DINT := 99;
+END_VAR
+END_FUNCTION_BLOCK

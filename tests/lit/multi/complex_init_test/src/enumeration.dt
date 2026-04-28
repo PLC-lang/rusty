@@ -1,0 +1,5 @@
+TYPE enumeration : ( // Enumeration with implicit defaults
+		element0,
+		element1
+	) ;
+END_TYPE

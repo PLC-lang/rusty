@@ -11,13 +11,13 @@ target triple = "[filtered]"
 
 @mainProg_instance = external global %mainProg
 
-define i16 @main() {
+define i32 @main() {
 entry:
-  %main = alloca i16, align 2
-  store i16 0, ptr %main, align 2
+  %main = alloca i32, align [filtered]
+  store i32 0, ptr %main, align [filtered]
   call void @mainProg(ptr @mainProg_instance)
-  %main_ret = load i16, ptr %main, align 2
-  ret i16 %main_ret
+  %main_ret = load i32, ptr %main, align [filtered]
+  ret i32 %main_ret
 }
 
 declare void @mainProg(ptr)
@@ -35,51 +35,3 @@ define void @mainProg(ptr %0) {
 entry:
   ret void
 }
-
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-target datalayout = "[filtered]"
-target triple = "[filtered]"
-
-%mainProg = type {}
-
-@mainProg_instance = external global %mainProg
-
-define void @__init_mainprog(ptr %0) {
-entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
-  ret void
-}
-
-declare void @mainProg(ptr)
-
-define void @__user_init_mainProg(ptr %0) {
-entry:
-  %self = alloca ptr, align 8
-  store ptr %0, ptr %self, align 8
-  ret void
-}
-
-; ModuleID = '__init___TestProject'
-source_filename = "__init___TestProject"
-target datalayout = "[filtered]"
-target triple = "[filtered]"
-
-%mainProg = type {}
-
-@mainProg_instance = external global %mainProg
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___TestProject, ptr null }]
-
-define void @__init___TestProject() {
-entry:
-  call void @__init_mainprog(ptr @mainProg_instance)
-  call void @__user_init_mainProg(ptr @mainProg_instance)
-  ret void
-}
-
-declare void @__init_mainprog(ptr)
-
-declare void @mainProg(ptr)
-
-declare void @__user_init_mainProg(ptr)

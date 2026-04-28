@@ -9,7 +9,7 @@ use std::{
 };
 
 use crate::{
-    cli::{self, CompileParameters, ConfigOption, SubCommands},
+    cli::{self, CompileParameters, ConfigOption, GenerateOption, SubCommands},
     get_project, CompileOptions, LinkOptions, LinkerScript,
 };
 use ast::{
@@ -18,17 +18,13 @@ use ast::{
 };
 
 use itertools::Itertools;
-use log::debug;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{
-        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, property::PropertyLowerer,
-        vtable::VirtualTableGenerator, InitVisitor,
-    },
-    output::FormatOption,
+    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
+    output::{FormatOption, RelocationPreference},
     parser::parse_file,
     resolver::{
         const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
@@ -41,17 +37,24 @@ use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
 };
+use plc_header_generator::{
+    header_generator::{combine_generated_headers, get_generated_header, GeneratedHeader},
+    GenerateHeaderOptions,
+};
 use plc_index::GlobalContext;
-use plc_lowering::inheritance::InheritanceLowerer;
+use plc_lowering::{
+    control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, loops::LoopDesugarer,
+    reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
+};
 use project::{
     object::Object,
     project::{LibraryInformation, Project},
 };
 use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 use source_code::{source_location::SourceLocation, SourceContainer};
 
 use serde_json;
-use tempfile::NamedTempFile;
 use toml;
 
 pub mod participant;
@@ -74,6 +77,7 @@ pub trait Pipeline {
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
     fn generate(&mut self, context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic>;
+    fn generate_headers(&mut self, project: AnnotatedProject) -> Result<(), Diagnostic>;
 }
 
 impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
@@ -85,17 +89,23 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
         let location = project.get_location().map(|it| it.to_path_buf());
         if let Some(location) = &location {
             log::debug!("PROJECT_ROOT={}", location.to_string_lossy());
-            env::set_var("PROJECT_ROOT", location);
+            unsafe {
+                env::set_var("PROJECT_ROOT", location);
+            }
         }
         let build_location = compile_parameters.get_build_location();
         if let Some(location) = &build_location {
             log::debug!("BUILD_LOCATION={}", location.to_string_lossy());
-            env::set_var("BUILD_LOCATION", location);
+            unsafe {
+                env::set_var("BUILD_LOCATION", location);
+            }
         }
         let lib_location = compile_parameters.get_lib_location();
         if let Some(location) = &lib_location {
             log::debug!("LIB_LOCATION={}", location.to_string_lossy());
-            env::set_var("LIB_LOCATION", location);
+            unsafe {
+                env::set_var("LIB_LOCATION", location);
+            }
         }
         //Create diagnostics registry
         //Create a diagnostican with the specified registry
@@ -125,6 +135,12 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
                     .as_slice(),
                 None,
             )?;
+        let context =
+            if compile_parameters.generate_external_constructors || compile_parameters.constructors_only {
+                context.generate_external_constructors()
+            } else {
+                context
+            };
 
         let linker = compile_parameters.linker.as_deref().into();
         Ok(BuildPipeline {
@@ -162,12 +178,29 @@ impl<T: SourceContainer> BuildPipeline<T> {
         self.compile_parameters.as_ref().map(|params| {
             let location = &self.project.get_location().map(|it| it.to_path_buf());
             let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
+            // Remap deprecated PIC/NoPIC format options from plc.json to Shared + relocation preference.
+            let (output_format, relocation_preference) = match output_format {
+                FormatOption::PIC => {
+                    log::warn!(
+                        "compile_type \"PIC\" in build config is deprecated, use \"Shared\" with --fpic instead"
+                    );
+                    (FormatOption::Shared, RelocationPreference::Pic)
+                }
+                FormatOption::NoPIC => {
+                    log::warn!(
+                        "compile_type \"NoPIC\" in build config is deprecated, use \"Shared\" with --fno-pic instead"
+                    );
+                    (FormatOption::Shared, RelocationPreference::NoPic)
+                }
+                other => (other, params.relocation_preference()),
+            };
             CompileOptions {
                 root: location.to_owned(),
                 build_location: params.get_build_location(),
                 output: self.project.get_output_name(),
                 output_format,
                 optimization: params.optimization,
+                relocation_preference,
                 error_format: params.error_format,
                 debug_level: params.debug_level(),
                 single_module: params.single_module,
@@ -179,6 +212,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 } else {
                     OnlineChange::Disabled
                 },
+                constructors_only: params.constructors_only,
             }
         })
     }
@@ -186,6 +220,22 @@ impl<T: SourceContainer> BuildPipeline<T> {
     pub fn get_link_options(&self) -> Option<LinkOptions> {
         self.compile_parameters.as_ref().map(|params| {
             let output_format = params.output_format().unwrap_or_else(|| self.project.get_output_format());
+            // Remap deprecated PIC/NoPIC format options from plc.json to Shared + relocation preference.
+            let (output_format, relocation_preference) = match output_format {
+                FormatOption::PIC => {
+                    log::warn!(
+                        "compile_type \"PIC\" in build config is deprecated, use \"Shared\" with --fpic instead"
+                    );
+                    (FormatOption::Shared, RelocationPreference::Pic)
+                }
+                FormatOption::NoPIC => {
+                    log::warn!(
+                        "compile_type \"NoPIC\" in build config is deprecated, use \"Shared\" with --fno-pic instead"
+                    );
+                    (FormatOption::Shared, RelocationPreference::NoPic)
+                }
+                other => (other, params.relocation_preference()),
+            };
             let libraries = self
                 .project
                 .get_libraries()
@@ -203,23 +253,51 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
             library_paths.extend_from_slice(self.project.get_library_paths());
             //Get the specified linker script or load the default linker script in a temp file
-            let linker_script = if params.no_linker_script {
-                LinkerScript::None
-            } else {
-                params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
-            };
+            let linker_script = params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default();
 
             LinkOptions {
                 libraries,
                 library_paths,
                 format: output_format,
                 linker: self.linker.clone(),
+                fuse_linker: params.fuse_linker.clone(),
+                linker_args: params.linker_args.clone(),
+                no_crt: params.no_crt,
+                no_libc: params.no_libc,
+                relocation_preference,
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
                 linker_script,
                 module_name: self.get_module_name(),
             }
         })
+    }
+
+    pub fn get_generate_header_options(&self) -> Option<GenerateHeaderOptions> {
+        let header_output_path =
+            self.compile_parameters.as_ref().map(|params| params.header_output.clone().unwrap_or_default());
+
+        let output_path = if let Some(output_path) = header_output_path {
+            PathBuf::from(output_path)
+        } else {
+            PathBuf::from(String::new())
+        };
+
+        self.compile_parameters.as_ref().map(|params| match params.commands.as_ref() {
+            Some(SubCommands::Generate { option, .. }) => match option {
+                GenerateOption::Headers { include_stubs, language, prefix, .. } => GenerateHeaderOptions {
+                    include_stubs: *include_stubs,
+                    language: *language,
+                    output_path,
+                    prefix: prefix.clone().unwrap_or(String::new()),
+                },
+            },
+            _ => GenerateHeaderOptions { output_path, ..Default::default() },
+        })
+    }
+
+    fn get_header_output_file(&self) -> Option<String> {
+        self.compile_parameters.as_ref().map(|params| params.output.clone().unwrap_or_default())
     }
 
     fn print_config_options(&self, option: ConfigOption) -> Result<(), Diagnostic> {
@@ -253,21 +331,40 @@ impl<T: SourceContainer> BuildPipeline<T> {
             log::info!("{err}")
         }
     }
-    /// Register all default participants (excluding codegen/linking)
-    pub fn register_default_participants(&mut self) {
-        use participant::InitParticipant;
+
+    pub fn get_default_mut_participants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
+        use participant::{ArrayLowerer, InitParticipant};
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
-            Box::new(VirtualTableGenerator::new(self.context.provider())),
-            Box::new(PolymorphicCallLowerer::new(self.context.provider())),
+            Box::new(LoopDesugarer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
-            Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
+            Box::new(PolymorphismLowerer::new(
+                self.context.provider(),
+                self.context.should_generate_external_constructors(),
+            )),
+            Box::new(ControlStatementParticipant::new(self.context.provider())),
+            Box::new(ReferenceToReturnParticipant::new(self.context.provider())),
+            Box::new(RetainParticipant::new(self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
+            Box::new(InitParticipant::new(
+                self.context.provider(),
+                self.context.should_generate_external_constructors(),
+            )),
+            Box::new(ArrayLowerer::new(self.context.provider())),
         ];
+        mut_participants
+    }
+    /// Register all default participants (excluding codegen/linking)
+    pub fn register_default_mut_participants(&mut self) {
+        // XXX: should we use a static array of participants?
+        let mut_participants = self.get_default_mut_participants();
+        self.register_mut_participants(mut_participants);
+    }
 
-        for participant in mut_participants {
+    pub fn register_mut_participants(&mut self, participants: Vec<Box<dyn PipelineParticipantMut>>) {
+        for participant in participants {
             self.register_mut_participant(participant)
         }
     }
@@ -333,11 +430,17 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             annotated_project.generate_hardware_information(format, location)?;
         }
 
-        // 5. Codegen
+        // Skip code-gen if it is check
         if self.compile_parameters.as_ref().is_some_and(CompileParameters::is_check) {
             return Ok(());
         }
 
+        // Generate Header files
+        if self.compile_parameters.as_ref().is_some_and(CompileParameters::is_header_generator) {
+            return self.generate_headers(annotated_project);
+        }
+
+        // 5. Codegen
         self.generate(&CodegenContext::create(), annotated_project)
     }
 
@@ -371,10 +474,16 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.participants.iter().for_each(|p| {
             p.post_annotate(&annotated_project);
         });
-        let annotated_project = self
+        let mut annotated_project = self
             .mutable_participants
             .iter_mut()
             .fold(annotated_project, |project, p| p.post_annotate(project));
+
+        // Collect diagnostics from participants that validated during lowering.
+        for p in &mut self.mutable_participants {
+            annotated_project.diagnostics.extend(p.diagnostics());
+        }
+
         Ok(annotated_project)
     }
 
@@ -429,6 +538,33 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             .unwrap_or(Ok(()))?;
         Ok(())
     }
+
+    fn generate_headers(&mut self, project: AnnotatedProject) -> Result<(), Diagnostic> {
+        let Some(generate_header_options) = self.get_generate_header_options() else {
+            log::debug!("No generate header options provided!");
+            return Ok(());
+        };
+
+        let mut generated_headers: Vec<Box<dyn GeneratedHeader>> = Vec::new();
+
+        for unit in project.units {
+            generated_headers.push(get_generated_header(&generate_header_options, &unit.unit)?);
+        }
+
+        let output_file = self.get_header_output_file().unwrap_or_default();
+
+        if !output_file.is_empty() {
+            let generated_header =
+                combine_generated_headers(&generate_header_options, generated_headers, output_file)?;
+            write_header_file(generated_header)?;
+        } else {
+            for generated_header in generated_headers {
+                write_header_file(generated_header)?;
+            }
+        }
+
+        Ok(())
+    }
 }
 
 pub fn read_got_layout(location: &str, format: ConfigFormat) -> Result<HashMap<String, u64>, Diagnostic> {
@@ -464,9 +600,25 @@ fn write_got_layout(
     fs::write(location, s).map_err(|_| Diagnostic::new("GOT layout could not be written to file"))
 }
 
+fn write_header_file(generated_header: Box<dyn GeneratedHeader>) -> Result<(), Diagnostic> {
+    if !generated_header.is_empty() {
+        // Create the directories to the output path (if it is necessary to do so)
+        if !generated_header.get_directory().is_empty() {
+            fs::create_dir_all(generated_header.get_directory())?;
+        }
+
+        // Write the header file
+        fs::write(generated_header.get_path(), generated_header.get_contents())?;
+    }
+
+    Ok(())
+}
+
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
 ///been generated
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct ParsedProject {
     units: Vec<CompilationUnit>,
 }
@@ -507,7 +659,7 @@ impl ParsedProject {
             .iter()
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
-                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
+                parse_file(source, LinkageType::Include, ctxt.provider(), diagnostician)
             })
             .collect::<Vec<_>>();
         units.extend(includes);
@@ -519,7 +671,7 @@ impl ParsedProject {
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
-                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
+                parse_file(source, LinkageType::Include, ctxt.provider(), diagnostician)
             })
             .collect::<Vec<_>>();
         units.extend(lib_includes);
@@ -561,18 +713,21 @@ impl ParsedProject {
         global_index.import(indexer::index(&builtins));
 
         //TODO: evaluate constants should probably be a participant
-        let (index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
+        let (index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
 
-        IndexedProject { project: ParsedProject { units }, index, unresolvables }
+        IndexedProject { project: ParsedProject { units }, index, _unresolvables }
     }
 }
 
 ///A project that has also been indexed
 /// Units inside an index project are ready be resolved and annotated
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct IndexedProject {
     project: ParsedProject,
     index: Index,
-    unresolvables: Vec<UnresolvableConstant>,
+    //TODO: do we still need this
+    _unresolvables: Vec<UnresolvableConstant>,
 }
 
 impl IndexedProject {
@@ -602,26 +757,12 @@ impl IndexedProject {
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        AnnotatedProject { units: annotated_units, index, annotations }
-    }
-
-    /// Adds additional, internally generated units to provide functions to be called by a runtime
-    /// in order to initialize pointers before first cycle.
-    ///
-    /// This method will consume the provided indexed project, modify the AST and re-index each unit
-    pub fn extend_with_init_units(
-        self,
-        symbol_name: &'static str,
-        id_provider: IdProvider,
-    ) -> IndexedProject {
-        let units = self.project.units;
-        let lowered =
-            InitVisitor::visit(units, self.index, self.unresolvables, id_provider.clone(), symbol_name);
-        ParsedProject { units: lowered }.index(id_provider.clone())
+        AnnotatedProject { units: annotated_units, index, annotations, diagnostics: Vec::new() }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct AnnotatedUnit {
     unit: CompilationUnit,
     dependencies: FxIndexSet<Dependency>,
@@ -649,10 +790,15 @@ impl From<AnnotatedUnit> for CompilationUnit {
 }
 
 /// A project that has been annotated with information about different types and used units
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct AnnotatedProject {
     pub units: Vec<AnnotatedUnit>,
     pub index: Index,
     pub annotations: AstAnnotations,
+    /// Diagnostics produced by lowering participants after annotation.
+    #[serde(skip)]
+    pub diagnostics: Vec<Diagnostic>,
 }
 
 impl AnnotatedProject {
@@ -662,11 +808,13 @@ impl AnnotatedProject {
         ctxt: &GlobalContext,
         diagnostician: &mut Diagnostician,
     ) -> Result<(), Diagnostic> {
+        let mut severity = diagnostician.handle(&self.diagnostics);
+
         // perform global validation
         let mut validator = Validator::new(ctxt);
         validator.perform_global_validation(&self.index);
         let diagnostics = validator.diagnostics();
-        let mut severity = diagnostician.handle(&diagnostics);
+        severity = severity.max(diagnostician.handle(&diagnostics));
 
         //Perform per unit validation
         self.units.iter().for_each(|AnnotatedUnit { unit, .. }| {
@@ -782,7 +930,16 @@ impl AnnotatedProject {
             &self.index,
             got_layout,
         )?;
-        code_generator.generate(context, unit, &self.annotations, &self.index, llvm_index).map_err(Into::into)
+        code_generator
+            .generate(
+                context,
+                unit,
+                &self.annotations,
+                &self.index,
+                llvm_index,
+                compile_options.constructors_only,
+            )
+            .map_err(Into::into)
     }
 
     pub fn codegen_single_module<'ctx>(
@@ -807,6 +964,7 @@ impl AnnotatedProject {
                     Some(&compile_directory),
                     &compile_options.output,
                     compile_options.output_format,
+                    compile_options.relocation_preference,
                     target,
                     compile_options.optimization,
                 )
@@ -956,6 +1114,22 @@ impl GeneratedProject {
                 let target_triple = self.target.get_target_triple();
                 let mut linker =
                     plc::linker::Linker::new(&target_triple.as_str().to_string_lossy(), link_options.linker)?;
+                if let Some(fuse) = &link_options.fuse_linker {
+                    log::debug!("Applying --fuse-ld={fuse}");
+                    linker.set_fuse_ld(fuse);
+                }
+                if link_options.no_crt {
+                    log::debug!("Applying --nocrt to linker invocation");
+                    linker.set_no_crt();
+                }
+                if link_options.no_libc {
+                    log::debug!("Applying --nolibc to linker invocation");
+                    linker.set_no_libc();
+                }
+                for arg in &link_options.linker_args {
+                    log::trace!("Applying --linker-arg={arg}");
+                    linker.add_linker_arg(arg);
+                }
                 for obj in &self.objects {
                     linker.add_obj(&obj.get_path().to_string_lossy());
                 }
@@ -983,33 +1157,24 @@ impl GeneratedProject {
                 //HACK: Create a temp file that would contain the bultin linker script
                 //FIXME: This has to be done regardless if the file is used or not because it has
                 //to be in scope by the time we call the linker
-                let mut file = NamedTempFile::new()?;
                 match link_options.linker_script {
-                    LinkerScript::Builtin => {
-                        let target = self.target.get_target_triple().to_string();
-                        //Only do this on linux systems
-                        if target.contains("linux") {
-                            if target.contains("x86_64") {
-                                let content = include_str!("../../../scripts/linker/x86_64.script");
-                                writeln!(file, "{content}")?;
-                                linker.set_linker_script(file.get_location_str().to_string());
-                            } else if target.contains("aarch64") {
-                                let content = include_str!("../../../scripts/linker/aarch64.script");
-                                writeln!(file, "{content}")?;
-                                linker.set_linker_script(file.get_location_str().to_string());
-                            } else {
-                                debug!("No script for target : {target}");
-                            }
-                        } else {
-                            debug!("No script for target : {target}");
-                        }
-                    }
                     LinkerScript::Path(script) => linker.set_linker_script(script),
                     LinkerScript::None => {}
+                    #[allow(deprecated)]
+                    LinkerScript::Builtin => {}
                 };
 
+                // When building an executable with --fno-pic, forward -no-pie
+                // so the linker does not reject non-PIC relocations.
+                if link_options.relocation_preference == plc::output::RelocationPreference::NoPic
+                    && matches!(link_options.format, FormatOption::Static)
+                {
+                    log::debug!("Applying -no-pie for --fno-pic executable link");
+                    linker.add_driver_flag("-no-pie");
+                }
+
                 match link_options.format {
-                    FormatOption::Static => linker.build_exectuable(output_location).map_err(Into::into),
+                    FormatOption::Static => linker.build_executable(output_location).map_err(Into::into),
                     FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC => {
                         linker.build_shared_obj(output_location).map_err(Into::into)
                     }

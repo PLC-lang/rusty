@@ -1,0 +1,75 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [
+        {
+          "data_type": "bool",
+          "name": "T_Bool",
+          "variable_type": "Default"
+        },
+        {
+          "data_type": "int16_t",
+          "name": "T_Array",
+          "variable_type": {
+            "Array": 12
+          }
+        },
+        {
+          "data_type": "int32_t",
+          "name": "T_DInt",
+          "variable_type": "Default"
+        },
+        {
+          "data_type": "char",
+          "name": "T_String",
+          "variable_type": {
+            "Array": 51
+          }
+        }
+      ],
+      "structs": [],
+      "enums": []
+    },
+    "global_variables": [],
+    "functions": [
+      {
+        "return_type": "void",
+        "name": "fnThatUsesAliases",
+        "parameters": [
+          {
+            "data_type": "T_String",
+            "name": "varStringInput",
+            "variable_type": {
+              "Array": 51
+            }
+          },
+          {
+            "data_type": "T_DInt",
+            "name": "varDIntInput",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "T_Array",
+            "name": "varArrayOfIntInput",
+            "variable_type": {
+              "Array": 12
+            }
+          },
+          {
+            "data_type": "T_Bool",
+            "name": "varBoolInput",
+            "variable_type": "Default"
+          }
+        ]
+      }
+    ]
+  },
+  "directory": "",
+  "path": "aliases.h",
+  "file_name": "ALIASES",
+  "formatted_path": "ALIASES_H_"
+}

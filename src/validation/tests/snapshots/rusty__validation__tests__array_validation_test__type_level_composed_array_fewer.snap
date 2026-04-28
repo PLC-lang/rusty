@@ -1,0 +1,12 @@
+---
+source: src/validation/tests/array_validation_test.rs
+expression: diagnostics
+---
+warning[E127]: Fewer initial values for array `inherited_tooless` than expected. Expected 100, found 30.
+  ┌─ <internal>:5:64
+  │  
+5 │           TYPE inherited_tooless : ARRAY [1..10] OF baseArray := [1,2,3,4,5,6,7,8,9,10,
+  │ ╭────────────────────────────────────────────────────────────────^
+6 │ │                                             1,2,3,4,5,6,7,8,9,10,
+7 │ │                                             1,2,3,4,5,6,7,8,9,10];
+  │ ╰─────────────────────────────────────────────────────────────────^ Fewer initial values for array `inherited_tooless` than expected. Expected 100, found 30.

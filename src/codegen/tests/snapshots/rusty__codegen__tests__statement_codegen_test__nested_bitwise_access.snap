@@ -15,7 +15,7 @@ define void @prg(ptr %0) {
 entry:
   %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
-  %load_x = load i64, ptr %x, align 8
+  %load_x = load i64, ptr %x, align [filtered]
   %shift = lshr i64 %load_x, 32
   %1 = trunc i64 %shift to i32
   %shift1 = lshr i32 %1, 16
@@ -24,6 +24,6 @@ entry:
   %3 = trunc i16 %shift2 to i8
   %shift3 = lshr i8 %3, 1
   %4 = and i8 %shift3, 1
-  store i8 %4, ptr %a, align 1
+  store i8 %4, ptr %a, align [filtered]
   ret void
 }

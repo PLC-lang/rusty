@@ -1,0 +1,48 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [
+        {
+          "name": "ASYNC_Task_type",
+          "variables": [
+            {
+              "data_type": "uint64_t*",
+              "name": "__vtable",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "void*",
+              "name": "_Internal_",
+              "variable_type": "Default"
+            }
+          ],
+          "data_type": null
+        }
+      ],
+      "enums": []
+    },
+    "global_variables": [],
+    "functions": [
+      {
+        "return_type": "void",
+        "name": "ASYNC_Task",
+        "parameters": [
+          {
+            "data_type": "ASYNC_Task_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
+      }
+    ]
+  },
+  "directory": "",
+  "path": "void_pointers.h",
+  "file_name": "VOID_POINTERS",
+  "formatted_path": "VOID_POINTERS_H_"
+}

@@ -1,0 +1,369 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [
+        {
+          "data_type": "int16_t",
+          "name": "__fnThatUsesStructWithComplexTypes_varArrayOfIntArray_",
+          "variable_type": {
+            "Array": 15
+          }
+        },
+        {
+          "data_type": "int16_t",
+          "name": "__StructWithComplexTypes_arrayOfIntArrayField_",
+          "variable_type": {
+            "Array": 10
+          }
+        }
+      ],
+      "structs": [
+        {
+          "name": "StructWithPrimitiveTypes",
+          "variables": [
+            {
+              "data_type": "uint8_t",
+              "name": "Field1",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "Field2",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int32_t",
+              "name": "Field3",
+              "variable_type": "Default"
+            }
+          ],
+          "data_type": null
+        },
+        {
+          "name": "StructWithComplexTypes",
+          "variables": [
+            {
+              "data_type": "uint8_t",
+              "name": "byteField",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "intField",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int32_t",
+              "name": "dIntField",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "char",
+              "name": "stringField",
+              "variable_type": {
+                "Array": 256
+              }
+            },
+            {
+              "data_type": "int16_t",
+              "name": "wStringField",
+              "variable_type": {
+                "Array": 6001
+              }
+            },
+            {
+              "data_type": "ComplexEnumType",
+              "name": "complexEnumTypeField",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "int16_t",
+              "name": "intArrayField",
+              "variable_type": {
+                "Array": 10
+              }
+            },
+            {
+              "data_type": "__StructWithComplexTypes_arrayOfIntArrayField_",
+              "name": "arrayOfIntArrayField",
+              "variable_type": {
+                "Array": 4
+              }
+            }
+          ],
+          "data_type": null
+        }
+      ],
+      "enums": [
+        {
+          "name": "ComplexEnumType",
+          "variables": [
+            {
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_orange",
+              "variable_type": {
+                "Declaration": 10
+              }
+            },
+            {
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_yellow",
+              "variable_type": {
+                "Declaration": 20
+              }
+            },
+            {
+              "data_type": "ComplexEnumType",
+              "name": "ComplexEnumType_purple",
+              "variable_type": {
+                "Declaration": 30
+              }
+            }
+          ],
+          "data_type": "int32_t"
+        }
+      ]
+    },
+    "global_variables": [],
+    "functions": [
+      {
+        "return_type": "void",
+        "name": "fnThatUsesStructWithPrimitiveTypes",
+        "parameters": [
+          {
+            "data_type": "StructWithPrimitiveTypes",
+            "name": "fnThatUsesStructWithPrimitiveTypes",
+            "variable_type": "Struct"
+          },
+          {
+            "data_type": "StructWithPrimitiveTypes",
+            "name": "varStruct",
+            "variable_type": "Struct"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatUsesStructWithComplexTypes",
+        "parameters": [
+          {
+            "data_type": "StructWithComplexTypes",
+            "name": "fnThatUsesStructWithComplexTypes",
+            "variable_type": "Struct"
+          },
+          {
+            "data_type": "StructWithComplexTypes",
+            "name": "varStruct",
+            "variable_type": "Struct"
+          },
+          {
+            "data_type": "ComplexEnumType",
+            "name": "varEnum",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "char",
+            "name": "varString",
+            "variable_type": {
+              "Array": 201
+            }
+          },
+          {
+            "data_type": "int16_t",
+            "name": "varIntArray",
+            "variable_type": {
+              "Array": 15
+            }
+          },
+          {
+            "data_type": "__fnThatUsesStructWithComplexTypes_varArrayOfIntArray_",
+            "name": "varArrayOfIntArray",
+            "variable_type": {
+              "Array": 3
+            }
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatUsesPrimitiveTypesAndReferences",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varInt",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int16_t*",
+            "name": "varRefToInt",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int16_t*",
+            "name": "varPointerToInt",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "time_t*",
+            "name": "varRefToDate",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "time_t*",
+            "name": "varPointerToDate",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatHasIntWithRange",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntWithRange",
+            "variable_type": "Default"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatHasVariadicIntInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntInput",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int16_t",
+            "name": "varVariadicInt",
+            "variable_type": "Variadic"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatHasSizedVariadicIntInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntInput",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int32_t",
+            "name": "varVariadicInt_count",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int16_t",
+            "name": "varVariadicInt",
+            "variable_type": {
+              "Array": 0
+            }
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatHasVariadicStringInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntInput",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "char",
+            "name": "varVariadicString",
+            "variable_type": "Variadic"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatHasSizedVariadicStringInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntInput",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int32_t",
+            "name": "varVariadicString_count",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "char*",
+            "name": "varVariadicString",
+            "variable_type": {
+              "Array": 0
+            }
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatHasVariadicComplexTypeInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntInput",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "StructWithPrimitiveTypes",
+            "name": "varVariadicStruct",
+            "variable_type": "Variadic"
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatHasSizedVariadicComplexTypeInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varIntInput",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "int32_t",
+            "name": "varVariadicStruct_count",
+            "variable_type": "Default"
+          },
+          {
+            "data_type": "StructWithPrimitiveTypes",
+            "name": "varVariadicStruct",
+            "variable_type": {
+              "Array": 0
+            }
+          }
+        ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatHasVariableLengthArrayInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varVariableLengthArray",
+            "variable_type": {
+              "Array": 0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "directory": "",
+  "path": "functions_with_complex_types.h",
+  "file_name": "FUNCTIONS_WITH_COMPLEX_TYPES",
+  "formatted_path": "FUNCTIONS_WITH_COMPLEX_TYPES_H_"
+}

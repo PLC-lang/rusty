@@ -13,9 +13,9 @@ target triple = "[filtered]"
 
 define i64 @TIME() {
 entry:
-  %TIME = alloca i64, align 8
-  store i64 0, ptr %TIME, align 8
-  %TIME_ret = load i64, ptr %TIME, align 8
+  %TIME = alloca i64, align [filtered]
+  store i64 0, ptr %TIME, align [filtered]
+  %TIME_ret = load i64, ptr %TIME, align [filtered]
   ret i64 %TIME_ret
 }
 

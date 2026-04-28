@@ -1,0 +1,19 @@
+{
+    "name": "proj_link_path",
+    "files": [
+        "simple_program.st"
+    ],
+    "compile_type": "Shared",
+    "libraries": [
+        {
+            "name": "doesnotexist",
+            "path": "libs/",
+            "link_path": "libcopy.so",
+            "package": "Copy",
+            "include_path": [
+                "program_with_expressions.st"
+            ]
+        }
+    ],
+    "output": "proj_link_path.so"
+}

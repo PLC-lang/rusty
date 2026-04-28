@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
+use crate::codegen::generators::data_type_generator::get_default_for;
 use inkwell::{
     builder::Builder,
     types::{BasicType, BasicTypeEnum},
@@ -89,6 +90,10 @@ struct CallParameterAssignment<'a, 'b> {
 
     /// The pointer to the struct instance that carries the call's arguments
     parameter_struct: PointerValue<'a>,
+
+    /// The position of the parameter in the POUs variable declaration list if temp variables are present.
+    /// It will be a duplicate of the position value if no temp variables are present.
+    non_temp_position: u32,
 }
 
 #[derive(Debug)]
@@ -375,10 +380,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return self.generate_bool_binary_expression(operator, left, right);
         }
         if ltype.is_int() && rtype.is_int() {
+            let is_signed = ltype.is_signed_int() || rtype.is_signed_int();
+
             self.create_llvm_int_binary_expression(
                 operator,
                 self.generate_expression(left)?,
                 self.generate_expression(right)?,
+                Some(is_signed),
             )
         } else if ltype.is_float() && rtype.is_float() {
             self.create_llvm_float_binary_expression(
@@ -683,17 +691,51 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         parameters: Vec<&AstNode>,
     ) -> Result<(), CodegenError> {
-        let pou_info = self.index.get_available_parameters(function_name);
+        let pou_info = &self.index.get_available_parameters(function_name);
         let implicit = arguments_are_implicit(&parameters);
 
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
-            let is_output = pou_info.get(index).is_some_and(|param| param.get_variable_type().is_output());
+            // If this is implicit, then we can load the pou information based on the index (in other words, parameters will be in order)
+            let is_output = if implicit {
+                pou_info
+                    .get(index)
+                    .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
+            }
+            // else, the parameters are named (or mixed) and may not be in order
+            else {
+                match assignment_statement.get_stmt() {
+                    AstStatement::OutputAssignment(assignment) | AstStatement::Assignment(assignment) => {
+                        let variable_name = if let Some(identifier) = assignment.left.get_identifier() {
+                            match identifier.get_stmt() {
+                                AstStatement::Identifier(value) => value,
+                                _ => unreachable!("this is definitely an identifier"),
+                            }
+                        } else {
+                            unreachable!("assignment must have an identifier")
+                        };
+                        pou_info
+                            .iter()
+                            .find(|variable_index_entry| variable_index_entry.get_name() == variable_name)
+                            .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
+                    }
+                    // Reached only in mixed calls: `implicit` tracks the first arg's style,
+                    // so an `Assignment`/`OutputAssignment` first arg makes `implicit = false`
+                    // and any later positional arg lands here. Outputs are written post-call
+                    // only for `=>`, so a bare positional never triggers the copy.
+                    _ => false,
+                }
+            };
 
             if assignment_statement.is_output_assignment() || (implicit && is_output) {
                 let Some(StatementAnnotation::Argument { position, depth, pou, .. }) =
                     self.annotations.get_hint(assignment_statement)
                 else {
                     unreachable!("must have an annotation")
+                };
+
+                let Some(non_temp_position) = self.index.get_struct_member_index_by_position(pou, position)
+                else {
+                    unreachable!("must have a struct member index")
                 };
 
                 self.assign_output_value(&CallParameterAssignment {
@@ -703,6 +745,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     depth: *depth as u32,
                     declaring_pou: pou,
                     parameter_struct,
+                    non_temp_position,
                 })?
             }
         }
@@ -843,7 +886,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // can simply generate a GEP with indices `0` and repeat that `depth` times followed by the
         // actual position of the parameter. So `objC.__B.__A.inA` becomes `GEP objC, 0, 0, 0, <inA pos>`
         let mut gep_index = vec![0; (context.depth + 1) as usize];
-        gep_index.push(context.position as u64);
+        gep_index.push(context.non_temp_position as u64);
 
         let i32_type = self.llvm.context.i32_type();
         let gep_index = gep_index.into_iter().map(|idx| i32_type.const_int(idx, false)).collect::<Vec<_>>();
@@ -861,6 +904,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             depth: _,
             declaring_pou,
             parameter_struct,
+            non_temp_position: non_temp_index,
         } = context;
 
         let builder = &self.llvm.builder;
@@ -899,8 +943,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let lhs_type = self.annotations.get_type(base, self.index).unwrap();
 
                     let pointee = self.llvm_index.get_associated_pou_type(function_name).unwrap();
-                    let rhs =
-                        self.llvm.builder.build_struct_gep(pointee, parameter_struct, index, "").unwrap();
+                    let rhs = self
+                        .llvm
+                        .builder
+                        .build_struct_gep(pointee, parameter_struct, non_temp_index, "")
+                        .unwrap();
 
                     // func(outVar => foo.bar.baz.%W3)
                     //      ^^^^^^    ^^^^^^^^^^^^^^^
@@ -917,8 +964,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             _ => {
                 let assigned_output = self.generate_lvalue(expr)?;
-                let assigned_output_type =
-                    self.annotations.get_type_or_void(expr, self.index).get_type_information();
+                let assigned_output_type_main = self.annotations.get_type_or_void(expr, self.index);
+                let assigned_output_type = assigned_output_type_main.get_type_information();
 
                 let pou_type_name = self
                     .index
@@ -928,6 +975,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let pointee = self.llvm_index.get_associated_pou_type(pou_type_name).unwrap();
                 let output = self.build_parameter_struct_gep(pointee, context);
 
+                let output_value_type_main =
+                    self.index.get_effective_type_or_void_by_name(parameter.get_type_name());
                 let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
 
                 if assigned_output_type.is_aggregate() && output_value_type.is_aggregate() {
@@ -941,7 +990,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     )?;
                 } else {
                     let pointee = self.llvm_index.get_associated_type(output_value_type.get_name()).unwrap();
-                    let output_value = builder.build_load(pointee, output, "")?;
+                    let output_value = cast_if_needed!(
+                        self,
+                        assigned_output_type_main,
+                        output_value_type_main,
+                        builder.build_load(pointee, output, "")?,
+                        None
+                    )?;
                     builder.build_store(assigned_output, output_value)?;
                 }
             }
@@ -967,6 +1022,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 depth: param_context.depth,
                 parameter_struct,
                 declaring_pou: param_context.declaring_pou,
+                non_temp_position: param_context.non_temp_position,
             })?
         };
 
@@ -1043,23 +1099,80 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut result = Vec::new();
         let mut variadic_parameters = Vec::new();
         let mut passed_param_indices = Vec::new();
-        for (i, argument) in arguments.iter().enumerate() {
-            let (i, argument, _) = get_implicit_call_parameter(argument, &declared_parameters, i)?;
+
+        // Mixed-call resolution: named args claim their slots first, then positional args
+        // fill the remaining slots in declaration order. **This rule must match
+        // `TypeAnnotator::annotate_arguments_mixed` in the resolver** — the resolver uses it
+        // for type hinting, we use it here to compute the LLVM argument index.
+        //
+        // Why duplicated? The function-call codegen path threads args through
+        // `get_implicit_call_parameter`, which was designed for pure-positional / pure-named
+        // calls and expects the caller to pre-compute the slot. FB/PROGRAM calls use the
+        // resolver's `Argument` hint directly and don't need this.
+        let is_mixed = arguments.iter().any(|a| a.is_assignment() || a.is_output_assignment())
+            && arguments.iter().any(|a| !a.is_assignment() && !a.is_output_assignment());
+        let named_positions: Vec<usize> = if is_mixed {
+            arguments
+                .iter()
+                .filter_map(|arg| match arg.get_stmt() {
+                    AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
+                        let name = data.left.get_flat_reference_name()?;
+                        declared_parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))
+                    }
+                    _ => None,
+                })
+                .collect()
+        } else {
+            vec![]
+        };
+        let positional_positions: Vec<usize> =
+            (0..declared_parameters.len()).filter(|i| !named_positions.contains(i)).collect();
+        let mut positional_cursor = 0usize;
+
+        for (arg_idx, orig_argument) in arguments.iter().enumerate() {
+            // For mixed calls, positional args are remapped to the next free slot; named args
+            // and all args in pure calls keep their natural call index.
+            //
+            // The `unwrap_or(arg_idx)` fallback fires for variadic overflow: surplus args past
+            // the declared params carry their call index through to be collected as variadics
+            // below (where `declared_parameters.get(i) == None` → push to `variadic_parameters`).
+            let effective_idx =
+                if is_mixed && !orig_argument.is_assignment() && !orig_argument.is_output_assignment() {
+                    let idx = positional_positions.get(positional_cursor).copied().unwrap_or(arg_idx);
+                    positional_cursor += 1;
+                    idx
+                } else {
+                    arg_idx
+                };
+            let (i, argument, _) =
+                get_implicit_call_parameter(orig_argument, &declared_parameters, effective_idx)?;
+            let argument_is_reference_to = self.is_member_reference_to_reference_to(argument);
 
             // parameter_info includes the declaration type and type name
             let parameter_info = declared_parameters
                 .get(i)
                 .map(|it| {
                     let name = it.get_type_name();
+                    let parameter_is_reference_to = self
+                        .index
+                        .find_effective_type_info(name)
+                        .map(|type_info| type_info.is_reference_to())
+                        .unwrap_or(false);
+                    let both_sides_are_reference_to = argument_is_reference_to && parameter_is_reference_to;
+
                     if let Some(DataTypeInformation::Pointer {
                         inner_type_name, auto_deref: Some(_), ..
                     }) = self.index.find_effective_type_info(name)
                     {
                         // for auto_deref pointers (VAR_INPUT {ref}, VAR_IN_OUT) we call generate_argument_by_ref()
                         // we need the inner_type and not pointer to type otherwise we would generate a double pointer
-                        Some((it.get_declaration_type(), inner_type_name.as_str()))
+                        // unless both sides are reference to, in which case the double pointer is required
+                        let type_name =
+                            if both_sides_are_reference_to { name } else { inner_type_name.as_str() };
+
+                        Some((it.get_declaration_type(), type_name, both_sides_are_reference_to))
                     } else {
-                        Some((it.get_declaration_type(), name))
+                        Some((it.get_declaration_type(), name, both_sides_are_reference_to))
                     }
                 })
                 // TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
@@ -1076,10 +1189,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 })?;
 
-            if let Some((declaration_type, type_name)) = parameter_info {
+            if let Some((declaration_type, type_name, both_sides_are_reference_to)) = parameter_info {
                 let argument: BasicValueEnum = if declaration_type.is_by_ref()
                     || (self.index.get_effective_type_or_void_by_name(type_name).is_aggregate_type()
                         && declaration_type.is_input())
+                    || both_sides_are_reference_to
                 {
                     let declared_parameter = declared_parameters.get(i);
                     self.generate_argument_by_ref(argument, type_name, declared_parameter.copied())?
@@ -1119,8 +1233,21 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
 
-        result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
+        result.sort_by_key(|(idx_a, _)| *idx_a);
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
+    }
+
+    fn is_member_reference_to_reference_to(&self, node: &AstNode) -> bool {
+        match node.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(_), .. }) => {
+                self.is_reference_to(node)
+            }
+            _ => false,
+        }
+    }
+
+    fn is_reference_to(&self, node: &AstNode) -> bool {
+        self.annotations.get(node).is_some_and(|stmt_anno| stmt_anno.is_reference_to())
     }
 
     /// generates a value that is passed by reference
@@ -1212,8 +1339,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_variadic_member(pou.get_name())
             .and_then(|it| it.get_varargs().zip(Some(it.get_declaration_type())))
         {
-            // For unsized variadics, we need to follow C ABI rules
             let is_unsized = matches!(var_args, VarArgs::Unsized(_));
+            // Untyped C-style variadics (`args: ...`) need C default argument promotion.
+            // Typed unsized variadics like `IN2: T2...` have a concrete callee signature
+            // after generic instantiation, so promoting their scalar arguments would break the ABI.
+            let needs_c_promotion = matches!(var_args, VarArgs::Unsized(None));
 
             let generated_params = variadic_params
                 .iter()
@@ -1231,7 +1361,38 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 self.index.get_variadic_member(pou.get_name()),
                             )
                         } else {
-                            self.generate_expression(param_statement)
+                            let value = self.generate_expression(param_statement)?;
+                            // Apply C default argument promotions for unsized (C-ABI) variadics
+                            if needs_c_promotion {
+                                match type_info.get_type_information() {
+                                    DataTypeInformation::Integer { signed, size, .. } if *size < 32 => {
+                                        let i32_type = self.llvm.context.i32_type();
+                                        let int_val = value.into_int_value();
+                                        Ok(if *signed {
+                                            self.llvm
+                                                .builder
+                                                .build_int_s_extend(int_val, i32_type, "")?
+                                                .as_basic_value_enum()
+                                        } else {
+                                            self.llvm
+                                                .builder
+                                                .build_int_z_extend(int_val, i32_type, "")?
+                                                .as_basic_value_enum()
+                                        })
+                                    }
+                                    DataTypeInformation::Float { size, .. } if *size < 64 => {
+                                        let f64_type = self.llvm.context.f64_type();
+                                        Ok(self
+                                            .llvm
+                                            .builder
+                                            .build_float_ext(value.into_float_value(), f64_type, "")?
+                                            .as_basic_value_enum())
+                                    }
+                                    _ => Ok(value),
+                                }
+                            } else {
+                                Ok(value)
+                            }
                         }
                     })
                 })
@@ -1312,6 +1473,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 panic!()
             };
 
+            let Some(non_temp_position) = self.index.get_struct_member_index_by_position(pou, position)
+            else {
+                unreachable!("must have a struct member index")
+            };
+
             let parameter = self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment: argument,
                 function_name: pou_name,
@@ -1319,6 +1485,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 depth: *depth as u32,
                 declaring_pou: pou,
                 parameter_struct,
+                non_temp_position,
             })?;
             if let Some(parameter) = parameter {
                 result.push(parameter.into());
@@ -1344,7 +1511,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let parameter_type_name = self.get_parameter_type(parameter);
         let parameter_type = self.llvm_index.get_associated_type(&parameter_type_name)?;
-        match parameter.get_declaration_type() {
+        let declaration_type = parameter.get_declaration_type();
+        let parameter_type_info = self.index.get_effective_type_or_void_by_name(&parameter_type_name);
+
+        match declaration_type {
+            ArgumentType::ByVal(..)
+                if declaration_type.is_input() && parameter_type_info.is_aggregate_type() =>
+            {
+                // Aggregate VAR_INPUT defaults are passed by reference in function signatures.
+                let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
+                if let Some(initial_value) =
+                    self.get_initial_value(&parameter.initial_value, &parameter_type_name)
+                {
+                    let value = self.generate_expression(initial_value)?;
+                    self.llvm.builder.build_store(ptr_value, value)?;
+                }
+                Ok(ptr_value.as_basic_value_enum())
+            }
             ArgumentType::ByVal(..) => {
                 if let Some(initial_value) =
                     self.get_initial_value(&parameter.initial_value, &parameter_type_name)
@@ -1496,6 +1679,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     depth: param_context.depth,
                     declaring_pou: param_context.declaring_pou,
                     parameter_struct,
+                    non_temp_position: param_context.non_temp_position,
                 })?;
             };
         }
@@ -1509,6 +1693,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(reference_statement).and_then(|it| {
             let v: Result<PointerValue, _> = it.get_basic_value_enum().try_into();
             v.map_err(|err| {
+                log::debug!("Failed to generate lvalue for statement {:?}: {err:?}", reference_statement);
                 CodegenError::GenericError(format!("{err:?}"), reference_statement.get_location().clone())
             })
         })
@@ -1537,15 +1722,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 }
                 Some(StatementAnnotation::Variable { qualified_name, .. }) => {
-                    let member_location = self
-                        .index
-                        .find_fully_qualified_variable(qualified_name)
-                        .map(VariableIndexEntry::get_location_in_parent)
-                        .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?;
-                    let pointee = {
-                        let datatype = self.annotations.get_type(qualifier_node, self.index).unwrap();
-                        self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                    // Get the container (qualifier) type name for struct member index lookup
+                    let qualifier_type = self.annotations.get_type(qualifier_node, self.index).unwrap();
+                    let container_name = qualifier_type.get_name();
+
+                    // For POUs (programs, function blocks, classes), use get_struct_member_index
+                    // to compute the correct GEP index. This properly handles POUs with
+                    // VAR_TEMP/VAR_EXTERNAL variables which are not part of the struct
+                    // (they're stack-allocated or external).
+                    // For regular structs (including vtables), use location_in_parent directly.
+                    let member_location = if self.index.find_pou(container_name).is_some() {
+                        self.index
+                            .get_struct_member_index(container_name, name)
+                            .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?
+                    } else {
+                        self.index
+                            .find_fully_qualified_variable(qualified_name)
+                            .map(VariableIndexEntry::get_location_in_parent)
+                            .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?
                     };
+
+                    let pointee = self.llvm_index.get_associated_type(container_name).unwrap();
 
                     let gep: PointerValue<'_> = self.llvm.get_member_pointer_from_struct(
                         pointee,
@@ -1665,13 +1862,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(reference)
             .map(|it| it.get_basic_value_enum().into_pointer_value())
             .and_then(|lvalue| {
-                if let DataTypeInformation::Array { name, dimensions, inner_type_name } =
-                    self.get_type_hint_info_for(reference)?
-                {
+                let type_hint_info = self.get_type_hint_info_for(reference)?;
+                // Resolve through aliases to get the effective array type information
+                let effective_info = self
+                    .index
+                    .find_effective_type_info(type_hint_info.get_name())
+                    .unwrap_or(type_hint_info);
+                if let DataTypeInformation::Array { name, dimensions, inner_type_name } = effective_info {
                     // make sure dimensions match statement list
                     let statements = access.get_as_list();
                     if statements.is_empty() || statements.len() != dimensions.len() {
-                        return Err(Diagnostic::codegen_error("Invalid array access", access).into());
+                        return Err(Diagnostic::codegen_error(
+                            format!(
+                                "Invalid array access: expected {} dimension(s) for array type '{}', but got {}",
+                                dimensions.len(),
+                                name,
+                                statements.len()
+                            )
+                            .as_str(),
+                            access,
+                        )
+                        .into());
                     }
 
                     // e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
@@ -1727,10 +1938,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                         &Operator::Multiplication,
                                         current_portion_value,
                                         v,
+                                        None,
                                     )?;
                                     // take the sum of the mulitlication and the previous accumulated_value
                                     // this now becomes the new accumulated value
-                                    self.create_llvm_int_binary_expression(&Operator::Plus, m_v, last_v)
+                                    self.create_llvm_int_binary_expression(&Operator::Plus, m_v, last_v, None)
                                 })?
                             });
                             (result, 0 /* the 0 will be ignored */)
@@ -1758,8 +1970,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             // For flattened array-of-array parameters (fundamental element pointer):
                             // Calculate proper stride: index * element_size
                             // This handles cases like i8* representing [N x STRING]* or i32* representing [N x [M x i32]]*
-                            let DataTypeInformation::Array { inner_type_name, .. } =
-                                self.get_type_hint_info_for(reference)?
+                            let DataTypeInformation::Array { inner_type_name, .. } = effective_info
                             else {
                                 log::error!("Uncaught resolve error for inner type of nested array");
                                 return Err(Diagnostic::codegen_error(
@@ -1810,7 +2021,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     return Ok(pointer);
                 }
-                Err(Diagnostic::codegen_error("Invalid array access", access).into())
+                Err(Diagnostic::codegen_error(
+                    format!(
+                        "Invalid array access: type '{}' is not an array type",
+                        type_hint_info.get_name()
+                    )
+                    .as_str(),
+                    access,
+                )
+                .into())
             })
     }
 
@@ -1969,6 +2188,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &Operator,
         left_value: BasicValueEnum<'ink>,
         right_value: BasicValueEnum<'ink>,
+        is_signed: Option<bool>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let int_lvalue = left_value.into_int_value();
         let int_rvalue = right_value.into_int_value();
@@ -1977,8 +2197,34 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::Plus => self.llvm.builder.build_int_add(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::Minus => self.llvm.builder.build_int_sub(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::Multiplication => self.llvm.builder.build_int_mul(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::Division => self.llvm.builder.build_int_signed_div(int_lvalue, int_rvalue, "tmpVar")?,
-            Operator::Modulo => self.llvm.builder.build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar")?,
+            Operator::Division => {
+                let Some(is_signed) = is_signed else {
+                    return Err(CodegenError::GenericError(
+                        "Sign information is required for integer division!".to_string(),
+                        SourceLocation::undefined(),
+                    ));
+                };
+
+                if is_signed {
+                    self.llvm.builder.build_int_signed_div(int_lvalue, int_rvalue, "tmpVar")?
+                } else {
+                    self.llvm.builder.build_int_unsigned_div(int_lvalue, int_rvalue, "tmpVar")?
+                }
+            }
+            Operator::Modulo => {
+                let Some(is_signed) = is_signed else {
+                    return Err(CodegenError::GenericError(
+                        "Sign information is required for integer modulus!".to_string(),
+                        SourceLocation::undefined(),
+                    ));
+                };
+
+                if is_signed {
+                    self.llvm.builder.build_int_signed_rem(int_lvalue, int_rvalue, "tmpVar")?
+                } else {
+                    self.llvm.builder.build_int_unsigned_rem(int_lvalue, int_rvalue, "tmpVar")?
+                }
+            }
             Operator::Equal => {
                 self.llvm.builder.build_int_compare(IntPredicate::EQ, int_lvalue, int_rvalue, "tmpVar")?
             }
@@ -2144,13 +2390,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 AstLiteral::Time(t) => self.create_const_int(t.value()).map(ExpressionValue::RValue),
                 AstLiteral::String(s) => self.generate_string_literal(literal_statement, s.value(), location),
                 AstLiteral::Array(arr) => self
-                    .generate_literal_array(arr.elements().ok_or_else(cannot_generate_literal)?)
+                    .generate_literal_array(
+                        arr.elements().ok_or_else(cannot_generate_literal)?,
+                        Some(self.get_type_hint_info_for(literal_statement)?),
+                    )
                     .map(ExpressionValue::RValue),
                 AstLiteral::Null => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },
+            AstStatement::DefaultValue(_) => {
+                let default_type = self.get_type_hint_for(literal_statement)?;
+                if let Some(initial_value) =
+                    self.llvm_index.find_associated_initial_value(default_type.get_name())
+                {
+                    Ok(ExpressionValue::RValue(initial_value))
+                } else {
+                    let llvm_type = self.llvm_index.get_associated_type(default_type.get_name())?;
+                    Ok(ExpressionValue::RValue(get_default_for(llvm_type)))
+                }
+            }
 
             AstStatement::MultipliedStatement { .. } => {
-                self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
+                self.generate_literal_array(literal_statement, None).map(ExpressionValue::RValue)
             }
             AstStatement::ParenExpression(expr) => self.generate_literal(expr),
             // if there is an expression-list this might be a struct-initialization or array-initialization
@@ -2158,13 +2418,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let type_hint = self.get_type_hint_info_for(literal_statement)?;
                 match type_hint {
                     DataTypeInformation::Array { .. } => {
-                        self.generate_literal_array(literal_statement).map(ExpressionValue::RValue)
+                        self.generate_literal_array(literal_statement, None).map(ExpressionValue::RValue)
                     }
                     _ => self.generate_literal_struct(literal_statement),
                 }
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
             AstStatement::Assignment { .. } => self.generate_literal_struct(literal_statement),
+            // Reference expressions (e.g., variable references in array literals like `[..., str]`)
+            // should be evaluated as regular expressions
+            AstStatement::ReferenceExpr(_) => {
+                self.generate_expression(literal_statement).map(ExpressionValue::RValue)
+            }
             _ => Err(cannot_generate_literal().into()),
         }
     }
@@ -2333,13 +2598,31 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             let struct_type = self.llvm_index.get_associated_type(struct_name)?.into_struct_type();
             if member_values.len() == struct_type.count_fields() as usize {
-                member_values.sort_by(|(a, _), (b, _)| a.cmp(b));
+                member_values.sort_by_key(|(a, _)| *a);
                 let ordered_values: Vec<BasicValueEnum<'ink>> =
                     member_values.iter().map(|(_, v)| *v).collect();
 
-                Ok(ExpressionValue::RValue(
-                    struct_type.const_named_struct(ordered_values.as_slice()).as_basic_value_enum(),
-                ))
+                if ordered_values.iter().all(|v| v.is_const()) {
+                    Ok(ExpressionValue::RValue(
+                        struct_type.const_named_struct(ordered_values.as_slice()).as_basic_value_enum(),
+                    ))
+                } else if self.function_context.is_none() {
+                    Err(Diagnostic::codegen_error(
+                        "Non-constant struct literal requires function context",
+                        assignments,
+                    )
+                    .into())
+                } else {
+                    let mut value = struct_type.get_undef();
+                    for (idx, field) in ordered_values.iter().enumerate() {
+                        value = self
+                            .llvm
+                            .builder
+                            .build_insert_value(value, *field, idx as u32, "")?
+                            .into_struct_value();
+                    }
+                    Ok(ExpressionValue::RValue(value.as_basic_value_enum()))
+                }
             } else {
                 Err(Diagnostic::codegen_error(
                     format!(
@@ -2365,12 +2648,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_literal_array(
         &self,
         initializer: &AstNode,
+        type_hint: Option<&DataTypeInformation>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        let array_value = self.generate_literal_array_value(
-            initializer,
-            self.get_type_hint_info_for(initializer)?,
-            &initializer.get_location(),
-        )?;
+        let data_type = if let Some(dt) = type_hint { dt } else { self.get_type_hint_info_for(initializer)? };
+        let array_value =
+            self.generate_literal_array_value(initializer, data_type, &initializer.get_location())?;
         Ok(array_value.as_basic_value_enum())
     }
 
@@ -2409,8 +2691,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let elements =
             if self.index.get_effective_type_or_void_by_name(inner_type.get_name()).information.is_struct() {
                 match elements.get_stmt() {
+                    // ExpressionList of struct initializers: [(a:=1), (b:=2)] or [(a:=1, b:=2), (c:=3, d:=4)]
                     AstStatement::ExpressionList(expressions) => expressions.iter().collect(),
-                    _ => unreachable!("This should always be an expression list"),
+                    // Single struct initializer wrapped in parentheses: [(a := 1, b := 2)]
+                    // The ParenExpression represents ONE struct, not multiple elements
+                    AstStatement::ParenExpression(_) => vec![elements],
+                    // Single struct initializer without parentheses
+                    _ => vec![elements],
                 }
             } else {
                 flatten_expression_list(elements)
@@ -2418,9 +2705,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let llvm_type = self.llvm_index.get_associated_type(inner_type.get_name())?;
         let mut v = Vec::new();
+        // For array literal initialization, always generate elements using a context-free generator.
+        // This ensures that all literals (especially strings) are generated as const values (RValues)
+        // rather than pointers to globals (LValues), even when we're inside a constructor function.
+        // The refactor moved initialization into constructors, so we're now in a function_context,
+        // but array literals need const element values, not runtime pointer values.
+        let ctx_free_gen = ExpressionCodeGenerator::new_context_free(
+            self.llvm,
+            self.index,
+            self.annotations,
+            self.llvm_index,
+        );
         for e in elements {
-            //generate with correct type hint
-            let value = self.generate_literal(e)?;
+            //generate with correct type hint using context-free generator
+            let value = ctx_free_gen.generate_literal(e)?;
             v.push(value.get_basic_value_enum());
         }
 
@@ -2626,8 +2924,36 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             )?;
         } else {
             let expression = self.generate_expression(right_statement)?;
-            self.llvm.builder.build_store(left, expression)?;
+            // For aggregate constant values (array/struct literals), avoid emitting a giant
+            // inline `store` instruction. Instead, materialize the constant as an anonymous
+            // global and memcpy from it — this is O(1) in IR size regardless of array length.
+            if expression.is_const()
+                && (expression.is_array_value() || expression.is_struct_value())
+                && left_type.is_aggregate()
+            {
+                self.store_aggregate_via_memcpy(left, expression, right_statement)?;
+            } else {
+                self.llvm.builder.build_store(left, expression)?;
+            }
         }
+        Ok(())
+    }
+
+    /// Materializes an aggregate constant value as an anonymous global and copies it
+    /// into `target` via memcpy. This avoids bloated inline `store` instructions for
+    /// large array/struct literals.
+    fn store_aggregate_via_memcpy(
+        &self,
+        target: PointerValue<'ink>,
+        value: BasicValueEnum<'ink>,
+        right_statement: &AstNode,
+    ) -> Result<(), CodegenError> {
+        let (global_ptr, alignment) = self.llvm.materialize_as_global(&value)?;
+        let size = value
+            .get_type()
+            .size_of()
+            .ok_or_else(|| Diagnostic::codegen_error("Cannot determine type size", right_statement))?;
+        self.llvm.builder.build_memcpy(target, alignment, global_ptr, alignment, size)?;
         Ok(())
     }
 
@@ -2742,7 +3068,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let Some(start_offset) = index_offsets.first().map(|(start, _)| *start) else {
                 unreachable!("VLA must have information about dimension offsets")
             };
-            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into())?
+            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into(), None)?
                 .into_int_value()
         } else {
             let accessors = access_statements

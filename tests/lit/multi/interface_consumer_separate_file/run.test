@@ -1,0 +1,2 @@
+RUN: %COMPILE %S/main.st %S/iface.st %S/impl.st %S/consumer.st && %RUN | %CHECK %s
+CHECK: 42

@@ -1,0 +1,29 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef REFERENCE_TO_ARRAY_H_
+#define REFERENCE_TO_ARRAY_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <time.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int16_t Util_PackBitsToDWORD(bool* ValueRef, int16_t StartIndex, int16_t Length, int16_t Offset, uint32_t* Result);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !REFERENCE_TO_ARRAY_H_ */

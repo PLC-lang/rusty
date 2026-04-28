@@ -6,8 +6,6 @@ typedef struct {
     int b;
 } fbInstance;
 
-fbInstance __myFunctionBlock__init = { 0 };
-
 void myFunctionBlock(fbInstance* fb_instance) {}
 void myFunctionBlock__FB_INIT(fbInstance* fb_instance) {
     fb_instance->a = 1;

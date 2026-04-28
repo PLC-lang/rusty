@@ -7,10 +7,6 @@ source_filename = "myStruct.st"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%myStruct = type { i32, ptr }
-
-@__myStruct__init = unnamed_addr constant %myStruct { i32 20, ptr null }
-
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
 target datalayout = "[filtered]"

@@ -400,7 +400,7 @@ fn string_as_function_parameters() {
     let source = SourceCode::new(src, "string_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("func", string_id as usize);
+    module.add_global_function_mapping("func", string_id as *const () as usize);
 
     let _: i32 = module.run("main", &mut main_type);
     let res = CStr::from_bytes_with_nul(&main_type[..6]).unwrap().to_str().unwrap();
@@ -437,7 +437,7 @@ fn wstring_as_function_parameters() {
     let source = SourceCode::new(src, "string_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("func", wstring_id as usize);
+    module.add_global_function_mapping("func", wstring_id as *const () as usize);
 
     let _: i32 = module.run("main", &mut main_type);
 
@@ -475,7 +475,7 @@ fn string_as_function_parameters_cast() {
     let source = SourceCode::new(src, "string_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("func", string_id as usize);
+    module.add_global_function_mapping("func", string_id as *const () as usize);
     let _: i32 = module.run("main", &mut main_type);
     let res = CStr::from_bytes_with_nul(&main_type.res[..6]).unwrap().to_str().unwrap();
     assert_eq!(res, "hello");
@@ -511,7 +511,7 @@ fn wstring_as_function_parameters_cast() {
     let source = SourceCode::new(src, "string_test.st");
     let context = CodegenContext::create();
     let module = compile(&context, source);
-    module.add_global_function_mapping("func", wstring_id as usize);
+    module.add_global_function_mapping("func", wstring_id as *const () as usize);
     let _: i32 = module.run("main", &mut main_type);
 
     let res = String::from_utf16_lossy(&main_type.res[..5]);

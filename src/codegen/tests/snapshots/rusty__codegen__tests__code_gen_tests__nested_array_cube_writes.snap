@@ -17,27 +17,27 @@ entry:
   %y = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %z = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
   %cube = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
-  %load_x = load i16, ptr %x, align 2
+  %load_x = load i16, ptr %x, align [filtered]
   %1 = sext i16 %load_x to i32
   %tmpVar = mul i32 25, %1
   %tmpVar1 = add i32 %tmpVar, 0
-  %load_y = load i16, ptr %y, align 2
+  %load_y = load i16, ptr %y, align [filtered]
   %2 = sext i16 %load_y to i32
   %tmpVar2 = mul i32 5, %2
   %tmpVar3 = add i32 %tmpVar2, %tmpVar1
-  %load_z = load i16, ptr %z, align 2
+  %load_z = load i16, ptr %z, align [filtered]
   %3 = sext i16 %load_z to i32
   %tmpVar4 = mul i32 1, %3
   %tmpVar5 = add i32 %tmpVar4, %tmpVar3
   %tmpVar6 = getelementptr inbounds [125 x i32], ptr %cube, i32 0, i32 %tmpVar5
-  %load_x7 = load i16, ptr %x, align 2
+  %load_x7 = load i16, ptr %x, align [filtered]
   %4 = sext i16 %load_x7 to i32
-  %load_y8 = load i16, ptr %y, align 2
+  %load_y8 = load i16, ptr %y, align [filtered]
   %5 = sext i16 %load_y8 to i32
   %tmpVar9 = mul i32 %4, %5
-  %load_z10 = load i16, ptr %z, align 2
+  %load_z10 = load i16, ptr %z, align [filtered]
   %6 = sext i16 %load_z10 to i32
   %tmpVar11 = mul i32 %tmpVar9, %6
-  store i32 %tmpVar11, ptr %tmpVar6, align 4
+  store i32 %tmpVar11, ptr %tmpVar6, align [filtered]
   ret void
 }

@@ -13,11 +13,11 @@ target triple = "[filtered]"
 
 define i32 @foo(i32 %0) {
 entry:
-  %foo = alloca i32, align 4
-  %a = alloca i32, align 4
-  store i32 %0, ptr %a, align 4
-  store i32 0, ptr %foo, align 4
-  %foo_ret = load i32, ptr %foo, align 4
+  %foo = alloca i32, align [filtered]
+  %a = alloca i32, align [filtered]
+  store i32 %0, ptr %a, align [filtered]
+  store i32 0, ptr %foo, align [filtered]
+  %foo_ret = load i32, ptr %foo, align [filtered]
   ret i32 %foo_ret
 }
 

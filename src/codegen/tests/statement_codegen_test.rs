@@ -209,11 +209,11 @@ fn ref_assignment() {
 
     define void @main() {
     entry:
-      %a = alloca ptr, align 8
-      %b = alloca i32, align 4
-      store ptr null, ptr %a, align 8
-      store i32 0, ptr %b, align 4
-      store ptr %b, ptr %a, align 8
+      %a = alloca ptr, align [filtered]
+      %b = alloca i32, align [filtered]
+      store ptr null, ptr %a, align [filtered]
+      store i32 0, ptr %b, align [filtered]
+      store ptr %b, ptr %a, align [filtered]
       ret void
     }
     "#);
@@ -240,9 +240,9 @@ fn ref_assignment_to_null() {
 
     define void @main() {
     entry:
-      %a = alloca ptr, align 8
-      store ptr null, ptr %a, align 8
-      store i32 0, ptr %a, align 4
+      %a = alloca ptr, align [filtered]
+      store ptr null, ptr %a, align [filtered]
+      store i32 0, ptr %a, align [filtered]
       ret void
     }
     "#);
@@ -283,10 +283,10 @@ fn reference_to_assignment() {
 
     define void @main() {
     entry:
-      %a = alloca ptr, align 8
-      store ptr null, ptr %a, align 8
-      %deref = load ptr, ptr %a, align 8
-      store i32 5, ptr %deref, align 4
+      %a = alloca ptr, align [filtered]
+      store ptr null, ptr %a, align [filtered]
+      %deref = load ptr, ptr %a, align [filtered]
+      store i32 5, ptr %deref, align [filtered]
       ret void
     }
     "#);
@@ -330,10 +330,10 @@ fn reference_to_string_assignment() {
 
     define void @main() {
     entry:
-      %a = alloca ptr, align 8
-      store ptr null, ptr %a, align 8
-      %deref = load ptr, ptr %a, align 8
-      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref, ptr align 1 @utf08_literal_0, i32 6, i1 false)
+      %a = alloca ptr, align [filtered]
+      store ptr null, ptr %a, align [filtered]
+      %deref = load ptr, ptr %a, align [filtered]
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref, ptr align [filtered] @utf08_literal_0, i32 6, i1 false)
       ret void
     }
 
@@ -365,10 +365,10 @@ fn local_alias() {
 
     define void @main() {
     entry:
-      %foo = alloca ptr, align 8
-      %bar = alloca i32, align 4
-      store ptr null, ptr %foo, align 8
-      store i32 0, ptr %bar, align 4
+      %foo = alloca ptr, align [filtered]
+      %bar = alloca i32, align [filtered]
+      store ptr null, ptr %foo, align [filtered]
+      store i32 0, ptr %bar, align [filtered]
       ret void
     }
     "#);
@@ -395,10 +395,10 @@ fn local_string_alias() {
 
     define void @main() {
     entry:
-      %foo = alloca ptr, align 8
-      %bar = alloca [81 x i8], align 1
-      store ptr null, ptr %foo, align 8
-      call void @llvm.memset.p0.i64(ptr align 1 %bar, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      %foo = alloca ptr, align [filtered]
+      %bar = alloca [81 x i8], align [filtered]
+      store ptr null, ptr %foo, align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %bar, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
@@ -447,4 +447,69 @@ fn stateful_local() {
     );
 
     filtered_assert_snapshot!(content, @r"");
+}
+
+#[test]
+fn real_conversion_with_pretty_syntax() {
+    let non_pretty_syntax = codegen(
+        r#"
+        {external}
+        FUNCTION REAL_TO_INT : INT
+        VAR_INPUT
+            in : REAL;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                var_int     : INT;
+            END_VAR
+
+            // Cast the REAL value to INT
+            var_int := REAL_TO_INT(70000.4);
+
+        END_FUNCTION
+        "#,
+    );
+
+    let pretty_syntax = codegen(
+        r#"
+        {external}
+        FUNCTION REAL_TO_INT : INT
+        VAR_INPUT
+            in : REAL;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                var_int     : INT;
+            END_VAR
+
+            // Cast the REAL value to INT
+            var_int := REAL_TO_INT(70_000.4);
+
+        END_FUNCTION
+        "#,
+    );
+
+    assert_eq!(non_pretty_syntax, pretty_syntax);
+
+    filtered_assert_snapshot!(pretty_syntax, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    declare i16 @REAL_TO_INT(float)
+
+    define void @main() {
+    entry:
+      %var_int = alloca i16, align [filtered]
+      store i16 0, ptr %var_int, align [filtered]
+      %call = call i16 @REAL_TO_INT(float 0x40F1170660000000)
+      store i16 %call, ptr %var_int, align [filtered]
+      ret void
+    }
+    "#);
 }

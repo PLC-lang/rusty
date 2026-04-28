@@ -65,7 +65,7 @@ impl ExpressionCollector {
 
 impl AstVisitor for ExpressionCollector {
     fn visit(&mut self, node: &plc_ast::ast::AstNode) {
-        let current_range = node.get_location().to_range().unwrap_or_else(|| 0..0);
+        let current_range = node.get_location().to_range().unwrap_or(0..0);
 
         // lets see if we have a marker for this range
         if self.ordered_markers.remove(&current_range) {
