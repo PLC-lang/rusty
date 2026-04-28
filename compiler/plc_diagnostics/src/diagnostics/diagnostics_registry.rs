@@ -233,7 +233,7 @@ lazy_static! {
         E130,   Error,      include_str!("./error_codes/E130.md"),  // Array size exceeds supported limit
         E117,   Error,      include_str!("./error_codes/E117.md"),  // Non-constant array boundary
         E131,   Error,      include_str!("./error_codes/E131.md"),  // Positional argument collides with later named argument
-        E132,   Warning,    include_str!("./error_codes/E132.md"),  // Mixing implicit and explicit call parameters
+        E132,   Ignore,    include_str!("./error_codes/E132.md"),  // Mixing implicit and explicit call parameters
     );
 }
 
