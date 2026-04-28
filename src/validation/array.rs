@@ -75,6 +75,14 @@ fn validate_array<T: AnnotationMap>(
     rhs_stmt: &AstNode,
 ) {
     let stmt_rhs = peel(rhs_stmt);
+
+    // `DefaultValue` is a parser-inserted placeholder (e.g. for CONSTANT declarations without
+    // explicit initializers). Let constant/default resolution handle it instead of reporting
+    // array literal syntax errors.
+    if matches!(stmt_rhs.get_stmt(), AstStatement::DefaultValue(_)) {
+        return;
+    }
+
     if !(stmt_rhs.is_literal_array() || stmt_rhs.is_reference() || stmt_rhs.is_call()) {
         validator.push_diagnostic(
             Diagnostic::new("Array assignments must be surrounded with `[]`")
@@ -173,12 +181,12 @@ fn statement_to_array_length<T: AnnotationMap>(
             Some(AstNode { stmt: AstStatement::ExpressionList(expressions), .. }) => {
                 let mut total = 0;
                 for it in expressions {
-                    total += statement_to_array_length(context, it)?;
+                    total += array_element_length(context, it)?;
                 }
                 Some(total)
             }
 
-            Some(any) => statement_to_array_length(context, any),
+            Some(any) => array_element_length(context, any),
             None => Some(0),
         },
 
@@ -186,6 +194,10 @@ fn statement_to_array_length<T: AnnotationMap>(
             .annotations
             .get_type(statement, context.index)
             .and_then(|it| it.information.get_array_length(context.index)),
+
+        // At the top level, a reference to a variable is not an array initializer — skip
+        // validation. References inside array literals are handled by `array_element_length`.
+        AstStatement::ReferenceExpr(_) => None,
 
         AstStatement::MultipliedStatement(data) => Some(data.multiplier as usize),
         AstStatement::ExpressionList { .. } | AstStatement::ParenExpression(_) => Some(1),
@@ -197,6 +209,25 @@ fn statement_to_array_length<T: AnnotationMap>(
             log::debug!("Array size-counting for {statement:?} not covered; skipping validation");
             None
         }
+    }
+}
+
+/// Returns the length of an element inside an array literal.
+/// Unlike [`statement_to_array_length`], non-array references are counted as 1 element
+/// since they represent individual values in the initializer list.
+fn array_element_length<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    statement: &AstNode,
+) -> Option<usize> {
+    match statement.get_stmt() {
+        AstStatement::ReferenceExpr(_) => {
+            let len = context
+                .annotations
+                .get_type(statement, context.index)
+                .and_then(|it| it.information.get_array_length(context.index));
+            Some(len.unwrap_or(1))
+        }
+        _ => statement_to_array_length(context, statement),
     }
 }
 

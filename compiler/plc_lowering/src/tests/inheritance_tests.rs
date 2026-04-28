@@ -2099,7 +2099,7 @@ mod resolve_bases_tests {
             "#
         .into();
 
-        let (_, AnnotatedProject { units, index: _index, annotations }) =
+        let (_, AnnotatedProject { units, index: _index, annotations, .. }) =
             parse_and_annotate("test", vec![src]).unwrap();
         let unit = &units[0].get_unit().implementations[3];
         let statement = &unit.statements[0];
@@ -2171,10 +2171,8 @@ mod inherited_properties {
     fn reference_to_property_declared_in_parent_is_called_correctly() {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
-            PROPERTY foo : INT
-                GET END_GET
-                SET END_SET
-            END_PROPERTY
+                PROPERTY_GET foo: INT END_PROPERTY
+                PROPERTY_SET foo: INT END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb2 EXTENDS fb
@@ -2279,10 +2277,8 @@ mod inherited_properties {
     fn reference_to_property_declared_in_grandparent_is_called_correctly() {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
-            PROPERTY foo : INT
-                GET END_GET
-                SET END_SET
-            END_PROPERTY
+                PROPERTY_GET foo: INT END_PROPERTY
+                PROPERTY_SET foo: INT END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb2 EXTENDS fb
@@ -2399,15 +2395,13 @@ mod inherited_properties {
     fn extended_prop() {
         let src: SourceCode = r#"
             FUNCTION_BLOCK fb
-            PROPERTY foo : INT
-                GET END_GET
-            END_PROPERTY
+                PROPERTY_GET foo: INT
+                END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb2 EXTENDS fb
-            PROPERTY FOO : INT
-                SET END_SET
-            END_PROPERTY
+                PROPERTY_SET foo: INT
+                END_PROPERTY
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK fb3 EXTENDS fb2

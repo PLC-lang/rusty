@@ -15,17 +15,20 @@ jobs:
       contents: write
       pull-requests: write
     # Skip if the push is a release PR merge; always run for manual triggers
-    if: github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):')
+    if: >-
+      github.event_name != 'push' ||
+      (!startsWith(github.event.head_commit.message, 'chore(release):')
+       && !startsWith(github.event.head_commit.message, 'chore: bump version to'))
     steps:
       - name: Generate GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
@@ -59,6 +62,10 @@ jobs:
         if: steps.version.outputs.skip == 'false'
         run: cargo set-version --workspace ${{ steps.version.outputs.next }}
 
+      - name: Update Cargo.lock
+        if: steps.version.outputs.skip == 'false'
+        run: cargo generate-lockfile
+
       - name: Generate changelog
         if: steps.version.outputs.skip == 'false'
         id: changelog
@@ -70,7 +77,7 @@ jobs:
 
       - name: Create pull request
         if: steps.version.outputs.skip == 'false'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "chore(release): prepare v${{ steps.version.outputs.next }}"

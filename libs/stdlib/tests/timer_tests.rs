@@ -502,3 +502,31 @@ fn toff_keeps_returning_true_if_input_returns_to_true() {
     assert!(main_inst.tp_out);
     assert_eq!(main_inst.tp_et, 5_000_000);
 }
+
+#[test]
+fn tp_should_not_panic_if_fully_initialised_to_false() {
+    let prog = r#"
+    PROGRAM main
+        VAR_INPUT
+            value : BOOL;
+        END_VAR
+        VAR
+            tp_out  : BOOL;
+            tp_et   : TIME;
+            tp_inst : TP;
+        END_VAR
+        tp_inst(IN := FALSE, PT := T#10s, Q => tp_out, ET => tp_et);
+    END_PROGRAM
+"#;
+
+    let sources = vec![prog.into()];
+    let includes = get_includes(&["timers.st"]);
+    let context = CodegenContext::create();
+    let module = compile_and_load(&context, sources, includes);
+    let mut main_inst = MainType { value: true, ..MainType::default() };
+
+    // Value true First call -> false
+    module.run::<_, ()>("main", &mut main_inst);
+    assert!(!main_inst.tp_out);
+    assert_eq!(main_inst.tp_et, 0);
+}

@@ -539,20 +539,17 @@ fn switch_case_debug_info() {
       store i16 0, ptr %x3, align [filtered]
         #dbg_declare(ptr %main, !15, !DIExpression(), !17)
       store i32 0, ptr %main, align [filtered]
-      br label %condition_check, !dbg !18
+      br label %while_body, !dbg !18
 
-    condition_check:                                  ; preds = %continue2, %entry
-      br i1 true, label %while_body, label %continue, !dbg !19
-
-    while_body:                                       ; preds = %condition_check
+    while_body:                                       ; preds = %continue2, %entry
       br i1 false, label %condition_body, label %continue1, !dbg !19
 
-    continue:                                         ; preds = %condition_body, %condition_check
+    continue:                                         ; preds = %condition_body
       %main_ret = load i32, ptr %main, align [filtered], !dbg !20
       ret i32 %main_ret, !dbg !20
 
     condition_body:                                   ; preds = %while_body
-      br label %continue, !dbg !19
+      br label %continue, !dbg !21
 
     buffer_block:                                     ; No predecessors!
       br label %continue1, !dbg !21
@@ -589,7 +586,7 @@ fn switch_case_debug_info() {
       br label %continue2, !dbg !25
 
     continue2:                                        ; preds = %else, %case5, %case4, %case
-      br label %condition_check, !dbg !18
+      br label %while_body, !dbg !21
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -613,7 +610,7 @@ fn switch_case_debug_info() {
     !15 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !16, align [filtered])
     !16 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !17 = !DILocation(line: 2, column: 17, scope: !4)
-    !18 = !DILocation(line: 22, column: 12, scope: !4)
+    !18 = !DILocation(line: 9, column: 12, scope: !4)
     !19 = !DILocation(line: 9, column: 18, scope: !4)
     !20 = !DILocation(line: 24, column: 8, scope: !4)
     !21 = !DILocation(line: 0, scope: !4)
@@ -1107,7 +1104,7 @@ END_FUNCTION
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 22, type: !5, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 22, type: !5, scopeLine: 32, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -2079,7 +2076,7 @@ fn range_datatype_debug() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 6, type: !5, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 6, type: !5, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -2162,7 +2159,7 @@ fn range_datatype_reference_expr_bounds_debug() {
     !6 = !{i32 2, !"Debug Info Version", i32 3}
     !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false)
     !8 = !{!0}
-    !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 10, type: !10, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !12)
+    !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 10, type: !10, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !12)
     !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
     !11 = !{null}
     !12 = !{}

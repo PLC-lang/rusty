@@ -1,13 +1,11 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// Scenario: Single interface with a property declaring both GET and SET, implemented by a single
+// Scenario: Single interface with a property declaring both PROPERTY_GET and PROPERTY_SET, implemented by a single
 // function block. Assign the concrete instance to an interface variable and exercise both accessors
 // through it. Baseline sanity test for property dispatch through interfaces.
 
 INTERFACE IValue
-    PROPERTY value : DINT
-        GET END_GET
-        SET END_SET
-    END_PROPERTY
+    PROPERTY_GET value: DINT END_PROPERTY
+    PROPERTY_SET value: DINT END_PROPERTY
 END_INTERFACE
 
 FUNCTION_BLOCK FbStore IMPLEMENTS IValue
@@ -15,14 +13,12 @@ FUNCTION_BLOCK FbStore IMPLEMENTS IValue
         _val : DINT := 10;
     END_VAR
 
-    PROPERTY value : DINT
-        GET
-            value := _val;
-        END_GET
+    PROPERTY_GET value: DINT
+        value := _val;
+    END_PROPERTY
 
-        SET
-            _val := value;
-        END_SET
+    PROPERTY_SET value: DINT
+        _val := value;
     END_PROPERTY
 END_FUNCTION_BLOCK
 

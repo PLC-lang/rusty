@@ -1,4 +1,4 @@
-use crate::test_utils::tests::parse_and_validate;
+use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
 
 #[test]
 fn pointer_to_ignores_type_checks_in_initializer() {
@@ -910,4 +910,123 @@ fn pointer_to_validates_assignment_of_non_pointer_sized_integers() {
         },
     ]
     "#);
+}
+
+#[test]
+fn reference_to_constant_is_not_allowed() {
+    let source = r#"
+        VAR_GLOBAL CONSTANT
+            x: DINT := 4;
+        END_VAR
+
+        FUNCTION main
+            VAR
+                y : REF_TO DINT;
+            END_VAR
+            y := REF(x);
+        END_FUNCTION
+    "#;
+
+    let diagnostics = parse_and_validate_buffered(source);
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E098]: Invalid assignment, cannot ensure constant is used as read-only
+       ┌─ <internal>:10:22
+       │
+    10 │             y := REF(x);
+       │                      ^ Invalid assignment, cannot ensure constant is used as read-only
+    ")
+}
+
+#[test]
+fn reference_assignment_of_constant_is_not_allowed() {
+    let source = r#"
+        VAR_GLOBAL CONSTANT
+            x: DINT := 4;
+        END_VAR
+
+        FUNCTION main
+            VAR
+                y : REFERENCE TO DINT;
+            END_VAR
+            y REF= x;
+        END_FUNCTION
+    "#;
+
+    let diagnostics = parse_and_validate_buffered(source);
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E098]: Invalid assignment, cannot ensure constant is used as read-only
+       ┌─ <internal>:10:20
+       │
+    10 │             y REF= x;
+       │                    ^ Invalid assignment, cannot ensure constant is used as read-only
+    ")
+}
+
+#[test]
+fn pointer_to_constant_is_not_allowed() {
+    let source = r#"
+        VAR_GLOBAL CONSTANT
+            x: DINT := 4;
+        END_VAR
+
+        FUNCTION main
+            VAR
+                y : POINTER TO DINT;
+            END_VAR
+            y := ADR(x);
+        END_FUNCTION
+    "#;
+
+    let diagnostics = parse_and_validate_buffered(source);
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E098]: Invalid assignment, cannot ensure constant is used as read-only
+       ┌─ <internal>:10:22
+       │
+    10 │             y := ADR(x);
+       │                      ^ Invalid assignment, cannot ensure constant is used as read-only
+    ")
+}
+
+#[test]
+fn reference_to_constant_aggregate_types_is_allowed() {
+    let source = r#"
+        VAR_GLOBAL CONSTANT
+            g2 : STRING := 'Whats up';
+        END_VAR
+
+        VAR_GLOBAL
+            g1 : Transaction := (id := 5, amount := 10, message := g2);
+        END_VAR
+
+        TYPE Transaction : STRUCT
+            id      : DINT;
+            amount  : DINT;
+            message : STRING;
+        END_STRUCT END_TYPE
+
+        FUNCTION_BLOCK fb
+            METHOD fbMethod
+                VAR
+                    bar : REFERENCE TO Transaction := REF(g1);
+                    msg : REFERENCE TO STRING;
+                END_VAR
+
+                msg := REF(g1.message);
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+        VAR
+            fb: fb;
+        END_VAR
+            fb.fbMethod();
+        END_FUNCTION
+    "#;
+
+    let diagnostics = parse_and_validate_buffered(source);
+
+    insta::assert_snapshot!(diagnostics, @"")
 }

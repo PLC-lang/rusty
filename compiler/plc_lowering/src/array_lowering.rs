@@ -1,8 +1,8 @@
 //! # Array Initializer Lowering
 //!
 //! This pass rewrites array initializer assignments whose elements cannot be
-//! evaluated at compile time into sequences of indexed assignments and/or FOR
-//! loops that the codegen backend can handle.
+//! evaluated at compile time into sequences of indexed assignments and/or
+//! canonical `WHILE TRUE` loops that the codegen backend can handle.
 //!
 //! ## Why this exists
 //!
@@ -53,19 +53,19 @@
 //! Given `arr : ARRAY[start..end] OF T := [init];` where `init` contains
 //! non-constant expressions:
 //!
-//! | Pattern                      | Lowered form                                            |
-//! |------------------------------|---------------------------------------------------------|
-//! | `[N(val)]`  (N ≥ threshold)  | `FOR __idx := start TO start+N-1 DO arr[__idx] := val`  |
-//! | `[N(val)]`  (N < threshold)  | `arr[start] := val; arr[start+1] := val; …`             |
-//! | `[v1, v2, v3]`               | `arr[start] := v1; arr[start+1] := v2; …`               |
-//! | `[3(v1), v2, 2(v3)]`         | mixed — each segment lowered independently              |
+//! | Pattern                      | Lowered form                                       |
+//! |------------------------------|----------------------------------------------------|
+//! | `[N(val)]`  (N ≥ threshold)  | counted `WHILE TRUE` loop over `__idx`             |
+//! | `[N(val)]`  (N < threshold)  | `arr[start] := val; arr[start+1] := val; …`        |
+//! | `[v1, v2, v3]`               | `arr[start] := v1; arr[start+1] := v2; …`          |
+//! | `[3(v1), v2, 2(v3)]`         | mixed — each segment lowered independently         |
 //!
 //! Multi-dimensional arrays are also handled:
 //! - Individual assignments use computed multi-dimensional indices via
 //!   [`ArrayInfo::flat_to_indices`] (e.g. flat index 5 on `ARRAY[0..2, 0..2]`
 //!   becomes `arr[1, 2]`).
-//! - A single `MultipliedStatement` filling the entire array uses nested FOR
-//!   loops (one per dimension).
+//! - A single `MultipliedStatement` filling the entire array uses nested
+//!   counted `WHILE TRUE` loops (one per dimension).
 //! - Partial multiplied segments on multi-dim arrays are unrolled to individual
 //!   assignments with computed indices.
 //!
@@ -76,7 +76,7 @@
 //!    declaration so the data-type generator does not attempt to create a
 //!    `__init` global for an expression it cannot evaluate.
 //! 2. **Adds `VAR_TEMP` counter variables** (e.g. `__literal_idx`) to POUs
-//!    that contain generated FOR loops.
+//!    that contain generated counted loops.
 
 use std::collections::{BTreeSet, HashMap};
 
@@ -84,19 +84,18 @@ use plc::index::Index;
 use plc_ast::{
     ast::{
         AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration,
-        MultipliedStatement, Variable, VariableBlock, VariableBlockType,
+        MultipliedStatement, Operator, Variable, VariableBlock, VariableBlockType,
     },
-    control_statements::ForLoopStatement,
     literals::{Array, AstLiteral},
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
 
-/// The minimum multiplier count at which we emit a FOR loop instead of
+/// The minimum multiplier count at which we emit a counted loop instead of
 /// unrolling into individual assignments.
-const FOR_LOOP_THRESHOLD: u32 = 32;
+const LOOP_THRESHOLD: u32 = 32;
 
-/// Counter variable name used by generated single-dimension FOR loops.
+/// Counter variable name used by generated single-dimension loops.
 const IDX_VAR: &str = "__literal_idx";
 
 // ── Array dimension info ────────────────────────────────────────────────────
@@ -135,7 +134,7 @@ impl ArrayInfo {
         indices
     }
 
-    /// Returns counter variable names for multi-dim nested FOR loops.
+    /// Returns counter variable names for multi-dim nested loops.
     fn nested_counter_names(&self) -> Vec<String> {
         (0..self.dims.len()).map(|i| format!("__literal_idx_{i}")).collect()
     }
@@ -145,7 +144,7 @@ impl ArrayInfo {
 
 struct LoweredResult {
     statements: Vec<AstNode>,
-    /// Names of counter variables needed by FOR loops in this result.
+    /// Names of counter variables needed by generated loops in this result.
     counter_names: BTreeSet<String>,
 }
 
@@ -153,9 +152,9 @@ struct LoweredResult {
 
 /// Walks every implementation in the compilation unit and rewrites assignments whose
 /// right-hand side is an array literal (`LiteralArray`) into indexed assignments
-/// and/or FOR loops.
+/// and/or canonical `WHILE TRUE` loops.
 pub fn lower_literal_arrays(unit: &mut CompilationUnit, index: &Index, id_provider: &mut IdProvider) {
-    // Track which POUs need which counter variables for FOR loops.
+    // Track which POUs need which counter variables for generated loops.
     let mut pou_counters: HashMap<String, BTreeSet<String>> = HashMap::new();
 
     // First pass: rewrite `(CONST)(value)` call statements inside array literal
@@ -188,7 +187,7 @@ pub fn lower_literal_arrays(unit: &mut CompilationUnit, index: &Index, id_provid
         implementation.statements = new_statements;
     }
 
-    // Add VAR_TEMP counter variables to POUs that need them for FOR loops.
+    // Add VAR_TEMP counter variables to POUs that need them for generated loops.
     if !pou_counters.is_empty() {
         add_counter_variables(unit, &pou_counters);
     }
@@ -310,7 +309,7 @@ fn try_rewrite_call_as_multiplied(node: &AstNode, index: &Index, pou_name: Optio
 
 // ── Counter variable insertion ──────────────────────────────────────────────
 
-/// Adds `VAR_TEMP` counter variables to POUs that have generated FOR loops.
+/// Adds `VAR_TEMP` counter variables to POUs that have generated counted loops.
 fn add_counter_variables(unit: &mut CompilationUnit, pou_counters: &HashMap<String, BTreeSet<String>>) {
     for pou in &mut unit.pous {
         if let Some(counter_names) = pou_counters.get(&pou.name) {
@@ -524,8 +523,8 @@ fn lower_array_elements(
 
 /// Lowers a `MultipliedStatement(count, element)` segment.
 /// Small counts → unrolled individual assignments.
-/// Large counts on single-dim → a FOR loop.
-/// Large counts on multi-dim filling the whole array → nested FOR loops.
+/// Large counts on single-dim → a counted `WHILE TRUE` loop.
+/// Large counts on multi-dim filling the whole array → nested counted `WHILE TRUE` loops.
 /// Large counts on multi-dim (partial) → unrolled individual assignments.
 fn lower_multiplied_segment(
     lhs: &AstNode,
@@ -535,24 +534,26 @@ fn lower_multiplied_segment(
     array_info: &ArrayInfo,
     id_provider: &mut IdProvider,
 ) -> LoweredResult {
-    let use_for_loop = count >= FOR_LOOP_THRESHOLD;
+    let use_generated_loop = count >= LOOP_THRESHOLD;
 
-    if !use_for_loop {
+    if !use_generated_loop {
         // Small count: unroll to individual indexed assignments.
         return unroll_to_assignments(lhs, element, count, flat_offset, array_info, id_provider);
     }
 
     if array_info.is_single_dim() {
-        // Single-dim, large: emit a FOR loop.
+        // Single-dim, large: emit a counted `WHILE TRUE` loop.
         let start = array_info.dims[0].start + flat_offset;
         let end = start + i64::from(count) - 1;
-        let for_loop = make_for_loop(lhs, element, start, end, id_provider);
-        LoweredResult { statements: vec![for_loop], counter_names: BTreeSet::from([IDX_VAR.to_string()]) }
+        let statements = make_counted_while_loop(lhs, element, IDX_VAR, start, end, id_provider);
+
+        LoweredResult { statements, counter_names: BTreeSet::from([IDX_VAR.to_string()]) }
     } else if flat_offset == 0 && i64::from(count) == array_info.total_elements() {
-        // Multi-dim, full fill: emit nested FOR loops (one per dimension).
-        let for_loop = make_nested_for_loops(lhs, element, array_info, id_provider);
+        // Multi-dim, full fill: emit one counted `WHILE TRUE` loop per dimension.
+        let statements = make_nested_while_loops(lhs, element, array_info, id_provider);
         let counter_names = array_info.nested_counter_names().into_iter().collect();
-        LoweredResult { statements: vec![for_loop], counter_names }
+
+        LoweredResult { statements, counter_names }
     } else {
         // Multi-dim, partial large: unroll with computed multi-dim indices.
         // This is rare but correct — each element gets its own assignment.
@@ -617,93 +618,193 @@ fn make_indexed_access(lhs: &AstNode, index: i64, id_provider: &mut IdProvider) 
     )
 }
 
-/// Creates: `FOR __literal_idx := start TO end DO lhs[__literal_idx] := element; END_FOR`
+/// Creates:
+/// ```text
+/// __literal_idx := start;
+/// WHILE TRUE DO
+///     IF __literal_idx > end THEN
+///         EXIT;
+///     END_IF
+///
+///     lhs[__literal_idx] := element;
+///     __literal_idx := __literal_idx + 1;
+/// END_WHILE
+/// ```
 /// Used for single-dimension arrays.
-fn make_for_loop(
+fn make_counted_while_loop(
     lhs: &AstNode,
     element: &AstNode,
+    counter_name: &str,
     start: i64,
     end: i64,
     id_provider: &mut IdProvider,
-) -> AstNode {
-    let loc = SourceLocation::internal();
+) -> Vec<AstNode> {
+    let idx_ref = make_member_reference(counter_name, id_provider);
+    let indexed_lhs = AstFactory::create_index_reference(
+        idx_ref,
+        Some(lhs.clone()),
+        id_provider.next_id(),
+        SourceLocation::internal(),
+    );
 
-    let counter = make_member_reference(IDX_VAR, id_provider);
-    let start_node = make_int_literal(start, id_provider);
-    let end_node = make_int_literal(end, id_provider);
-
-    // lhs[__literal_idx]
-    let idx_ref = make_member_reference(IDX_VAR, id_provider);
-    let indexed_lhs =
-        AstFactory::create_index_reference(idx_ref, Some(lhs.clone()), id_provider.next_id(), loc.clone());
-
+    // Generate the element store inside the counted loop.
     let body_assignment = AstFactory::create_assignment(indexed_lhs, element.clone(), id_provider.next_id());
 
-    AstFactory::create_for_loop(
-        ForLoopStatement {
-            counter: Box::new(counter),
-            start: Box::new(start_node),
-            end: Box::new(end_node),
-            by_step: None,
-            body: vec![body_assignment],
-            end_location: loc.clone(),
-        },
-        loc,
-        id_provider.next_id(),
-    )
+    make_canonical_counting_loop(counter_name, start, end, vec![body_assignment], id_provider)
 }
 
-/// Creates nested FOR loops for multi-dimensional arrays:
+/// Creates nested counted `WHILE TRUE` loops for multi-dimensional arrays:
 /// ```text
-/// FOR __literal_idx_0 := dim0_start TO dim0_end DO
-///   FOR __literal_idx_1 := dim1_start TO dim1_end DO
-///     ...
-///       lhs[__literal_idx_0, __literal_idx_1, ...] := element;
-///     ...
-///   END_FOR
-/// END_FOR
+/// __literal_idx_0 := dim0_start;
+/// WHILE TRUE DO
+///     IF __literal_idx_0 > dim0_end THEN EXIT; END_IF
+///
+///     __literal_idx_1 := dim1_start;
+///     WHILE TRUE DO
+///         IF __literal_idx_1 > dim1_end THEN EXIT; END_IF
+///         ...
+///             lhs[__literal_idx_0, __literal_idx_1, ...] := element;
+///         ...
+///         __literal_idx_1 := __literal_idx_1 + 1;
+///     END_WHILE
+///
+///     __literal_idx_0 := __literal_idx_0 + 1;
+/// END_WHILE
 /// ```
-fn make_nested_for_loops(
+fn make_nested_while_loops(
     lhs: &AstNode,
     element: &AstNode,
     array_info: &ArrayInfo,
     id_provider: &mut IdProvider,
-) -> AstNode {
+) -> Vec<AstNode> {
     let loc = SourceLocation::internal();
     let counter_names = array_info.nested_counter_names();
 
-    // Create the indexed access: lhs[__literal_idx_0, __literal_idx_1, ...]
+    // Create the indexed access using one counter variable per dimension.
     let idx_refs: Vec<AstNode> =
         counter_names.iter().map(|name| make_member_reference(name, id_provider)).collect();
     let idx_expr = AstFactory::create_expression_list(idx_refs, loc.clone(), id_provider.next_id());
     let indexed_lhs =
         AstFactory::create_index_reference(idx_expr, Some(lhs.clone()), id_provider.next_id(), loc.clone());
 
+    // Build the final element store, then wrap it in one counted loop per dimension.
     let assignment = AstFactory::create_assignment(indexed_lhs, element.clone(), id_provider.next_id());
+    let mut statements = vec![assignment];
 
-    // Build nested FOR loops from innermost dimension to outermost.
-    let mut body = vec![assignment];
     for i in (0..array_info.dims.len()).rev() {
-        let counter = make_member_reference(&counter_names[i], id_provider);
-        let start_node = make_int_literal(array_info.dims[i].start, id_provider);
-        let end_node = make_int_literal(array_info.dims[i].start + array_info.dims[i].size - 1, id_provider);
+        let counter_name = &counter_names[i];
+        let start = array_info.dims[i].start;
+        let end = start + array_info.dims[i].size - 1;
 
-        let for_loop = AstFactory::create_for_loop(
-            ForLoopStatement {
-                counter: Box::new(counter),
-                start: Box::new(start_node),
-                end: Box::new(end_node),
-                by_step: None,
-                body,
-                end_location: loc.clone(),
-            },
-            loc.clone(),
-            id_provider.next_id(),
-        );
-        body = vec![for_loop];
+        statements = make_canonical_counting_loop(counter_name, start, end, statements, id_provider);
     }
 
-    body.pop().expect("nested FOR loop construction should produce exactly one statement")
+    statements
+}
+
+/// Wraps a body in the canonical counted-loop skeleton used after loop lowering.
+fn make_canonical_counting_loop(
+    counter_name: &str,
+    start: i64,
+    end: i64,
+    body: Vec<AstNode>,
+    id_provider: &mut IdProvider,
+) -> Vec<AstNode> {
+    // Materialize the loop bounds and the counter references they operate on.
+    let start_value = make_int_literal(start, id_provider);
+    let end_value = make_int_literal(end, id_provider);
+    let one = make_int_literal(1, id_provider);
+
+    let counter_init_target = make_member_reference(counter_name, id_provider);
+    let counter_guard_value = make_member_reference(counter_name, id_provider);
+    let counter_increment_target = make_member_reference(counter_name, id_provider);
+    let counter_increment_value = make_member_reference(counter_name, id_provider);
+
+    // Initialize the counter before entering the canonical `WHILE TRUE` loop.
+    let counter_init = helper::create_internal_assignment(counter_init_target, start_value, id_provider);
+
+    // Exit once the loop has advanced past the inclusive upper bound.
+    let exit_condition = helper::create_internal_binary_expression(
+        counter_guard_value,
+        Operator::Greater,
+        end_value,
+        id_provider,
+    );
+    let exit_guard = helper::create_if_then_exit(exit_condition, id_provider);
+
+    // Advance the counter after the lowered loop body.
+    let increment_value =
+        helper::create_internal_binary_expression(counter_increment_value, Operator::Plus, one, id_provider);
+    let counter_increment =
+        helper::create_internal_assignment(counter_increment_target, increment_value, id_provider);
+
+    // Wrap the guard, body, and increment in the infinite-loop skeleton that codegen expects.
+    let mut loop_body = Vec::with_capacity(body.len() + 2);
+    loop_body.push(exit_guard);
+    loop_body.extend(body);
+    loop_body.push(counter_increment);
+
+    let while_loop = helper::create_while_true_loop(id_provider, loop_body);
+
+    vec![counter_init, while_loop]
+}
+
+mod helper {
+    use plc_ast::{
+        ast::{AstFactory, AstNode, Operator},
+        control_statements::{ConditionalBlock, IfStatement, LoopStatement},
+        literals::AstLiteral,
+        provider::IdProvider,
+    };
+    use plc_source::source_location::SourceLocation;
+
+    pub fn create_internal_literal_true(ids: &mut IdProvider) -> AstNode {
+        AstFactory::create_literal(AstLiteral::Bool(true), SourceLocation::internal(), ids.next_id())
+    }
+
+    pub fn create_if_then_exit(condition: AstNode, ids: &mut IdProvider) -> AstNode {
+        let location = SourceLocation::internal();
+
+        AstFactory::create_if_statement(
+            IfStatement {
+                blocks: vec![ConditionalBlock {
+                    condition: Box::new(condition),
+                    body: vec![AstFactory::create_exit_statement(SourceLocation::internal(), ids.next_id())],
+                }],
+                else_block: Vec::new(),
+                end_location: location.clone(),
+            },
+            location,
+            ids.next_id(),
+        )
+    }
+
+    pub fn create_while_true_loop(ids: &mut IdProvider, body: Vec<AstNode>) -> AstNode {
+        let statement = LoopStatement {
+            condition: Box::new(create_internal_literal_true(ids)),
+            body,
+            end_location: SourceLocation::internal(),
+        };
+
+        AstFactory::create_while_statement(statement, SourceLocation::internal(), ids.next_id())
+    }
+
+    pub fn create_internal_binary_expression(
+        left: AstNode,
+        operator: Operator,
+        right: AstNode,
+        ids: &mut IdProvider,
+    ) -> AstNode {
+        let mut expr = AstFactory::create_binary_expression(left, operator, right, ids.next_id());
+        expr.location = SourceLocation::internal();
+        expr
+    }
+
+    pub fn create_internal_assignment(left: AstNode, right: AstNode, ids: &mut IdProvider) -> AstNode {
+        let mut assignment = AstFactory::create_assignment(left, right, ids.next_id());
+        assignment.location = SourceLocation::internal();
+        assignment
+    }
 }
 
 // ── Primitive helpers ───────────────────────────────────────────────────────

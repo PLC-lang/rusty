@@ -124,7 +124,7 @@ fn method_can_be_parsed() {
 
 #[test]
 fn two_methods_can_be_parsed() {
-    let src ="CLASS MyClass METHOD INTERNAL testMethod2 END_METHOD METHOD PROTECTED otherMethod VAR_TEMP END_VAR END_METHOD END_CLASS";
+    let src = "CLASS MyClass METHOD INTERNAL testMethod2 END_METHOD METHOD PROTECTED otherMethod VAR_TEMP END_VAR END_METHOD END_CLASS";
     let unit = parse(src).0;
 
     let class = &unit.pous[0];

@@ -561,8 +561,6 @@ fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
                 retain : DINT;
                 public : DINT;
                 property : DINT;
-                get : DINT;
-                set : DINT;
 
                 end_property : DINT;
                 end_get : DINT;
@@ -576,8 +574,6 @@ fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
     error[E007]: Unexpected token: expected KeywordEndVar but found ': DINT;
                     public : DINT;
                     property : DINT;
-                    get : DINT;
-                    set : DINT;
 
                     end_property : DINT;
                     end_get : DINT;
@@ -588,119 +584,76 @@ fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
        │ ╭────────────────────────^
      5 │ │                 public : DINT;
      6 │ │                 property : DINT;
-     7 │ │                 get : DINT;
-     8 │ │                 set : DINT;
-     9 │ │ 
-    10 │ │                 end_property : DINT;
-    11 │ │                 end_get : DINT;
-    12 │ │                 end_set : DINT;
+     7 │ │ 
+     8 │ │                 end_property : DINT;
+     9 │ │                 end_get : DINT;
+    10 │ │                 end_set : DINT;
        │ ╰───────────────────────────────^ Unexpected token: expected KeywordEndVar but found ': DINT;
                     public : DINT;
                     property : DINT;
-                    get : DINT;
-                    set : DINT;
 
                     end_property : DINT;
                     end_get : DINT;
                     end_set : DINT;'
     ");
 }
+
 #[test]
-fn use_incorrect_end_keyword() {
+fn get_and_set_can_be_used_as_variable_names() {
     let source = r"
-        FUNCTION_BLOCK fb
-                PROPERTY foo : DINT
-                    GET
-                    END_SET;
-                    GET
-                    END_GET;
-                    GET
-                    END_SET;
-                    END_PROPERTY
-        END_FUNCTION_BLOCK
+        FUNCTION foo
+            VAR
+                get : DINT;
+                set : DINT;
+            END_VAR
+        END_FUNCTION
     ";
 
-    let (_, diagnostics) = parse_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"
-    error[E007]: Unexpected token: expected Literal but found END_SET
-      ┌─ <internal>:5:21
-      │
-    5 │                     END_SET;
-      │                     ^^^^^^^ Unexpected token: expected Literal but found END_SET
+    let (unit, diagnostics) = parse(source);
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_SET'
-      ┌─ <internal>:5:21
-      │
-    5 │                     END_SET;
-      │                     ^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_SET'
+    assert_eq!(diagnostics, vec![]);
+    insta::assert_debug_snapshot!(unit.pous[0].variable_blocks[0], @r#"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "get",
+                data_type: DataTypeReference {
+                    referenced_type: "DINT",
+                },
+            },
+            Variable {
+                name: "set",
+                data_type: DataTypeReference {
+                    referenced_type: "DINT",
+                },
+            },
+        ],
+        variable_block_type: Local,
+    }
+    "#);
+}
 
-    error[E007]: Unexpected token: expected Literal but found GET
-      ┌─ <internal>:6:21
-      │
-    6 │                     GET
-      │                     ^^^ Unexpected token: expected Literal but found GET
+#[test]
+fn get_and_set_can_be_used_as_method_parameters_and_named_arguments() {
+    let source = r"
+        FUNCTION_BLOCK FbA
+        METHOD foo
+        VAR_INPUT
+        GET: DINT;
+        SET: DINT;
+        END_VAR
+        END_METHOD
+        END_FUNCTION_BLOCK
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'GET'
-      ┌─ <internal>:6:21
-      │
-    6 │                     GET
-      │                     ^^^ Unexpected token: expected KeywordSemicolon but found 'GET'
+        FUNCTION main
+        VAR
+        instance: FbA;
+        END_VAR
 
-    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
-      ┌─ <internal>:7:21
-      │
-    7 │                     END_GET;
-      │                     ^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
+        instance.foo(GET := 3, SET := 5);
+        END_FUNCTION
+    ";
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_GET'
-      ┌─ <internal>:7:21
-      │
-    7 │                     END_GET;
-      │                     ^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_GET'
-
-    error[E006]: Missing expected Token KeywordEndProperty
-      ┌─ <internal>:7:28
-      │
-    7 │                     END_GET;
-      │                            ^ Missing expected Token KeywordEndProperty
-
-    error[E007]: Unexpected token: expected Literal but found GET
-      ┌─ <internal>:8:21
-      │
-    8 │                     GET
-      │                     ^^^ Unexpected token: expected Literal but found GET
-
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'GET
-                        END_SET'
-      ┌─ <internal>:8:21
-      │  
-    8 │ ╭                     GET
-    9 │ │                     END_SET;
-      │ ╰───────────────────────────^ Unexpected token: expected KeywordSemicolon but found 'GET
-                        END_SET'
-
-    error[E007]: Unexpected token: expected Literal but found END_PROPERTY
-       ┌─ <internal>:10:21
-       │
-    10 │                     END_PROPERTY
-       │                     ^^^^^^^^^^^^ Unexpected token: expected Literal but found END_PROPERTY
-
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
-       ┌─ <internal>:10:21
-       │
-    10 │                     END_PROPERTY
-       │                     ^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROPERTY'
-
-    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
-       ┌─ <internal>:11:9
-       │
-    11 │         END_FUNCTION_BLOCK
-       │         ^^^^^^^^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
-
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
-       ┌─ <internal>:11:9
-       │
-    11 │         END_FUNCTION_BLOCK
-       │         ^^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_FUNCTION_BLOCK'
-    ");
+    let (_, diagnostics) = parse(source);
+    assert_eq!(diagnostics, vec![]);
 }

@@ -448,3 +448,68 @@ fn stateful_local() {
 
     filtered_assert_snapshot!(content, @r"");
 }
+
+#[test]
+fn real_conversion_with_pretty_syntax() {
+    let non_pretty_syntax = codegen(
+        r#"
+        {external}
+        FUNCTION REAL_TO_INT : INT
+        VAR_INPUT
+            in : REAL;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                var_int     : INT;
+            END_VAR
+
+            // Cast the REAL value to INT
+            var_int := REAL_TO_INT(70000.4);
+
+        END_FUNCTION
+        "#,
+    );
+
+    let pretty_syntax = codegen(
+        r#"
+        {external}
+        FUNCTION REAL_TO_INT : INT
+        VAR_INPUT
+            in : REAL;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                var_int     : INT;
+            END_VAR
+
+            // Cast the REAL value to INT
+            var_int := REAL_TO_INT(70_000.4);
+
+        END_FUNCTION
+        "#,
+    );
+
+    assert_eq!(non_pretty_syntax, pretty_syntax);
+
+    filtered_assert_snapshot!(pretty_syntax, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    declare i16 @REAL_TO_INT(float)
+
+    define void @main() {
+    entry:
+      %var_int = alloca i16, align [filtered]
+      store i16 0, ptr %var_int, align [filtered]
+      %call = call i16 @REAL_TO_INT(float 0x40F1170660000000)
+      store i16 %call, ptr %var_int, align [filtered]
+      ret void
+    }
+    "#);
+}

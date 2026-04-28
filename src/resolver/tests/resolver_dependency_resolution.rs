@@ -1333,7 +1333,10 @@ fn cross_unit_multidimensional_array_with_typedefs() {
     assert!(dependencies.contains(&Dependency::Datatype("row_array".into())));
     assert!(dependencies.contains(&Dependency::Datatype("base_type".into())));
     assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
-    assert_eq!(dependencies.len(), 5);
+    // Bound literals `0..3` are now visited and hinted as DINT, making DINT a
+    // dependency of the unit that declares the inline array.
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert_eq!(dependencies.len(), 6);
 }
 
 #[test]

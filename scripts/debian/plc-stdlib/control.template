@@ -1,4 +1,4 @@
-Package: libiec61131std
+Package: plc-stdlib
 Version: __PKG_VERSION__
 Architecture: __DEB_ARCH__
 Multi-Arch: same

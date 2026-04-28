@@ -30,7 +30,7 @@ Return: Output is used as return
 {external}
 FUNCTION_BLOCK RS
 VAR_INPUT
-    SET0:    BOOL;
+    SET:    BOOL;
     RESET1: BOOL;
 END_VAR
 VAR_OUTPUT

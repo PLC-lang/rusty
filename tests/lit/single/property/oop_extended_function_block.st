@@ -5,16 +5,12 @@ FUNCTION_BLOCK fb
         returnValue: ARRAY[1..5] OF STRING := ['a', 'b', 'c', 'd', 'e'];
     END_VAR
 
-    PROPERTY foo: ARRAY[1..5] OF STRING
-        GET
-            foo := returnValue;
-        END_GET
+    PROPERTY_GET foo: ARRAY[1..5] OF STRING
+        foo := returnValue;
     END_PROPERTY
 
-    PROPERTY bar: DINT
-        GET
-            bar := 5;
-        END_GET
+    PROPERTY_GET bar: DINT
+        bar := 5;
     END_PROPERTY
 END_FUNCTION_BLOCK
 

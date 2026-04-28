@@ -701,27 +701,29 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .get(index)
                     .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
             }
-            // else, the parameters are named and may not be in order, so we need to retrieve the information about the parameter from the assignment
+            // else, the parameters are named (or mixed) and may not be in order
             else {
-                // Now we can fetch the identifier for the assignment statement and extract the name
-                let variable_name = match assignment_statement.get_stmt() {
+                match assignment_statement.get_stmt() {
                     AstStatement::OutputAssignment(assignment) | AstStatement::Assignment(assignment) => {
-                        if let Some(identifier) = assignment.left.get_identifier() {
+                        let variable_name = if let Some(identifier) = assignment.left.get_identifier() {
                             match identifier.get_stmt() {
                                 AstStatement::Identifier(value) => value,
                                 _ => unreachable!("this is definitely an identifier"),
                             }
                         } else {
                             unreachable!("assignment must have an identifier")
-                        }
+                        };
+                        pou_info
+                            .iter()
+                            .find(|variable_index_entry| variable_index_entry.get_name() == variable_name)
+                            .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
                     }
-                    _ => unreachable!("non-implicit statement must be an assignment"),
-                };
-
-                pou_info
-                    .iter()
-                    .find(|variable_index_entry| variable_index_entry.get_name() == variable_name)
-                    .is_some_and(|var_index_entry| var_index_entry.get_variable_type().is_output())
+                    // Reached only in mixed calls: `implicit` tracks the first arg's style,
+                    // so an `Assignment`/`OutputAssignment` first arg makes `implicit = false`
+                    // and any later positional arg lands here. Outputs are written post-call
+                    // only for `=>`, so a bare positional never triggers the copy.
+                    _ => false,
+                }
             };
 
             if assignment_statement.is_output_assignment() || (implicit && is_output) {
@@ -1097,23 +1099,80 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut result = Vec::new();
         let mut variadic_parameters = Vec::new();
         let mut passed_param_indices = Vec::new();
-        for (i, argument) in arguments.iter().enumerate() {
-            let (i, argument, _) = get_implicit_call_parameter(argument, &declared_parameters, i)?;
+
+        // Mixed-call resolution: named args claim their slots first, then positional args
+        // fill the remaining slots in declaration order. **This rule must match
+        // `TypeAnnotator::annotate_arguments_mixed` in the resolver** — the resolver uses it
+        // for type hinting, we use it here to compute the LLVM argument index.
+        //
+        // Why duplicated? The function-call codegen path threads args through
+        // `get_implicit_call_parameter`, which was designed for pure-positional / pure-named
+        // calls and expects the caller to pre-compute the slot. FB/PROGRAM calls use the
+        // resolver's `Argument` hint directly and don't need this.
+        let is_mixed = arguments.iter().any(|a| a.is_assignment() || a.is_output_assignment())
+            && arguments.iter().any(|a| !a.is_assignment() && !a.is_output_assignment());
+        let named_positions: Vec<usize> = if is_mixed {
+            arguments
+                .iter()
+                .filter_map(|arg| match arg.get_stmt() {
+                    AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => {
+                        let name = data.left.get_flat_reference_name()?;
+                        declared_parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(name))
+                    }
+                    _ => None,
+                })
+                .collect()
+        } else {
+            vec![]
+        };
+        let positional_positions: Vec<usize> =
+            (0..declared_parameters.len()).filter(|i| !named_positions.contains(i)).collect();
+        let mut positional_cursor = 0usize;
+
+        for (arg_idx, orig_argument) in arguments.iter().enumerate() {
+            // For mixed calls, positional args are remapped to the next free slot; named args
+            // and all args in pure calls keep their natural call index.
+            //
+            // The `unwrap_or(arg_idx)` fallback fires for variadic overflow: surplus args past
+            // the declared params carry their call index through to be collected as variadics
+            // below (where `declared_parameters.get(i) == None` → push to `variadic_parameters`).
+            let effective_idx =
+                if is_mixed && !orig_argument.is_assignment() && !orig_argument.is_output_assignment() {
+                    let idx = positional_positions.get(positional_cursor).copied().unwrap_or(arg_idx);
+                    positional_cursor += 1;
+                    idx
+                } else {
+                    arg_idx
+                };
+            let (i, argument, _) =
+                get_implicit_call_parameter(orig_argument, &declared_parameters, effective_idx)?;
+            let argument_is_reference_to = self.is_member_reference_to_reference_to(argument);
 
             // parameter_info includes the declaration type and type name
             let parameter_info = declared_parameters
                 .get(i)
                 .map(|it| {
                     let name = it.get_type_name();
+                    let parameter_is_reference_to = self
+                        .index
+                        .find_effective_type_info(name)
+                        .map(|type_info| type_info.is_reference_to())
+                        .unwrap_or(false);
+                    let both_sides_are_reference_to = argument_is_reference_to && parameter_is_reference_to;
+
                     if let Some(DataTypeInformation::Pointer {
                         inner_type_name, auto_deref: Some(_), ..
                     }) = self.index.find_effective_type_info(name)
                     {
                         // for auto_deref pointers (VAR_INPUT {ref}, VAR_IN_OUT) we call generate_argument_by_ref()
                         // we need the inner_type and not pointer to type otherwise we would generate a double pointer
-                        Some((it.get_declaration_type(), inner_type_name.as_str()))
+                        // unless both sides are reference to, in which case the double pointer is required
+                        let type_name =
+                            if both_sides_are_reference_to { name } else { inner_type_name.as_str() };
+
+                        Some((it.get_declaration_type(), type_name, both_sides_are_reference_to))
                     } else {
-                        Some((it.get_declaration_type(), name))
+                        Some((it.get_declaration_type(), name, both_sides_are_reference_to))
                     }
                 })
                 // TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
@@ -1130,10 +1189,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 })?;
 
-            if let Some((declaration_type, type_name)) = parameter_info {
+            if let Some((declaration_type, type_name, both_sides_are_reference_to)) = parameter_info {
                 let argument: BasicValueEnum = if declaration_type.is_by_ref()
                     || (self.index.get_effective_type_or_void_by_name(type_name).is_aggregate_type()
                         && declaration_type.is_input())
+                    || both_sides_are_reference_to
                 {
                     let declared_parameter = declared_parameters.get(i);
                     self.generate_argument_by_ref(argument, type_name, declared_parameter.copied())?
@@ -1173,8 +1233,21 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
 
-        result.sort_by(|(idx_a, _), (idx_b, _)| idx_a.cmp(idx_b));
+        result.sort_by_key(|(idx_a, _)| *idx_a);
         Ok(result.into_iter().map(|(_, v)| v.into()).collect::<Vec<BasicMetadataValueEnum>>())
+    }
+
+    fn is_member_reference_to_reference_to(&self, node: &AstNode) -> bool {
+        match node.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(_), .. }) => {
+                self.is_reference_to(node)
+            }
+            _ => false,
+        }
+    }
+
+    fn is_reference_to(&self, node: &AstNode) -> bool {
+        self.annotations.get(node).is_some_and(|stmt_anno| stmt_anno.is_reference_to())
     }
 
     /// generates a value that is passed by reference
@@ -1266,8 +1339,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_variadic_member(pou.get_name())
             .and_then(|it| it.get_varargs().zip(Some(it.get_declaration_type())))
         {
-            // For unsized variadics, we need to follow C ABI rules
             let is_unsized = matches!(var_args, VarArgs::Unsized(_));
+            // Untyped C-style variadics (`args: ...`) need C default argument promotion.
+            // Typed unsized variadics like `IN2: T2...` have a concrete callee signature
+            // after generic instantiation, so promoting their scalar arguments would break the ABI.
+            let needs_c_promotion = matches!(var_args, VarArgs::Unsized(None));
 
             let generated_params = variadic_params
                 .iter()
@@ -1285,7 +1361,38 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 self.index.get_variadic_member(pou.get_name()),
                             )
                         } else {
-                            self.generate_expression(param_statement)
+                            let value = self.generate_expression(param_statement)?;
+                            // Apply C default argument promotions for unsized (C-ABI) variadics
+                            if needs_c_promotion {
+                                match type_info.get_type_information() {
+                                    DataTypeInformation::Integer { signed, size, .. } if *size < 32 => {
+                                        let i32_type = self.llvm.context.i32_type();
+                                        let int_val = value.into_int_value();
+                                        Ok(if *signed {
+                                            self.llvm
+                                                .builder
+                                                .build_int_s_extend(int_val, i32_type, "")?
+                                                .as_basic_value_enum()
+                                        } else {
+                                            self.llvm
+                                                .builder
+                                                .build_int_z_extend(int_val, i32_type, "")?
+                                                .as_basic_value_enum()
+                                        })
+                                    }
+                                    DataTypeInformation::Float { size, .. } if *size < 64 => {
+                                        let f64_type = self.llvm.context.f64_type();
+                                        Ok(self
+                                            .llvm
+                                            .builder
+                                            .build_float_ext(value.into_float_value(), f64_type, "")?
+                                            .as_basic_value_enum())
+                                    }
+                                    _ => Ok(value),
+                                }
+                            } else {
+                                Ok(value)
+                            }
                         }
                     })
                 })
@@ -1755,13 +1862,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(reference)
             .map(|it| it.get_basic_value_enum().into_pointer_value())
             .and_then(|lvalue| {
-                if let DataTypeInformation::Array { name, dimensions, inner_type_name } =
-                    self.get_type_hint_info_for(reference)?
-                {
+                let type_hint_info = self.get_type_hint_info_for(reference)?;
+                // Resolve through aliases to get the effective array type information
+                let effective_info = self
+                    .index
+                    .find_effective_type_info(type_hint_info.get_name())
+                    .unwrap_or(type_hint_info);
+                if let DataTypeInformation::Array { name, dimensions, inner_type_name } = effective_info {
                     // make sure dimensions match statement list
                     let statements = access.get_as_list();
                     if statements.is_empty() || statements.len() != dimensions.len() {
-                        return Err(Diagnostic::codegen_error("Invalid array access", access).into());
+                        return Err(Diagnostic::codegen_error(
+                            format!(
+                                "Invalid array access: expected {} dimension(s) for array type '{}', but got {}",
+                                dimensions.len(),
+                                name,
+                                statements.len()
+                            )
+                            .as_str(),
+                            access,
+                        )
+                        .into());
                     }
 
                     // e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
@@ -1849,8 +1970,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             // For flattened array-of-array parameters (fundamental element pointer):
                             // Calculate proper stride: index * element_size
                             // This handles cases like i8* representing [N x STRING]* or i32* representing [N x [M x i32]]*
-                            let DataTypeInformation::Array { inner_type_name, .. } =
-                                self.get_type_hint_info_for(reference)?
+                            let DataTypeInformation::Array { inner_type_name, .. } = effective_info
                             else {
                                 log::error!("Uncaught resolve error for inner type of nested array");
                                 return Err(Diagnostic::codegen_error(
@@ -1901,7 +2021,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     return Ok(pointer);
                 }
-                Err(Diagnostic::codegen_error("Invalid array access", access).into())
+                Err(Diagnostic::codegen_error(
+                    format!(
+                        "Invalid array access: type '{}' is not an array type",
+                        type_hint_info.get_name()
+                    )
+                    .as_str(),
+                    access,
+                )
+                .into())
             })
     }
 
@@ -2470,7 +2598,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             let struct_type = self.llvm_index.get_associated_type(struct_name)?.into_struct_type();
             if member_values.len() == struct_type.count_fields() as usize {
-                member_values.sort_by(|(a, _), (b, _)| a.cmp(b));
+                member_values.sort_by_key(|(a, _)| *a);
                 let ordered_values: Vec<BasicValueEnum<'ink>> =
                     member_values.iter().map(|(_, v)| *v).collect();
 

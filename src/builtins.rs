@@ -50,8 +50,9 @@ lazy_static! {
                 END_FUNCTION
             ",
                 annotation: None,
-                validation: Some(|validator, operator, parameters, _, _| {
+                validation: Some(|validator, operator, parameters, annotations, _| {
                     validate_argument_count(validator, operator, &parameters, 1);
+                    validate_constant_parameters(validator, &parameters, annotations);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -65,13 +66,12 @@ lazy_static! {
                                 }
                             }
 
-                            Some(StatementAnnotation::Type { type_name }) => {
-                                if generator.index.find_type(type_name).is_some_and(|opt| opt.information.is_function_block()) {
+                            Some(StatementAnnotation::Type { type_name })
+                                if generator.index.find_type(type_name).is_some_and(|opt| opt.information.is_function_block()) => {
                                     if let Some(fn_value) = generator.llvm_index.find_associated_implementation(type_name) {
                                         return Ok(ExpressionValue::RValue(fn_value.as_global_value().as_pointer_value().as_basic_value_enum()));
                                     }
                                 }
-                            }
 
                             _ => (),
                         };
@@ -125,8 +125,9 @@ lazy_static! {
                         }
                     );
                 }),
-                validation: Some(|validator, operator, parameters, _, _| {
+                validation: Some(|validator, operator, parameters, annotations, _| {
                     validate_argument_count(validator, operator, &parameters, 1);
+                    validate_constant_parameters(validator, &parameters, annotations);
                 }),
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
@@ -1006,6 +1007,29 @@ fn validate_argument_count(
 
     if params.len() != expected {
         validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, params.len(), operator));
+    }
+}
+
+fn validate_constant_parameters(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+) {
+    let Some(params) = parameters else {
+        // If there are no parameters, then there is nothing to evaluate
+        return;
+    };
+
+    let params = flatten_expression_list(params);
+
+    for param in params {
+        if let Some(StatementAnnotation::Variable { constant: true, .. }) = annotations.get(param) {
+            validator.push_diagnostic(
+                Diagnostic::new("Invalid assignment, cannot ensure constant is used as read-only")
+                    .with_location(param.location.clone())
+                    .with_error_code("E098"),
+            );
+        }
     }
 }
 

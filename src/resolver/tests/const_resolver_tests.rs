@@ -1241,6 +1241,44 @@ fn default_values_are_transitive_for_range_types() {
 }
 
 #[test]
+fn uninitialized_array_constants_with_pending_type_default_stay_unresolved() {
+    let (_, index) = index(
+        "
+        TYPE arr_t : ARRAY[1..2] OF INT := [b, 2]; END_TYPE
+
+        VAR_GLOBAL CONSTANT
+            a : arr_t;
+            b : INT := c;
+            c : INT := b;
+        END_VAR
+        ",
+    );
+
+    let (index, unresolvable) = evaluate_constants(index);
+
+    let a = index.get_const_expressions().find_const_expression(&global!(index, "a"));
+    let unique_reasons =
+        unresolvable.iter().map(UnresolvableConstant::get_reason).collect::<std::collections::BTreeSet<_>>();
+
+    insta::assert_snapshot!(format!("a = {a:#?}\nunique_reasons = {unique_reasons:#?}"), @r#"
+    a = Some(
+        Unresolved {
+            statement: DefaultValue,
+            scope: None,
+            lhs: Some(
+                "a",
+            ),
+        },
+    )
+    unique_reasons = {
+        Some(
+            "Incomplete initialization - cannot evaluate const expressions",
+        ),
+    }
+    "#);
+}
+
+#[test]
 fn floating_point_type_casting_of_valid_types_is_resolvable() {
     let (_, index) = index(
         "VAR_GLOBAL CONSTANT

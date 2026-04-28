@@ -53,7 +53,7 @@ use plc_ast::{
         AstId, AstNode, AstStatement, CallStatement, CompilationUnit, LinkageType, Pou, Variable,
         VariableBlock, VariableBlockType,
     },
-    control_statements::{AstControlStatement, ConditionalBlock, IfStatement, LoopStatement},
+    control_statements::{AstControlStatement, ConditionalBlock},
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
     try_from_mut,
@@ -64,18 +64,8 @@ use crate::{
     index::Index,
     lowering::helper::create_member_reference_with_location,
     resolver::{AnnotationMap, StatementAnnotation},
+    typesystem::{DataType, DataTypeInformation},
 };
-
-#[derive(Default, Debug, Clone)]
-struct VisitorContext {
-    is_do_while: bool,
-}
-
-impl VisitorContext {
-    fn do_while_loop() -> Self {
-        Self { is_do_while: true }
-    }
-}
 
 // Performs lowering for aggregate types defined in functions
 #[derive(Default)]
@@ -88,7 +78,6 @@ pub struct AggregateTypeLowerer {
     /// New statements to be added during visit, that should happen after the call. This should always be drained when read
     post_stmts: Vec<Vec<AstNode>>,
     counter: AtomicI32,
-    ctx: VisitorContext,
 }
 
 impl AggregateTypeLowerer {
@@ -118,51 +107,6 @@ impl AggregateTypeLowerer {
             b.condition.walk(self);
             self.steal_and_walk_list(&mut b.body);
         }
-    }
-
-    fn visit_loop_statement(&mut self, stmt: &mut LoopStatement) {
-        let location = stmt.condition.get_location();
-        let mut condition = std::mem::replace(
-            stmt.condition.as_mut(),
-            AstFactory::create_literal(
-                plc_ast::literals::AstLiteral::Bool(true),
-                location.clone(),
-                self.id_provider.next_id(),
-            ),
-        );
-        if !self.ctx.is_do_while {
-            condition =
-                AstFactory::create_not_expression(condition, location.clone(), self.id_provider.next_id());
-        }
-        //wrap in if statement
-        let break_stmt = AstFactory::create_exit_statement(location.clone(), self.id_provider.next_id());
-        let if_condition = AstFactory::create_if_statement(
-            IfStatement {
-                blocks: vec![ConditionalBlock { condition: Box::new(condition), body: vec![break_stmt] }],
-                else_block: vec![],
-                end_location: SourceLocation::internal(),
-            },
-            location.clone(),
-            self.id_provider.next_id(),
-        );
-        //Insert the if statement at the start or end of the body
-        if self.ctx.is_do_while {
-            stmt.body.push(if_condition);
-        } else {
-            stmt.body.insert(0, if_condition);
-        }
-
-        self.steal_and_walk_list(&mut stmt.body);
-    }
-
-    fn walk_with_context<T>(&mut self, t: &mut T, ctx: VisitorContext, f: impl Fn(&mut Self, &mut T))
-    where
-        T: WalkerMut,
-    {
-        let old = self.ctx.clone();
-        self.ctx = ctx;
-        f(self, t);
-        self.ctx = old;
     }
 
     fn push_pre_statement(&mut self, stmt: AstNode) {
@@ -403,13 +347,17 @@ impl AstVisitorMut for AggregateTypeLowerer {
             std::mem::swap(node.get_stmt_mut(), reference.get_stmt_mut());
             self.push_pre_statement(reference);
         }
-        // 1. Is this a function with any output assignments?
-        // 2. Do any of the output assignments have types that need casting?
+        // Is this a function with any output assignments?
+        // Do any of the output assignments have types that need casting?
+        // Do any of the output assignments have direct access?
         else if stmt
             .parameters
             .as_ref()
             .iter()
-            .any(|param| is_output_assignment_and_type_cast_needed(param, annotation.as_ref(), index))
+            .enumerate()
+            .any(|(param_index, param)|
+                is_output_assignment_and_type_cast_needed(param, annotation.as_ref(), index, &qualified_name, param_index, function_entry.is_method())
+                || is_output_assignment_and_has_direct_access(param, annotation.as_ref(), index, &qualified_name, param_index, function_entry.is_method()))
             // Stateful structs (such as function blocks) have their own output assignment mechanism in codegen,
             // and are not handled by this lowerer
             && (function_entry.is_function() || function_entry.is_method())
@@ -421,62 +369,17 @@ impl AstVisitorMut for AggregateTypeLowerer {
             let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
             let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
 
-            stmt.parameters.as_ref().iter().for_each(|param| {
-                if let AstStatement::ExpressionList(list) = &param.stmt {
-                    list.iter().for_each(|item| {
-                        if !is_output_assignment_and_type_cast_needed(item, annotation.as_ref(), index) {
-                            expressions.push(item.clone());
-                        } else if let AstStatement::OutputAssignment(output_assignment) = &item.stmt {
-                            let left_type = annotation.get_type_or_void(&output_assignment.left, index);
-
-                            // 3. Generate a temporary variable of the type that the function is expecting and pass it by reference to the function
-                            let name = format!(
-                                "__{}_{}{}",
-                                &qualified_name,
-                                output_assignment.left.get_flat_reference_name().unwrap_or_default(),
-                                self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
-                            );
-
-                            let alloca = AstNode {
-                                stmt: AstStatement::AllocationStatement(Allocation {
-                                    name: name.clone(),
-                                    reference_type: left_type.get_name().to_string(),
-                                }),
-                                id: self.id_provider.next_id(),
-                                location: item.location.clone(),
-                                metadata: None,
-                            };
-                            pre_statements.push(alloca);
-
-                            // 4. Replace variable in parameters with our new temporary variable that will be passed to the function
-                            expressions.push(AstFactory::create_output_assignment(
-                                *output_assignment.left.clone(),
-                                create_member_reference_by_name(
-                                    &name,
-                                    item.location.clone(),
-                                    self.id_provider.next_id(),
-                                    self.id_provider.next_id(),
-                                ),
-                                self.id_provider.next_id(),
-                            ));
-
-                            // 6. After the call is complete, assign the temporary variable that was passed to the function back to the original variable
-                            post_statements.push(AstFactory::create_assignment(
-                                *output_assignment.right.clone(),
-                                create_member_reference_by_name(
-                                    &name,
-                                    item.location.clone(),
-                                    self.id_provider.next_id(),
-                                    self.id_provider.next_id(),
-                                ),
-                                self.id_provider.next_id(),
-                            ));
-                        } else {
-                            expressions.push(item.clone());
-                        }
-                    });
-                }
-            });
+            for (param_index, param) in stmt.parameters.as_ref().iter().enumerate() {
+                lower_output_assignments(
+                    (&self.counter, self.id_provider.clone()),
+                    param,
+                    (&qualified_name, &return_name, function_entry.is_method()),
+                    annotation.as_ref(),
+                    index,
+                    param_index,
+                    (&mut pre_statements, &mut expressions, &mut post_statements),
+                );
+            }
 
             stmt.parameters.replace(Box::new(AstFactory::create_expression_list(expressions, location, id)));
 
@@ -492,15 +395,6 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 self.walk_conditional_blocks(&mut stmt.blocks);
                 self.steal_and_walk_list(&mut stmt.else_block);
             }
-            AstControlStatement::WhileLoop(stmt) => {
-                self.visit_loop_statement(stmt);
-            }
-            AstControlStatement::RepeatLoop(stmt) => {
-                let ctx = self.ctx.clone();
-                self.ctx = VisitorContext::do_while_loop();
-                self.visit_loop_statement(stmt);
-                self.ctx = ctx;
-            }
             AstControlStatement::ForLoop(stmt) => {
                 stmt.counter.walk(self);
                 stmt.start.walk(self);
@@ -512,12 +406,12 @@ impl AstVisitorMut for AggregateTypeLowerer {
             }
             AstControlStatement::Case(stmt) => {
                 stmt.selector.walk(self);
-                self.walk_with_context(
-                    &mut stmt.case_blocks,
-                    VisitorContext::default(),
-                    Self::walk_conditional_blocks,
-                );
+                self.walk_conditional_blocks(&mut stmt.case_blocks);
                 self.steal_and_walk_list(&mut stmt.else_block);
+            }
+            AstControlStatement::WhileLoop(stmt) | AstControlStatement::RepeatLoop(stmt) => {
+                stmt.condition.walk(self);
+                self.steal_and_walk_list(&mut stmt.body);
             }
         }
     }
@@ -540,39 +434,344 @@ fn is_output_assignment_and_type_cast_needed(
     node: &AstNode,
     annotations: &dyn AnnotationMap,
     index: &Index,
+    pou_name: &str,
+    param_index: usize,
+    is_method: bool,
 ) -> bool {
     match &node.stmt {
-        AstStatement::ExpressionList(nodes) => {
-            nodes.iter().any(|node| is_output_assignment_and_type_cast_needed(node, annotations, index))
-        }
+        AstStatement::ExpressionList(nodes) => nodes.iter().enumerate().any(|(param_index, node)| {
+            is_output_assignment_and_type_cast_needed(
+                node,
+                annotations,
+                index,
+                pou_name,
+                param_index,
+                is_method,
+            )
+        }),
         AstStatement::OutputAssignment(assignment) => {
             // For output assignment in a call these types need to be swapped
             // output => value_to_assign_to --> should be evaluated as value_to_assign_to := output
             let type_lhs = annotations.get_type_or_void(&assignment.right, index);
             let type_rhs = annotations.get_type_or_void(&assignment.left, index);
 
-            // If either type is void then this is an empty assignment and casting is not necessary
-            if type_lhs.is_void() || type_rhs.is_void() {
+            // Aggregate types are handled by codegen
+            if type_lhs.is_aggregate_type() || type_rhs.is_aggregate_type() {
                 return false;
             }
 
-            let type_info_lhs = type_lhs.get_type_information();
-            let type_info_rhs = type_rhs.get_type_information();
-
-            let Ok(size_lhs) = type_info_lhs.get_size(index) else {
-                return false;
-            };
-            let Ok(size_rhs) = type_info_rhs.get_size(index) else {
-                return false;
-            };
-
-            size_lhs != size_rhs
-                || (size_lhs == size_rhs
-                    && ((type_info_lhs.is_signed_int() && type_info_rhs.is_unsigned_int())
-                        || (type_info_lhs.is_int() && type_info_rhs.is_float())))
+            type_cast_needed(type_lhs, type_rhs, index)
         }
-        _ => false,
+        _ => {
+            // The first parameter of a method is always "this"
+            if is_method && param_index == 0 {
+                return false;
+            }
+
+            let param_index = if is_method { (param_index as u32) - 1 } else { param_index as u32 };
+
+            // We don't want to accidentally assign a pointer back to a literal that is passed
+            if node.is_literal() {
+                return false;
+            }
+
+            if !is_implicit_output_assignment(index, pou_name, param_index) {
+                return false;
+            }
+
+            let Some(param_index_entry) = index.get_declared_parameter(pou_name, param_index) else {
+                return false;
+            };
+
+            let Some(type_lhs_pointer) = index.find_effective_type_by_name(&param_index_entry.data_type_name)
+            else {
+                return false;
+            };
+
+            let type_lhs = match type_lhs_pointer.get_type_information() {
+                DataTypeInformation::Pointer { inner_type_name, .. } => {
+                    let Some(type_lhs) = index.find_effective_type_by_name(inner_type_name) else {
+                        return false;
+                    };
+
+                    type_lhs
+                }
+                _ => type_lhs_pointer,
+            };
+
+            let type_rhs = annotations.get_type_or_void(node, index);
+
+            // Aggregate types are handled by codegen
+            if type_lhs.is_aggregate_type() || type_rhs.is_aggregate_type() {
+                return false;
+            }
+
+            type_cast_needed(type_lhs, type_rhs, index)
+        }
     }
+}
+
+fn type_cast_needed(type_lhs: &DataType, type_rhs: &DataType, index: &Index) -> bool {
+    // If either type is void then this is an empty assignment and casting is not necessary
+    if type_lhs.is_void() || type_rhs.is_void() {
+        return false;
+    }
+
+    let type_info_lhs = type_lhs.get_type_information();
+    let type_info_rhs = type_rhs.get_type_information();
+
+    let Ok(size_lhs) = type_info_lhs.get_size(index) else {
+        return false;
+    };
+    let Ok(size_rhs) = type_info_rhs.get_size(index) else {
+        return false;
+    };
+
+    size_lhs != size_rhs
+        || (size_lhs == size_rhs
+            && ((type_info_lhs.is_signed_int() && type_info_rhs.is_unsigned_int())
+                || (type_info_lhs.is_int() && type_info_rhs.is_float())))
+}
+
+fn is_output_assignment_and_has_direct_access(
+    node: &AstNode,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+    pou_name: &str,
+    param_index: usize,
+    is_method: bool,
+) -> bool {
+    match &node.stmt {
+        AstStatement::ExpressionList(nodes) => nodes.iter().enumerate().any(|(param_index, node)| {
+            is_output_assignment_and_has_direct_access(
+                node,
+                annotations,
+                index,
+                pou_name,
+                param_index,
+                is_method,
+            )
+        }),
+        AstStatement::OutputAssignment(assignment) => {
+            let node_type = annotations.get_type_or_void(assignment.right.as_ref(), index);
+
+            // Aggregate types are handled by codegen
+            if node_type.is_aggregate_type() {
+                return false;
+            }
+
+            assignment.right.has_direct_access()
+        }
+        _ => {
+            // The first parameter of a method is always "this"
+            if is_method && param_index == 0 {
+                return false;
+            }
+
+            let param_index = if is_method { (param_index as u32) - 1 } else { param_index as u32 };
+
+            // We don't want to accidentally assign a pointer back to a literal that is passed
+            if node.is_literal() {
+                return false;
+            }
+
+            if !is_implicit_output_assignment(index, pou_name, param_index) {
+                return false;
+            }
+
+            let node_type = annotations.get_type_or_void(node, index);
+
+            // Aggregate types are handled by codegen
+            if node_type.is_aggregate_type() {
+                return false;
+            }
+
+            node.has_direct_access()
+        }
+    }
+}
+
+fn is_implicit_output_assignment(index: &Index, pou_name: &str, param_index: u32) -> bool {
+    let Some(param_index_entry) = index.get_declared_parameter(pou_name, param_index) else {
+        return false;
+    };
+
+    param_index_entry.is_output()
+}
+
+fn lower_output_assignments(
+    (counter, id_provider): (&AtomicI32, IdProvider),
+    param: &AstNode,
+    (qualified_pou_name, pou_name, is_method): (&str, &str, bool),
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+    param_index: usize,
+    (pre_statements, expressions, post_statements): (&mut Vec<AstNode>, &mut Vec<AstNode>, &mut Vec<AstNode>),
+) {
+    let should_be_lowered = is_output_assignment_and_type_cast_needed(
+        param,
+        annotations,
+        index,
+        qualified_pou_name,
+        param_index,
+        is_method,
+    ) || is_output_assignment_and_has_direct_access(
+        param,
+        annotations,
+        index,
+        qualified_pou_name,
+        param_index,
+        is_method,
+    );
+
+    match &param.stmt {
+        AstStatement::ExpressionList(list) => {
+            list.iter().enumerate().for_each(|(item_index, item)| {
+                lower_output_assignments(
+                    (counter, id_provider.clone()),
+                    item,
+                    (qualified_pou_name, pou_name, is_method),
+                    annotations,
+                    index,
+                    item_index,
+                    (pre_statements, expressions, post_statements),
+                )
+            });
+        }
+        AstStatement::OutputAssignment(output_assignment) => {
+            if !should_be_lowered {
+                expressions.push(param.clone());
+                return;
+            }
+
+            let Some(left_type) = annotations.get_type(&output_assignment.left, index) else {
+                // If this fails, simply return the expression
+                expressions.push(param.clone());
+                return;
+            };
+
+            let Some(left_reference_name) = output_assignment.left.get_flat_reference_name() else {
+                // If this fails, simply return the expression
+                expressions.push(param.clone());
+                return;
+            };
+
+            lower_output_assignment(
+                (counter, id_provider),
+                (left_type, left_reference_name, Some(&output_assignment.left)),
+                &output_assignment.right,
+                pou_name,
+                &param.location,
+                (pre_statements, expressions, post_statements),
+            );
+        }
+        _ => {
+            if !should_be_lowered {
+                expressions.push(param.clone());
+                return;
+            }
+            // The first parameter of a method is always "this", this is validated before hand
+            let param_index = if is_method { (param_index as u32) - 1 } else { param_index as u32 };
+
+            let Some(param_index_entry) = index.get_declared_parameter(qualified_pou_name, param_index)
+            else {
+                // If this fails, simply return the expression
+                expressions.push(param.clone());
+                return;
+            };
+
+            let Some(left_pointer_type) =
+                index.find_effective_type_by_name(&param_index_entry.data_type_name)
+            else {
+                // If this fails, simply return the expression
+                expressions.push(param.clone());
+                return;
+            };
+
+            let left_type = match left_pointer_type.get_type_information() {
+                DataTypeInformation::Pointer { inner_type_name, .. } => {
+                    let Some(left_type) = index.find_effective_type_by_name(inner_type_name) else {
+                        // If this fails, simply return the expression
+                        expressions.push(param.clone());
+                        return;
+                    };
+
+                    left_type
+                }
+                _ => left_pointer_type,
+            };
+
+            lower_output_assignment(
+                (counter, id_provider),
+                (left_type, param_index_entry.get_name(), None),
+                param,
+                pou_name,
+                &param.location,
+                (pre_statements, expressions, post_statements),
+            );
+        }
+    }
+}
+
+fn lower_output_assignment(
+    (counter, mut id_provider): (&AtomicI32, IdProvider),
+    (left_type, left_reference_name, left_assignment): (&DataType, &str, Option<&AstNode>),
+    right_assignment: &AstNode,
+    pou_name: &str,
+    location: &SourceLocation,
+    (pre_statements, expressions, post_statements): (&mut Vec<AstNode>, &mut Vec<AstNode>, &mut Vec<AstNode>),
+) {
+    // Generate a temporary variable of the type that the function is expecting and pass it by reference to the function
+    let name = format!(
+        "__{}_{}{}",
+        pou_name,
+        left_reference_name,
+        counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+    );
+
+    let alloca = AstNode {
+        stmt: AstStatement::AllocationStatement(Allocation {
+            name: name.clone(),
+            reference_type: left_type.get_name().to_string(),
+        }),
+        id: id_provider.next_id(),
+        location: location.clone(),
+        metadata: None,
+    };
+    pre_statements.push(alloca);
+
+    // Replace variable in parameters with our new temporary variable that will be passed to the function
+    if let Some(left_assignment) = left_assignment {
+        expressions.push(AstFactory::create_output_assignment(
+            left_assignment.clone(),
+            create_member_reference_by_name(
+                &name,
+                location.clone(),
+                id_provider.next_id(),
+                id_provider.next_id(),
+            ),
+            id_provider.next_id(),
+        ));
+    } else {
+        expressions.push(create_member_reference_by_name(
+            &name,
+            location.clone(),
+            id_provider.next_id(),
+            id_provider.next_id(),
+        ));
+    }
+
+    // After the call is complete, assign the temporary variable that was passed to the function back to the original variable
+    post_statements.push(AstFactory::create_assignment(
+        right_assignment.clone(),
+        create_member_reference_by_name(
+            &name,
+            location.clone(),
+            id_provider.next_id(),
+            id_provider.next_id(),
+        ),
+        id_provider.next_id(),
+    ));
 }
 
 #[cfg(test)]
@@ -1502,7 +1701,11 @@ mod tests {
         assert_eq!(implementation.name, "mainProg");
 
         let statement = &implementation.statements[0];
-        assert_snapshot!(AstSerializer::format(statement), @"alloca __libFunction_result0: REAL, libFunction(inVar1 := 0, inVar2 := 0.0, result => __libFunction_result0), i1 := __libFunction_result0");
+        assert_snapshot!(AstSerializer::format(statement), @"
+        alloca __libFunction_result0: REAL;
+        libFunction(inVar1 := 0, inVar2 := 0.0, result => __libFunction_result0);
+        i1 := __libFunction_result0;
+        ");
     }
 
     #[test]

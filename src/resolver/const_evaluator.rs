@@ -51,6 +51,26 @@ impl UnresolvableConstant {
     }
 }
 
+/// Evaluates the explicit default initializer declared for an array type used by an implicit
+/// `DefaultValue` constant.
+///
+/// The return value follows the normal const-evaluation contract:
+/// - `Ok(Some(_))` means the type default resolved successfully,
+/// - `Ok(None)` means the type default still depends on unresolved constants and should be retried,
+/// - `Err(_)` means no explicit type default exists or that default is invalid.
+fn evaluate_explicit_array_default(
+    index: &Index,
+    target_type: &str,
+) -> Result<Option<AstNode>, UnresolvableKind> {
+    let Some(initializer) = index.get_initial_value_for_type(target_type) else {
+        return Err(UnresolvableKind::Misc(
+            "no explicit initializer and no default value could be resolved".to_string(),
+        ));
+    };
+
+    evaluate_with_target_hint(initializer, None, index, Some(target_type), None)
+}
+
 /// Returns the resolved constants index and a Vec of qualified names of constants that could not be resolved.
 /// After constants have been evaluated, enum defaults are finalized.
 /// TODO: revisit enum-defaults-fixup as part of `evaluate_constants` after @ghaith's changes to the initializer/constructor handling.
@@ -77,15 +97,47 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     .and_then(|type_name| index.find_effective_type_by_name(type_name))
                     .map(DataType::get_type_information);
 
-                if candidates_type
-                    .map(|it| (it.is_struct() || it.is_array()) && const_expr.is_default())
-                    .unwrap_or(false)
-                {
-                    // we skip structs and arrays with default-initializers since they cannot be used inside expressions of other consts.
-                    // we leave generating the default value to the llvm-index later.
-                    // And we resolve it so we dont get a validation problem
+                if candidates_type.map(|it| it.is_struct() && const_expr.is_default()).unwrap_or(false) {
+                    // We skip structs with default-initializers since they cannot be used inside
+                    // expressions of other consts. We leave generating the default value to later
+                    // stages and resolve it so we don't get a validation problem.
                     let expr_clone = const_expr.get_statement().clone();
                     do_resolve_candidate(&mut index, candidate, expr_clone);
+                    continue;
+                }
+
+                if candidates_type.map(|it| it.is_array() && const_expr.is_default()).unwrap_or(false) {
+                    // Arrays without explicit initializer are only valid as constants when their
+                    // declared type has an explicit default that can itself be evaluated.
+                    let initial_value_literal = target_type
+                        .map(|ty| evaluate_explicit_array_default(&index, ty))
+                        .unwrap_or_else(|| {
+                            Err(UnresolvableKind::Misc(
+                                "no explicit initializer and no default value could be resolved".to_string(),
+                            ))
+                        });
+
+                    match initial_value_literal {
+                        Ok(Some(_)) => {
+                            let expr_clone = const_expr.get_statement().clone();
+                            do_resolve_candidate(&mut index, candidate, expr_clone);
+                            failed_tries = 0;
+                        }
+                        Ok(None) => {
+                            failed_tries += 1;
+                            remaining_constants.push_back(candidate);
+                        }
+                        Err(kind) => {
+                            unresolvable.push(
+                                UnresolvableConstant::new(candidate, kind.get_reason())
+                                    .with_kind(kind.clone()),
+                            );
+                            index
+                                .get_mut_const_expressions()
+                                .mark_unresolvable(&candidate, kind)
+                                .expect("unknown id for const-expression");
+                        }
+                    }
                     continue;
                 }
 

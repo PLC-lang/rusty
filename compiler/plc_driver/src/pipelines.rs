@@ -43,8 +43,8 @@ use plc_header_generator::{
 };
 use plc_index::GlobalContext;
 use plc_lowering::{
-    control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
-    retain::RetainParticipant,
+    control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, loops::LoopDesugarer,
+    reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
 };
 use project::{
     object::Object,
@@ -337,12 +337,14 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
+            Box::new(LoopDesugarer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(PolymorphismLowerer::new(
                 self.context.provider(),
                 self.context.should_generate_external_constructors(),
             )),
             Box::new(ControlStatementParticipant::new(self.context.provider())),
+            Box::new(ReferenceToReturnParticipant::new(self.context.provider())),
             Box::new(RetainParticipant::new(self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
@@ -472,17 +474,14 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         self.participants.iter().for_each(|p| {
             p.post_annotate(&annotated_project);
         });
-        let annotated_project = self
+        let mut annotated_project = self
             .mutable_participants
             .iter_mut()
             .fold(annotated_project, |project, p| p.post_annotate(project));
 
         // Collect diagnostics from participants that validated during lowering.
         for p in &mut self.mutable_participants {
-            let diags = p.diagnostics();
-            if !diags.is_empty() {
-                self.diagnostician.handle(&diags);
-            }
+            annotated_project.diagnostics.extend(p.diagnostics());
         }
 
         Ok(annotated_project)
@@ -758,7 +757,7 @@ impl IndexedProject {
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
-        AnnotatedProject { units: annotated_units, index, annotations }
+        AnnotatedProject { units: annotated_units, index, annotations, diagnostics: Vec::new() }
     }
 }
 
@@ -797,6 +796,9 @@ pub struct AnnotatedProject {
     pub units: Vec<AnnotatedUnit>,
     pub index: Index,
     pub annotations: AstAnnotations,
+    /// Diagnostics produced by lowering participants after annotation.
+    #[serde(skip)]
+    pub diagnostics: Vec<Diagnostic>,
 }
 
 impl AnnotatedProject {
@@ -806,11 +808,13 @@ impl AnnotatedProject {
         ctxt: &GlobalContext,
         diagnostician: &mut Diagnostician,
     ) -> Result<(), Diagnostic> {
+        let mut severity = diagnostician.handle(&self.diagnostics);
+
         // perform global validation
         let mut validator = Validator::new(ctxt);
         validator.perform_global_validation(&self.index);
         let diagnostics = validator.diagnostics();
-        let mut severity = diagnostician.handle(&diagnostics);
+        severity = severity.max(diagnostician.handle(&diagnostics));
 
         //Perform per unit validation
         self.units.iter().for_each(|AnnotatedUnit { unit, .. }| {

@@ -1,25 +1,73 @@
 use crate::{
     ast::{
-        Allocation, Assignment, AstNode, AstStatement, BinaryExpression, CallStatement, CompilationUnit,
-        ConfigVariable, DataType, DataTypeDeclaration, DefaultValue, DirectAccess, EmptyStatement,
-        HardwareAccess, Implementation, Interface, JumpStatement, LabelStatement, MultipliedStatement, Pou,
-        PropertyBlock, RangeStatement, ReferenceAccess, ReferenceExpr, UnaryExpression, UserTypeDeclaration,
-        Variable, VariableBlock,
+        Allocation, ArgumentProperty, Assignment, AstNode, AstStatement, AutoDerefType, BinaryExpression,
+        CallStatement, CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue,
+        DirectAccess, EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement,
+        LabelStatement, MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess,
+        ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     control_statements::{AstControlStatement, ReturnStatement},
     literals::AstLiteral,
     visitor::{AstVisitor, Walker},
 };
 
-pub struct AstSerializer {
+pub struct AstSerializer<'a> {
     result: String,
     indent: usize,
+    unit: Option<&'a CompilationUnit>,
+    user_type_context: Option<&'a UserTypeDeclaration>,
+    is_in_paren: bool,
 }
 
-impl AstSerializer {
+impl AstSerializer<'_> {
     pub fn format(node: &AstNode) -> String {
-        let mut serializer = AstSerializer { result: String::new(), indent: 0 };
+        let mut serializer = AstSerializer {
+            result: String::new(),
+            indent: 0,
+            unit: None,
+            user_type_context: None,
+            is_in_paren: false,
+        };
         serializer.visit(node);
+
+        serializer.result
+    }
+
+    pub fn format_nodes(nodes: &[AstNode]) -> String {
+        let mut serializer = AstSerializer {
+            result: String::new(),
+            indent: 0,
+            unit: None,
+            user_type_context: None,
+            is_in_paren: false,
+        };
+
+        let nodes = nodes.iter().filter(|node| !node.is_empty_statement());
+
+        for (index, node) in nodes.enumerate() {
+            if index > 0 {
+                serializer.result.push('\n');
+            }
+            serializer.visit(node);
+
+            // Expression lists push their own ';'
+            if !node.is_expression_list() {
+                serializer.result.push(';');
+            }
+        }
+
+        serializer.result
+    }
+
+    pub fn format_variable_block(variable_block: &VariableBlock, unit: &CompilationUnit) -> String {
+        let mut serializer = AstSerializer {
+            result: String::new(),
+            indent: 0,
+            unit: Some(unit),
+            user_type_context: None,
+            is_in_paren: false,
+        };
+        serializer.visit_variable_block(variable_block);
 
         serializer.result
     }
@@ -41,9 +89,18 @@ impl AstSerializer {
             self.result.push_str("    ");
         }
     }
+
+    fn set_user_type_declaration_context(&mut self, type_name: &str) {
+        let Some(unit) = self.unit else {
+            panic!("cannot retrieve user type declaration without a compilation unit")
+        };
+
+        self.user_type_context =
+            unit.user_types.iter().find(|it| it.data_type.get_name().is_some_and(|name| name == type_name));
+    }
 }
 
-impl AstVisitor for AstSerializer {
+impl AstVisitor for AstSerializer<'_> {
     fn visit(&mut self, node: &AstNode) {
         node.walk(self)
     }
@@ -56,12 +113,32 @@ impl AstVisitor for AstSerializer {
         unimplemented!("for now only interested in individual nodes located in a POU body")
     }
 
-    fn visit_variable_block(&mut self, _: &VariableBlock) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_variable_block(&mut self, variable_block: &VariableBlock) {
+        let var_start = match variable_block.kind {
+            VariableBlockType::InOut => "VAR_IN_OUT",
+            VariableBlockType::Input(ArgumentProperty::ByVal) => "VAR_INPUT",
+            VariableBlockType::Input(ArgumentProperty::ByRef) => "VAR_INPUT {ref}",
+            VariableBlockType::Output => "VAR_OUTPUT",
+            VariableBlockType::Temp => "VAR_TEMP",
+            VariableBlockType::Global => "VAR_GLOBAL",
+            _ => "VAR",
+        };
+        let var_end: &str = "END_VAR";
+
+        self.result.push_str(var_start);
+        self.indent += 1;
+        variable_block.variables.iter().for_each(|v| {
+            self.push_indent();
+            self.result.push_str(&format!("{} : ", v.name));
+            v.walk(self);
+            self.result.push(';');
+        });
+        self.indent -= 1;
+        self.result.push_str(&format!("\n{var_end}"));
     }
 
-    fn visit_variable(&mut self, _: &Variable) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_variable(&mut self, variable: &Variable) {
+        variable.data_type_declaration.walk(self);
     }
 
     fn visit_config_variable(&mut self, _: &ConfigVariable) {
@@ -80,16 +157,51 @@ impl AstVisitor for AstSerializer {
         element.walk(self);
     }
 
-    fn visit_data_type_declaration(&mut self, _: &DataTypeDeclaration) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_data_type_declaration(&mut self, data_type_declaration: &DataTypeDeclaration) {
+        match data_type_declaration {
+            DataTypeDeclaration::Reference { referenced_type, .. } => {
+                self.set_user_type_declaration_context(referenced_type);
+
+                if let Some(user_type_declaration) = self.user_type_context {
+                    self.visit_user_type_declaration(user_type_declaration);
+                } else {
+                    self.result.push_str(referenced_type);
+                }
+            }
+            DataTypeDeclaration::Definition { data_type, .. } => {
+                data_type.as_ref().walk(self);
+            }
+            DataTypeDeclaration::Aggregate { referenced_type, .. } => {
+                self.result.push_str(referenced_type);
+            }
+        }
     }
 
-    fn visit_user_type_declaration(&mut self, _: &UserTypeDeclaration) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_user_type_declaration(&mut self, user_type_declaration: &UserTypeDeclaration) {
+        self.visit_data_type(&user_type_declaration.data_type);
     }
 
-    fn visit_data_type(&mut self, _: &DataType) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_data_type(&mut self, data_type: &DataType) {
+        if let DataType::PointerType { referenced_type, auto_deref, type_safe, .. } = data_type {
+            match auto_deref {
+                Some(AutoDerefType::Reference) => {
+                    self.result.push_str("REFERENCE TO ");
+                }
+                // TODO: We also want to handle these cases at some point
+                Some(AutoDerefType::Alias) | Some(AutoDerefType::Default) => (),
+                _ => {
+                    if *type_safe {
+                        self.result.push_str("REF_TO ");
+                    } else {
+                        self.result.push_str("POINTER TO ");
+                    }
+                }
+            }
+
+            self.visit_data_type_declaration(referenced_type.as_ref());
+        }
+
+        // TODO: For now we aren't interested in non-pointer types, but this should be expanded
     }
 
     fn visit_pou(&mut self, _: &Pou) {
@@ -140,7 +252,9 @@ impl AstVisitor for AstSerializer {
             }
             ReferenceAccess::Index(index) => {
                 self.result.push('[');
+                self.is_in_paren = true;
                 index.walk(self);
+                self.is_in_paren = false;
                 self.result.push(']');
             }
             ReferenceAccess::Cast(reference) => {
@@ -188,17 +302,31 @@ impl AstVisitor for AstSerializer {
     }
 
     fn visit_expression_list(&mut self, stmt: &Vec<AstNode>, _node: &AstNode) {
-        for (i, node) in stmt.iter().enumerate() {
-            if i > 0 {
-                self.result.push_str(", ");
+        let len = stmt.iter().filter(|stmt| !stmt.is_empty_statement()).count();
+        let stmt = stmt.iter().filter(|stmt| !stmt.is_empty_statement());
+        if self.is_in_paren {
+            for (i, node) in stmt.enumerate() {
+                if i > 0 {
+                    self.result.push_str(", ");
+                }
+                node.walk(self);
             }
-            node.walk(self);
+        } else {
+            for (i, node) in stmt.enumerate() {
+                node.walk(self);
+                self.result.push(';');
+                if i != len - 1 {
+                    self.push_indent();
+                }
+            }
         }
     }
 
     fn visit_paren_expression(&mut self, inner: &AstNode, _node: &AstNode) {
         self.result.push('(');
+        self.is_in_paren = true;
         inner.walk(self);
+        self.is_in_paren = false;
         self.result.push(')');
     }
 
@@ -229,9 +357,11 @@ impl AstVisitor for AstSerializer {
     fn visit_call_statement(&mut self, stmt: &CallStatement, _node: &AstNode) {
         stmt.operator.walk(self);
         self.result.push('(');
+        self.is_in_paren = true;
         if let Some(opt) = stmt.parameters.as_ref() {
             opt.walk(self)
         }
+        self.is_in_paren = false;
         self.result.push(')');
     }
 
@@ -326,7 +456,9 @@ impl AstVisitor for AstSerializer {
     }
 
     fn visit_return_statement(&mut self, stmt: &ReturnStatement, _node: &AstNode) {
-        stmt.walk(self)
+        self.result.push_str("RETURN");
+        stmt.walk(self);
+        self.result.push(';');
     }
 
     fn visit_jump_statement(&mut self, stmt: &JumpStatement, _node: &AstNode) {

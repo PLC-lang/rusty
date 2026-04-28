@@ -21,12 +21,9 @@ use plc::{
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
-    array_lowering,
+    array_lowering, control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
+    initializer::Initializer, loops::LoopDesugarer, reference_to_return::ReferenceToReturnParticipant,
     retain::RetainParticipant,
-    {
-        control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer,
-        initializer::Initializer,
-    },
 };
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
@@ -283,26 +280,28 @@ impl PipelineParticipantMut for InheritanceLowerer {
     }
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        let AnnotatedProject { mut units, index, annotations } = annotated_project;
+        let AnnotatedProject { mut units, index, annotations, diagnostics } = annotated_project;
         self.annotations = Some(Box::new(annotations));
         self.index = Some(index);
         units.iter_mut().for_each(|unit| self.visit_unit(&mut unit.unit));
         let index = self.index.take().expect("Index should be present");
         // re-resolve
-        IndexedProject {
+        let mut project = IndexedProject {
             project: ParsedProject {
                 units: units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect(),
             },
             index,
             _unresolvables: vec![],
         }
-        .annotate(self.provider())
+        .annotate(self.provider());
+        project.diagnostics = diagnostics;
+        project
     }
 }
 
 impl PipelineParticipantMut for AggregateTypeLowerer {
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        let AnnotatedProject { units, index, annotations } = annotated_project;
+        let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
         self.index = Some(index);
         self.annotation = Some(Box::new(annotations));
 
@@ -317,7 +316,9 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
         // Re-index from modified units so the index reflects POU signature
         // changes (e.g. aggregate returns converted to VAR_IN_OUT parameters).
         let project = ParsedProject { units };
-        project.index(self.id_provider.clone()).annotate(self.id_provider.clone())
+        let mut project = project.index(self.id_provider.clone()).annotate(self.id_provider.clone());
+        project.diagnostics = diagnostics;
+        project
     }
 }
 
@@ -331,17 +332,19 @@ impl PipelineParticipantMut for PolymorphismLowerer {
     }
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        let AnnotatedProject { units, index, annotations } = annotated_project;
+        let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
         let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
 
-        let diagnostics = self.dispatch(index, annotations.annotation_map, &mut units);
-        self.stash_diagnostics(diagnostics);
+        let new_diagnostics = self.dispatch(index, annotations.annotation_map, &mut units);
+        self.stash_diagnostics(new_diagnostics);
         let project = ParsedProject { units };
 
         // Dispatch lowering may inject new types (e.g. `__FATPOINTER` and itables for interface
         // dispatch) into the compilation units' `user_types`. Re-indexing from the units ensures
         // these types are present in the index for the subsequent re-annotation.
-        project.index(self.ids.clone()).annotate(self.ids.clone())
+        let mut project = project.index(self.ids.clone()).annotate(self.ids.clone());
+        project.diagnostics = diagnostics;
+        project
     }
 
     fn diagnostics(&mut self) -> Vec<Diagnostic> {
@@ -353,7 +356,8 @@ impl PipelineParticipantMut for RetainParticipant {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         let IndexedProject { mut project, index, .. } = indexed_project;
         self.lower_retain(&mut project.units, index);
-        //Re-index
+
+        // Re-index
         project.index(self.ids.clone())
     }
 }
@@ -362,6 +366,24 @@ impl PipelineParticipantMut for ControlStatementParticipant {
     fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         let ParsedProject { mut units } = parsed_project;
         self.lower_control_statements(&mut units);
+
+        ParsedProject { units }
+    }
+}
+
+impl PipelineParticipantMut for LoopDesugarer {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        self.desugar(&mut units);
+
+        ParsedProject { units }
+    }
+}
+
+impl PipelineParticipantMut for ReferenceToReturnParticipant {
+    fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
+        let ParsedProject { mut units } = parsed_project;
+        self.lower_reference_to_return(&mut units);
         ParsedProject { units }
     }
 }

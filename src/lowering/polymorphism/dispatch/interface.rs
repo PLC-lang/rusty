@@ -411,6 +411,20 @@ impl<'a> AstVisitorMut for InterfaceDispatchLowerer<'a> {
             **params = AstFactory::create_expression_list(args, location, self.ids.next_id());
         }
 
+        // --- Direct interface reference calls ---
+        // `refIA()` is invalid. Validate it here before codegen would later stumble over the
+        // still-unlowered interface-typed operator.
+        if let Some(diagnostic) =
+            validation::validate_direct_interface_call(self.annotations, self.index, operator)
+        {
+            self.diagnostics.push(diagnostic);
+
+            // Drop the enclosing statement so downstream codegen does not trip over the still-invalid
+            // direct interface call after we already emitted the user-facing diagnostic.
+            self.replacement = Some(vec![]);
+            return;
+        }
+
         // --- Interface method call rewriting ---
         // Check if the call operator's base is an interface-typed variable. If so, rewrite the
         // call into an indirect dispatch through the itable.
@@ -849,7 +863,16 @@ mod tests {
             let statements = &unit.implementations.iter().find(|it| &it.name == pou).unwrap().statements;
 
             for statement in statements {
-                result.push(statement.as_string());
+                let statement = statement.as_string();
+                let mut split_statements = statement.lines().peekable();
+
+                if split_statements.peek().is_some() {
+                    for split_statement in split_statements {
+                        result.push(split_statement.to_string());
+                    }
+                } else {
+                    result.push(statement);
+                }
             }
         }
 
@@ -1588,7 +1611,9 @@ mod tests {
             insta::assert_debug_snapshot!(super::lower_and_serialize_statements(source, &["main"]), @r#"
             [
                 "// Statements in main",
-                "alloca __producer0: FbA, producer(__producer0), reference.data := ADR(__producer0)",
+                "alloca __producer0: FbA;",
+                "producer(__producer0);",
+                "reference.data := ADR(__producer0);",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
             ]
             "#);
@@ -1622,7 +1647,9 @@ mod tests {
             [
                 "// Statements in main",
                 "Factory__ctor(fb)",
-                "alloca __producer0: FbA, fb.producer(__producer0), reference.data := ADR(__producer0)",
+                "alloca __producer0: FbA;",
+                "fb.producer(__producer0);",
+                "reference.data := ADR(__producer0);",
                 "reference.table := ADR(__itable_IA_FbA_instance)",
             ]
             "#);
@@ -2290,11 +2317,15 @@ mod tests {
             [
                 "// Statements in main",
                 "alloca __fatpointer_0: __FATPOINTER",
-                "alloca __producer0: FbA, producer(__producer0), __fatpointer_0.data := ADR(__producer0)",
+                "alloca __producer0: FbA;",
+                "producer(__producer0);",
+                "__fatpointer_0.data := ADR(__producer0);",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(__fatpointer_0)",
                 "alloca __fatpointer_1: __FATPOINTER",
-                "alloca __producer1: FbA, producer(__producer1), __fatpointer_1.data := ADR(__producer1)",
+                "alloca __producer1: FbA;",
+                "producer(__producer1);",
+                "__fatpointer_1.data := ADR(__producer1);",
                 "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(in1 := __fatpointer_1)",
             ]
@@ -2336,11 +2367,15 @@ mod tests {
                 "// Statements in main",
                 "Factory__ctor(fb)",
                 "alloca __fatpointer_0: __FATPOINTER",
-                "alloca __produce0: FbA, fb.produce(__produce0), __fatpointer_0.data := ADR(__produce0)",
+                "alloca __produce0: FbA;",
+                "fb.produce(__produce0);",
+                "__fatpointer_0.data := ADR(__produce0);",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(__fatpointer_0)",
                 "alloca __fatpointer_1: __FATPOINTER",
-                "alloca __produce1: FbA, fb.produce(__produce1), __fatpointer_1.data := ADR(__produce1)",
+                "alloca __produce1: FbA;",
+                "fb.produce(__produce1);",
+                "__fatpointer_1.data := ADR(__produce1);",
                 "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
                 "consumer(in1 := __fatpointer_1)",
             ]
@@ -2385,11 +2420,15 @@ mod tests {
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
-                "alloca __inner0: __FATPOINTER, inner(__inner0, __fatpointer_0), outer(__inner0)",
+                "alloca __inner0: __FATPOINTER;",
+                "inner(__inner0, __fatpointer_0);",
+                "outer(__inner0);",
                 "alloca __fatpointer_1: __FATPOINTER",
                 "__fatpointer_1.data := ADR(instance)",
                 "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
-                "alloca __inner1: __FATPOINTER, inner(inner := __inner1, in1 := __fatpointer_1), outer(in1 := __inner1)",
+                "alloca __inner1: __FATPOINTER;",
+                "inner(inner := __inner1, in1 := __fatpointer_1);",
+                "outer(in1 := __inner1);",
             ]
             "#);
         }
@@ -2427,11 +2466,15 @@ mod tests {
                 "alloca __fatpointer_0: __FATPOINTER",
                 "__fatpointer_0.data := ADR(instance)",
                 "__fatpointer_0.table := ADR(__itable_IA_FbA_instance)",
-                "alloca __consumer0: STRING, consumer(__consumer0, __fatpointer_0), result := __consumer0",
+                "alloca __consumer0: STRING;",
+                "consumer(__consumer0, __fatpointer_0);",
+                "result := __consumer0;",
                 "alloca __fatpointer_1: __FATPOINTER",
                 "__fatpointer_1.data := ADR(instance)",
                 "__fatpointer_1.table := ADR(__itable_IA_FbA_instance)",
-                "alloca __consumer1: STRING, consumer(consumer := __consumer1, in1 := __fatpointer_1), result := __consumer1",
+                "alloca __consumer1: STRING;",
+                "consumer(consumer := __consumer1, in1 := __fatpointer_1);",
+                "result := __consumer1;",
             ]
             "#);
         }
@@ -3277,14 +3320,31 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
             // Statements in main
             __main_instances__ctor(instances)
             __main_references__ctor(references)
-            FOR i := 0 TO 2 DO
+            alloca ran_once_0: BOOL
+            alloca is_incrementing_0: BOOL
+            i := 0
+            is_incrementing_0 := TRUE
+            WHILE TRUE DO
+                IF ran_once_0 THEN
+                    i := i + 1
+                END_IF
+                ran_once_0 := TRUE
+                IF is_incrementing_0 THEN
+                    IF i > 2 THEN
+                        EXIT;
+                    END_IF
+                ELSE
+                    IF i < 2 THEN
+                        EXIT;
+                    END_IF
+                END_IF
                 references[i].data := ADR(instances[i])
                 references[i].table := ADR(__itable_IA_FbA_instance)
-            END_FOR
+            END_WHILE
             ");
         }
 
@@ -3397,7 +3457,6 @@ mod tests {
         // correctly. The AggregateLowerer already does a similar WHILE transformation, but it
         // runs later and is arguably the wrong place for structural loop rewrites.
         #[test]
-        #[ignore = "stale fat pointer: preamble is hoisted before the loop instead of re-evaluated each iteration"]
         fn call_argument_wrapping_in_while_condition() {
             let source = r#"
                 INTERFACE IA
@@ -3428,12 +3487,13 @@ mod tests {
             // iteration. This requires restructuring WHILE into WHILE TRUE + EXIT.
             insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
             // Statements in main
-            alloca __fatpointer_0: __FATPOINTER
-            __fatpointer_0.data := ADR(instances[i])
-            __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
+            __main_instances__ctor(instances)
             WHILE TRUE DO
+                alloca __fatpointer_0: __FATPOINTER
+                __fatpointer_0.data := ADR(instances[i])
+                __fatpointer_0.table := ADR(__itable_IA_FbA_instance)
                 IF NOT consumer(__fatpointer_0) THEN
-
+                    EXIT;
                 END_IF
                 i := i + 1
             END_WHILE
@@ -3687,15 +3747,11 @@ mod tests {
             // Should lower to an itable indirect call to __get_foo.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3721,17 +3777,13 @@ mod tests {
             // Should lower to an itable indirect call to __set_foo with the value as argument.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3756,15 +3808,11 @@ mod tests {
             // Getting a property through an interface and assigning it to a local variable.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3790,15 +3838,11 @@ mod tests {
             // Using a property getter in a binary expression.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3825,17 +3869,13 @@ mod tests {
             // Should produce a setter whose argument is the getter, both through the itable.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -3860,14 +3900,12 @@ mod tests {
             // Passing a property getter result as an argument to a function.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        GET END_GET
+                    PROPERTY_GET foo: DINT
                     END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        GET END_GET
+                    PROPERTY_GET foo: DINT
                     END_PROPERTY
                 END_FUNCTION_BLOCK
 
@@ -3902,16 +3940,14 @@ mod tests {
                 INTERFACE IA
                     METHOD bar : DINT END_METHOD
 
-                    PROPERTY foo : DINT
-                        GET END_GET
+                    PROPERTY_GET foo: DINT
                     END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
                     METHOD bar : DINT END_METHOD
 
-                    PROPERTY foo : DINT
-                        GET END_GET
+                    PROPERTY_GET foo: DINT
                     END_PROPERTY
                 END_FUNCTION_BLOCK
 
@@ -3940,14 +3976,12 @@ mod tests {
             // Accessing a property through a qualified path: container.reference.foo
             let source = r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        GET END_GET
+                    PROPERTY_GET foo: DINT
                     END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        GET END_GET
+                    PROPERTY_GET foo: DINT
                     END_PROPERTY
                 END_FUNCTION_BLOCK
 
@@ -3981,14 +4015,12 @@ mod tests {
             // Accessing a property through an array of interface references.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        GET END_GET
+                    PROPERTY_GET foo: DINT
                     END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        GET END_GET
+                    PROPERTY_GET foo: DINT
                     END_PROPERTY
                 END_FUNCTION_BLOCK
 
@@ -4018,17 +4050,13 @@ mod tests {
             // Verifies normal fat-pointer expansion still works when the POU has properties.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -4058,23 +4086,17 @@ mod tests {
             // correct itable instance for the .table field.
             let source = r#"
                 INTERFACE IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                        SET END_SET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
+                    PROPERTY_SET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION_BLOCK FbB EXTENDS FbA
-                    PROPERTY foo : DINT
-                        GET END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main
@@ -4114,9 +4136,7 @@ mod tests {
                         END_VAR
                     END_METHOD
 
-                    PROPERTY foo : DINT
-                        GET END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_INTERFACE
 
                 FUNCTION_BLOCK FbA IMPLEMENTS IA
@@ -4126,9 +4146,7 @@ mod tests {
                         END_VAR
                     END_METHOD
 
-                    PROPERTY foo : DINT
-                        GET END_GET
-                    END_PROPERTY
+                    PROPERTY_GET foo: DINT END_PROPERTY
                 END_FUNCTION_BLOCK
 
                 FUNCTION main

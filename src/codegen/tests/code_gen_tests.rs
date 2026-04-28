@@ -885,6 +885,174 @@ fn for_statement_with_exit() {
 }
 
 #[test]
+fn nested_loop_temporaries_are_allocated_in_entry_block() {
+    let result = codegen(
+        r#"
+        FUNCTION main : DINT
+        VAR
+            i, j : DINT;
+        END_VAR
+
+        FOR i := 1 TO 10 DO
+            FOR j := 1 TO 1 DO
+            END_FOR
+        END_FOR
+        END_FUNCTION
+        "#,
+    );
+
+    let result = result
+        .lines()
+        .take_while(|line| !line.trim_start().starts_with("condition_check:"))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    // Nested FOR loops become nested WHILE TRUE loops once desugared, with temporary alloca locals like
+    // `ran_once_*` and `is_incrementing_*`. If their `alloca`s stay in the loop body, the inner temporaries
+    // are reallocated on each iteration. Codegen must hoist those stack allocations to the entry block.
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align [filtered]
+      %i = alloca i32, align [filtered]
+      %j = alloca i32, align [filtered]
+      store i32 0, ptr %i, align [filtered]
+      store i32 0, ptr %j, align [filtered]
+      store i32 0, ptr %main, align [filtered]
+      %ran_once_1 = alloca i8, align [filtered]
+      store i8 0, ptr %ran_once_1, align [filtered]
+      %is_incrementing_1 = alloca i8, align [filtered]
+      store i8 0, ptr %is_incrementing_1, align [filtered]
+      store i32 1, ptr %i, align [filtered]
+      store i8 1, ptr %is_incrementing_1, align [filtered]
+      %ran_once_0 = alloca i8, align [filtered]
+      %is_incrementing_0 = alloca i8, align [filtered]
+      br label %while_body
+
+    while_body:                                       ; preds = %continue14, %entry
+      %load_ran_once_1 = load i8, ptr %ran_once_1, align [filtered]
+      %0 = icmp ne i8 %load_ran_once_1, 0
+      br i1 %0, label %condition_body, label %continue1
+
+    continue:                                         ; preds = %condition_body11, %condition_body7
+      %main_ret = load i32, ptr %main, align [filtered]
+      ret i32 %main_ret
+
+    condition_body:                                   ; preds = %while_body
+      %load_i = load i32, ptr %i, align [filtered]
+      %tmpVar = add i32 %load_i, 1
+      store i32 %tmpVar, ptr %i, align [filtered]
+      br label %continue1
+
+    continue1:                                        ; preds = %condition_body, %while_body
+      store i8 1, ptr %ran_once_1, align [filtered]
+      %load_is_incrementing_1 = load i8, ptr %is_incrementing_1, align [filtered]
+      %1 = icmp ne i8 %load_is_incrementing_1, 0
+      br i1 %1, label %condition_body3, label %else
+
+    condition_body3:                                  ; preds = %continue1
+      %load_i5 = load i32, ptr %i, align [filtered]
+      %tmpVar6 = icmp sgt i32 %load_i5, 10
+      %2 = zext i1 %tmpVar6 to i8
+      %3 = icmp ne i8 %2, 0
+      br i1 %3, label %condition_body7, label %continue4
+
+    else:                                             ; preds = %continue1
+      %load_i9 = load i32, ptr %i, align [filtered]
+      %tmpVar10 = icmp slt i32 %load_i9, 10
+      %4 = zext i1 %tmpVar10 to i8
+      %5 = icmp ne i8 %4, 0
+      br i1 %5, label %condition_body11, label %continue8
+
+    continue2:                                        ; preds = %continue8, %continue4
+      store i8 0, ptr %ran_once_0, align [filtered]
+      store i8 0, ptr %is_incrementing_0, align [filtered]
+      store i32 1, ptr %j, align [filtered]
+      store i8 1, ptr %is_incrementing_0, align [filtered]
+      br label %while_body13
+
+    condition_body7:                                  ; preds = %condition_body3
+      br label %continue
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue4
+
+    continue4:                                        ; preds = %buffer_block, %condition_body3
+      br label %continue2
+
+    condition_body11:                                 ; preds = %else
+      br label %continue
+
+    buffer_block12:                                   ; No predecessors!
+      br label %continue8
+
+    continue8:                                        ; preds = %buffer_block12, %else
+      br label %continue2
+
+    while_body13:                                     ; preds = %continue19, %continue2
+      %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
+      %6 = icmp ne i8 %load_ran_once_0, 0
+      br i1 %6, label %condition_body16, label %continue15
+
+    continue14:                                       ; preds = %condition_body29, %condition_body24
+      br label %while_body
+
+    condition_body16:                                 ; preds = %while_body13
+      %load_j = load i32, ptr %j, align [filtered]
+      %tmpVar17 = add i32 %load_j, 1
+      store i32 %tmpVar17, ptr %j, align [filtered]
+      br label %continue15
+
+    continue15:                                       ; preds = %condition_body16, %while_body13
+      store i8 1, ptr %ran_once_0, align [filtered]
+      %load_is_incrementing_0 = load i8, ptr %is_incrementing_0, align [filtered]
+      %7 = icmp ne i8 %load_is_incrementing_0, 0
+      br i1 %7, label %condition_body20, label %else18
+
+    condition_body20:                                 ; preds = %continue15
+      %load_j22 = load i32, ptr %j, align [filtered]
+      %tmpVar23 = icmp sgt i32 %load_j22, 1
+      %8 = zext i1 %tmpVar23 to i8
+      %9 = icmp ne i8 %8, 0
+      br i1 %9, label %condition_body24, label %continue21
+
+    else18:                                           ; preds = %continue15
+      %load_j27 = load i32, ptr %j, align [filtered]
+      %tmpVar28 = icmp slt i32 %load_j27, 1
+      %10 = zext i1 %tmpVar28 to i8
+      %11 = icmp ne i8 %10, 0
+      br i1 %11, label %condition_body29, label %continue26
+
+    continue19:                                       ; preds = %continue26, %continue21
+      br label %while_body13
+
+    condition_body24:                                 ; preds = %condition_body20
+      br label %continue14
+
+    buffer_block25:                                   ; No predecessors!
+      br label %continue21
+
+    continue21:                                       ; preds = %buffer_block25, %condition_body20
+      br label %continue19
+
+    condition_body29:                                 ; preds = %else18
+      br label %continue14
+
+    buffer_block30:                                   ; No predecessors!
+      br label %continue26
+
+    continue26:                                       ; preds = %buffer_block30, %else18
+      br label %continue19
+    }
+    "#);
+}
+
+#[test]
 fn class_method_in_pou() {
     let result = codegen(
         "
@@ -1623,42 +1791,81 @@ fn for_statement_with_binary_expressions() {
       %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
       %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
+      %ran_once_0 = alloca i8, align [filtered]
+      store i8 0, ptr %ran_once_0, align [filtered]
+      %is_incrementing_0 = alloca i8, align [filtered]
+      store i8 0, ptr %is_incrementing_0, align [filtered]
       %load_y = load i32, ptr %y, align [filtered]
       %tmpVar = add i32 %load_y, 1
       store i32 %tmpVar, ptr %x, align [filtered]
       %load_step = load i32, ptr %step, align [filtered]
       %tmpVar1 = mul i32 %load_step, 3
-      %is_incrementing = icmp sgt i32 %tmpVar1, 0
-      br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
+      %tmpVar2 = icmp sgt i32 %tmpVar1, 0
+      %1 = zext i1 %tmpVar2 to i8
+      store i8 %1, ptr %is_incrementing_0, align [filtered]
+      br label %while_body
 
-    predicate_sle:                                    ; preds = %increment, %entry
-      %load_z = load i32, ptr %z, align [filtered]
-      %tmpVar2 = sub i32 %load_z, 2
-      %1 = load i32, ptr %x, align [filtered]
-      %condition = icmp sle i32 %1, %tmpVar2
-      br i1 %condition, label %loop, label %continue
+    while_body:                                       ; preds = %continue7, %entry
+      %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
+      %2 = icmp ne i8 %load_ran_once_0, 0
+      br i1 %2, label %condition_body, label %continue3
 
-    predicate_sge:                                    ; preds = %increment, %entry
-      %load_z3 = load i32, ptr %z, align [filtered]
-      %tmpVar4 = sub i32 %load_z3, 2
-      %2 = load i32, ptr %x, align [filtered]
-      %condition5 = icmp sge i32 %2, %tmpVar4
-      br i1 %condition5, label %loop, label %continue
-
-    loop:                                             ; preds = %predicate_sge, %predicate_sle
-      %load_x = load i32, ptr %x, align [filtered]
-      br label %increment
-
-    increment:                                        ; preds = %loop
-      %3 = load i32, ptr %x, align [filtered]
-      %load_step6 = load i32, ptr %step, align [filtered]
-      %tmpVar7 = mul i32 %load_step6, 3
-      %next = add i32 %tmpVar7, %3
-      store i32 %next, ptr %x, align [filtered]
-      br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
-
-    continue:                                         ; preds = %predicate_sge, %predicate_sle
+    continue:                                         ; preds = %condition_body19, %condition_body13
       ret void
+
+    condition_body:                                   ; preds = %while_body
+      %load_x = load i32, ptr %x, align [filtered]
+      %load_step4 = load i32, ptr %step, align [filtered]
+      %tmpVar5 = mul i32 %load_step4, 3
+      %tmpVar6 = add i32 %load_x, %tmpVar5
+      store i32 %tmpVar6, ptr %x, align [filtered]
+      br label %continue3
+
+    continue3:                                        ; preds = %condition_body, %while_body
+      store i8 1, ptr %ran_once_0, align [filtered]
+      %load_is_incrementing_0 = load i8, ptr %is_incrementing_0, align [filtered]
+      %3 = icmp ne i8 %load_is_incrementing_0, 0
+      br i1 %3, label %condition_body8, label %else
+
+    condition_body8:                                  ; preds = %continue3
+      %load_x10 = load i32, ptr %x, align [filtered]
+      %load_z = load i32, ptr %z, align [filtered]
+      %tmpVar11 = sub i32 %load_z, 2
+      %tmpVar12 = icmp sgt i32 %load_x10, %tmpVar11
+      %4 = zext i1 %tmpVar12 to i8
+      %5 = icmp ne i8 %4, 0
+      br i1 %5, label %condition_body13, label %continue9
+
+    else:                                             ; preds = %continue3
+      %load_x15 = load i32, ptr %x, align [filtered]
+      %load_z16 = load i32, ptr %z, align [filtered]
+      %tmpVar17 = sub i32 %load_z16, 2
+      %tmpVar18 = icmp slt i32 %load_x15, %tmpVar17
+      %6 = zext i1 %tmpVar18 to i8
+      %7 = icmp ne i8 %6, 0
+      br i1 %7, label %condition_body19, label %continue14
+
+    continue7:                                        ; preds = %continue14, %continue9
+      %load_x21 = load i32, ptr %x, align [filtered]
+      br label %while_body
+
+    condition_body13:                                 ; preds = %condition_body8
+      br label %continue
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue9
+
+    continue9:                                        ; preds = %buffer_block, %condition_body8
+      br label %continue7
+
+    condition_body19:                                 ; preds = %else
+      br label %continue
+
+    buffer_block20:                                   ; No predecessors!
+      br label %continue14
+
+    continue14:                                       ; preds = %buffer_block20, %else
+      br label %continue7
     }
     "#);
 }
@@ -1688,46 +1895,83 @@ fn for_statement_type_casting() {
       %b = alloca i16, align [filtered]
       store i8 0, ptr %a, align [filtered]
       store i16 1, ptr %b, align [filtered]
+      %ran_once_0 = alloca i8, align [filtered]
+      store i8 0, ptr %ran_once_0, align [filtered]
+      %is_incrementing_0 = alloca i8, align [filtered]
+      store i8 0, ptr %is_incrementing_0, align [filtered]
       store i8 0, ptr %a, align [filtered]
       %load_b = load i16, ptr %b, align [filtered]
-      %0 = trunc i16 %load_b to i8
-      %1 = sext i8 %0 to i32
-      %is_incrementing = icmp sgt i32 %1, 0
-      br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
+      %0 = sext i16 %load_b to i32
+      %tmpVar = icmp sgt i32 %0, 0
+      %1 = zext i1 %tmpVar to i8
+      store i8 %1, ptr %is_incrementing_0, align [filtered]
+      br label %while_body
 
-    predicate_sle:                                    ; preds = %increment, %entry
-      %2 = load i8, ptr %a, align [filtered]
-      %3 = zext i8 %2 to i32
-      %condition = icmp sle i32 %3, 10
-      br i1 %condition, label %loop, label %continue
+    while_body:                                       ; preds = %continue4, %entry
+      %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
+      %2 = icmp ne i8 %load_ran_once_0, 0
+      br i1 %2, label %condition_body, label %continue1
 
-    predicate_sge:                                    ; preds = %increment, %entry
-      %4 = load i8, ptr %a, align [filtered]
-      %5 = zext i8 %4 to i32
-      %condition1 = icmp sge i32 %5, 10
-      br i1 %condition1, label %loop, label %continue
-
-    loop:                                             ; preds = %predicate_sge, %predicate_sle
-      %load_b2 = load i16, ptr %b, align [filtered]
-      %6 = sext i16 %load_b2 to i32
-      %tmpVar = mul i32 %6, 3
-      %7 = trunc i32 %tmpVar to i16
-      store i16 %7, ptr %b, align [filtered]
-      br label %increment
-
-    increment:                                        ; preds = %loop
-      %8 = load i8, ptr %a, align [filtered]
-      %load_b3 = load i16, ptr %b, align [filtered]
-      %9 = trunc i16 %load_b3 to i8
-      %10 = sext i8 %9 to i32
-      %11 = zext i8 %8 to i32
-      %next = add i32 %10, %11
-      %12 = trunc i32 %next to i8
-      store i8 %12, ptr %a, align [filtered]
-      br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
-
-    continue:                                         ; preds = %predicate_sge, %predicate_sle
+    continue:                                         ; preds = %condition_body13, %condition_body9
       ret void
+
+    condition_body:                                   ; preds = %while_body
+      %load_a = load i8, ptr %a, align [filtered]
+      %3 = zext i8 %load_a to i32
+      %load_b2 = load i16, ptr %b, align [filtered]
+      %4 = sext i16 %load_b2 to i32
+      %tmpVar3 = add i32 %3, %4
+      %5 = trunc i32 %tmpVar3 to i8
+      store i8 %5, ptr %a, align [filtered]
+      br label %continue1
+
+    continue1:                                        ; preds = %condition_body, %while_body
+      store i8 1, ptr %ran_once_0, align [filtered]
+      %load_is_incrementing_0 = load i8, ptr %is_incrementing_0, align [filtered]
+      %6 = icmp ne i8 %load_is_incrementing_0, 0
+      br i1 %6, label %condition_body5, label %else
+
+    condition_body5:                                  ; preds = %continue1
+      %load_a7 = load i8, ptr %a, align [filtered]
+      %7 = zext i8 %load_a7 to i32
+      %tmpVar8 = icmp sgt i32 %7, 10
+      %8 = zext i1 %tmpVar8 to i8
+      %9 = icmp ne i8 %8, 0
+      br i1 %9, label %condition_body9, label %continue6
+
+    else:                                             ; preds = %continue1
+      %load_a11 = load i8, ptr %a, align [filtered]
+      %10 = zext i8 %load_a11 to i32
+      %tmpVar12 = icmp slt i32 %10, 10
+      %11 = zext i1 %tmpVar12 to i8
+      %12 = icmp ne i8 %11, 0
+      br i1 %12, label %condition_body13, label %continue10
+
+    continue4:                                        ; preds = %continue10, %continue6
+      %load_b15 = load i16, ptr %b, align [filtered]
+      %13 = sext i16 %load_b15 to i32
+      %tmpVar16 = mul i32 %13, 3
+      %14 = trunc i32 %tmpVar16 to i16
+      store i16 %14, ptr %b, align [filtered]
+      br label %while_body
+
+    condition_body9:                                  ; preds = %condition_body5
+      br label %continue
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue6
+
+    continue6:                                        ; preds = %buffer_block, %condition_body5
+      br label %continue4
+
+    condition_body13:                                 ; preds = %else
+      br label %continue
+
+    buffer_block14:                                   ; No predecessors!
+      br label %continue10
+
+    continue10:                                       ; preds = %buffer_block14, %else
+      br label %continue4
     }
     "#);
 }

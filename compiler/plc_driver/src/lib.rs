@@ -191,26 +191,31 @@ pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
     let format = pipeline.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default();
 
     pipeline.run().map_err(|err| {
-        //Only report the hint if we are using rich error reporting
-        if matches!(format, ErrorFormat::Rich) {
-            let sub_details =
-                err.get_sub_diagnostics().into_iter().map(|d| d.to_string()).collect::<Vec<_>>();
-            if sub_details.is_empty() {
-                anyhow!(
-                    "{err}.
+        let sub_details = err.get_sub_diagnostics().into_iter().map(|d| d.to_string()).collect::<Vec<_>>();
+        match format {
+            ErrorFormat::Rich => {
+                if sub_details.is_empty() {
+                    anyhow!(
+                        "{err}.
 Hint: You can use `plc explain <ErrorCode>` for more information"
-                )
-            } else {
-                anyhow!(
-                    "{err}.
+                    )
+                } else {
+                    anyhow!(
+                        "{err}.
 Details:
 {}
 Hint: You can use `plc explain <ErrorCode>` for more information",
-                    sub_details.join("\n")
-                )
+                        sub_details.join("\n")
+                    )
+                }
             }
-        } else {
-            err.into()
+            _ => {
+                if sub_details.is_empty() {
+                    err.into()
+                } else {
+                    anyhow!("{err}\n{}", sub_details.join("\n"))
+                }
+            }
         }
     })
 }

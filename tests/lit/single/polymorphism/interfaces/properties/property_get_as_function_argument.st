@@ -3,9 +3,7 @@
 // an interface reference. Mirrors the `property_get_as_function_argument` unit test.
 
 INTERFACE IValue
-    PROPERTY value : DINT
-        GET END_GET
-    END_PROPERTY
+    PROPERTY_GET value: DINT END_PROPERTY
 END_INTERFACE
 
 FUNCTION_BLOCK FbStore IMPLEMENTS IValue
@@ -13,10 +11,8 @@ FUNCTION_BLOCK FbStore IMPLEMENTS IValue
         _val : DINT;
     END_VAR
 
-    PROPERTY value : DINT
-        GET
-            value := _val;
-        END_GET
+    PROPERTY_GET value: DINT
+        value := _val;
     END_PROPERTY
 END_FUNCTION_BLOCK
 

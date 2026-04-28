@@ -1,5 +1,6 @@
 use plc_ast::{
-    ast::LinkageType,
+    ast::{AstNode, LinkageType},
+    control_statements::{ForLoopStatement, LoopStatement},
     provider::IdProvider,
     visitor::{AstVisitor, Walker},
 };
@@ -144,6 +145,158 @@ fn test_visit_while_loop_statement() {
     // THEN we expect to visit the condition and the loop body
     assert_eq!(get_character_range('a', 'd'), visitor.identifiers);
 }
+
+#[test]
+fn test_visit_while_loop_statement_override() {
+    // GIVEN a visitor that specifically tracks while loop visits
+    struct WhileLoopCounter {
+        while_count: usize,
+        identifiers: Vec<String>,
+    }
+
+    impl AstVisitor for WhileLoopCounter {
+        fn visit_while_loop_statement(&mut self, stmt: &LoopStatement, _: &AstNode) {
+            self.while_count += 1;
+            // continue walking children
+            stmt.condition.walk(self);
+            for s in &stmt.body {
+                self.visit(s);
+            }
+        }
+
+        fn visit_identifier(&mut self, stmt: &str, _: &AstNode) {
+            self.identifiers.push(stmt.to_string());
+        }
+
+        fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, _: &AstNode) {
+            self.identifiers.push(stmt.get_literal_value());
+        }
+    }
+
+    // WHEN we visit source code with two while loops
+    let mut visitor = WhileLoopCounter { while_count: 0, identifiers: vec![] };
+    visit(
+        "
+        PROGRAM prg
+            WHILE a DO
+                b;
+            END_WHILE;
+            WHILE c DO
+                d;
+            END_WHILE;
+        END_PROGRAM",
+        &mut visitor,
+    );
+    visitor.identifiers.sort();
+
+    // THEN we expect the while-specific visitor to have been called twice
+    assert_eq!(2, visitor.while_count);
+    // AND all identifiers inside the while loops were still visited
+    assert_eq!(get_character_range('a', 'd'), visitor.identifiers);
+}
+
+#[test]
+fn test_visit_repeat_loop_statement_override() {
+    // GIVEN a visitor that specifically tracks repeat loop visits
+    struct RepeatLoopCounter {
+        repeat_count: usize,
+        identifiers: Vec<String>,
+    }
+
+    impl AstVisitor for RepeatLoopCounter {
+        fn visit_repeat_loop_statement(&mut self, stmt: &LoopStatement, _: &AstNode) {
+            self.repeat_count += 1;
+            // continue walking children
+            for s in &stmt.body {
+                self.visit(s);
+            }
+            stmt.condition.walk(self);
+        }
+
+        fn visit_identifier(&mut self, stmt: &str, _: &AstNode) {
+            self.identifiers.push(stmt.to_string());
+        }
+
+        fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, _: &AstNode) {
+            self.identifiers.push(stmt.get_literal_value());
+        }
+    }
+
+    // WHEN we visit source code with two repeat loops
+    let mut visitor = RepeatLoopCounter { repeat_count: 0, identifiers: vec![] };
+    visit(
+        "
+        PROGRAM prg
+            REPEAT
+                a;
+            UNTIL b END_REPEAT;
+            REPEAT
+                c;
+            UNTIL d END_REPEAT;
+        END_PROGRAM",
+        &mut visitor,
+    );
+    visitor.identifiers.sort();
+
+    // THEN we expect the repeat-specific visitor to have been called twice
+    assert_eq!(2, visitor.repeat_count);
+    // AND all identifiers inside the repeat loops were still visited
+    assert_eq!(get_character_range('a', 'd'), visitor.identifiers);
+}
+
+#[test]
+fn test_visit_for_loop_statement_override() {
+    // GIVEN a visitor that specifically tracks for loop visits
+    struct ForLoopCounter {
+        for_count: usize,
+        identifiers: Vec<String>,
+    }
+
+    impl AstVisitor for ForLoopCounter {
+        fn visit_for_loop_statement(&mut self, stmt: &ForLoopStatement, _: &AstNode) {
+            self.for_count += 1;
+            self.visit(&stmt.counter);
+            self.visit(&stmt.start);
+            self.visit(&stmt.end);
+            if let Some(step) = &stmt.by_step {
+                self.visit(step);
+            }
+            for s in &stmt.body {
+                self.visit(s);
+            }
+        }
+
+        fn visit_identifier(&mut self, stmt: &str, _: &AstNode) {
+            self.identifiers.push(stmt.to_string());
+        }
+
+        fn visit_literal(&mut self, stmt: &plc_ast::literals::AstLiteral, _: &AstNode) {
+            self.identifiers.push(stmt.get_literal_value());
+        }
+    }
+
+    // WHEN we visit source code with two for loops
+    let mut visitor = ForLoopCounter { for_count: 0, identifiers: vec![] };
+    visit(
+        "
+        PROGRAM prg
+            FOR a := b TO c BY d DO
+                e;
+            END_FOR;
+            FOR f := 0 TO g DO
+                h;
+            END_FOR;
+        END_PROGRAM",
+        &mut visitor,
+    );
+    visitor.identifiers.sort();
+
+    // THEN we expect the for-specific visitor to have been called twice
+    assert_eq!(2, visitor.for_count);
+    // AND all identifiers inside the for loops were still visited
+    assert_eq!(vec!["0", "a", "b", "c", "d", "e", "f", "g", "h"], visitor.identifiers);
+}
+
 #[test]
 fn test_visit_repeat_loop_statement() {
     // GIVEN a source code with a repeat loop statement
@@ -252,7 +405,7 @@ fn test_visit_direct_access_statement_expressions() {
     let visitor = collect_identifiers(
         "
         PROGRAM prg
-            %IW1.2.3; 
+            %IW1.2.3;
             %MD4;
         END_PROGRAM",
     );

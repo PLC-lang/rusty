@@ -10,7 +10,9 @@ use inkwell::{
     context::Context,
     module::{Linkage, Module},
     types::{BasicTypeEnum, StringRadix},
-    values::{AnyValue, AsValueRef, BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
+    values::{
+        AnyValue, AsValueRef, BasicValue, BasicValueEnum, FunctionValue, GlobalValue, IntValue, PointerValue,
+    },
     AddressSpace,
 };
 use plc_ast::ast::{AstNode, AstStatement};
@@ -147,6 +149,47 @@ impl<'a> Llvm<'a> {
         data_type: &BasicTypeEnum<'a>,
     ) -> Result<PointerValue<'a>, CodegenError> {
         self.builder.build_alloca(*data_type, name).map_err(Into::into)
+    }
+
+    /// creates a local variable in the function's entry block
+    ///
+    /// This is used for lowered local declarations that may syntactically appear inside loops.
+    /// The storage must still live for the whole function invocation, while any initialization
+    /// remains at the original insertion point.
+    pub fn create_entry_local_variable(
+        &self,
+        function: FunctionValue<'a>,
+        name: &str,
+        data_type: &BasicTypeEnum<'a>,
+    ) -> Result<PointerValue<'a>, CodegenError> {
+        // Hoist storage into the function entry block so lowered loop temporaries
+        // are allocated once per function invocation instead of once per iteration.
+        let entry = function.get_first_basic_block().ok_or_else(|| {
+            CodegenError::new(
+                "Cannot create entry local variable without an entry block",
+                SourceLocation::internal(),
+            )
+        })?;
+
+        // Use a dedicated builder so we can place the `alloca` in `entry` without
+        // disturbing the caller's current insertion point.
+        let builder = self.context.create_builder();
+        if let Some(last_instruction) = entry.get_last_instruction() {
+            if last_instruction.is_terminator() {
+                // Entry already ends in a terminator, so insert the `alloca` right before it.
+                builder.position_before(&last_instruction);
+            } else {
+                // Otherwise append at the end of the entry block.
+                builder.position_at_end(entry);
+            }
+        } else {
+            // Empty entry block: place the builder at its end and emit the `alloca` there.
+            builder.position_at_end(entry);
+        }
+
+        // Only the stack slot is hoisted; any initialization still happens at the
+        // original statement location chosen by the caller.
+        builder.build_alloca(*data_type, name).map_err(Into::into)
     }
 
     /// sets a const-zero initializer for the given global_value according to the given type

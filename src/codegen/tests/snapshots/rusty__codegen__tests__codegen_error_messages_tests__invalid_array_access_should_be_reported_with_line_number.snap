@@ -1,9 +1,10 @@
 ---
 source: src/codegen/tests/codegen_error_messages_tests.rs
+assertion_line: 106
 expression: msg
 ---
-error[E071]: Invalid array access
+error[E071]: Invalid array access: type 'INT' is not an array type
   ┌─ <internal>:6:15
   │
 6 │             x[3] := 3;
-  │               ^ Invalid array access
+  │               ^ Invalid array access: type 'INT' is not an array type

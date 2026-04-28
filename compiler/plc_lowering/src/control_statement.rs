@@ -166,13 +166,27 @@ impl ControlStatementLowerer {
 #[cfg(test)]
 mod tests {
     use insta::assert_snapshot;
-    use plc_ast::ser::AstSerializer;
     use plc_driver::parse_and_annotate;
     use plc_source::SourceCode;
 
+    fn serialize(source: impl Into<SourceCode>) -> String {
+        let (_, project) = parse_and_annotate("unit-test", vec![source.into()]).unwrap();
+        let unit = project.units[0].get_unit();
+
+        unit.implementations
+            .iter()
+            .find(|implementation| implementation.name == "mainProg")
+            .expect("mainProg implementation should exist")
+            .statements
+            .iter()
+            .map(|statement| statement.as_string())
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
     #[test]
     fn elseif_is_lowered_to_else_with_nested_if() {
-        let src: SourceCode = r#"
+        let source = r#"
             PROGRAM mainProg
             VAR
                 val : INT;
@@ -192,20 +206,11 @@ mod tests {
                 cVar := 'x';
             END_IF
             END_PROGRAM
-            "#
-        .into();
+            "#;
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
-
-        let implementations = &project.units[0].get_unit().implementations;
-        let implementation = implementations
-            .iter()
-            .find(|i| i.name == "mainProg")
-            .expect("mainProg implementation should exist");
-        assert_eq!(implementation.name, "mainProg");
-
-        let control_statement = &implementation.statements[2];
-        assert_snapshot!(AstSerializer::format(control_statement), @"
+        assert_snapshot!(serialize(source), @"
+        val := 5
+        cVar := ''
         IF val = 3 THEN
             cVar := 'f'
         ELSE
@@ -220,7 +225,7 @@ mod tests {
 
     #[test]
     fn elseif_is_lowered_to_else_with_nested_if_even_if_no_else_is_present() {
-        let src: SourceCode = r#"
+        let source = r#"
             PROGRAM mainProg
             VAR
                 val : INT;
@@ -238,20 +243,11 @@ mod tests {
                 cVar := 'b';
             END_IF
             END_PROGRAM
-            "#
-        .into();
+            "#;
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
-
-        let implementations = &project.units[0].get_unit().implementations;
-        let implementation = implementations
-            .iter()
-            .find(|i| i.name == "mainProg")
-            .expect("mainProg implementation should exist");
-        assert_eq!(implementation.name, "mainProg");
-
-        let control_statement = &implementation.statements[2];
-        assert_snapshot!(AstSerializer::format(control_statement), @"
+        assert_snapshot!(serialize(source), @"
+        val := 5
+        cVar := ''
         IF val = 3 THEN
             cVar := 'f'
         ELSE
@@ -264,7 +260,7 @@ mod tests {
 
     #[test]
     fn elseif_is_lowered_to_else_with_nested_if_when_prenested_in_if() {
-        let src: SourceCode = r#"
+        let source = r#"
             PROGRAM mainProg
             VAR
                 val : INT;
@@ -286,20 +282,11 @@ mod tests {
                 END_IF
             END_IF
             END_PROGRAM
-            "#
-        .into();
+            "#;
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
-
-        let implementations = &project.units[0].get_unit().implementations;
-        let implementation = implementations
-            .iter()
-            .find(|i| i.name == "mainProg")
-            .expect("mainProg implementation should exist");
-        assert_eq!(implementation.name, "mainProg");
-
-        let control_statement = &implementation.statements[2];
-        assert_snapshot!(AstSerializer::format(control_statement), @"
+        assert_snapshot!(serialize(source), @"
+        val := 5
+        cVar := ''
         IF val = 4 THEN
             cVar := 'a'
         ELSE
@@ -318,7 +305,7 @@ mod tests {
 
     #[test]
     fn elseif_is_lowered_to_else_with_nested_if_inside_for_loop() {
-        let src: SourceCode = r#"
+        let source = r#"
             PROGRAM mainProg
             VAR
                 i : INT;
@@ -339,21 +326,29 @@ mod tests {
                 END_IF
             END_FOR
             END_PROGRAM
-            "#
-        .into();
+            "#;
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
-
-        let implementations = &project.units[0].get_unit().implementations;
-        let implementation = implementations
-            .iter()
-            .find(|i| i.name == "mainProg")
-            .expect("mainProg implementation should exist");
-        assert_eq!(implementation.name, "mainProg");
-
-        let control_statement = &implementation.statements[2];
-        assert_snapshot!(AstSerializer::format(control_statement), @"
-        FOR i := 0 TO 10 DO
+        assert_snapshot!(serialize(source), @"
+        val := 5
+        cVar := ''
+        alloca ran_once_0: BOOL
+        alloca is_incrementing_0: BOOL
+        i := 0
+        is_incrementing_0 := TRUE
+        WHILE TRUE DO
+            IF ran_once_0 THEN
+                i := i + 1
+            END_IF
+            ran_once_0 := TRUE
+            IF is_incrementing_0 THEN
+                IF i > 10 THEN
+                    EXIT;
+                END_IF
+            ELSE
+                IF i < 10 THEN
+                    EXIT;
+                END_IF
+            END_IF
             IF val = 3 THEN
                 cVar := 'f'
             ELSE
@@ -363,13 +358,13 @@ mod tests {
                     cVar := 'x'
                 END_IF
             END_IF
-        END_FOR
+        END_WHILE
         ");
     }
 
     #[test]
     fn elseif_is_lowered_to_else_with_nested_if_inside_while_loop() {
-        let src: SourceCode = r#"
+        let source = r#"
             PROGRAM mainProg
             VAR
                 i : INT;
@@ -400,20 +395,13 @@ mod tests {
                 END_IF
             END_WHILE
             END_PROGRAM
-            "#
-        .into();
+            "#;
 
-        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
-
-        let implementations = &project.units[0].get_unit().implementations;
-        let implementation = implementations
-            .iter()
-            .find(|i| i.name == "mainProg")
-            .expect("mainProg implementation should exist");
-        assert_eq!(implementation.name, "mainProg");
-
-        let control_statement = &implementation.statements[4];
-        assert_snapshot!(AstSerializer::format(control_statement), @"
+        assert_snapshot!(serialize(source), @"
+        val := 5
+        cVar := ''
+        someCon := TRUE
+        breakOut := 0
         WHILE TRUE DO
             IF NOT someCon THEN
                 EXIT;

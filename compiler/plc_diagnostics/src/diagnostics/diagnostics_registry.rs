@@ -218,7 +218,6 @@ lazy_static! {
         E114,   Error,      include_str!("./error_codes/E114.md"),  // Multiple extensions of same POU
         E115,   Error,      include_str!("./error_codes/E115.md"),  // Property in unsupported POU type
         E116,   Error,      include_str!("./error_codes/E116.md"),  // Property defined in unsupported variable block
-        E117,   Error,      include_str!("./error_codes/E117.md"),  // Property with invalid number of GET and/or SET blocks
         E118,   Info,       include_str!("./error_codes/E118.md"),  // Follow-up error to 112
         E119,   Error,      include_str!("./error_codes/E119.md"),  // Invalid use of `SUPER` keyword
         E120,   Error,      include_str!("./error_codes/E120.md"),  // Invalid use of `THIS` keyword
@@ -229,6 +228,12 @@ lazy_static! {
         E125,   Error,      include_str!("./error_codes/E125.md"),  // Incompatible POINTER TO types in class/FB hierarchy
         E126,   Error,      include_str!("./error_codes/E126.md"),  // Incompatible types in interface polymorphism
         E127,   Warning,    include_str!("./error_codes/E127.md"),  // Array initialized with fewer elements than expected
+        E128,   Error,      include_str!("./error_codes/E128.md"),  // Invalid nested property assignment target
+        E129,   Error,      include_str!("./error_codes/E129.md"),  // Direct interface reference call
+        E130,   Error,      include_str!("./error_codes/E130.md"),  // Array size exceeds supported limit
+        E117,   Error,      include_str!("./error_codes/E117.md"),  // Non-constant array boundary
+        E131,   Error,      include_str!("./error_codes/E131.md"),  // Positional argument collides with later named argument
+        E132,   Warning,    include_str!("./error_codes/E132.md"),  // Mixing implicit and explicit call parameters
     );
 }
 

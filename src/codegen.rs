@@ -367,7 +367,20 @@ impl<'ink> CodeGen<'ink> {
                         );
                         &self.debug
                     };
-                    pou_generator.generate_implementation(implementation, debug)?;
+                    pou_generator.generate_implementation(implementation, debug).map_err(|err| {
+                        if is_compiler_generated {
+                            // Add context about which constructor failed so the user can
+                            // trace the error back to the originating type declaration.
+                            let type_name =
+                                implementation.name.strip_suffix("__ctor").unwrap_or(&implementation.name);
+                            let note = Diagnostic::new(format!(
+                                "error occurred while generating initialization code for type '{type_name}'"
+                            ));
+                            Diagnostic::from(err).with_sub_diagnostic(note).into()
+                        } else {
+                            err
+                        }
+                    })?;
                 }
             }
         }

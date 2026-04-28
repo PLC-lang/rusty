@@ -454,6 +454,49 @@ mod arrays {
 
         assert_snapshot!(&diagnostics);
     }
+
+    #[test]
+    fn circular_array_type_aliases_ab() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE a : ARRAY[0..10] OF b; END_TYPE
+            TYPE b : ARRAY[0..10] OF a; END_TYPE
+            ",
+        );
+
+        assert_snapshot!(&diagnostics, @r#"
+        error[E029]: Recursive data structure `a -> b -> a` has infinite size
+          ┌─ <internal>:2:18
+          │
+        2 │             TYPE a : ARRAY[0..10] OF b; END_TYPE
+          │                  ^ Recursive data structure `a -> b -> a` has infinite size
+        3 │             TYPE b : ARRAY[0..10] OF a; END_TYPE
+          │                  - see also
+        "#);
+    }
+
+    #[test]
+    fn circular_array_type_aliases_abc() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE a : ARRAY[0..10] OF b; END_TYPE
+            TYPE b : ARRAY[0..10] OF c; END_TYPE
+            TYPE c : ARRAY[0..10] OF a; END_TYPE
+            ",
+        );
+
+        assert_snapshot!(&diagnostics, @r#"
+        error[E029]: Recursive data structure `a -> b -> c -> a` has infinite size
+          ┌─ <internal>:2:18
+          │
+        2 │             TYPE a : ARRAY[0..10] OF b; END_TYPE
+          │                  ^ Recursive data structure `a -> b -> c -> a` has infinite size
+        3 │             TYPE b : ARRAY[0..10] OF c; END_TYPE
+          │                  - see also
+        4 │             TYPE c : ARRAY[0..10] OF a; END_TYPE
+          │                  - see also
+        "#);
+    }
 }
 
 mod functionblocks {
