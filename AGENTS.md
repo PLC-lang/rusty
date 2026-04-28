@@ -2,6 +2,19 @@
 
 Instruction for agents in this project, only to be modified by a human unless instructed otherwise. See https://agents.md.
 
+## Build
+```bash
+cargo run -- <files>                                # Compile files
+cargo test --workspace && ./scripts/build.sh --lit  # Run all unit and integration tests
+cargo fmt --all && cargo clippy --workspace         # Run the formatter and linter
+```
+
+Guidelines (not mandatory but helpful for bigger changes)
+- Run the tests whenever you make final changes to verify for correctness
+- The formatter and linter when all tests work and you're about to report back to the user
+- `cargo run -- --help` when debugging to discover flags like `--ast`, `--ast-lowered`, `--ir`, etc..
+
+
 ## Code style
 1. Do not eagerly add `#[derive(...)]` implementations like a `Debug` or `Clone`. Only add them when needed.
 2. Avoid section and header comments like for example `// -- Types ---------`; use `// Types` instead if it truly makes sense.
