@@ -159,12 +159,13 @@ impl Default for ReferenceToReturnImplementationCallContext {
 
 pub struct ReferenceToReturnImplementationPouContext {
     in_context: bool,
-    is_property: bool,
+    is_get_property: bool,
+    is_set_property: bool,
 }
 
 impl ReferenceToReturnImplementationPouContext {
     pub fn new() -> Self {
-        Self { in_context: false, is_property: false }
+        Self { in_context: false, is_get_property: false, is_set_property: false }
     }
 }
 
@@ -230,16 +231,12 @@ impl AstVisitorMut for ReferenceToReturnContextGatherer {
     fn visit_call_statement(&mut self, node: &mut AstNode) {
         if let AstStatement::CallStatement(call_statement) = &mut node.stmt {
             if let Some(call_statement_name) = call_statement.operator.get_flat_reference_name() {
-                let mut call_statement_name = call_statement_name.to_string();
-                if self.pou_context.iter().any(|it| {
-                    let result = it.pou_name.contains(&call_statement_name);
-                    if result {
-                        call_statement_name = it.pou_name.to_string()
-                    };
-                    result
+                if let Some(context) = self.pou_context.iter().find(|it| {
+                    let de_qualified_name = de_qualify_name(&it.pou_name);
+                    de_qualified_name == call_statement_name
                 }) {
                     if let Some(current_implementation_context) = &mut self.current_implementation_context {
-                        let call_statement_name = call_statement_name.to_string();
+                        let call_statement_name = context.pou_name.to_string();
                         let element = current_implementation_context
                             .calls_to_pous_with_reference_to_return
                             .iter_mut()
@@ -431,14 +428,17 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
         // Enter context
         self.current_implementation_pou_context.in_context =
             self.pou_original_return_type_is_reference_to(&implementation.name);
-        self.current_implementation_pou_context.is_property =
-            self.de_qualify_name(&implementation.name).starts_with("__get");
+
+        let de_qualified_name = de_qualify_name(&implementation.name);
+        self.current_implementation_pou_context.is_get_property = de_qualified_name.starts_with("__get_");
+        self.current_implementation_pou_context.is_set_property = de_qualified_name.starts_with("__set_");
 
         implementation.walk(self);
 
         // Exit context
         self.current_implementation_pou_context.in_context = false;
-        self.current_implementation_pou_context.is_property = false;
+        self.current_implementation_pou_context.is_get_property = false;
+        self.current_implementation_pou_context.is_set_property = false;
         self.current_implementation_call_context.used_call_states = Vec::new();
     }
 
@@ -630,46 +630,49 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                 self.current_implementation_call_context.value_is_used = true;
             } else if self.current_implementation_pou_context.in_context {
                 if let Some(name) = assignment.left.get_flat_reference_name() {
-                    let name = if self.current_implementation_pou_context.is_property {
-                        &self.get_method_name(name)
+                    let name = if self.current_implementation_pou_context.is_get_property {
+                        &get_method_name(name)
+                    } else if self.current_implementation_pou_context.is_set_property {
+                        &set_method_name(name)
                     } else {
                         name
                     };
 
-                    if self.pou_original_return_type_is_reference_to(name)
-                        && !self.current_implementation_pou_context.is_property
-                    {
-                        let mut replacement_assignment = assignment.clone();
+                    let is_property = self.current_implementation_pou_context.is_get_property
+                        || self.current_implementation_pou_context.is_set_property;
 
-                        let member_reference = AstFactory::create_member_reference(
-                            AstFactory::create_identifier(
-                                self.get_return_variable_name(name),
-                                assignment.left.location.clone(),
+                    if self.pou_original_return_type_is_reference_to(name) {
+                        if is_property {
+                            let mut replacement_assignment = assignment.clone();
+
+                            let member_reference = AstFactory::create_member_reference(
+                                AstFactory::create_identifier(
+                                    self.get_return_variable_name(name),
+                                    assignment.left.location.clone(),
+                                    self.ids.next_id(),
+                                ),
+                                None,
                                 self.ids.next_id(),
-                            ),
-                            None,
-                            self.ids.next_id(),
-                        );
+                            );
 
-                        replacement_assignment.left = Box::new(member_reference);
-                        replacement_statement = Some(AstStatement::Assignment(replacement_assignment));
-                    } else if self.pou_without_qualifier_original_return_type_is_reference_to(name)
-                        && self.current_implementation_pou_context.is_property
-                    {
-                        let mut replacement_assignment = assignment.clone();
+                            replacement_assignment.left = Box::new(member_reference);
+                            replacement_statement = Some(AstStatement::RefAssignment(replacement_assignment));
+                        } else {
+                            let mut replacement_assignment = assignment.clone();
 
-                        let member_reference = AstFactory::create_member_reference(
-                            AstFactory::create_identifier(
-                                self.get_return_variable_name(name),
-                                assignment.left.location.clone(),
+                            let member_reference = AstFactory::create_member_reference(
+                                AstFactory::create_identifier(
+                                    self.get_return_variable_name(name),
+                                    assignment.left.location.clone(),
+                                    self.ids.next_id(),
+                                ),
+                                None,
                                 self.ids.next_id(),
-                            ),
-                            None,
-                            self.ids.next_id(),
-                        );
+                            );
 
-                        replacement_assignment.left = Box::new(member_reference);
-                        replacement_statement = Some(AstStatement::RefAssignment(replacement_assignment));
+                            replacement_assignment.left = Box::new(member_reference);
+                            replacement_statement = Some(AstStatement::Assignment(replacement_assignment));
+                        }
                     }
                 }
             }
@@ -695,7 +698,7 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                 self.current_implementation_call_context.value_is_used = true;
             } else if self.current_implementation_pou_context.in_context {
                 if let Some(name) = assignment.left.get_flat_reference_name() {
-                    if self.pou_without_qualifier_original_return_type_is_reference_to(name) {
+                    if self.pou_original_return_type_is_reference_to(name) {
                         // Special handling for properties, we remove any return assignments (as we examine this at a property level)
                         replacement_statement = Some(AstStatement::EmptyStatement(EmptyStatement {}));
                     }
@@ -733,20 +736,7 @@ impl ReferenceToReturnLowerer {
         let should_de_qualify = !name.contains(".");
 
         self.pou_context.iter().any(|it| {
-            let compare_name =
-                if should_de_qualify { &self.de_qualify_name(&it.pou_name) } else { &it.pou_name };
-
-            compare_name == name
-        })
-    }
-
-    fn pou_without_qualifier_original_return_type_is_reference_to(&self, name: &str) -> bool {
-        // We might have to de-qualify to conduct this comparison
-        let should_de_qualify = !name.contains(".");
-
-        self.pou_context.iter().any(|it| {
-            let compare_name =
-                if should_de_qualify { &self.de_qualify_name(&it.pou_name) } else { &it.pou_name };
+            let compare_name = if should_de_qualify { &de_qualify_name(&it.pou_name) } else { &it.pou_name };
 
             compare_name == name
         })
@@ -772,7 +762,7 @@ impl ReferenceToReturnLowerer {
     }
 
     fn get_return_variable_name(&self, name: &str) -> String {
-        let name = self.de_qualify_name(name);
+        let name = de_qualify_name(name);
 
         if name.starts_with("__") {
             format!("{}_return_val", name)
@@ -839,20 +829,24 @@ impl ReferenceToReturnLowerer {
 
         unreachable!("This is being called from somewhere it shouldn't be called from!")
     }
+}
 
-    fn de_qualify_name(&self, name: &str) -> String {
-        if name.contains('.') {
-            let segments: Vec<&str> = name.split('.').collect();
+fn de_qualify_name(name: &str) -> String {
+    if name.contains('.') {
+        let segments: Vec<&str> = name.split('.').collect();
 
-            return segments.last().unwrap().to_string();
-        }
-
-        name.to_string()
+        return segments.last().unwrap().to_string();
     }
 
-    fn get_method_name(&self, name: &str) -> String {
-        format!("__get_{name}")
-    }
+    name.to_string()
+}
+
+fn get_method_name(name: &str) -> String {
+    format!("__get_{name}")
+}
+
+fn set_method_name(name: &str) -> String {
+    format!("__set_{name}")
 }
 
 #[cfg(test)]
