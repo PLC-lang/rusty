@@ -78,10 +78,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       call void @foo__ctor(ptr %__foo), !dbg !35
       %deref1 = load ptr, ptr %self, align [filtered], !dbg !35
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0, !dbg !35
-      call void @foo__ctor(ptr %__foo2), !dbg !35
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !35
-      %__foo4 = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 0, !dbg !35
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0, !dbg !35
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0, !dbg !35
       store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered], !dbg !35
       ret void, !dbg !35
     }
@@ -285,10 +282,7 @@ fn write_to_parent_variable_qualified_access() {
       call void @fb__ctor(ptr %__fb), !dbg !38
       %deref1 = load ptr, ptr %self, align [filtered], !dbg !38
       %__fb2 = getelementptr inbounds nuw %fb2, ptr %deref1, i32 0, i32 0, !dbg !38
-      call void @fb__ctor(ptr %__fb2), !dbg !38
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !38
-      %__fb4 = getelementptr inbounds nuw %fb2, ptr %deref3, i32 0, i32 0, !dbg !38
-      %__vtable = getelementptr inbounds nuw %fb, ptr %__fb4, i32 0, i32 0, !dbg !38
+      %__vtable = getelementptr inbounds nuw %fb, ptr %__fb2, i32 0, i32 0, !dbg !38
       store ptr @__vtable_fb2_instance, ptr %__vtable, align [filtered], !dbg !38
       ret void, !dbg !38
     }
@@ -549,10 +543,7 @@ fn write_to_parent_variable_in_instance() {
       call void @foo__ctor(ptr %__foo), !dbg !45
       %deref1 = load ptr, ptr %self, align [filtered], !dbg !45
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0, !dbg !45
-      call void @foo__ctor(ptr %__foo2), !dbg !45
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !45
-      %__foo4 = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 0, !dbg !45
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0, !dbg !45
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0, !dbg !45
       store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered], !dbg !45
       ret void, !dbg !45
     }
@@ -841,14 +832,11 @@ fn array_in_parent_generated() {
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0, !dbg !56
       call void @grandparent__ctor(ptr %__grandparent), !dbg !56
       %deref1 = load ptr, ptr %self, align [filtered], !dbg !56
-      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0, !dbg !56
-      call void @grandparent__ctor(ptr %__grandparent2), !dbg !56
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !56
-      %x = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 1, !dbg !56
+      %x = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 1, !dbg !56
       call void @__parent_x__ctor(ptr %x), !dbg !56
-      %deref4 = load ptr, ptr %self, align [filtered], !dbg !56
-      %__grandparent5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0, !dbg !56
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent5, i32 0, i32 0, !dbg !56
+      %deref2 = load ptr, ptr %self, align [filtered], !dbg !56
+      %__grandparent3 = getelementptr inbounds nuw %parent, ptr %deref2, i32 0, i32 0, !dbg !56
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 0, !dbg !56
       store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered], !dbg !56
       ret void, !dbg !56
     }
@@ -861,14 +849,11 @@ fn array_in_parent_generated() {
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0, !dbg !56
       call void @parent__ctor(ptr %__parent), !dbg !56
       %deref1 = load ptr, ptr %self, align [filtered], !dbg !56
-      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0, !dbg !56
-      call void @parent__ctor(ptr %__parent2), !dbg !56
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !56
-      %z = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1, !dbg !56
+      %z = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 1, !dbg !56
       call void @__child_z__ctor(ptr %z), !dbg !56
-      %deref4 = load ptr, ptr %self, align [filtered], !dbg !56
-      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0, !dbg !56
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0, !dbg !56
+      %deref2 = load ptr, ptr %self, align [filtered], !dbg !56
+      %__parent3 = getelementptr inbounds nuw %child, ptr %deref2, i32 0, i32 0, !dbg !56
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent3, i32 0, i32 0, !dbg !56
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0, !dbg !56
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered], !dbg !56
       ret void, !dbg !56
@@ -1170,14 +1155,11 @@ fn complex_array_access_generated() {
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0, !dbg !44
       call void @grandparent__ctor(ptr %__grandparent), !dbg !44
       %deref1 = load ptr, ptr %self, align [filtered], !dbg !44
-      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0, !dbg !44
-      call void @grandparent__ctor(ptr %__grandparent2), !dbg !44
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !44
-      %x = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 1, !dbg !44
+      %x = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 1, !dbg !44
       call void @__parent_x__ctor(ptr %x), !dbg !44
-      %deref4 = load ptr, ptr %self, align [filtered], !dbg !44
-      %__grandparent5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0, !dbg !44
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent5, i32 0, i32 0, !dbg !44
+      %deref2 = load ptr, ptr %self, align [filtered], !dbg !44
+      %__grandparent3 = getelementptr inbounds nuw %parent, ptr %deref2, i32 0, i32 0, !dbg !44
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 0, !dbg !44
       store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered], !dbg !44
       ret void, !dbg !44
     }
@@ -1190,14 +1172,11 @@ fn complex_array_access_generated() {
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0, !dbg !44
       call void @parent__ctor(ptr %__parent), !dbg !44
       %deref1 = load ptr, ptr %self, align [filtered], !dbg !44
-      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0, !dbg !44
-      call void @parent__ctor(ptr %__parent2), !dbg !44
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !44
-      %z = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1, !dbg !44
+      %z = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 1, !dbg !44
       call void @__child_z__ctor(ptr %z), !dbg !44
-      %deref4 = load ptr, ptr %self, align [filtered], !dbg !44
-      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0, !dbg !44
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0, !dbg !44
+      %deref2 = load ptr, ptr %self, align [filtered], !dbg !44
+      %__parent3 = getelementptr inbounds nuw %child, ptr %deref2, i32 0, i32 0, !dbg !44
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent3, i32 0, i32 0, !dbg !44
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0, !dbg !44
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered], !dbg !44
       ret void, !dbg !44
@@ -1427,10 +1406,7 @@ fn function_block_method_debug_info() {
       call void @foo__ctor(ptr %__foo), !dbg !26
       %deref1 = load ptr, ptr %self, align [filtered], !dbg !26
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0, !dbg !26
-      call void @foo__ctor(ptr %__foo2), !dbg !26
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !26
-      %__foo4 = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 0, !dbg !26
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0, !dbg !26
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0, !dbg !26
       store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered], !dbg !26
       ret void, !dbg !26
     }
@@ -1795,10 +1771,7 @@ END_FUNCTION
       call void @parent__ctor(ptr %__parent), !dbg !83
       %deref1 = load ptr, ptr %self, align [filtered], !dbg !83
       %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0, !dbg !83
-      call void @parent__ctor(ptr %__parent2), !dbg !83
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !83
-      %__parent4 = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 0, !dbg !83
-      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent4, i32 0, i32 0, !dbg !83
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0, !dbg !83
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered], !dbg !83
       ret void, !dbg !83
     }
@@ -1812,10 +1785,7 @@ END_FUNCTION
       call void @child__ctor(ptr %__child), !dbg !83
       %deref1 = load ptr, ptr %self, align [filtered], !dbg !83
       %__child2 = getelementptr inbounds nuw %grandchild, ptr %deref1, i32 0, i32 0, !dbg !83
-      call void @child__ctor(ptr %__child2), !dbg !83
-      %deref3 = load ptr, ptr %self, align [filtered], !dbg !83
-      %__child4 = getelementptr inbounds nuw %grandchild, ptr %deref3, i32 0, i32 0, !dbg !83
-      %__parent = getelementptr inbounds nuw %child, ptr %__child4, i32 0, i32 0, !dbg !83
+      %__parent = getelementptr inbounds nuw %child, ptr %__child2, i32 0, i32 0, !dbg !83
       %__vtable = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0, !dbg !83
       store ptr @__vtable_grandchild_instance, ptr %__vtable, align [filtered], !dbg !83
       ret void, !dbg !83

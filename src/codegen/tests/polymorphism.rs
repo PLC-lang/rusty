@@ -162,10 +162,7 @@ fn simple_overridden_method() {
       call void @A__ctor(ptr %__A)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__A2 = getelementptr inbounds nuw %B, ptr %deref1, i32 0, i32 0
-      call void @A__ctor(ptr %__A2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__A4 = getelementptr inbounds nuw %B, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %A, ptr %__A4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_B_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -566,10 +563,7 @@ fn this_is_untouched() {
       call void @A__ctor(ptr %__A)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__A2 = getelementptr inbounds nuw %B, ptr %deref1, i32 0, i32 0
-      call void @A__ctor(ptr %__A2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__A4 = getelementptr inbounds nuw %B, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %A, ptr %__A4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_B_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -583,10 +577,7 @@ fn this_is_untouched() {
       call void @A__ctor(ptr %__A)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__A2 = getelementptr inbounds nuw %C, ptr %deref1, i32 0, i32 0
-      call void @A__ctor(ptr %__A2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__A4 = getelementptr inbounds nuw %C, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %A, ptr %__A4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_C_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -879,10 +870,7 @@ fn super_is_untouched() {
       call void @A__ctor(ptr %__A)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__A2 = getelementptr inbounds nuw %B, ptr %deref1, i32 0, i32 0
-      call void @A__ctor(ptr %__A2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__A4 = getelementptr inbounds nuw %B, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %A, ptr %__A4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_B_instance, ptr %__vtable, align [filtered]
       ret void
     }
