@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-57ff9dbd.js";
+            window.path_to_searchindex_js = "../searchindex-79eb3228.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-2c52481d.js"></script>
@@ -271,15 +271,17 @@ The <code>compile_type</code> keyword is optional.</p>
 }
 </code></pre>
 <h2 id="build-parameters"><a class="header" href="#build-parameters">Build Parameters</a></h2>
-<p>The <code>build</code> subcommand exposes the following optional parameters:</p>
 <h3 id="--build-location"><a class="header" href="#--build-location"><code>--build-location</code></a></h3>
-<p>The build location is the location all build files will be copied to. 
-By default the build location is the <code>build</code> folder in the root of the project (the location of the <code>plc.json</code>).
-This can be overriden with the <code>--build-location</code> command line parameter.</p>
+<p><code>--build-location</code> is a global <code>plc</code> option that controls where intermediate build artifacts are written.
+With <code>plc build</code>, the default is <code>build</code> in the project root (the location of <code>plc.json</code>) and the final artifact is placed there as well. With non-<code>build</code> commands, intermediate object files go to the OS temporary directory unless <code>--build-location</code> is provided; the final <code>-o</code> artifact is always resolved relative to the current working directory (or kept as-is if absolute) and is NOT relocated under <code>--build-location</code>. This is especially relevant for multi-file compilation, where intermediate objects are generated first and then passed to the linker to produce the final output artifact.</p>
 <h3 id="--lib-location"><a class="header" href="#--lib-location"><code>--lib-location</code></a></h3>
-<p>The lib location is where all libraries marked with <code>Copy</code> will be copied. 
-By default it is the same as the <code>build-location</code>.
-This can be overriden with the <code>--lib-location</code> command line parameter.</p>
+<p><code>--lib-location</code> is available on the <code>build</code> subcommand.
+It controls where libraries marked with <code>Copy</code> are copied.</p>
+<p>For <code>plc build</code>, if <code>--lib-location</code> is not set, RuSTy falls back to:</p>
+<ol>
+<li><code>--build-location</code> (if set)</li>
+<li><code>build</code></li>
+</ol>
 <h3 id="additional-linker-options"><a class="header" href="#additional-linker-options">Additional linker options</a></h3>
 <p>All regular linker options from <code>plc</code> can also be used with the <code>build</code> subcommand, e.g.:</p>
 <ul>
@@ -301,11 +303,12 @@ The value for <code>ARCH</code> will be updated for every target.</p>
 <p>Example targets are:
 <code>x86_64-pc-linux-gnu</code>, <code>x86_64-pc-windows-msvc</code>, <code>aarch64-pc-linux-musl</code></p>
 <h3 id="build_location"><a class="header" href="#build_location"><code>BUILD_LOCATION</code></a></h3>
-<p><code>BUILD_LOCATION</code> is the folder where the build will be saved.
-This is the value of either the <a href="#build-location"><code>--build-location</code></a> parameter or the default build location.</p>
+<p><code>BUILD_LOCATION</code> is the folder where build artifacts are written.
+For <code>plc build</code>, this is either <a href="#build-location"><code>--build-location</code></a> or the default <code>build</code> directory.
+For non-<code>build</code> commands, it is only set when <code>--build-location</code> is provided.</p>
 <h3 id="lib_location"><a class="header" href="#lib_location"><code>LIB_LOCATION</code></a></h3>
-<p><code>LIB_LOCATION</code> is the folder where the lib will be saved.
-This is the value of either the <a href="#lib-location"><code>--lib-location</code></a> parameter or the <a href="#build-location">build location</a>.</p>
+<p><code>LIB_LOCATION</code> is the folder where libraries marked with <code>Copy</code> are saved.
+This is the value of <a href="#lib-location"><code>--lib-location</code></a>, or the <a href="#build-location">build location</a> fallback used by <code>plc build</code>.</p>
 <h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
 <p>To reference an environment variable in the description file, reference the variables with a preceding <code>$</code>.</p>
 <p><strong>Example:</strong></p>

@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-57ff9dbd.js";
+            window.path_to_searchindex_js = "searchindex-79eb3228.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-2c52481d.js"></script>
@@ -193,6 +193,8 @@ the output filename will consist of the first input filename, but with an approp
 file extension depending on the output file format.</p>
 <p>A minimal invocation looks like this:
 <code>plc input.st</code> this will take in the file <code>input.st</code> and compile it into a static object that will be written to a file named <code>input.o</code>.</p>
+<p><code>--build-location</code> is a global option and can be used with regular compilation commands (not only <code>plc build</code>) to control where intermediate artifacts are written.
+If it is not set for non-<code>build</code> commands, intermediate files may be created in the OS temporary directory.</p>
 <p>More examples:</p>
 <ul>
 <li><code>plc --ir file1.st file2.st</code> will compile file1.st and file2.st.</li>
