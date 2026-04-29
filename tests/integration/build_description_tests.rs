@@ -79,6 +79,7 @@ fn build_with_separate_lib_folder() {
 #[test]
 #[serial]
 #[cfg_attr(target_os = "windows", ignore = "linker is not available for windows")]
+#[cfg_attr(target_os = "macos", ignore = "ELF/Linux-specific test")]
 fn build_with_library_link_path() {
     let dir = tempfile::tempdir().unwrap();
     let parameters = &[
