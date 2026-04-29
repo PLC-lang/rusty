@@ -16,8 +16,6 @@ pub fn escape_regex_literal(value: &str) -> String {
     escaped
 }
 
-/// FIXME(#1692-followup): move snapshot filter macros to a dedicated test-support crate
-/// (e.g. `snapshot_utils`) so they are not hosted in production utility code.
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __plc_add_common_snapshot_filters {
