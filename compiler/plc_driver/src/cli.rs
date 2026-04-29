@@ -636,12 +636,25 @@ impl CompileParameters {
         get_config_format(&self.got_layout_file).unwrap()
     }
 
-    /// Returns the location where the build artifacts should be stored / output
+    /// Returns the location where intermediate build artifacts are written.
+    /// For the `build` subcommand this also defaults to `build` when not given.
     pub fn get_build_location(&self) -> Option<PathBuf> {
         if matches!(&self.commands, Some(SubCommands::Build { .. })) {
             self.build_location.as_deref().or(Some("build")).map(PathBuf::from)
         } else {
             self.build_location.as_deref().map(PathBuf::from)
+        }
+    }
+
+    /// Returns the directory under which the final linked artifact should be
+    /// placed. Only set for the `build` subcommand; for non-`build` commands
+    /// the `-o` argument is resolved relative to the current working directory
+    /// (or kept absolute), independent of `--build-location`.
+    pub fn get_output_directory(&self) -> Option<PathBuf> {
+        if matches!(&self.commands, Some(SubCommands::Build { .. })) {
+            self.get_build_location()
+        } else {
+            None
         }
     }
 
@@ -1164,6 +1177,8 @@ mod cli_tests {
 
         assert_eq!(parameters.get_build_location(), Some(PathBuf::from("bin/build")));
         assert_eq!(parameters.get_lib_location(), None);
+        // `--build-location` must NOT relocate the final `-o` artifact for non-build flows.
+        assert_eq!(parameters.get_output_directory(), None);
     }
 
     #[test]
@@ -1178,6 +1193,7 @@ mod cli_tests {
 
         assert_eq!(parameters.get_build_location(), Some(PathBuf::from("bin/build")));
         assert_eq!(parameters.get_lib_location(), Some(PathBuf::from("bin/build")));
+        assert_eq!(parameters.get_output_directory(), Some(PathBuf::from("bin/build")));
     }
 
     #[test]
@@ -1186,6 +1202,7 @@ mod cli_tests {
 
         assert_eq!(parameters.get_build_location(), Some(PathBuf::from("build")));
         assert_eq!(parameters.get_lib_location(), Some(PathBuf::from("build")));
+        assert_eq!(parameters.get_output_directory(), Some(PathBuf::from("build")));
     }
 
     #[test]

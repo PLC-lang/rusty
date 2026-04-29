@@ -124,13 +124,8 @@ The `package_commands` keyword is optional.
 
 ### `--build-location`
 
-`--build-location` is a global `plc` option.</br>
-It controls where intermediate build artifacts are written.
-
-- With `plc build`, the default is `build` in the project root (the location of `plc.json`)
-- With non-`build` commands, no default build directory is used unless `--build-location` is provided
-
-When `--build-location` is not provided for non-`build` commands, RuSTy may place intermediate object files in the OS temporary directory. This is especially relevant for multi-file compilation, where intermediate objects are generated first and then passed to the linker to produce the final output artifact.
+`--build-location` is a global `plc` option that controls where intermediate build artifacts are written.</br>
+With `plc build`, the default is `build` in the project root (the location of `plc.json`) and the final artifact is placed there as well. With non-`build` commands, intermediate object files go to the OS temporary directory unless `--build-location` is provided; the final `-o` artifact is always resolved relative to the current working directory (or kept as-is if absolute) and is NOT relocated under `--build-location`. This is especially relevant for multi-file compilation, where intermediate objects are generated first and then passed to the linker to produce the final output artifact.
 
 ### `--lib-location`
 

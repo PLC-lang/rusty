@@ -114,6 +114,50 @@ fn global_build_location_is_used_for_non_build_compile_temp_artifacts() {
 }
 
 #[test]
+fn relative_output_with_build_location_lands_in_cwd_for_non_build() {
+    // For non-`build` commands, `--build-location` must only govern intermediate
+    // artifacts. A relative `-o` must be honored as cwd-relative and NOT be
+    // rebased under `--build-location`.
+    let file = get_test_file("json/simple_program.st");
+    let build_dir = tempfile::tempdir().unwrap();
+    let build_dir_str = build_dir.path().to_string_lossy().to_string();
+
+    let unique_name = format!("relative_output_{}.ll", std::process::id());
+
+    compile(&["plc", file.as_str(), "--build-location", &build_dir_str, "--ir", "-o", &unique_name]).unwrap();
+
+    let cwd_output = std::env::current_dir().unwrap().join(&unique_name);
+    let exists = cwd_output.is_file();
+
+    // Walk the build dir and ensure the output filename is not present anywhere under it.
+    fn walk(path: &Path, out: &mut Vec<std::path::PathBuf>) {
+        if let Ok(entries) = fs::read_dir(path) {
+            for entry in entries.flatten() {
+                let entry_path = entry.path();
+                if entry_path.is_dir() {
+                    walk(&entry_path, out);
+                } else {
+                    out.push(entry_path);
+                }
+            }
+        }
+    }
+    let mut entries = Vec::new();
+    walk(build_dir.path(), &mut entries);
+    let target_name = std::ffi::OsStr::new(unique_name.as_str());
+    let relocated_under_build_dir = entries.iter().any(|p| p.file_name() == Some(target_name));
+
+    // Always clean up before asserting so a failure does not leave artifacts behind.
+    let _ = fs::remove_file(&cwd_output);
+
+    assert!(exists, "expected `{unique_name}` to be created in cwd, not relocated under build-location");
+    assert!(
+        !relocated_under_build_dir,
+        "`{unique_name}` was relocated under --build-location; expected cwd-relative placement",
+    );
+}
+
+#[test]
 #[cfg_attr(target_os = "windows", ignore = "linker is not available for windows")]
 #[cfg_attr(target_os = "macos", ignore)]
 fn generate_got_file() {
