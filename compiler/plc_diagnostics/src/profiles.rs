@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::diagnostics::diagnostics_registry::DiagnosticsConfiguration;
+use crate::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Severity};
 
 /// A compatibility profile that controls compiler behavior across all phases.
 ///
@@ -63,11 +63,20 @@ impl CompatibilityProfile {
     }
 
     /// Returns the IEC 61131-3 strict-standard profile.
+    ///
+    /// Diagnostics overrides on top of the registry defaults — both diagnostics
+    /// are silenced by default to keep CODESYS code quiet, but users who opt
+    /// into the stricter standard profile want the signal:
+    /// - `E015` — `POINTER TO` is non-standard (default `Ignore`).
+    /// - `E132` — mixing implicit and explicit call parameters (default `Ignore`).
     pub fn standard() -> Self {
+        let mut diagnostics = DiagnosticsConfiguration::default();
+        diagnostics.set_severity(Severity::Warning, "E015");
+        diagnostics.set_severity(Severity::Warning, "E132");
         CompatibilityProfile {
             name: Some(PROFILE_STANDARD.to_string()),
             behaviors: BehaviorFlags { short_circuit_bool_ops: true },
-            diagnostics: DiagnosticsConfiguration::default(),
+            diagnostics,
         }
     }
 
@@ -168,6 +177,54 @@ mod tests {
     fn named_profile_standard() {
         let profile = CompatibilityProfile::from_name_or_path("standard").unwrap();
         assert_eq!(profile.name.as_deref(), Some("standard"));
+    }
+
+    #[test]
+    fn standard_profile_promotes_silenced_diagnostics_to_warning() {
+        use crate::diagnostician::DiagnosticAssessor;
+        use crate::diagnostics::diagnostics_registry::DiagnosticsRegistry;
+        use crate::diagnostics::Diagnostic;
+
+        // Default registry silences both E015 (non-standard POINTER TO) and E132
+        // (mixed implicit/explicit call args) to keep CODESYS code quiet.
+        let default_registry = DiagnosticsRegistry::default();
+        assert_eq!(
+            default_registry.assess(&Diagnostic::new("dummy").with_error_code("E015")),
+            Severity::Ignore
+        );
+        assert_eq!(
+            default_registry.assess(&Diagnostic::new("dummy").with_error_code("E132")),
+            Severity::Ignore
+        );
+
+        // Opting into the standard profile must surface them as warnings.
+        let standard = CompatibilityProfile::standard();
+        let configured = DiagnosticsRegistry::default().with_configuration(standard.diagnostics.clone());
+        assert_eq!(configured.assess(&Diagnostic::new("dummy").with_error_code("E015")), Severity::Warning);
+        assert_eq!(configured.assess(&Diagnostic::new("dummy").with_error_code("E132")), Severity::Warning);
+
+        // The overrides must survive both JSON and TOML round-trips so file-based
+        // profiles and `plc config profile --format toml` keep them.
+        for kind in ["json", "toml"] {
+            let serialized =
+                if kind == "json" { standard.to_json().unwrap() } else { standard.to_toml().unwrap() };
+            let roundtripped = if kind == "json" {
+                CompatibilityProfile::from_json(&serialized).unwrap()
+            } else {
+                CompatibilityProfile::from_toml(&serialized).unwrap()
+            };
+            let registry = DiagnosticsRegistry::default().with_configuration(roundtripped.diagnostics);
+            assert_eq!(
+                registry.assess(&Diagnostic::new("dummy").with_error_code("E015")),
+                Severity::Warning,
+                "E015 lost via {kind} roundtrip"
+            );
+            assert_eq!(
+                registry.assess(&Diagnostic::new("dummy").with_error_code("E132")),
+                Severity::Warning,
+                "E132 lost via {kind} roundtrip"
+            );
+        }
     }
 
     #[test]

@@ -84,9 +84,64 @@ impl DiagnosticAssessor for DiagnosticsRegistry {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(transparent)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct DiagnosticsConfiguration(FxHashMap<Severity, Vec<String>>);
+
+impl DiagnosticsConfiguration {
+    /// Pins `code` to `severity`, replacing any prior assignment for that code.
+    pub(crate) fn set_severity(&mut self, severity: Severity, code: &str) {
+        for codes in self.0.values_mut() {
+            codes.retain(|c| c != code);
+        }
+        self.0.entry(severity).or_default().push(code.to_string());
+    }
+}
+
+// Custom serde: serialize keys as lowercase strings so the wire format is
+// compatible with both JSON and TOML (the `toml` crate rejects map keys whose
+// serializer is not a string, which precludes deriving via `Severity`'s enum).
+impl Serialize for DiagnosticsConfiguration {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let mut map = serializer.serialize_map(Some(self.0.len()))?;
+        for (sev, codes) in &self.0 {
+            map.serialize_entry(severity_key(*sev), codes)?;
+        }
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for DiagnosticsConfiguration {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let stringified: FxHashMap<String, Vec<String>> = FxHashMap::deserialize(deserializer)?;
+        let mut inner = FxHashMap::default();
+        for (key, codes) in stringified {
+            let sev = severity_from_key(&key)
+                .ok_or_else(|| serde::de::Error::custom(format!("unknown severity: {key}")))?;
+            inner.insert(sev, codes);
+        }
+        Ok(DiagnosticsConfiguration(inner))
+    }
+}
+
+fn severity_key(severity: Severity) -> &'static str {
+    match severity {
+        Severity::Ignore => "ignore",
+        Severity::Info => "info",
+        Severity::Warning => "warning",
+        Severity::Error => "error",
+    }
+}
+
+fn severity_from_key(key: &str) -> Option<Severity> {
+    match key {
+        "ignore" => Some(Severity::Ignore),
+        "info" => Some(Severity::Info),
+        "warning" => Some(Severity::Warning),
+        "error" => Some(Severity::Error),
+        _ => None,
+    }
+}
 
 impl From<&DiagnosticsRegistry> for DiagnosticsConfiguration {
     fn from(registry: &DiagnosticsRegistry) -> Self {
