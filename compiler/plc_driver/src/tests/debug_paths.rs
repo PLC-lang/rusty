@@ -624,8 +624,9 @@ END_PROGRAM
         let snapshot = sanitize_debug_snapshot(&ir, &[(&case_name, "<CASE_ROOT>")]);
 
         assert_snapshot!(snapshot, @r#"
-        !2 = !DIFile(filename: "/SOURCE_ROOT/<CASE_ROOT>/src/main.st", directory: "/BUILD_ROOT")
-        !9 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !10, splitDebugInlining: false)
+        !2 = !DIFile(filename: "main.st", directory: "/SOURCE_ROOT/<CASE_ROOT>/src")
+        !9 = distinct !DICompileUnit(language: DW_LANG_C, file: !10, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !11, splitDebugInlining: false)
+        !10 = !DIFile(filename: "/SOURCE_ROOT/<CASE_ROOT>/src/main.st", directory: "/BUILD_ROOT")
         "#);
 
         assert!(
@@ -946,8 +947,8 @@ END_PROGRAM
 
         assert_snapshot!(snapshot, @r#"
         !2 = !DIFile(filename: "test.st", directory: "<CWD>/<CASE_ROOT>")
-        !16 = distinct !DICompileUnit(language: DW_LANG_C, file: !17, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !18, splitDebugInlining: false)
-        !17 = !DIFile(filename: "<CWD>/<CASE_ROOT>/test.st", directory: "<CWD>")
+        !10 = !DIFile(filename: "<CWD>/<CASE_ROOT>/test.st", directory: "<CWD>")
+        !17 = distinct !DICompileUnit(language: DW_LANG_C, file: !10, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !18, splitDebugInlining: false)
         "#);
 
         assert!(ir.contains("@__unit_test_st__ctor"), "expected constructor function in IR, got:\n{ir}");

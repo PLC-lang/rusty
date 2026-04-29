@@ -255,7 +255,7 @@ fn determine_compile_dir(
 }
 
 fn relative_to_compile_dir(path: &Path, compile_dir: &Path) -> Option<PathBuf> {
-    if !(path.is_absolute() && compile_dir.is_absolute()) {
+    if !(path.has_root() && compile_dir.has_root()) {
         return None;
     }
 
@@ -1012,7 +1012,7 @@ impl<'ink> DebugBuilder<'ink> {
             &self.path_remapper,
         );
 
-        let (filename, directory) = if path.is_absolute() {
+        let (filename, directory) = if path.has_root() {
             (
                 path.file_name().and_then(|it| it.to_str()).unwrap_or(location).to_string(),
                 path.parent().and_then(|it| it.to_str()).unwrap_or_default().to_string(),
