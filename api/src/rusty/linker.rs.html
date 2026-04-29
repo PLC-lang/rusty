@@ -262,7 +262,7 @@
 <a href=#262 id=262 data-nosnippet>262</a><span class="doccomment">/// Probe whether a driver linker can actually compile **and link** for `target`.
 <a href=#263 id=263 data-nosnippet>263</a>///
 <a href=#264 id=264 data-nosnippet>264</a>/// The probe includes `pre_args` (e.g. `-fuse-ld=lld`) so that it tests the same
-<a href=#265 id=265 data-nosnippet>265</a>/// linker backend the driver will actually use.  We compile+link a minimal C
+<a href=#265 id=265 data-nosnippet>265</a>/// linker backend the driver will actually use. We compile+link a minimal C
 <a href=#266 id=266 data-nosnippet>266</a>/// program *without* `-nostdlib` so the probe also verifies that the target's
 <a href=#267 id=267 data-nosnippet>267</a>/// sysroot (crt files, libc, etc.) is available — matching what a real link will
 <a href=#268 id=268 data-nosnippet>268</a>/// need.
@@ -283,7 +283,7 @@
 <a href=#283 id=283 data-nosnippet>283</a>        .spawn()
 <a href=#284 id=284 data-nosnippet>284</a>        .and_then(|<span class="kw-2">mut </span>child| {
 <a href=#285 id=285 data-nosnippet>285</a>            <span class="kw">use </span>std::io::Write;
-<a href=#286 id=286 data-nosnippet>286</a>            <span class="comment">// Write the source then drop stdin so the child sees EOF.
+<a href=#286 id=286 data-nosnippet>286</a>            <span class="comment">// Write the source then drop stdin so the child sees EOF and doesn't hang.
 <a href=#287 id=287 data-nosnippet>287</a>            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>stdin) = child.stdin.take() {
 <a href=#288 id=288 data-nosnippet>288</a>                <span class="kw">let _ </span>= stdin.write_all(probe_src.as_bytes());
 <a href=#289 id=289 data-nosnippet>289</a>            }
