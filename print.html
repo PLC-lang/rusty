@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-03f28fd9.js";
+            window.path_to_searchindex_js = "searchindex-57ff9dbd.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-2697711a.js"></script>
+        <script src="toc-2c52481d.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2052,6 +2052,43 @@ argument whose position isn’t obvious.</p>
 <p>See also <code>E131</code> — positional arg collides with later named arg — which catches
 the more dangerous case where a positional argument’s natural slot is also
 named, and the resolver silently shifts it to a different parameter.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="and_then--or_else-used-with-non-boolean-operands"><a class="header" href="#and_then--or_else-used-with-non-boolean-operands">AND_THEN / OR_ELSE Used With Non-Boolean Operands</a></h1>
+<p>The <code>AND_THEN</code> and <code>OR_ELSE</code> operators provide explicit short-circuit evaluation semantics and are only meaningful for boolean operands.
+When used with integer types, short-circuit evaluation does not apply — use <code>AND</code> / <code>OR</code> instead for bitwise operations.</p>
+<p>Erroneous code example:</p>
+<pre><code class="language-iecst">PROGRAM main
+VAR
+    a : DINT;
+    b : DINT;
+    c : DINT;
+END_VAR
+    c := a AND_THEN b;  // ❌ AND_THEN requires BOOL operands
+    c := a OR_ELSE b;   // ❌ OR_ELSE requires BOOL operands
+END_PROGRAM
+</code></pre>
+<p>To fix, either use boolean operands:</p>
+<pre><code class="language-iecst">PROGRAM main
+VAR
+    a : BOOL;
+    b : BOOL;
+    c : BOOL;
+END_VAR
+    c := a AND_THEN b;  // ✅ correct: both operands are BOOL
+    c := a OR_ELSE b;   // ✅ correct: both operands are BOOL
+END_PROGRAM
+</code></pre>
+<p>Or use <code>AND</code> / <code>OR</code> for bitwise operations on integers:</p>
+<pre><code class="language-iecst">PROGRAM main
+VAR
+    a : DINT;
+    b : DINT;
+    c : DINT;
+END_VAR
+    c := a AND b;  // ✅ correct: bitwise AND
+    c := a OR b;   // ✅ correct: bitwise OR
+END_PROGRAM
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
