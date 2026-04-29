@@ -71,6 +71,7 @@
 use crate::lowering::property::helper::create_internal_assignment;
 use crate::resolver::{AnnotationMap, AstAnnotations};
 use helper::patch_prefix_to_name;
+use plc_ast::ast::{AutoDerefType, DataType, DataTypeDeclaration};
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit,
@@ -315,6 +316,27 @@ pub fn lower_to_pou(
             }
 
             PropertyKind::Set => {
+                // For reference-typed setters, the parameter must be passed by reference
+                let is_reference_to = matches!(
+                    &datatype,
+                    DataTypeDeclaration::Definition {
+                        data_type,
+                        ..
+                    } if matches!(
+                        data_type.as_ref(),
+                        DataType::PointerType {
+                            auto_deref: Some(AutoDerefType::Reference),
+                            ..
+                        }
+                    )
+                );
+
+                let argument_property = if is_reference_to {
+                    ArgumentProperty::ByRef
+                } else {
+                    ArgumentProperty::ByVal
+                };
+
                 pou.variable_blocks.push(VariableBlock {
                     access: AccessModifier::Public,
                     constant: false,
@@ -326,7 +348,7 @@ pub fn lower_to_pou(
                         address: None,
                         location: SourceLocation::internal(),
                     }],
-                    kind: VariableBlockType::Input(ArgumentProperty::ByVal),
+                    kind: VariableBlockType::Input(argument_property),
                     linkage: LinkageType::Internal,
                     location: SourceLocation::internal(),
                 });
