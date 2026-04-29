@@ -801,6 +801,39 @@ fn const_references_to_bool_compile_time_evaluation() {
 }
 
 #[test]
+fn boolean_short_circuit_avoids_unreachable_rhs_evaluation() {
+    // GIVEN const initializers whose RHS would crash const-eval (div-by-zero)
+    // but whose LHS already determines the result for boolean AND/OR/AND_THEN/OR_ELSE.
+    // Before the short-circuit fast path was introduced, `(1 / 0) = 0` on the RHS
+    // would surface as "Attempt to divide by zero" even though the operand is unreachable.
+    let (_, index) = index(
+        "VAR_GLOBAL CONSTANT
+            zero : INT := 0;
+            t : BOOL := TRUE;
+            f : BOOL := FALSE;
+        END_VAR
+
+        VAR_GLOBAL CONSTANT
+            and_short    : BOOL := f AND ((1 / zero) = 0);
+            or_short     : BOOL := t OR  ((1 / zero) = 0);
+            and_then_short : BOOL := f AND_THEN ((1 / zero) = 0);
+            or_else_short  : BOOL := t OR_ELSE  ((1 / zero) = 0);
+        END_VAR
+        ",
+    );
+
+    // WHEN compile-time evaluation is applied
+    let (index, unresolvable) = evaluate_constants(index);
+
+    // THEN none of the four globals trip the div-by-zero on the unreachable side
+    debug_assert_eq!(EMPTY, unresolvable);
+    debug_assert_eq!(find_constant_value(&index, "and_short"), Some(&create_bool_literal(false)));
+    debug_assert_eq!(find_constant_value(&index, "or_short"), Some(&create_bool_literal(true)));
+    debug_assert_eq!(find_constant_value(&index, "and_then_short"), Some(&create_bool_literal(false)));
+    debug_assert_eq!(find_constant_value(&index, "or_else_short"), Some(&create_bool_literal(true)));
+}
+
+#[test]
 fn not_evaluatable_consts_are_reported() {
     // GIVEN some BOOL index used as initializers
     let (_, index) = index(

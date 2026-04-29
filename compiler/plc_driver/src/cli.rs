@@ -4,8 +4,8 @@ use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use log::LevelFilter;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
+use plc_diagnostics::profiles::CompatibilityProfile;
 
-use crate::profiles::CompatibilityProfile;
 use plc_header_generator::GenerateLanguage;
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
@@ -720,6 +720,12 @@ impl CompileParameters {
     /// 3. Else return the default codesys profile.
     pub fn get_compatibility_profile(&self) -> Result<CompatibilityProfile> {
         if let Some(profile_value) = &self.profile {
+            if self.error_config.is_some() {
+                log::warn!(
+                    "--error-config is ignored when --profile is set; \
+                     diagnostics overrides should live inside the profile file"
+                );
+            }
             return CompatibilityProfile::from_name_or_path(profile_value);
         }
 

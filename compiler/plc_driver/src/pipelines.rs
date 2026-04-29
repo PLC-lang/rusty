@@ -314,13 +314,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 println!("{}", self.diagnostician.get_diagnostic_configuration())
             }
             cli::ConfigOption::Profile => {
-                let profile = self
-                    .compile_parameters
-                    .as_ref()
-                    .map(|p| p.get_compatibility_profile())
-                    .transpose()
-                    .map_err(|e| Diagnostic::new(e.to_string()))?
-                    .unwrap_or_default();
+                let profile = self.context.compatibility_profile();
                 let output = match format {
                     ConfigFormat::JSON => profile.to_json(),
                     ConfigFormat::TOML => profile.to_toml(),

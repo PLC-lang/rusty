@@ -36,7 +36,6 @@ use source_code::SourceContainer;
 
 pub mod cli;
 pub mod pipelines;
-pub mod profiles;
 
 #[cfg(test)]
 mod tests;
