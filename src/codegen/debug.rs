@@ -22,6 +22,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use plc_ast::ast::LinkageType;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
+use plc_util::path::normalize_lexical_path;
 
 use crate::{
     index::{Index, PouIndexEntry, VariableIndexEntry},
@@ -175,35 +176,14 @@ impl VariableKey {
 #[derive(Clone, Debug, Default)]
 struct DebugPathRemapper {
     prefix_maps: Vec<(PathBuf, PathBuf)>,
-}
-
-fn normalize_lexical_path(path: &Path) -> PathBuf {
-    let mut normalized = PathBuf::new();
-
-    for component in path.components() {
-        match component {
-            std::path::Component::CurDir => {}
-            std::path::Component::ParentDir => {
-                if !normalized.pop() {
-                    normalized.push(component.as_os_str());
-                }
-            }
-            std::path::Component::RootDir
-            | std::path::Component::Prefix(_)
-            | std::path::Component::Normal(_) => normalized.push(component.as_os_str()),
-        }
-    }
-
-    if normalized.as_os_str().is_empty() {
-        PathBuf::from(".")
-    } else {
-        normalized
-    }
+    /// Captured at construction so we don't `env::current_dir()` per source file.
+    cached_cwd: Option<PathBuf>,
 }
 
 impl DebugPathRemapper {
     fn new(prefix_maps: &[(PathBuf, PathBuf)]) -> Self {
-        Self { prefix_maps: prefix_maps.to_vec() }
+        let cached_cwd = env::current_dir().ok();
+        Self { prefix_maps: prefix_maps.to_vec(), cached_cwd }
     }
 
     fn match_candidates(&self, path: &Path) -> Vec<PathBuf> {
@@ -211,13 +191,11 @@ impl DebugPathRemapper {
 
         let normalized = if path.is_absolute() {
             path.canonicalize().unwrap_or_else(|_| normalize_lexical_path(path))
+        } else if let Some(cwd) = &self.cached_cwd {
+            let joined = cwd.join(path);
+            joined.canonicalize().unwrap_or_else(|_| normalize_lexical_path(&joined))
         } else {
-            env::current_dir()
-                .map(|cwd| {
-                    let joined = cwd.join(path);
-                    joined.canonicalize().unwrap_or_else(|_| normalize_lexical_path(&joined))
-                })
-                .unwrap_or_else(|_| path.to_path_buf())
+            path.to_path_buf()
         };
 
         if !candidates.iter().any(|candidate| candidate == &normalized) {

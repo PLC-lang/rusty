@@ -78,6 +78,17 @@ plc -g \
 
 This is useful when you want compile units to be emitted relative to a stable virtual root instead of the current working directory or project root.
 
+### Independence from `--file-prefix-map`
+
+`--file-prefix-map` (and its alias `--debug-prefix-map`) rewrites the source-file paths recorded in `!DIFile` entries. `--debug-compilation-dir` only sets the compile unit's `DW_AT_comp_dir`. They are evaluated independently, so setting both can produce two distinct `!DIFile` records — one for the source and one for the compile unit — with different `directory:` values:
+
+```llvm
+!2  = !DIFile(filename: "main.st", directory: "/SOURCE_ROOT/...")
+!10 = !DIFile(filename: "/SOURCE_ROOT/.../main.st", directory: "/BUILD_ROOT")
+```
+
+This matches clang's behavior when combining `-ffile-prefix-map` with `-fdebug-compilation-dir`. Tools resolve paths against whichever record they consult; if you need a single canonical path, set the prefix map so the source file already lives under the compilation dir.
+
 ## Recommended example
 
 For a shipped build of `MyApp`:

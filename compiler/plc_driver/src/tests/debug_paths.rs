@@ -76,7 +76,6 @@ fn virtual_root(cwd: &Path) -> PathBuf {
     tempdir_base(cwd).join("__virtual__/TestProject")
 }
 
-#[cfg(not(windows))]
 fn relative_path_from(base: &Path, path: &Path) -> PathBuf {
     let mut path_components = path.components().peekable();
     let mut base_components = base.components().peekable();
@@ -148,6 +147,164 @@ END_PROGRAM
     assert!(
         !has_windows_drive_prefix(&snapshot),
         "expected no drive-letter paths in debug info:\n{snapshot}"
+    );
+}
+
+#[cfg(windows)]
+#[test]
+fn windows_debug_compile_unit_uses_path_relative_to_current_working_directory_by_default() {
+    let source_code = r#"PROGRAM prg
+VAR
+    x : INT;
+END_VAR
+    x := 1;
+END_PROGRAM
+"#;
+
+    let cwd = canonical_cwd();
+    let case_dir = Builder::new().prefix("debug-paths-win-default-").tempdir_in(&cwd).expect("tempdir");
+    let source = case_dir.path().join("src/main.st");
+    write_test_source(&source, source_code);
+    let source = canonical_path(&source);
+
+    let ir = compile_to_string_with_options(
+        vec![source],
+        vec![],
+        CompileOptions {
+            debug_level: DebugLevel::Full(plc::DEFAULT_DWARF_VERSION),
+            optimization: plc::OptimizationLevel::None,
+            ..Default::default()
+        },
+    )
+    .expect("compile succeeded")
+    .join("\n");
+
+    let case_name = case_dir_name(&case_dir);
+    let snapshot = sanitize_debug_snapshot(
+        &ir,
+        &[(&normalize_snapshot_paths(&cwd.to_string_lossy()), "<CWD>"), (&case_name, "<CASE_ROOT>")],
+    );
+
+    assert_snapshot!(snapshot, @r#"
+!2 = !DIFile(filename: "<CASE_ROOT>/src/main.st", directory: "<CWD>")
+!9 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !10, splitDebugInlining: false)
+"#);
+
+    assert!(
+        !has_windows_drive_prefix(&snapshot),
+        "expected no drive-letter paths in debug info:\n{snapshot}"
+    );
+}
+
+#[cfg(windows)]
+#[test]
+fn windows_debug_compile_unit_uses_relative_path_when_source_is_outside_compile_dir() {
+    let source_code = r#"PROGRAM prg
+VAR
+    x : INT;
+END_VAR
+    x := 1;
+END_PROGRAM
+"#;
+
+    let cwd = canonical_cwd();
+    let compile_root =
+        Builder::new().prefix("debug-paths-win-build-root-").tempdir_in(&cwd).expect("tempdir");
+    let source_root =
+        Builder::new().prefix("debug-paths-win-source-root-").tempdir_in(&cwd).expect("tempdir");
+
+    let source_root_path = canonical_path(source_root.path());
+    let source = source_root_path.join("nested/main.st");
+    write_test_source(&source, source_code);
+
+    let source = canonical_path(&source);
+    let compile_root = canonical_path(compile_root.path());
+    let relative_outside = relative_path_from(&compile_root, &source);
+
+    let ir = compile_to_string_with_options(
+        vec![source],
+        vec![],
+        CompileOptions {
+            root: Some(compile_root.clone()),
+            debug_level: DebugLevel::Full(plc::DEFAULT_DWARF_VERSION),
+            optimization: plc::OptimizationLevel::None,
+            ..Default::default()
+        },
+    )
+    .expect("compile succeeded")
+    .join("\n");
+
+    let snapshot = sanitize_debug_snapshot(
+        &ir,
+        &[
+            (&normalize_snapshot_paths(&compile_root.to_string_lossy()), "<BUILD_ROOT_REAL>"),
+            (&normalize_snapshot_paths(&source_root_path.to_string_lossy()), "<SOURCE_ROOT_REAL>"),
+            (&normalize_snapshot_paths(&relative_outside.to_string_lossy()), "<RELATIVE_OUTSIDE_SOURCE>"),
+        ],
+    );
+
+    assert_snapshot!(snapshot, @r#"
+!2 = !DIFile(filename: "<RELATIVE_OUTSIDE_SOURCE>", directory: "<BUILD_ROOT_REAL>")
+!9 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !10, splitDebugInlining: false)
+"#);
+
+    assert!(
+        !has_windows_drive_prefix(&snapshot),
+        "expected no drive-letter paths in debug info:\n{snapshot}"
+    );
+}
+
+#[cfg(windows)]
+#[test]
+fn windows_debug_prefix_map_alias_matches_file_prefix_map() {
+    let source_code = r#"PROGRAM prg
+VAR
+    x : INT;
+END_VAR
+    x := 1;
+END_PROGRAM
+"#;
+
+    let cwd = canonical_cwd();
+    let case_dir = Builder::new().prefix("debug-paths-win-alias-").tempdir_in(&cwd).expect("tempdir");
+    let source = case_dir.path().join("src/main.st");
+    write_test_source(&source, source_code);
+    let source = canonical_path(&source);
+
+    let mapping_arg = format!("{}=/SOURCE_ROOT", cwd.to_string_lossy());
+
+    let ir_file_prefix = compile_args_to_string(&[
+        "plc".to_string(),
+        "--ir".to_string(),
+        "-g".to_string(),
+        source.to_string_lossy().to_string(),
+        "--file-prefix-map".to_string(),
+        mapping_arg.clone(),
+    ])
+    .expect("compile with --file-prefix-map succeeded");
+
+    let ir_debug_prefix = compile_args_to_string(&[
+        "plc".to_string(),
+        "--ir".to_string(),
+        "-g".to_string(),
+        source.to_string_lossy().to_string(),
+        "--debug-prefix-map".to_string(),
+        mapping_arg,
+    ])
+    .expect("compile with --debug-prefix-map succeeded");
+
+    let case_name = case_dir_name(&case_dir);
+    let replacements: &[(&str, &str)] = &[(&case_name, "<CASE_ROOT>")];
+    let snapshot_file_prefix = sanitize_debug_snapshot(&ir_file_prefix, replacements);
+    let snapshot_debug_prefix = sanitize_debug_snapshot(&ir_debug_prefix, replacements);
+
+    assert_eq!(
+        snapshot_file_prefix, snapshot_debug_prefix,
+        "--debug-prefix-map should produce identical DWARF to --file-prefix-map"
+    );
+    assert!(
+        !has_windows_drive_prefix(&snapshot_file_prefix),
+        "expected no drive-letter paths in debug info:\n{snapshot_file_prefix}"
     );
 }
 

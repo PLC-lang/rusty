@@ -9,11 +9,12 @@ use std::{
     env,
     ffi::OsStr,
     num::ParseIntError,
-    path::{Component, Path, PathBuf},
+    path::{Path, PathBuf},
 };
 
 use plc::output::{FormatOption, RelocationPreference};
 use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
+use plc_util::path::normalize_lexical_path;
 
 pub type ParameterError = clap::Error;
 
@@ -563,30 +564,6 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
         Some("json") => Some(ConfigFormat::JSON),
         Some("toml") => Some(ConfigFormat::TOML),
         _ => None,
-    }
-}
-
-fn normalize_lexical_path(path: &Path) -> PathBuf {
-    let mut normalized = PathBuf::new();
-
-    for component in path.components() {
-        match component {
-            Component::CurDir => {}
-            Component::ParentDir => {
-                if !normalized.pop() {
-                    normalized.push(component.as_os_str());
-                }
-            }
-            Component::RootDir | Component::Prefix(_) | Component::Normal(_) => {
-                normalized.push(component.as_os_str())
-            }
-        }
-    }
-
-    if normalized.as_os_str().is_empty() {
-        PathBuf::from(".")
-    } else {
-        normalized
     }
 }
 

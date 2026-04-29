@@ -1,4 +1,5 @@
 pub mod convention;
+pub mod path;
 
 #[doc(hidden)]
 pub fn escape_regex_literal(value: &str) -> String {
