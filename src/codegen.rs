@@ -96,6 +96,7 @@ type MainEmptyFunction<U> = unsafe extern "C" fn() -> U;
 
 impl<'ink> CodeGen<'ink> {
     /// constructs a new code-generator that generates CompilationUnits into a module with the given module_name
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         context: &'ink CodegenContext,
         root: Option<&Path>,
@@ -104,6 +105,7 @@ impl<'ink> CodeGen<'ink> {
         debug_level: DebugLevel,
         online_change: OnlineChange,
         target: &Target,
+        generate_pubnames: bool,
     ) -> CodeGen<'ink> {
         let module_location = file_marker.get_name().unwrap_or_default();
         let module = context.create_module(module_location);
@@ -136,7 +138,14 @@ impl<'ink> CodeGen<'ink> {
         module.set_triple(&triple);
 
         let debug_level = if file_marker.is_internal() { DebugLevel::None } else { debug_level };
-        let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
+        let debug = debug::DebugBuilderEnum::new(
+            context,
+            &module,
+            root,
+            optimization_level,
+            debug_level,
+            generate_pubnames,
+        );
         CodeGen { module, debug, module_location: module_location.to_string(), online_change }
     }
 

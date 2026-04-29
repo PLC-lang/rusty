@@ -202,6 +202,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
         root: Option<&Path>,
         optimization: OptimizationLevel,
         debug_level: DebugLevel,
+        generate_pubnames: bool,
     ) -> Self {
         match debug_level {
             DebugLevel::None => DebugBuilderEnum::None,
@@ -229,22 +230,17 @@ impl<'ink> DebugBuilderEnum<'ink> {
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or("")).to_path_buf();
                 let root = root.unwrap_or_else(|| Path::new(""));
                 let filename = path.strip_prefix(root).unwrap_or(&path).to_str().unwrap_or_default();
-                let (debug_info, compile_unit) = module.create_debug_info_builder(
+                let (debug_info, compile_unit) = plc_llvm::create_debug_info(
+                    module,
                     true,
                     inkwell::debug_info::DWARFSourceLanguage::C, //TODO: Own lang
                     filename,
                     root.to_str().unwrap_or_default(),
                     "RuSTy Structured text Compiler",
                     optimization.is_optimized(),
-                    "",
                     0,
-                    "",
                     debug_level.into(),
-                    0,
-                    false,
-                    false,
-                    "",
-                    "",
+                    generate_pubnames,
                 );
 
                 let data_layout = module.get_data_layout();

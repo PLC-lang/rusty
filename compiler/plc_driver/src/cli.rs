@@ -331,6 +331,14 @@ pub struct CompileParameters {
     pub gdwarf_varinfo_version: Option<usize>,
 
     #[clap(
+        name = "gpubnames",
+        long,
+        help = "Enable .debug_names accelerator table emission (disabled by default for GDB compatibility)",
+        global = true
+    )]
+    pub gpubnames: bool,
+
+    #[clap(
         name = "threads",
         long,
         short = 'j',
