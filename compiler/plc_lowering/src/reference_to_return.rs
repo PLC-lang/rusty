@@ -1695,9 +1695,14 @@ mod tests {
             PROGRAM test
             VAR
                 fb : fb;
-                y : INT;
+                tempStruct_store : structuredTypeOrFb;
+                tempStruct : REFERENCE TO structuredTypeOrFb;
             END_VAR
 
+            tempStruct REF= tempStruct_store;
+            tempStruct.x := 51;
+
+            fb.myStructuredVar := tempStruct;
             printf('%d$N', fb.myStructuredVar.x);
 
             END_PROGRAM
@@ -1708,6 +1713,10 @@ mod tests {
 
             PROPERTY_GET myStructuredVar : REFERENCE TO structuredTypeOrFb
                 myStructuredVar REF= _myStructuredVar;
+            END_PROPERTY
+
+            PROPERTY_SET myStructuredVar : REFERENCE TO structuredTypeOrFb
+                _myStructuredVar := myStructuredVar;
             END_PROPERTY
 
             END_FUNCTION_BLOCK
@@ -1729,6 +1738,9 @@ mod tests {
         assert_snapshot!(AstSerializer::format_nodes(&test_implementation.statements), @"
         __test__get_myStructuredVar_return_val_1__ctor(__get_myStructuredVar_return_val_1);
         structuredTypeOrFb__ctor(__get_myStructuredVar_return_val_store_1);
+        tempStruct REF= tempStruct_store;
+        tempStruct.x := 51;
+        fb.__set_myStructuredVar(tempStruct);
         __get_myStructuredVar_return_val_1 REF= __get_myStructuredVar_return_val_store_1;
         fb.__get_myStructuredVar(__get_myStructuredVar_return_val_1);
         printf('%d

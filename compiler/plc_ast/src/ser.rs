@@ -204,7 +204,7 @@ impl AstVisitor for AstSerializer<'_> {
             DataType::StructType { name: Some(name), .. } => {
                 self.result.push_str(name);
             }
-            // TODO: For now we aren't interested in non-pointer types, but this should be expanded
+            // TODO: This should be expanded to include the other types as needed
             _ => (),
         }
     }
