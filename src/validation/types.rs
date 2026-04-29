@@ -11,7 +11,7 @@ use plc_source::source_location::SourceLocation;
 use crate::{
     index::Index,
     resolver::AnnotationMap,
-    typesystem::{DataTypeInformation, StructSource},
+    typesystem::{self, DataTypeInformation, Dimension, StructSource},
 };
 
 use super::{
@@ -265,4 +265,80 @@ pub fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool
         }
         _ => false,
     }
+}
+
+pub fn are_equal_types(index: &Index, left: &typesystem::DataType, right: &typesystem::DataType) -> bool {
+    let left_type_info = left.get_type_information();
+    let right_type_info = right.get_type_information();
+
+    if left_type_info == right_type_info {
+        return true;
+    }
+
+    match (left_type_info, right_type_info) {
+        (
+            DataTypeInformation::Array {
+                inner_type_name: left_inner_type_name,
+                dimensions: left_dimensions,
+                ..
+            },
+            DataTypeInformation::Array {
+                inner_type_name: right_inner_type_name,
+                dimensions: right_dimensions,
+                ..
+            },
+        ) => {
+            are_equal_array_dimensions(index, left_dimensions, right_dimensions)
+                && are_equal_types(
+                    index,
+                    index.get_effective_type_or_void_by_name(left_inner_type_name),
+                    index.get_effective_type_or_void_by_name(right_inner_type_name),
+                )
+        }
+        (
+            DataTypeInformation::Struct { name: left_name, .. },
+            DataTypeInformation::Struct { name: right_name, .. },
+        )
+        | (
+            DataTypeInformation::Enum { name: left_name, .. },
+            DataTypeInformation::Enum { name: right_name, .. },
+        ) => {
+            // Given we have a global namespace only, checking by names is sufficient for equality check
+            // for structs and enums. The "Ambiguous datatype" validation does the heavy lifting here.
+            left_name.eq_ignore_ascii_case(right_name)
+        }
+        (
+            DataTypeInformation::Alias { referenced_type: left_reference_type, .. },
+            DataTypeInformation::Alias { referenced_type: right_reference_type, .. },
+        ) => {
+            let left = index.find_effective_type_by_name(left_reference_type);
+            let right = index.find_effective_type_by_name(right_reference_type);
+
+            left == right
+        }
+
+        _ => false,
+    }
+}
+
+fn are_equal_array_dimensions(index: &Index, left: &[Dimension], right: &[Dimension]) -> bool {
+    if left.len() != right.len() {
+        return false;
+    }
+
+    for (left_dimension, right_dimension) in left.iter().zip(right) {
+        let Some(left_range) = left_dimension.get_range(index).ok() else {
+            return false;
+        };
+
+        let Some(right_range) = right_dimension.get_range(index).ok() else {
+            return false;
+        };
+
+        if left_range != right_range {
+            return false;
+        }
+    }
+
+    true
 }

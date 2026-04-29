@@ -19,20 +19,22 @@ impl PipelineParticipantMut for PropertyLowerer {
     }
 
     fn post_annotate(&mut self, project: AnnotatedProject) -> AnnotatedProject {
-        let AnnotatedProject { mut units, index, annotations } = project;
+        let AnnotatedProject { mut units, index, annotations, diagnostics } = project;
         self.annotations = Some(annotations);
 
         for AnnotatedUnit { unit, .. } in &mut units.iter_mut() {
             self.properties_to_fncalls(unit);
         }
 
-        let project = IndexedProject {
+        let indexed_project = IndexedProject {
             project: ParsedProject { units: units.into_iter().map(|annotated| annotated.unit).collect() },
             index,
             _unresolvables: vec![],
         };
 
-        project.annotate(self.id_provider.clone())
+        let mut project = indexed_project.annotate(self.id_provider.clone());
+        project.diagnostics = diagnostics;
+        project
     }
 
     fn diagnostics(&mut self) -> Vec<Diagnostic> {

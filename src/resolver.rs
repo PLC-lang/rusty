@@ -308,13 +308,105 @@ impl TypeAnnotator<'_> {
             implementation.map(|it| it.get_type_name().to_string()).unwrap_or(name)
         };
 
-        let generics = if arguments.iter().any(|arg| arg.is_assignment() | arg.is_output_assignment()) {
+        // Three variants, not one generalized routine: each has a distinct param-lookup
+        // strategy that doesn't compose cleanly in a single loop.
+        //   - all-positional: zip params with args in order (no per-arg name lookup)
+        //   - all-named:      resolve each arg by name (ignoring declaration order)
+        //   - mixed:          named args claim slots first, positional args fill the gaps
+        let has_named = arguments.iter().any(|arg| arg.is_assignment() || arg.is_output_assignment());
+        let has_positional = arguments.iter().any(|arg| !arg.is_assignment() && !arg.is_output_assignment());
+        let generics = if has_named && has_positional {
+            self.annotate_arguments_mixed(&pou_name, arguments)
+        } else if has_named {
             self.annotate_arguments_named(&pou_name, arguments)
         } else {
             self.annotate_arguments_positional(&pou_name, operator, arguments)
         };
 
         self.update_generic_call_statement(generics, &pou_name, operator, arguments_node, ctx.to_owned());
+    }
+
+    /// Annotate call arguments when the caller mixes positional and named args,
+    /// e.g. `foo(1, b := 20)` or `foo(a := 10, 2, c := 30)`.
+    ///
+    /// The resolution rule matches `generate_function_arguments` in the codegen: named args
+    /// claim their slots first, then positional args fill the remaining slots left-to-right.
+    /// **Both sides must stay in sync** — if this rule changes, update the codegen too.
+    ///
+    /// Invariant: this is only called when the argument list contains AT LEAST one named and
+    /// one positional arg; otherwise `annotate_arguments_named` / `annotate_arguments_positional`
+    /// handle the pure cases.
+    fn annotate_arguments_mixed(
+        &mut self,
+        pou_name: &str,
+        arguments: Vec<&AstNode>,
+    ) -> FxHashMap<String, Vec<String>> {
+        let mut generics_candidates = FxHashMap::<String, Vec<String>>::default();
+        let parameters = self.index.get_available_parameters(pou_name);
+
+        // Slots that named args have already claimed — positional fill skips these.
+        let named_positions: FxHashSet<usize> = arguments
+            .iter()
+            .filter_map(|arg| {
+                let var_name = arg.get_assignment_identifier()?;
+                parameters.iter().position(|p| p.get_name().eq_ignore_ascii_case(var_name))
+            })
+            .collect();
+
+        // Remaining slots in declaration order — consumed by positional args one by one.
+        let positional_positions: Vec<usize> =
+            (0..parameters.len()).filter(|i| !named_positions.contains(i)).collect();
+        let mut positional_cursor = 0;
+
+        for argument in arguments {
+            if let Some(var_name) = argument.get_assignment_identifier() {
+                // Named arg (`x := value` or `x => value`): resolve by name, honouring
+                // inheritance (`find_pou_member_and_depth` walks the supertype chain).
+                let Some((parameter, depth)) =
+                    TypeAnnotator::find_pou_member_and_depth(self.index, pou_name, var_name)
+                else {
+                    continue;
+                };
+
+                if let Some((key, candidate)) =
+                    self.get_generic_candidate(parameter.get_type_name(), argument)
+                {
+                    generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string());
+                } else {
+                    self.annotate_argument(
+                        parameter.get_qualifier().expect("parameter must have a qualifier"),
+                        argument,
+                        parameter.get_type_name(),
+                        depth,
+                        parameter.get_location_in_parent() as usize,
+                    );
+                }
+            } else {
+                // Positional arg: consume the next free slot. Advance the cursor unconditionally
+                // so surplus positionals (beyond the declared params) are simply dropped — the
+                // arity check in the validator (E032) surfaces this as a user-facing error.
+                let pos = positional_positions.get(positional_cursor).copied();
+                positional_cursor += 1;
+                let Some(pos) = pos else { continue };
+
+                let Some(parameter) = parameters.get(pos) else { continue };
+                let type_name = parameter.get_type_name();
+
+                if let Some((key, candidate)) = self.get_generic_candidate(type_name, argument) {
+                    generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string());
+                } else {
+                    self.annotate_argument(
+                        pou_name,
+                        argument,
+                        type_name,
+                        0,
+                        parameter.get_location_in_parent() as usize,
+                    );
+                }
+            }
+        }
+
+        generics_candidates
     }
 
     fn annotate_arguments_named(
@@ -3002,34 +3094,73 @@ impl ResolvingStrategy {
         qualifier: &str,
         property_set: bool,
     ) -> Option<StatementAnnotation> {
-        let accessor = if property_set { "set" } else { "get" };
-        let name = format!("__{accessor}_{name}");
+        let requested_kind = if property_set { ast::PropertyKind::Set } else { ast::PropertyKind::Get };
+        let requested_accessor = if property_set { "set" } else { "get" };
+        let requested_name = format!("__{requested_accessor}_{name}");
 
         // if our current context is a method or action, we need to look for the property in the parent
         let qualifier =
             index.find_pou(qualifier).and_then(|pou| pou.get_parent_pou_name()).unwrap_or(qualifier);
 
+        // Try to find the requested property method directly on the qualifier or, for interfaces,
+        // on any ancestor interface. This is the normal, valid property access path.
+        if Self::find_property_method(index, qualifier, &requested_name).is_some() {
+            return Some(StatementAnnotation::Property { name: requested_name });
+        }
+
+        // If the requested accessor is missing, still preserve the fact that this reference targets a
+        // known property when the opposite accessor exists. The property lowerer will then rewrite the
+        // reference to the intended internal accessor, allowing validation to report a focused
+        // "PROPERTY_GET/PROPERTY_SET not defined" diagnostic instead of a generic unresolved reference.
+        let opposite_kind = match requested_kind {
+            ast::PropertyKind::Get => ast::PropertyKind::Set,
+            ast::PropertyKind::Set => ast::PropertyKind::Get,
+        };
+        let opposite_accessor = match opposite_kind {
+            ast::PropertyKind::Get => "get",
+            ast::PropertyKind::Set => "set",
+        };
+        let opposite_name = format!("__{opposite_accessor}_{name}");
+
+        Self::find_property_method(index, qualifier, &opposite_name)
+            .filter(|method| Self::is_property_accessor(method, name, opposite_kind))
+            .map(|_| StatementAnnotation::Property { name: requested_name })
+    }
+
+    fn find_property_method<'idx>(
+        index: &'idx Index,
+        qualifier: &str,
+        method_name: &str,
+    ) -> Option<&'idx PouIndexEntry> {
         // Try to find the property method directly on the qualifier (works for POUs and
         // for the interface that originally declared the property).
-        if index.find_method(qualifier, &name).is_some() {
-            return Some(StatementAnnotation::Property { name });
+        if let Some(method) = index.find_method(qualifier, method_name) {
+            return Some(method);
         }
 
         // If the qualifier is an interface, walk its inheritance chain (extensions) to
         // find property methods declared on ancestor interfaces.
         if let Some(interface) = index.find_interface(qualifier) {
             for ancestor in interface.get_interface_hierarchy(index) {
-                // Skip self — already checked above via `find_method(qualifier, &name)`.
+                // Skip self — already checked above via `find_method(qualifier, method_name)`.
                 if ancestor.get_name() == qualifier {
                     continue;
                 }
-                if index.find_method(ancestor.get_name(), &name).is_some() {
-                    return Some(StatementAnnotation::Property { name });
+                if let Some(method) = index.find_method(ancestor.get_name(), method_name) {
+                    return Some(method);
                 }
             }
         }
 
         None
+    }
+
+    fn is_property_accessor(method: &PouIndexEntry, property_name: &str, kind: ast::PropertyKind) -> bool {
+        matches!(
+            method,
+            PouIndexEntry::Method { property: Some((name, accessor_kind)), .. }
+                if name.eq_ignore_ascii_case(property_name) && *accessor_kind == kind
+        )
     }
 
     /// tries to resolve the given name using the reprsented scope

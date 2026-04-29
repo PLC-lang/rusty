@@ -560,7 +560,7 @@ fn properties_with_same_name_but_different_datatypes_are_not_ok() {
     END_CLASS
     ";
 
-    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
+    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @"
     error[E112]: Property `propertyB` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET
       ┌─ <internal>:8:22
       │
@@ -591,6 +591,72 @@ fn properties_with_same_name_but_different_datatypes_are_not_ok() {
     4 │         PROPERTY_SET propertyA: DINT END_PROPERTY
       │                                 ---- see also
     ");
+}
+
+#[test]
+fn properties_with_same_array_datatype_using_different_const_expressions_are_ok() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        VAR_GLOBAL CONSTANT
+            start_a : INT := 1;
+            end_a : INT := 5;
+            start_b : INT := 1;
+            end_b : INT := 5;
+        END_VAR
+
+        FUNCTION_BLOCK FbA
+            PROPERTY_GET foo: ARRAY[start_a..end_a] OF DINT END_PROPERTY
+            PROPERTY_SET foo: ARRAY[start_b..end_b] OF DINT END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn properties_with_same_struct_datatype_using_different_case_are_ok() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        TYPE Position:
+            STRUCT
+                x: DINT;
+                y: DINT;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+            PROPERTY_GET position: Position END_PROPERTY
+            PROPERTY_SET position: position END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn properties_with_different_array_ranges_are_not_ok() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        VAR_GLOBAL CONSTANT
+            start_a : INT := 1;
+            end_a : INT := 5;
+            start_b : INT := 1;
+            end_b : INT := 6;
+        END_VAR
+
+        FUNCTION_BLOCK FbA
+            PROPERTY_GET foo: ARRAY[start_a..end_a] OF DINT END_PROPERTY
+            PROPERTY_SET foo: ARRAY[start_b..end_b] OF DINT END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert!(
+        diagnostics.contains("Property `foo` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET"),
+        "{diagnostics}"
+    );
 }
 
 #[test]
@@ -805,17 +871,73 @@ fn undefined_references_inheritance() {
     );
 
     insta::assert_snapshot!(diagnostics, @r"
-    error[E048]: Could not resolve reference to myProp
+    error[E048]: PROPERTY_SET for property `myProp` is not defined
       ┌─ <internal>:7:13
       │
     7 │             myProp := 5;    // Error, this represents a PROPERTY_SET which is not defined in here
-      │             ^^^^^^ Could not resolve reference to myProp
+      │             ^^^^^^ PROPERTY_SET for property `myProp` is not defined
 
-    error[E048]: Could not resolve reference to myProp
+    error[E048]: PROPERTY_SET for property `myProp` is not defined
        ┌─ <internal>:24:23
        │
     24 │             parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a PROPERTY_SET
-       │                       ^^^^^^ Could not resolve reference to myProp
+       │                       ^^^^^^ PROPERTY_SET for property `myProp` is not defined
+    ");
+}
+
+#[test]
+fn missing_property_get_reports_property_diagnostic() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb
+            PROPERTY_SET foo: DINT END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance : fb;
+                x : DINT;
+            END_VAR
+
+            x := instance.foo;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E048]: PROPERTY_GET for property `foo` is not defined
+       ┌─ <internal>:12:27
+       │
+    12 │             x := instance.foo;
+       │                           ^^^ PROPERTY_GET for property `foo` is not defined
+    ");
+}
+
+#[test]
+fn missing_property_set_reports_property_diagnostic() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK fb
+            PROPERTY_GET foo: DINT END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance : fb;
+                x : DINT;
+            END_VAR
+
+            instance.foo := 5;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E048]: PROPERTY_SET for property `foo` is not defined
+       ┌─ <internal>:12:22
+       │
+    12 │             instance.foo := 5;
+       │                      ^^^ PROPERTY_SET for property `foo` is not defined
     ");
 }
 

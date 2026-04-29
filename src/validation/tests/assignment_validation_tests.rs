@@ -1502,6 +1502,45 @@ fn invalid_reference_to_declaration() {
 }
 
 #[test]
+fn invalid_reference_to_declaration_via_aliases() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        TYPE
+            RefDint : REFERENCE TO DINT;
+        END_TYPE
+
+        FUNCTION foo
+            VAR
+                nestedA : REFERENCE TO RefDint;
+                nestedB : ARRAY[1..2] OF RefDint;
+                nestedC : REF_TO RefDint;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E099]: Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+      ┌─ <internal>:8:40
+      │
+    8 │                 nestedA : REFERENCE TO RefDint;
+      │                                        ^^^^^^^ Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+
+    error[E099]: Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.
+      ┌─ <internal>:9:42
+      │
+    9 │                 nestedB : ARRAY[1..2] OF RefDint;
+      │                                          ^^^^^^^ Invalid reference to declaration. Arrays of automatically dereferenced references are not allowed.
+
+    error[E099]: Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+       ┌─ <internal>:10:34
+       │
+    10 │                 nestedC : REF_TO RefDint;
+       │                                  ^^^^^^^ Invalid reference to declaration. References to automatically dereferenced references are not allowed.
+    ");
+}
+
+#[test]
 fn alias_variable_type_check() {
     let diagnostics = parse_and_validate_buffered(
         r"
