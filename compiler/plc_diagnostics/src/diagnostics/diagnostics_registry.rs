@@ -233,7 +233,7 @@ lazy_static! {
         E129,   Error,      include_str!("./error_codes/E129.md"),  // Direct interface reference call
         E130,   Error,      include_str!("./error_codes/E130.md"),  // Array size exceeds supported limit
         E131,   Error,      include_str!("./error_codes/E131.md"),  // Positional argument collides with later named argument
-        E132,   Warning,    include_str!("./error_codes/E132.md"),  // Mixing implicit and explicit call parameters
+        E132,   Ignore,     include_str!("./error_codes/E132.md"),  // Mixing implicit and explicit call parameters
         E133,   Error,      include_str!("./error_codes/E133.md"),  // AND_THEN/OR_ELSE with non-boolean operands
     );
 }

@@ -759,24 +759,12 @@ fn builtin_functions_named_arguments_mixed_with_positional_arguments() {
     ",
     );
 
-    assert_snapshot!(diagnostics, @r"
-    warning[E132]: Mixing implicit and explicit call parameters
-      ┌─ <internal>:9:42
-      │
-    9 │             a := SEL(G := sel, IN0 := a, b);
-      │                                          ^ Mixing implicit and explicit call parameters
-
+    assert_snapshot!(diagnostics, @"
     error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
        ┌─ <internal>:20:30
        │
     20 │             a := UPPER_BOUND(arr := arr, 1);
        │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:20:42
-       │
-    20 │             a := UPPER_BOUND(arr := arr, 1);
-       │                                          ^ Mixing implicit and explicit call parameters
 
     warning[E067]: Implicit downcast from 'DINT' to 'INT'.
        ┌─ <internal>:20:18
@@ -790,29 +778,11 @@ fn builtin_functions_named_arguments_mixed_with_positional_arguments() {
     23 │             a := LOWER_BOUND(arr := arr, 1);
        │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
 
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:23:42
-       │
-    23 │             a := LOWER_BOUND(arr := arr, 1);
-       │                                          ^ Mixing implicit and explicit call parameters
-
     warning[E067]: Implicit downcast from 'DINT' to 'INT'.
        ┌─ <internal>:23:18
        │
     23 │             a := LOWER_BOUND(arr := arr, 1);
        │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:26:32
-       │
-    26 │             a := DIV(IN1 := a, b);
-       │                                ^ Mixing implicit and explicit call parameters
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:29:32
-       │
-    29 │             a := SUB(IN1 := a, b);
-       │                                ^ Mixing implicit and explicit call parameters
     ");
 }
 
@@ -844,37 +814,7 @@ fn mixed_implicit_explicit_user_function_call() {
         END_PROGRAM
         ",
     );
-    assert_snapshot!(diagnostics, @"
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:19:29
-       │
-    19 │             x := myfunc(10, b := 20);
-       │                             ^^^^^^^ Mixing implicit and explicit call parameters
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:20:34
-       │
-    20 │             x := myfunc(a := 10, 20);
-       │                                  ^^ Mixing implicit and explicit call parameters
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:21:29
-       │
-    21 │             x := myfunc(10, b := 20, c := 30);
-       │                             ^^^^^^^ Mixing implicit and explicit call parameters
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:21:38
-       │
-    21 │             x := myfunc(10, b := 20, c := 30);
-       │                                      ^^^^^^^ Mixing implicit and explicit call parameters
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:22:34
-       │
-    22 │             x := myfunc(a := 10, 20, c := 30);
-       │                                  ^^ Mixing implicit and explicit call parameters
-    ");
+    assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -895,19 +835,7 @@ fn mixed_implicit_explicit_program_call() {
         END_PROGRAM
         ",
     );
-    assert_snapshot!(diagnostics, @"
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:11:24
-       │
-    11 │             myprog(10, b := 20);
-       │                        ^^^^^^^ Mixing implicit and explicit call parameters
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:12:29
-       │
-    12 │             myprog(a := 10, 20);
-       │                             ^^ Mixing implicit and explicit call parameters
-    ");
+    assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -928,19 +856,7 @@ fn mixed_implicit_explicit_function_block_call() {
         END_PROGRAM
         ",
     );
-    assert_snapshot!(diagnostics, @"
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:11:20
-       │
-    11 │             fb(10, b := 20);
-       │                    ^^^^^^^ Mixing implicit and explicit call parameters
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:12:25
-       │
-    12 │             fb(a := 10, 20);
-       │                         ^^ Mixing implicit and explicit call parameters
-    ");
+    assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -970,12 +886,6 @@ fn mixed_implicit_explicit_type_errors_still_reported() {
        │
     15 │             x := myfunc(a := x, x);
        │                                 ^ Invalid assignment: cannot assign 'INT' to 'STRING'
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:15:33
-       │
-    15 │             x := myfunc(a := x, x);
-       │                                 ^ Mixing implicit and explicit call parameters
     ");
 }
 
@@ -1000,19 +910,7 @@ fn mixed_implicit_explicit_named_first_general_case() {
         END_PROGRAM
         ",
     );
-    assert_snapshot!(diagnostics, @r"
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:13:34
-       │
-    13 │             x := myfunc(b := 20, 1, 3);
-       │                                  ^ Mixing implicit and explicit call parameters
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:13:37
-       │
-    13 │             x := myfunc(b := 20, 1, 3);
-       │                                     ^ Mixing implicit and explicit call parameters
-    ");
+    assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -1036,12 +934,6 @@ fn mixed_implicit_explicit_collision_positional_and_named_same_param() {
         ",
     );
     assert_snapshot!(diagnostics, @"
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:11:28
-       │
-    11 │             x := myfunc(1, a := 10);
-       │                            ^^^^^^^ Mixing implicit and explicit call parameters
-
     error[E131]: Positional argument collides with later named argument `a`
        ┌─ <internal>:11:25
        │
@@ -1077,19 +969,7 @@ fn mixed_implicit_explicit_var_in_out_is_resolved() {
         END_PROGRAM
         ",
     );
-    assert_snapshot!(diagnostics, @r"
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:16:21
-       │
-    16 │             foo(v1, inout1 := v2);       // positional input, named inout
-       │                     ^^^^^^^^^^^^ Mixing implicit and explicit call parameters
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:17:31
-       │
-    17 │             foo(input1 := v1, v2);       // named input, positional inout
-       │                               ^^ Mixing implicit and explicit call parameters
-    ");
+    assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -1122,18 +1002,12 @@ fn mixed_implicit_explicit_non_trailing_default_is_rejected() {
         END_PROGRAM
         ",
     );
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E032]: this POU takes 3 arguments but 2 arguments were supplied
        ┌─ <internal>:12:18
        │
     12 │             x := myfunc(a := 0, 2);        // mixed
        │                  ^^^^^^ this POU takes 3 arguments but 2 arguments were supplied
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:12:33
-       │
-    12 │             x := myfunc(a := 0, 2);        // mixed
-       │                                 ^ Mixing implicit and explicit call parameters
 
     error[E032]: this POU takes 3 arguments but 2 arguments were supplied
        ┌─ <internal>:13:18
@@ -1164,18 +1038,12 @@ fn mixed_implicit_explicit_missing_required_param() {
         END_PROGRAM
         ",
     );
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E032]: this POU takes 3 arguments but 2 arguments were supplied
        ┌─ <internal>:12:18
        │
     12 │             x := myfunc(1, c := 3);
        │                  ^^^^^^ this POU takes 3 arguments but 2 arguments were supplied
-
-    warning[E132]: Mixing implicit and explicit call parameters
-       ┌─ <internal>:12:28
-       │
-    12 │             x := myfunc(1, c := 3);
-       │                            ^^^^^^ Mixing implicit and explicit call parameters
     ");
 }
 
