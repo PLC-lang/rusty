@@ -268,8 +268,8 @@ pub fn data_type_is_fb_or_class_instance(type_name: &str, index: &Index) -> bool
 }
 
 pub fn are_equal_types(index: &Index, left: &typesystem::DataType, right: &typesystem::DataType) -> bool {
-    let left_type_info = dbg!(left.get_type_information());
-    let right_type_info = dbg!(right.get_type_information());
+    let left_type_info = left.get_type_information();
+    let right_type_info = right.get_type_information();
 
     if left_type_info == right_type_info {
         return true;

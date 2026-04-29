@@ -623,7 +623,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     );
                 }
 
-                if matches!(m.argument_type, ArgumentType::ByVal(VariableType::Input))
+                // Check if this is a reference-typed parameter in a property accessor
+                let is_property_accessor_param = (parameter_name.starts_with("__get_")
+                    || parameter_name.starts_with("__set_"))
+                    && type_info.is_reference_to();
+
+                if is_property_accessor_param {
+                    // For property getter/setter reference parameters, directly store the passed pointer
+                    // without dereferencing. The lowering has already bound it to the correct internal member.
+                    self.llvm.builder.build_store(ptr, ptr_value)?;
+                } else if matches!(m.argument_type, ArgumentType::ByVal(VariableType::Input))
                     && type_info.is_aggregate()
                 {
                     // a by-value aggregate type => we need to memcpy the data into the local variable
@@ -790,10 +799,21 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .map(|it| it.get_type_information())
                     .is_some_and(|it| it.is_reference_to() || it.is_alias())
                 {
-                    // aliases and reference to variables have special handling for initialization. initialize with a nullpointer
-                    let pointee =
-                        self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).const_null();
-                    self.llvm.builder.build_store(left, pointee)?;
+                    // aliases and reference to variables have special handling for initialization.
+                    // For property getter/setter parameters (by-ref output parameters from lowering),
+                    // do NOT initialize to null. Let the lowered initializer handle the binding via REF=.
+                    // For other reference types, initialize with a nullpointer as before.
+                    let is_property_accessor = variable.get_name().starts_with("__get_")
+                        || variable.get_name().starts_with("__set_");
+
+                    if !is_property_accessor {
+                        let pointee = self
+                            .llvm
+                            .context
+                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                            .const_null();
+                        self.llvm.builder.build_store(left, pointee)?;
+                    }
                     continue;
                 };
                 let right_stmt =

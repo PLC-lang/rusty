@@ -2980,7 +2980,6 @@ fn properties_with_reference_to_are_methods_with_lowered_access() {
       %tempStruct = getelementptr inbounds nuw %test, ptr %0, i32 0, i32 3
       %__get_myStructuredVar_return_val_1 = alloca ptr, align [filtered]
       %__get_myStructuredVar_return_val_store_1 = alloca %structuredTypeOrFb, align [filtered]
-      store ptr null, ptr %__get_myStructuredVar_return_val_1, align [filtered]
       call void @llvm.memset.p0.i64(ptr align [filtered] %__get_myStructuredVar_return_val_store_1, i8 0, i64 ptrtoint (ptr getelementptr (%structuredTypeOrFb, ptr null, i32 1) to i64), i1 false)
       %deref = load ptr, ptr %__get_myStructuredVar_return_val_1, align [filtered]
       call void @__test__get_myStructuredVar_return_val_1__ctor(ptr %deref)
