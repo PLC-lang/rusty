@@ -6878,3 +6878,314 @@ fn array_literal_passed_to_function_var_input_gets_type_hint_propagated() {
         unreachable!("expected CallStatement");
     }
 }
+
+// Regression coverage for #1605: a local variable named `ref` (or any other name colliding with a
+// builtin function) must resolve to the variable when used as the base of a qualified call like
+// `ref.foo()`. The asymmetry between unqualified call resolution (function wins) and unqualified
+// assignment resolution (variable wins) must be preserved.
+
+/// Helper: extract the base of the operator of a CallStatement at `unit.implementations[impl_idx].statements[stmt_idx]`.
+fn call_operator_base<'a>(
+    unit: &'a plc_ast::ast::CompilationUnit,
+    impl_idx: usize,
+    stmt_idx: usize,
+) -> &'a AstNode {
+    let stmt = &unit.implementations[impl_idx].statements[stmt_idx];
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
+        panic!("expected CallStatement, got {:?}", stmt);
+    };
+    let AstNode { stmt: AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }), .. } =
+        operator.as_ref()
+    else {
+        panic!("expected ReferenceExpr with base, got {:?}", operator);
+    };
+    base.as_ref()
+}
+
+/// Helper: extract the operator of a CallStatement at `unit.implementations[impl_idx].statements[stmt_idx]`.
+fn call_operator<'a>(
+    unit: &'a plc_ast::ast::CompilationUnit,
+    impl_idx: usize,
+    stmt_idx: usize,
+) -> &'a AstNode {
+    let stmt = &unit.implementations[impl_idx].statements[stmt_idx];
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }), .. } = stmt else {
+        panic!("expected CallStatement, got {:?}", stmt);
+    };
+    operator.as_ref()
+}
+
+#[test]
+fn ref_builtin_resolves_to_function_with_plain_variable_arg() {
+    // Pin the existing semantics: REF(x) on a plain variable annotates the operator as the REF
+    // builtin. This must not change after the fix.
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r#"
+        PROGRAM Main
+        VAR x : INT; END_VAR
+        REF(x);
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let operator = call_operator(&unit, 0, 0);
+    assert_eq!(
+        Some(&StatementAnnotation::Function {
+            return_type: "__POINTER_TO_INT".into(),
+            qualified_name: "REF".into(),
+            generic_name: None,
+            call_name: None,
+        }),
+        annotations.get(operator)
+    );
+}
+
+#[test]
+fn ref_builtin_still_resolves_when_no_variable_shadows_it() {
+    // Same as above but inside a POU that has no `ref` variable at all — guard against any
+    // accidental change to the unshadowed builtin path.
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r#"
+        PROGRAM Main
+        VAR a : INT; END_VAR
+        REF(a);
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let operator = call_operator(&unit, 0, 0);
+    assert_eq!(
+        Some(&StatementAnnotation::Function {
+            return_type: "__POINTER_TO_INT".into(),
+            qualified_name: "REF".into(),
+            generic_name: None,
+            call_name: None,
+        }),
+        annotations.get(operator)
+    );
+}
+
+#[test]
+fn unqualified_call_with_shadowed_function_name_resolves_to_function() {
+    // Pre-existing rule the resolver intentionally encodes: when a local variable shares a name
+    // with a function in the same scope, an unqualified call site `foo()` resolves to the function.
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r#"
+        FUNCTION foo : INT
+            foo := 1;
+        END_FUNCTION
+
+        PROGRAM Main
+        VAR foo : INT; END_VAR
+        foo();
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let operator = call_operator(&unit, 1, 0);
+    assert_eq!(
+        Some(&StatementAnnotation::Function {
+            return_type: "INT".into(),
+            qualified_name: "foo".into(),
+            generic_name: None,
+            call_name: None,
+        }),
+        annotations.get(operator)
+    );
+}
+
+#[test]
+fn unqualified_assignment_with_shadowed_function_name_resolves_to_variable() {
+    // Pre-existing rule the resolver intentionally encodes: when a local variable shares a name
+    // with a function, an unqualified assignment LHS `foo := …` resolves to the variable. This
+    // pins the asymmetry between call and assignment that the existing scope order encodes.
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r#"
+        FUNCTION foo : INT
+            foo := 1;
+        END_FUNCTION
+
+        PROGRAM Main
+        VAR foo : INT; END_VAR
+        foo := 2;
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let assignment = &unit.implementations[1].statements[0];
+    let AstNode { stmt: AstStatement::Assignment(Assignment { left, .. }), .. } = assignment else {
+        panic!("expected Assignment, got {:?}", assignment);
+    };
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            qualified_name: "Main.foo".into(),
+            resulting_type: "INT".into(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Local),
+            auto_deref: None,
+        }),
+        annotations.get(left.as_ref())
+    );
+}
+
+#[test]
+fn local_variable_named_ref_resolves_to_variable_in_call_operator() {
+    // Regression for #1605: `ref.foo()` must resolve `ref` to the local variable, not to the
+    // `REF` builtin.
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r#"
+        FUNCTION_BLOCK MyFb
+        METHOD foo : INT
+            foo := 1;
+        END_METHOD
+        END_FUNCTION_BLOCK
+
+        PROGRAM Main
+        VAR ref : MyFb; END_VAR
+        ref.foo();
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let base = call_operator_base(&unit, 2, 0);
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            qualified_name: "Main.ref".into(),
+            resulting_type: "MyFb".into(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Local),
+            auto_deref: None,
+        }),
+        annotations.get(base)
+    );
+    let operator = call_operator(&unit, 2, 0);
+    assert_eq!(
+        Some(&StatementAnnotation::Function {
+            return_type: "INT".into(),
+            qualified_name: "MyFb.foo".into(),
+            generic_name: None,
+            call_name: None,
+        }),
+        annotations.get(operator)
+    );
+}
+
+#[test]
+fn uppercase_variable_named_ref_resolves_to_variable_in_call_operator() {
+    // Same as the lowercase case — exercises the case-insensitive name lookup path.
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r#"
+        FUNCTION_BLOCK MyFb
+        METHOD foo : INT
+            foo := 1;
+        END_METHOD
+        END_FUNCTION_BLOCK
+
+        PROGRAM Main
+        VAR REF : MyFb; END_VAR
+        REF.foo();
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let base = call_operator_base(&unit, 2, 0);
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            qualified_name: "Main.REF".into(),
+            resulting_type: "MyFb".into(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Local),
+            auto_deref: None,
+        }),
+        annotations.get(base)
+    );
+}
+
+#[test]
+fn fb_instance_shares_name_with_function_qualified_call() {
+    // An FB instance whose name happens to collide with a global function should resolve to the
+    // FB instance when used as the base of a qualified call. The user has flagged this as the
+    // intended (post-fix) behaviour.
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r#"
+        FUNCTION foo : INT
+            foo := 1;
+        END_FUNCTION
+
+        FUNCTION_BLOCK SomeFb
+        METHOD bar : INT
+            bar := 2;
+        END_METHOD
+        END_FUNCTION_BLOCK
+
+        PROGRAM Main
+        VAR foo : SomeFb; END_VAR
+        foo.bar();
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    // implementations: [0]=foo, [1]=SomeFb, [2]=SomeFb.bar, [3]=Main
+    let base = call_operator_base(&unit, 3, 0);
+    assert_eq!(
+        Some(&StatementAnnotation::Variable {
+            qualified_name: "Main.foo".into(),
+            resulting_type: "SomeFb".into(),
+            constant: false,
+            argument_type: ArgumentType::ByVal(VariableType::Local),
+            auto_deref: None,
+        }),
+        annotations.get(base)
+    );
+}
+
+#[test]
+fn fb_instance_shares_name_with_function_direct_call() {
+    // The user flagged this as undefined: when an FB instance's name collides with a global
+    // function name and the user writes `foo()` (unqualified call), which wins? The fix in
+    // visit_reference_expr only affects ReferenceExpr-base resolution, so this case should NOT
+    // change — `foo()` continues to resolve to the function (the existing call_operator_scopes
+    // semantics). Pinning the current behaviour so a future change is visible.
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r#"
+        FUNCTION foo : INT
+            foo := 1;
+        END_FUNCTION
+
+        FUNCTION_BLOCK SomeFb
+        END_FUNCTION_BLOCK
+
+        PROGRAM Main
+        VAR foo : SomeFb; END_VAR
+        foo();
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let operator = call_operator(&unit, 2, 0);
+    assert_eq!(
+        Some(&StatementAnnotation::Function {
+            return_type: "INT".into(),
+            qualified_name: "foo".into(),
+            generic_name: None,
+            call_name: None,
+        }),
+        annotations.get(operator)
+    );
+}

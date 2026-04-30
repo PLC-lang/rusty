@@ -2385,7 +2385,13 @@ impl<'i> TypeAnnotator<'i> {
     ) {
         // first resolve base
         if let Some(base) = base {
-            self.visit_statement(ctx, base);
+            // The base of a `ReferenceExpr` is a value-producing expression, never the call
+            // target itself (only the leaf is). When the outer expression is a call, `ctx`
+            // carries `call_operator_scopes` (FunctionsOnly first), which would otherwise let
+            // a builtin/function shadow a same-named local in expressions like `ref.foo()`.
+            // Resolve the base under default scopes; the leaf below still uses `ctx`.
+            let base_ctx = ctx.with_resolving_strategy(ResolvingStrategy::default_scopes());
+            self.visit_statement(&base_ctx, base);
         };
 
         match (
