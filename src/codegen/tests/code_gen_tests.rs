@@ -697,6 +697,92 @@ END_PROGRAM
 }
 
 #[test]
+fn program_with_and_then_statement() {
+    // AND_THEN always short-circuits (uses branches + phi)
+    let result = codegen(
+        r#"PROGRAM prg
+VAR
+x : BOOL;
+y : BOOL;
+END_VAR
+x AND_THEN y;
+END_PROGRAM
+"#,
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %prg = type { i8, i8 }
+
+    @prg_instance = global %prg zeroinitializer
+
+    define void @prg(ptr %0) {
+    entry:
+      %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      %load_x = load i8, ptr %x, align [filtered]
+      %1 = icmp ne i8 %load_x, 0
+      br i1 %1, label %2, label %4
+
+    2:                                                ; preds = %entry
+      %load_y = load i8, ptr %y, align [filtered]
+      %3 = icmp ne i8 %load_y, 0
+      br label %4
+
+    4:                                                ; preds = %2, %entry
+      %5 = phi i1 [ %1, %entry ], [ %3, %2 ]
+      ret void
+    }
+    "#);
+}
+
+#[test]
+fn program_with_or_else_statement() {
+    // OR_ELSE always short-circuits (uses branches + phi)
+    let result = codegen(
+        r#"PROGRAM prg
+VAR
+x : BOOL;
+y : BOOL;
+END_VAR
+x OR_ELSE y;
+END_PROGRAM
+"#,
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %prg = type { i8, i8 }
+
+    @prg_instance = global %prg zeroinitializer
+
+    define void @prg(ptr %0) {
+    entry:
+      %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      %load_x = load i8, ptr %x, align [filtered]
+      %1 = icmp ne i8 %load_x, 0
+      br i1 %1, label %4, label %2
+
+    2:                                                ; preds = %entry
+      %load_y = load i8, ptr %y, align [filtered]
+      %3 = icmp ne i8 %load_y, 0
+      br label %4
+
+    4:                                                ; preds = %2, %entry
+      %5 = phi i1 [ %1, %entry ], [ %3, %2 ]
+      ret void
+    }
+    "#);
+}
+
+#[test]
 fn program_with_xor_statement() {
     let result = codegen(
         r#"PROGRAM prg

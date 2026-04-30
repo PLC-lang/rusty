@@ -21,6 +21,9 @@ file extension depending on the output file format.
 A minimal invocation looks like this:
 `plc input.st` this will take in the file `input.st` and compile it into a static object that will be written to a file named `input.o`.
 
+`--build-location` is a global option and can be used with regular compilation commands (not only `plc build`) to control where intermediate artifacts are written.
+If it is not set for non-`build` commands, intermediate files may be created in the OS temporary directory.
+
 More examples:
 - `plc --ir file1.st file2.st` will compile file1.st and file2.st.
 - `plc --ir file1.cfc file2.st` will compile file1.cfc and file2.st.

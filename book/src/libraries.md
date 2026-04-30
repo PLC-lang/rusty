@@ -116,8 +116,10 @@ POUs and Global variables included in the list are marked as external, the imple
 
 ### Library Location
 
-Libraries marked as `Copy` will be copied during the compilation to the defined [Library Location](using_rusty/build_configuration.md#--lib-location).
-By default this is the same as the [Build Location](using_rusty/build_configuration.md#--build-location) unless overridden by the `--lib-location` parameter.
+During `plc build`, libraries marked as `Copy` are copied to the configured [Library Location](using_rusty/build_configuration.md#lib-location).
+By default this is the same as the [Build Location](using_rusty/build_configuration.md#build-location), unless overridden by `--lib-location`.
+
+`--lib-location` is currently a `build` subcommand option.
 
 ### Using environment variables
 

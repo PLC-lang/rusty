@@ -102,6 +102,11 @@ pub struct LinkOptions {
     pub relocation_preference: RelocationPreference,
     pub lib_location: Option<PathBuf>,
     pub build_location: Option<PathBuf>,
+    /// Directory where the final linked artifact is placed. Only `Some` for the
+    /// `build` subcommand. For non-`build` flows, the `-o` value is resolved
+    /// relative to the current working directory (or kept absolute) and is not
+    /// rebased under `--build-location`.
+    pub output_directory: Option<PathBuf>,
     pub linker_script: LinkerScript,
     pub module_name: Option<String>,
 }

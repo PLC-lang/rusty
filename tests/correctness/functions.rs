@@ -130,7 +130,9 @@ fn test_or_sideeffects() {
     let module = compile(&context, function);
     let mut case1 = MainType { x: false };
     let res: i32 = module.run("main", &mut case1);
-    assert_eq!(res, 31);
+    // OR is eager: every operand evaluated. 1+2 + 10+20+50 = 83.
+    // Use OR_ELSE for short-circuit.
+    assert_eq!(res, 83);
 }
 
 #[test]
@@ -175,7 +177,9 @@ fn test_and_sideeffects() {
     let module = compile(&context, function);
     let mut case1 = MainType { x: false };
     let res: i32 = module.run("main", &mut case1);
-    assert_eq!(res, 31);
+    // AND is eager: every operand evaluated. 1+2 + 10+20+50 = 83.
+    // Use AND_THEN for short-circuit.
+    assert_eq!(res, 83);
 }
 
 #[test]
@@ -220,7 +224,9 @@ fn test_amp_as_and_sideeffects() {
     let module = compile(&context, function);
     let mut case1 = MainType { x: false };
     let res: i32 = module.run("main", &mut case1);
-    assert_eq!(res, 31);
+    // `&` is an alias for AND, eager: every operand evaluated. 1+2 + 10+20+50 = 83.
+    // Use AND_THEN for short-circuit.
+    assert_eq!(res, 83);
 }
 
 #[test]

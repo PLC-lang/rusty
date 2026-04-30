@@ -269,6 +269,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 relocation_preference,
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
+                output_directory: params.get_output_directory(),
                 linker_script,
                 module_name: self.get_module_name(),
             }
@@ -1050,7 +1051,13 @@ impl GeneratedProject {
         output: &str,
         link_options: LinkOptions,
     ) -> Result<Object, Diagnostic> {
-        let output_location = build_location
+        // The final artifact is placed under `output_directory` only for the
+        // `build` subcommand. For non-`build` flows, the user-supplied `-o`
+        // path is honored as-is (relative to cwd, or absolute), independent
+        // of `--build-location` which only governs intermediates.
+        let output_location = link_options
+            .output_directory
+            .as_deref()
             .map(|it| self.target.append_to(it))
             .map(|it| it.join(output))
             .unwrap_or_else(|| PathBuf::from(output));

@@ -2763,7 +2763,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(array_value.as_basic_value_enum())
     }
 
-    /// generates a phi-expression (&& or || expression) with respect to short-circuit evaluation
+    /// Generates a boolean binary expression (`AND`, `OR`, `AND_THEN`, `OR_ELSE`,
+    /// `=`, `<>`, `XOR`).
+    ///
+    /// `AND` / `OR` evaluate both operands eagerly (no short-circuit), matching
+    /// CODESYS semantics. `AND_THEN` / `OR_ELSE` use phi-based short-circuit
+    /// evaluation when the user wants to skip the right-hand side based on the
+    /// left.
     ///
     /// - `operator` an operator suitable for bool variables
     /// - `left` the left side of the expression
@@ -2775,9 +2781,27 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         right: &AstNode,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         match operator {
-            Operator::And | Operator::Or => {
+            Operator::AndThen | Operator::OrElse => {
                 self.generate_bool_short_circuit_expression(operator, left, right)
             }
+            Operator::And => Ok(self
+                .llvm
+                .builder
+                .build_and(
+                    to_i1(self.generate_expression(left)?.into_int_value(), &self.llvm.builder)?,
+                    to_i1(self.generate_expression(right)?.into_int_value(), &self.llvm.builder)?,
+                    "",
+                )?
+                .as_basic_value_enum()),
+            Operator::Or => Ok(self
+                .llvm
+                .builder
+                .build_or(
+                    to_i1(self.generate_expression(left)?.into_int_value(), &self.llvm.builder)?,
+                    to_i1(self.generate_expression(right)?.into_int_value(), &self.llvm.builder)?,
+                    "",
+                )?
+                .as_basic_value_enum()),
             Operator::Equal => Ok(self
                 .llvm
                 .builder
@@ -2837,8 +2861,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //Compare left to 0
 
         match operator {
-            Operator::Or => builder.build_conditional_branch(lhs, continue_branch, right_branch)?,
-            Operator::And => builder.build_conditional_branch(lhs, right_branch, continue_branch)?,
+            Operator::Or | Operator::OrElse => {
+                builder.build_conditional_branch(lhs, continue_branch, right_branch)?
+            }
+            Operator::And | Operator::AndThen => {
+                builder.build_conditional_branch(lhs, right_branch, continue_branch)?
+            }
             _ => {
                 return Err(Diagnostic::codegen_error(
                     format!("Cannot generate phi-expression for operator {operator:}"),
