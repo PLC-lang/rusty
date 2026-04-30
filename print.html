@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-79eb3228.js";
+            window.path_to_searchindex_js = "searchindex-a8622f6e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-2c52481d.js"></script>
+        <script src="toc-b6bca4ef.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -357,6 +357,9 @@ END_FUNCTION
 <li>For executable links with compiler drivers, startup/runtime defaults can be controlled explicitly with <code>--nocrt</code> and <code>--nolibc</code>.</li>
 <li><code>-l</code> also supports exact filenames (<code>-l:libfoo.so.1</code>) and direct full paths (<code>-l/path/to/libfoo.so.1</code>).</li>
 </ul>
+<h3 id="debug-path-remapping"><a class="header" href="#debug-path-remapping">Debug path remapping</a></h3>
+<p>For shipped binaries and remote debugging, RuSTy can rewrite embedded DWARF paths so that they do not contain developer-local checkout paths.</p>
+<p>See <a href="#debug-path-remapping-1">Debug Path Remapping</a>.</p>
 <h3 id="relocation-model-pic--no-pic"><a class="header" href="#relocation-model-pic--no-pic">Relocation model (PIC / no-PIC)</a></h3>
 <p>By default, RuSTy generates position-independent code (PIC) when building shared libraries, and uses the
 platform default relocation mode for object files and executables.</p>
@@ -604,6 +607,14 @@ It controls where libraries marked with <code>Copy</code> are copied.</p>
 <li><code>--nolibc</code></li>
 <li><code>--fpic</code> / <code>--fno-pic</code> (relocation model)</li>
 </ul>
+<h3 id="additional-debug-path-options"><a class="header" href="#additional-debug-path-options">Additional debug path options</a></h3>
+<p>The <code>build</code> subcommand also accepts the debug path remapping flags:</p>
+<ul>
+<li><code>--file-prefix-map OLD=NEW</code></li>
+<li><code>--debug-prefix-map OLD=NEW</code></li>
+<li><code>--debug-compilation-dir &lt;dir&gt;</code></li>
+</ul>
+<p>These are especially useful for shipped builds and remote debugging. See <a href="#debug-path-remapping-1">Debug Path Remapping</a>.</p>
 <h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
 <p>Environment variables can be used inside the build description file, the variables are evaluated before an entry is evaluated.</p>
 <p>In addition to externally defined variables, the build exports variables that can be referenced in the description file:</p>
@@ -637,6 +648,125 @@ This is the value of <a href="#lib-location"><code>--lib-location</code></a>, or
 <p>The build description file uses a <a href="https://json-schema.org/">Json Schema</a> file located at <code>compiler/plc_project/schema/plc-json.schema</code> to validate the build description before build.
 In order for the schema to be used, it has to be either in that location for source builds or copied next to the build binaries.
 If the schema is not found, the schema based validation will be skipped.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="debug-path-remapping-1"><a class="header" href="#debug-path-remapping-1">Debug Path Remapping</a></h1>
+<p>When RuSTy emits debug information, it stores source file paths in DWARF.</p>
+<p>For local development this is usually fine, but for shipped binaries and remote debugging you often want two properties:</p>
+<ul>
+<li>no developer-local checkout paths inside the artifact</li>
+<li>stable, predictable paths that can be mapped by an IDE or <code>gdb</code></li>
+</ul>
+<p>RuSTy supports this with debug path remapping flags.</p>
+<h2 id="recommended-shipped-build-convention"><a class="header" href="#recommended-shipped-build-convention">Recommended shipped-build convention</a></h2>
+<p>For remote debugging, use stable virtual roots such as:</p>
+<ul>
+<li>source root: <code>/src/&lt;Product&gt;</code></li>
+<li>build root: <code>/build/&lt;Product&gt;</code></li>
+</ul>
+<p>Example for an application called <code>MyApp</code>:</p>
+<ul>
+<li><code>/src/MyApp</code></li>
+<li><code>/build/MyApp</code></li>
+</ul>
+<p>Your debugger frontend can then map those virtual paths to local folders with <code>set substitute-path</code>.</p>
+<h2 id="default-behavior"><a class="header" href="#default-behavior">Default behavior</a></h2>
+<p>If no remapping flags are used:</p>
+<ul>
+<li>RuSTy keeps using resolved/canonicalized filesystem paths internally for file loading</li>
+<li>DWARF compile units are emitted <strong>relative to the compilation directory when possible</strong></li>
+<li>the DWARF compilation directory itself may stay absolute</li>
+</ul>
+<p>This is intentionally closer to clang-style debug path behavior than always embedding absolute source paths in <code>DW_AT_name</code>.</p>
+<h2 id="--file-prefix-map-oldnew"><a class="header" href="#--file-prefix-map-oldnew"><code>--file-prefix-map OLD=NEW</code></a></h2>
+<p>Repeatable flag.</p>
+<p>Remaps debug/source paths whose resolved path starts with <code>OLD</code> so that they instead start with <code>NEW</code>.</p>
+<p>Typical usage:</p>
+<pre><code class="language-bash">plc -g \
+  --file-prefix-map /home/alice/work/MyApp=/src/MyApp \
+  --file-prefix-map /home/alice/work/MyApp/build=/build/MyApp \
+  app.st
+</code></pre>
+<h3 id="notes"><a class="header" href="#notes">Notes</a></h3>
+<ul>
+<li><code>OLD</code> is resolved against the current working directory and canonicalized when possible.</li>
+<li><code>NEW</code> is normalized for the host platform before being embedded in debug info.</li>
+<li>when multiple mappings match, the longest matching prefix wins.</li>
+<li>this affects DWARF file paths such as compile-unit and <code>DIFile</code> entries.</li>
+</ul>
+<p>Use absolute virtual roots for predictable results.</p>
+<h2 id="--debug-prefix-map-oldnew"><a class="header" href="#--debug-prefix-map-oldnew"><code>--debug-prefix-map OLD=NEW</code></a></h2>
+<p>Alias for <code>--file-prefix-map</code>.</p>
+<p>This exists to make the CLI easier to align with GCC/Clang conventions in build systems and templates.</p>
+<h2 id="--debug-compilation-dir-dir"><a class="header" href="#--debug-compilation-dir-dir"><code>--debug-compilation-dir DIR</code></a></h2>
+<p>Overrides the DWARF compilation directory (<code>DW_AT_comp_dir</code>).</p>
+<p>Example:</p>
+<pre><code class="language-bash">plc -g \
+  --file-prefix-map /home/alice/work/MyApp=/src/MyApp \
+  --debug-compilation-dir /src/MyApp \
+  app.st
+</code></pre>
+<p>This is useful when you want compile units to be emitted relative to a stable virtual root instead of the current working directory or project root.</p>
+<h3 id="independence-from---file-prefix-map"><a class="header" href="#independence-from---file-prefix-map">Independence from <code>--file-prefix-map</code></a></h3>
+<p><code>--file-prefix-map</code> (and its alias <code>--debug-prefix-map</code>) rewrites the source-file paths recorded in <code>!DIFile</code> entries. <code>--debug-compilation-dir</code> only sets the compile unit’s <code>DW_AT_comp_dir</code>. They are evaluated independently, so setting both can produce two distinct <code>!DIFile</code> records — one for the source and one for the compile unit — with different <code>directory:</code> values:</p>
+<pre><code class="language-llvm">!2  = !DIFile(filename: "main.st", directory: "/SOURCE_ROOT/...")
+!10 = !DIFile(filename: "/SOURCE_ROOT/.../main.st", directory: "/BUILD_ROOT")
+</code></pre>
+<p>This matches clang’s behavior when combining <code>-ffile-prefix-map</code> with <code>-fdebug-compilation-dir</code>. Tools resolve paths against whichever record they consult; if you need a single canonical path, set the prefix map so the source file already lives under the compilation dir.</p>
+<h2 id="recommended-example"><a class="header" href="#recommended-example">Recommended example</a></h2>
+<p>For a shipped build of <code>MyApp</code>:</p>
+<pre><code class="language-bash">plc -g \
+  --file-prefix-map /real/source/root=/src/MyApp \
+  --file-prefix-map /real/build/root=/build/MyApp \
+  --debug-compilation-dir /src/MyApp \
+  ...
+</code></pre>
+<h2 id="parent-relative-source-paths"><a class="header" href="#parent-relative-source-paths">Parent-relative source paths</a></h2>
+<p>A common layout is invoking the compiler from a build/test subdirectory while compiling a parent file (for example <code>../main.st</code>).</p>
+<p>Example:</p>
+<pre><code class="language-bash">cd examples/test
+plc -g ../main.st \
+  --file-prefix-map "$(pwd)=/root" \
+  --debug-compilation-dir "$(pwd)"
+</code></pre>
+<p>With this setup, RuSTy emits compile-unit paths like:</p>
+<ul>
+<li><code>DW_AT_comp_dir = /root</code></li>
+<li><code>DW_AT_name = ../main.st</code></li>
+</ul>
+<p>This avoids embedding host-local absolute paths in compile-unit filenames for parent-relative sources.
+For this scenario, behavior aligns with clang when using <code>-ffile-prefix-map</code> together with <code>-fdebug-compilation-dir</code>.</p>
+<h2 id="plc-build-usage"><a class="header" href="#plc-build-usage"><code>plc build</code> usage</a></h2>
+<p>The same options can be passed to the <code>build</code> subcommand:</p>
+<pre><code class="language-bash">plc build plc.json \
+  -g \
+  --file-prefix-map /real/source/root=/src/MyApp \
+  --file-prefix-map /real/build/root=/build/MyApp \
+  --debug-compilation-dir /src/MyApp
+</code></pre>
+<h2 id="gdb-usage"><a class="header" href="#gdb-usage">GDB usage</a></h2>
+<p>If DWARF contains <code>/src/MyApp</code> and <code>/build/MyApp</code>, a local debugger can map them like this:</p>
+<pre><code class="language-gdb">set substitute-path /src/MyApp /home/bob/dev/MyApp
+set substitute-path /build/MyApp /home/bob/dev/MyApp/build
+</code></pre>
+<p>For a remote session:</p>
+<pre><code class="language-gdb">file /path/to/local/unstripped/binary
+set substitute-path /src/MyApp /home/bob/dev/MyApp
+set substitute-path /build/MyApp /home/bob/dev/MyApp/build
+target remote &lt;host&gt;:&lt;port&gt;
+</code></pre>
+<h3 id="windows-note"><a class="header" href="#windows-note">Windows note</a></h3>
+<p>For cross-machine debugging on Windows, prefer virtual roots like <code>/src/MyApp</code> and <code>/build/MyApp</code>
+instead of drive-bound debug paths (<code>C:\...</code>).</p>
+<p>Drive letters can differ between systems (for example build machine on <code>C:</code> and debugger user on <code>D:</code>),
+while virtual roots keep <code>set substitute-path</code> stable across users and hosts.</p>
+<h2 id="mixed-cc-and-st-projects"><a class="header" href="#mixed-cc-and-st-projects">Mixed C/C++ and ST projects</a></h2>
+<p>If the project also builds C/C++ code with clang, use the same virtual roots on both sides.</p>
+<p>Typical clang/CMake setup:</p>
+<pre><code class="language-text">-ffile-prefix-map=&lt;real-source-root&gt;=/src/MyApp
+-ffile-prefix-map=&lt;real-build-root&gt;=/build/MyApp
+</code></pre>
+<p>Then pass the matching RuSTy flags shown above.</p>
+<p>Using the same convention for both compilers keeps source lookup consistent in Eclipse, CLI <code>gdb</code>, and DAP frontends.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="error-configuration"><a class="header" href="#error-configuration">Error Configuration</a></h1>
 <p>Errors in a <code>plc</code> project can be configured by providing a json configuration file.

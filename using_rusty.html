@@ -35,10 +35,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-79eb3228.js";
+            window.path_to_searchindex_js = "searchindex-a8622f6e.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-2c52481d.js"></script>
+        <script src="toc-b6bca4ef.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -254,6 +254,9 @@ END_FUNCTION
 <li>For executable links with compiler drivers, startup/runtime defaults can be controlled explicitly with <code>--nocrt</code> and <code>--nolibc</code>.</li>
 <li><code>-l</code> also supports exact filenames (<code>-l:libfoo.so.1</code>) and direct full paths (<code>-l/path/to/libfoo.so.1</code>).</li>
 </ul>
+<h3 id="debug-path-remapping"><a class="header" href="#debug-path-remapping">Debug path remapping</a></h3>
+<p>For shipped binaries and remote debugging, RuSTy can rewrite embedded DWARF paths so that they do not contain developer-local checkout paths.</p>
+<p>See <a href="./using_rusty/debug_paths.html">Debug Path Remapping</a>.</p>
 <h3 id="relocation-model-pic--no-pic"><a class="header" href="#relocation-model-pic--no-pic">Relocation model (PIC / no-PIC)</a></h3>
 <p>By default, RuSTy generates position-independent code (PIC) when building shared libraries, and uses the
 platform default relocation mode for object files and executables.</p>
