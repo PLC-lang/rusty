@@ -10,7 +10,7 @@ target triple = "[filtered]"
 @__FSTRING_TO_DT.ignore__init = unnamed_addr constant [2 x i8] c"*\00"
 @__FSTRING_TO_DT.fchar__init = unnamed_addr constant [2 x i8] c"#\00"
 
-define i8 @STRING_EQUAL(ptr %0, ptr %1) {
+define zeroext i8 @STRING_EQUAL(ptr %0, ptr %1) {
 entry:
   %STRING_EQUAL = alloca i8, align [filtered]
   %op1 = alloca [1025 x i8], align [filtered]
@@ -34,7 +34,7 @@ entry:
   call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fchar, ptr align [filtered] @__FSTRING_TO_DT.fchar__init, i64 ptrtoint (ptr getelementptr ([2 x i8], ptr null, i32 1) to i64), i1 false)
   call void @llvm.memset.p0.i64(ptr align [filtered] %c, i8 0, i64 ptrtoint (ptr getelementptr ([2 x i8], ptr null, i32 1) to i64), i1 false)
   store i64 0, ptr %FSTRING_TO_DT, align [filtered]
-  %call = call i8 @STRING_EQUAL(ptr %c, ptr %ignore)
+  %call = call zeroext i8 @STRING_EQUAL(ptr %c, ptr %ignore)
   %0 = icmp ne i8 %call, 0
   br i1 %0, label %condition_body, label %continue
 

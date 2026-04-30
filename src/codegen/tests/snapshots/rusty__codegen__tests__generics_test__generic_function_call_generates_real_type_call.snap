@@ -30,8 +30,8 @@ entry:
   %call = call i32 @MAX__DINT(i32 1, i32 2)
   %load_a = load i16, ptr %a, align [filtered]
   %load_b = load i16, ptr %b, align [filtered]
-  %call1 = call i16 @MAX__INT(i16 %load_a, i16 %load_b)
+  %call1 = call signext i16 @MAX__INT(i16 signext %load_a, i16 signext %load_b)
   ret void
 }
 
-declare i16 @MAX__INT(i16, i16)
+declare signext i16 @MAX__INT(i16 signext, i16 signext)

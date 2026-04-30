@@ -7,7 +7,7 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-define i16 @main() {
+define signext i16 @main() {
 entry:
   %main = alloca i16, align [filtered]
   %a = alloca i8, align [filtered]

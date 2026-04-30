@@ -16,7 +16,7 @@ entry:
   ret void
 }
 
-define void @MyClass__testMethod(ptr %0, i16 %1) {
+define void @MyClass__testMethod(ptr %0, i16 signext %1) {
 entry:
   %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1

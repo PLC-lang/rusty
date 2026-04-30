@@ -13,7 +13,7 @@ target triple = "[filtered]"
 @__prg.s__init = unnamed_addr constant [11 x i8] c"hello\00\00\00\00\00\00"
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-define i16 @foo(ptr %0) {
+define signext i16 @foo(ptr %0) {
 entry:
   %foo = alloca i16, align [filtered]
   %s = alloca [81 x i8], align [filtered]
@@ -34,8 +34,8 @@ entry:
   %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %a, ptr align [filtered] %s, i32 11, i1 false)
   call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %a, ptr align [filtered] @utf08_literal_0, i32 6, i1 false)
-  %call = call i16 @foo(ptr %s)
-  %call1 = call i16 @foo(ptr @utf08_literal_0)
+  %call = call signext i16 @foo(ptr %s)
+  %call1 = call signext i16 @foo(ptr @utf08_literal_0)
   ret void
 }
 

@@ -1314,7 +1314,7 @@ fn this_in_method_and_body_in_function_block() {
       ret void
     }
 
-    define i16 @FB_Test__GetVal(ptr %0) {
+    define signext i16 @FB_Test__GetVal(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -1458,7 +1458,7 @@ fn pass_this_to_method() {
       store i16 0, ptr %x1, align [filtered]
       call void @FB_Test2__ctor(ptr %test)
       %1 = load ptr, ptr %this, align [filtered]
-      %call = call i16 @FB_Test2__bar(ptr %test, ptr %1)
+      %call = call signext i16 @FB_Test2__bar(ptr %test, ptr %1)
       ret void
     }
 
@@ -1470,7 +1470,7 @@ fn pass_this_to_method() {
       ret void
     }
 
-    define i16 @FB_Test2__bar(ptr %0, ptr %1) {
+    define signext i16 @FB_Test2__bar(ptr %0, ptr %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -1781,11 +1781,11 @@ fn this_calling_function_and_passing_this() {
       %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
       %x = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %1 = load ptr, ptr %this, align [filtered]
-      %call = call i16 @foo(ptr %1)
+      %call = call signext i16 @foo(ptr %1)
       ret void
     }
 
-    define i16 @foo(ptr %0) {
+    define signext i16 @foo(ptr %0) {
     entry:
       %foo = alloca i16, align [filtered]
       %pfb = alloca ptr, align [filtered]
@@ -1897,7 +1897,7 @@ fn this_in_property_and_calling_method() {
       ret void
     }
 
-    define i16 @FB_Test__DoubleX(ptr %0) {
+    define signext i16 @FB_Test__DoubleX(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -1916,7 +1916,7 @@ fn this_in_property_and_calling_method() {
       ret i16 %FB_Test__DoubleX_ret
     }
 
-    define i16 @FB_Test____get_Value(ptr %0) {
+    define signext i16 @FB_Test____get_Value(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -1927,7 +1927,7 @@ fn this_in_property_and_calling_method() {
       store i16 0, ptr %Value, align [filtered]
       store i16 0, ptr %FB_Test.__get_Value, align [filtered]
       %deref = load ptr, ptr %this, align [filtered]
-      %call = call i16 @FB_Test__DoubleX(ptr %deref)
+      %call = call signext i16 @FB_Test__DoubleX(ptr %deref)
       store i16 %call, ptr %Value, align [filtered]
       %load_Value = load i16, ptr %Value, align [filtered]
       store i16 %load_Value, ptr %FB_Test.__get_Value, align [filtered]
@@ -1935,7 +1935,7 @@ fn this_in_property_and_calling_method() {
       ret i16 %FB_Test____get_Value_ret
     }
 
-    define void @FB_Test____set_Value(ptr %0, i16 %1) {
+    define void @FB_Test____set_Value(ptr %0, i16 signext %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -2381,7 +2381,7 @@ fn this_calling_functionblock_body_from_method() {
       ret void
     }
 
-    define i16 @fb__foo(ptr %0) {
+    define signext i16 @fb__foo(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -2501,7 +2501,7 @@ fn fb_extension_with_output() {
       ret void
     }
 
-    define i16 @foo__met1(ptr %0, i16 %1, i16 %2, ptr %3) {
+    define signext i16 @foo__met1(ptr %0, i16 signext %1, i16 signext %2, ptr %3) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -2706,7 +2706,7 @@ fn function_with_output_used_in_main_by_extension() {
       ret void
     }
 
-    define i16 @foo__met1(ptr %0, i16 %1, i16 %2, ptr %3) {
+    define signext i16 @foo__met1(ptr %0, i16 signext %1, i16 signext %2, ptr %3) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -2752,9 +2752,9 @@ fn function_with_output_used_in_main_by_extension() {
       store i32 0, ptr %main, align [filtered]
       call void @foo__ctor(ptr %foo_inst)
       call void @foo2__ctor(ptr %foo2_inst)
-      %call = call i16 @foo__met1(ptr %foo_inst, i16 1, i16 5, ptr %out)
+      %call = call signext i16 @foo__met1(ptr %foo_inst, i16 signext 1, i16 signext 5, ptr %out)
       %__foo = getelementptr inbounds nuw %foo2, ptr %foo2_inst, i32 0, i32 0
-      %call1 = call i16 @foo__met1(ptr %__foo, i16 2, i16 5, ptr %out)
+      %call1 = call signext i16 @foo__met1(ptr %__foo, i16 signext 2, i16 signext 5, ptr %out)
       %main_ret = load i32, ptr %main, align [filtered]
       ret i32 %main_ret
     }

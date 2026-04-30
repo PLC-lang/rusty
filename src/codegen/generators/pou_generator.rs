@@ -30,6 +30,8 @@ use crate::index::Index;
 use index::VariableType;
 
 use inkwell::{
+    attributes::{Attribute, AttributeLoc},
+    context::Context,
     module::{Linkage, Module},
     types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum, FunctionType},
     values::{BasicValue, BasicValueEnum, FunctionValue},
@@ -162,6 +164,30 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     Ok(local_llvm_index)
 }
 
+/// Returns the LLVM `signext`/`zeroext` parameter attribute for IEC integer types narrower
+/// than 32 bits, or `None` for any wider/non-integer type. Without this attribute on FFI
+/// boundaries, optimized callees compiled with the matching attribute (e.g. the Rust stdlib
+/// in `--release`) read garbage upper register bits instead of the value the caller intended
+/// to pass — see #1146 (`MUL_LTIME(... SINT#-120)`). LLVM accepts these attributes on any
+/// integer width and ignores them on non-integers, so the helper is safe to call broadly.
+pub(super) fn int_extension_attribute(
+    context: &Context,
+    type_info: &DataTypeInformation,
+) -> Option<Attribute> {
+    let kind = match type_info {
+        DataTypeInformation::Integer { size, signed, .. } if *size < 32 => {
+            if *signed {
+                "signext"
+            } else {
+                "zeroext"
+            }
+        }
+        _ => return None,
+    };
+    let kind_id = Attribute::get_named_enum_kind_id(kind);
+    Some(context.create_enum_attribute(kind_id, 0))
+}
+
 impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// creates a new PouGenerator
     ///
@@ -207,6 +233,41 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         };
 
         Ok(ctx.mangle())
+    }
+
+    /// Applies x86_64 SysV (and equivalent) integer extension attributes to a function
+    /// declaration. See `int_extension_attribute` for the rationale (#1146). Programs,
+    /// function blocks and actions are skipped because they pass parameters via a single
+    /// instance-struct pointer, so there are no narrow integer slots to attribute.
+    fn apply_int_extension_attrs_to_decl(
+        &self,
+        function: FunctionValue<'ink>,
+        implementation: &ImplementationIndexEntry,
+        declared_parameters: &[&VariableIndexEntry],
+    ) {
+        if !implementation.get_implementation_type().is_function_method_or_init() {
+            return;
+        }
+        let context = self.llvm.context;
+        let param_offset = u32::from(implementation.is_method());
+        for (idx, param) in declared_parameters.iter().enumerate() {
+            if param.is_in_parameter_by_ref() {
+                continue;
+            }
+            let info = self.index.get_type_information_or_void(param.get_type_name());
+            if let Some(attr) = int_extension_attribute(context, info) {
+                function.add_attribute(AttributeLoc::Param(idx as u32 + param_offset), attr);
+            }
+        }
+        if let Some(return_info) = self
+            .index
+            .find_return_type(implementation.get_type_name())
+            .map(|dt| self.index.get_intrinsic_type_information(dt.get_type_information()))
+        {
+            if let Some(attr) = int_extension_attribute(context, return_info) {
+                function.add_attribute(AttributeLoc::Return, attr);
+            }
+        }
     }
 
     /// generates an empty llvm function for the given implementation, including all parameters and the return type
@@ -291,6 +352,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let curr_f: FunctionValue<'_> =
             module.add_function(&implementation.get_call_name_for_ir(), function_declaration, None);
+
+        self.apply_int_extension_attrs_to_decl(curr_f, implementation, &declared_parameters);
 
         let section_name = self.get_section(implementation)?;
         curr_f.set_section(section_name.as_deref());

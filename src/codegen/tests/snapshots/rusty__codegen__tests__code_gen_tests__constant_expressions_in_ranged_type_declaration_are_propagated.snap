@@ -12,7 +12,7 @@ target triple = "[filtered]"
 @MIN = unnamed_addr constant i16 7
 @prg_instance = global %prg zeroinitializer
 
-define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) {
+define signext i16 @CheckRangeSigned(i16 signext %0, i16 signext %1, i16 signext %2) {
 entry:
   %CheckRangeSigned = alloca i16, align [filtered]
   %value = alloca i16, align [filtered]
@@ -31,7 +31,7 @@ entry:
 define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-  %call = call i16 @CheckRangeSigned(i16 5, i16 0, i16 8)
+  %call = call signext i16 @CheckRangeSigned(i16 signext 5, i16 signext 0, i16 signext 8)
   store i16 %call, ptr %x, align [filtered]
   ret void
 }

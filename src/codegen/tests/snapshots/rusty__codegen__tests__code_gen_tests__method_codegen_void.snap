@@ -12,7 +12,7 @@ entry:
   ret void
 }
 
-define void @MyClass__testMethod(ptr %0, i16 %1) {
+define void @MyClass__testMethod(ptr %0, i16 signext %1) {
 entry:
   %myMethodArg = alloca i16, align [filtered]
   store i16 %1, ptr %myMethodArg, align [filtered]

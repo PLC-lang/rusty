@@ -11,7 +11,7 @@ target triple = "[filtered]"
 
 @Main_instance = global %Main zeroinitializer
 
-define i16 @CheckRangeSigned(i16 %0, i16 %1, i16 %2) {
+define signext i16 @CheckRangeSigned(i16 signext %0, i16 signext %1, i16 signext %2) {
 entry:
   %CheckRangeSigned = alloca i16, align [filtered]
   %value = alloca i16, align [filtered]
@@ -30,7 +30,7 @@ entry:
 define void @Main(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 0
-  %call = call i16 @CheckRangeSigned(i16 7, i16 0, i16 100)
+  %call = call signext i16 @CheckRangeSigned(i16 signext 7, i16 signext 0, i16 signext 100)
   store i16 %call, ptr %x, align [filtered]
   ret void
 }

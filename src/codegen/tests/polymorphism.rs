@@ -70,7 +70,7 @@ fn simple_overridden_method() {
       ret void
     }
 
-    define i16 @A__foo(ptr %0, i32 %1) {
+    define signext i16 @A__foo(ptr %0, i32 %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -95,7 +95,7 @@ fn simple_overridden_method() {
       ret void
     }
 
-    define i16 @B__foo(ptr %0, i32 %1) {
+    define signext i16 @B__foo(ptr %0, i32 %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -304,7 +304,7 @@ fn method_call_within_method() {
       ret void
     }
 
-    define i16 @A__foo(ptr %0, i32 %1) {
+    define signext i16 @A__foo(ptr %0, i32 %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -471,7 +471,7 @@ fn this_is_untouched() {
       ret void
     }
 
-    define i16 @A__foo(ptr %0, i32 %1) {
+    define signext i16 @A__foo(ptr %0, i32 %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -507,7 +507,7 @@ fn this_is_untouched() {
       %__A = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align [filtered]
       %__A1 = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
-      %call = call i16 @A__foo(ptr %__A1, i32 5)
+      %call = call signext i16 @A__foo(ptr %__A1, i32 5)
       ret void
     }
 
@@ -519,7 +519,7 @@ fn this_is_untouched() {
       ret void
     }
 
-    define i16 @C__foo(ptr %0, i32 %1) {
+    define signext i16 @C__foo(ptr %0, i32 %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -540,7 +540,7 @@ fn this_is_untouched() {
       store ptr %0, ptr %this, align [filtered]
       %__A = getelementptr inbounds nuw %C, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align [filtered]
-      %call = call i16 @C__foo(ptr %deref, i32 5)
+      %call = call signext i16 @C__foo(ptr %deref, i32 5)
       ret void
     }
 
@@ -803,7 +803,7 @@ fn super_is_untouched() {
       ret void
     }
 
-    define i16 @A__foo(ptr %0, i32 %1) {
+    define signext i16 @A__foo(ptr %0, i32 %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -832,7 +832,7 @@ fn super_is_untouched() {
       ret void
     }
 
-    define i16 @B__foo(ptr %0, i32 %1) {
+    define signext i16 @B__foo(ptr %0, i32 %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -841,7 +841,7 @@ fn super_is_untouched() {
       %in = alloca i32, align [filtered]
       store i32 %1, ptr %in, align [filtered]
       store i16 0, ptr %B.foo, align [filtered]
-      %call = call i16 @A__foo(ptr %__A, i32 5)
+      %call = call signext i16 @A__foo(ptr %__A, i32 5)
       call void @A__bar(ptr %__A)
       %B__foo_ret = load i16, ptr %B.foo, align [filtered]
       ret i16 %B__foo_ret
@@ -852,7 +852,7 @@ fn super_is_untouched() {
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %__A = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 0
-      %call = call i16 @A__foo(ptr %__A, i32 5)
+      %call = call signext i16 @A__foo(ptr %__A, i32 5)
       call void @A__bar(ptr %__A)
       ret void
     }

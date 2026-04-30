@@ -9,7 +9,7 @@ target triple = "[filtered]"
 
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"b\00"
 
-define i8 @STRING_LESS(ptr %0, ptr %1) {
+define zeroext i8 @STRING_LESS(ptr %0, ptr %1) {
 entry:
   %STRING_LESS = alloca i8, align [filtered]
   %op1 = alloca [1025 x i8], align [filtered]
@@ -23,7 +23,7 @@ entry:
   ret i8 %STRING_LESS_ret
 }
 
-define i16 @baz() {
+define signext i16 @baz() {
 entry:
   %baz = alloca i16, align [filtered]
   %a = alloca [81 x i8], align [filtered]
@@ -31,7 +31,7 @@ entry:
   call void @llvm.memset.p0.i64(ptr align [filtered] %a, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
   store i8 0, ptr %result, align [filtered]
   store i16 0, ptr %baz, align [filtered]
-  %call = call i8 @STRING_LESS(ptr %a, ptr @utf08_literal_0)
+  %call = call zeroext i8 @STRING_LESS(ptr %a, ptr @utf08_literal_0)
   store i8 %call, ptr %result, align [filtered]
   %baz_ret = load i16, ptr %baz, align [filtered]
   ret i16 %baz_ret

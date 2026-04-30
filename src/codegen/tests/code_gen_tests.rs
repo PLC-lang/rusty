@@ -1372,11 +1372,11 @@ fn fb_method_called_locally() {
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %call = call i32 @foo__addToBar(ptr %0, i16 42)
+      %call = call i32 @foo__addToBar(ptr %0, i16 signext 42)
       ret void
     }
 
-    define i32 @foo__addToBar(ptr %0, i16 %1) {
+    define i32 @foo__addToBar(ptr %0, i16 signext %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -1402,7 +1402,7 @@ fn fb_method_called_locally() {
       %x = alloca i32, align [filtered]
       call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %x, align [filtered]
-      %call = call i32 @foo__addToBar(ptr %fb, i16 3)
+      %call = call i32 @foo__addToBar(ptr %fb, i16 signext 3)
       store i32 %call, ptr %x, align [filtered]
       ret void
     }
@@ -1458,11 +1458,11 @@ fn fb_local_method_var_shadows_parent_var() {
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %call = call i32 @foo__addToBar(ptr %0, i16 42)
+      %call = call i32 @foo__addToBar(ptr %0, i16 signext 42)
       ret void
     }
 
-    define i32 @foo__addToBar(ptr %0, i16 %1) {
+    define i32 @foo__addToBar(ptr %0, i16 signext %1) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -1490,7 +1490,7 @@ fn fb_local_method_var_shadows_parent_var() {
       %x = alloca i32, align [filtered]
       call void @llvm.memset.p0.i64(ptr align [filtered] %fb, i8 0, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %x, align [filtered]
-      %call = call i32 @foo__addToBar(ptr %fb, i16 3)
+      %call = call i32 @foo__addToBar(ptr %fb, i16 signext 3)
       store i32 %call, ptr %x, align [filtered]
       ret void
     }
@@ -1543,11 +1543,11 @@ fn prog_method_called_locally() {
     define void @foo(ptr %0) {
     entry:
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %call = call i32 @foo__addToBar(ptr %0, i16 42)
+      %call = call i32 @foo__addToBar(ptr %0, i16 signext 42)
       ret void
     }
 
-    define i32 @foo__addToBar(ptr %0, i16 %1) {
+    define i32 @foo__addToBar(ptr %0, i16 signext %1) {
     entry:
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align [filtered]
@@ -1569,7 +1569,7 @@ fn prog_method_called_locally() {
     entry:
       %x = alloca i32, align [filtered]
       store i32 0, ptr %x, align [filtered]
-      %call = call i32 @foo__addToBar(ptr @foo_instance, i16 3)
+      %call = call i32 @foo__addToBar(ptr @foo_instance, i16 signext 3)
       store i32 %call, ptr %x, align [filtered]
       ret void
     }
@@ -1619,11 +1619,11 @@ fn prog_local_method_var_shadows_parent_var() {
     define void @foo(ptr %0) {
     entry:
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
-      %call = call i32 @foo__addToBar(ptr %0, i16 42)
+      %call = call i32 @foo__addToBar(ptr %0, i16 signext 42)
       ret void
     }
 
-    define i32 @foo__addToBar(ptr %0, i16 %1) {
+    define i32 @foo__addToBar(ptr %0, i16 signext %1) {
     entry:
       %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align [filtered]
@@ -1647,7 +1647,7 @@ fn prog_local_method_var_shadows_parent_var() {
     entry:
       %x = alloca i32, align [filtered]
       store i32 0, ptr %x, align [filtered]
-      %call = call i32 @foo__addToBar(ptr @foo_instance, i16 3)
+      %call = call i32 @foo__addToBar(ptr @foo_instance, i16 signext 3)
       store i32 %call, ptr %x, align [filtered]
       ret void
     }

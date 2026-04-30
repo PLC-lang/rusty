@@ -545,7 +545,7 @@ fn direct_access_in_output_assignment_of_function() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    define void @FLIP(i8 %0, ptr %1) {
+    define void @FLIP(i8 zeroext %0, ptr %1) {
     entry:
       %in = alloca i8, align [filtered]
       store i8 %0, ptr %in, align [filtered]
@@ -565,7 +565,7 @@ fn direct_access_in_output_assignment_of_function() {
       store i16 0, ptr %wordVar, align [filtered]
       %__FLIP_out0 = alloca i8, align [filtered]
       store i8 0, ptr %__FLIP_out0, align [filtered]
-      call void @FLIP(i8 85, ptr %__FLIP_out0)
+      call void @FLIP(i8 zeroext 85, ptr %__FLIP_out0)
       %0 = load i16, ptr %wordVar, align [filtered]
       %load___FLIP_out0 = load i8, ptr %__FLIP_out0, align [filtered]
       %erase = and i16 %0, -256

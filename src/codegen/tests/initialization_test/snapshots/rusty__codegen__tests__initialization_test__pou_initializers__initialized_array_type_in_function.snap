@@ -7,7 +7,7 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-define i16 @func() {
+define signext i16 @func() {
 entry:
   %func = alloca i16, align [filtered]
   %arr_var = alloca [4 x i32], align [filtered]

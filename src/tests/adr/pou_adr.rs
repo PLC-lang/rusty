@@ -245,7 +245,7 @@ fn calling_a_program() {
 
     @main_prg_instance = global %main_prg zeroinitializer
 
-    define i16 @foo() {
+    define signext i16 @foo() {
     entry:
       %foo = alloca i16, align [filtered]
       %x = alloca i16, align [filtered]
@@ -408,7 +408,7 @@ fn function_get_a_method_with_by_ref_parameters() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    define i32 @main_fun(i16 %0, ptr %1, ptr %2) {
+    define i32 @main_fun(i16 signext %0, ptr %1, ptr %2) {
     entry:
       %main_fun = alloca i32, align [filtered]
       %i = alloca i16, align [filtered]
@@ -462,11 +462,11 @@ fn calling_a_function() {
       %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       %load_x = load i16, ptr %x, align [filtered]
       %1 = alloca i64, align [filtered]
-      %call = call i32 @main_fun(i16 %load_x, ptr %z, ptr %1)
+      %call = call i32 @main_fun(i16 signext %load_x, ptr %z, ptr %1)
       ret void
     }
 
-    define i32 @main_fun(i16 %0, ptr %1, ptr %2) {
+    define i32 @main_fun(i16 signext %0, ptr %1, ptr %2) {
     entry:
       %main_fun = alloca i32, align [filtered]
       %i = alloca i16, align [filtered]
@@ -673,7 +673,7 @@ fn passing_by_ref_to_functions() {
 
     @main_instance = global %main zeroinitializer
 
-    define i8 @StrEqual(ptr %0, ptr %1) {
+    define zeroext i8 @StrEqual(ptr %0, ptr %1) {
     entry:
       %StrEqual = alloca i8, align [filtered]
       %o1 = alloca ptr, align [filtered]
@@ -689,7 +689,7 @@ fn passing_by_ref_to_functions() {
     entry:
       %str1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
       %str2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-      %call = call i8 @StrEqual(ptr %str1, ptr %str2)
+      %call = call zeroext i8 @StrEqual(ptr %str1, ptr %str2)
       ret void
     }
     "#);

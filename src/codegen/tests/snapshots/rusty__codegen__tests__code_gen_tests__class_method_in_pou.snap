@@ -19,7 +19,7 @@ entry:
   ret void
 }
 
-define void @MyClass__testMethod(ptr %0, i16 %1) {
+define void @MyClass__testMethod(ptr %0, i16 signext %1) {
 entry:
   %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
@@ -47,8 +47,8 @@ entry:
   %load_x = load i16, ptr %x1, align [filtered]
   store i16 %load_x, ptr %x, align [filtered]
   %load_x2 = load i16, ptr %x, align [filtered]
-  call void @MyClass__testMethod(ptr %cl, i16 %load_x2)
+  call void @MyClass__testMethod(ptr %cl, i16 signext %load_x2)
   %load_x3 = load i16, ptr %x, align [filtered]
-  call void @MyClass__testMethod(ptr %cl, i16 %load_x3)
+  call void @MyClass__testMethod(ptr %cl, i16 signext %load_x3)
   ret void
 }

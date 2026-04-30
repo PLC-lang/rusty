@@ -534,7 +534,7 @@ fn function_output_should_be_cast_if_needed() {
 
     @mainProg_instance = global %mainProg zeroinitializer
 
-    define i16 @libFunction(i16 %0, float %1, ptr %2) {
+    define signext i16 @libFunction(i16 signext %0, float %1, ptr %2) {
     entry:
       %libFunction = alloca i16, align [filtered]
       %inVar1 = alloca i16, align [filtered]
@@ -553,7 +553,7 @@ fn function_output_should_be_cast_if_needed() {
       %i1 = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
       %__libFunction_result0 = alloca float, align [filtered]
       store float 0.000000e+00, ptr %__libFunction_result0, align [filtered]
-      %call = call i16 @libFunction(i16 0, float 0.000000e+00, ptr %__libFunction_result0)
+      %call = call signext i16 @libFunction(i16 signext 0, float 0.000000e+00, ptr %__libFunction_result0)
       %load___libFunction_result0 = load float, ptr %__libFunction_result0, align [filtered]
       %1 = fptosi float %load___libFunction_result0 to i16
       store i16 %1, ptr %i1, align [filtered]
