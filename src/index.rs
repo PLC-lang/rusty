@@ -1625,6 +1625,25 @@ impl Index {
         self.find_method_recursive(container_name, method_name, &mut FxHashSet::default())
     }
 
+    /// return the `PouIndexEntry` associated with the given fully qualified name using `.` as
+    /// a delimiter. (e.g. "MyClass.MyMethod")
+    pub fn find_fully_qualified_method(&self, fully_qualified_name: &str) -> Option<&PouIndexEntry> {
+        let segments: Vec<&str> = fully_qualified_name.split('.').collect();
+        let (container, method_name) = if segments.len() > 1 {
+            // the last segment is th ename, everything before ist qualifier
+            // e.g. MyClass.MyMethod.x --> qualifier: "MyClass.MyMethod", name: "x"
+            (Some(segments.iter().take(segments.len() - 1).join(".")), *segments.last().unwrap())
+        } else {
+            (None, fully_qualified_name)
+        };
+
+        if let Some(container) = container {
+            self.find_method(&container, method_name)
+        } else {
+            None
+        }
+    }
+
     fn find_method_recursive<'b>(
         &'b self,
         container_name: &str,

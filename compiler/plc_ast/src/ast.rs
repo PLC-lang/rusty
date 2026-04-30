@@ -773,6 +773,22 @@ impl DataTypeDeclaration {
     pub fn is_aggregate(&self) -> bool {
         matches!(self, DataTypeDeclaration::Aggregate { .. })
     }
+
+    pub fn is_reference_to(&self) -> bool {
+        matches!(
+            self,
+            DataTypeDeclaration::Definition {
+                data_type,
+                ..
+            } if matches!(
+                data_type.as_ref(),
+                DataType::PointerType {
+                    auto_deref: Some(AutoDerefType::Reference),
+                    ..
+                }
+            )
+        )
+    }
 }
 
 #[derive(PartialEq, Serialize, Deserialize)]

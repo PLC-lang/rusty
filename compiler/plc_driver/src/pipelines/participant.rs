@@ -390,10 +390,10 @@ impl PipelineParticipantMut for ReferenceToReturnParticipant {
 
     // Had to move this step post annotate to ensure that the property lowerer has a chance to run
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        let AnnotatedProject { units, .. } = annotated_project;
+        let AnnotatedProject { units, index, annotations, .. } = annotated_project;
         let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
 
-        self.lower_reference_to_return(&mut units);
+        self.lower_reference_to_return(&mut units, index, annotations);
 
         let project = ParsedProject { units };
 

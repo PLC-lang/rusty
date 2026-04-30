@@ -22,6 +22,11 @@
 //!         refVal REF= __exampleFunc_return_val_1;
 //!     ```
 
+use itertools::Itertools;
+use plc::{
+    index::Index,
+    resolver::{AnnotationMap, AstAnnotations},
+};
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CallStatement,
@@ -32,6 +37,9 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
+
+const PROPERTY_GET_PREFIX: &str = "__get_";
+const PROPERTY_SET_PREFIX: &str = "__set_";
 
 pub struct ReferenceToReturnParticipant {
     pub ids: IdProvider,
@@ -59,12 +67,19 @@ impl ReferenceToReturnParticipant {
         self.implementation_context = context_gatherer.implementation_context;
     }
 
-    pub fn lower_reference_to_return(&mut self, units: &mut [CompilationUnit]) {
+    pub fn lower_reference_to_return(
+        &mut self,
+        units: &mut [CompilationUnit],
+        index: Index,
+        annotations: AstAnnotations,
+    ) {
         self.gather_context(units);
 
         // Perform the lowering process
         let mut lowerer = ReferenceToReturnLowerer::new(
             self.ids.clone(),
+            index,
+            annotations,
             self.pou_context.clone(),
             self.implementation_context.clone(),
         );
@@ -86,6 +101,8 @@ impl ReferenceToReturnParticipant {
 
 pub struct ReferenceToReturnLowerer {
     ids: IdProvider,
+    index: Index,
+    annotations: AstAnnotations,
     pou_context: Vec<ReferenceToReturnPouContext>,
     implementation_context: Vec<ReferenceToReturnImplementationContext>,
     new_user_types: Vec<UserTypeDeclaration>,
@@ -159,13 +176,11 @@ impl Default for ReferenceToReturnImplementationCallContext {
 
 pub struct ReferenceToReturnImplementationPouContext {
     in_context: bool,
-    is_get_property: bool,
-    is_set_property: bool,
 }
 
 impl ReferenceToReturnImplementationPouContext {
     pub fn new() -> Self {
-        Self { in_context: false, is_get_property: false, is_set_property: false }
+        Self { in_context: false }
     }
 }
 
@@ -429,16 +444,10 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
         self.current_implementation_pou_context.in_context =
             self.pou_original_return_type_is_reference_to(&implementation.name);
 
-        let de_qualified_name = de_qualify_name(&implementation.name);
-        self.current_implementation_pou_context.is_get_property = de_qualified_name.starts_with("__get_");
-        self.current_implementation_pou_context.is_set_property = de_qualified_name.starts_with("__set_");
-
         implementation.walk(self);
 
         // Exit context
         self.current_implementation_pou_context.in_context = false;
-        self.current_implementation_pou_context.is_get_property = false;
-        self.current_implementation_pou_context.is_set_property = false;
         self.current_implementation_call_context.used_call_states = Vec::new();
     }
 
@@ -629,25 +638,20 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
             {
                 self.current_implementation_call_context.value_is_used = true;
             } else if self.current_implementation_pou_context.in_context {
-                if let Some(name) = assignment.left.get_flat_reference_name() {
-                    let name = if self.current_implementation_pou_context.is_get_property {
-                        &get_method_name(name)
-                    } else if self.current_implementation_pou_context.is_set_property {
-                        &set_method_name(name)
-                    } else {
-                        name
-                    };
-
-                    let is_property = self.current_implementation_pou_context.is_get_property
-                        || self.current_implementation_pou_context.is_set_property;
-
-                    if self.pou_original_return_type_is_reference_to(name) {
-                        if is_property {
+                if let Some(Some(name)) = self.annotations.get(&assignment.left).map(|it| it.qualified_name())
+                {
+                    if self.parent_pou_is_reference_to(name)
+                        && self.current_statement_is_return_statement(name)
+                    {
+                        if self.parent_pou_is_property(name) {
+                            let Some(parent_name) = find_parent_of_fully_qualified_variable(name) else {
+                                unreachable!("cannot get here without parent")
+                            };
                             let mut replacement_assignment = assignment.clone();
 
                             let member_reference = AstFactory::create_member_reference(
                                 AstFactory::create_identifier(
-                                    self.get_return_variable_name(name),
+                                    self.get_return_variable_name(&parent_name),
                                     assignment.left.location.clone(),
                                     self.ids.next_id(),
                                 ),
@@ -697,8 +701,11 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
             {
                 self.current_implementation_call_context.value_is_used = true;
             } else if self.current_implementation_pou_context.in_context {
-                if let Some(name) = assignment.left.get_flat_reference_name() {
-                    if self.pou_original_return_type_is_reference_to(name) {
+                if let Some(Some(name)) = self.annotations.get(&assignment.left).map(|it| it.qualified_name())
+                {
+                    if self.parent_pou_is_reference_to(name)
+                        && self.current_statement_is_return_statement(name)
+                    {
                         // Special handling for properties, we remove any return assignments (as we examine this at a property level)
                         replacement_statement = Some(AstStatement::EmptyStatement(EmptyStatement {}));
                     }
@@ -718,11 +725,15 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
 impl ReferenceToReturnLowerer {
     pub fn new(
         ids: IdProvider,
+        index: Index,
+        annotations: AstAnnotations,
         pou_context: Vec<ReferenceToReturnPouContext>,
         implementation_context: Vec<ReferenceToReturnImplementationContext>,
     ) -> Self {
         Self {
             ids,
+            index,
+            annotations,
             pou_context,
             implementation_context,
             new_user_types: Vec::new(),
@@ -732,14 +743,44 @@ impl ReferenceToReturnLowerer {
     }
 
     fn pou_original_return_type_is_reference_to(&self, name: &str) -> bool {
-        // We might have to de-qualify to conduct this comparison
-        let should_de_qualify = !name.contains(".");
+        self.pou_context.iter().any(|it| it.pou_name == name)
+    }
 
-        self.pou_context.iter().any(|it| {
-            let compare_name = if should_de_qualify { &de_qualify_name(&it.pou_name) } else { &it.pou_name };
+    fn parent_pou_is_reference_to(&self, name: &str) -> bool {
+        if let Some(parent_name) = find_parent_of_fully_qualified_variable(name) {
+            self.pou_original_return_type_is_reference_to(&parent_name)
+        } else {
+            false
+        }
+    }
 
-            compare_name == name
-        })
+    fn current_statement_is_return_statement(&self, name: &str) -> bool {
+        let Some(variable) = self.index.find_fully_qualified_variable(name) else {
+            unreachable!("this must have a variable index entry")
+        };
+
+        // Unfortunately this convoluted check is required because property returns are not decorated with this information
+        variable.is_return() || {
+            if let Some(parent_name) = find_parent_of_fully_qualified_variable(name) {
+                remove_property_prefix(&de_qualify_name(&parent_name))
+                    == remove_property_prefix(&de_qualify_name(name))
+            } else {
+                false
+            }
+        }
+    }
+
+    fn parent_pou_is_property(&self, name: &str) -> bool {
+        if let Some(parent_name) = find_parent_of_fully_qualified_variable(name) {
+            if self.index.find_fully_qualified_method(&parent_name).is_some() {
+                de_qualify_name(&parent_name).starts_with(PROPERTY_GET_PREFIX)
+                    || de_qualify_name(&parent_name).starts_with(PROPERTY_SET_PREFIX)
+            } else {
+                false
+            }
+        } else {
+            false
+        }
     }
 
     fn get_all_pous_that_return_reference_to_for_implementation_of_pou(
@@ -792,7 +833,9 @@ impl ReferenceToReturnLowerer {
     }
 
     fn call_statement_referenced_pou_is_reference_to_return(&self, call_statement: &CallStatement) -> bool {
-        if let Some(call_statement_name) = call_statement.operator.get_flat_reference_name() {
+        if let Some(Some(call_statement_name)) =
+            self.annotations.get(&call_statement.operator).map(|it| it.qualified_name())
+        {
             if self.pou_original_return_type_is_reference_to(call_statement_name) {
                 return true;
             }
@@ -802,7 +845,9 @@ impl ReferenceToReturnLowerer {
     }
 
     fn get_and_bump_index_for_current_call_state(&mut self, call_statement: &CallStatement) -> usize {
-        if let Some(call_statement_name) = call_statement.operator.get_flat_reference_name() {
+        if let Some(Some(call_statement_name)) =
+            self.annotations.get(&call_statement.operator).map(|it| it.qualified_name())
+        {
             if self.pou_original_return_type_is_reference_to(call_statement_name) {
                 let element = self
                     .current_implementation_call_context
@@ -831,22 +876,36 @@ impl ReferenceToReturnLowerer {
     }
 }
 
+fn find_parent_of_fully_qualified_variable(fully_qualified_name: &str) -> Option<String> {
+    let segments: Vec<&str> = fully_qualified_name.split('.').collect();
+    if segments.len() > 1 {
+        // the last segment is th ename, everything before ist qualifier
+        // e.g. MyClass.MyMethod.x --> qualifier: "MyClass.MyMethod", name: "x"
+        Some(segments.iter().take(segments.len() - 1).join("."))
+    } else {
+        None
+    }
+}
+
 fn de_qualify_name(name: &str) -> String {
     if name.contains('.') {
         let segments: Vec<&str> = name.split('.').collect();
-
         return segments.last().unwrap().to_string();
     }
 
     name.to_string()
 }
 
-fn get_method_name(name: &str) -> String {
-    format!("__get_{name}")
-}
+fn remove_property_prefix(name: &str) -> String {
+    if name.contains(PROPERTY_GET_PREFIX) {
+        return name.replace(PROPERTY_GET_PREFIX, "");
+    }
 
-fn set_method_name(name: &str) -> String {
-    format!("__set_{name}")
+    if name.contains(PROPERTY_SET_PREFIX) {
+        return name.replace(PROPERTY_SET_PREFIX, "");
+    }
+
+    name.to_string()
 }
 
 #[cfg(test)]
