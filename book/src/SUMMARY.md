@@ -4,6 +4,7 @@
 - [Build & Install](./build_and_install.md)
 - [Using RuSTy](./using_rusty.md)
   - [Build Configuration](using_rusty/build_configuration.md)
+  - [Debug Path Remapping](using_rusty/debug_paths.md)
   - [Error Configuration](using_rusty/error_configuration.md)
   - [Header Generation](using_rusty/header_generation.md)
 - [Writing ST Programs]()

@@ -1,7 +1,12 @@
 #[cfg(test)]
 pub mod tests {
 
-    use std::{collections::HashMap, path::PathBuf, str::FromStr, sync::Mutex};
+    use std::{
+        collections::HashMap,
+        path::{Path, PathBuf},
+        str::FromStr,
+        sync::Mutex,
+    };
 
     use plc_ast::{
         ast::{pre_process, CompilationUnit, LinkageType},
@@ -270,11 +275,13 @@ pub mod tests {
             unit.file,
             crate::OptimizationLevel::None,
             debug_level,
+            &[],
+            None,
             online_change.clone(),
             &Target::System,
         );
         let llvm_index = code_generator
-            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout)
+            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout, false)
             .map_err(|err| {
                 reporter.handle(&[err.into()]);
                 reporter.buffer().unwrap()
@@ -297,11 +304,14 @@ pub mod tests {
         codegen_without_unwrap(src).map_err(|it| panic!("{it}")).unwrap()
     }
 
-    fn codegen_into_modules<T: Compilable>(
-        context: &CodegenContext,
+    fn codegen_into_modules_with_options<'ink, T: Compilable>(
+        context: &'ink CodegenContext,
         sources: T,
+        root: Option<&Path>,
         debug_level: DebugLevel,
-    ) -> Result<Vec<GeneratedModule<'_>>, Diagnostic>
+        debug_prefix_maps: &[(PathBuf, PathBuf)],
+        debug_compilation_dir: Option<&Path>,
+    ) -> Result<Vec<GeneratedModule<'ink>>, Diagnostic>
     where
         SourceCode: From<<T as Compilable>::T>,
     {
@@ -327,17 +337,19 @@ pub mod tests {
             })
             .collect::<Vec<_>>();
 
-        let path = PathBuf::from_str("src").ok();
+        let default_root = PathBuf::from_str("src").ok();
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
         units
             .into_iter()
             .map(|(unit, dependencies, literals)| {
                 let mut code_generator = crate::codegen::CodeGen::new(
                     context,
-                    path.as_deref(),
+                    root.or(default_root.as_deref()),
                     unit.file,
                     crate::OptimizationLevel::None,
                     debug_level,
+                    debug_prefix_maps,
+                    debug_compilation_dir,
                     crate::OnlineChange::Disabled,
                     &Target::System,
                 );
@@ -350,6 +362,7 @@ pub mod tests {
                     &dependencies,
                     &index,
                     &got_layout,
+                    false,
                 )?;
 
                 code_generator
@@ -363,12 +376,32 @@ pub mod tests {
     where
         SourceCode: From<<T as Compilable>::T>,
     {
+        codegen_multi_with_options(sources, None, debug_level, &[], None)
+    }
+
+    pub fn codegen_multi_with_options<T: Compilable>(
+        sources: T,
+        root: Option<&Path>,
+        debug_level: DebugLevel,
+        debug_prefix_maps: &[(PathBuf, PathBuf)],
+        debug_compilation_dir: Option<&Path>,
+    ) -> Vec<String>
+    where
+        SourceCode: From<<T as Compilable>::T>,
+    {
         let context = CodegenContext::create();
-        codegen_into_modules(&context, sources, debug_level)
-            .unwrap()
-            .into_iter()
-            .map(|module| module.persist_to_string())
-            .collect()
+        codegen_into_modules_with_options(
+            &context,
+            sources,
+            root,
+            debug_level,
+            debug_prefix_maps,
+            debug_compilation_dir,
+        )
+        .unwrap()
+        .into_iter()
+        .map(|module| module.persist_to_string())
+        .collect()
     }
 
     pub fn generate_with_empty_program(src: &str) -> String {
