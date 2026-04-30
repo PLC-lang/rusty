@@ -1,6 +1,6 @@
 use insta::assert_snapshot;
 
-use crate::test_utils::tests::parse_and_validate_buffered;
+use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
 
 #[test]
 fn constant_assignment_validation() {
@@ -1812,5 +1812,131 @@ fn assigning_void_call_result_to_a_pointer_must_result_in_validation_error() {
        │
     29 │             z := iDontReturnAValue(1); // panics
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'STRING'
+    ");
+}
+
+const CALL_DIRECTION_FIXTURE: &str = r#"
+    FUNCTION_BLOCK fb
+        VAR_INPUT  in_val   : DINT; END_VAR
+        VAR_OUTPUT out_val  : DINT; END_VAR
+        VAR_IN_OUT inout_val: DINT; END_VAR
+    END_FUNCTION_BLOCK
+
+    PROGRAM main
+        VAR
+            instance : fb;
+            local    : DINT;
+            shared   : DINT;
+        END_VAR
+        instance(in_val := 5, out_val => local, inout_val := shared); // all correct
+    END_PROGRAM
+"#;
+
+#[test]
+fn assignment_to_output_parameter_is_rejected() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR_OUTPUT out_val : DINT; END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                instance : fb;
+                local    : DINT;
+            END_VAR
+            instance(out_val := local); // ❌ E134
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E134]: 'out_val' is an output parameter; use '=>' instead of ':='
+       ┌─ <internal>:11:22
+       │
+    11 │             instance(out_val := local); // ❌ E134
+       │                      ^^^^^^^^^^^^^^^^ 'out_val' is an output parameter; use '=>' instead of ':='
+    ");
+}
+
+#[test]
+fn correct_call_directions_are_clean() {
+    let diagnostics = parse_and_validate_buffered(CALL_DIRECTION_FIXTURE);
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn output_assignment_on_input_parameter_is_ignore_by_default() {
+    // E135 is severity Ignore by default — surfaces internally but is not displayed.
+    let src = r#"
+        FUNCTION_BLOCK fb
+            VAR_INPUT in_val : DINT; END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR instance : fb; source : DINT; END_VAR
+            instance(in_val => source);
+        END_PROGRAM
+        "#;
+
+    // user-visible diagnostics buffer is empty (Ignore filtered)
+    let buffered = parse_and_validate_buffered(src);
+    assert_snapshot!(buffered, @"");
+
+    // but the validator still emits the diagnostic for users who opt in via --error-config
+    let raw = parse_and_validate(src);
+    assert!(
+        raw.iter().any(|d| d.get_error_code() == "E135"),
+        "expected E135 to be emitted (got {:?})",
+        raw.iter().map(|d| d.get_error_code()).collect::<Vec<_>>(),
+    );
+}
+
+#[test]
+fn output_assignment_on_inout_parameter_is_ignore_by_default() {
+    let src = r#"
+        FUNCTION_BLOCK fb
+            VAR_IN_OUT inout_val : DINT; END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR instance : fb; shared : DINT; END_VAR
+            instance(inout_val => shared);
+        END_PROGRAM
+        "#;
+
+    let buffered = parse_and_validate_buffered(src);
+    assert_snapshot!(buffered, @"");
+
+    let raw = parse_and_validate(src);
+    let e135 = raw.iter().find(|d| d.get_error_code() == "E135").expect("E135 should be emitted");
+    assert!(e135.get_message().contains("in-out"), "message should name the in-out direction: {:?}", e135);
+}
+
+#[test]
+fn mixed_named_and_positional_args_do_not_double_report() {
+    // Positional args don't carry a direction operator; the new check must skip them
+    // without interfering with the existing E132 (mixing implicit/explicit) machinery.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR_INPUT  in_val  : DINT; END_VAR
+            VAR_OUTPUT out_val : DINT; END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                instance : fb;
+                local    : DINT;
+            END_VAR
+            instance(in_val := 5, out_val := local); // only out_val arg gets E134
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E134]: 'out_val' is an output parameter; use '=>' instead of ':='
+       ┌─ <internal>:12:35
+       │
+    12 │             instance(in_val := 5, out_val := local); // only out_val arg gets E134
+       │                                   ^^^^^^^^^^^^^^^^ 'out_val' is an output parameter; use '=>' instead of ':='
     ");
 }

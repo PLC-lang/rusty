@@ -1773,7 +1773,7 @@ fn validate_array_elements_passed_to_functions_by_ref() {
 
             func(x, x);                                    // Invalid because we pass a whole array
             func(x[0], x[1]);                              // Valid because we pass a variable by array access
-            func(byRefInOut := x[0], byRefOutput := x[1]); // Valid because we pass a variable by array access
+            func(byRefInOut := x[0], byRefOutput => x[1]); // Valid because we pass a variable by array access
         END_PROGRAM
         ",
     );
