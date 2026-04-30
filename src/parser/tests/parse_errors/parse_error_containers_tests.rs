@@ -189,7 +189,7 @@ fn super_is_a_reserved_keyword() {
     //                  Related: https://github.com/PLC-lang/rusty/issues/1408
 
     let diagnostics = parse_and_report_parse_errors_buffered(src);
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E006]: Expected a name for the interface definition but got nothing
       ┌─ <internal>:2:5
       │
@@ -229,11 +229,11 @@ fn super_is_a_reserved_keyword() {
       │ ╰─────────────────^ Unexpected token: expected KeywordSemicolon but found 'VAR
                 super'
 
-    error[E007]: Unexpected token: expected Literal but found END_VAR
+    error[E007]: Unexpected token: expected expression but found END_VAR
       ┌─ <internal>:6:9
       │
     6 │         END_VAR
-      │         ^^^^^^^ Unexpected token: expected Literal but found END_VAR
+      │         ^^^^^^^ Unexpected token: expected expression but found END_VAR
 
     error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
             METHOD super END_METHOD'
@@ -273,7 +273,7 @@ fn this_is_a_reserved_keyword() {
     // TODO(mhasel):    the parser produces a lot of noise for keyword errors,
     //                  we need to find a way to handle keywords as identifiers
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E006]: Expected a name for the interface definition but got nothing
       ┌─ <internal>:2:5
       │
@@ -313,11 +313,11 @@ fn this_is_a_reserved_keyword() {
       │ ╰────────────────^ Unexpected token: expected KeywordSemicolon but found 'VAR
                 this'
 
-    error[E007]: Unexpected token: expected Literal but found END_VAR
+    error[E007]: Unexpected token: expected expression but found END_VAR
       ┌─ <internal>:6:9
       │
     6 │         END_VAR
-      │         ^^^^^^^ Unexpected token: expected Literal but found END_VAR
+      │         ^^^^^^^ Unexpected token: expected expression but found END_VAR
 
     error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
             METHOD this END_METHOD'

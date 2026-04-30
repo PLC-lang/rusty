@@ -18,11 +18,11 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found 'x TO y DO
   │ ╰─────────────^ Unexpected token: expected KeywordSemicolon but found 'x TO y DO
             x'
 
-error[E007]: Unexpected token: expected Literal but found END_FOR
+error[E007]: Unexpected token: expected expression but found END_FOR
   ┌─ <internal>:6:9
   │
 6 │         END_FOR
-  │         ^^^^^^^ Unexpected token: expected Literal but found END_FOR
+  │         ^^^^^^^ Unexpected token: expected expression but found END_FOR
 
 error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_FOR'
   ┌─ <internal>:6:9

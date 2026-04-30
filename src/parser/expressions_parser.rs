@@ -327,6 +327,7 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
         _ => {
             if lexer.closing_keywords.contains(&vec![KeywordParensClose])
                 && matches!(lexer.last_token, KeywordOutputAssignment | KeywordAssignment)
+                && matches!(lexer.token, KeywordParensClose | KeywordComma)
             {
                 // due to closing keyword ')' and last_token '=>' / ':='
                 // we are probably in a call statement missing a parameter assignment 'foo(param := );
@@ -334,10 +335,20 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
                 Some(AstFactory::create_empty_statement(lexer.location(), lexer.next_id()))
             } else {
                 lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    "Literal",
+                    "expression",
                     lexer.slice(),
                     lexer.location(),
                 ));
+                // If the bad token is a binary-only operator misused as a
+                // prefix (e.g. `&y`, `MOD y`), consume it and retry the leaf
+                // so the recovered AST captures the operand the user wrote.
+                // For non-operator tokens (e.g. END_CASE, END_VAR), leave the
+                // token in the stream so outer parsers can use it for
+                // synchronization.
+                if to_operator(&lexer.token).is_some() {
+                    lexer.advance();
+                    return parse_atomic_leaf_expression(lexer);
+                }
                 None
             }
         }
