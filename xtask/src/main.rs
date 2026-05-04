@@ -25,7 +25,14 @@ enum Command {
         #[arg(value_enum, long, global = true, default_value_t = ReporterType::Sysout)]
         reporter: ReporterType,
     },
-    Lit,
+    Lit {
+        /// Comma-separated optimization levels to exercise. Each cell runs the
+        /// full lit suite with `-O<level>`; defaults match the CI matrix.
+        /// Tests that cannot handle a non-default level should declare
+        /// `// UNSUPPORTED: opt-none` (or equivalent) in their RUN-line preamble.
+        #[arg(long, value_delimiter = ',', default_values_t = ["default".to_string(), "none".to_string()])]
+        opt_levels: Vec<String>,
+    },
 }
 
 #[derive(Subcommand, Clone)]
@@ -43,16 +50,16 @@ fn main() -> anyhow::Result<()> {
     let params = Parameters::parse();
     match params.command {
         Command::Metrics { action, reporter } => run_metrics(action, reporter)?,
-        Command::Lit => run_lit()?,
+        Command::Lit { opt_levels } => run_lit(&opt_levels)?,
     };
 
     Ok(())
 }
 
-fn run_lit() -> Result<()> {
+fn run_lit(opt_levels: &[String]) -> Result<()> {
     let sh = Shell::new()?;
 
-    // Run compile
+    let _env = sh.push_env("OPT_LEVELS", opt_levels.join(","));
     sh.cmd("scripts/build.sh").args(&["--lit"]).run()?;
     Ok(())
 }

@@ -1,4 +1,4 @@
-// RUN: (%COMPILE -Onone %s && %RUN) | %CHECK %s
+// RUN: (%COMPILE %s && %RUN) | %CHECK %s
 // Verifies that a boolean XOR expression involving a direct bit-access is
 // correctly promoted to i32 when passed as a variadic argument.
 // Without the promotion the i1 result can be clobbered by the subsequent MUX
