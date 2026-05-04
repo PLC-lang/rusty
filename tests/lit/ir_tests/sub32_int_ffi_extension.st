@@ -1,3 +1,4 @@
+// REQUIRES: host-x86_64
 // RUN: %COMPILE_IR %s | %CHECK_IR %s
 //
 // Regression for #1146. Verify call sites and declarations of functions taking sub-32-bit
@@ -5,6 +6,11 @@
 // Without these, optimized release builds of FFI'd callees (e.g. the Rust stdlib) read
 // garbage upper register bits instead of the intended signed value — see also
 // `cargo test --release -p iec61131std mul_ltime_signed`.
+//
+// Gated to host-x86_64 because the codegen emission is target-aware: x86 family and
+// Apple/Darwin emit the attributes; plain AAPCS (aarch64-unknown-linux-gnu) does not
+// and the FILECHECK lines below would not match. The runtime regression coverage for
+// the AAPCS path lives under tests/lit/single/stdlib_overflow/sub32_ffi_return_*.st.
 
 {external}
 FUNCTION extFunc : LINT
