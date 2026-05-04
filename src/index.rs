@@ -1338,6 +1338,14 @@ impl Index {
     pub fn import(&mut self, mut other: Index) {
         //global variables
         for (name, e) in other.global_variables.drain(..) {
+            // Synthetic hardware-backing globals (`__PI_*` / `__M_*` / `__G_*`) are
+            // generated per-unit by the pre-processor; when multiple units alias the
+            // same hardware address they each produce an entry with the identical
+            // mangled name. Dedup at import: keep the first one seen instead of
+            // surfacing them later as ambiguous-global diagnostics.
+            if is_synthetic_hw_global(&name) && self.global_variables.contains_key(&name) {
+                continue;
+            }
             let entries = e
                 .into_iter()
                 .map(|it| self.transfer_constants(it, &mut other.constant_expressions))
@@ -2494,6 +2502,17 @@ impl Index {
 }
 
 /// Returns a default initialization name for a variable or type
+/// Returns true for the hardware-address-mangled synthetic globals emitted by
+/// the pre-processor (`__PI_*` for inputs, `__M_*` for memory, `__G_*` for
+/// globals). These deterministic names can legitimately appear in multiple
+/// units when they share a hardware address; index merging dedups them so they
+/// don't surface as ambiguous-global diagnostics. The check is
+/// case-insensitive because index keys are stored lowercased.
+fn is_synthetic_hw_global(name: &str) -> bool {
+    let lower = name.to_lowercase();
+    lower.starts_with("__pi_") || lower.starts_with("__m_") || lower.starts_with("__g_")
+}
+
 pub fn get_initializer_name(name: &str) -> String {
     format!("__{name}__init")
 }

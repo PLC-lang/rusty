@@ -1,0 +1,2 @@
+RUN: %COMPILE %S/file1.st %S/file2.st && %RUN | %CHECK %s
+CHECK: aliased
