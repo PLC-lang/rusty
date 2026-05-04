@@ -164,6 +164,28 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     Ok(local_llvm_index)
 }
 
+/// True when the target's calling convention uses LLVM `signext`/`zeroext`
+/// parameter and return attributes for sub-32-bit `extern "C"` integers.
+///
+/// Mirrors rustc's per-architecture rule (`rustc_target::callconv::aarch64`,
+/// `::x86_64`): SysV (x86) and Apple's modified AAPCS extend at the IR-attribute
+/// level; plain AAPCS (aarch64-unknown-linux-gnu, aarch64-pc-windows-msvc) and
+/// AAPCS32 perform the extension during instruction selection without emitting
+/// the attribute. Emitting attributes on rusty's side without the Rust callees
+/// in `iec61131std.so` having matching attributes regresses #1146 in the
+/// opposite direction on aarch64 release builds — sub-32-bit return values
+/// arrive with wrong upper bits. We mirror rustc's emission gate to keep the
+/// IR contract consistent with the linked Rust code on every target.
+pub(super) fn target_uses_int_extension_attrs(triple: &str) -> bool {
+    let parts: Vec<&str> = triple.split('-').collect();
+    let arch = parts.first().copied().unwrap_or("");
+    let is_darwin = parts
+        .iter()
+        .any(|part| matches!(*part, "darwin" | "ios" | "macos" | "tvos" | "watchos" | "visionos"));
+    let is_x86 = matches!(arch, "x86_64" | "i686" | "i586" | "i386");
+    is_x86 || is_darwin
+}
+
 /// Returns the LLVM `signext`/`zeroext` parameter attribute for IEC integer types narrower
 /// than 32 bits, or `None` for any wider/non-integer type. Without this attribute on FFI
 /// boundaries, optimized callees compiled with the matching attribute (e.g. the Rust stdlib
@@ -246,6 +268,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         declared_parameters: &[&VariableIndexEntry],
     ) {
         if !implementation.get_implementation_type().is_function_method_or_init() {
+            return;
+        }
+        if !target_uses_int_extension_attrs(&self.llvm.target_triple) {
             return;
         }
         let context = self.llvm.context;

@@ -44,7 +44,9 @@ use crate::{
 };
 
 use super::{
-    llvm::Llvm, pou_generator::int_extension_attribute, statement_generator::FunctionContext,
+    llvm::Llvm,
+    pou_generator::{int_extension_attribute, target_uses_int_extension_attrs},
+    statement_generator::FunctionContext,
     ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC,
 };
 
@@ -604,6 +606,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         arguments_list: &[BasicMetadataValueEnum<'ink>],
     ) {
         if !(pou.is_function() || pou.is_method()) {
+            return;
+        }
+        if !target_uses_int_extension_attrs(&self.llvm.target_triple) {
             return;
         }
         let context = self.llvm.context;
