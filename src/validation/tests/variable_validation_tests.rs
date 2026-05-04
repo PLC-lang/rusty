@@ -898,11 +898,17 @@ fn aliasing_to_undeclared_type_is_an_error() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E052]: Unknown type: myDeclaredType
+    error[E052]: Unknown type: undeclaredType
+      ┌─ <internal>:2:31
+      │
+    2 │         TYPE myDeclaredType : undeclaredType; END_TYPE
+      │                               ^^^^^^^^^^^^^^ Unknown type: undeclaredType
+
+    error[E052]: Type 'myDeclaredType' references an unknown type
       ┌─ <internal>:4:16
       │
     4 │             a: myDeclaredType;
-      │                ^^^^^^^^^^^^^^ Unknown type: myDeclaredType
+      │                ^^^^^^^^^^^^^^ Type 'myDeclaredType' references an unknown type
     ");
 }
 

@@ -30,7 +30,18 @@ pub fn visit_data_type_declaration<T: AnnotationMap>(
     match declaration {
         DataTypeDeclaration::Reference { referenced_type, location } => {
             if context.index.find_effective_type_by_name(referenced_type).is_none() {
-                validator.push_diagnostic(Diagnostic::unknown_type(referenced_type, location));
+                if context.index.find_type(referenced_type).is_some() {
+                    // Name is registered but its alias chain bottoms out at an unknown type.
+                    // The typedef site already reports the missing target; here we flag the
+                    // alias as unusable without claiming the name itself is unknown.
+                    validator.push_diagnostic(
+                        Diagnostic::new(format!("Type '{referenced_type}' references an unknown type"))
+                            .with_error_code("E052")
+                            .with_location(location),
+                    );
+                } else {
+                    validator.push_diagnostic(Diagnostic::unknown_type(referenced_type, location));
+                }
             };
         }
         DataTypeDeclaration::Definition { data_type, location, .. } => {
@@ -141,6 +152,12 @@ pub fn visit_data_type<T: AnnotationMap>(
                 }
             } else {
                 validator.push_diagnostic(Diagnostic::unknown_type(numeric_type, location));
+            }
+        }
+        DataType::SubRangeType { referenced_type, referenced_type_location, .. } => {
+            if context.index.find_type(referenced_type).is_none() {
+                validator
+                    .push_diagnostic(Diagnostic::unknown_type(referenced_type, referenced_type_location));
             }
         }
         _ => {}
