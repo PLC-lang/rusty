@@ -3250,301 +3250,310 @@
 <a href=#3250 id=3250 data-nosnippet>3250</a>
 <a href=#3251 id=3251 data-nosnippet>3251</a>            <span class="comment">// `base^`
 <a href=#3252 id=3252 data-nosnippet>3252</a>            </span>(ReferenceAccess::Deref, <span class="prelude-val">Some</span>(base)) =&gt; {
-<a href=#3253 id=3253 data-nosnippet>3253</a>                <span class="kw">let </span>base_lvalue = <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>;
+<a href=#3253 id=3253 data-nosnippet>3253</a>                <span class="kw">let </span>base_value = <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>;
 <a href=#3254 id=3254 data-nosnippet>3254</a>
-<a href=#3255 id=3255 data-nosnippet>3255</a>                <span class="kw">let </span>value = <span class="self">self</span>.llvm.load_pointer(
-<a href=#3256 id=3256 data-nosnippet>3256</a>                    <span class="comment">// Normally it wouldn't be safe to just assume the pointee in the `load_pointer` call to
-<a href=#3257 id=3257 data-nosnippet>3257</a>                    // be of type `ptr`. However, we call `into_pointer_value` on the result of it, as such
-<a href=#3258 id=3258 data-nosnippet>3258</a>                    // LLVM actually expects the type to be `ptr` as it will panic otherwise.
-<a href=#3259 id=3259 data-nosnippet>3259</a>                    </span><span class="self">self</span>.llvm.context.ptr_type(
-<a href=#3260 id=3260 data-nosnippet>3260</a>                        AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
-<a href=#3261 id=3261 data-nosnippet>3261</a>                        <span class="kw-2">&amp;</span>base_lvalue.get_basic_value_enum().into_pointer_value(),
-<a href=#3262 id=3262 data-nosnippet>3262</a>                        <span class="string">"deref"
-<a href=#3263 id=3263 data-nosnippet>3263</a>                    </span>)<span class="question-mark">?</span>;
-<a href=#3264 id=3264 data-nosnippet>3264</a>
-<a href=#3265 id=3265 data-nosnippet>3265</a>                    <span class="kw">let </span>pointee = {
-<a href=#3266 id=3266 data-nosnippet>3266</a>                        <span class="kw">let </span>datatype = <span class="self">self</span>.annotations.get_type(original_expression, <span class="self">self</span>.index).unwrap();
-<a href=#3267 id=3267 data-nosnippet>3267</a>                        <span class="self">self</span>.llvm_index.get_associated_type(<span class="kw-2">&amp;</span>datatype.name).unwrap()
-<a href=#3268 id=3268 data-nosnippet>3268</a>                    };
-<a href=#3269 id=3269 data-nosnippet>3269</a>                <span class="prelude-val">Ok</span>(ExpressionValue::LValue(value.into_pointer_value(), pointee))
-<a href=#3270 id=3270 data-nosnippet>3270</a>            }
-<a href=#3271 id=3271 data-nosnippet>3271</a>
-<a href=#3272 id=3272 data-nosnippet>3272</a>            <span class="comment">// `&amp;base`
-<a href=#3273 id=3273 data-nosnippet>3273</a>            </span>(ReferenceAccess::Address, <span class="prelude-val">Some</span>(base)) =&gt; {
-<a href=#3274 id=3274 data-nosnippet>3274</a>                <span class="kw">let </span>lvalue = <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>;
-<a href=#3275 id=3275 data-nosnippet>3275</a>                <span class="prelude-val">Ok</span>(ExpressionValue::RValue(lvalue.get_basic_value_enum()))
-<a href=#3276 id=3276 data-nosnippet>3276</a>            }
-<a href=#3277 id=3277 data-nosnippet>3277</a>
-<a href=#3278 id=3278 data-nosnippet>3278</a>            (ReferenceAccess::Index(<span class="kw">_</span>), <span class="prelude-val">None</span>)   <span class="comment">// [idx];
-<a href=#3279 id=3279 data-nosnippet>3279</a>            </span>| (ReferenceAccess::Cast(<span class="kw">_</span>), <span class="prelude-val">None</span>)  <span class="comment">// INT#;
-<a href=#3280 id=3280 data-nosnippet>3280</a>            </span>| (ReferenceAccess::Deref, <span class="prelude-val">None</span>)    <span class="comment">// ^;
-<a href=#3281 id=3281 data-nosnippet>3281</a>            </span>| (ReferenceAccess::Address, <span class="prelude-val">None</span>)  <span class="comment">// &amp;;
-<a href=#3282 id=3282 data-nosnippet>3282</a>            </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-<a href=#3283 id=3283 data-nosnippet>3283</a>                <span class="string">"Expected a base expression, but found none"</span>,
-<a href=#3284 id=3284 data-nosnippet>3284</a>                original_expression,
-<a href=#3285 id=3285 data-nosnippet>3285</a>            ).into())
-<a href=#3286 id=3286 data-nosnippet>3286</a>        }
-<a href=#3287 id=3287 data-nosnippet>3287</a>    }
-<a href=#3288 id=3288 data-nosnippet>3288</a>
-<a href=#3289 id=3289 data-nosnippet>3289</a>    <span class="doccomment">/// generates a direct-access expression like `x.%B4`
-<a href=#3290 id=3290 data-nosnippet>3290</a>    /// - `qualifier` the qualifier statement (see `x` above)
-<a href=#3291 id=3291 data-nosnippet>3291</a>    /// - `qualifier_value` the generated value of the qualifier
-<a href=#3292 id=3292 data-nosnippet>3292</a>    /// - `member` the member AstStatement (see `%B4`above)
-<a href=#3293 id=3293 data-nosnippet>3293</a>    /// - `access` the type of access (see `B` above)
-<a href=#3294 id=3294 data-nosnippet>3294</a>    </span><span class="kw">fn </span>generate_direct_access_expression(
-<a href=#3295 id=3295 data-nosnippet>3295</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
-<a href=#3296 id=3296 data-nosnippet>3296</a>        qualifier: <span class="kw-2">&amp;</span>AstNode,
-<a href=#3297 id=3297 data-nosnippet>3297</a>        qualifier_value: <span class="kw-2">&amp;</span>ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;,
-<a href=#3298 id=3298 data-nosnippet>3298</a>        member: <span class="kw-2">&amp;</span>AstNode,
-<a href=#3299 id=3299 data-nosnippet>3299</a>        access: <span class="kw-2">&amp;</span>DirectAccessType,
-<a href=#3300 id=3300 data-nosnippet>3300</a>        index: <span class="kw-2">&amp;</span>AstNode,
-<a href=#3301 id=3301 data-nosnippet>3301</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, CodegenError&gt; {
-<a href=#3302 id=3302 data-nosnippet>3302</a>        <span class="kw">let </span>loaded_base_value = qualifier_value.as_r_value(<span class="self">self</span>.llvm, <span class="self">self</span>.get_load_name(qualifier))<span class="question-mark">?</span>;
-<a href=#3303 id=3303 data-nosnippet>3303</a>        <span class="kw">let </span>datatype = <span class="self">self</span>.get_type_hint_info_for(member)<span class="question-mark">?</span>;
-<a href=#3304 id=3304 data-nosnippet>3304</a>        <span class="kw">let </span>base_type = <span class="self">self</span>.get_type_hint_for(qualifier)<span class="question-mark">?</span>;
-<a href=#3305 id=3305 data-nosnippet>3305</a>
-<a href=#3306 id=3306 data-nosnippet>3306</a>        <span class="comment">//Generate and load the index value
-<a href=#3307 id=3307 data-nosnippet>3307</a>        </span><span class="kw">let </span>rhs = <span class="self">self</span>.generate_direct_access_index(access, index, datatype, base_type)<span class="question-mark">?</span>;
-<a href=#3308 id=3308 data-nosnippet>3308</a>        <span class="comment">//Shift the qualifer value right by the index value
-<a href=#3309 id=3309 data-nosnippet>3309</a>        </span><span class="kw">let </span>shift = <span class="self">self</span>.llvm.builder.build_right_shift(
-<a href=#3310 id=3310 data-nosnippet>3310</a>            loaded_base_value.into_int_value(),
-<a href=#3311 id=3311 data-nosnippet>3311</a>            rhs,
-<a href=#3312 id=3312 data-nosnippet>3312</a>            base_type.get_type_information().is_signed_int(),
-<a href=#3313 id=3313 data-nosnippet>3313</a>            <span class="string">"shift"</span>,
-<a href=#3314 id=3314 data-nosnippet>3314</a>        )<span class="question-mark">?</span>;
-<a href=#3315 id=3315 data-nosnippet>3315</a>        <span class="comment">//Trunc the result to the get only the target size
-<a href=#3316 id=3316 data-nosnippet>3316</a>        </span><span class="kw">let </span>value = <span class="self">self</span>.llvm.builder.build_int_truncate_or_bit_cast(
-<a href=#3317 id=3317 data-nosnippet>3317</a>            shift,
-<a href=#3318 id=3318 data-nosnippet>3318</a>            <span class="self">self</span>.llvm_index.get_associated_type(datatype.get_name())<span class="question-mark">?</span>.into_int_type(),
-<a href=#3319 id=3319 data-nosnippet>3319</a>            <span class="string">""</span>,
-<a href=#3320 id=3320 data-nosnippet>3320</a>        )<span class="question-mark">?</span>;
-<a href=#3321 id=3321 data-nosnippet>3321</a>
-<a href=#3322 id=3322 data-nosnippet>3322</a>        <span class="kw">let </span>result = <span class="kw">if </span>datatype.get_type_information().is_bool() {
-<a href=#3323 id=3323 data-nosnippet>3323</a>            <span class="comment">// since booleans are i1 internally, but i8 in llvm, we need to bitwise-AND the value with 1 to make sure we end up with the expected value
-<a href=#3324 id=3324 data-nosnippet>3324</a>            </span><span class="self">self</span>.llvm.builder.build_and(value, <span class="self">self</span>.llvm.context.i8_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>), <span class="string">""</span>)<span class="question-mark">?
-<a href=#3325 id=3325 data-nosnippet>3325</a>        </span>} <span class="kw">else </span>{
-<a href=#3326 id=3326 data-nosnippet>3326</a>            value
-<a href=#3327 id=3327 data-nosnippet>3327</a>        };
-<a href=#3328 id=3328 data-nosnippet>3328</a>
-<a href=#3329 id=3329 data-nosnippet>3329</a>        <span class="prelude-val">Ok</span>(ExpressionValue::RValue(result.as_basic_value_enum()))
-<a href=#3330 id=3330 data-nosnippet>3330</a>    }
-<a href=#3331 id=3331 data-nosnippet>3331</a>}
-<a href=#3332 id=3332 data-nosnippet>3332</a>
-<a href=#3333 id=3333 data-nosnippet>3333</a><span class="doccomment">/// Returns the information required to call a parameter implicitly in a function
-<a href=#3334 id=3334 data-nosnippet>3334</a>/// If the parameter is already implicit, it does nothing.
-<a href=#3335 id=3335 data-nosnippet>3335</a>/// if the parameter is explicit ´param := value´,
-<a href=#3336 id=3336 data-nosnippet>3336</a>/// it returns the location of the parameter in the function declaration
-<a href=#3337 id=3337 data-nosnippet>3337</a>/// as well as the parameter value (right side) ´param := value´ =&gt; ´value´
-<a href=#3338 id=3338 data-nosnippet>3338</a>/// and `true` for implicit / `false` for explicit parameters
-<a href=#3339 id=3339 data-nosnippet>3339</a></span><span class="kw">pub fn </span>get_implicit_call_parameter&lt;<span class="lifetime">'a</span>&gt;(
-<a href=#3340 id=3340 data-nosnippet>3340</a>    argument: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode,
-<a href=#3341 id=3341 data-nosnippet>3341</a>    parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>VariableIndexEntry],
-<a href=#3342 id=3342 data-nosnippet>3342</a>    idx: usize,
-<a href=#3343 id=3343 data-nosnippet>3343</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode, bool), CodegenError&gt; {
-<a href=#3344 id=3344 data-nosnippet>3344</a>    <span class="kw">let </span>(location, rhs_assignment_value, is_implicit) = <span class="kw">match </span>argument.get_stmt() {
-<a href=#3345 id=3345 data-nosnippet>3345</a>        <span class="comment">// Explicit
-<a href=#3346 id=3346 data-nosnippet>3346</a>        </span>AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) =&gt; {
-<a href=#3347 id=3347 data-nosnippet>3347</a>            <span class="kw">let </span><span class="prelude-val">Some</span>(left_name) = data.left.as_ref().get_flat_reference_name() <span class="kw">else </span>{
-<a href=#3348 id=3348 data-nosnippet>3348</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(
-<a href=#3349 id=3349 data-nosnippet>3349</a>                    <span class="comment">//TODO: use global context to get an expression slice
-<a href=#3350 id=3350 data-nosnippet>3350</a>                    </span>Diagnostic::new(<span class="string">"Expression is not assignable"</span>)
-<a href=#3351 id=3351 data-nosnippet>3351</a>                        .with_error_code(<span class="string">"E050"</span>)
-<a href=#3352 id=3352 data-nosnippet>3352</a>                        .with_location(argument)
-<a href=#3353 id=3353 data-nosnippet>3353</a>                        .into(),
-<a href=#3354 id=3354 data-nosnippet>3354</a>                );
-<a href=#3355 id=3355 data-nosnippet>3355</a>            };
-<a href=#3356 id=3356 data-nosnippet>3356</a>
-<a href=#3357 id=3357 data-nosnippet>3357</a>            <span class="kw">let </span>loc = parameters
-<a href=#3358 id=3358 data-nosnippet>3358</a>                .iter()
-<a href=#3359 id=3359 data-nosnippet>3359</a>                .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
-<a href=#3360 id=3360 data-nosnippet>3360</a>                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.as_ref()))<span class="question-mark">?</span>;
-<a href=#3361 id=3361 data-nosnippet>3361</a>
-<a href=#3362 id=3362 data-nosnippet>3362</a>            (loc, data.right.as_ref(), <span class="bool-val">false</span>)
-<a href=#3363 id=3363 data-nosnippet>3363</a>        }
-<a href=#3364 id=3364 data-nosnippet>3364</a>
-<a href=#3365 id=3365 data-nosnippet>3365</a>        <span class="comment">// Implicit
-<a href=#3366 id=3366 data-nosnippet>3366</a>        </span><span class="kw">_ </span>=&gt; (idx, argument, <span class="bool-val">true</span>),
-<a href=#3367 id=3367 data-nosnippet>3367</a>    };
-<a href=#3368 id=3368 data-nosnippet>3368</a>
-<a href=#3369 id=3369 data-nosnippet>3369</a>    <span class="prelude-val">Ok</span>((location, rhs_assignment_value, is_implicit))
-<a href=#3370 id=3370 data-nosnippet>3370</a>}
-<a href=#3371 id=3371 data-nosnippet>3371</a>
-<a href=#3372 id=3372 data-nosnippet>3372</a><span class="doccomment">/// turns the given IntValue into an i1 by comparing it to 0 (of the same size)
-<a href=#3373 id=3373 data-nosnippet>3373</a></span><span class="kw">pub fn </span>to_i1&lt;<span class="lifetime">'a</span>&gt;(value: IntValue&lt;<span class="lifetime">'a</span>&gt;, builder: <span class="kw-2">&amp;</span>Builder&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">'a</span>&gt;, CodegenError&gt; {
-<a href=#3374 id=3374 data-nosnippet>3374</a>    <span class="kw">if </span>value.get_type().get_bit_width() &gt; <span class="number">1 </span>{
-<a href=#3375 id=3375 data-nosnippet>3375</a>        builder
-<a href=#3376 id=3376 data-nosnippet>3376</a>            .build_int_compare(IntPredicate::NE, value, value.get_type().const_int(<span class="number">0</span>, <span class="bool-val">false</span>), <span class="string">""</span>)
-<a href=#3377 id=3377 data-nosnippet>3377</a>            .map_err(Into::into)
-<a href=#3378 id=3378 data-nosnippet>3378</a>    } <span class="kw">else </span>{
-<a href=#3379 id=3379 data-nosnippet>3379</a>        <span class="prelude-val">Ok</span>(value)
-<a href=#3380 id=3380 data-nosnippet>3380</a>    }
-<a href=#3381 id=3381 data-nosnippet>3381</a>}
-<a href=#3382 id=3382 data-nosnippet>3382</a>
-<a href=#3383 id=3383 data-nosnippet>3383</a><span class="doccomment">/// Gets a collection of start- and end-values for each dimension of a variable length array.
-<a href=#3384 id=3384 data-nosnippet>3384</a>///
-<a href=#3385 id=3385 data-nosnippet>3385</a>/// # Safety
-<a href=#3386 id=3386 data-nosnippet>3386</a>///
-<a href=#3387 id=3387 data-nosnippet>3387</a>/// performs in-bounds GEP operations at runtime
-<a href=#3388 id=3388 data-nosnippet>3388</a></span><span class="kw">fn </span>get_indices&lt;<span class="lifetime">'ink</span>&gt;(
-<a href=#3389 id=3389 data-nosnippet>3389</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
-<a href=#3390 id=3390 data-nosnippet>3390</a>    ndims: usize,
-<a href=#3391 id=3391 data-nosnippet>3391</a>    dimensions_array: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
-<a href=#3392 id=3392 data-nosnippet>3392</a>    dimensions_array_type: BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;,
-<a href=#3393 id=3393 data-nosnippet>3393</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(IntValue&lt;<span class="lifetime">'ink</span>&gt;, IntValue&lt;<span class="lifetime">'ink</span>&gt;)&gt;, CodegenError&gt; {
-<a href=#3394 id=3394 data-nosnippet>3394</a>    <span class="kw">let </span>i32_type = llvm.i32_type();
-<a href=#3395 id=3395 data-nosnippet>3395</a>    (<span class="number">0</span>..ndims)
-<a href=#3396 id=3396 data-nosnippet>3396</a>        .map(|i| <span class="kw">unsafe </span>{
-<a href=#3397 id=3397 data-nosnippet>3397</a>            <span class="kw">let </span>(start_ptr, end_ptr) = (
-<a href=#3398 id=3398 data-nosnippet>3398</a>                llvm.builder.build_in_bounds_gep(
-<a href=#3399 id=3399 data-nosnippet>3399</a>                    dimensions_array_type,
-<a href=#3400 id=3400 data-nosnippet>3400</a>                    dimensions_array,
-<a href=#3401 id=3401 data-nosnippet>3401</a>                    <span class="kw-2">&amp;</span>[i32_type.const_zero(), i32_type.const_int(i <span class="kw">as </span>u64 * <span class="number">2</span>, <span class="bool-val">false</span>)],
-<a href=#3402 id=3402 data-nosnippet>3402</a>                    <span class="macro">format!</span>(<span class="string">"start_idx_ptr{i}"</span>).as_str(),
-<a href=#3403 id=3403 data-nosnippet>3403</a>                )<span class="question-mark">?</span>,
-<a href=#3404 id=3404 data-nosnippet>3404</a>                llvm.builder.build_in_bounds_gep(
-<a href=#3405 id=3405 data-nosnippet>3405</a>                    dimensions_array_type,
-<a href=#3406 id=3406 data-nosnippet>3406</a>                    dimensions_array,
-<a href=#3407 id=3407 data-nosnippet>3407</a>                    <span class="kw-2">&amp;</span>[i32_type.const_zero(), i32_type.const_int(<span class="number">1 </span>+ i <span class="kw">as </span>u64 * <span class="number">2</span>, <span class="bool-val">false</span>)],
-<a href=#3408 id=3408 data-nosnippet>3408</a>                    <span class="macro">format!</span>(<span class="string">"end_idx_ptr{i}"</span>).as_str(),
-<a href=#3409 id=3409 data-nosnippet>3409</a>                )<span class="question-mark">?</span>,
-<a href=#3410 id=3410 data-nosnippet>3410</a>            );
-<a href=#3411 id=3411 data-nosnippet>3411</a>            <span class="prelude-val">Ok</span>((
-<a href=#3412 id=3412 data-nosnippet>3412</a>                llvm.builder
-<a href=#3413 id=3413 data-nosnippet>3413</a>                    .build_load(i32_type, start_ptr, <span class="macro">format!</span>(<span class="string">"start_idx_value{i}"</span>).as_str())<span class="question-mark">?
-<a href=#3414 id=3414 data-nosnippet>3414</a>                    </span>.into_int_value(),
-<a href=#3415 id=3415 data-nosnippet>3415</a>                llvm.builder
-<a href=#3416 id=3416 data-nosnippet>3416</a>                    .build_load(i32_type, end_ptr, <span class="macro">format!</span>(<span class="string">"end_idx_value{i}"</span>).as_str())<span class="question-mark">?
-<a href=#3417 id=3417 data-nosnippet>3417</a>                    </span>.into_int_value(),
-<a href=#3418 id=3418 data-nosnippet>3418</a>            ))
-<a href=#3419 id=3419 data-nosnippet>3419</a>        })
-<a href=#3420 id=3420 data-nosnippet>3420</a>        .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, CodegenError&gt;&gt;()
-<a href=#3421 id=3421 data-nosnippet>3421</a>}
-<a href=#3422 id=3422 data-nosnippet>3422</a>
-<a href=#3423 id=3423 data-nosnippet>3423</a><span class="doccomment">/// Adjusts VLA accessor values to 0-indexed accessors
-<a href=#3424 id=3424 data-nosnippet>3424</a></span><span class="kw">fn </span>normalize_offsets&lt;<span class="lifetime">'ink</span>&gt;(
-<a href=#3425 id=3425 data-nosnippet>3425</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
-<a href=#3426 id=3426 data-nosnippet>3426</a>    accessors: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ink</span>&gt;],
-<a href=#3427 id=3427 data-nosnippet>3427</a>    offsets: <span class="kw-2">&amp;</span>[(IntValue&lt;<span class="lifetime">'ink</span>&gt;, IntValue&lt;<span class="lifetime">'ink</span>&gt;)],
-<a href=#3428 id=3428 data-nosnippet>3428</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;&gt;, CodegenError&gt; {
-<a href=#3429 id=3429 data-nosnippet>3429</a>    accessors
-<a href=#3430 id=3430 data-nosnippet>3430</a>        .iter()
-<a href=#3431 id=3431 data-nosnippet>3431</a>        .enumerate()
-<a href=#3432 id=3432 data-nosnippet>3432</a>        .zip(offsets.iter().map(|(start, <span class="kw">_</span>)| start))
-<a href=#3433 id=3433 data-nosnippet>3433</a>        .map(|((idx, accessor), start_offset)| {
-<a href=#3434 id=3434 data-nosnippet>3434</a>            llvm.builder
-<a href=#3435 id=3435 data-nosnippet>3435</a>                .build_int_sub(<span class="kw-2">*</span>accessor, <span class="kw-2">*</span>start_offset, <span class="macro">format!</span>(<span class="string">"adj_access{idx}"</span>).as_str())
-<a href=#3436 id=3436 data-nosnippet>3436</a>                .map_err(Into::into)
-<a href=#3437 id=3437 data-nosnippet>3437</a>        })
-<a href=#3438 id=3438 data-nosnippet>3438</a>        .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
-<a href=#3439 id=3439 data-nosnippet>3439</a>}
-<a href=#3440 id=3440 data-nosnippet>3440</a>
-<a href=#3441 id=3441 data-nosnippet>3441</a><span class="kw">fn </span>get_dimension_lengths&lt;<span class="lifetime">'ink</span>&gt;(
-<a href=#3442 id=3442 data-nosnippet>3442</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
-<a href=#3443 id=3443 data-nosnippet>3443</a>    offsets: <span class="kw-2">&amp;</span>[(IntValue&lt;<span class="lifetime">'ink</span>&gt;, IntValue&lt;<span class="lifetime">'ink</span>&gt;)],
-<a href=#3444 id=3444 data-nosnippet>3444</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;&gt;, CodegenError&gt; {
-<a href=#3445 id=3445 data-nosnippet>3445</a>    offsets
-<a href=#3446 id=3446 data-nosnippet>3446</a>        .iter()
-<a href=#3447 id=3447 data-nosnippet>3447</a>        .enumerate()
-<a href=#3448 id=3448 data-nosnippet>3448</a>        .map(|(idx, (start, end))| {
-<a href=#3449 id=3449 data-nosnippet>3449</a>            llvm.builder
-<a href=#3450 id=3450 data-nosnippet>3450</a>                .build_int_add(
-<a href=#3451 id=3451 data-nosnippet>3451</a>                    llvm.i32_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>),
-<a href=#3452 id=3452 data-nosnippet>3452</a>                    llvm.builder.build_int_sub(<span class="kw-2">*</span>end, <span class="kw-2">*</span>start, <span class="string">""</span>)<span class="question-mark">?</span>,
-<a href=#3453 id=3453 data-nosnippet>3453</a>                    <span class="macro">format!</span>(<span class="string">"len_dim{idx}"</span>).as_str(),
-<a href=#3454 id=3454 data-nosnippet>3454</a>                )
-<a href=#3455 id=3455 data-nosnippet>3455</a>                .map_err(Into::into)
-<a href=#3456 id=3456 data-nosnippet>3456</a>        })
-<a href=#3457 id=3457 data-nosnippet>3457</a>        .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
-<a href=#3458 id=3458 data-nosnippet>3458</a>}
-<a href=#3459 id=3459 data-nosnippet>3459</a>
-<a href=#3460 id=3460 data-nosnippet>3460</a><span class="kw">fn </span>get_vla_accessor_factors&lt;<span class="lifetime">'ink</span>&gt;(
-<a href=#3461 id=3461 data-nosnippet>3461</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
-<a href=#3462 id=3462 data-nosnippet>3462</a>    lengths: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ink</span>&gt;],
-<a href=#3463 id=3463 data-nosnippet>3463</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;&gt;, CodegenError&gt; {
-<a href=#3464 id=3464 data-nosnippet>3464</a>    (<span class="number">0</span>..lengths.len())
-<a href=#3465 id=3465 data-nosnippet>3465</a>        .map(|idx| {
-<a href=#3466 id=3466 data-nosnippet>3466</a>            <span class="kw">if </span>idx == lengths.len() - <span class="number">1 </span>{
-<a href=#3467 id=3467 data-nosnippet>3467</a>                <span class="comment">// the last dimension has a factor of 1
-<a href=#3468 id=3468 data-nosnippet>3468</a>                </span><span class="prelude-val">Ok</span>(llvm.i32_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>))
-<a href=#3469 id=3469 data-nosnippet>3469</a>            } <span class="kw">else </span>{
-<a href=#3470 id=3470 data-nosnippet>3470</a>                <span class="comment">// for other dimensions, calculate size to the right
-<a href=#3471 id=3471 data-nosnippet>3471</a>                </span>int_value_product(llvm, <span class="kw-2">&amp;</span>lengths[idx + <span class="number">1</span>..lengths.len()])
-<a href=#3472 id=3472 data-nosnippet>3472</a>            }
-<a href=#3473 id=3473 data-nosnippet>3473</a>        })
-<a href=#3474 id=3474 data-nosnippet>3474</a>        .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, CodegenError&gt;&gt;()
-<a href=#3475 id=3475 data-nosnippet>3475</a>}
-<a href=#3476 id=3476 data-nosnippet>3476</a>
-<a href=#3477 id=3477 data-nosnippet>3477</a><span class="doccomment">/// Computes the product of all elements in a collection of IntValues
-<a href=#3478 id=3478 data-nosnippet>3478</a>///
-<a href=#3479 id=3479 data-nosnippet>3479</a>/// a &lt;- a * b
-<a href=#3480 id=3480 data-nosnippet>3480</a></span><span class="kw">fn </span>int_value_product&lt;<span class="lifetime">'ink</span>&gt;(
-<a href=#3481 id=3481 data-nosnippet>3481</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
-<a href=#3482 id=3482 data-nosnippet>3482</a>    values: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ink</span>&gt;],
-<a href=#3483 id=3483 data-nosnippet>3483</a>) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;, CodegenError&gt; {
-<a href=#3484 id=3484 data-nosnippet>3484</a>    <span class="kw">let </span>i32_type = llvm.i32_type();
-<a href=#3485 id=3485 data-nosnippet>3485</a>    <span class="kw">let </span>accum_ptr = llvm.builder.build_alloca(i32_type, <span class="string">"accum"</span>)<span class="question-mark">?</span>;
-<a href=#3486 id=3486 data-nosnippet>3486</a>    llvm.builder.build_store(accum_ptr, i32_type.const_int(<span class="number">1</span>, <span class="bool-val">false</span>))<span class="question-mark">?</span>;
-<a href=#3487 id=3487 data-nosnippet>3487</a>    <span class="kw">for </span>val <span class="kw">in </span>values {
-<a href=#3488 id=3488 data-nosnippet>3488</a>        <span class="kw">let </span>product = llvm.builder.build_int_mul(
-<a href=#3489 id=3489 data-nosnippet>3489</a>            llvm.builder.build_load(i32_type, accum_ptr, <span class="string">"load_accum"</span>)<span class="question-mark">?</span>.into_int_value(),
-<a href=#3490 id=3490 data-nosnippet>3490</a>            <span class="kw-2">*</span>val,
-<a href=#3491 id=3491 data-nosnippet>3491</a>            <span class="string">"product"</span>,
-<a href=#3492 id=3492 data-nosnippet>3492</a>        )<span class="question-mark">?</span>;
-<a href=#3493 id=3493 data-nosnippet>3493</a>        llvm.builder.build_store(accum_ptr, product)<span class="question-mark">?</span>;
-<a href=#3494 id=3494 data-nosnippet>3494</a>    }
-<a href=#3495 id=3495 data-nosnippet>3495</a>
-<a href=#3496 id=3496 data-nosnippet>3496</a>    <span class="prelude-val">Ok</span>(llvm.builder.build_load(i32_type, accum_ptr, <span class="string">"accessor_factor"</span>)<span class="question-mark">?</span>.into_int_value())
-<a href=#3497 id=3497 data-nosnippet>3497</a>}
-<a href=#3498 id=3498 data-nosnippet>3498</a>
-<a href=#3499 id=3499 data-nosnippet>3499</a><span class="doccomment">/// Iterates over a collection of tuples, computes the product of the two numbers
-<a href=#3500 id=3500 data-nosnippet>3500</a>/// and adds that product to an accumulator.
-<a href=#3501 id=3501 data-nosnippet>3501</a>///
-<a href=#3502 id=3502 data-nosnippet>3502</a>/// a &lt;- a + (b * c)
-<a href=#3503 id=3503 data-nosnippet>3503</a></span><span class="kw">fn </span>int_value_multiply_accumulate&lt;<span class="lifetime">'ink</span>&gt;(
-<a href=#3504 id=3504 data-nosnippet>3504</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
-<a href=#3505 id=3505 data-nosnippet>3505</a>    values: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>IntValue&lt;<span class="lifetime">'ink</span>&gt;, <span class="kw-2">&amp;</span>IntValue&lt;<span class="lifetime">'ink</span>&gt;)],
-<a href=#3506 id=3506 data-nosnippet>3506</a>) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;, CodegenError&gt; {
-<a href=#3507 id=3507 data-nosnippet>3507</a>    <span class="kw">let </span>i32_type = llvm.i32_type();
-<a href=#3508 id=3508 data-nosnippet>3508</a>    <span class="kw">let </span>accum = llvm.builder.build_alloca(i32_type, <span class="string">"accum"</span>)<span class="question-mark">?</span>;
-<a href=#3509 id=3509 data-nosnippet>3509</a>    llvm.builder.build_store(accum, i32_type.const_zero())<span class="question-mark">?</span>;
-<a href=#3510 id=3510 data-nosnippet>3510</a>    <span class="kw">for </span>(left, right) <span class="kw">in </span>values {
-<a href=#3511 id=3511 data-nosnippet>3511</a>        <span class="kw">let </span>product = llvm.builder.build_int_mul(<span class="kw-2">**</span>left, <span class="kw-2">**</span>right, <span class="string">"multiply"</span>)<span class="question-mark">?</span>;
-<a href=#3512 id=3512 data-nosnippet>3512</a>        <span class="kw">let </span>curr = llvm.builder.build_int_add(
-<a href=#3513 id=3513 data-nosnippet>3513</a>            llvm.builder.build_load(i32_type, accum, <span class="string">"load_accum"</span>)<span class="question-mark">?</span>.into_int_value(),
-<a href=#3514 id=3514 data-nosnippet>3514</a>            product,
-<a href=#3515 id=3515 data-nosnippet>3515</a>            <span class="string">"accumulate"</span>,
-<a href=#3516 id=3516 data-nosnippet>3516</a>        )<span class="question-mark">?</span>;
-<a href=#3517 id=3517 data-nosnippet>3517</a>        llvm.builder.build_store(accum, curr)<span class="question-mark">?</span>;
-<a href=#3518 id=3518 data-nosnippet>3518</a>    }
-<a href=#3519 id=3519 data-nosnippet>3519</a>    <span class="prelude-val">Ok</span>(llvm.builder.build_load(i32_type, accum, <span class="string">"accessor"</span>)<span class="question-mark">?</span>.into_int_value())
-<a href=#3520 id=3520 data-nosnippet>3520</a>}
-<a href=#3521 id=3521 data-nosnippet>3521</a>
-<a href=#3522 id=3522 data-nosnippet>3522</a><span class="comment">// XXX: Could be problematic with https://github.com/PLC-lang/rusty/issues/668
-<a href=#3523 id=3523 data-nosnippet>3523</a></span><span class="doccomment">/// Returns false if any argument in the given list is an (output-)assignment and true otherwise
-<a href=#3524 id=3524 data-nosnippet>3524</a></span><span class="kw">fn </span>arguments_are_implicit(arguments: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode]) -&gt; bool {
-<a href=#3525 id=3525 data-nosnippet>3525</a>    !arguments.iter().any(|argument| argument.is_assignment() || argument.is_output_assignment())
-<a href=#3526 id=3526 data-nosnippet>3526</a>}
-<a href=#3527 id=3527 data-nosnippet>3527</a>
-<a href=#3528 id=3528 data-nosnippet>3528</a><span class="doccomment">/// when generating an assignment to a direct-access (e.g. a.b.c.%W3.%X2 := 2;)
-<a href=#3529 id=3529 data-nosnippet>3529</a>/// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
-<a href=#3530 id=3530 data-nosnippet>3530</a>/// of direct-access commands (vec![%W3, %X2])
-<a href=#3531 id=3531 data-nosnippet>3531</a></span><span class="kw">fn </span>collect_base_and_direct_access_for_assignment(
-<a href=#3532 id=3532 data-nosnippet>3532</a>    left_statement: <span class="kw-2">&amp;</span>AstNode,
-<a href=#3533 id=3533 data-nosnippet>3533</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>AstNode, Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt;)&gt; {
-<a href=#3534 id=3534 data-nosnippet>3534</a>    <span class="kw">let </span><span class="kw-2">mut </span>current = <span class="prelude-val">Some</span>(left_statement);
-<a href=#3535 id=3535 data-nosnippet>3535</a>    <span class="kw">let </span><span class="kw-2">mut </span>access_sequence = Vec::new();
+<a href=#3255 id=3255 data-nosnippet>3255</a>                <span class="comment">// The dereference target is the pointer to load through. For a variable
+<a href=#3256 id=3256 data-nosnippet>3256</a>                // holding a pointer (LValue), the variable's slot holds the pointer and we
+<a href=#3257 id=3257 data-nosnippet>3257</a>                // need one load to extract it. For an RValue (e.g. `REF(x)` or a call that
+<a href=#3258 id=3258 data-nosnippet>3258</a>                // returns a pointer), the value is already the pointer — loading again
+<a href=#3259 id=3259 data-nosnippet>3259</a>                // would treat the pointee's bytes as a pointer and segfault.
+<a href=#3260 id=3260 data-nosnippet>3260</a>                </span><span class="kw">let </span>pointer = <span class="kw">match </span>base_value {
+<a href=#3261 id=3261 data-nosnippet>3261</a>                    ExpressionValue::LValue(addr, <span class="kw">_</span>) =&gt; <span class="self">self
+<a href=#3262 id=3262 data-nosnippet>3262</a>                        </span>.llvm
+<a href=#3263 id=3263 data-nosnippet>3263</a>                        .load_pointer(
+<a href=#3264 id=3264 data-nosnippet>3264</a>                            <span class="comment">// See note below: `load_pointer` is called with `ptr` here because
+<a href=#3265 id=3265 data-nosnippet>3265</a>                            // we immediately call `into_pointer_value` on the result.
+<a href=#3266 id=3266 data-nosnippet>3266</a>                            </span><span class="self">self</span>.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
+<a href=#3267 id=3267 data-nosnippet>3267</a>                            <span class="kw-2">&amp;</span>addr,
+<a href=#3268 id=3268 data-nosnippet>3268</a>                            <span class="string">"deref"</span>,
+<a href=#3269 id=3269 data-nosnippet>3269</a>                        )<span class="question-mark">?
+<a href=#3270 id=3270 data-nosnippet>3270</a>                        </span>.into_pointer_value(),
+<a href=#3271 id=3271 data-nosnippet>3271</a>                    ExpressionValue::RValue(value) =&gt; value.into_pointer_value(),
+<a href=#3272 id=3272 data-nosnippet>3272</a>                };
+<a href=#3273 id=3273 data-nosnippet>3273</a>
+<a href=#3274 id=3274 data-nosnippet>3274</a>                <span class="kw">let </span>pointee = {
+<a href=#3275 id=3275 data-nosnippet>3275</a>                    <span class="kw">let </span>datatype = <span class="self">self</span>.annotations.get_type(original_expression, <span class="self">self</span>.index).unwrap();
+<a href=#3276 id=3276 data-nosnippet>3276</a>                    <span class="self">self</span>.llvm_index.get_associated_type(<span class="kw-2">&amp;</span>datatype.name).unwrap()
+<a href=#3277 id=3277 data-nosnippet>3277</a>                };
+<a href=#3278 id=3278 data-nosnippet>3278</a>                <span class="prelude-val">Ok</span>(ExpressionValue::LValue(pointer, pointee))
+<a href=#3279 id=3279 data-nosnippet>3279</a>            }
+<a href=#3280 id=3280 data-nosnippet>3280</a>
+<a href=#3281 id=3281 data-nosnippet>3281</a>            <span class="comment">// `&amp;base`
+<a href=#3282 id=3282 data-nosnippet>3282</a>            </span>(ReferenceAccess::Address, <span class="prelude-val">Some</span>(base)) =&gt; {
+<a href=#3283 id=3283 data-nosnippet>3283</a>                <span class="kw">let </span>lvalue = <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>;
+<a href=#3284 id=3284 data-nosnippet>3284</a>                <span class="prelude-val">Ok</span>(ExpressionValue::RValue(lvalue.get_basic_value_enum()))
+<a href=#3285 id=3285 data-nosnippet>3285</a>            }
+<a href=#3286 id=3286 data-nosnippet>3286</a>
+<a href=#3287 id=3287 data-nosnippet>3287</a>            (ReferenceAccess::Index(<span class="kw">_</span>), <span class="prelude-val">None</span>)   <span class="comment">// [idx];
+<a href=#3288 id=3288 data-nosnippet>3288</a>            </span>| (ReferenceAccess::Cast(<span class="kw">_</span>), <span class="prelude-val">None</span>)  <span class="comment">// INT#;
+<a href=#3289 id=3289 data-nosnippet>3289</a>            </span>| (ReferenceAccess::Deref, <span class="prelude-val">None</span>)    <span class="comment">// ^;
+<a href=#3290 id=3290 data-nosnippet>3290</a>            </span>| (ReferenceAccess::Address, <span class="prelude-val">None</span>)  <span class="comment">// &amp;;
+<a href=#3291 id=3291 data-nosnippet>3291</a>            </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
+<a href=#3292 id=3292 data-nosnippet>3292</a>                <span class="string">"Expected a base expression, but found none"</span>,
+<a href=#3293 id=3293 data-nosnippet>3293</a>                original_expression,
+<a href=#3294 id=3294 data-nosnippet>3294</a>            ).into())
+<a href=#3295 id=3295 data-nosnippet>3295</a>        }
+<a href=#3296 id=3296 data-nosnippet>3296</a>    }
+<a href=#3297 id=3297 data-nosnippet>3297</a>
+<a href=#3298 id=3298 data-nosnippet>3298</a>    <span class="doccomment">/// generates a direct-access expression like `x.%B4`
+<a href=#3299 id=3299 data-nosnippet>3299</a>    /// - `qualifier` the qualifier statement (see `x` above)
+<a href=#3300 id=3300 data-nosnippet>3300</a>    /// - `qualifier_value` the generated value of the qualifier
+<a href=#3301 id=3301 data-nosnippet>3301</a>    /// - `member` the member AstStatement (see `%B4`above)
+<a href=#3302 id=3302 data-nosnippet>3302</a>    /// - `access` the type of access (see `B` above)
+<a href=#3303 id=3303 data-nosnippet>3303</a>    </span><span class="kw">fn </span>generate_direct_access_expression(
+<a href=#3304 id=3304 data-nosnippet>3304</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#3305 id=3305 data-nosnippet>3305</a>        qualifier: <span class="kw-2">&amp;</span>AstNode,
+<a href=#3306 id=3306 data-nosnippet>3306</a>        qualifier_value: <span class="kw-2">&amp;</span>ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;,
+<a href=#3307 id=3307 data-nosnippet>3307</a>        member: <span class="kw-2">&amp;</span>AstNode,
+<a href=#3308 id=3308 data-nosnippet>3308</a>        access: <span class="kw-2">&amp;</span>DirectAccessType,
+<a href=#3309 id=3309 data-nosnippet>3309</a>        index: <span class="kw-2">&amp;</span>AstNode,
+<a href=#3310 id=3310 data-nosnippet>3310</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, CodegenError&gt; {
+<a href=#3311 id=3311 data-nosnippet>3311</a>        <span class="kw">let </span>loaded_base_value = qualifier_value.as_r_value(<span class="self">self</span>.llvm, <span class="self">self</span>.get_load_name(qualifier))<span class="question-mark">?</span>;
+<a href=#3312 id=3312 data-nosnippet>3312</a>        <span class="kw">let </span>datatype = <span class="self">self</span>.get_type_hint_info_for(member)<span class="question-mark">?</span>;
+<a href=#3313 id=3313 data-nosnippet>3313</a>        <span class="kw">let </span>base_type = <span class="self">self</span>.get_type_hint_for(qualifier)<span class="question-mark">?</span>;
+<a href=#3314 id=3314 data-nosnippet>3314</a>
+<a href=#3315 id=3315 data-nosnippet>3315</a>        <span class="comment">//Generate and load the index value
+<a href=#3316 id=3316 data-nosnippet>3316</a>        </span><span class="kw">let </span>rhs = <span class="self">self</span>.generate_direct_access_index(access, index, datatype, base_type)<span class="question-mark">?</span>;
+<a href=#3317 id=3317 data-nosnippet>3317</a>        <span class="comment">//Shift the qualifer value right by the index value
+<a href=#3318 id=3318 data-nosnippet>3318</a>        </span><span class="kw">let </span>shift = <span class="self">self</span>.llvm.builder.build_right_shift(
+<a href=#3319 id=3319 data-nosnippet>3319</a>            loaded_base_value.into_int_value(),
+<a href=#3320 id=3320 data-nosnippet>3320</a>            rhs,
+<a href=#3321 id=3321 data-nosnippet>3321</a>            base_type.get_type_information().is_signed_int(),
+<a href=#3322 id=3322 data-nosnippet>3322</a>            <span class="string">"shift"</span>,
+<a href=#3323 id=3323 data-nosnippet>3323</a>        )<span class="question-mark">?</span>;
+<a href=#3324 id=3324 data-nosnippet>3324</a>        <span class="comment">//Trunc the result to the get only the target size
+<a href=#3325 id=3325 data-nosnippet>3325</a>        </span><span class="kw">let </span>value = <span class="self">self</span>.llvm.builder.build_int_truncate_or_bit_cast(
+<a href=#3326 id=3326 data-nosnippet>3326</a>            shift,
+<a href=#3327 id=3327 data-nosnippet>3327</a>            <span class="self">self</span>.llvm_index.get_associated_type(datatype.get_name())<span class="question-mark">?</span>.into_int_type(),
+<a href=#3328 id=3328 data-nosnippet>3328</a>            <span class="string">""</span>,
+<a href=#3329 id=3329 data-nosnippet>3329</a>        )<span class="question-mark">?</span>;
+<a href=#3330 id=3330 data-nosnippet>3330</a>
+<a href=#3331 id=3331 data-nosnippet>3331</a>        <span class="kw">let </span>result = <span class="kw">if </span>datatype.get_type_information().is_bool() {
+<a href=#3332 id=3332 data-nosnippet>3332</a>            <span class="comment">// since booleans are i1 internally, but i8 in llvm, we need to bitwise-AND the value with 1 to make sure we end up with the expected value
+<a href=#3333 id=3333 data-nosnippet>3333</a>            </span><span class="self">self</span>.llvm.builder.build_and(value, <span class="self">self</span>.llvm.context.i8_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>), <span class="string">""</span>)<span class="question-mark">?
+<a href=#3334 id=3334 data-nosnippet>3334</a>        </span>} <span class="kw">else </span>{
+<a href=#3335 id=3335 data-nosnippet>3335</a>            value
+<a href=#3336 id=3336 data-nosnippet>3336</a>        };
+<a href=#3337 id=3337 data-nosnippet>3337</a>
+<a href=#3338 id=3338 data-nosnippet>3338</a>        <span class="prelude-val">Ok</span>(ExpressionValue::RValue(result.as_basic_value_enum()))
+<a href=#3339 id=3339 data-nosnippet>3339</a>    }
+<a href=#3340 id=3340 data-nosnippet>3340</a>}
+<a href=#3341 id=3341 data-nosnippet>3341</a>
+<a href=#3342 id=3342 data-nosnippet>3342</a><span class="doccomment">/// Returns the information required to call a parameter implicitly in a function
+<a href=#3343 id=3343 data-nosnippet>3343</a>/// If the parameter is already implicit, it does nothing.
+<a href=#3344 id=3344 data-nosnippet>3344</a>/// if the parameter is explicit ´param := value´,
+<a href=#3345 id=3345 data-nosnippet>3345</a>/// it returns the location of the parameter in the function declaration
+<a href=#3346 id=3346 data-nosnippet>3346</a>/// as well as the parameter value (right side) ´param := value´ =&gt; ´value´
+<a href=#3347 id=3347 data-nosnippet>3347</a>/// and `true` for implicit / `false` for explicit parameters
+<a href=#3348 id=3348 data-nosnippet>3348</a></span><span class="kw">pub fn </span>get_implicit_call_parameter&lt;<span class="lifetime">'a</span>&gt;(
+<a href=#3349 id=3349 data-nosnippet>3349</a>    argument: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode,
+<a href=#3350 id=3350 data-nosnippet>3350</a>    parameters: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>VariableIndexEntry],
+<a href=#3351 id=3351 data-nosnippet>3351</a>    idx: usize,
+<a href=#3352 id=3352 data-nosnippet>3352</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(usize, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>AstNode, bool), CodegenError&gt; {
+<a href=#3353 id=3353 data-nosnippet>3353</a>    <span class="kw">let </span>(location, rhs_assignment_value, is_implicit) = <span class="kw">match </span>argument.get_stmt() {
+<a href=#3354 id=3354 data-nosnippet>3354</a>        <span class="comment">// Explicit
+<a href=#3355 id=3355 data-nosnippet>3355</a>        </span>AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) =&gt; {
+<a href=#3356 id=3356 data-nosnippet>3356</a>            <span class="kw">let </span><span class="prelude-val">Some</span>(left_name) = data.left.as_ref().get_flat_reference_name() <span class="kw">else </span>{
+<a href=#3357 id=3357 data-nosnippet>3357</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(
+<a href=#3358 id=3358 data-nosnippet>3358</a>                    <span class="comment">//TODO: use global context to get an expression slice
+<a href=#3359 id=3359 data-nosnippet>3359</a>                    </span>Diagnostic::new(<span class="string">"Expression is not assignable"</span>)
+<a href=#3360 id=3360 data-nosnippet>3360</a>                        .with_error_code(<span class="string">"E050"</span>)
+<a href=#3361 id=3361 data-nosnippet>3361</a>                        .with_location(argument)
+<a href=#3362 id=3362 data-nosnippet>3362</a>                        .into(),
+<a href=#3363 id=3363 data-nosnippet>3363</a>                );
+<a href=#3364 id=3364 data-nosnippet>3364</a>            };
+<a href=#3365 id=3365 data-nosnippet>3365</a>
+<a href=#3366 id=3366 data-nosnippet>3366</a>            <span class="kw">let </span>loc = parameters
+<a href=#3367 id=3367 data-nosnippet>3367</a>                .iter()
+<a href=#3368 id=3368 data-nosnippet>3368</a>                .position(|p| p.get_name().eq_ignore_ascii_case(left_name))
+<a href=#3369 id=3369 data-nosnippet>3369</a>                .ok_or_else(|| Diagnostic::unresolved_reference(left_name, data.left.as_ref()))<span class="question-mark">?</span>;
+<a href=#3370 id=3370 data-nosnippet>3370</a>
+<a href=#3371 id=3371 data-nosnippet>3371</a>            (loc, data.right.as_ref(), <span class="bool-val">false</span>)
+<a href=#3372 id=3372 data-nosnippet>3372</a>        }
+<a href=#3373 id=3373 data-nosnippet>3373</a>
+<a href=#3374 id=3374 data-nosnippet>3374</a>        <span class="comment">// Implicit
+<a href=#3375 id=3375 data-nosnippet>3375</a>        </span><span class="kw">_ </span>=&gt; (idx, argument, <span class="bool-val">true</span>),
+<a href=#3376 id=3376 data-nosnippet>3376</a>    };
+<a href=#3377 id=3377 data-nosnippet>3377</a>
+<a href=#3378 id=3378 data-nosnippet>3378</a>    <span class="prelude-val">Ok</span>((location, rhs_assignment_value, is_implicit))
+<a href=#3379 id=3379 data-nosnippet>3379</a>}
+<a href=#3380 id=3380 data-nosnippet>3380</a>
+<a href=#3381 id=3381 data-nosnippet>3381</a><span class="doccomment">/// turns the given IntValue into an i1 by comparing it to 0 (of the same size)
+<a href=#3382 id=3382 data-nosnippet>3382</a></span><span class="kw">pub fn </span>to_i1&lt;<span class="lifetime">'a</span>&gt;(value: IntValue&lt;<span class="lifetime">'a</span>&gt;, builder: <span class="kw-2">&amp;</span>Builder&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">'a</span>&gt;, CodegenError&gt; {
+<a href=#3383 id=3383 data-nosnippet>3383</a>    <span class="kw">if </span>value.get_type().get_bit_width() &gt; <span class="number">1 </span>{
+<a href=#3384 id=3384 data-nosnippet>3384</a>        builder
+<a href=#3385 id=3385 data-nosnippet>3385</a>            .build_int_compare(IntPredicate::NE, value, value.get_type().const_int(<span class="number">0</span>, <span class="bool-val">false</span>), <span class="string">""</span>)
+<a href=#3386 id=3386 data-nosnippet>3386</a>            .map_err(Into::into)
+<a href=#3387 id=3387 data-nosnippet>3387</a>    } <span class="kw">else </span>{
+<a href=#3388 id=3388 data-nosnippet>3388</a>        <span class="prelude-val">Ok</span>(value)
+<a href=#3389 id=3389 data-nosnippet>3389</a>    }
+<a href=#3390 id=3390 data-nosnippet>3390</a>}
+<a href=#3391 id=3391 data-nosnippet>3391</a>
+<a href=#3392 id=3392 data-nosnippet>3392</a><span class="doccomment">/// Gets a collection of start- and end-values for each dimension of a variable length array.
+<a href=#3393 id=3393 data-nosnippet>3393</a>///
+<a href=#3394 id=3394 data-nosnippet>3394</a>/// # Safety
+<a href=#3395 id=3395 data-nosnippet>3395</a>///
+<a href=#3396 id=3396 data-nosnippet>3396</a>/// performs in-bounds GEP operations at runtime
+<a href=#3397 id=3397 data-nosnippet>3397</a></span><span class="kw">fn </span>get_indices&lt;<span class="lifetime">'ink</span>&gt;(
+<a href=#3398 id=3398 data-nosnippet>3398</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+<a href=#3399 id=3399 data-nosnippet>3399</a>    ndims: usize,
+<a href=#3400 id=3400 data-nosnippet>3400</a>    dimensions_array: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
+<a href=#3401 id=3401 data-nosnippet>3401</a>    dimensions_array_type: BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;,
+<a href=#3402 id=3402 data-nosnippet>3402</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;(IntValue&lt;<span class="lifetime">'ink</span>&gt;, IntValue&lt;<span class="lifetime">'ink</span>&gt;)&gt;, CodegenError&gt; {
+<a href=#3403 id=3403 data-nosnippet>3403</a>    <span class="kw">let </span>i32_type = llvm.i32_type();
+<a href=#3404 id=3404 data-nosnippet>3404</a>    (<span class="number">0</span>..ndims)
+<a href=#3405 id=3405 data-nosnippet>3405</a>        .map(|i| <span class="kw">unsafe </span>{
+<a href=#3406 id=3406 data-nosnippet>3406</a>            <span class="kw">let </span>(start_ptr, end_ptr) = (
+<a href=#3407 id=3407 data-nosnippet>3407</a>                llvm.builder.build_in_bounds_gep(
+<a href=#3408 id=3408 data-nosnippet>3408</a>                    dimensions_array_type,
+<a href=#3409 id=3409 data-nosnippet>3409</a>                    dimensions_array,
+<a href=#3410 id=3410 data-nosnippet>3410</a>                    <span class="kw-2">&amp;</span>[i32_type.const_zero(), i32_type.const_int(i <span class="kw">as </span>u64 * <span class="number">2</span>, <span class="bool-val">false</span>)],
+<a href=#3411 id=3411 data-nosnippet>3411</a>                    <span class="macro">format!</span>(<span class="string">"start_idx_ptr{i}"</span>).as_str(),
+<a href=#3412 id=3412 data-nosnippet>3412</a>                )<span class="question-mark">?</span>,
+<a href=#3413 id=3413 data-nosnippet>3413</a>                llvm.builder.build_in_bounds_gep(
+<a href=#3414 id=3414 data-nosnippet>3414</a>                    dimensions_array_type,
+<a href=#3415 id=3415 data-nosnippet>3415</a>                    dimensions_array,
+<a href=#3416 id=3416 data-nosnippet>3416</a>                    <span class="kw-2">&amp;</span>[i32_type.const_zero(), i32_type.const_int(<span class="number">1 </span>+ i <span class="kw">as </span>u64 * <span class="number">2</span>, <span class="bool-val">false</span>)],
+<a href=#3417 id=3417 data-nosnippet>3417</a>                    <span class="macro">format!</span>(<span class="string">"end_idx_ptr{i}"</span>).as_str(),
+<a href=#3418 id=3418 data-nosnippet>3418</a>                )<span class="question-mark">?</span>,
+<a href=#3419 id=3419 data-nosnippet>3419</a>            );
+<a href=#3420 id=3420 data-nosnippet>3420</a>            <span class="prelude-val">Ok</span>((
+<a href=#3421 id=3421 data-nosnippet>3421</a>                llvm.builder
+<a href=#3422 id=3422 data-nosnippet>3422</a>                    .build_load(i32_type, start_ptr, <span class="macro">format!</span>(<span class="string">"start_idx_value{i}"</span>).as_str())<span class="question-mark">?
+<a href=#3423 id=3423 data-nosnippet>3423</a>                    </span>.into_int_value(),
+<a href=#3424 id=3424 data-nosnippet>3424</a>                llvm.builder
+<a href=#3425 id=3425 data-nosnippet>3425</a>                    .build_load(i32_type, end_ptr, <span class="macro">format!</span>(<span class="string">"end_idx_value{i}"</span>).as_str())<span class="question-mark">?
+<a href=#3426 id=3426 data-nosnippet>3426</a>                    </span>.into_int_value(),
+<a href=#3427 id=3427 data-nosnippet>3427</a>            ))
+<a href=#3428 id=3428 data-nosnippet>3428</a>        })
+<a href=#3429 id=3429 data-nosnippet>3429</a>        .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, CodegenError&gt;&gt;()
+<a href=#3430 id=3430 data-nosnippet>3430</a>}
+<a href=#3431 id=3431 data-nosnippet>3431</a>
+<a href=#3432 id=3432 data-nosnippet>3432</a><span class="doccomment">/// Adjusts VLA accessor values to 0-indexed accessors
+<a href=#3433 id=3433 data-nosnippet>3433</a></span><span class="kw">fn </span>normalize_offsets&lt;<span class="lifetime">'ink</span>&gt;(
+<a href=#3434 id=3434 data-nosnippet>3434</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+<a href=#3435 id=3435 data-nosnippet>3435</a>    accessors: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ink</span>&gt;],
+<a href=#3436 id=3436 data-nosnippet>3436</a>    offsets: <span class="kw-2">&amp;</span>[(IntValue&lt;<span class="lifetime">'ink</span>&gt;, IntValue&lt;<span class="lifetime">'ink</span>&gt;)],
+<a href=#3437 id=3437 data-nosnippet>3437</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;&gt;, CodegenError&gt; {
+<a href=#3438 id=3438 data-nosnippet>3438</a>    accessors
+<a href=#3439 id=3439 data-nosnippet>3439</a>        .iter()
+<a href=#3440 id=3440 data-nosnippet>3440</a>        .enumerate()
+<a href=#3441 id=3441 data-nosnippet>3441</a>        .zip(offsets.iter().map(|(start, <span class="kw">_</span>)| start))
+<a href=#3442 id=3442 data-nosnippet>3442</a>        .map(|((idx, accessor), start_offset)| {
+<a href=#3443 id=3443 data-nosnippet>3443</a>            llvm.builder
+<a href=#3444 id=3444 data-nosnippet>3444</a>                .build_int_sub(<span class="kw-2">*</span>accessor, <span class="kw-2">*</span>start_offset, <span class="macro">format!</span>(<span class="string">"adj_access{idx}"</span>).as_str())
+<a href=#3445 id=3445 data-nosnippet>3445</a>                .map_err(Into::into)
+<a href=#3446 id=3446 data-nosnippet>3446</a>        })
+<a href=#3447 id=3447 data-nosnippet>3447</a>        .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
+<a href=#3448 id=3448 data-nosnippet>3448</a>}
+<a href=#3449 id=3449 data-nosnippet>3449</a>
+<a href=#3450 id=3450 data-nosnippet>3450</a><span class="kw">fn </span>get_dimension_lengths&lt;<span class="lifetime">'ink</span>&gt;(
+<a href=#3451 id=3451 data-nosnippet>3451</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+<a href=#3452 id=3452 data-nosnippet>3452</a>    offsets: <span class="kw-2">&amp;</span>[(IntValue&lt;<span class="lifetime">'ink</span>&gt;, IntValue&lt;<span class="lifetime">'ink</span>&gt;)],
+<a href=#3453 id=3453 data-nosnippet>3453</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;&gt;, CodegenError&gt; {
+<a href=#3454 id=3454 data-nosnippet>3454</a>    offsets
+<a href=#3455 id=3455 data-nosnippet>3455</a>        .iter()
+<a href=#3456 id=3456 data-nosnippet>3456</a>        .enumerate()
+<a href=#3457 id=3457 data-nosnippet>3457</a>        .map(|(idx, (start, end))| {
+<a href=#3458 id=3458 data-nosnippet>3458</a>            llvm.builder
+<a href=#3459 id=3459 data-nosnippet>3459</a>                .build_int_add(
+<a href=#3460 id=3460 data-nosnippet>3460</a>                    llvm.i32_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>),
+<a href=#3461 id=3461 data-nosnippet>3461</a>                    llvm.builder.build_int_sub(<span class="kw-2">*</span>end, <span class="kw-2">*</span>start, <span class="string">""</span>)<span class="question-mark">?</span>,
+<a href=#3462 id=3462 data-nosnippet>3462</a>                    <span class="macro">format!</span>(<span class="string">"len_dim{idx}"</span>).as_str(),
+<a href=#3463 id=3463 data-nosnippet>3463</a>                )
+<a href=#3464 id=3464 data-nosnippet>3464</a>                .map_err(Into::into)
+<a href=#3465 id=3465 data-nosnippet>3465</a>        })
+<a href=#3466 id=3466 data-nosnippet>3466</a>        .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt;&gt;()
+<a href=#3467 id=3467 data-nosnippet>3467</a>}
+<a href=#3468 id=3468 data-nosnippet>3468</a>
+<a href=#3469 id=3469 data-nosnippet>3469</a><span class="kw">fn </span>get_vla_accessor_factors&lt;<span class="lifetime">'ink</span>&gt;(
+<a href=#3470 id=3470 data-nosnippet>3470</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+<a href=#3471 id=3471 data-nosnippet>3471</a>    lengths: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ink</span>&gt;],
+<a href=#3472 id=3472 data-nosnippet>3472</a>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;&gt;, CodegenError&gt; {
+<a href=#3473 id=3473 data-nosnippet>3473</a>    (<span class="number">0</span>..lengths.len())
+<a href=#3474 id=3474 data-nosnippet>3474</a>        .map(|idx| {
+<a href=#3475 id=3475 data-nosnippet>3475</a>            <span class="kw">if </span>idx == lengths.len() - <span class="number">1 </span>{
+<a href=#3476 id=3476 data-nosnippet>3476</a>                <span class="comment">// the last dimension has a factor of 1
+<a href=#3477 id=3477 data-nosnippet>3477</a>                </span><span class="prelude-val">Ok</span>(llvm.i32_type().const_int(<span class="number">1</span>, <span class="bool-val">false</span>))
+<a href=#3478 id=3478 data-nosnippet>3478</a>            } <span class="kw">else </span>{
+<a href=#3479 id=3479 data-nosnippet>3479</a>                <span class="comment">// for other dimensions, calculate size to the right
+<a href=#3480 id=3480 data-nosnippet>3480</a>                </span>int_value_product(llvm, <span class="kw-2">&amp;</span>lengths[idx + <span class="number">1</span>..lengths.len()])
+<a href=#3481 id=3481 data-nosnippet>3481</a>            }
+<a href=#3482 id=3482 data-nosnippet>3482</a>        })
+<a href=#3483 id=3483 data-nosnippet>3483</a>        .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, CodegenError&gt;&gt;()
+<a href=#3484 id=3484 data-nosnippet>3484</a>}
+<a href=#3485 id=3485 data-nosnippet>3485</a>
+<a href=#3486 id=3486 data-nosnippet>3486</a><span class="doccomment">/// Computes the product of all elements in a collection of IntValues
+<a href=#3487 id=3487 data-nosnippet>3487</a>///
+<a href=#3488 id=3488 data-nosnippet>3488</a>/// a &lt;- a * b
+<a href=#3489 id=3489 data-nosnippet>3489</a></span><span class="kw">fn </span>int_value_product&lt;<span class="lifetime">'ink</span>&gt;(
+<a href=#3490 id=3490 data-nosnippet>3490</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+<a href=#3491 id=3491 data-nosnippet>3491</a>    values: <span class="kw-2">&amp;</span>[IntValue&lt;<span class="lifetime">'ink</span>&gt;],
+<a href=#3492 id=3492 data-nosnippet>3492</a>) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;, CodegenError&gt; {
+<a href=#3493 id=3493 data-nosnippet>3493</a>    <span class="kw">let </span>i32_type = llvm.i32_type();
+<a href=#3494 id=3494 data-nosnippet>3494</a>    <span class="kw">let </span>accum_ptr = llvm.builder.build_alloca(i32_type, <span class="string">"accum"</span>)<span class="question-mark">?</span>;
+<a href=#3495 id=3495 data-nosnippet>3495</a>    llvm.builder.build_store(accum_ptr, i32_type.const_int(<span class="number">1</span>, <span class="bool-val">false</span>))<span class="question-mark">?</span>;
+<a href=#3496 id=3496 data-nosnippet>3496</a>    <span class="kw">for </span>val <span class="kw">in </span>values {
+<a href=#3497 id=3497 data-nosnippet>3497</a>        <span class="kw">let </span>product = llvm.builder.build_int_mul(
+<a href=#3498 id=3498 data-nosnippet>3498</a>            llvm.builder.build_load(i32_type, accum_ptr, <span class="string">"load_accum"</span>)<span class="question-mark">?</span>.into_int_value(),
+<a href=#3499 id=3499 data-nosnippet>3499</a>            <span class="kw-2">*</span>val,
+<a href=#3500 id=3500 data-nosnippet>3500</a>            <span class="string">"product"</span>,
+<a href=#3501 id=3501 data-nosnippet>3501</a>        )<span class="question-mark">?</span>;
+<a href=#3502 id=3502 data-nosnippet>3502</a>        llvm.builder.build_store(accum_ptr, product)<span class="question-mark">?</span>;
+<a href=#3503 id=3503 data-nosnippet>3503</a>    }
+<a href=#3504 id=3504 data-nosnippet>3504</a>
+<a href=#3505 id=3505 data-nosnippet>3505</a>    <span class="prelude-val">Ok</span>(llvm.builder.build_load(i32_type, accum_ptr, <span class="string">"accessor_factor"</span>)<span class="question-mark">?</span>.into_int_value())
+<a href=#3506 id=3506 data-nosnippet>3506</a>}
+<a href=#3507 id=3507 data-nosnippet>3507</a>
+<a href=#3508 id=3508 data-nosnippet>3508</a><span class="doccomment">/// Iterates over a collection of tuples, computes the product of the two numbers
+<a href=#3509 id=3509 data-nosnippet>3509</a>/// and adds that product to an accumulator.
+<a href=#3510 id=3510 data-nosnippet>3510</a>///
+<a href=#3511 id=3511 data-nosnippet>3511</a>/// a &lt;- a + (b * c)
+<a href=#3512 id=3512 data-nosnippet>3512</a></span><span class="kw">fn </span>int_value_multiply_accumulate&lt;<span class="lifetime">'ink</span>&gt;(
+<a href=#3513 id=3513 data-nosnippet>3513</a>    llvm: <span class="kw-2">&amp;</span>Llvm&lt;<span class="lifetime">'ink</span>&gt;,
+<a href=#3514 id=3514 data-nosnippet>3514</a>    values: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>IntValue&lt;<span class="lifetime">'ink</span>&gt;, <span class="kw-2">&amp;</span>IntValue&lt;<span class="lifetime">'ink</span>&gt;)],
+<a href=#3515 id=3515 data-nosnippet>3515</a>) -&gt; <span class="prelude-ty">Result</span>&lt;IntValue&lt;<span class="lifetime">'ink</span>&gt;, CodegenError&gt; {
+<a href=#3516 id=3516 data-nosnippet>3516</a>    <span class="kw">let </span>i32_type = llvm.i32_type();
+<a href=#3517 id=3517 data-nosnippet>3517</a>    <span class="kw">let </span>accum = llvm.builder.build_alloca(i32_type, <span class="string">"accum"</span>)<span class="question-mark">?</span>;
+<a href=#3518 id=3518 data-nosnippet>3518</a>    llvm.builder.build_store(accum, i32_type.const_zero())<span class="question-mark">?</span>;
+<a href=#3519 id=3519 data-nosnippet>3519</a>    <span class="kw">for </span>(left, right) <span class="kw">in </span>values {
+<a href=#3520 id=3520 data-nosnippet>3520</a>        <span class="kw">let </span>product = llvm.builder.build_int_mul(<span class="kw-2">**</span>left, <span class="kw-2">**</span>right, <span class="string">"multiply"</span>)<span class="question-mark">?</span>;
+<a href=#3521 id=3521 data-nosnippet>3521</a>        <span class="kw">let </span>curr = llvm.builder.build_int_add(
+<a href=#3522 id=3522 data-nosnippet>3522</a>            llvm.builder.build_load(i32_type, accum, <span class="string">"load_accum"</span>)<span class="question-mark">?</span>.into_int_value(),
+<a href=#3523 id=3523 data-nosnippet>3523</a>            product,
+<a href=#3524 id=3524 data-nosnippet>3524</a>            <span class="string">"accumulate"</span>,
+<a href=#3525 id=3525 data-nosnippet>3525</a>        )<span class="question-mark">?</span>;
+<a href=#3526 id=3526 data-nosnippet>3526</a>        llvm.builder.build_store(accum, curr)<span class="question-mark">?</span>;
+<a href=#3527 id=3527 data-nosnippet>3527</a>    }
+<a href=#3528 id=3528 data-nosnippet>3528</a>    <span class="prelude-val">Ok</span>(llvm.builder.build_load(i32_type, accum, <span class="string">"accessor"</span>)<span class="question-mark">?</span>.into_int_value())
+<a href=#3529 id=3529 data-nosnippet>3529</a>}
+<a href=#3530 id=3530 data-nosnippet>3530</a>
+<a href=#3531 id=3531 data-nosnippet>3531</a><span class="comment">// XXX: Could be problematic with https://github.com/PLC-lang/rusty/issues/668
+<a href=#3532 id=3532 data-nosnippet>3532</a></span><span class="doccomment">/// Returns false if any argument in the given list is an (output-)assignment and true otherwise
+<a href=#3533 id=3533 data-nosnippet>3533</a></span><span class="kw">fn </span>arguments_are_implicit(arguments: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode]) -&gt; bool {
+<a href=#3534 id=3534 data-nosnippet>3534</a>    !arguments.iter().any(|argument| argument.is_assignment() || argument.is_output_assignment())
+<a href=#3535 id=3535 data-nosnippet>3535</a>}
 <a href=#3536 id=3536 data-nosnippet>3536</a>
-<a href=#3537 id=3537 data-nosnippet>3537</a>    <span class="kw">while let </span><span class="prelude-val">Some</span>(AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(m), base })) =
-<a href=#3538 id=3538 data-nosnippet>3538</a>        current.map(|it| it.get_stmt())
-<a href=#3539 id=3539 data-nosnippet>3539</a>    {
-<a href=#3540 id=3540 data-nosnippet>3540</a>        <span class="kw">if </span><span class="macro">matches!</span>(m.get_stmt(), AstStatement::DirectAccess { .. }) {
-<a href=#3541 id=3541 data-nosnippet>3541</a>            access_sequence.insert(<span class="number">0</span>, m.as_ref());
-<a href=#3542 id=3542 data-nosnippet>3542</a>            current = base.as_deref();
-<a href=#3543 id=3543 data-nosnippet>3543</a>        } <span class="kw">else </span>{
-<a href=#3544 id=3544 data-nosnippet>3544</a>            <span class="kw">break</span>;
-<a href=#3545 id=3545 data-nosnippet>3545</a>        }
-<a href=#3546 id=3546 data-nosnippet>3546</a>    }
-<a href=#3547 id=3547 data-nosnippet>3547</a>
-<a href=#3548 id=3548 data-nosnippet>3548</a>    current.zip(<span class="prelude-val">Some</span>(access_sequence))
-<a href=#3549 id=3549 data-nosnippet>3549</a>}
+<a href=#3537 id=3537 data-nosnippet>3537</a><span class="doccomment">/// when generating an assignment to a direct-access (e.g. a.b.c.%W3.%X2 := 2;)
+<a href=#3538 id=3538 data-nosnippet>3538</a>/// we want to deconstruct the sequence into the base-statement  (a.b.c) and the sequence
+<a href=#3539 id=3539 data-nosnippet>3539</a>/// of direct-access commands (vec![%W3, %X2])
+<a href=#3540 id=3540 data-nosnippet>3540</a></span><span class="kw">fn </span>collect_base_and_direct_access_for_assignment(
+<a href=#3541 id=3541 data-nosnippet>3541</a>    left_statement: <span class="kw-2">&amp;</span>AstNode,
+<a href=#3542 id=3542 data-nosnippet>3542</a>) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>AstNode, Vec&lt;<span class="kw-2">&amp;</span>AstNode&gt;)&gt; {
+<a href=#3543 id=3543 data-nosnippet>3543</a>    <span class="kw">let </span><span class="kw-2">mut </span>current = <span class="prelude-val">Some</span>(left_statement);
+<a href=#3544 id=3544 data-nosnippet>3544</a>    <span class="kw">let </span><span class="kw-2">mut </span>access_sequence = Vec::new();
+<a href=#3545 id=3545 data-nosnippet>3545</a>
+<a href=#3546 id=3546 data-nosnippet>3546</a>    <span class="kw">while let </span><span class="prelude-val">Some</span>(AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(m), base })) =
+<a href=#3547 id=3547 data-nosnippet>3547</a>        current.map(|it| it.get_stmt())
+<a href=#3548 id=3548 data-nosnippet>3548</a>    {
+<a href=#3549 id=3549 data-nosnippet>3549</a>        <span class="kw">if </span><span class="macro">matches!</span>(m.get_stmt(), AstStatement::DirectAccess { .. }) {
+<a href=#3550 id=3550 data-nosnippet>3550</a>            access_sequence.insert(<span class="number">0</span>, m.as_ref());
+<a href=#3551 id=3551 data-nosnippet>3551</a>            current = base.as_deref();
+<a href=#3552 id=3552 data-nosnippet>3552</a>        } <span class="kw">else </span>{
+<a href=#3553 id=3553 data-nosnippet>3553</a>            <span class="kw">break</span>;
+<a href=#3554 id=3554 data-nosnippet>3554</a>        }
+<a href=#3555 id=3555 data-nosnippet>3555</a>    }
+<a href=#3556 id=3556 data-nosnippet>3556</a>
+<a href=#3557 id=3557 data-nosnippet>3557</a>    current.zip(<span class="prelude-val">Some</span>(access_sequence))
+<a href=#3558 id=3558 data-nosnippet>3558</a>}
 </code></pre></div></section></main></body></html>
