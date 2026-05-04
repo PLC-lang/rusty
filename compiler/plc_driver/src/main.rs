@@ -1,4 +1,5 @@
 use std::env;
+use std::io::IsTerminal;
 
 use plc_driver::cli::CompileParameters;
 
@@ -16,7 +17,11 @@ fn main() {
     builder.init();
 
     if let Err(e) = plc_driver::compile(&args) {
-        eprintln!("{e}");
+        if std::io::stderr().is_terminal() {
+            eprintln!("\x1b[31;1merror\x1b[0m: {e}");
+        } else {
+            eprintln!("error: {e}");
+        }
         std::process::exit(1)
     }
 }

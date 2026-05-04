@@ -412,14 +412,14 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
                 .and_then(|it| it.to_str())
                 .unwrap_or(DEFAULT_OUTPUT_NAME);
             let project = Project::new(name.to_string())
-                .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
-                .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
+                .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())?
+                .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())?
                 .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
                 .with_libraries(compile_parameters.libraries.clone());
             Ok(project)
         });
     //Override default settings with compile options
-    project
+    let project = project
         .map(|proj| {
             if let Some(format) = compile_parameters.output_format() {
                 proj.with_format(format)
@@ -427,7 +427,12 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
                 proj
             }
         })
-        .map(|proj| proj.with_output_name(compile_parameters.output.clone()))
+        .map(|proj| proj.with_output_name(compile_parameters.output.clone()))?;
+
+    if project.get_sources().is_empty() {
+        anyhow::bail!("no input files");
+    }
+    Ok(project)
 }
 
 fn get_config(root: &Path) -> PathBuf {

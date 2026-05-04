@@ -198,9 +198,9 @@ impl Project<PathBuf> {
         })
     }
 
-    pub fn with_file_paths(self, files: Vec<PathBuf>) -> Self {
+    pub fn with_file_paths(self, files: Vec<PathBuf>) -> Result<Self> {
         let mut proj = self;
-        let files = resolve_file_paths(proj.get_location(), files).unwrap();
+        let files = resolve_file_paths(proj.get_location(), files)?;
         for file in files {
             if matches!(file.get_type(), SourceType::Unknown) {
                 let obj = file.into();
@@ -209,13 +209,13 @@ impl Project<PathBuf> {
                 proj.sources.push(file);
             }
         }
-        proj
+        Ok(proj)
     }
 
-    pub fn with_include_paths(self, files: Vec<PathBuf>) -> Self {
+    pub fn with_include_paths(self, files: Vec<PathBuf>) -> Result<Self> {
         let mut proj = self;
-        proj.includes = resolve_file_paths(proj.get_location(), files).unwrap();
-        proj
+        proj.includes = resolve_file_paths(proj.get_location(), files)?;
+        Ok(proj)
     }
 }
 
@@ -329,9 +329,12 @@ fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<V
     let mut sources = Vec::new();
     //Ensure we are working with a directory
     let location = location.and_then(|it| if it.is_file() { it.parent() } else { Some(it) });
-    for input in &inputs {
-        let input = location.map(|it| it.join(input)).unwrap_or(input.to_path_buf());
+    for original_input in &inputs {
+        let input = location.map(|it| it.join(original_input)).unwrap_or(original_input.to_path_buf());
         let path = &input.to_string_lossy();
+
+        validate_input_exists(original_input, &input)?;
+
         let paths = glob(path).context(format!("Failed to read glob pattern {path}"))?;
 
         for p in paths {
@@ -342,6 +345,43 @@ fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<V
     Ok(sources)
 }
 
+/// Catches typos in project configurations by rejecting inputs that can never
+/// match anything: literal paths whose target is missing, and globs whose
+/// literal-prefix directory doesn't exist (e.g. `<typo>/include/*.st`).
+/// Globs whose directory exists but match nothing remain accepted (a
+/// templating pattern like `*.dt` is valid even when no .dt files are present).
+fn validate_input_exists(original: &Path, joined: &Path) -> Result<()> {
+    let original_str = original.to_string_lossy();
+    let has_wildcard = original_str.contains(['*', '?', '[']);
+
+    if has_wildcard {
+        let parent = glob_literal_parent(joined);
+        if !parent.exists() {
+            return Err(anyhow!("path '{original_str}' does not exist"));
+        }
+    } else if !joined.exists() {
+        return Err(anyhow!("path '{original_str}' does not exist"));
+    }
+    Ok(())
+}
+
+/// Returns the deepest directory in `pattern` that contains no glob
+/// metacharacter. For `src/foo/*.st` this is `src/foo`; for `*.st` it is `.`.
+fn glob_literal_parent(pattern: &Path) -> PathBuf {
+    let mut parent = PathBuf::new();
+    for component in pattern.components() {
+        let s = component.as_os_str().to_string_lossy();
+        if s.contains(['*', '?', '[']) {
+            break;
+        }
+        parent.push(component);
+    }
+    if parent.as_os_str().is_empty() {
+        parent.push(".");
+    }
+    parent
+}
+
 impl From<LinkageInfo> for Linkage {
     fn from(value: LinkageInfo) -> Self {
         match value {
@@ -349,5 +389,103 @@ impl From<LinkageInfo> for Linkage {
             LinkageInfo::System => Self::Shared(Package::System),
             LinkageInfo::Static => Self::Static,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::File;
+    use tempfile::tempdir;
+
+    #[test]
+    fn literal_path_that_exists_resolves() {
+        let dir = tempdir().unwrap();
+        let file = dir.path().join("main.st");
+        File::create(&file).unwrap();
+
+        let result = resolve_file_paths(Some(dir.path()), vec![PathBuf::from("main.st")]).unwrap();
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn literal_path_that_is_missing_errors() {
+        let dir = tempdir().unwrap();
+
+        let err = resolve_file_paths(Some(dir.path()), vec![PathBuf::from("missing.st")]).unwrap_err();
+        assert!(err.to_string().contains("does not exist"), "got: {err}");
+        assert!(err.to_string().contains("missing.st"), "got: {err}");
+    }
+
+    #[test]
+    fn glob_with_existing_parent_and_no_matches_is_ok() {
+        // A `*.dt` glob that matches nothing is a legitimate templating pattern
+        // as long as the directory exists.
+        let dir = tempdir().unwrap();
+
+        let result = resolve_file_paths(Some(dir.path()), vec![PathBuf::from("*.dt")]).unwrap();
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn glob_that_matches_files_resolves() {
+        let dir = tempdir().unwrap();
+        File::create(dir.path().join("a.st")).unwrap();
+        File::create(dir.path().join("b.st")).unwrap();
+
+        let result = resolve_file_paths(Some(dir.path()), vec![PathBuf::from("*.st")]).unwrap();
+        assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn glob_with_missing_parent_directory_errors() {
+        // The user's typical typo: `<typo>/include/*.st` where `<typo>` doesn't exist.
+        // We still want to reject these even though the path contains a wildcard.
+        let dir = tempdir().unwrap();
+
+        let err =
+            resolve_file_paths(Some(dir.path()), vec![PathBuf::from("missing-subdir/*.st")]).unwrap_err();
+        assert!(err.to_string().contains("does not exist"), "got: {err}");
+        assert!(err.to_string().contains("missing-subdir/*.st"), "got: {err}");
+    }
+
+    #[test]
+    fn glob_literal_parent_strips_wildcard_components() {
+        assert_eq!(glob_literal_parent(Path::new("src/foo/*.st")), PathBuf::from("src/foo"));
+        assert_eq!(glob_literal_parent(Path::new("src/*/foo.st")), PathBuf::from("src"));
+        assert_eq!(glob_literal_parent(Path::new("*.st")), PathBuf::from("."));
+        assert_eq!(glob_literal_parent(Path::new("src/file.st")), PathBuf::from("src/file.st"));
+    }
+
+    #[test]
+    fn project_config_with_files_resolving_empty_loads_with_empty_sources() {
+        // A glob whose parent exists but matches nothing is allowed at this layer;
+        // the driver layer enforces the "no input files" error so it covers both
+        // build-config and CLI-args paths uniformly.
+        let dir = tempdir().unwrap();
+        let config_path = dir.path().join("plc.json");
+        std::fs::write(
+            &config_path,
+            r#"{ "name": "p", "files": ["*.dt"], "compile_type": "Static", "output": "out" }"#,
+        )
+        .unwrap();
+
+        let project = Project::from_config(&config_path).unwrap();
+        assert!(project.sources.is_empty());
+    }
+
+    #[test]
+    fn project_config_with_files_present_resolves() {
+        let dir = tempdir().unwrap();
+        File::create(dir.path().join("main.st")).unwrap();
+        let config_path = dir.path().join("plc.json");
+        std::fs::write(
+            &config_path,
+            r#"{ "name": "p", "files": ["main.st"], "compile_type": "Static", "output": "out" }"#,
+        )
+        .unwrap();
+
+        let project = Project::from_config(&config_path).unwrap();
+        assert_eq!(project.sources.len(), 1);
     }
 }
