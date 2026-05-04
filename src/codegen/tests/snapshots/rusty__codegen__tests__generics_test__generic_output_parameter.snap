@@ -11,7 +11,7 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define signext i16 @foo__INT(i64 %0, ptr %1) {
+define i16 @foo__INT(i64 %0, ptr %1) {
 entry:
   %foo__INT = alloca i16, align [filtered]
   %in1 = alloca i64, align [filtered]
@@ -29,7 +29,7 @@ entry:
   %iResult = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %data = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   %load_data = load i64, ptr %data, align [filtered]
-  %call = call signext i16 @foo__INT(i64 %load_data, ptr %theInt)
+  %call = call i16 @foo__INT(i64 %load_data, ptr %theInt)
   store i16 %call, ptr %iResult, align [filtered]
   ret void
 }

@@ -7,7 +7,7 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-define signext i16 @foo() {
+define i16 @foo() {
 entry:
   %foo = alloca i16, align [filtered]
   store i16 0, ptr %foo, align [filtered]

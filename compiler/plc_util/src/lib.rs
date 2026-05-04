@@ -23,6 +23,15 @@ macro_rules! __plc_add_common_snapshot_filters {
         $settings.add_filter(r#"target datalayout = ".*""#, r#"target datalayout = "[filtered]""#);
         $settings.add_filter(r#"target triple = ".*""#, r#"target triple = "[filtered]""#);
 
+        // Strip the LLVM `signext` / `zeroext` parameter and return attributes
+        // so codegen snapshots stay arch-agnostic. Whether plc emits these
+        // attributes depends on the target's calling convention (x86 SysV /
+        // Win64 / Apple-Darwin emit; AAPCS does not — see #1146); a plain
+        // strip lets the same snapshot match on every CI lane. Tests that
+        // specifically exercise the attribute presence live in
+        // `tests/lit/ir_tests/sub32_int_ffi_extension.st`.
+        $settings.add_filter(r#" (signext|zeroext)"#, "");
+
         if let Ok(cwd) = std::env::current_dir() {
             let cwd = cwd.to_string_lossy().to_string();
             for path in [cwd.clone(), cwd.replace('\\', "/"), format!(r"\\?\{}", cwd)].into_iter() {

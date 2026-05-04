@@ -11,7 +11,7 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define i32 @foo(i32 %0, i8 zeroext %1) {
+define i32 @foo(i32 %0, i8 %1) {
 entry:
   %foo = alloca i32, align [filtered]
   %bar = alloca i32, align [filtered]
@@ -27,7 +27,7 @@ entry:
 define void @prg(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-  %call = call i32 @foo(i32 2, i8 zeroext 1)
+  %call = call i32 @foo(i32 2, i8 1)
   store i32 %call, ptr %x, align [filtered]
   ret void
 }

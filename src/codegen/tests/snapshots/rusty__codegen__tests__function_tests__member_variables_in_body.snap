@@ -7,7 +7,7 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-define i32 @func(i16 signext %0, ptr %1, ptr %2) {
+define i32 @func(i16 %0, ptr %1, ptr %2) {
 entry:
   %func = alloca i32, align [filtered]
   %i = alloca i16, align [filtered]

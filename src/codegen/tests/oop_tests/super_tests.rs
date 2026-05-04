@@ -342,7 +342,7 @@ fn super_in_method_calls() {
       ret void
     }
 
-    define signext i16 @parent__process(ptr %0) {
+    define i16 @parent__process(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -367,7 +367,7 @@ fn super_in_method_calls() {
       ret void
     }
 
-    define signext i16 @child__process(ptr %0) {
+    define i16 @child__process(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -384,14 +384,14 @@ fn super_in_method_calls() {
       ret i16 %child__process_ret
     }
 
-    define signext i16 @child__test(ptr %0) {
+    define i16 @child__test(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
       %child.test = alloca i16, align [filtered]
       store i16 0, ptr %child.test, align [filtered]
-      %call = call signext i16 @parent__process(ptr %__parent)
+      %call = call i16 @parent__process(ptr %__parent)
       store i16 %call, ptr %child.test, align [filtered]
       %child__test_ret = load i16, ptr %child.test, align [filtered]
       ret i16 %child__test_ret
@@ -915,7 +915,7 @@ fn super_in_multi_level_inheritance() {
       ret void
     }
 
-    define signext i16 @grandparent__gp_method(ptr %0) {
+    define i16 @grandparent__gp_method(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -938,7 +938,7 @@ fn super_in_multi_level_inheritance() {
       ret void
     }
 
-    define signext i16 @parent__p_method(ptr %0) {
+    define i16 @parent__p_method(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -948,7 +948,7 @@ fn super_in_multi_level_inheritance() {
       store i16 0, ptr %parent.p_method, align [filtered]
       %load_p_val = load i16, ptr %p_val, align [filtered]
       %1 = sext i16 %load_p_val to i32
-      %call = call signext i16 @grandparent__gp_method(ptr %__grandparent)
+      %call = call i16 @grandparent__gp_method(ptr %__grandparent)
       %2 = sext i16 %call to i32
       %tmpVar = add i32 %1, %2
       %3 = trunc i32 %tmpVar to i16
@@ -966,7 +966,7 @@ fn super_in_multi_level_inheritance() {
       ret void
     }
 
-    define signext i16 @child__test(ptr %0) {
+    define i16 @child__test(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -974,7 +974,7 @@ fn super_in_multi_level_inheritance() {
       %c_val = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 1
       %child.test = alloca i16, align [filtered]
       store i16 0, ptr %child.test, align [filtered]
-      %call = call signext i16 @parent__p_method(ptr %__parent)
+      %call = call i16 @parent__p_method(ptr %__parent)
       store i16 %call, ptr %child.test, align [filtered]
       %child__test_ret = load i16, ptr %child.test, align [filtered]
       ret i16 %child__test_ret
@@ -1785,12 +1785,12 @@ fn super_as_function_parameter() {
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
-      %call = call signext i16 @process_ref(ptr %__parent)
-      %call1 = call signext i16 @process_val(ptr %__parent)
+      %call = call i16 @process_ref(ptr %__parent)
+      %call1 = call i16 @process_val(ptr %__parent)
       ret void
     }
 
-    define signext i16 @process_ref(ptr %0) {
+    define i16 @process_ref(ptr %0) {
     entry:
       %process_ref = alloca i16, align [filtered]
       %ref = alloca ptr, align [filtered]
@@ -1803,7 +1803,7 @@ fn super_as_function_parameter() {
       ret i16 %process_ref_ret
     }
 
-    define signext i16 @process_val(ptr %0) {
+    define i16 @process_val(ptr %0) {
     entry:
       %process_val = alloca i16, align [filtered]
       %val = alloca %parent, align [filtered]
@@ -1979,7 +1979,7 @@ fn super_with_deeply_nested_expressions() {
       ret void
     }
 
-    define signext i16 @parent__calc(ptr %0) {
+    define i16 @parent__calc(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -2011,7 +2011,7 @@ fn super_with_deeply_nested_expressions() {
       ret void
     }
 
-    define signext i16 @child__test(ptr %0) {
+    define i16 @child__test(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -2029,7 +2029,7 @@ fn super_with_deeply_nested_expressions() {
       %load_c = load i16, ptr %c, align [filtered]
       %3 = sext i16 %load_c to i32
       %tmpVar1 = mul i32 %tmpVar, %3
-      %call = call signext i16 @parent__calc(ptr %__parent)
+      %call = call i16 @parent__calc(ptr %__parent)
       %4 = sext i16 %call to i32
       %tmpVar2 = add i32 %tmpVar1, %4
       %a3 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
@@ -2620,7 +2620,7 @@ fn super_with_method_overrides_in_three_levels() {
       ret void
     }
 
-    define signext i16 @grandparent__calculate(ptr %0) {
+    define i16 @grandparent__calculate(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
@@ -2640,14 +2640,14 @@ fn super_with_method_overrides_in_three_levels() {
       ret void
     }
 
-    define signext i16 @parent__calculate(ptr %0) {
+    define i16 @parent__calculate(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %__grandparent = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 0
       %parent.calculate = alloca i16, align [filtered]
       store i16 0, ptr %parent.calculate, align [filtered]
-      %call = call signext i16 @grandparent__calculate(ptr %__grandparent)
+      %call = call i16 @grandparent__calculate(ptr %__grandparent)
       %1 = sext i16 %call to i32
       %tmpVar = add i32 %1, 50
       %2 = trunc i32 %tmpVar to i16
@@ -2664,14 +2664,14 @@ fn super_with_method_overrides_in_three_levels() {
       ret void
     }
 
-    define signext i16 @child__calculate(ptr %0) {
+    define i16 @child__calculate(ptr %0) {
     entry:
       %this = alloca ptr, align [filtered]
       store ptr %0, ptr %this, align [filtered]
       %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
       %child.calculate = alloca i16, align [filtered]
       store i16 0, ptr %child.calculate, align [filtered]
-      %call = call signext i16 @parent__calculate(ptr %__parent)
+      %call = call i16 @parent__calculate(ptr %__parent)
       %1 = sext i16 %call to i32
       %tmpVar = add i32 %1, 25
       %2 = trunc i32 %tmpVar to i16

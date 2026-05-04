@@ -9,7 +9,7 @@ target triple = "[filtered]"
 
 declare void @CONCAT(ptr, ptr, ptr)
 
-define zeroext i8 @LIST_ADD(ptr %0, ptr %1) {
+define i8 @LIST_ADD(ptr %0, ptr %1) {
 entry:
   %LIST_ADD = alloca i8, align [filtered]
   %INS = alloca [1001 x i8], align [filtered]

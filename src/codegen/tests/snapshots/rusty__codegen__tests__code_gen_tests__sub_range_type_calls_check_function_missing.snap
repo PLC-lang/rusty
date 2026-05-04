@@ -11,7 +11,7 @@ target triple = "[filtered]"
 
 @Main_instance = global %Main zeroinitializer
 
-define signext i16 @Check_XX_RangeSigned(i16 signext %0, i16 signext %1, i16 signext %2) {
+define i16 @Check_XX_RangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
   %Check_XX_RangeSigned = alloca i16, align [filtered]
   %value = alloca i16, align [filtered]

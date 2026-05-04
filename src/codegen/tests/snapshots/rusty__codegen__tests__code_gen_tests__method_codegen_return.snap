@@ -12,7 +12,7 @@ entry:
   ret void
 }
 
-define signext i16 @MyClass__testMethod(ptr %0, i16 signext %1) {
+define i16 @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
   %MyClass.testMethod = alloca i16, align [filtered]
   %myMethodArg = alloca i16, align [filtered]

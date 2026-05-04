@@ -11,7 +11,7 @@ target triple = "[filtered]"
 
 @main_instance = global %main zeroinitializer
 
-define i32 @func(ptr %0, ptr %1, i16 signext %2, i32 %3) {
+define i32 @func(ptr %0, ptr %1, i16 %2, i32 %3) {
 entry:
   %func = alloca i32, align [filtered]
   %byRef1 = alloca ptr, align [filtered]
@@ -46,6 +46,6 @@ entry:
   store i16 1, ptr %1, align [filtered]
   %2 = alloca i32, align [filtered]
   store i32 2, ptr %2, align [filtered]
-  %call = call i32 @func(ptr %1, ptr %2, i16 signext 3, i32 4)
+  %call = call i32 @func(ptr %1, ptr %2, i16 3, i32 4)
   ret void
 }

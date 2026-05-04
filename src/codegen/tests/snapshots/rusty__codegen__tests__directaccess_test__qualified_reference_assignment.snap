@@ -9,7 +9,7 @@ target triple = "[filtered]"
 
 %myStruct = type { i8 }
 
-define signext i16 @main() {
+define i16 @main() {
 entry:
   %main = alloca i16, align [filtered]
   %str = alloca %myStruct, align [filtered]

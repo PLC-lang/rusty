@@ -7,7 +7,7 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-define signext i16 @main() {
+define i16 @main() {
 entry:
   %main = alloca i16, align [filtered]
   store i16 0, ptr %main, align [filtered]
@@ -26,10 +26,10 @@ entry:
   store i16 7, ptr %6, align [filtered]
   %7 = getelementptr inbounds [7 x i16], ptr %0, i32 0, i32 6
   store i16 -1, ptr %7, align [filtered]
-  %call = call signext i16 @MAX__INT(i32 7, ptr %0)
+  %call = call i16 @MAX__INT(i32 7, ptr %0)
   store i16 %call, ptr %main, align [filtered]
   %main_ret = load i16, ptr %main, align [filtered]
   ret i16 %main_ret
 }
 
-declare signext i16 @MAX__INT(i32, ptr)
+declare i16 @MAX__INT(i32, ptr)

@@ -501,13 +501,13 @@ fn real_conversion_with_pretty_syntax() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    declare signext i16 @REAL_TO_INT(float)
+    declare i16 @REAL_TO_INT(float)
 
     define void @main() {
     entry:
       %var_int = alloca i16, align [filtered]
       store i16 0, ptr %var_int, align [filtered]
-      %call = call signext i16 @REAL_TO_INT(float 0x40F1170660000000)
+      %call = call i16 @REAL_TO_INT(float 0x40F1170660000000)
       store i16 %call, ptr %var_int, align [filtered]
       ret void
     }

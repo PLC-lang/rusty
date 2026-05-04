@@ -9,7 +9,7 @@ target triple = "[filtered]"
 
 %__func_a = type { i16 }
 
-define signext i16 @func() {
+define i16 @func() {
 entry:
   %func = alloca i16, align [filtered]
   %a = alloca %__func_a, align [filtered]

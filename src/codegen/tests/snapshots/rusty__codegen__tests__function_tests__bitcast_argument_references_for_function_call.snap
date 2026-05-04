@@ -11,7 +11,7 @@ target triple = "[filtered]"
 
 @main_instance = global %main { i8 1, i8 1, i16 2, i16 2, i32 3, i32 3, i64 4, i64 4, float 5.000000e+00, float 5.000000e+00, double 6.000000e+00, double 6.000000e+00 }
 
-define signext i8 @fn_sint(ptr %0, ptr %1) {
+define i8 @fn_sint(ptr %0, ptr %1) {
 entry:
   %fn_sint = alloca i8, align [filtered]
   %in_ref = alloca ptr, align [filtered]
@@ -73,10 +73,10 @@ entry:
   %var2_real = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 9
   %var1_lreal = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 10
   %var2_lreal = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 11
-  %call = call signext i8 @fn_sint(ptr %var1_sint, ptr %var2_sint)
-  %call1 = call signext i8 @fn_sint(ptr %var1_int, ptr %var2_int)
-  %call2 = call signext i8 @fn_sint(ptr %var1_dint, ptr %var2_dint)
-  %call3 = call signext i8 @fn_sint(ptr %var1_lint, ptr %var2_lint)
+  %call = call i8 @fn_sint(ptr %var1_sint, ptr %var2_sint)
+  %call1 = call i8 @fn_sint(ptr %var1_int, ptr %var2_int)
+  %call2 = call i8 @fn_sint(ptr %var1_dint, ptr %var2_dint)
+  %call3 = call i8 @fn_sint(ptr %var1_lint, ptr %var2_lint)
   %call4 = call i64 @fn_lint(ptr %var1_sint, ptr %var2_sint)
   %call5 = call i64 @fn_lint(ptr %var1_int, ptr %var2_int)
   %call6 = call i64 @fn_lint(ptr %var1_dint, ptr %var2_dint)

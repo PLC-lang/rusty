@@ -9,7 +9,7 @@ target triple = "[filtered]"
 
 %__foo_vla = type { ptr, [4 x i32] }
 
-define signext i16 @foo(ptr %0) {
+define i16 @foo(ptr %0) {
 entry:
   %foo = alloca i16, align [filtered]
   %vla = alloca %__foo_vla, align [filtered]
@@ -73,7 +73,7 @@ entry:
   %0 = load %__foo_vla, ptr %vla_struct, align [filtered]
   %vla_struct_ptr = alloca %__foo_vla, align [filtered]
   store %__foo_vla %0, ptr %vla_struct_ptr, align [filtered]
-  %call = call signext i16 @foo(ptr %vla_struct_ptr)
+  %call = call i16 @foo(ptr %vla_struct_ptr)
   %auto_deref1 = load [299 x i16], ptr %arr2, align [filtered]
   %outer_arr_gep2 = getelementptr inbounds [299 x i16], ptr %arr2, i32 0, i32 0
   %vla_struct3 = alloca %__foo_vla, align [filtered]
@@ -84,7 +84,7 @@ entry:
   %1 = load %__foo_vla, ptr %vla_struct3, align [filtered]
   %vla_struct_ptr6 = alloca %__foo_vla, align [filtered]
   store %__foo_vla %1, ptr %vla_struct_ptr6, align [filtered]
-  %call7 = call signext i16 @foo(ptr %vla_struct_ptr6)
+  %call7 = call i16 @foo(ptr %vla_struct_ptr6)
   %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }

@@ -21,7 +21,7 @@ entry:
   ret void
 }
 
-define void @MyClass__testMethod(ptr %0, i16 signext %1) {
+define void @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
   %this = alloca ptr, align [filtered]
   store ptr %0, ptr %this, align [filtered]
@@ -37,6 +37,6 @@ entry:
 define void @prg(ptr %0) {
 entry:
   %cl = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-  call void @MyClass__testMethod(ptr %cl, i16 signext 3)
+  call void @MyClass__testMethod(ptr %cl, i16 3)
   ret void
 }
