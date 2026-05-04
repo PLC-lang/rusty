@@ -1030,3 +1030,28 @@ fn reference_to_constant_aggregate_types_is_allowed() {
 
     insta::assert_snapshot!(diagnostics, @"")
 }
+
+#[test]
+fn double_deref_of_single_level_pointer_errors() {
+    // Regression for #1448: a single-level pointer must reject `p^^` at
+    // validation rather than panicking in codegen.
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION main : DINT
+        VAR
+            p : REF_TO INT;
+        END_VAR
+            p^^;
+            main := 0;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E068]: Dereferencing requires a pointer-value.
+      ┌─ <internal>:6:13
+      │
+    6 │             p^^;
+      │             ^^^ Dereferencing requires a pointer-value.
+    ");
+}
