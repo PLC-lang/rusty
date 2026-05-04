@@ -154,11 +154,10 @@ pub fn visit_data_type<T: AnnotationMap>(
                 validator.push_diagnostic(Diagnostic::unknown_type(numeric_type, location));
             }
         }
-        DataType::SubRangeType { referenced_type, referenced_type_location, .. } => {
-            if context.index.find_type(referenced_type).is_none() {
-                validator
-                    .push_diagnostic(Diagnostic::unknown_type(referenced_type, referenced_type_location));
-            }
+        DataType::SubRangeType { referenced_type, referenced_type_location, .. }
+            if context.index.find_type(referenced_type).is_none() =>
+        {
+            validator.push_diagnostic(Diagnostic::unknown_type(referenced_type, referenced_type_location));
         }
         _ => {}
     }
