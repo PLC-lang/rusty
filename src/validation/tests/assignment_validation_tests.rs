@@ -1913,6 +1913,63 @@ fn output_assignment_on_inout_parameter_is_ignore_by_default() {
 }
 
 #[test]
+fn assignment_to_method_output_parameter_is_rejected() {
+    // Qualified call (`instance.method(...)`) should reach the same direction check.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            METHOD set : DINT
+                VAR_OUTPUT out_val : DINT; END_VAR
+                out_val := 1;
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                instance : fb;
+                captured : DINT;
+            END_VAR
+            instance.set(out_val := captured);
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E134]: 'out_val' is an output parameter; use '=>' instead of ':='
+       ┌─ <internal>:14:26
+       │
+    14 │             instance.set(out_val := captured);
+       │                          ^^^^^^^^^^^^^^^^^^^ 'out_val' is an output parameter; use '=>' instead of ':='
+    ");
+}
+
+#[test]
+fn assignment_to_reference_to_output_parameter_is_rejected() {
+    // Direction check is type-agnostic — `REFERENCE TO X` is still VAR_OUTPUT.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR_OUTPUT out_ref : REFERENCE TO DINT; END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                instance : fb;
+                target   : DINT;
+            END_VAR
+            instance(out_ref := target);
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E134]: 'out_ref' is an output parameter; use '=>' instead of ':='
+       ┌─ <internal>:11:22
+       │
+    11 │             instance(out_ref := target);
+       │                      ^^^^^^^^^^^^^^^^^ 'out_ref' is an output parameter; use '=>' instead of ':='
+    ");
+}
+
+#[test]
 fn mixed_named_and_positional_args_do_not_double_report() {
     // Positional args don't carry a direction operator; the new check must skip them
     // without interfering with the existing E132 (mixing implicit/explicit) machinery.

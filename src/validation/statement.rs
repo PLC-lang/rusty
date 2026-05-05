@@ -1906,6 +1906,9 @@ fn validate_call<T: AnnotationMap>(
                     // save actual location in parent for InOut validation
                     variable_location_in_parent.push(left.get_location_in_parent());
 
+                    // Direction-keyed assignment check (`:=` vs `=>`) at named call args.
+                    // Positional args are neither `is_assignment` nor `is_output_assignment`,
+                    // so they fall through both arms cleanly.
                     if argument.is_assignment() && left.is_output() {
                         validator.push_diagnostic(
                             Diagnostic::new(format!(
