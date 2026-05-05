@@ -1307,6 +1307,12 @@ fn parse_string_type_definition(
             data_type: Box::new(DataType::SubRangeType {
                 name: Some(name.into()),
                 referenced_type: text,
+                // TODO: shortcut — the STRING-fallback path reuses the whole-decl
+                // location rather than the referenced-type token's span. Practically
+                // never user-visible (string types here only reference synthesised
+                // internal types), but a future use-site validation that surfaces
+                // this would underline the entire declaration instead of the type
+                // name. Refactor when a real consumer needs the tight span.
                 referenced_type_location: location.clone(),
                 bounds: None,
             }),
