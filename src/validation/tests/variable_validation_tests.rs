@@ -1688,3 +1688,133 @@ fn function_output_with_mismatched_type_assignment_must_produce_a_friendly_error
        │                 ^^^^^^ Implicit downcast from 'REAL' to 'INT'.
     ");
 }
+
+#[test]
+fn incomplete_hardware_address_in_function_is_rejected() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION foo : DINT
+        VAR
+            flag AT %I* : BOOL;
+        END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E136]: Incomplete hardware address `AT %I*` is not allowed in `FUNCTION` or `METHOD`; only `PROGRAM`, `FUNCTION_BLOCK`, and `VAR_GLOBAL` may declare these
+      ┌─ <internal>:4:13
+      │
+    4 │             flag AT %I* : BOOL;
+      │             ^^^^^^^^^^^ Incomplete hardware address `AT %I*` is not allowed in `FUNCTION` or `METHOD`; only `PROGRAM`, `FUNCTION_BLOCK`, and `VAR_GLOBAL` may declare these
+    ");
+}
+
+#[test]
+fn incomplete_hardware_address_in_method_is_rejected() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            METHOD m
+            VAR
+                flag AT %I* : BOOL;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E136]: Incomplete hardware address `AT %I*` is not allowed in `FUNCTION` or `METHOD`; only `PROGRAM`, `FUNCTION_BLOCK`, and `VAR_GLOBAL` may declare these
+      ┌─ <internal>:5:17
+      │
+    5 │                 flag AT %I* : BOOL;
+      │                 ^^^^^^^^^^^ Incomplete hardware address `AT %I*` is not allowed in `FUNCTION` or `METHOD`; only `PROGRAM`, `FUNCTION_BLOCK`, and `VAR_GLOBAL` may declare these
+    ");
+}
+
+#[test]
+fn incomplete_hardware_address_in_function_block_is_clean() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+        VAR
+            flag AT %I* : BOOL;
+        END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn incomplete_hardware_address_in_program_is_clean() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        PROGRAM prg
+        VAR
+            flag AT %I* : BOOL;
+        END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            prg.flag AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn incomplete_hardware_address_in_var_global_is_clean() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL
+            flag AT %I* : BOOL;
+        END_VAR
+
+        VAR_CONFIG
+            flag AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn function_and_method_parameters_do_not_trip_template_address_check() {
+    // Parameters never carry an `AT` address, so the template-address check
+    // must skip them silently — even inside FUNCTION / METHOD bodies where
+    // a template-addressed local would be rejected.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION foo : DINT
+        VAR_INPUT
+            in1 : BOOL;
+        END_VAR
+        VAR_OUTPUT
+            out1 : BOOL;
+        END_VAR
+        VAR_IN_OUT
+            io1 : BOOL;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION_BLOCK fb
+            METHOD m : DINT
+            VAR_INPUT
+                in1 : BOOL;
+            END_VAR
+            VAR_OUTPUT
+                out1 : BOOL;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}

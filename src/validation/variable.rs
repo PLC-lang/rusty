@@ -124,12 +124,39 @@ pub fn visit_variable_block<T: AnnotationMap>(
 
     for variable in &block.variables {
         visit_variable(validator, variable, context);
+        validate_template_address(validator, pou, variable);
 
         if let Some(referenced_type) = variable.data_type_declaration.get_referenced_type() {
             if context.index.get_type_information_or_void(referenced_type).is_vla() {
                 validate_vla(validator, pou, block, variable);
             }
         }
+    }
+}
+
+/// Variables with an incomplete hardware address (`AT %I*`) are placeholders that a
+/// `VAR_CONFIG` block later binds to a concrete address. They require a persistent
+/// state to bind to, so they may only be declared in `PROGRAM`, `FUNCTION_BLOCK`, or
+/// `VAR_GLOBAL`. `FUNCTION` and `METHOD` bodies have no such state.
+fn validate_template_address(validator: &mut Validator, pou: Option<&Pou>, variable: &Variable) {
+    let Some(address) = variable.address.as_ref() else { return };
+    if !address.is_template() {
+        return;
+    }
+
+    // VAR_GLOBAL declarations have no enclosing POU — allowed.
+    let Some(pou) = pou else { return };
+
+    if matches!(pou.kind, PouType::Function | PouType::Method { .. }) {
+        let location = variable.location.span(&address.get_location());
+        validator.push_diagnostic(
+            Diagnostic::new(
+                "Incomplete hardware address `AT %I*` is not allowed in `FUNCTION` or `METHOD`; \
+                 only `PROGRAM`, `FUNCTION_BLOCK`, and `VAR_GLOBAL` may declare these",
+            )
+            .with_error_code("E136")
+            .with_location(&location),
+        );
     }
 }
 
