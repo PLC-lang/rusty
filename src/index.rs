@@ -2501,18 +2501,22 @@ impl Index {
     }
 }
 
-/// Returns a default initialization name for a variable or type
 /// Returns true for the hardware-address-mangled synthetic globals emitted by
 /// the pre-processor (`__PI_*` for inputs, `__M_*` for memory, `__G_*` for
 /// globals). These deterministic names can legitimately appear in multiple
 /// units when they share a hardware address; index merging dedups them so they
-/// don't surface as ambiguous-global diagnostics. The check is
-/// case-insensitive because index keys are stored lowercased.
+/// don't surface as ambiguous-global diagnostics.
+///
+/// The `__` leading underscores are a reserved-identifier convention — any
+/// user-declared global colliding with these prefixes is *by design* subject
+/// to dedup at import time. The match is against lowercase prefixes because
+/// `Index::register_global_variable` lowercases keys on insert (see
+/// `src/index.rs:2166`), so the input name is already canonicalised.
 fn is_synthetic_hw_global(name: &str) -> bool {
-    let lower = name.to_lowercase();
-    lower.starts_with("__pi_") || lower.starts_with("__m_") || lower.starts_with("__g_")
+    name.starts_with("__pi_") || name.starts_with("__m_") || name.starts_with("__g_")
 }
 
+/// Returns a default initialization name for a variable or type
 pub fn get_initializer_name(name: &str) -> String {
     format!("__{name}__init")
 }
