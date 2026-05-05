@@ -772,6 +772,61 @@ fn var_conf_template_variable_is_no_template() {
 }
 
 #[test]
+fn var_conf_inline_custom_string_does_not_panic() {
+    // Regression for #1331: an inline custom-sized STRING (or WSTRING) in a
+    // VAR_CONFIG entry used to panic in `global_var_indexer` because the
+    // anonymous string type had no resolvable name. The fix synthesizes a
+    // user-type name during pre-processing so the indexer can look it up.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : STRING[100];
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : STRING[100];
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn var_conf_inline_custom_wstring_does_not_panic() {
+    // Companion to the STRING regression — WSTRING goes through the same path.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : WSTRING[50];
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX2.0 : WSTRING[50];
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
 fn only_constant_builtins_are_allowed_in_initializer() {
     let diagnostics = parse_and_validate_buffered(
         r#"
