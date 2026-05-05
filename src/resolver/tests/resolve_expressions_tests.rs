@@ -7154,12 +7154,66 @@ fn fb_instance_shares_name_with_function_qualified_call() {
 }
 
 #[test]
+fn chained_qualified_call_resolves_through_recursive_bases() {
+    // Stress the recursive base-context propagation in `visit_reference_expr`.
+    // `h.inst.bar()`'s operator is a ReferenceExpr whose base is itself a
+    // ReferenceExpr (`h.inst`). The fix's `default_scopes()` switch must hold
+    // at every nested level so that:
+    //   * `h`        resolves to the local variable (Variable scope)
+    //   * `h.inst`   resolves to the struct field (FB instance) — base under
+    //                default scopes, leaf `inst` likewise
+    //   * `bar`      (the leaf of the outer ReferenceExpr) still resolves
+    //                under `call_operator_scopes`, so the method wins.
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r#"
+        FUNCTION_BLOCK SomeFb
+        METHOD bar : INT
+            bar := 7;
+        END_METHOD
+        END_FUNCTION_BLOCK
+
+        TYPE Holder : STRUCT inst : SomeFb; END_STRUCT END_TYPE
+
+        PROGRAM Main
+        VAR h : Holder; END_VAR
+        h.inst.bar();
+        END_PROGRAM
+        "#,
+        id_provider.clone(),
+    );
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    // implementations: [0]=SomeFb, [1]=SomeFb.bar, [2]=Main
+    // The leaf `bar` must annotate as the method (call_operator_scopes wins).
+    let operator = call_operator(&unit, 2, 0);
+    assert!(
+        matches!(annotations.get(operator), Some(StatementAnnotation::Function { qualified_name, .. }) if qualified_name == "SomeFb.bar"),
+        "expected `bar` to resolve to method SomeFb.bar, got {:?}",
+        annotations.get(operator),
+    );
+
+    // The base `h.inst` must annotate as the SomeFb-typed struct field.
+    let base = call_operator_base(&unit, 2, 0);
+    assert!(
+        matches!(
+            annotations.get(base),
+            Some(StatementAnnotation::Variable { qualified_name, resulting_type, .. })
+            if qualified_name == "Holder.inst" && resulting_type == "SomeFb"
+        ),
+        "expected `h.inst` to annotate as Holder.inst : SomeFb, got {:?}",
+        annotations.get(base),
+    );
+}
+
+#[test]
 fn fb_instance_shares_name_with_function_direct_call() {
-    // The user flagged this as undefined: when an FB instance's name collides with a global
-    // function name and the user writes `foo()` (unqualified call), which wins? The fix in
-    // visit_reference_expr only affects ReferenceExpr-base resolution, so this case should NOT
-    // change — `foo()` continues to resolve to the function (the existing call_operator_scopes
-    // semantics). Pinning the current behaviour so a future change is visible.
+    // Current behaviour, intentionally pinned: when an FB instance's name collides with a
+    // global function name and the user writes `foo()` (unqualified call), the function
+    // wins. The fix in visit_reference_expr only affects ReferenceExpr-base resolution, so
+    // this case is unchanged — `foo()` continues to resolve to the function (the existing
+    // call_operator_scopes semantics). Any change to this assertion is deliberate and
+    // should be motivated, not assumed safe.
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
         r#"
