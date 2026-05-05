@@ -10,9 +10,7 @@
             "path": "libs/",
             "link_path": "libcopy.so",
             "package": "Copy",
-            "include_path": [
-                "program_with_expressions.st"
-            ]
+            "include_path": []
         }
     ],
     "output": "proj_link_path.so"

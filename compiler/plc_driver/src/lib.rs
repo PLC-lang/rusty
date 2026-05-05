@@ -429,7 +429,10 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
         })
         .map(|proj| proj.with_output_name(compile_parameters.output.clone()))?;
 
-    if project.get_sources().is_empty() {
+    // Object-only inputs (e.g. `plc lib.o -ltest -L<dir>`) are a legitimate
+    // link-only invocation and must not trip the empty-set guard. Reject only
+    // when neither sources nor objects were resolved.
+    if project.get_sources().is_empty() && project.get_objects().is_empty() {
         anyhow::bail!("no input files");
     }
     Ok(project)

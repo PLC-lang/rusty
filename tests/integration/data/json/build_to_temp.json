@@ -9,17 +9,13 @@
             "name": "copy",
             "path": "libs/",
             "package": "Copy",
-            "include_path": [
-                "program_with_expressions.st"
-            ]
+            "include_path": []
         },
         {
             "name": "nocopy",
             "path": "libs/",
             "package": "System",
-            "include_path": [
-                "program_with_variables.st"
-            ]
+            "include_path": []
         }
     ],
     "output": "proj.so"
