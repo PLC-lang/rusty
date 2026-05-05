@@ -148,13 +148,14 @@ fn validate_template_address(validator: &mut Validator, pou: Option<&Pou>, varia
     let Some(pou) = pou else { return };
 
     if matches!(pou.kind, PouType::Function | PouType::Method { .. }) {
+        let location = variable.location.span(&address.get_location());
         validator.push_diagnostic(
             Diagnostic::new(
                 "Incomplete hardware address `AT %I*` is not allowed in `FUNCTION` or `METHOD`; \
                  only `PROGRAM`, `FUNCTION_BLOCK`, and `VAR_GLOBAL` may declare these",
             )
-            .with_error_code("E134")
-            .with_location(&variable.location),
+            .with_error_code("E136")
+            .with_location(&location),
         );
     }
 }
