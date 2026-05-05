@@ -33,4 +33,12 @@ FUNCTION main : DINT
     myFb(foo => bar.4);
     PRINTF('after_fb=%d$N', bar);
     // CHECK: after_fb=16
+
+    // Non-zero seed: anchors that bits 0–3 are *preserved* when the FB output
+    // writes bit 4. A regression that clobbered the integer (e.g. wrote a full
+    // word instead of just the bit) would surface here as 16 instead of 17.
+    bar := 1;
+    myFb(foo => bar.4);
+    PRINTF('after_fb_seeded=%d$N', bar);
+    // CHECK: after_fb_seeded=17
 END_FUNCTION
