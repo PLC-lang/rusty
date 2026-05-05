@@ -183,40 +183,44 @@
 <a href=#183 id=183 data-nosnippet>183</a>
 <a href=#184 id=184 data-nosnippet>184</a>    <span class="doccomment">///validate the uniqueness of POUs (programs, functions, function_blocks, classes)
 <a href=#185 id=185 data-nosnippet>185</a>    </span><span class="kw">fn </span>validate_unique_pous(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) {
-<a href=#186 id=186 data-nosnippet>186</a>        <span class="comment">//inner filter
-<a href=#187 id=187 data-nosnippet>187</a>        </span><span class="kw">fn </span>only_toplevel_pous(pou: &amp;&amp;PouIndexEntry) -&gt; bool {
-<a href=#188 id=188 data-nosnippet>188</a>            !pou.is_action() &amp;&amp; !pou.is_method() &amp;&amp; !pou.is_generic()
-<a href=#189 id=189 data-nosnippet>189</a>        }
-<a href=#190 id=190 data-nosnippet>190</a>
-<a href=#191 id=191 data-nosnippet>191</a>        <span class="kw">let </span>pou_clusters = index
-<a href=#192 id=192 data-nosnippet>192</a>            .get_pous()
-<a href=#193 id=193 data-nosnippet>193</a>            .entries()
-<a href=#194 id=194 data-nosnippet>194</a>            .filter(|(<span class="kw">_</span>, entries_per_name)| entries_per_name.iter().filter(only_toplevel_pous).count() &gt; <span class="number">1</span>)
-<a href=#195 id=195 data-nosnippet>195</a>            .map(|(name, pous)| {
-<a href=#196 id=196 data-nosnippet>196</a>                (
-<a href=#197 id=197 data-nosnippet>197</a>                    name.as_str(),
-<a href=#198 id=198 data-nosnippet>198</a>                    pous.iter()
-<a href=#199 id=199 data-nosnippet>199</a>                        .filter(|p| only_toplevel_pous(p) &amp;&amp; !p.is_generic())
-<a href=#200 id=200 data-nosnippet>200</a>                        .map(|p| p.get_location()),
-<a href=#201 id=201 data-nosnippet>201</a>                )
-<a href=#202 id=202 data-nosnippet>202</a>            });
-<a href=#203 id=203 data-nosnippet>203</a>
-<a href=#204 id=204 data-nosnippet>204</a>        <span class="kw">for </span>(name, cluster) <span class="kw">in </span>pou_clusters {
-<a href=#205 id=205 data-nosnippet>205</a>            <span class="self">self</span>.report_name_conflict(name, <span class="kw-2">&amp;</span>cluster.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;(), <span class="prelude-val">None</span>);
-<a href=#206 id=206 data-nosnippet>206</a>        }
-<a href=#207 id=207 data-nosnippet>207</a>    }
-<a href=#208 id=208 data-nosnippet>208</a>
-<a href=#209 id=209 data-nosnippet>209</a>    <span class="kw">fn </span>check_uniqueness_of_cluster&lt;<span class="lifetime">'a</span>, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cluster: T, additional_text: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;)
-<a href=#210 id=210 data-nosnippet>210</a>    <span class="kw">where
-<a href=#211 id=211 data-nosnippet>211</a>        </span>T: Iterator&lt;Item = (<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>SourceLocation)&gt;,
-<a href=#212 id=212 data-nosnippet>212</a>    {
-<a href=#213 id=213 data-nosnippet>213</a>        <span class="kw">let </span><span class="kw-2">mut </span>cluster_map: SymbolMap&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>SourceLocation&gt; = SymbolMap::default();
-<a href=#214 id=214 data-nosnippet>214</a>        <span class="kw">for </span>(name, loc) <span class="kw">in </span>cluster {
-<a href=#215 id=215 data-nosnippet>215</a>            cluster_map.insert(name, loc);
-<a href=#216 id=216 data-nosnippet>216</a>        }
-<a href=#217 id=217 data-nosnippet>217</a>        <span class="kw">for </span>(name, locations) <span class="kw">in </span>cluster_map.entries().filter(|(<span class="kw">_</span>, v)| v.len() &gt; <span class="number">1</span>) {
-<a href=#218 id=218 data-nosnippet>218</a>            <span class="self">self</span>.report_name_conflict(name, locations, additional_text);
-<a href=#219 id=219 data-nosnippet>219</a>        }
-<a href=#220 id=220 data-nosnippet>220</a>    }
-<a href=#221 id=221 data-nosnippet>221</a>}
+<a href=#186 id=186 data-nosnippet>186</a>        <span class="comment">// Top-level POUs only — actions and methods belong to their parent and are
+<a href=#187 id=187 data-nosnippet>187</a>        // uniqueness-checked elsewhere.
+<a href=#188 id=188 data-nosnippet>188</a>        </span><span class="kw">fn </span>included_in_cluster(pou: &amp;&amp;PouIndexEntry) -&gt; bool {
+<a href=#189 id=189 data-nosnippet>189</a>            !pou.is_action() &amp;&amp; !pou.is_method()
+<a href=#190 id=190 data-nosnippet>190</a>        }
+<a href=#191 id=191 data-nosnippet>191</a>
+<a href=#192 id=192 data-nosnippet>192</a>        <span class="comment">// Two POUs sharing a (case-insensitive) name are reported as a conflict UNLESS
+<a href=#193 id=193 data-nosnippet>193</a>        // both are generic functions: per PR #1054 generic functions may share a name
+<a href=#194 id=194 data-nosnippet>194</a>        // (overload by type parameters), e.g. ADD&lt;T1,T2&gt; and ADD&lt;K,V&gt;.
+<a href=#195 id=195 data-nosnippet>195</a>        // A non-generic POU colliding with anything (generic or not) is always
+<a href=#196 id=196 data-nosnippet>196</a>        // ambiguous — it would cause the codegen lookup to pick whichever entry the
+<a href=#197 id=197 data-nosnippet>197</a>        // index merge happens to surface first.
+<a href=#198 id=198 data-nosnippet>198</a>        </span><span class="kw">let </span>pou_clusters = index.get_pous().entries().filter_map(|(name, pous)| {
+<a href=#199 id=199 data-nosnippet>199</a>            <span class="kw">let </span>cluster: Vec&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; = pous.iter().filter(included_in_cluster).collect();
+<a href=#200 id=200 data-nosnippet>200</a>            <span class="kw">let </span>has_non_generic = cluster.iter().any(|p| !p.is_generic());
+<a href=#201 id=201 data-nosnippet>201</a>            <span class="kw">if </span>cluster.len() &gt; <span class="number">1 </span>&amp;&amp; has_non_generic {
+<a href=#202 id=202 data-nosnippet>202</a>                <span class="prelude-val">Some</span>((name.as_str(), cluster.iter().map(|p| p.get_location()).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()))
+<a href=#203 id=203 data-nosnippet>203</a>            } <span class="kw">else </span>{
+<a href=#204 id=204 data-nosnippet>204</a>                <span class="prelude-val">None
+<a href=#205 id=205 data-nosnippet>205</a>            </span>}
+<a href=#206 id=206 data-nosnippet>206</a>        });
+<a href=#207 id=207 data-nosnippet>207</a>
+<a href=#208 id=208 data-nosnippet>208</a>        <span class="kw">for </span>(name, locations) <span class="kw">in </span>pou_clusters {
+<a href=#209 id=209 data-nosnippet>209</a>            <span class="self">self</span>.report_name_conflict(name, <span class="kw-2">&amp;</span>locations, <span class="prelude-val">None</span>);
+<a href=#210 id=210 data-nosnippet>210</a>        }
+<a href=#211 id=211 data-nosnippet>211</a>    }
+<a href=#212 id=212 data-nosnippet>212</a>
+<a href=#213 id=213 data-nosnippet>213</a>    <span class="kw">fn </span>check_uniqueness_of_cluster&lt;<span class="lifetime">'a</span>, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cluster: T, additional_text: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;)
+<a href=#214 id=214 data-nosnippet>214</a>    <span class="kw">where
+<a href=#215 id=215 data-nosnippet>215</a>        </span>T: Iterator&lt;Item = (<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>SourceLocation)&gt;,
+<a href=#216 id=216 data-nosnippet>216</a>    {
+<a href=#217 id=217 data-nosnippet>217</a>        <span class="kw">let </span><span class="kw-2">mut </span>cluster_map: SymbolMap&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>SourceLocation&gt; = SymbolMap::default();
+<a href=#218 id=218 data-nosnippet>218</a>        <span class="kw">for </span>(name, loc) <span class="kw">in </span>cluster {
+<a href=#219 id=219 data-nosnippet>219</a>            cluster_map.insert(name, loc);
+<a href=#220 id=220 data-nosnippet>220</a>        }
+<a href=#221 id=221 data-nosnippet>221</a>        <span class="kw">for </span>(name, locations) <span class="kw">in </span>cluster_map.entries().filter(|(<span class="kw">_</span>, v)| v.len() &gt; <span class="number">1</span>) {
+<a href=#222 id=222 data-nosnippet>222</a>            <span class="self">self</span>.report_name_conflict(name, locations, additional_text);
+<a href=#223 id=223 data-nosnippet>223</a>        }
+<a href=#224 id=224 data-nosnippet>224</a>    }
+<a href=#225 id=225 data-nosnippet>225</a>}
 </code></pre></div></section></main></body></html>
