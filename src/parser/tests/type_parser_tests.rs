@@ -188,23 +188,22 @@ fn type_alias_can_be_parsed() {
         "#,
     );
 
-    let ast_string = format!("{:#?}", &result.user_types[0]);
-    let exptected_ast = format!(
-        "{:#?}",
-        &UserTypeDeclaration {
-            data_type: DataType::SubRangeType {
-                name: Some("MyInt".to_string()),
-                referenced_type: "INT".to_string(),
-                bounds: None,
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: SubRangeType {
+            name: Some(
+                "MyInt",
+            ),
+            referenced_type: "INT",
+            referenced_type_location: SourceLocation {
+                span: Range(2:20 - 2:23),
             },
-            initializer: None,
-            location: SourceLocation::internal(),
-            scope: None,
-            linkage: plc_ast::ast::LinkageType::Internal,
-        }
-    );
-
-    assert_eq!(ast_string, exptected_ast);
+            bounds: None,
+        },
+        initializer: None,
+        scope: None,
+    }
+    "#);
 }
 
 #[test]
@@ -934,6 +933,9 @@ fn enum_with_no_elements_produces_syntax_error() {
                 "EMPTY_ENUM",
             ),
             referenced_type: "INT",
+            referenced_type_location: SourceLocation {
+                span: Range(1:26 - 1:29),
+            },
             bounds: Some(
                 EmptyStatement,
             ),

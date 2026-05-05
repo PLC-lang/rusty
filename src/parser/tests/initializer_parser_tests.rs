@@ -96,6 +96,9 @@ fn initial_scalar_values_can_be_parsed() {
             "MyInt",
         ),
         referenced_type: "INT",
+        referenced_type_location: SourceLocation {
+            span: Range(13:25 - 13:28),
+        },
         bounds: None,
     },
     initializer: Some(
