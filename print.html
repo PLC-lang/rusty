@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-a8622f6e.js";
+            window.path_to_searchindex_js = "searchindex-6c82d32f.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-b6bca4ef.js"></script>
+        <script src="toc-5f69e249.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2224,6 +2224,22 @@ END_VAR
     c := a OR b;   // ✅ correct: bitwise OR
 END_PROGRAM
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="incomplete-hardware-address-in-function-or-method"><a class="header" href="#incomplete-hardware-address-in-function-or-method">Incomplete hardware address in <code>FUNCTION</code> or <code>METHOD</code></a></h1>
+<p>Variables with an incomplete hardware address (e.g. <code>AT %I*</code>) are placeholders that
+expect a complete address to be supplied later by a <code>VAR_CONFIG</code> block. They can only
+be declared in stateful contexts: <code>PROGRAM</code>, <code>FUNCTION_BLOCK</code>, or <code>VAR_GLOBAL</code>.</p>
+<p><code>FUNCTION</code> and <code>METHOD</code> bodies have no persistent state to bind a hardware address to,
+so an incomplete address there cannot be resolved.</p>
+<p>Erroneous code example:</p>
+<pre><code class="language-iecst">FUNCTION foo : DINT
+VAR
+    flag AT %I* : BOOL;
+END_VAR
+END_FUNCTION
+</code></pre>
+<p>Move the variable into a <code>PROGRAM</code>, <code>FUNCTION_BLOCK</code>, or <code>VAR_GLOBAL</code> block, or supply
+a complete address (e.g. <code>AT %IX1.0</code>) directly.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
