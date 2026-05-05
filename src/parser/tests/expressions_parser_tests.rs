@@ -1114,6 +1114,91 @@ fn amp_as_unary_prefix_in_assignment_recovers() {
 }
 
 #[test]
+fn consecutive_bad_operators_emit_a_single_diagnostic() {
+    // `& & & g` previously emitted one diagnostic per `&` and recursed N
+    // times. The loop drains the run and retries once, so adversarial input
+    // produces exactly one diagnostic and one recovered identifier.
+    let src = "
+        PROGRAM prg
+            VAR x : DINT; g : DINT; END_VAR
+            x := & & & g;
+        END_PROGRAM
+        ";
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected expression but found &
+      ┌─ <internal>:4:18
+      │
+    4 │             x := & & & g;
+      │                  ^ Unexpected token: expected expression but found &
+    ");
+    assert_debug_snapshot!(unit.implementations[0].statements, @r#"
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "g",
+                    },
+                ),
+                base: None,
+            },
+        },
+    ]
+    "#);
+}
+
+#[test]
+fn empty_parameter_assignment_carve_out_still_fires() {
+    // The narrowed `foo(p := )` recovery must keep firing when the next token
+    // is `)` or `,` — the carve-out is the deliberate complement of the bad-
+    // token recovery above. Verifies that tightening the predicate to
+    // `KeywordParensClose | KeywordComma` didn't break the positive path.
+    let src = "
+        FUNCTION foo : DINT VAR_INPUT p : DINT; q : DINT; END_VAR foo := p; END_FUNCTION
+        PROGRAM main
+            foo(p := );
+            foo(p := , q := 1);
+        END_PROGRAM
+        ";
+    let (unit, diagnostics) = parse_buffered(src);
+    assert!(diagnostics.is_empty(), "expected no parse diagnostics, got:\n{diagnostics}");
+
+    let main = unit.implementations.iter().find(|i| i.name == "main").unwrap();
+    // Both calls should land an Assignment with right == EmptyStatement.
+    for stmt in &main.statements {
+        let AstStatement::CallStatement(call) = &stmt.stmt else {
+            panic!("expected CallStatement, got {:?}", stmt);
+        };
+        let Some(params) = call.parameters.as_deref() else {
+            panic!("expected parameters on call, got {:?}", call);
+        };
+        // walk into the first Assignment we find and check its RHS
+        let first_assignment = match &params.stmt {
+            AstStatement::Assignment(a) => a,
+            AstStatement::ExpressionList(list) => match &list[0].stmt {
+                AstStatement::Assignment(a) => a,
+                other => panic!("expected Assignment in list head, got {:?}", other),
+            },
+            other => panic!("expected Assignment or ExpressionList, got {:?}", other),
+        };
+        assert!(
+            matches!(first_assignment.right.stmt, AstStatement::EmptyStatement(..)),
+            "expected RHS to be EmptyStatement, got {:?}",
+            first_assignment.right.stmt
+        );
+    }
+}
+
+#[test]
 fn binary_only_operator_as_prefix_recovers() {
     // Generality witness — recovery is not specific to `&`.
     let src = "
