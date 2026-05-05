@@ -349,7 +349,20 @@ fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<V
 /// match anything: literal paths whose target is missing, and globs whose
 /// literal-prefix directory doesn't exist (e.g. `<typo>/include/*.st`).
 /// Globs whose directory exists but match nothing remain accepted (a
-/// templating pattern like `*.dt` is valid even when no .dt files are present).
+/// templating pattern like `*.dt` is valid even when no .dt files are present),
+/// regardless of whether the wildcard sits in the leaf segment or mid-path.
+///
+/// The wildcard probe is intentionally lax — a stray `[` without a matching
+/// `]` (e.g. `[oddname.st`) classifies as a glob and routes through the
+/// parent-directory check rather than being rejected as a literal miss. The
+/// downstream `glob` crate would refuse the malformed pattern anyway; the
+/// worst case is a slightly fuzzier error message.
+///
+/// Existence is determined via `Path::exists()`, which follows symlinks and
+/// reports based on the target. A broken symlink rejects here; an unreadable
+/// path that the caller lacks permission to traverse is reported as missing
+/// only when the OS surfaces it that way (otherwise the failure resurfaces
+/// at compile / link time with the underlying I/O error).
 fn validate_input_exists(original: &Path, joined: &Path) -> Result<()> {
     let original_str = original.to_string_lossy();
     let has_wildcard = original_str.contains(['*', '?', '[']);
@@ -454,7 +467,24 @@ mod tests {
         assert_eq!(glob_literal_parent(Path::new("src/foo/*.st")), PathBuf::from("src/foo"));
         assert_eq!(glob_literal_parent(Path::new("src/*/foo.st")), PathBuf::from("src"));
         assert_eq!(glob_literal_parent(Path::new("*.st")), PathBuf::from("."));
+        // Defensive: production callers gate `glob_literal_parent` behind a
+        // wildcard check, so a literal path never reaches here today. The
+        // assertion documents the function's behaviour for that case in case
+        // a future caller drops the gate.
         assert_eq!(glob_literal_parent(Path::new("src/file.st")), PathBuf::from("src/file.st"));
+    }
+
+    #[test]
+    fn mid_segment_glob_with_existing_parent_and_no_matches_is_ok() {
+        // `src/file*.st` is a glob even though the wildcard sits in the leaf
+        // segment after a literal prefix. As long as the literal-prefix
+        // directory exists (the parent), zero matches stays accepted — same
+        // templating semantic as the simple `*.dt` case.
+        let dir = tempdir().unwrap();
+        std::fs::create_dir(dir.path().join("src")).unwrap();
+
+        let result = resolve_file_paths(Some(dir.path()), vec![PathBuf::from("src/file*.st")]).unwrap();
+        assert!(result.is_empty());
     }
 
     #[test]

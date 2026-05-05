@@ -2379,6 +2379,8 @@ dependencies = [
 name = "plc_driver"
 version = "0.4.1-dev"
 dependencies = [
+ "anstream",
+ "anstyle",
  "anyhow",
  "clap 3.2.25",
  "encoding_rs",

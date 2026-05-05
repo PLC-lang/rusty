@@ -1,5 +1,4 @@
 use std::env;
-use std::io::IsTerminal;
 
 use plc_driver::cli::CompileParameters;
 
@@ -17,11 +16,12 @@ fn main() {
     builder.init();
 
     if let Err(e) = plc_driver::compile(&args) {
-        if std::io::stderr().is_terminal() {
-            eprintln!("\x1b[31;1merror\x1b[0m: {e}");
-        } else {
-            eprintln!("error: {e}");
-        }
+        // `anstream::eprintln!` auto-detects whether stderr supports ANSI:
+        // raw escapes on TTYs that handle them, Win32 console API on legacy
+        // `cmd.exe`, plain text when piped. Replaces the manual
+        // `is_terminal()` + raw-escape branch this used to carry.
+        let style = anstyle::Style::new().fg_color(Some(anstyle::AnsiColor::Red.into())).bold();
+        anstream::eprintln!("{style}error{style:#}: {e}");
         std::process::exit(1)
     }
 }
