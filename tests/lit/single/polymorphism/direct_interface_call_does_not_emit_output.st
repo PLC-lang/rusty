@@ -7,7 +7,7 @@
 // so validation errors found during lowering must still stop the pipeline before codegen.
 
 // CHECK: {{.*}}direct_interface_call_does_not_emit_output.st:{{[0-9]+}}:{{[0-9]+}}:{{.*}}error[E129]: Interfaces cannot be called directly
-// CHECK: Compilation aborted due to critical errors
+// CHECK: {{.*}}Compilation aborted due to critical errors
 
 INTERFACE IA
     METHOD foo
