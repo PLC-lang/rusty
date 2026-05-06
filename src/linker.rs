@@ -742,7 +742,7 @@ mod test {
         let msg = unwrap_link_message(diagnose_spawn_error(
             &err,
             Path::new("ld.lld.exe"),
-            &["one".to_string(), "two".to_string()],
+            &["one".to_string(), "three".to_string()],
         ));
         // The underlying io::Error display is locale-dependent on Windows
         // (English: "The filename or extension is too long.", German: "Der
@@ -759,8 +759,8 @@ mod test {
             Diagnostic context:
               - linker:          ld.lld.exe
               - args:            2
-              - cmdline length:  7 bytes
-              - longest arg:     3 bytes ('one')
+              - cmdline length:  9 bytes
+              - longest arg:     5 bytes ('three')
             Possible causes on Windows (ERROR_FILENAME_EXCED_RANGE):
               - The assembled command line exceeded 32,767 bytes (CreateProcess limit).
               - A single argument exceeded MAX_PATH (260 chars) without the \\?\ prefix.
