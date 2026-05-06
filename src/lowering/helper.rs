@@ -479,6 +479,14 @@ pub fn get_unit_name(unit: &CompilationUnit) -> String {
     let path: PathBuf = (&unit.file).into();
     let basename = path.file_name().map(|it| it.to_string_lossy().into_owned()).unwrap_or_default();
     let basename_slug = sanitize_to_identifier(&basename);
+    // Hash the full path. The whole path is needed for uniqueness — any
+    // shorter key (basename, parent/basename, ...) collides for ordinary
+    // hierarchies (e.g. `b/global.st` vs `a/b/global.st`). Absolute paths
+    // are unique on any single host, and the linker only cares about
+    // uniqueness within a single compilation; differences across build
+    // environments (CI vs developer machine) are masked in test snapshots
+    // by the `__unit_..._<hex>__ctor` filter in
+    // `__plc_add_common_snapshot_filters`.
     let suffix = path_hash_suffix(&path.to_string_lossy());
     format!("{basename_slug}_{suffix}")
 }
@@ -571,14 +579,32 @@ mod tests {
         // deterministic (same input always renders to the same suffix),
         // path-sensitive (`a/globals.st` and `b/globals.st` differ — this is
         // the #1723 regression), and uniformly 8 lowercase hex chars.
-        let table =
-            render_table(["a/globals.st", "b/globals.st", "__internal__", "anything", ""], path_hash_suffix);
+        //
+        // Note that any *prefix* of the path matters too: `a/globals.st`,
+        // `a/a/globals.st` and `a/b/globals.st` are all distinct, which is
+        // why `get_unit_name` must hash the whole path rather than just the
+        // basename or a single parent component (the latter would collide
+        // `b/globals.st` with `a/b/globals.st`).
+        let table = render_table(
+            [
+                "a/globals.st",
+                "b/globals.st",
+                "a/a/globals.st",
+                "a/b/globals.st",
+                "__internal__",
+                "anything",
+                "",
+            ],
+            path_hash_suffix,
+        );
         assert_snapshot!(table, @r"
-        a/globals.st -> 944ecddc
-        b/globals.st -> 411895b6
-        __internal__ -> bd9efc6f
-            anything -> 63269c94
-                     -> d1fba762
+          a/globals.st -> 944ecddc
+          b/globals.st -> 411895b6
+        a/a/globals.st -> 631efcc1
+        a/b/globals.st -> 20ee0f2e
+          __internal__ -> bd9efc6f
+              anything -> 63269c94
+                       -> d1fba762
         ");
     }
 }

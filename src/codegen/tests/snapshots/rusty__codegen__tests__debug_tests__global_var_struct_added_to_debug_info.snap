@@ -11,7 +11,7 @@ target triple = "[filtered]"
 
 @gStruct = global %myStruct zeroinitializer, !dbg !0
 @b = global [11 x %myStruct] zeroinitializer, !dbg !13
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
 define void @myStruct__ctor(ptr %0) {
 entry:
@@ -37,7 +37,7 @@ entry:
   ret void
 }
 
-define void @__unit___internal___bd9efc6f__ctor() {
+define void @__unit___internal___[ctor-hash]__ctor() {
 entry:
   call void @myStruct__ctor(ptr @gStruct)
   call void @__global_b__ctor(ptr @b)

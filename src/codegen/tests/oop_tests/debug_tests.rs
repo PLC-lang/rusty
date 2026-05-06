@@ -30,7 +30,7 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @foo(ptr %0) !dbg !4 {
     entry:
@@ -137,7 +137,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void, !dbg !35
     }
 
-    define void @__unit___internal___bd9efc6f__ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance), !dbg !35
       call void @__vtable_bar__ctor(ptr @__vtable_bar_instance), !dbg !35
@@ -225,7 +225,7 @@ fn write_to_parent_variable_qualified_access() {
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
     @__vtable_fb2_instance = global %__vtable_fb2 zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @fb(ptr %0) !dbg !4 {
     entry:
@@ -377,7 +377,7 @@ fn write_to_parent_variable_qualified_access() {
       ret void, !dbg !38
     }
 
-    define void @__unit___internal___bd9efc6f__ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_fb__ctor(ptr @__vtable_fb_instance), !dbg !38
       call void @__vtable_fb2__ctor(ptr @__vtable_fb2_instance), !dbg !38
@@ -470,7 +470,7 @@ fn write_to_parent_variable_in_instance() {
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
 
@@ -621,7 +621,7 @@ fn write_to_parent_variable_in_instance() {
       ret void, !dbg !45
     }
 
-    define void @__unit___internal___bd9efc6f__ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance), !dbg !45
       call void @__vtable_bar__ctor(ptr @__vtable_bar_instance), !dbg !45
@@ -741,7 +741,7 @@ fn array_in_parent_generated() {
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @grandparent(ptr %0) !dbg !4 {
     entry:
@@ -954,7 +954,7 @@ fn array_in_parent_generated() {
       ret void, !dbg !56
     }
 
-    define void @__unit___internal___bd9efc6f__ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_grandparent__ctor(ptr @__vtable_grandparent_instance), !dbg !56
       call void @__vtable_parent__ctor(ptr @__vtable_parent_instance), !dbg !56
@@ -1073,7 +1073,7 @@ fn complex_array_access_generated() {
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @grandparent(ptr %0) !dbg !4 {
     entry:
@@ -1270,7 +1270,7 @@ fn complex_array_access_generated() {
       ret void, !dbg !44
     }
 
-    define void @__unit___internal___bd9efc6f__ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_grandparent__ctor(ptr @__vtable_grandparent_instance), !dbg !44
       call void @__vtable_parent__ctor(ptr @__vtable_parent_instance), !dbg !44
@@ -1355,7 +1355,7 @@ fn function_block_method_debug_info() {
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @foo(ptr %0) !dbg !4 {
     entry:
@@ -1484,7 +1484,7 @@ fn function_block_method_debug_info() {
       ret void, !dbg !26
     }
 
-    define void @__unit___internal___bd9efc6f__ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance), !dbg !26
       call void @__vtable_bar__ctor(ptr @__vtable_bar_instance), !dbg !26
@@ -1602,7 +1602,7 @@ END_FUNCTION
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
     @__vtable_grandchild_instance = global %__vtable_grandchild zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @parent(ptr %0) !dbg !4 {
     entry:
@@ -1879,7 +1879,7 @@ END_FUNCTION
       ret void, !dbg !83
     }
 
-    define void @__unit___internal___bd9efc6f__ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_parent__ctor(ptr @__vtable_parent_instance), !dbg !83
       call void @__vtable_child__ctor(ptr @__vtable_child_instance), !dbg !83

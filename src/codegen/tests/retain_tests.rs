@@ -47,7 +47,7 @@ fn retain_variables_in_programs_are_in_retain_linker_section() {
     @__main_x__retain = global i16 0, section ".retain"
     @__main_y__retain = global [81 x i8] zeroinitializer, section ".retain"
     @main_instance = global %main zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @main(ptr %0) {
     entry:
@@ -91,7 +91,7 @@ fn retain_variables_in_programs_are_in_retain_linker_section() {
       ret void
     }
 
-    define void @__unit___internal___bd9efc6f__ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @main__ctor(ptr @main_instance)
       ret void
@@ -126,7 +126,7 @@ fn nested_retain_variables_are_in_the_retain_section() {
 
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
     @fb_instance = global %fb zeroinitializer, section ".retain"
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @fb(ptr %0) {
     entry:
@@ -178,7 +178,7 @@ fn nested_retain_variables_are_in_the_retain_section() {
       ret void
     }
 
-    define void @__unit___internal___bd9efc6f__ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_fb__ctor(ptr @__vtable_fb_instance)
       call void @fb__ctor(ptr @fb_instance)
