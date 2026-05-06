@@ -2,8 +2,8 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-error[E007]: Unexpected token: expected KeywordSemicolon but found 'foo()'
+error[E007]: Unexpected token: expected `;` but found 'foo()'
   ┌─ <internal>:4:21
   │
 4 │                     foo();
-  │                     ^^^^^ Unexpected token: expected KeywordSemicolon but found 'foo()'
+  │                     ^^^^^ Unexpected token: expected `;` but found 'foo()'

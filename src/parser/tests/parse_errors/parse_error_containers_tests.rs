@@ -189,18 +189,18 @@ fn super_is_a_reserved_keyword() {
     //                  Related: https://github.com/PLC-lang/rusty/issues/1408
 
     let diagnostics = parse_and_report_parse_errors_buffered(src);
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E006]: Expected a name for the interface definition but got nothing
       ┌─ <internal>:2:5
       │
     2 │     INTERFACE super END_INTERFACE
       │     ^^^^^^^^^ Expected a name for the interface definition but got nothing
 
-    error[E006]: Missing expected Token KeywordEndInterface
+    error[E006]: Missing expected Token `END_INTERFACE`
       ┌─ <internal>:2:15
       │
     2 │     INTERFACE super END_INTERFACE
-      │               ^^^^^ Missing expected Token KeywordEndInterface
+      │               ^^^^^ Missing expected Token `END_INTERFACE`
 
     error[E007]: Unexpected token: expected StartKeyword but found super
       ┌─ <internal>:2:15
@@ -220,13 +220,13 @@ fn super_is_a_reserved_keyword() {
     3 │     PROGRAM super
       │             ^^^^^ Unexpected token: expected Identifier but found super
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'VAR
+    error[E007]: Unexpected token: expected `;` but found 'VAR
                 super'
       ┌─ <internal>:4:9
       │  
     4 │ ╭         VAR
     5 │ │             super : INT;
-      │ ╰─────────────────^ Unexpected token: expected KeywordSemicolon but found 'VAR
+      │ ╰─────────────────^ Unexpected token: expected `;` but found 'VAR
                 super'
 
     error[E007]: Unexpected token: expected Literal but found END_VAR
@@ -235,26 +235,26 @@ fn super_is_a_reserved_keyword() {
     6 │         END_VAR
       │         ^^^^^^^ Unexpected token: expected Literal but found END_VAR
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
+    error[E007]: Unexpected token: expected `;` but found 'END_VAR
             METHOD super END_METHOD'
       ┌─ <internal>:6:9
       │  
     6 │ ╭         END_VAR
     7 │ │         METHOD super END_METHOD
-      │ ╰───────────────────────────────^ Unexpected token: expected KeywordSemicolon but found 'END_VAR
+      │ ╰───────────────────────────────^ Unexpected token: expected `;` but found 'END_VAR
             METHOD super END_METHOD'
 
-    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
+    error[E006]: Missing expected Token `;` or `:`
       ┌─ <internal>:8:5
       │
     8 │     END_PROGRAM
-      │     ^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
+      │     ^^^^^^^^^^^ Missing expected Token `;` or `:`
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+    error[E007]: Unexpected token: expected `;` but found 'END_PROGRAM'
       ┌─ <internal>:8:5
       │
     8 │     END_PROGRAM
-      │     ^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+      │     ^^^^^^^^^^^ Unexpected token: expected `;` but found 'END_PROGRAM'
     ");
 }
 
@@ -273,18 +273,18 @@ fn this_is_a_reserved_keyword() {
     // TODO(mhasel):    the parser produces a lot of noise for keyword errors,
     //                  we need to find a way to handle keywords as identifiers
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E006]: Expected a name for the interface definition but got nothing
       ┌─ <internal>:2:5
       │
     2 │     INTERFACE this END_INTERFACE
       │     ^^^^^^^^^ Expected a name for the interface definition but got nothing
 
-    error[E006]: Missing expected Token KeywordEndInterface
+    error[E006]: Missing expected Token `END_INTERFACE`
       ┌─ <internal>:2:15
       │
     2 │     INTERFACE this END_INTERFACE
-      │               ^^^^ Missing expected Token KeywordEndInterface
+      │               ^^^^ Missing expected Token `END_INTERFACE`
 
     error[E007]: Unexpected token: expected StartKeyword but found this
       ┌─ <internal>:2:15
@@ -304,13 +304,13 @@ fn this_is_a_reserved_keyword() {
     3 │     PROGRAM this
       │             ^^^^ Unexpected token: expected Identifier but found this
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'VAR
+    error[E007]: Unexpected token: expected `;` but found 'VAR
                 this'
       ┌─ <internal>:4:9
       │  
     4 │ ╭         VAR
     5 │ │             this : INT;
-      │ ╰────────────────^ Unexpected token: expected KeywordSemicolon but found 'VAR
+      │ ╰────────────────^ Unexpected token: expected `;` but found 'VAR
                 this'
 
     error[E007]: Unexpected token: expected Literal but found END_VAR
@@ -319,26 +319,26 @@ fn this_is_a_reserved_keyword() {
     6 │         END_VAR
       │         ^^^^^^^ Unexpected token: expected Literal but found END_VAR
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
+    error[E007]: Unexpected token: expected `;` but found 'END_VAR
             METHOD this END_METHOD'
       ┌─ <internal>:6:9
       │  
     6 │ ╭         END_VAR
     7 │ │         METHOD this END_METHOD
-      │ ╰──────────────────────────────^ Unexpected token: expected KeywordSemicolon but found 'END_VAR
+      │ ╰──────────────────────────────^ Unexpected token: expected `;` but found 'END_VAR
             METHOD this END_METHOD'
 
-    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
+    error[E006]: Missing expected Token `;` or `:`
       ┌─ <internal>:8:5
       │
     8 │     END_PROGRAM
-      │     ^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
+      │     ^^^^^^^^^^^ Missing expected Token `;` or `:`
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+    error[E007]: Unexpected token: expected `;` but found 'END_PROGRAM'
       ┌─ <internal>:8:5
       │
     8 │     END_PROGRAM
-      │     ^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+      │     ^^^^^^^^^^^ Unexpected token: expected `;` but found 'END_PROGRAM'
 
     error[E079]: Case condition used outside of case statement! Did you mean to use ';'?
       ┌─ <internal>:3:13

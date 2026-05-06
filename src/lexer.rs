@@ -31,7 +31,7 @@ macro_rules! expect_token {
     ($lexer:expr, $token:expr, $return_value:expr) => {
         if $lexer.token != $token {
             $lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                format!("{:?}", $token).as_str(),
+                $token.to_string().as_str(),
                 $lexer.slice(),
                 $lexer.location(),
             ));
@@ -82,7 +82,7 @@ impl<'a> ParseSession<'a> {
 
     pub fn try_consume_or_report(&mut self, token: Token) {
         if !self.try_consume(token) {
-            self.accept_diagnostic(Diagnostic::missing_token(format!("{token:?}").as_str(), self.location()));
+            self.accept_diagnostic(Diagnostic::missing_token(token.to_string().as_str(), self.location()));
         }
     }
 
@@ -143,6 +143,26 @@ impl<'a> ParseSession<'a> {
         self.lexer.slice()
     }
 
+    pub fn peek_token(&self) -> Token {
+        let mut lexer = self.lexer.clone();
+        lexer.next().unwrap_or(Token::End)
+    }
+
+    pub fn token_appears_before(&self, needle: Token, boundaries: &[Token]) -> bool {
+        let mut lexer = self.lexer.clone();
+        while let Some(token) = lexer.next() {
+            if token == needle {
+                return true;
+            }
+
+            if boundaries.contains(&token) {
+                return false;
+            }
+        }
+
+        false
+    }
+
     pub fn location(&self) -> SourceLocation {
         self.source_range_factory.create_range(self.range())
     }
@@ -167,7 +187,7 @@ impl<'a> ParseSession<'a> {
         if let Some(expected_token) = self.closing_keywords.pop() {
             if !expected_token.contains(&self.token) {
                 self.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    format!("{:?}", expected_token[0]).as_str(),
+                    expected_token[0].to_string().as_str(),
                     format!("'{}'", self.slice()).as_str(),
                     self.location(),
                 ));
@@ -202,11 +222,12 @@ impl<'a> ParseSession<'a> {
         if start.end != self.range().end {
             let range = start.start..end;
             self.accept_diagnostic(Diagnostic::unexpected_token_found(
-                format!(
-                    "{:?}",
-                    self.closing_keywords.last().and_then(|it| it.first()).unwrap_or(&Token::End) //only show first expected token
-                )
-                .as_str(),
+                self.closing_keywords
+                    .last()
+                    .and_then(|it| it.first())
+                    .unwrap_or(&Token::End)
+                    .to_string()
+                    .as_str(),
                 format!("'{}'", self.slice_region(range.clone())).as_str(),
                 self.source_range_factory.create_range(range),
             ));
@@ -218,7 +239,7 @@ impl<'a> ParseSession<'a> {
                     .closing_keywords
                     .last()
                     .expect("parse-recovery has no closing-keyword to recover from."); //illegal state! invalid use of parser-recovery?
-                let expected_tokens = format!("{closing:?}");
+                let expected_tokens = Token::display_list(closing);
                 self.accept_diagnostic(Diagnostic::missing_token(expected_tokens.as_str(), self.location()));
             }
         }

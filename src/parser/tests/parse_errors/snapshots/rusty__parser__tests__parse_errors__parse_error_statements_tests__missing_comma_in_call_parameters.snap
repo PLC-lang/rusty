@@ -2,8 +2,8 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-error[E007]: Unexpected token: expected KeywordParensClose but found 'c'
+error[E006]: Missing expected Token `,`
   ┌─ <internal>:3:29
   │
 3 │                     buz(a,b c);
-  │                             ^ Unexpected token: expected KeywordParensClose but found 'c'
+  │                             ^ Missing expected Token `,`

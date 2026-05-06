@@ -2,20 +2,14 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-error[E006]: Missing expected Token [KeywordParensClose]
+error[E006]: Missing expected Token `)`
   ┌─ <internal>:3:28
   │
 3 │                     buz(a,b; c);
-  │                            ^ Missing expected Token [KeywordParensClose]
+  │                            ^ Missing expected Token `)`
 
-error[E007]: Unexpected token: expected KeywordParensClose but found ';'
-  ┌─ <internal>:3:28
-  │
-3 │                     buz(a,b; c);
-  │                            ^ Unexpected token: expected KeywordParensClose but found ';'
-
-error[E007]: Unexpected token: expected KeywordSemicolon but found ')'
+error[E007]: Unexpected token: expected `;` but found ')'
   ┌─ <internal>:3:31
   │
 3 │                     buz(a,b; c);
-  │                               ^ Unexpected token: expected KeywordSemicolon but found ')'
+  │                               ^ Unexpected token: expected `;` but found ')'

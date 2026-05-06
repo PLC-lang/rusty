@@ -4,7 +4,7 @@ use crate::{
     expect_token,
     lexer::Token::*,
     lexer::{ParseSession, Token},
-    parser::parse_any_in_region,
+    parser::parse_any_in_region_until_element,
 };
 use core::str::Split;
 use plc_ast::{
@@ -15,7 +15,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use std::{ops::Range, str::FromStr};
 
-use super::parse_hardware_access;
+use super::{parse_hardware_access, recovery};
 
 macro_rules! parse_left_associative_expression {
     ($lexer: expr, $action : expr,
@@ -52,26 +52,72 @@ pub fn parse_expression(lexer: &mut ParseSession) -> AstNode {
 pub fn parse_expression_list(lexer: &mut ParseSession) -> AstNode {
     let start = lexer.location();
     let left = parse_range_statement(lexer);
-    if lexer.token == KeywordComma {
-        let mut expressions = vec![];
-        // this starts an expression list
-        while lexer.token == KeywordComma {
+
+    let mut expressions = vec![];
+    loop {
+        if lexer.token == KeywordComma {
             lexer.advance();
             if !lexer.closes_open_region(&lexer.token) {
                 expressions.push(parse_range_statement(lexer));
             }
-        }
-        // we may have parsed no additional expression because of trailing comma
-        if !expressions.is_empty() {
-            expressions.insert(0, left);
-            return AstFactory::create_expression_list(
-                expressions,
-                start.span(&lexer.last_location()),
-                lexer.next_id(),
-            );
+        } else if lexer.closes_open_region(&lexer.token) || !is_expression_list_recovery_start(lexer) {
+            break;
+        } else {
+            lexer.accept_diagnostic(Diagnostic::missing_token(
+                KeywordComma.to_string().as_str(),
+                lexer.location(),
+            ));
+            expressions.push(parse_range_statement(lexer));
         }
     }
+
+    // We may have parsed no additional expression because of a trailing comma.
+    if !expressions.is_empty() {
+        expressions.insert(0, left);
+        return AstFactory::create_expression_list(
+            expressions,
+            start.span(&lexer.last_location()),
+            lexer.next_id(),
+        );
+    }
+
     left
+}
+
+fn is_expression_list_recovery_start(lexer: &ParseSession) -> bool {
+    let in_delimited_expression_list = lexer.closing_keywords.last().is_some_and(|tokens| {
+        tokens.contains(&KeywordParensClose) || tokens.contains(&KeywordSquareParensClose)
+    });
+
+    in_delimited_expression_list
+        && starts_expression(&lexer.token)
+        && !recovery::at_element_start(lexer, recovery::ElementStart::VariableDeclaration)
+}
+
+fn starts_expression(token: &Token) -> bool {
+    matches!(
+        token,
+        OperatorPlus
+            | OperatorMinus
+            | KeywordParensOpen
+            | KeywordSquareParensOpen
+            | KeywordSuper
+            | KeywordThis
+            | LiteralInteger
+            | LiteralIntegerBin
+            | LiteralIntegerOct
+            | LiteralIntegerHex
+            | LiteralDate
+            | LiteralTimeOfDay
+            | LiteralTime
+            | LiteralDateAndTime
+            | LiteralString
+            | LiteralWideString
+            | LiteralTrue
+            | LiteralFalse
+            | LiteralNull
+            | DirectAccess(_)
+    ) || token.is_identifier_like()
 }
 
 pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> AstNode {
@@ -282,18 +328,23 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
             }
         }
         KeywordParensOpen => {
-            parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
-                lexer.advance(); // eat KeywordParensOpen
+            lexer.advance(); // eat KeywordParensOpen
+            parse_any_in_region_until_element(
+                lexer,
+                vec![KeywordParensClose],
+                recovery::EXPRESSION_REGION_BOUNDARY,
+                Some(recovery::ElementStart::VariableDeclaration),
+                |lexer| {
+                    let start = lexer.last_location();
+                    let expr = parse_expression(lexer);
 
-                let start = lexer.last_location();
-                let expr = parse_expression(lexer);
-
-                Some(AstFactory::create_paren_expression(
-                    expr,
-                    start.span(&lexer.location()),
-                    lexer.next_id(),
-                ))
-            })
+                    Some(AstFactory::create_paren_expression(
+                        expr,
+                        start.span(&lexer.location()),
+                        lexer.next_id(),
+                    ))
+                },
+            )
         }
         token if token.is_identifier_like() => Some(parse_identifier(lexer)),
         KeywordSuper => {
@@ -357,10 +408,29 @@ fn parse_array_literal(lexer: &mut ParseSession) -> Option<AstNode> {
     let start = lexer.range().start;
     expect_token!(lexer, KeywordSquareParensOpen, None);
     lexer.advance();
+
+    // Let expression-list recovery see the array literal delimiter while preserving the
+    // array-specific mismatched-delimiter diagnostics below.
+    lexer.enter_region(vec![KeywordSquareParensClose]);
     let elements = Some(Box::new(parse_expression(lexer)));
+    lexer.closing_keywords.pop();
+
     let end = lexer.range().end;
-    expect_token!(lexer, KeywordSquareParensClose, None);
-    lexer.advance();
+    if lexer.try_consume(KeywordSquareParensClose) {
+        // Consumed the expected array literal terminator.
+    } else if recovery::EXPRESSION_REGION_BOUNDARY.contains(&lexer.token) {
+        lexer.accept_diagnostic(Diagnostic::missing_token(
+            KeywordSquareParensClose.to_string().as_str(),
+            lexer.location(),
+        ));
+    } else {
+        lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+            KeywordSquareParensClose.to_string().as_str(),
+            lexer.slice(),
+            lexer.location(),
+        ));
+        return None;
+    }
 
     Some(AstNode::new_literal(
         AstLiteral::new_array(elements),
@@ -403,14 +473,20 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Option<AstNode> {
             reference_loc.span(&lexer.location()),
         )
     } else {
-        parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
-            AstFactory::create_call_statement(
-                reference,
-                Some(parse_expression_list(lexer)),
-                lexer.next_id(),
-                reference_loc.span(&lexer.location()),
-            )
-        })
+        parse_any_in_region_until_element(
+            lexer,
+            vec![KeywordParensClose],
+            recovery::EXPRESSION_REGION_BOUNDARY,
+            Some(recovery::ElementStart::VariableDeclaration),
+            |lexer| {
+                AstFactory::create_call_statement(
+                    reference,
+                    Some(parse_expression_list(lexer)),
+                    lexer.next_id(),
+                    reference_loc.span(&lexer.location()),
+                )
+            },
+        )
     };
 
     // Postfix chain after the call: `foo()[...]`, `foo()^`, or combinations
@@ -418,7 +494,13 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Option<AstNode> {
     let mut result = call;
     loop {
         if lexer.try_consume(KeywordSquareParensOpen) {
-            let index = parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
+            let index = parse_any_in_region_until_element(
+                lexer,
+                vec![KeywordSquareParensClose],
+                recovery::EXPRESSION_REGION_BOUNDARY,
+                Some(recovery::ElementStart::VariableDeclaration),
+                parse_expression,
+            );
             result = AstFactory::create_index_reference(
                 index,
                 Some(result),
@@ -507,8 +589,13 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Option<AstNode> {
             }
             (Some(base), Some(KeywordSquareParensOpen)) => {
                 lexer.advance();
-                let index_reference =
-                    parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
+                let index_reference = parse_any_in_region_until_element(
+                    lexer,
+                    vec![KeywordSquareParensClose],
+                    recovery::EXPRESSION_REGION_BOUNDARY,
+                    Some(recovery::ElementStart::VariableDeclaration),
+                    parse_expression,
+                );
                 let new_location = base.get_location().span(&lexer.last_location());
                 current = Some({
                     AstFactory::create_index_reference(

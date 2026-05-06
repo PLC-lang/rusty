@@ -8,8 +8,8 @@ error[E007]: Unexpected token: expected StartKeyword but found SOME
 1 │ SOME PROGRAM prg
   │ ^^^^ Unexpected token: expected StartKeyword but found SOME
 
-error[E007]: Unexpected token: expected KeywordEndVar but found ';'
+error[E007]: Unexpected token: expected `END_VAR` but found ';'
   ┌─ <internal>:2:21
   │
 2 │                 VAR ;
-  │                     ^ Unexpected token: expected KeywordEndVar but found ';'
+  │                     ^ Unexpected token: expected `END_VAR` but found ';'

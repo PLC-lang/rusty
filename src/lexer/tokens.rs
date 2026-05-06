@@ -1,3 +1,5 @@
+use std::fmt;
+
 use logos::Logos;
 
 use plc_ast::ast::{DirectAccessType, HardwareAccessType};
@@ -440,6 +442,14 @@ pub enum Token {
 }
 
 impl Token {
+    pub fn display_list(tokens: &[Token]) -> String {
+        match tokens {
+            [] => "end of file".into(),
+            [token] => token.to_string(),
+            tokens => tokens.iter().map(ToString::to_string).collect::<Vec<_>>().join(" or "),
+        }
+    }
+
     /// Returns true if the current token represents any `VAR(_*)` keyword
     pub fn is_var(&self) -> bool {
         matches!(
@@ -458,5 +468,145 @@ impl Token {
     /// property declarations, but may still be used as identifiers elsewhere.
     pub fn is_identifier_like(&self) -> bool {
         matches!(self, Token::Identifier | Token::KeywordPropertyGet | Token::KeywordPropertySet)
+    }
+}
+
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Token::Error => write!(f, "unknown token"),
+            Token::PropertyExternal => write!(f, "`@EXTERNAL`"),
+            Token::PropertyByRef => write!(f, "`{{ref}}`"),
+            Token::PropertyConstant => write!(f, "`@CONSTANT`"),
+            Token::PropertySized => write!(f, "`{{sized}}`"),
+            Token::KeywordProgram => write!(f, "`PROGRAM`"),
+            Token::KeywordClass => write!(f, "`CLASS`"),
+            Token::KeywordEndClass => write!(f, "`END_CLASS`"),
+            Token::KeywordExtends => write!(f, "`EXTENDS`"),
+            Token::KeywordImplements => write!(f, "`IMPLEMENTS`"),
+            Token::KeywordInterface => write!(f, "`INTERFACE`"),
+            Token::KeywordEndInterface => write!(f, "`END_INTERFACE`"),
+            Token::KeywordVarInput => write!(f, "`VAR_INPUT`"),
+            Token::KeywordVarOutput => write!(f, "`VAR_OUTPUT`"),
+            Token::KeywordVar => write!(f, "`VAR`"),
+            Token::KeywordVarConfig => write!(f, "`VAR_CONFIG`"),
+            Token::KeywordAbstract => write!(f, "`ABSTRACT`"),
+            Token::KeywordFinal => write!(f, "`FINAL`"),
+            Token::KeywordMethod => write!(f, "`METHOD`"),
+            Token::KeywordEndMethod => write!(f, "`END_METHOD`"),
+            Token::KeywordSuper => write!(f, "`SUPER`"),
+            Token::KeywordThis => write!(f, "`THIS`"),
+            Token::KeywordPropertyGet => write!(f, "`PROPERTY_GET`"),
+            Token::KeywordPropertySet => write!(f, "`PROPERTY_SET`"),
+            Token::KeywordEndProperty => write!(f, "`END_PROPERTY`"),
+            Token::KeywordConstant => write!(f, "`CONSTANT`"),
+            Token::KeywordRetain => write!(f, "`RETAIN`"),
+            Token::KeywordNonRetain => write!(f, "`NON_RETAIN`"),
+            Token::KeywordVarTemp => write!(f, "`VAR_TEMP`"),
+            Token::KeywordAccessPublic => write!(f, "`PUBLIC`"),
+            Token::KeywordAccessPrivate => write!(f, "`PRIVATE`"),
+            Token::KeywordAccessInternal => write!(f, "`INTERNAL`"),
+            Token::KeywordAccessProtected => write!(f, "`PROTECTED`"),
+            Token::KeywordOverride => write!(f, "`OVERRIDE`"),
+            Token::KeywordVarGlobal => write!(f, "`VAR_GLOBAL`"),
+            Token::KeywordVarInOut => write!(f, "`VAR_IN_OUT`"),
+            Token::KeywordVarExternal => write!(f, "`VAR_EXTERNAL`"),
+            Token::KeywordEndVar => write!(f, "`END_VAR`"),
+            Token::KeywordEndProgram => write!(f, "`END_PROGRAM`"),
+            Token::KeywordFunction => write!(f, "`FUNCTION`"),
+            Token::KeywordEndFunction => write!(f, "`END_FUNCTION`"),
+            Token::KeywordFunctionBlock => write!(f, "`FUNCTION_BLOCK`"),
+            Token::KeywordEndFunctionBlock => write!(f, "`END_FUNCTION_BLOCK`"),
+            Token::KeywordType => write!(f, "`TYPE`"),
+            Token::KeywordStruct => write!(f, "`STRUCT`"),
+            Token::KeywordEndType => write!(f, "`END_TYPE`"),
+            Token::KeywordEndStruct => write!(f, "`END_STRUCT`"),
+            Token::KeywordActions => write!(f, "`ACTIONS`"),
+            Token::KeywordAction => write!(f, "`ACTION`"),
+            Token::KeywordEndAction => write!(f, "`END_ACTION`"),
+            Token::KeywordEndActions => write!(f, "`END_ACTIONS`"),
+            Token::KeywordColon => write!(f, "`:`"),
+            Token::KeywordSemicolon => write!(f, "`;`"),
+            Token::KeywordAssignment => write!(f, "`:=`"),
+            Token::KeywordOutputAssignment => write!(f, "`=>`"),
+            Token::KeywordReferenceAssignment => write!(f, "`REF=`"),
+            Token::KeywordParensOpen => write!(f, "`(`"),
+            Token::KeywordParensClose => write!(f, "`)`"),
+            Token::KeywordSquareParensOpen => write!(f, "`[`"),
+            Token::KeywordSquareParensClose => write!(f, "`]`"),
+            Token::KeywordComma => write!(f, "`,`"),
+            Token::KeywordDotDotDot => write!(f, "`...`"),
+            Token::KeywordDotDot => write!(f, "`..`"),
+            Token::KeywordDot => write!(f, "`.`"),
+            Token::KeywordIf => write!(f, "`IF`"),
+            Token::KeywordThen => write!(f, "`THEN`"),
+            Token::KeywordElseIf => write!(f, "`ELSIF`"),
+            Token::KeywordElse => write!(f, "`ELSE`"),
+            Token::KeywordEndIf => write!(f, "`END_IF`"),
+            Token::KeywordFor => write!(f, "`FOR`"),
+            Token::KeywordTo => write!(f, "`TO`"),
+            Token::KeywordBy => write!(f, "`BY`"),
+            Token::KeywordDo => write!(f, "`DO`"),
+            Token::KeywordEndFor => write!(f, "`END_FOR`"),
+            Token::KeywordWhile => write!(f, "`WHILE`"),
+            Token::KeywordEndWhile => write!(f, "`END_WHILE`"),
+            Token::KeywordRepeat => write!(f, "`REPEAT`"),
+            Token::KeywordUntil => write!(f, "`UNTIL`"),
+            Token::KeywordEndRepeat => write!(f, "`END_REPEAT`"),
+            Token::KeywordCase => write!(f, "`CASE`"),
+            Token::KeywordReturn => write!(f, "`RETURN`"),
+            Token::KeywordExit => write!(f, "`EXIT`"),
+            Token::KeywordContinue => write!(f, "`CONTINUE`"),
+            Token::KeywordPointer => write!(f, "`POINTER`"),
+            Token::KeywordFunctionPointer => write!(f, "`__FPOINTER`"),
+            Token::KeywordRef => write!(f, "`REF_TO`"),
+            Token::KeywordReferenceTo => write!(f, "`REFERENCE TO`"),
+            Token::KeywordArray => write!(f, "`ARRAY`"),
+            Token::KeywordString => write!(f, "`STRING`"),
+            Token::KeywordWideString => write!(f, "`WSTRING`"),
+            Token::KeywordOf => write!(f, "`OF`"),
+            Token::KeywordAt => write!(f, "`AT`"),
+            Token::KeywordEndCase => write!(f, "`END_CASE`"),
+            Token::OperatorPlus => write!(f, "`+`"),
+            Token::OperatorMinus => write!(f, "`-`"),
+            Token::OperatorMultiplication => write!(f, "`*`"),
+            Token::OperatorExponent => write!(f, "`**`"),
+            Token::OperatorDivision => write!(f, "`/`"),
+            Token::OperatorEqual => write!(f, "`=`"),
+            Token::OperatorNotEqual => write!(f, "`<>`"),
+            Token::OperatorLess => write!(f, "`<`"),
+            Token::OperatorGreater => write!(f, "`>`"),
+            Token::OperatorLessOrEqual => write!(f, "`<=`"),
+            Token::OperatorGreaterOrEqual => write!(f, "`>=`"),
+            Token::OperatorAmp => write!(f, "`&`"),
+            Token::OperatorDeref => write!(f, "`^`"),
+            Token::OperatorModulo => write!(f, "`MOD`"),
+            Token::OperatorAndThen => write!(f, "`AND_THEN`"),
+            Token::OperatorAnd => write!(f, "`AND`"),
+            Token::OperatorOrElse => write!(f, "`OR_ELSE`"),
+            Token::OperatorOr => write!(f, "`OR`"),
+            Token::OperatorXor => write!(f, "`XOR`"),
+            Token::OperatorNot => write!(f, "`NOT`"),
+            Token::Identifier => write!(f, "identifier"),
+            Token::LiteralIntegerHex
+            | Token::LiteralIntegerOct
+            | Token::LiteralIntegerBin
+            | Token::LiteralInteger => {
+                write!(f, "integer literal")
+            }
+            Token::LiteralNull => write!(f, "`NULL`"),
+            Token::LiteralTrue => write!(f, "`TRUE`"),
+            Token::LiteralFalse => write!(f, "`FALSE`"),
+            Token::LiteralDate => write!(f, "date literal"),
+            Token::LiteralDateAndTime => write!(f, "date and time literal"),
+            Token::LiteralTimeOfDay => write!(f, "time of day literal"),
+            Token::LiteralTime => write!(f, "time literal"),
+            Token::DirectAccess(_) => write!(f, "direct access"),
+            Token::HardwareAccess(_) => write!(f, "hardware access"),
+            Token::LiteralString => write!(f, "string literal"),
+            Token::LiteralWideString => write!(f, "wide string literal"),
+            Token::TypeCastPrefix => write!(f, "type cast prefix"),
+            Token::End => write!(f, "end of file"),
+        }
     }
 }

@@ -2,8 +2,8 @@
 source: src/parser/tests/type_parser_tests.rs
 expression: diagnostics
 ---
-error[E007]: Unexpected token: expected KeywordParensClose but found '= 1'
+error[E007]: Unexpected token: expected `)` but found '= 1'
   ┌─ <internal>:2:42
   │
 2 │         TYPE State : (Idle := 0, Running = 1);
-  │                                          ^^^ Unexpected token: expected KeywordParensClose but found '= 1'
+  │                                          ^^^ Unexpected token: expected `)` but found '= 1'

@@ -41,8 +41,7 @@ fn missing_semicolon_after_call() {
 #[test]
 fn missing_comma_in_call_parameters() {
     /*
-     * the missing comma after b will end the expression-list so we expect a ')'
-     * c will not be parsed as an expression
+     * the missing comma after b is reported and c is recovered as the next argument.
      */
     let src = r"
                 PROGRAM foo
@@ -61,7 +60,7 @@ fn missing_comma_in_call_parameters() {
             vec![AstFactory::create_call_statement(
                 ref_to("buz"),
                 Some(AstFactory::create_expression_list(
-                    vec![ref_to("a"), ref_to("b")],
+                    vec![ref_to("a"), ref_to("b"), ref_to("c")],
                     SourceLocation::internal(),
                     0
                 )),

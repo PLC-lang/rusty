@@ -570,8 +570,8 @@ fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
     ";
 
     let (_, diagnostics) = parse_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"
-    error[E007]: Unexpected token: expected KeywordEndVar but found ': DINT;
+    insta::assert_snapshot!(diagnostics, @"
+    error[E007]: Unexpected token: expected `END_VAR` but found ': DINT;
                     public : DINT;
                     property : DINT;
 
@@ -588,7 +588,7 @@ fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
      8 │ │                 end_property : DINT;
      9 │ │                 end_get : DINT;
     10 │ │                 end_set : DINT;
-       │ ╰───────────────────────────────^ Unexpected token: expected KeywordEndVar but found ': DINT;
+       │ ╰───────────────────────────────^ Unexpected token: expected `END_VAR` but found ': DINT;
                     public : DINT;
                     property : DINT;
 

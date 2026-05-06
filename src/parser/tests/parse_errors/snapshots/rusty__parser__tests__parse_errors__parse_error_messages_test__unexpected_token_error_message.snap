@@ -2,8 +2,8 @@
 source: src/parser/tests/parse_errors/parse_error_messages_test.rs
 expression: diagnostics
 ---
-error[E007]: Unexpected token: expected KeywordEndVar but found ';'
+error[E007]: Unexpected token: expected `END_VAR` but found ';'
   ┌─ <internal>:2:21
   │
 2 │                 VAR ;
-  │                     ^ Unexpected token: expected KeywordEndVar but found ';'
+  │                     ^ Unexpected token: expected `END_VAR` but found ';'
