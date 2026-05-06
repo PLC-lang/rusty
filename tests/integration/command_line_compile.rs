@@ -185,15 +185,22 @@ fn generate_got_file() {
     let _foo = fs::remove_file(data_path);
 }
 
+/// Returns insta `Settings` with the given tempdir's path redacted to
+/// `[tmp]`, so snapshots of `compile(...)` errors stay stable across runs.
+fn settings_with_tempdir_filter(tempdir: &Path) -> insta::Settings {
+    let mut settings = insta::Settings::clone_current();
+    settings.add_filter(&plc_util::escape_regex_literal(&tempdir.to_string_lossy()), "[tmp]");
+    settings
+}
+
 #[test]
 fn missing_source_file_errors_with_path_in_message() {
     let dir = tempfile::tempdir().unwrap();
     let missing = dir.path().join("missing.st");
 
     let err = compile(&["plc".to_string(), missing.to_string_lossy().into_owned()]).unwrap_err();
-    let msg = err.to_string();
-    assert!(msg.contains("does not exist"), "got: {msg}");
-    assert!(msg.contains("missing.st"), "got: {msg}");
+    settings_with_tempdir_filter(dir.path())
+        .bind(|| insta::assert_snapshot!(err.to_string(), @"path '[tmp]/missing.st' does not exist"));
 }
 
 #[test]
@@ -210,9 +217,8 @@ fn missing_include_path_errors_with_path_in_message() {
         bad_include.to_string_lossy().into_owned(),
     ])
     .unwrap_err();
-    let msg = err.to_string();
-    assert!(msg.contains("does not exist"), "got: {msg}");
-    assert!(msg.contains("no-such"), "got: {msg}");
+    settings_with_tempdir_filter(dir.path())
+        .bind(|| insta::assert_snapshot!(err.to_string(), @"path '[tmp]/no-such/*.st' does not exist"));
 }
 
 #[test]
@@ -230,9 +236,12 @@ fn missing_source_and_missing_include_surface_in_one_run() {
         bad_include.to_string_lossy().into_owned(),
     ])
     .unwrap_err();
-    let msg = err.to_string();
-    assert!(msg.contains("missing.st"), "got: {msg}");
-    assert!(msg.contains("no-such"), "got: {msg}");
+    settings_with_tempdir_filter(dir.path()).bind(|| {
+        insta::assert_snapshot!(err.to_string(), @r"
+        path '[tmp]/missing.st' does not exist
+        path '[tmp]/no-such/*.st' does not exist
+        ")
+    });
 }
 
 #[test]
@@ -241,7 +250,6 @@ fn glob_with_missing_parent_directory_errors() {
     let typo_glob = dir.path().join("typo-dir/*.st");
 
     let err = compile(&["plc".to_string(), typo_glob.to_string_lossy().into_owned()]).unwrap_err();
-    let msg = err.to_string();
-    assert!(msg.contains("does not exist"), "got: {msg}");
-    assert!(msg.contains("typo-dir"), "got: {msg}");
+    settings_with_tempdir_filter(dir.path())
+        .bind(|| insta::assert_snapshot!(err.to_string(), @"path '[tmp]/typo-dir/*.st' does not exist"));
 }
