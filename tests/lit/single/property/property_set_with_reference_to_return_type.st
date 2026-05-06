@@ -9,13 +9,13 @@ END_VAR
 tempStruct_store.x := 51;
 tempStruct REF= tempStruct_store;
 
-// CHECK: 51
-printf('%d$N', tempStruct.x);
+// CHECK: Pre-init value: 51
+printf('Pre-init value: %d$N', tempStruct.x);
 
 fb.myStructuredVar := tempStruct;
 
-// CHECK-NEXT: 51
-printf('%d$N', fb.myStructuredVar.x);
+// CHECK: Post-init value: 51
+printf('Post-init value: %d$N', fb.myStructuredVar.x);
 
 END_PROGRAM
 

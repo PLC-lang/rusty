@@ -1791,6 +1791,20 @@ mod tests {
         let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
+
+        let set_implementation =
+            implementations.iter().find(|i| i.name == "fb.__set_myStructuredVar").expect("fb.__set_myStructuredVar implementation should exist");
+
+        assert_snapshot!(AstSerializer::format_nodes(&set_implementation.statements), @"_myStructuredVar := myStructuredVar;");
+
+        let get_implementation =
+            implementations.iter().find(|i| i.name == "fb.__get_myStructuredVar").expect("fb.__get_myStructuredVar implementation should exist");
+
+        assert_snapshot!(AstSerializer::format_nodes(&get_implementation.statements), @"
+        __fb.__get_myStructuredVar_myStructuredVar__ctor(myStructuredVar);
+        __get_myStructuredVar_return_val REF= _myStructuredVar;
+        ");
+
         let test_implementation =
             implementations.iter().find(|i| i.name == "test").expect("test implementation should exist");
 
@@ -1804,6 +1818,87 @@ mod tests {
         fb.__get_myStructuredVar(__get_myStructuredVar_return_val_1);
         printf('%d
         ', __get_myStructuredVar_return_val_1.x);
+        ");
+    }
+
+    #[test]
+    fn reference_to_property_is_lowered_to_void_with_temporary_return_inside_call_if_chained() {
+        let src: SourceCode = r#"
+            {external}
+            FUNCTION printf : DINT
+            VAR_IN_OUT
+                format: STRING;
+            END_VAR
+            VAR_INPUT
+                args: ...;
+            END_VAR
+            END_FUNCTION
+
+            PROGRAM test
+            VAR
+                fb : fb;
+                y : INT;
+                tempStruct_store : structuredTypeOrFb;
+                tempStruct2_store : structuredTypeOrFb2;
+                tempStruct : REFERENCE TO structuredTypeOrFb;
+            END_VAR
+
+            y := 51;
+            tempStruct2_store.x REF= y;
+            tempStruct_store.subType REF= tempStruct2_store;
+            tempStruct REF= tempStruct_store;
+
+            fb.myStructuredVar := tempStruct;
+            printf('%d$N', fb.myStructuredVar.subType.x);
+
+            END_PROGRAM
+            FUNCTION_BLOCK fb
+            VAR
+                _myStructuredVar : structuredTypeOrFb;
+            END_VAR
+
+            PROPERTY_GET myStructuredVar : REFERENCE TO structuredTypeOrFb
+                myStructuredVar REF= _myStructuredVar;
+            END_PROPERTY
+
+            PROPERTY_SET myStructuredVar : REFERENCE TO structuredTypeOrFb
+                _myStructuredVar := myStructuredVar;
+            END_PROPERTY
+
+            END_FUNCTION_BLOCK
+
+            TYPE structuredTypeOrFb :
+                STRUCT
+                    subType	: REFERENCE TO structuredTypeOrFb2;
+                END_STRUCT
+            END_TYPE
+
+            TYPE structuredTypeOrFb2 :
+                STRUCT
+                    x : REFERENCE TO INT;
+                END_STRUCT
+            END_TYPE
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
+        let unit = &project.units[0].get_unit();
+        let implementations = &unit.implementations;
+        let test_implementation =
+            implementations.iter().find(|i| i.name == "test").expect("test implementation should exist");
+
+        assert_snapshot!(AstSerializer::format_nodes(&test_implementation.statements), @"
+        __test__get_myStructuredVar_return_val_1__ctor(__get_myStructuredVar_return_val_1);
+        structuredTypeOrFb__ctor(__get_myStructuredVar_return_val_store_1);
+        y := 51;
+        tempStruct2_store.x REF= y;
+        tempStruct_store.subType REF= tempStruct2_store;
+        tempStruct REF= tempStruct_store;
+        fb.__set_myStructuredVar(tempStruct);
+        __get_myStructuredVar_return_val_1 REF= __get_myStructuredVar_return_val_store_1;
+        fb.__get_myStructuredVar(__get_myStructuredVar_return_val_1);
+        printf('%d
+        ', __get_myStructuredVar_return_val_1.subType.x);
         ");
     }
 }

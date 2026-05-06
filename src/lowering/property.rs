@@ -315,13 +315,6 @@ pub fn lower_to_pou(
             }
 
             PropertyKind::Set => {
-                // For reference-typed setters, the parameter must be passed by reference
-                let argument_property = if datatype.is_reference_to() {
-                    ArgumentProperty::ByRef
-                } else {
-                    ArgumentProperty::ByVal
-                };
-
                 pou.variable_blocks.push(VariableBlock {
                     access: AccessModifier::Public,
                     constant: false,
@@ -333,7 +326,7 @@ pub fn lower_to_pou(
                         address: None,
                         location: SourceLocation::internal(),
                     }],
-                    kind: VariableBlockType::Input(argument_property),
+                    kind: VariableBlockType::Input(ArgumentProperty::ByVal),
                     linkage: LinkageType::Internal,
                     location: SourceLocation::internal(),
                 });

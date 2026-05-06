@@ -623,16 +623,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     );
                 }
 
-                // Check if this is a reference-typed parameter in a property accessor
-                let is_property_accessor_param = (parameter_name.starts_with("__get_")
-                    || parameter_name.starts_with("__set_"))
-                    && type_info.is_reference_to();
-
-                if is_property_accessor_param {
-                    // For property getter/setter reference parameters, directly store the passed pointer
-                    // without dereferencing. The lowering has already bound it to the correct internal member.
-                    self.llvm.builder.build_store(ptr, ptr_value)?;
-                } else if matches!(m.argument_type, ArgumentType::ByVal(VariableType::Input))
+                if matches!(m.argument_type, ArgumentType::ByVal(VariableType::Input))
                     && type_info.is_aggregate()
                 {
                     // a by-value aggregate type => we need to memcpy the data into the local variable
