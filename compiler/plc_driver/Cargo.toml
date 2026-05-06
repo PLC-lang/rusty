@@ -24,11 +24,11 @@ serde_json = "1"
 toml = "0.5"
 clap = { version = "3.0", features = ["derive"] }
 rayon = "1.6.1"
-tempfile = "3"
+tempfile.workspace = true
 indexmap = "2.0"
 env_logger = "0.10"
-anstream = "1"
-anstyle = "1"
+anstream.workspace = true
+anstyle.workspace = true
 log.workspace = true
 encoding_rs.workspace = true
 encoding_rs_io.workspace = true

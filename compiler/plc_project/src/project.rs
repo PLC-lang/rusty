@@ -327,20 +327,36 @@ impl<S: SourceContainer> Project<S> {
 
 fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<Vec<PathBuf>> {
     let mut sources = Vec::new();
+    let mut errors: Vec<String> = Vec::new();
     //Ensure we are working with a directory
     let location = location.and_then(|it| if it.is_file() { it.parent() } else { Some(it) });
     for original_input in &inputs {
         let input = location.map(|it| it.join(original_input)).unwrap_or(original_input.to_path_buf());
         let path = &input.to_string_lossy();
 
-        validate_input_exists(original_input, &input)?;
+        if let Err(e) = validate_input_exists(original_input, &input) {
+            errors.push(e.to_string());
+            continue;
+        }
 
-        let paths = glob(path).context(format!("Failed to read glob pattern {path}"))?;
+        let paths = match glob(path) {
+            Ok(paths) => paths,
+            Err(e) => {
+                errors.push(format!("Failed to read glob pattern {path}: {e}"));
+                continue;
+            }
+        };
 
         for p in paths {
-            let path = p.context("Illegal Path")?;
-            sources.push(path.canonicalize().context("Illegal Path")?);
+            let resolved = p.context("Illegal Path").and_then(|p| p.canonicalize().context("Illegal Path"));
+            match resolved {
+                Ok(canonical) => sources.push(canonical),
+                Err(e) => errors.push(e.to_string()),
+            }
         }
+    }
+    if !errors.is_empty() {
+        return Err(anyhow!("{}", errors.join("\n")));
     }
     Ok(sources)
 }

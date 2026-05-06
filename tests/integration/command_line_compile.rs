@@ -184,3 +184,64 @@ fn generate_got_file() {
     // clean up
     let _foo = fs::remove_file(data_path);
 }
+
+#[test]
+fn missing_source_file_errors_with_path_in_message() {
+    let dir = tempfile::tempdir().unwrap();
+    let missing = dir.path().join("missing.st");
+
+    let err = compile(&["plc".to_string(), missing.to_string_lossy().into_owned()]).unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("does not exist"), "got: {msg}");
+    assert!(msg.contains("missing.st"), "got: {msg}");
+}
+
+#[test]
+fn missing_include_path_errors_with_path_in_message() {
+    let dir = tempfile::tempdir().unwrap();
+    let main = dir.path().join("main.st");
+    fs::write(&main, "FUNCTION main : DINT main := 0; END_FUNCTION").unwrap();
+    let bad_include = dir.path().join("no-such/*.st");
+
+    let err = compile(&[
+        "plc".to_string(),
+        main.to_string_lossy().into_owned(),
+        "-i".to_string(),
+        bad_include.to_string_lossy().into_owned(),
+    ])
+    .unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("does not exist"), "got: {msg}");
+    assert!(msg.contains("no-such"), "got: {msg}");
+}
+
+#[test]
+fn missing_source_and_missing_include_surface_in_one_run() {
+    // Directly demonstrates that path-validation errors are accumulated rather
+    // than surfaced one-per-run (see PR #1713 review feedback).
+    let dir = tempfile::tempdir().unwrap();
+    let bad_source = dir.path().join("missing.st");
+    let bad_include = dir.path().join("no-such/*.st");
+
+    let err = compile(&[
+        "plc".to_string(),
+        bad_source.to_string_lossy().into_owned(),
+        "-i".to_string(),
+        bad_include.to_string_lossy().into_owned(),
+    ])
+    .unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("missing.st"), "got: {msg}");
+    assert!(msg.contains("no-such"), "got: {msg}");
+}
+
+#[test]
+fn glob_with_missing_parent_directory_errors() {
+    let dir = tempfile::tempdir().unwrap();
+    let typo_glob = dir.path().join("typo-dir/*.st");
+
+    let err = compile(&["plc".to_string(), typo_glob.to_string_lossy().into_owned()]).unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("does not exist"), "got: {msg}");
+    assert!(msg.contains("typo-dir"), "got: {msg}");
+}
