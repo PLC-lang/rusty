@@ -226,6 +226,14 @@ fn validate_reference_expression<T: AnnotationMap>(
                             .with_location(m.get_location())
                             .with_error_code("E119"),
                     );
+                } else if base.is_this() {
+                    // THIS is `POINTER TO <enclosing FB>`; a member access on it
+                    // requires an explicit dereference (`THIS^.member`).
+                    validator.push_diagnostic(
+                        Diagnostic::new("`THIS` must be dereferenced to access its members.")
+                            .with_location(m.get_location())
+                            .with_error_code("E120"),
+                    );
                 }
             }
 

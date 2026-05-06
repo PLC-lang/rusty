@@ -448,3 +448,34 @@ fn this_calling_functionblock_body_from_method_is_ok() {
     );
     assert!(diagnostics.is_empty());
 }
+
+#[test]
+fn this_member_access_without_deref_is_an_error() {
+    // Regression test for #1728: `THIS.<member>` (without `^`) used to slip
+    // through validation and panic in codegen with
+    // `Builder error: GEP pointee is not a struct`. It must surface as E120.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        INTERFACE IAnimal
+            METHOD legs : DINT
+            END_METHOD
+        END_INTERFACE
+
+        FUNCTION_BLOCK fb
+            VAR
+                a : IAnimal;
+            END_VAR
+            METHOD m : DINT
+                THIS.a.legs();
+            END_METHOD
+        END_FUNCTION_BLOCK
+    "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E120]: `THIS` must be dereferenced to access its members.
+       ┌─ <internal>:12:22
+       │
+    12 │                 THIS.a.legs();
+       │                      ^ `THIS` must be dereferenced to access its members.
+    ");
+}
