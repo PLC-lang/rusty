@@ -643,18 +643,18 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                     if self.parent_pou_is_reference_to(name)
                         && self.current_statement_is_return_statement(name)
                     {
-                        let return_name = if let Some(parent_name) = find_parent_of_fully_qualified_variable(name)
-                        {
-                            if remove_property_prefix(&de_qualify_name(&parent_name))
-                                == remove_property_prefix(&de_qualify_name(name))
-                            {
-                                self.get_return_variable_name(&parent_name)
+                        let return_name =
+                            if let Some(parent_name) = find_parent_of_fully_qualified_variable(name) {
+                                if remove_property_prefix(&de_qualify_name(&parent_name))
+                                    == remove_property_prefix(&de_qualify_name(name))
+                                {
+                                    self.get_return_variable_name(&parent_name)
+                                } else {
+                                    self.get_return_variable_name(name)
+                                }
                             } else {
                                 self.get_return_variable_name(name)
-                            }
-                        } else {
-                            self.get_return_variable_name(name)
-                        };
+                            };
 
                         let mut replacement_assignment = assignment.clone();
 
@@ -1772,13 +1772,17 @@ mod tests {
         let unit = &project.units[0].get_unit();
         let implementations = &unit.implementations;
 
-        let set_implementation =
-            implementations.iter().find(|i| i.name == "fb.__set_myStructuredVar").expect("fb.__set_myStructuredVar implementation should exist");
+        let set_implementation = implementations
+            .iter()
+            .find(|i| i.name == "fb.__set_myStructuredVar")
+            .expect("fb.__set_myStructuredVar implementation should exist");
 
         assert_snapshot!(AstSerializer::format_nodes(&set_implementation.statements), @"_myStructuredVar := myStructuredVar;");
 
-        let get_implementation =
-            implementations.iter().find(|i| i.name == "fb.__get_myStructuredVar").expect("fb.__get_myStructuredVar implementation should exist");
+        let get_implementation = implementations
+            .iter()
+            .find(|i| i.name == "fb.__get_myStructuredVar")
+            .expect("fb.__get_myStructuredVar implementation should exist");
 
         assert_snapshot!(AstSerializer::format_nodes(&get_implementation.statements), @"
         __fb.__get_myStructuredVar_myStructuredVar__ctor(myStructuredVar);
