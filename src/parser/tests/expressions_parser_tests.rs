@@ -1158,10 +1158,13 @@ fn consecutive_bad_operators_emit_a_single_diagnostic() {
 
 #[test]
 fn empty_parameter_assignment_carve_out_still_fires() {
-    // The narrowed `foo(p := )` recovery must keep firing when the next token
-    // is `)` or `,` — the carve-out is the deliberate complement of the bad-
-    // token recovery above. Verifies that tightening the predicate to
-    // `KeywordParensClose | KeywordComma` didn't break the positive path.
+    // A named parameter with no RHS — `p := )` or `p := ,` — is explicitly
+    // allowed by the parser: it lands as `Assignment { right: EmptyStatement }`
+    // and emits no diagnostic. This test locks in that the new "advance past
+    // unexpected tokens" recovery in `parse_atomic_leaf_expression` did NOT
+    // regress that carve-out — i.e. it must not consume the trailing `)` or
+    // `,` while looking for an expression. Both call shapes therefore land
+    // cleanly with an empty RHS and no parse diagnostics.
     let src = "
         FUNCTION foo : DINT VAR_INPUT p : DINT; q : DINT; END_VAR foo := p; END_FUNCTION
         PROGRAM main
