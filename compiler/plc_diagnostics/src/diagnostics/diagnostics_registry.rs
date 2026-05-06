@@ -236,7 +236,7 @@ lazy_static! {
         E132,   Ignore,    include_str!("./error_codes/E132.md"),  // Mixing implicit and explicit call parameters
         E133,   Error,      include_str!("./error_codes/E133.md"),  // AND_THEN/OR_ELSE with non-boolean operands
         E134,   Error,      include_str!("./error_codes/E134.md"),  // ':=' used for an output parameter
-        E135,   Ignore,     include_str!("./error_codes/E135.md"),  // '=>' used for a non-output parameter
+        E135,   Warning,    include_str!("./error_codes/E135.md"),  // '=>' used for a non-output parameter
         E136,   Error,      include_str!("./error_codes/E136.md"),  // Incomplete hardware address in FUNCTION/METHOD
     );
 }

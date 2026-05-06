@@ -1,6 +1,6 @@
 use insta::assert_snapshot;
 
-use crate::test_utils::tests::{parse_and_validate, parse_and_validate_buffered};
+use crate::test_utils::tests::parse_and_validate_buffered;
 
 #[test]
 fn constant_assignment_validation() {
@@ -1865,9 +1865,9 @@ fn correct_call_directions_are_clean() {
 }
 
 #[test]
-fn output_assignment_on_input_parameter_is_ignore_by_default() {
-    // E135 is severity Ignore by default — surfaces internally but is not displayed.
-    let src = r#"
+fn output_assignment_on_input_parameter_warns() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
         FUNCTION_BLOCK fb
             VAR_INPUT in_val : DINT; END_VAR
         END_FUNCTION_BLOCK
@@ -1876,24 +1876,21 @@ fn output_assignment_on_input_parameter_is_ignore_by_default() {
             VAR instance : fb; source : DINT; END_VAR
             instance(in_val => source);
         END_PROGRAM
-        "#;
-
-    // user-visible diagnostics buffer is empty (Ignore filtered)
-    let buffered = parse_and_validate_buffered(src);
-    assert_snapshot!(buffered, @"");
-
-    // but the validator still emits the diagnostic for users who opt in via --error-config
-    let raw = parse_and_validate(src);
-    assert!(
-        raw.iter().any(|d| d.get_error_code() == "E135"),
-        "expected E135 to be emitted (got {:?})",
-        raw.iter().map(|d| d.get_error_code()).collect::<Vec<_>>(),
+        "#,
     );
+    assert_snapshot!(diagnostics, @r"
+    warning[E135]: 'in_val' is an input parameter; use ':=' instead of '=>'
+      ┌─ <internal>:8:22
+      │
+    8 │             instance(in_val => source);
+      │                      ^^^^^^^^^^^^^^^^ 'in_val' is an input parameter; use ':=' instead of '=>'
+    ");
 }
 
 #[test]
-fn output_assignment_on_inout_parameter_is_ignore_by_default() {
-    let src = r#"
+fn output_assignment_on_inout_parameter_warns() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
         FUNCTION_BLOCK fb
             VAR_IN_OUT inout_val : DINT; END_VAR
         END_FUNCTION_BLOCK
@@ -1902,14 +1899,15 @@ fn output_assignment_on_inout_parameter_is_ignore_by_default() {
             VAR instance : fb; shared : DINT; END_VAR
             instance(inout_val => shared);
         END_PROGRAM
-        "#;
-
-    let buffered = parse_and_validate_buffered(src);
-    assert_snapshot!(buffered, @"");
-
-    let raw = parse_and_validate(src);
-    let e135 = raw.iter().find(|d| d.get_error_code() == "E135").expect("E135 should be emitted");
-    assert!(e135.get_message().contains("in-out"), "message should name the in-out direction: {:?}", e135);
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    warning[E135]: 'inout_val' is an in-out parameter; use ':=' instead of '=>'
+      ┌─ <internal>:8:22
+      │
+    8 │             instance(inout_val => shared);
+      │                      ^^^^^^^^^^^^^^^^^^^ 'inout_val' is an in-out parameter; use ':=' instead of '=>'
+    ");
 }
 
 #[test]
