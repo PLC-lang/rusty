@@ -459,7 +459,11 @@ impl LinkerInterface for CcLinker {
 
         log::debug!("Linker command : {}", self.get_build_command()?);
 
-        let status = Command::new(linker_location).args(self.command_args()).status()?;
+        let args = self.command_args();
+        let status = match Command::new(&linker_location).args(&args).status() {
+            Ok(s) => s,
+            Err(e) => return Err(diagnose_spawn_error(&e, &linker_location, &args)),
+        };
         if status.success() {
             Ok(())
         } else {
@@ -580,6 +584,56 @@ impl<T: Error> From<T> for LinkerError {
     }
 }
 
+/// Builds a context-rich [`LinkerError::Link`] for a failed [`Command::status`]
+/// call at the linker spawn site. The plain `io::Error::to_string()` is too
+/// terse to be actionable for the operating-system-level failures that surface
+/// here — most notably Windows `ERROR_FILENAME_EXCED_RANGE` (`os error 206`),
+/// which can be raised by the kernel for either of two distinct reasons:
+///
+/// 1. `CreateProcess` rejecting an assembled command line longer than 32,767
+///    bytes (or 8,191 if the spawn went through `cmd.exe`).
+/// 2. `CreateFile` rejecting a single path longer than `MAX_PATH` (260 chars)
+///    that is not prefixed with `\\?\`.
+///
+/// We can't always tell which condition fired, but we can hand the user the
+/// numbers needed to draw their own conclusion: the assembled command line's
+/// length, the count of args, and the longest individual arg. On Windows we
+/// also list known user-facing workarounds.
+fn diagnose_spawn_error(err: &std::io::Error, linker: &Path, args: &[String]) -> LinkerError {
+    let arg_count = args.len();
+    // Approximate cmdline length: byte sum of args plus one space separator per gap.
+    // We deliberately don't model Windows quoting rules — the figure is meant as
+    // a rough scale, not a re-implementation of CommandLineToArgvW.
+    let cmdline_len: usize = args.iter().map(String::len).sum::<usize>() + arg_count.saturating_sub(1);
+    let (longest_idx, longest_len) =
+        args.iter().enumerate().map(|(i, a)| (i, a.len())).max_by_key(|(_, len)| *len).unwrap_or((0, 0));
+    let longest_value = args.get(longest_idx).map(String::as_str).unwrap_or("");
+
+    let mut message = format!(
+        "An error occurred during linking: {err}\n\
+         Diagnostic context:\n\
+         \x20 - linker:          {linker}\n\
+         \x20 - args:            {arg_count}\n\
+         \x20 - cmdline length:  {cmdline_len} bytes\n\
+         \x20 - longest arg:     {longest_len} bytes ('{longest_value}')",
+        linker = linker.display(),
+    );
+
+    if cfg!(windows) && err.raw_os_error() == Some(206) {
+        message.push_str(
+            "\n\
+             Possible causes on Windows (ERROR_FILENAME_EXCED_RANGE):\n\
+             \x20 - The assembled command line exceeded 32,767 bytes (CreateProcess limit).\n\
+             \x20 - A single argument exceeded MAX_PATH (260 chars) without the \\\\?\\ prefix.\n\
+             Possible workarounds:\n\
+             \x20 - Move the workspace closer to the drive root to shorten paths.\n\
+             \x20 - Enable Windows long paths (LongPathsEnabled registry / process manifest).",
+        );
+    }
+
+    LinkerError::Link(message)
+}
+
 #[cfg(test)]
 mod test {
     use crate::linker::{CcLinker, Linker, LinkerInterface, LinkerType};
@@ -653,5 +707,67 @@ mod test {
         let mut linker = CcLinker::new("ld.lld");
         linker.add_lib(":libfoo.so.1");
         assert_eq!(linker.command_args(), vec!["-l:libfoo.so.1"]);
+    }
+
+    use crate::linker::{diagnose_spawn_error, LinkerError};
+    use insta::assert_snapshot;
+    use std::path::Path;
+
+    fn unwrap_link_message(err: LinkerError) -> String {
+        match err {
+            LinkerError::Link(msg) => msg,
+            other => panic!("expected LinkerError::Link, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn spawn_diagnostic_for_generic_io_error() {
+        let err = std::io::Error::from(std::io::ErrorKind::PermissionDenied);
+        let args = vec!["arg1".to_string(), "longer-arg-2".to_string(), "x".to_string()];
+        let msg = unwrap_link_message(diagnose_spawn_error(&err, Path::new("/usr/bin/ld.lld"), &args));
+        assert_snapshot!(msg, @r"
+        An error occurred during linking: permission denied
+        Diagnostic context:
+          - linker:          /usr/bin/ld.lld
+          - args:            3
+          - cmdline length:  19 bytes
+          - longest arg:     12 bytes ('longer-arg-2')
+        ");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn spawn_diagnostic_for_os_error_206_includes_windows_section() {
+        let err = std::io::Error::from_raw_os_error(206);
+        let msg = unwrap_link_message(diagnose_spawn_error(
+            &err,
+            Path::new("ld.lld.exe"),
+            &["one".to_string(), "two".to_string()],
+        ));
+        // The underlying io::Error display is locale-dependent on Windows
+        // (English: "The filename or extension is too long.", German: "Der
+        // Dateiname oder die Erweiterung ist zu lang."), so filter the first
+        // line down to a stable placeholder before snapshotting.
+        let mut settings = insta::Settings::clone_current();
+        settings.add_filter(
+            r"An error occurred during linking: .*\(os error 206\)",
+            "An error occurred during linking: [os-error 206 (locale-dependent)]",
+        );
+        settings.bind(|| {
+            assert_snapshot!(msg, @r"
+            An error occurred during linking: [os-error 206 (locale-dependent)]
+            Diagnostic context:
+              - linker:          ld.lld.exe
+              - args:            2
+              - cmdline length:  7 bytes
+              - longest arg:     3 bytes ('one')
+            Possible causes on Windows (ERROR_FILENAME_EXCED_RANGE):
+              - The assembled command line exceeded 32,767 bytes (CreateProcess limit).
+              - A single argument exceeded MAX_PATH (260 chars) without the \\?\ prefix.
+            Possible workarounds:
+              - Move the workspace closer to the drive root to shorten paths.
+              - Enable Windows long paths (LongPathsEnabled registry / process manifest).
+            ");
+        });
     }
 }
