@@ -2281,23 +2281,25 @@ pub struct Allocation {
 
 type DerefMarker = ();
 
+/// Builds the synthetic global name (`__PI_…`, `__M_…`, `__G_…`) that the pre-processor
+/// emits for hardware-bound variables. Single source of truth: every code path that needs
+/// to refer to one of these synthetic globals must call this function so that DWARF symbols,
+/// initializer rewrites, and external mappings stay in lockstep.
+pub fn mangle_hw_name(direction: HardwareAccessType, address: &[i128]) -> String {
+    let prefix = match direction {
+        HardwareAccessType::Input | HardwareAccessType::Output => "PI",
+        HardwareAccessType::Memory => "M",
+        HardwareAccessType::Global => "G",
+    };
+    let joined = address.iter().map(ToString::to_string).collect::<Vec<_>>().join("_");
+    format!("__{prefix}_{joined}")
+}
+
 impl HardwareAccess {
     pub fn get_mangled_variable_name(&self) -> String {
-        let HardwareAccess { direction, address, .. } = self;
-        let direction = match direction {
-            HardwareAccessType::Input | HardwareAccessType::Output => "PI",
-            HardwareAccessType::Memory => "M",
-            HardwareAccessType::Global => "G",
-        };
-        format!(
-            "__{direction}_{}",
-            address
-                .iter()
-                .flat_map(|node| node.get_literal_integer_value())
-                .map(|val| val.to_string())
-                .collect::<Vec<_>>()
-                .join("_")
-        )
+        let address: Vec<i128> =
+            self.address.iter().flat_map(|node| node.get_literal_integer_value()).collect();
+        mangle_hw_name(self.direction, &address)
     }
 
     pub fn is_template(&self) -> bool {

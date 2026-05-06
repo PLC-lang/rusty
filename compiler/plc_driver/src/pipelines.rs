@@ -433,6 +433,18 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             annotated_project.generate_hardware_information(format, location)?;
         }
 
+        if let Some(params) = self.compile_parameters.as_ref() {
+            match params.hwmap_target() {
+                Ok(Some((location, format))) => {
+                    annotated_project.generate_hw_map(format, &location)?;
+                }
+                Ok(None) => {}
+                Err(msg) => {
+                    return Err(Diagnostic::new(msg).with_error_code("E002"));
+                }
+            }
+        }
+
         // Skip code-gen if it is check
         if self.compile_parameters.as_ref().is_some_and(CompileParameters::is_check) {
             return Ok(());
@@ -1017,6 +1029,15 @@ impl AnnotatedProject {
         let hw_conf = plc::hardware_binding::collect_hardware_configuration(&self.index)?;
         let generated_conf = plc::hardware_binding::generate_hardware_configuration(&hw_conf, format)?;
         File::create(location).and_then(|mut it| it.write_all(generated_conf.as_bytes())).map_err(|it| {
+            Diagnostic::new(it.to_string()).with_internal_error(it.into()).with_error_code("E002")
+        })?;
+        Ok(())
+    }
+
+    pub fn generate_hw_map(&self, format: ConfigFormat, location: &str) -> Result<(), Diagnostic> {
+        let map = plc::hw_map::collect_hw_map(&self.index)?;
+        let serialized = plc::hw_map::serialize_hw_map(&map, format)?;
+        File::create(location).and_then(|mut it| it.write_all(serialized.as_bytes())).map_err(|it| {
             Diagnostic::new(it.to_string()).with_internal_error(it.into()).with_error_code("E002")
         })?;
         Ok(())
