@@ -557,6 +557,15 @@ mod tests {
     }
 
     #[test]
+    fn path_hash_suffix_is_deterministic() {
+        // Same input must yield the same suffix on every call so re-compiling
+        // the same project produces stable symbol names across runs.
+        let first = path_hash_suffix("a/globals.st");
+        let second = path_hash_suffix("a/globals.st");
+        assert_eq!(first, second);
+    }
+
+    #[test]
     fn path_hash_suffix_examples() {
         // The table demonstrates three properties at once: outputs are
         // deterministic (same input always renders to the same suffix),
