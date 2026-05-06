@@ -45,7 +45,9 @@ use crate::{
 
 use super::{
     llvm::Llvm,
-    pou_generator::{int_extension_attribute, target_uses_int_extension_attrs},
+    pou_generator::{
+        for_each_int_extension_attr_loc, int_extension_attribute, target_uses_int_extension_attrs,
+    },
     statement_generator::FunctionContext,
     ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC,
 };
@@ -593,11 +595,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     /// Mirrors `pou_generator::PouGenerator::apply_int_extension_attrs_to_decl` at the call
     /// site: attaches `signext`/`zeroext` to sub-32-bit integer arguments and to the return
-    /// value of FFI-eligible callees. The decl-side and call-site attributes must agree for
-    /// fixed parameters; LLVM accepts redundancy but not contradiction. Variadic arguments
-    /// only carry attributes at the call site (the declaration's `...` has no positions to
-    /// attribute), so we walk the AST parameter list past the declared count and use the
-    /// expression's annotated type. See #1146 for the underlying ABI mismatch.
+    /// value of FFI-eligible callees. The fixed-parameter walk and the return-attribute
+    /// step are shared with the decl side via `for_each_int_extension_attr_loc`; LLVM
+    /// accepts redundancy but not contradiction, so the two sites must stay in sync.
+    /// See #1146 for the underlying ABI mismatch.
     fn apply_int_extension_attrs_to_call(
         &self,
         call: CallSiteValue<'ink>,
@@ -605,6 +606,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         parameters_list: &[&AstNode],
         arguments_list: &[BasicMetadataValueEnum<'ink>],
     ) {
+        // Direct PROGRAM/FUNCTION_BLOCK calls (e.g. `myFbInstance()`) pass arguments via
+        // the instance struct (gep + store), not as scalar arguments to the LLVM call —
+        // there are no sub-32-bit integer slots in the call signature to attribute. The
+        // matching decl-side path also skips these POUs.
         if !(pou.is_function() || pou.is_method()) {
             return;
         }
@@ -614,15 +619,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let context = self.llvm.context;
         let param_offset = u32::from(pou.is_method());
         let declared_parameters = self.index.get_available_parameters(pou.get_name());
-        for (idx, param) in declared_parameters.iter().enumerate() {
-            if param.is_in_parameter_by_ref() {
-                continue;
-            }
-            let info = self.index.get_type_information_or_void(param.get_type_name());
-            if let Some(attr) = int_extension_attribute(context, info) {
-                call.add_attribute(AttributeLoc::Param(idx as u32 + param_offset), attr);
-            }
-        }
+        for_each_int_extension_attr_loc(
+            context,
+            &self.llvm.target_triple,
+            self.index,
+            pou.get_name(),
+            &declared_parameters,
+            pou.is_method(),
+            |loc, attr| {
+                call.add_attribute(loc, attr);
+            },
+        );
         // Variadic args (e.g. rusty's `T...` formals) live past `declared_parameters` and have
         // no formal type to consult — read the expression's annotated type instead. C-style
         // default-arg-promotion may have already widened the LLVM value to i32 before the
@@ -649,15 +656,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 if let Some(attr) = int_extension_attribute(context, info) {
                     call.add_attribute(AttributeLoc::Param(llvm_idx as u32), attr);
                 }
-            }
-        }
-        if let Some(return_info) = self
-            .index
-            .find_return_type(pou.get_name())
-            .map(|dt| self.index.get_intrinsic_type_information(dt.get_type_information()))
-        {
-            if let Some(attr) = int_extension_attribute(context, return_info) {
-                call.add_attribute(AttributeLoc::Return, attr);
             }
         }
     }

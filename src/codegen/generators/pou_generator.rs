@@ -210,6 +210,50 @@ pub(super) fn int_extension_attribute(
     Some(context.create_enum_attribute(kind_id, 0))
 }
 
+/// Walks the declared parameters of a POU and yields each `(AttributeLoc, Attribute)` pair
+/// that needs an integer extension attribute (sub-32-bit IEC integers), then yields the
+/// pair for the return type if applicable. The caller chooses whether to attach the
+/// attributes to a function declaration (`FunctionValue::add_attribute`) or to a call site
+/// (`CallSiteValue::add_attribute`); both APIs accept the same `(AttributeLoc, Attribute)`
+/// shape. Returns early on targets where rustc itself doesn't emit the attributes
+/// (`target_uses_int_extension_attrs`).
+///
+/// `is_method` adds the `+1` parameter offset that methods carry for the implicit
+/// `this` pointer at LLVM index 0. Variadic arguments (which have no formal type) are
+/// not handled here — call-site users that need them should walk
+/// `parameters_list[declared_parameters.len()..]` after invoking this helper.
+pub(super) fn for_each_int_extension_attr_loc(
+    context: &Context,
+    target_triple: &str,
+    index: &Index,
+    pou_name: &str,
+    declared_parameters: &[&VariableIndexEntry],
+    is_method: bool,
+    mut attach: impl FnMut(AttributeLoc, Attribute),
+) {
+    if !target_uses_int_extension_attrs(target_triple) {
+        return;
+    }
+    let param_offset = u32::from(is_method);
+    for (idx, param) in declared_parameters.iter().enumerate() {
+        if param.is_in_parameter_by_ref() {
+            continue;
+        }
+        let info = index.get_type_information_or_void(param.get_type_name());
+        if let Some(attr) = int_extension_attribute(context, info) {
+            attach(AttributeLoc::Param(idx as u32 + param_offset), attr);
+        }
+    }
+    if let Some(return_info) = index
+        .find_return_type(pou_name)
+        .map(|dt| index.get_intrinsic_type_information(dt.get_type_information()))
+    {
+        if let Some(attr) = int_extension_attribute(context, return_info) {
+            attach(AttributeLoc::Return, attr);
+        }
+    }
+}
+
 impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// creates a new PouGenerator
     ///
@@ -270,29 +314,17 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         if !implementation.get_implementation_type().is_function_method_or_init() {
             return;
         }
-        if !target_uses_int_extension_attrs(&self.llvm.target_triple) {
-            return;
-        }
-        let context = self.llvm.context;
-        let param_offset = u32::from(implementation.is_method());
-        for (idx, param) in declared_parameters.iter().enumerate() {
-            if param.is_in_parameter_by_ref() {
-                continue;
-            }
-            let info = self.index.get_type_information_or_void(param.get_type_name());
-            if let Some(attr) = int_extension_attribute(context, info) {
-                function.add_attribute(AttributeLoc::Param(idx as u32 + param_offset), attr);
-            }
-        }
-        if let Some(return_info) = self
-            .index
-            .find_return_type(implementation.get_type_name())
-            .map(|dt| self.index.get_intrinsic_type_information(dt.get_type_information()))
-        {
-            if let Some(attr) = int_extension_attribute(context, return_info) {
-                function.add_attribute(AttributeLoc::Return, attr);
-            }
-        }
+        for_each_int_extension_attr_loc(
+            self.llvm.context,
+            &self.llvm.target_triple,
+            self.index,
+            implementation.get_type_name(),
+            declared_parameters,
+            implementation.is_method(),
+            |loc, attr| {
+                function.add_attribute(loc, attr);
+            },
+        );
     }
 
     /// generates an empty llvm function for the given implementation, including all parameters and the return type
