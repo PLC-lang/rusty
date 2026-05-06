@@ -752,9 +752,13 @@ impl ReferenceToReturnLowerer {
             unreachable!("this must have a variable index entry")
         };
 
-        // Unfortunately this convoluted check is required because property returns are not decorated with this information
+        // Unfortunately this convoluted check is required because property returns are not explicitly decorated with this information
         variable.is_return() || {
             if let Some(parent_name) = find_parent_of_fully_qualified_variable(name) {
+                // e.g:                             |Parent| fb.__get_myVariable    |Statement| fb.__get_myVariable.myVariable
+                //  Dequalify Step:                 |Parent| __get_myVariable       |Statement| myVariable
+                //  Remove Property Prefix Step:    |Parent| myVariable             |Statement| myVariable
+                //  Equality succeeds/(fails):      This is (not) a return statement
                 remove_property_prefix(&de_qualify_name(&parent_name))
                     == remove_property_prefix(&de_qualify_name(name))
             } else {
@@ -859,7 +863,7 @@ impl ReferenceToReturnLowerer {
 fn find_parent_of_fully_qualified_variable(fully_qualified_name: &str) -> Option<String> {
     let segments: Vec<&str> = fully_qualified_name.split('.').collect();
     if segments.len() > 1 {
-        // the last segment is th ename, everything before ist qualifier
+        // the last segment is the name, everything before ist qualifier
         // e.g. MyClass.MyMethod.x --> qualifier: "MyClass.MyMethod", name: "x"
         Some(segments.iter().take(segments.len() - 1).join("."))
     } else {
@@ -869,8 +873,7 @@ fn find_parent_of_fully_qualified_variable(fully_qualified_name: &str) -> Option
 
 fn de_qualify_name(name: &str) -> String {
     if name.contains('.') {
-        let segments: Vec<&str> = name.split('.').collect();
-        return segments.last().unwrap().to_string();
+        return name.rsplit(".").next().unwrap().to_string();
     }
 
     name.to_string()
