@@ -643,40 +643,33 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                     if self.parent_pou_is_reference_to(name)
                         && self.current_statement_is_return_statement(name)
                     {
-                        if self.parent_pou_is_property(name) {
-                            let Some(parent_name) = find_parent_of_fully_qualified_variable(name) else {
-                                unreachable!("cannot get here without parent")
-                            };
-                            let mut replacement_assignment = assignment.clone();
-
-                            let member_reference = AstFactory::create_member_reference(
-                                AstFactory::create_identifier(
-                                    self.get_return_variable_name(&parent_name),
-                                    assignment.left.location.clone(),
-                                    self.ids.next_id(),
-                                ),
-                                None,
-                                self.ids.next_id(),
-                            );
-
-                            replacement_assignment.left = Box::new(member_reference);
-                            replacement_statement = Some(AstStatement::RefAssignment(replacement_assignment));
+                        let return_name = if let Some(parent_name) = find_parent_of_fully_qualified_variable(name)
+                        {
+                            if remove_property_prefix(&de_qualify_name(&parent_name))
+                                == remove_property_prefix(&de_qualify_name(name))
+                            {
+                                self.get_return_variable_name(&parent_name)
+                            } else {
+                                self.get_return_variable_name(name)
+                            }
                         } else {
-                            let mut replacement_assignment = assignment.clone();
+                            self.get_return_variable_name(name)
+                        };
 
-                            let member_reference = AstFactory::create_member_reference(
-                                AstFactory::create_identifier(
-                                    self.get_return_variable_name(name),
-                                    assignment.left.location.clone(),
-                                    self.ids.next_id(),
-                                ),
-                                None,
+                        let mut replacement_assignment = assignment.clone();
+
+                        let member_reference = AstFactory::create_member_reference(
+                            AstFactory::create_identifier(
+                                return_name,
+                                assignment.left.location.clone(),
                                 self.ids.next_id(),
-                            );
+                            ),
+                            None,
+                            self.ids.next_id(),
+                        );
 
-                            replacement_assignment.left = Box::new(member_reference);
-                            replacement_statement = Some(AstStatement::Assignment(replacement_assignment));
-                        }
+                        replacement_assignment.left = Box::new(member_reference);
+                        replacement_statement = Some(AstStatement::Assignment(replacement_assignment));
                     }
                 }
             }
@@ -767,19 +760,6 @@ impl ReferenceToReturnLowerer {
             } else {
                 false
             }
-        }
-    }
-
-    fn parent_pou_is_property(&self, name: &str) -> bool {
-        if let Some(parent_name) = find_parent_of_fully_qualified_variable(name) {
-            if self.index.find_fully_qualified_method(&parent_name).is_some() {
-                de_qualify_name(&parent_name).starts_with(PROPERTY_GET_PREFIX)
-                    || de_qualify_name(&parent_name).starts_with(PROPERTY_SET_PREFIX)
-            } else {
-                false
-            }
-        } else {
-            false
         }
     }
 
@@ -1708,7 +1688,7 @@ mod tests {
 
         assert_snapshot!(AstSerializer::format_nodes(&implementation.statements), @"
         __fb.__get_myStructuredVar_myStructuredVar__ctor(myStructuredVar);
-        __get_myStructuredVar_return_val REF= _myStructuredVar;
+        __get_myStructuredVar_return_val := _myStructuredVar;
         ");
 
         let test_method = pous.iter().find(|i| i.name == "test").expect("test pou should exist");
@@ -1802,7 +1782,7 @@ mod tests {
 
         assert_snapshot!(AstSerializer::format_nodes(&get_implementation.statements), @"
         __fb.__get_myStructuredVar_myStructuredVar__ctor(myStructuredVar);
-        __get_myStructuredVar_return_val REF= _myStructuredVar;
+        __get_myStructuredVar_return_val := _myStructuredVar;
         ");
 
         let test_implementation =
