@@ -25,7 +25,7 @@ fn simple_global() {
 
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @ps = global ptr null
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
     define void @__global_ps__ctor(ptr %0) {
@@ -35,7 +35,7 @@ fn simple_global() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] @s, ptr align [filtered] @utf08_literal_0, i32 13, i1 false)
       call void @__global_ps__ctor(ptr @ps)
@@ -73,7 +73,7 @@ fn global_alias() {
 
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @ps = global ptr null
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
     define void @__global_ps__ctor(ptr %0) {
@@ -83,7 +83,7 @@ fn global_alias() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] @s, ptr align [filtered] @utf08_literal_0, i32 13, i1 false)
       %deref = load ptr, ptr @ps, align [filtered]
@@ -122,7 +122,7 @@ fn global_reference_to() {
 
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @ps = global ptr null
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
     define void @__global_ps__ctor(ptr %0) {
@@ -132,7 +132,7 @@ fn global_reference_to() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] @s, ptr align [filtered] @utf08_literal_0, i32 13, i1 false)
       %deref = load ptr, ptr @ps, align [filtered]
@@ -178,7 +178,7 @@ fn init_functions_generated_for_programs() {
 
     @s = global [81 x i8] zeroinitializer
     @PLC_PRG_instance = global %PLC_PRG zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @PLC_PRG(ptr %0) {
     entry:
@@ -206,7 +206,7 @@ fn init_functions_generated_for_programs() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @PLC_PRG__ctor(ptr @PLC_PRG_instance)
       ret void
@@ -244,7 +244,7 @@ fn init_functions_work_with_adr() {
 
     @s = global [81 x i8] zeroinitializer
     @PLC_PRG_instance = global %PLC_PRG zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @PLC_PRG(ptr %0) {
     entry:
@@ -262,7 +262,7 @@ fn init_functions_work_with_adr() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @PLC_PRG__ctor(ptr @PLC_PRG_instance)
       ret void
@@ -301,7 +301,7 @@ fn init_functions_generated_for_function_blocks() {
 
     @s = global [81 x i8] zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -365,7 +365,7 @@ fn init_functions_generated_for_function_blocks() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -459,7 +459,7 @@ fn nested_initializer_pous() {
     @__vtable_baz_instance = global %__vtable_baz zeroinitializer
     @mainProg_instance = global %mainProg zeroinitializer
     @sideProg_instance = global %sideProg zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
     define void @foo(ptr %0) {
@@ -707,7 +707,7 @@ fn nested_initializer_pous() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] @str, ptr align [filtered] @utf08_literal_0, i32 6, i1 false)
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
@@ -780,7 +780,7 @@ fn local_address() {
     %foo = type { ptr, i16, ptr }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -847,7 +847,7 @@ fn local_address() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -892,7 +892,7 @@ fn user_init_called_for_variables_on_stack() {
     %foo = type { ptr, i16, ptr }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -989,7 +989,7 @@ fn user_init_called_for_variables_on_stack() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -1117,7 +1117,7 @@ fn struct_types() {
     @s = global [81 x i8] c"Hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @s2 = global [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"]
     @prog_instance = global %prog zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"Hello world!\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_2 = private unnamed_addr constant [6 x i8] c"world\00"
@@ -1187,7 +1187,7 @@ fn struct_types() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] @s, ptr align [filtered] @utf08_literal_0, i32 13, i1 false)
       call void @__global_s2__ctor(ptr @s2)
@@ -1255,7 +1255,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_cl_instance = global %__vtable_cl zeroinitializer
     @prog_instance = global %prog zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -1397,7 +1397,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       call void @__vtable_cl__ctor(ptr @__vtable_cl_instance)
@@ -1454,7 +1454,7 @@ fn global_instance() {
     @fb = global %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @prog_instance = global %prog zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -1531,7 +1531,7 @@ fn global_instance() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @foo__ctor(ptr @fb)
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
@@ -1585,7 +1585,7 @@ fn aliased_types() {
     @global_alias = global %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @prog_instance = global %prog zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -1675,7 +1675,7 @@ fn aliased_types() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @alias__ctor(ptr @global_alias)
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
@@ -1794,7 +1794,7 @@ fn var_config_aliased_variables_initialized() {
     @__PI_1_2_2 = global i32 0
     @__vtable_FB_instance = global %__vtable_FB zeroinitializer
     @prog_instance = global %prog zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @FB(ptr %0) {
     entry:
@@ -1876,7 +1876,7 @@ fn var_config_aliased_variables_initialized() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_FB__ctor(ptr @__vtable_FB_instance)
       store ptr @__PI_1_2_1, ptr getelementptr inbounds nuw (%FB, ptr @prog_instance, i32 0, i32 1), align [filtered]
@@ -1925,7 +1925,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     @s = global [81 x i8] zeroinitializer
     @refString = global ptr null
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -1987,7 +1987,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       %deref = load ptr, ptr @refString, align [filtered]
       call void @__global_refString__ctor(ptr %deref)
@@ -2026,7 +2026,7 @@ fn ref_to_local_member() {
     %foo = type { ptr, [81 x i8], ptr, ptr, ptr }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2127,7 +2127,7 @@ fn ref_to_local_member() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -2168,7 +2168,7 @@ fn ref_to_local_member_shadows_global() {
 
     @s = global [81 x i8] zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2269,7 +2269,7 @@ fn ref_to_local_member_shadows_global() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -2307,7 +2307,7 @@ fn temporary_variable_ref_to_local_member() {
     %foo = type { ptr, [81 x i8] }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2393,7 +2393,7 @@ fn temporary_variable_ref_to_local_member() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -2505,7 +2505,7 @@ fn initializing_method_variables_with_refs() {
     %foo = type { ptr }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2590,7 +2590,7 @@ fn initializing_method_variables_with_refs() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -2629,7 +2629,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
     %foo = type { ptr, i32 }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2716,7 +2716,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -2756,7 +2756,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
 
     @x = global i32 0
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2838,7 +2838,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -2879,7 +2879,7 @@ fn initializing_method_variables_with_refs_shadowing() {
 
     @x = global i32 0
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2963,7 +2963,7 @@ fn initializing_method_variables_with_refs_shadowing() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -2999,7 +2999,7 @@ fn initializing_method_variables_with_alias() {
     %foo = type { ptr }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -3084,7 +3084,7 @@ fn initializing_method_variables_with_alias() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -3120,7 +3120,7 @@ fn initializing_method_variables_with_reference_to() {
     %foo = type { ptr }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -3205,7 +3205,7 @@ fn initializing_method_variables_with_reference_to() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -3251,7 +3251,7 @@ fn methods_call_init_functions_for_their_members() {
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -3391,7 +3391,7 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       call void @__vtable_bar__ctor(ptr @__vtable_bar_instance)
@@ -3445,7 +3445,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @prog_instance = global %prog zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -3547,7 +3547,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       call void @prog__ctor(ptr @prog_instance)
@@ -3608,7 +3608,7 @@ fn user_fb_init_in_global_struct() {
     @str = global %bar zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @prog_instance = global %prog zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -3721,7 +3721,7 @@ fn user_fb_init_in_global_struct() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @bar__ctor(ptr @str)
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
@@ -3770,7 +3770,7 @@ fn user_init_called_when_declared_as_external() {
 
     @__vtable_foo_instance = external global %__vtable_foo
     @prog_instance = global %prog zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     declare void @foo(ptr)
 
@@ -3803,7 +3803,7 @@ fn user_init_called_when_declared_as_external() {
 
     declare void @____vtable_foo_FB_INIT__ctor(ptr)
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @prog__ctor(ptr @prog_instance)
       ret void
@@ -3856,7 +3856,7 @@ fn constructors_only_emits_only_ctor_definitions() {
 
     @__vtable_MyFB_instance = global %__vtable_MyFB zeroinitializer
     @main_instance = global %main { %MyFB { ptr null, %MyStruct { i32 10, i32 0 } } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     declare void @MyFB(ptr)
 
@@ -3925,7 +3925,7 @@ fn constructors_only_emits_only_ctor_definitions() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__vtable_MyFB__ctor(ptr @__vtable_MyFB_instance)
       call void @main__ctor(ptr @main_instance)

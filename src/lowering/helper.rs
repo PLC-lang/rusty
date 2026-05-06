@@ -458,9 +458,118 @@ pub fn new_implementation(
     }
 }
 
-/// Returns a sanitized unit name suitable for use as an identifier (e.g. in generated code)
+/// Returns a unit identifier suitable for embedding in synthesized symbols
+/// (currently the `__unit_<name>__ctor` per-unit constructor; see
+/// `new_unit_constructor`).
+///
+/// The name is built as `<sanitized basename>_<siphash-suffix>` where the
+/// SipHash-1-3 suffix is derived from the **full path** of the source file.
+/// This keeps the human-readable basename in the symbol (useful in linker
+/// errors and stack traces) while guaranteeing that two source files sharing
+/// a basename across different directories — e.g. `a/globals.st` and
+/// `b/globals.st` — mint distinct names instead of colliding at link time.
+/// See #1723. SipHash with a fixed zero key is deterministic and stable
+/// across runs/platforms; cryptographic strength isn't required here.
+///
+/// The mangled name only flows into internal symbols. `PouType::ProjectInit`
+/// POUs are filtered out of the generated C header (see
+/// `compiler/plc_header_generator/src/header_generator/header_generator_c.rs`),
+/// so the new shape has no effect on the user-facing C interface.
 pub fn get_unit_name(unit: &CompilationUnit) -> String {
     let path: PathBuf = (&unit.file).into();
-    let name = path.file_name().map(|it| it.to_string_lossy()).unwrap_or_default();
-    name.replace(['*', '.'], "_")
+    let basename = path.file_name().map(|it| it.to_string_lossy().into_owned()).unwrap_or_default();
+    let basename_slug = sanitize_to_identifier(&basename);
+    let suffix = path_hash_suffix(&path.to_string_lossy());
+    format!("{basename_slug}_{suffix}")
+}
+
+/// Replaces every character that isn't a C-identifier byte (`[A-Za-z0-9_]`)
+/// with `_`, so the resulting string is safe to embed in a synthesized symbol.
+fn sanitize_to_identifier(raw: &str) -> String {
+    raw.chars().map(|c| if c.is_ascii_alphanumeric() || c == '_' { c } else { '_' }).collect()
+}
+
+/// Returns 8 lowercase-hex characters (32 bits) from a SipHash-1-3 digest of
+/// `input`, keyed with `(0, 0)` so the result is deterministic and stable
+/// across runs, platforms, and processes. Used by [`get_unit_name`] to
+/// disambiguate per-source-file constructor symbols when two units share a
+/// basename.
+///
+/// 32 bits of suffix space is plenty for typical PLC projects: the
+/// birthday-paradox 50%-collision threshold is ~65 k files, and a collision
+/// would manifest as the same loud "duplicate symbol" linker error this fix
+/// is closing — not a silent miscompile — so the worst-case failure mode is
+/// graceful. We take the high 32 bits of the SipHash output for the suffix.
+fn path_hash_suffix(input: &str) -> String {
+    use std::hash::Hasher;
+    let mut hasher = siphasher::sip::SipHasher13::new_with_keys(0, 0);
+    hasher.write(input.as_bytes());
+    let truncated = (hasher.finish() >> 32) as u32;
+    format!("{truncated:08x}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{path_hash_suffix, sanitize_to_identifier};
+    use insta::assert_snapshot;
+
+    fn render_table<I, F>(cases: I, f: F) -> String
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+        F: Fn(&str) -> String,
+    {
+        cases
+            .into_iter()
+            .map(|c| {
+                let input = c.as_ref();
+                format!("{input:>22} -> {}", f(input))
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    #[test]
+    fn sanitize_to_identifier_examples() {
+        let table = render_table(
+            [
+                "globals_st",
+                "MyFile_42",
+                "__internal__",
+                "globals.st",
+                "a/b.st",
+                "a\\b.st",
+                "foo*bar",
+                "file with spaces.st",
+            ],
+            sanitize_to_identifier,
+        );
+        assert_snapshot!(table, @r"
+                 globals_st -> globals_st
+                  MyFile_42 -> MyFile_42
+               __internal__ -> __internal__
+                 globals.st -> globals_st
+                     a/b.st -> a_b_st
+                     a\b.st -> a_b_st
+                    foo*bar -> foo_bar
+        file with spaces.st -> file_with_spaces_st
+        ");
+    }
+
+    #[test]
+    fn path_hash_suffix_examples() {
+        // The table demonstrates three properties at once: outputs are
+        // deterministic (same input always renders to the same suffix),
+        // path-sensitive (`a/globals.st` and `b/globals.st` differ — this is
+        // the #1723 regression), and uniformly 8 lowercase hex chars.
+        let table =
+            render_table(["a/globals.st", "b/globals.st", "__internal__", "anything", ""], path_hash_suffix);
+        assert_snapshot!(table, @r"
+        a/globals.st -> 944ecddc
+        b/globals.st -> 411895b6
+        __internal__ -> bd9efc6f
+            anything -> 63269c94
+                     -> d1fba762
+        ");
+    }
 }

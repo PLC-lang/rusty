@@ -22,7 +22,7 @@ fn declaring_a_string() {
 
     @myUtf8 = global [21 x i8] zeroinitializer
     @myUtf16 = global [21 x i16] zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @__global_myUtf8__ctor(ptr %0) {
     entry:
@@ -38,7 +38,7 @@ fn declaring_a_string() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__global_myUtf8__ctor(ptr @myUtf8)
       call void @__global_myUtf16__ctor(ptr @myUtf16)
@@ -69,7 +69,7 @@ fn strings_are_terminated_with_0byte() {
 
     @myUtf8 = global [6 x i8] c"Hello\00"
     @myUtf16 = global [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0]
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
     @utf16_literal_0 = private unnamed_addr constant [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0]
 
@@ -87,7 +87,7 @@ fn strings_are_terminated_with_0byte() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @__global_myUtf8__ctor(ptr @myUtf8)
       call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] @myUtf8, ptr align [filtered] @utf08_literal_0, i32 5, i1 false)
@@ -128,7 +128,7 @@ fn assigning_strings() {
     %prg = type { [11 x i8], [11 x i8] }
 
     @prg_instance = global %prg zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
 
     define void @prg(ptr %0) {
     entry:
@@ -165,7 +165,7 @@ fn assigning_strings() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @prg__ctor(ptr @prg_instance)
       ret void
@@ -203,7 +203,7 @@ fn assigning_string_literals() {
     %prg = type { [11 x i8], [11 x i8] }
 
     @prg_instance = global %prg zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___bd9efc6f__ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
 
@@ -243,7 +243,7 @@ fn assigning_string_literals() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___bd9efc6f__ctor() {
     entry:
       call void @prg__ctor(ptr @prg_instance)
       ret void
