@@ -21,6 +21,9 @@ file extension depending on the output file format.
 A minimal invocation looks like this:
 `plc input.st` this will take in the file `input.st` and compile it into a static object that will be written to a file named `input.o`.
 
+`--build-location` is a global option and can be used with regular compilation commands (not only `plc build`) to control where intermediate artifacts are written.
+If it is not set for non-`build` commands, intermediate files may be created in the OS temporary directory.
+
 More examples:
 - `plc --ir file1.st file2.st` will compile file1.st and file2.st.
 - `plc --ir file1.cfc file2.st` will compile file1.cfc and file2.st.
@@ -94,6 +97,12 @@ Please note that RuSTy will attempt to link the generated object file by default
 - The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.
 - For executable links with compiler drivers, startup/runtime defaults can be controlled explicitly with `--nocrt` and `--nolibc`.
 - `-l` also supports exact filenames (`-l:libfoo.so.1`) and direct full paths (`-l/path/to/libfoo.so.1`).
+
+### Debug path remapping
+
+For shipped binaries and remote debugging, RuSTy can rewrite embedded DWARF paths so that they do not contain developer-local checkout paths.
+
+See [Debug Path Remapping](./using_rusty/debug_paths.md).
 
 ### Relocation model (PIC / no-PIC)
 

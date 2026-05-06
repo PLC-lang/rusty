@@ -5,12 +5,24 @@ use encoding_rs::Encoding;
 use log::LevelFilter;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
 use plc_header_generator::GenerateLanguage;
-use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
+use std::{
+    env,
+    ffi::OsStr,
+    num::ParseIntError,
+    path::{Path, PathBuf},
+};
 
 use plc::output::{FormatOption, RelocationPreference};
 use plc::{ConfigFormat, DebugLevel, ErrorFormat, Target, Threads, DEFAULT_GOT_LAYOUT_FILE};
+use plc_util::path::normalize_lexical_path;
 
 pub type ParameterError = clap::Error;
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PrefixMapArg {
+    pub old: PathBuf,
+    pub new: PathBuf,
+}
 
 #[derive(clap::ArgEnum, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LogLevel {
@@ -331,6 +343,27 @@ pub struct CompileParameters {
     pub gdwarf_varinfo_version: Option<usize>,
 
     #[clap(
+        long = "file-prefix-map",
+        visible_alias = "debug-prefix-map",
+        value_name = "OLD=NEW",
+        global = true,
+        help = "Remap debug/source paths: rewrites paths starting with OLD to start with NEW. \
+                NEW is taken as a literal replacement (no current-directory expansion). \
+                Repeat to add more mappings; later occurrences win on equal-length matches.",
+        parse(try_from_str = parse_prefix_map)
+    )]
+    pub prefix_maps: Vec<PrefixMapArg>,
+
+    #[clap(
+        long = "debug-compilation-dir",
+        value_name = "dir",
+        global = true,
+        help = "Override the DWARF compilation directory",
+        parse(try_from_str = parse_debug_compilation_dir)
+    )]
+    pub debug_compilation_dir: Option<PathBuf>,
+
+    #[clap(
         name = "threads",
         long,
         short = 'j',
@@ -372,6 +405,14 @@ pub struct CompileParameters {
     )]
     pub header_output: Option<String>,
 
+    #[clap(
+        name = "build-location",
+        long,
+        help = "Write intermediate build artifacts to the given directory",
+        global = true
+    )]
+    pub build_location: Option<String>,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
@@ -393,10 +434,11 @@ pub enum SubCommands {
         )]
         build_config: Option<String>,
 
-        #[clap(name = "build-location", long)]
-        build_location: Option<String>,
-
-        #[clap(name = "lib-location", long)]
+        #[clap(
+            name = "lib-location",
+            long,
+            help = "Copy libraries marked as `Copy` to the given directory (build subcommand only)"
+        )]
         lib_location: Option<String>,
     },
 
@@ -528,6 +570,39 @@ pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
     }
 }
 
+fn resolve_old_prefix(path: &Path) -> Result<PathBuf, String> {
+    let current_dir =
+        env::current_dir().map_err(|err| format!("Failed to resolve current directory: {err}"))?;
+    let path = if path.is_absolute() { path.to_path_buf() } else { current_dir.join(path) };
+    Ok(path.canonicalize().unwrap_or_else(|_| normalize_lexical_path(&path)))
+}
+
+/// Treat the value as a literal path replacement: lex-normalize but never join with the current
+/// working directory. This keeps `--file-prefix-map OLD=.` and `--debug-compilation-dir .` from
+/// silently baking the host `$PWD` into DWARF metadata.
+fn lex_normalize_replacement(value: &str) -> PathBuf {
+    if value.is_empty() {
+        PathBuf::new()
+    } else {
+        normalize_lexical_path(Path::new(value))
+    }
+}
+
+fn parse_prefix_map(value: &str) -> Result<PrefixMapArg, String> {
+    let Some((old, new)) = value.split_once('=') else {
+        return Err("Expected OLD=NEW".into());
+    };
+    if old.is_empty() {
+        return Err("Expected non-empty OLD in OLD=NEW".into());
+    }
+
+    Ok(PrefixMapArg { old: resolve_old_prefix(Path::new(old))?, new: lex_normalize_replacement(new) })
+}
+
+fn parse_debug_compilation_dir(value: &str) -> Result<PathBuf, String> {
+    Ok(lex_normalize_replacement(value))
+}
+
 impl CompileParameters {
     pub fn parse<T: AsRef<OsStr> + AsRef<str>>(args: &[T]) -> Result<CompileParameters, ParameterError> {
         CompileParameters::try_parse_from(args)
@@ -558,6 +633,10 @@ impl CompileParameters {
         }
 
         DebugLevel::None
+    }
+
+    pub fn debug_prefix_maps(&self) -> Vec<(PathBuf, PathBuf)> {
+        self.prefix_maps.iter().map(|it| (it.old.clone(), it.new.clone())).collect()
     }
 
     pub fn relocation_preference(&self) -> RelocationPreference {
@@ -627,21 +706,35 @@ impl CompileParameters {
         get_config_format(&self.got_layout_file).unwrap()
     }
 
-    /// Returns the location where the build artifacts should be stored / output
+    /// Returns the location where intermediate build artifacts are written.
+    /// For the `build` subcommand this also defaults to `build` when not given.
     pub fn get_build_location(&self) -> Option<PathBuf> {
-        match &self.commands {
-            Some(SubCommands::Build { build_location, .. }) => {
-                build_location.as_deref().or(Some("build")).map(PathBuf::from)
-            }
-            _ => None,
+        if matches!(&self.commands, Some(SubCommands::Build { .. })) {
+            self.build_location.as_deref().or(Some("build")).map(PathBuf::from)
+        } else {
+            self.build_location.as_deref().map(PathBuf::from)
+        }
+    }
+
+    /// Returns the directory under which the final linked artifact should be
+    /// placed. Only set for the `build` subcommand; for non-`build` commands
+    /// the `-o` argument is resolved relative to the current working directory
+    /// (or kept absolute), independent of `--build-location`.
+    pub fn get_output_directory(&self) -> Option<PathBuf> {
+        if matches!(&self.commands, Some(SubCommands::Build { .. })) {
+            self.get_build_location()
+        } else {
+            None
         }
     }
 
     pub fn get_lib_location(&self) -> Option<PathBuf> {
         match &self.commands {
-            Some(SubCommands::Build { build_location, lib_location, .. }) => {
-                lib_location.as_deref().or(build_location.as_deref()).or(Some("build")).map(PathBuf::from)
-            }
+            Some(SubCommands::Build { lib_location, .. }) => lib_location
+                .as_deref()
+                .or(self.build_location.as_deref())
+                .or(Some("build"))
+                .map(PathBuf::from),
             _ => None,
         }
     }
@@ -712,8 +805,8 @@ mod cli_tests {
         ConfigFormat, ErrorFormat, OptimizationLevel,
     };
     use pretty_assertions::assert_eq;
-    use std::ffi::OsStr;
     use std::fmt::Debug;
+    use std::{env, ffi::OsStr, path::PathBuf};
 
     #[test]
     fn verify_cli() {
@@ -1132,17 +1225,53 @@ mod cli_tests {
         .unwrap();
         if let Some(commands) = parameters.commands {
             match commands {
-                SubCommands::Build { build_config, build_location, lib_location, .. } => {
+                SubCommands::Build { build_config, lib_location, .. } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
-                    assert_eq!(build_location, Some("bin/build".to_string()));
                     assert_eq!(lib_location, Some("bin/build/libs".to_string()));
                 }
                 _ => panic!("Unexpected command"),
             };
+            assert_eq!(parameters.build_location, Some("bin/build".to_string()));
             assert_eq!(parameters.sysroot, Some("sysroot1".to_string()));
             assert_eq!(parameters.target, Some("targettest".into()));
             assert_eq!(parameters.linker, Some("cc".to_string()));
         }
+    }
+
+    #[test]
+    fn global_build_location_available_for_non_build_commands() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--build-location", "bin/build", "-c"))
+                .unwrap();
+
+        assert_eq!(parameters.get_build_location(), Some(PathBuf::from("bin/build")));
+        assert_eq!(parameters.get_lib_location(), None);
+        // `--build-location` must NOT relocate the final `-o` artifact for non-build flows.
+        assert_eq!(parameters.get_output_directory(), None);
+    }
+
+    #[test]
+    fn build_subcommand_lib_location_falls_back_to_global_build_location() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "build",
+            "src/ProjectPlc.json",
+            "--build-location",
+            "bin/build"
+        ))
+        .unwrap();
+
+        assert_eq!(parameters.get_build_location(), Some(PathBuf::from("bin/build")));
+        assert_eq!(parameters.get_lib_location(), Some(PathBuf::from("bin/build")));
+        assert_eq!(parameters.get_output_directory(), Some(PathBuf::from("bin/build")));
+    }
+
+    #[test]
+    fn build_subcommand_defaults_build_and_lib_locations_to_build() {
+        let parameters = CompileParameters::parse(vec_of_strings!("build", "src/ProjectPlc.json")).unwrap();
+
+        assert_eq!(parameters.get_build_location(), Some(PathBuf::from("build")));
+        assert_eq!(parameters.get_lib_location(), Some(PathBuf::from("build")));
+        assert_eq!(parameters.get_output_directory(), Some(PathBuf::from("build")));
     }
 
     #[test]
@@ -1334,5 +1463,109 @@ mod cli_tests {
 
         let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf-variables")).unwrap_err();
         assert_eq!(error.kind(), ErrorKind::EmptyValue);
+    }
+
+    #[test]
+    fn debug_prefix_maps_are_parsed_and_merged() {
+        let current_dir = env::current_dir().unwrap();
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--file-prefix-map",
+            "src=/src/TestProject",
+            "--debug-prefix-map",
+            "build=/build/TestProject"
+        ))
+        .unwrap();
+
+        let prefix_maps = parameters.debug_prefix_maps();
+        assert_eq!(prefix_maps.len(), 2);
+        assert_eq!(
+            prefix_maps[0].0,
+            current_dir.join("src").canonicalize().unwrap_or(current_dir.join("src"))
+        );
+        assert_eq!(prefix_maps[0].1, PathBuf::from("/src/TestProject"));
+        assert_eq!(prefix_maps[1].1, PathBuf::from("/build/TestProject"));
+    }
+
+    #[test]
+    fn debug_prefix_maps_preserve_argv_order_across_aliases() {
+        // Mixed --file-prefix-map / --debug-prefix-map invocations must come back in the order
+        // they were given on the command line so that "later wins" stays predictable.
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--debug-prefix-map",
+            "/a=/A",
+            "--file-prefix-map",
+            "/b=/B",
+            "--debug-prefix-map",
+            "/c=/C"
+        ))
+        .unwrap();
+
+        let prefix_maps = parameters.debug_prefix_maps();
+        let news: Vec<_> = prefix_maps.iter().map(|(_, new)| new.clone()).collect();
+        assert_eq!(news, vec![PathBuf::from("/A"), PathBuf::from("/B"), PathBuf::from("/C")]);
+    }
+
+    #[test]
+    fn prefix_map_new_is_treated_as_literal_replacement() {
+        // RHS must NOT be joined with cwd. Otherwise `OLD=.` silently bakes $PWD into DWARF.
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "input.st",
+            "--file-prefix-map",
+            "/abs=.",
+            "--file-prefix-map",
+            "/rel=relative/dir"
+        ))
+        .unwrap();
+
+        let prefix_maps = parameters.debug_prefix_maps();
+        assert_eq!(prefix_maps[0].1, PathBuf::from("."));
+        assert_eq!(prefix_maps[1].1, PathBuf::from("relative/dir"));
+    }
+
+    #[test]
+    fn prefix_map_accepts_empty_replacement() {
+        // OLD= strips the OLD prefix entirely (literal empty replacement).
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--file-prefix-map", "/strip=")).unwrap();
+
+        let prefix_maps = parameters.debug_prefix_maps();
+        assert_eq!(prefix_maps.len(), 1);
+        assert_eq!(prefix_maps[0].1, PathBuf::new());
+    }
+
+    #[test]
+    fn debug_compilation_dir_is_treated_as_literal() {
+        // `.` and other relative values must stay literal — never joined with cwd.
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--debug-compilation-dir", ".")).unwrap();
+        assert_eq!(parameters.debug_compilation_dir, Some(PathBuf::from(".")));
+
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--debug-compilation-dir", "virtual/root"))
+                .unwrap();
+        assert_eq!(parameters.debug_compilation_dir, Some(PathBuf::from("virtual/root")));
+    }
+
+    #[test]
+    fn rooted_debug_compilation_dir_stays_rooted() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("input.st", "--debug-compilation-dir", "/BUILD_ROOT"))
+                .unwrap();
+
+        assert_eq!(parameters.debug_compilation_dir, Some(PathBuf::from("/BUILD_ROOT")));
+    }
+
+    #[test]
+    fn invalid_prefix_map_is_rejected() {
+        let error =
+            CompileParameters::parse(vec_of_strings!("input.st", "--file-prefix-map", "missing-separator"))
+                .unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::ValueValidation);
+
+        let error =
+            CompileParameters::parse(vec_of_strings!("input.st", "--file-prefix-map", "=/new")).unwrap_err();
+        assert_eq!(error.kind(), ErrorKind::ValueValidation);
     }
 }

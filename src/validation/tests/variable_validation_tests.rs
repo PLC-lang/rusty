@@ -772,6 +772,61 @@ fn var_conf_template_variable_is_no_template() {
 }
 
 #[test]
+fn var_conf_inline_custom_string_does_not_panic() {
+    // Regression for #1331: an inline custom-sized STRING (or WSTRING) in a
+    // VAR_CONFIG entry used to panic in `global_var_indexer` because the
+    // anonymous string type had no resolvable name. The fix synthesizes a
+    // user-type name during pre-processing so the indexer can look it up.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : STRING[100];
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX1.0 : STRING[100];
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn var_conf_inline_custom_wstring_does_not_panic() {
+    // Companion to the STRING regression — WSTRING goes through the same path.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK foo_fb
+            VAR
+                bar AT %I* : WSTRING[50];
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                foo : foo_fb;
+            END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            main.foo.bar AT %IX2.0 : WSTRING[50];
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
 fn only_constant_builtins_are_allowed_in_initializer() {
     let diagnostics = parse_and_validate_buffered(
         r#"
@@ -898,11 +953,17 @@ fn aliasing_to_undeclared_type_is_an_error() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E052]: Unknown type: myDeclaredType
+    error[E052]: Unknown type: undeclaredType
+      ┌─ <internal>:2:31
+      │
+    2 │         TYPE myDeclaredType : undeclaredType; END_TYPE
+      │                               ^^^^^^^^^^^^^^ Unknown type: undeclaredType
+
+    error[E052]: Type 'myDeclaredType' references an unknown type
       ┌─ <internal>:4:16
       │
     4 │             a: myDeclaredType;
-      │                ^^^^^^^^^^^^^^ Unknown type: myDeclaredType
+      │                ^^^^^^^^^^^^^^ Type 'myDeclaredType' references an unknown type
     ");
 }
 
@@ -1632,4 +1693,134 @@ fn function_output_with_mismatched_type_assignment_must_produce_a_friendly_error
     20 │                 result => i1
        │                 ^^^^^^ Implicit downcast from 'REAL' to 'INT'.
     ");
+}
+
+#[test]
+fn incomplete_hardware_address_in_function_is_rejected() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION foo : DINT
+        VAR
+            flag AT %I* : BOOL;
+        END_VAR
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E136]: Incomplete hardware address `AT %I*` is not allowed in `FUNCTION` or `METHOD`; only `PROGRAM`, `FUNCTION_BLOCK`, and `VAR_GLOBAL` may declare these
+      ┌─ <internal>:4:13
+      │
+    4 │             flag AT %I* : BOOL;
+      │             ^^^^^^^^^^^ Incomplete hardware address `AT %I*` is not allowed in `FUNCTION` or `METHOD`; only `PROGRAM`, `FUNCTION_BLOCK`, and `VAR_GLOBAL` may declare these
+    ");
+}
+
+#[test]
+fn incomplete_hardware_address_in_method_is_rejected() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            METHOD m
+            VAR
+                flag AT %I* : BOOL;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E136]: Incomplete hardware address `AT %I*` is not allowed in `FUNCTION` or `METHOD`; only `PROGRAM`, `FUNCTION_BLOCK`, and `VAR_GLOBAL` may declare these
+      ┌─ <internal>:5:17
+      │
+    5 │                 flag AT %I* : BOOL;
+      │                 ^^^^^^^^^^^ Incomplete hardware address `AT %I*` is not allowed in `FUNCTION` or `METHOD`; only `PROGRAM`, `FUNCTION_BLOCK`, and `VAR_GLOBAL` may declare these
+    ");
+}
+
+#[test]
+fn incomplete_hardware_address_in_function_block_is_clean() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+        VAR
+            flag AT %I* : BOOL;
+        END_VAR
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn incomplete_hardware_address_in_program_is_clean() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        PROGRAM prg
+        VAR
+            flag AT %I* : BOOL;
+        END_VAR
+        END_PROGRAM
+
+        VAR_CONFIG
+            prg.flag AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn incomplete_hardware_address_in_var_global_is_clean() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        VAR_GLOBAL
+            flag AT %I* : BOOL;
+        END_VAR
+
+        VAR_CONFIG
+            flag AT %IX1.0 : BOOL;
+        END_VAR
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn function_and_method_parameters_do_not_trip_template_address_check() {
+    // Parameters never carry an `AT` address, so the template-address check
+    // must skip them silently — even inside FUNCTION / METHOD bodies where
+    // a template-addressed local would be rejected.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION foo : DINT
+        VAR_INPUT
+            in1 : BOOL;
+        END_VAR
+        VAR_OUTPUT
+            out1 : BOOL;
+        END_VAR
+        VAR_IN_OUT
+            io1 : BOOL;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION_BLOCK fb
+            METHOD m : DINT
+            VAR_INPUT
+                in1 : BOOL;
+            END_VAR
+            VAR_OUTPUT
+                out1 : BOOL;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
 }

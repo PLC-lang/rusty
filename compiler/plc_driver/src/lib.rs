@@ -57,6 +57,8 @@ pub struct CompileOptions {
     pub relocation_preference: RelocationPreference,
     pub error_format: ErrorFormat,
     pub debug_level: DebugLevel,
+    pub debug_prefix_maps: Vec<(PathBuf, PathBuf)>,
+    pub debug_compilation_dir: Option<PathBuf>,
     pub single_module: bool,
     pub online_change: OnlineChange,
     pub constructors_only: bool,
@@ -73,6 +75,8 @@ impl Default for CompileOptions {
             relocation_preference: RelocationPreference::Default,
             error_format: ErrorFormat::None,
             debug_level: DebugLevel::None,
+            debug_prefix_maps: vec![],
+            debug_compilation_dir: None,
             single_module: false,
             online_change: OnlineChange::Disabled,
             constructors_only: false,
@@ -98,6 +102,11 @@ pub struct LinkOptions {
     pub relocation_preference: RelocationPreference,
     pub lib_location: Option<PathBuf>,
     pub build_location: Option<PathBuf>,
+    /// Directory where the final linked artifact is placed. Only `Some` for the
+    /// `build` subcommand. For non-`build` flows, the `-o` value is resolved
+    /// relative to the current working directory (or kept absolute) and is not
+    /// rebased under `--build-location`.
+    pub output_directory: Option<PathBuf>,
     pub linker_script: LinkerScript,
     pub module_name: Option<String>,
 }

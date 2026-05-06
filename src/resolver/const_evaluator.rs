@@ -495,6 +495,22 @@ fn evaluate_with_target_hint(
         }
         AstStatement::BinaryExpression(BinaryExpression { left, right, operator }) => {
             let eval_left = evaluate(left, scope, index, lhs)?;
+
+            // Short-circuit on a known boolean LHS — applies equally to AND/AND_THEN
+            // and OR/OR_ELSE. Side-stepping the RHS in const-eval prevents spurious
+            // errors like a div-by-zero on the unreachable side of `FALSE AND_THEN ...`.
+            if let Some(left_node) = eval_left.as_ref() {
+                if let AstStatement::Literal(AstLiteral::Bool(b)) = left_node.get_stmt() {
+                    match (operator, *b) {
+                        (Operator::And | Operator::AndThen, false)
+                        | (Operator::Or | Operator::OrElse, true) => {
+                            return Ok(Some(left_node.clone()));
+                        }
+                        _ => {}
+                    }
+                }
+            }
+
             let eval_right = evaluate(right, scope, index, lhs)?;
 
             if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
@@ -519,7 +535,9 @@ fn evaluate_with_target_hint(
                     Operator::Less => compare_expression!(left, <, right, "<", id)?,
                     Operator::LessOrEqual => compare_expression!(left, <=, right, "<=", id)?,
                     Operator::And => bitwise_expression!(left, & , right, "AND", id)?,
+                    Operator::AndThen => bitwise_expression!(left, & , right, "AND_THEN", id)?,
                     Operator::Or => bitwise_expression!(left, | , right, "OR", id)?,
+                    Operator::OrElse => bitwise_expression!(left, | , right, "OR_ELSE", id)?,
                     Operator::Xor => bitwise_expression!(left, ^, right, "XOR", id)?,
                     _ => {
                         return Err(UnresolvableKind::Misc(format!(

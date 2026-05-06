@@ -122,19 +122,19 @@ The `package_commands` keyword is optional.
 
 ## Build Parameters
 
-The `build` subcommand exposes the following optional parameters:
-
 ### `--build-location`
 
-The build location is the location all build files will be copied to. </br>
-By default the build location is the `build` folder in the root of the project (the location of the `plc.json`).</br>
-This can be overriden with the `--build-location` command line parameter.
+`--build-location` is a global `plc` option that controls where intermediate build artifacts are written.</br>
+With `plc build`, the default is `build` in the project root (the location of `plc.json`) and the final artifact is placed there as well. With non-`build` commands, intermediate object files go to the OS temporary directory unless `--build-location` is provided; the final `-o` artifact is always resolved relative to the current working directory (or kept as-is if absolute) and is NOT relocated under `--build-location`. This is especially relevant for multi-file compilation, where intermediate objects are generated first and then passed to the linker to produce the final output artifact.
 
 ### `--lib-location`
 
-The lib location is where all libraries marked with `Copy` will be copied. </br>
-By default it is the same as the `build-location`.</br>
-This can be overriden with the `--lib-location` command line parameter.
+`--lib-location` is available on the `build` subcommand.</br>
+It controls where libraries marked with `Copy` are copied.
+
+For `plc build`, if `--lib-location` is not set, RuSTy falls back to:
+1. `--build-location` (if set)
+2. `build`
 
 ### Additional linker options
 
@@ -146,6 +146,16 @@ All regular linker options from `plc` can also be used with the `build` subcomma
 - `--nocrt`
 - `--nolibc`
 - `--fpic` / `--fno-pic` (relocation model)
+
+### Additional debug path options
+
+The `build` subcommand also accepts the debug path remapping flags:
+
+- `--file-prefix-map OLD=NEW`
+- `--debug-prefix-map OLD=NEW`
+- `--debug-compilation-dir <dir>`
+
+These are especially useful for shipped builds and remote debugging. See [Debug Path Remapping](./debug_paths.md).
 
 ## Environment Variables
 
@@ -167,13 +177,14 @@ Example targets are:
 
 ### `BUILD_LOCATION`
 
-`BUILD_LOCATION` is the folder where the build will be saved.
-This is the value of either the [`--build-location`](#build-location) parameter or the default build location.
+`BUILD_LOCATION` is the folder where build artifacts are written.
+For `plc build`, this is either [`--build-location`](#build-location) or the default `build` directory.
+For non-`build` commands, it is only set when `--build-location` is provided.
 
 ### `LIB_LOCATION`
 
-`LIB_LOCATION` is the folder where the lib will be saved.
-This is the value of either the [`--lib-location`](#lib-location) parameter or the [build location](#build-location).
+`LIB_LOCATION` is the folder where libraries marked with `Copy` are saved.
+This is the value of [`--lib-location`](#lib-location), or the [build location](#build-location) fallback used by `plc build`.
 
 ### Usage
 

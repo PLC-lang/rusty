@@ -1,4 +1,7 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
+// UNSUPPORTED: opt-none
+// FIXME (tracked in the `-Onone` triage issue, follow-up to #1345): segfaults
+// when compiled with `-Onone`; passes at the default optimization level.
 
 // Test VAR_INPUT defaults with STRING/ARRAY and mixed overrides
 

@@ -159,10 +159,20 @@ function run_lit_test() {
     run_package_std
 
     if [[ $release -eq 0 ]]; then
-        lit -v -DLIB=$project_location/output -DCOMPILER=$project_location/target/debug/plc tests/lit/
+        local plc_bin="$project_location/target/debug/plc"
     else
-        lit -v -DLIB=$project_location/output -DCOMPILER=$project_location/target/release/plc tests/lit/
+        local plc_bin="$project_location/target/release/plc"
     fi
+
+    # Optimization-level matrix. Each cell must pass; tests that legitimately
+    # cannot (yet) handle a non-default level must declare `// UNSUPPORTED:
+    # opt-none` (or equivalent feature) in their RUN-line preamble. See #1345.
+    local opt_levels="${OPT_LEVELS:-default,none}"
+    IFS=',' read -ra _opt_levels <<< "$opt_levels"
+    for opt_level in "${_opt_levels[@]}"; do
+        log "Running lit with OPT_LEVEL=$opt_level"
+        lit -v -DLIB=$project_location/output -DCOMPILER=$plc_bin -DOPT_LEVEL=$opt_level tests/lit/
+    done
 }
 
 function run_test() {

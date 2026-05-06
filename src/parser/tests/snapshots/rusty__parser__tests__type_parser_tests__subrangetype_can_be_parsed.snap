@@ -8,6 +8,9 @@ Variable {
         data_type: SubRangeType {
             name: None,
             referenced_type: "UINT",
+            referenced_type_location: SourceLocation {
+                span: Range(2:20 - 2:24),
+            },
             bounds: Some(
                 RangeStatement {
                     start: LiteralInteger {

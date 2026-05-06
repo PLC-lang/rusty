@@ -713,3 +713,133 @@ fn duplicate_interfaces() {
       │               ^^^ foo: Ambiguous datatype.
     ");
 }
+
+#[test]
+fn user_function_block_clashing_with_generic_function_is_flagged() {
+    // Reproduces the case-insensitive POU name collision that previously crashed
+    // codegen with "Could not find generated stub for <X>": a user-declared
+    // top-level FB sharing a (case-insensitive) name with a generic stdlib-style
+    // function must be reported here, not silently accepted.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION mid <T : ANY_STRING> : T
+        VAR_INPUT IN : T; END_VAR
+        END_FUNCTION
+
+        FUNCTION_BLOCK Mid
+        END_FUNCTION_BLOCK
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E004]: mid: Duplicate symbol.
+      ┌─ <internal>:2:18
+      │
+    2 │         FUNCTION mid <T : ANY_STRING> : T
+      │                  ^^^ mid: Duplicate symbol.
+      ·
+    6 │         FUNCTION_BLOCK Mid
+      │                        --- see also
+
+    error[E004]: mid: Duplicate symbol.
+      ┌─ <internal>:6:24
+      │
+    2 │         FUNCTION mid <T : ANY_STRING> : T
+      │                  --- see also
+      ·
+    6 │         FUNCTION_BLOCK Mid
+      │                        ^^^ mid: Duplicate symbol.
+    ");
+}
+
+#[test]
+fn user_function_clashing_with_generic_function_is_flagged() {
+    // Same root cause as the FB case but with a non-generic FUNCTION sharing
+    // a name with a generic FUNCTION.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION mid <T : ANY_STRING> : T
+        VAR_INPUT IN : T; END_VAR
+        END_FUNCTION
+
+        FUNCTION mid : DINT
+        END_FUNCTION
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E004]: mid: Duplicate symbol.
+      ┌─ <internal>:2:18
+      │
+    2 │         FUNCTION mid <T : ANY_STRING> : T
+      │                  ^^^ mid: Duplicate symbol.
+      ·
+    6 │         FUNCTION mid : DINT
+      │                  --- see also
+
+    error[E004]: mid: Duplicate symbol.
+      ┌─ <internal>:6:18
+      │
+    2 │         FUNCTION mid <T : ANY_STRING> : T
+      │                  --- see also
+      ·
+    6 │         FUNCTION mid : DINT
+      │                  ^^^ mid: Duplicate symbol.
+    ");
+}
+
+#[test]
+fn non_generic_pou_in_a_three_way_cluster_with_generics_is_flagged() {
+    // Non-generic in a cluster also containing multiple generics: each pair
+    // (non-generic vs generic) is a real ambiguity — flag the whole cluster.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION foo <T1: ANY, T2: ANY> : T1
+        VAR_INPUT IN1: T1; IN2: T2; END_VAR
+        END_FUNCTION
+
+        FUNCTION foo <K: ANY, V: ANY> : K
+        VAR_INPUT IN1: K; IN2: V; END_VAR
+        END_FUNCTION
+
+        FUNCTION_BLOCK foo
+        END_FUNCTION_BLOCK
+        "#,
+    );
+    // Three locations are reported at each site — both generics plus the FB.
+    assert_snapshot!(diagnostics, @"
+    error[E004]: foo: Duplicate symbol.
+       ┌─ <internal>:2:18
+       │
+     2 │         FUNCTION foo <T1: ANY, T2: ANY> : T1
+       │                  ^^^ foo: Duplicate symbol.
+       ·
+     6 │         FUNCTION foo <K: ANY, V: ANY> : K
+       │                  --- see also
+       ·
+    10 │         FUNCTION_BLOCK foo
+       │                        --- see also
+
+    error[E004]: foo: Duplicate symbol.
+       ┌─ <internal>:6:18
+       │
+     2 │         FUNCTION foo <T1: ANY, T2: ANY> : T1
+       │                  --- see also
+       ·
+     6 │         FUNCTION foo <K: ANY, V: ANY> : K
+       │                  ^^^ foo: Duplicate symbol.
+       ·
+    10 │         FUNCTION_BLOCK foo
+       │                        --- see also
+
+    error[E004]: foo: Duplicate symbol.
+       ┌─ <internal>:10:24
+       │
+     2 │         FUNCTION foo <T1: ANY, T2: ANY> : T1
+       │                  --- see also
+       ·
+     6 │         FUNCTION foo <K: ANY, V: ANY> : K
+       │                  --- see also
+       ·
+    10 │         FUNCTION_BLOCK foo
+       │                        ^^^ foo: Duplicate symbol.
+    ");
+}

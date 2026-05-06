@@ -1,4 +1,4 @@
-// RUN: (%COMPILE -Onone %s && %RUN) | %CHECK %s
+// RUN: (%COMPILE %s && %RUN) | %CHECK %s
 //
 // Regression test for stack growth caused by lowered loop temporaries.
 // Nested FOR loops are desugared into nested WHILE TRUE loops with synthetic

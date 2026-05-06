@@ -67,7 +67,7 @@ impl AstVisitor for UserTypeIndexer<'_, '_> {
             DataType::EnumType { name: Some(name), numeric_type, elements } => {
                 self.index_enum_type(name, numeric_type, elements)
             }
-            DataType::SubRangeType { name: Some(name), referenced_type, bounds } => {
+            DataType::SubRangeType { name: Some(name), referenced_type, bounds, .. } => {
                 self.index_sub_range_type(name, referenced_type, bounds.as_ref())
             }
             DataType::ArrayType { name: Some(name), bounds, referenced_type, is_variable_length: false } => {
