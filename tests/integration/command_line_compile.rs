@@ -186,10 +186,13 @@ fn generate_got_file() {
 }
 
 /// Returns insta `Settings` with the given tempdir's path redacted to
-/// `[tmp]`, so snapshots of `compile(...)` errors stay stable across runs.
+/// `[tmp]` and any path separator backslashes (Windows) normalized to
+/// forward slashes, so snapshots of `compile(...)` errors stay stable
+/// across runs and platforms.
 fn settings_with_tempdir_filter(tempdir: &Path) -> insta::Settings {
     let mut settings = insta::Settings::clone_current();
     settings.add_filter(&plc_util::escape_regex_literal(&tempdir.to_string_lossy()), "[tmp]");
+    settings.add_filter(r"\\", "/");
     settings
 }
 
