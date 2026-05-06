@@ -5,4 +5,3 @@ edition = "2021"
 license = "LGPL-3.0"
 description = "Shared utilities for the PLC Structured Text compiler"
 
-[dependencies]

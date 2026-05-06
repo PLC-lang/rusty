@@ -85,9 +85,9 @@ pub(crate) fn parse_range_statement(lexer: &mut ParseSession) -> AstNode {
     start
 }
 
-// OR
+// OR, OR_ELSE
 fn parse_or_expression(lexer: &mut ParseSession) -> AstNode {
-    parse_left_associative_expression!(lexer, parse_xor_expression, OperatorOr,)
+    parse_left_associative_expression!(lexer, parse_xor_expression, OperatorOr | OperatorOrElse,)
 }
 
 // XOR
@@ -95,9 +95,13 @@ fn parse_xor_expression(lexer: &mut ParseSession) -> AstNode {
     parse_left_associative_expression!(lexer, parse_and_expression, OperatorXor,)
 }
 
-// AND
+// AND, AND_THEN
 fn parse_and_expression(lexer: &mut ParseSession) -> AstNode {
-    parse_left_associative_expression!(lexer, parse_equality_expression, OperatorAmp | OperatorAnd,)
+    parse_left_associative_expression!(
+        lexer,
+        parse_equality_expression,
+        OperatorAmp | OperatorAnd | OperatorAndThen,
+    )
 }
 
 //EQUALITY  =, <>
@@ -209,7 +213,9 @@ fn to_operator(token: &Token) -> Option<Operator> {
         OperatorGreaterOrEqual => Some(Operator::GreaterOrEqual),
         OperatorModulo => Some(Operator::Modulo),
         OperatorAnd | OperatorAmp => Some(Operator::And),
+        OperatorAndThen => Some(Operator::AndThen),
         OperatorOr => Some(Operator::Or),
+        OperatorOrElse => Some(Operator::OrElse),
         OperatorXor => Some(Operator::Xor),
         OperatorNot => Some(Operator::Not),
         _ => None,
@@ -407,20 +413,27 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Option<AstNode> {
         })
     };
 
-    // Are we dealing with an array-index access directly after the call, e.g. `foo()[...]`?
-    if lexer.try_consume(KeywordSquareParensOpen) {
-        let index = parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
-        let statement = AstFactory::create_index_reference(
-            index,
-            Some(call),
-            lexer.next_id(),
-            SourceLocation::undefined(),
-        );
-
-        return Some(statement);
+    // Postfix chain after the call: `foo()[...]`, `foo()^`, or combinations
+    // like `foo()[...]^` and `foo()^[...]`.
+    let mut result = call;
+    loop {
+        if lexer.try_consume(KeywordSquareParensOpen) {
+            let index = parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
+            result = AstFactory::create_index_reference(
+                index,
+                Some(result),
+                lexer.next_id(),
+                SourceLocation::undefined(),
+            );
+        } else if lexer.try_consume(OperatorDeref) {
+            let deref_loc = lexer.last_location();
+            result =
+                AstFactory::create_deref_reference(result, lexer.next_id(), reference_loc.span(&deref_loc));
+        } else {
+            break;
+        }
     }
-
-    Some(call)
+    Some(result)
 }
 
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Option<AstNode> {

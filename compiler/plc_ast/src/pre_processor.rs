@@ -6,9 +6,9 @@ use plc_util::convention::internal_type_name;
 
 use crate::{
     ast::{
-        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit,
-        ConfigVariable, DataType, DataTypeDeclaration, LinkageType, Operator, Pou, PropertyBlock,
-        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        flatten_expression_list, Assignment, AstFactory, AstNode, AstStatement, CompilationUnit, DataType,
+        DataTypeDeclaration, LinkageType, Operator, Pou, PropertyBlock, UserTypeDeclaration, Variable,
+        VariableBlock, VariableBlockType,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -240,30 +240,50 @@ fn process_var_config_variables(
     unit: &mut CompilationUnit,
     known_hw_globals: &mut rustc_hash::FxHashSet<String>,
 ) {
-    let variables = unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, .. }| {
-        let AstStatement::HardwareAccess(hardware) = &address.stmt else {
+    // Borrow var_config out so we can mutate it while also mutating user_types.
+    let mut var_config = std::mem::take(&mut unit.var_config);
+    let mut variables: Vec<Variable> = vec![];
+
+    for cv in var_config.iter_mut() {
+        let AstStatement::HardwareAccess(hardware) = &cv.address.stmt else {
             unreachable!("Must be parsed as hardware access")
         };
 
         if hardware.is_template() {
-            return None;
+            continue;
         }
 
         let name = hardware.get_mangled_variable_name();
         if !known_hw_globals.insert(name.clone()) {
-            return None; // Already exists, skip
+            continue; // Already exists, skip
         }
 
-        Some(Variable {
+        // The same inline-type pre-processing that VAR_GLOBAL declarations get
+        // (rewrite an anonymous `STRING[100]` into a `Reference` to a synthesised
+        // user type). Without this, the global-var indexer would later trip over
+        // an unnameable type, and the var-config validator would resolve the
+        // declared type to VOID.
+        if should_generate_implicit(&cv.data_type) {
+            let new_type_name = internal_type_name("global_", &name);
+            rewrite_inline_data_type(
+                &mut cv.data_type,
+                new_type_name,
+                &mut unit.user_types,
+                LinkageType::Internal,
+            );
+        }
+
+        variables.push(Variable {
             name,
-            data_type_declaration: data_type.get_inner_pointer_ty().unwrap_or(data_type.clone()),
+            data_type_declaration: cv.data_type.get_inner_pointer_ty().unwrap_or(cv.data_type.clone()),
             initializer: None,
             address: None,
-            location: address.get_location(),
-        })
-    });
+            location: cv.address.get_location(),
+        });
+    }
 
-    update_generated_globals(unit, variables.collect());
+    unit.var_config = var_config;
+    update_generated_globals(unit, variables);
 }
 
 /// Processes struct members declared with IEC hardware addresses (e.g. `c AT %IX1.2 : BOOL`).
@@ -516,10 +536,28 @@ fn pre_process_variable_data_type(
     linkage: LinkageType,
 ) {
     let new_type_name = internal_type_name(&format!("{container_name}_"), &variable.name);
-    if let DataTypeDeclaration::Definition { mut data_type, location, scope } =
-        variable.replace_data_type_with_reference_to(new_type_name.clone())
-    {
-        // create index entry
+    rewrite_inline_data_type(&mut variable.data_type_declaration, new_type_name, types, linkage);
+}
+
+/// Replace an inline `DataTypeDeclaration::Definition` (e.g. `STRING[100]`) with
+/// a `Reference` to a freshly-synthesised user type and register that type in
+/// `types`. No-op for `Reference` / `Aggregate` declarations. Shared between the
+/// per-`Variable` pre-processing path and the per-`ConfigVariable` path.
+fn rewrite_inline_data_type(
+    decl: &mut DataTypeDeclaration,
+    new_type_name: String,
+    types: &mut Vec<UserTypeDeclaration>,
+    linkage: LinkageType,
+) {
+    let original_location = decl.get_location();
+    let original = std::mem::replace(
+        decl,
+        DataTypeDeclaration::Reference {
+            referenced_type: new_type_name.clone(),
+            location: original_location,
+        },
+    );
+    if let DataTypeDeclaration::Definition { mut data_type, location, scope } = original {
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location, linkage);
         data_type.set_name(new_type_name);
         types.push(UserTypeDeclaration {
@@ -530,7 +568,6 @@ fn pre_process_variable_data_type(
             linkage,
         });
     }
-    //make sure it gets generated
 }
 
 fn add_nested_datatypes(

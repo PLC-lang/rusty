@@ -1,6 +1,7 @@
 use plc_util::filtered_assert_snapshot;
 
 mod expression_debugging;
+mod path_remapping;
 
 use test_utils::codegen_with_debug as codegen;
 use test_utils::codegen_with_debug_version;

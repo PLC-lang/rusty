@@ -10,30 +10,30 @@ target triple = "[filtered]"
 define i32 @myFunc() !dbg !4 {
 entry:
   %myFunc = alloca i32, align [filtered]
-    #dbg_declare(ptr %myFunc, !9, !DIExpression(), !11)
+    #dbg_declare(ptr %myFunc, !8, !DIExpression(), !10)
   store i32 0, ptr %myFunc, align [filtered]
-  %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !12
+  %load_myFunc = load i32, ptr %myFunc, align [filtered], !dbg !11
   switch i32 %load_myFunc, label %else [
     i32 1, label %case
     i32 2, label %case1
-  ], !dbg !13
+  ], !dbg !12
 
 case:                                             ; preds = %entry
-  store i32 1, ptr %myFunc, align [filtered], !dbg !14
-  br label %continue, !dbg !15
+  store i32 1, ptr %myFunc, align [filtered], !dbg !13
+  br label %continue, !dbg !14
 
 case1:                                            ; preds = %entry
-  store i32 1, ptr %myFunc, align [filtered], !dbg !16
-  br label %continue, !dbg !15
+  store i32 1, ptr %myFunc, align [filtered], !dbg !15
+  br label %continue, !dbg !14
 
 else:                                             ; preds = %entry
-  store i32 1, ptr %myFunc, align [filtered], !dbg !17
-  br label %continue, !dbg !15
+  store i32 1, ptr %myFunc, align [filtered], !dbg !16
+  br label %continue, !dbg !14
 
 continue:                                         ; preds = %else, %case1, %case
-  store i32 1, ptr %myFunc, align [filtered], !dbg !18
-  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !19
-  ret i32 %myFunc_ret, !dbg !19
+  store i32 1, ptr %myFunc, align [filtered], !dbg !17
+  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
+  ret i32 %myFunc_ret, !dbg !18
 }
 
 !llvm.module.flags = !{!0, !1}
@@ -42,20 +42,19 @@ continue:                                         ; preds = %else, %case1, %case
 !0 = !{i32 2, !"Dwarf Version", i32 5}
 !1 = !{i32 2, !"Debug Info Version", i32 3}
 !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-!3 = !DIFile(filename: "<internal>", directory: "src")
-!4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-!5 = !DIFile(filename: "<internal>", directory: "")
-!6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
-!7 = !{null}
-!8 = !{}
-!9 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !10, align [filtered])
-!10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!11 = !DILocation(line: 2, column: 17, scope: !4)
-!12 = !DILocation(line: 3, column: 12, scope: !4)
-!13 = !DILocation(line: 3, column: 17, scope: !4)
-!14 = !DILocation(line: 5, column: 16, scope: !4)
-!15 = !DILocation(line: 10, column: 12, scope: !4)
-!16 = !DILocation(line: 7, column: 16, scope: !4)
-!17 = !DILocation(line: 9, column: 16, scope: !4)
-!18 = !DILocation(line: 11, column: 12, scope: !4)
-!19 = !DILocation(line: 12, column: 8, scope: !4)
+!3 = !DIFile(filename: "<internal>", directory: "")
+!4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+!5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+!6 = !{null}
+!7 = !{}
+!8 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !9, align [filtered])
+!9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!10 = !DILocation(line: 2, column: 17, scope: !4)
+!11 = !DILocation(line: 3, column: 12, scope: !4)
+!12 = !DILocation(line: 3, column: 17, scope: !4)
+!13 = !DILocation(line: 5, column: 16, scope: !4)
+!14 = !DILocation(line: 10, column: 12, scope: !4)
+!15 = !DILocation(line: 7, column: 16, scope: !4)
+!16 = !DILocation(line: 9, column: 16, scope: !4)
+!17 = !DILocation(line: 11, column: 12, scope: !4)
+!18 = !DILocation(line: 12, column: 8, scope: !4)

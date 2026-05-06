@@ -203,6 +203,8 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 relocation_preference,
                 error_format: params.error_format,
                 debug_level: params.debug_level(),
+                debug_prefix_maps: params.debug_prefix_maps(),
+                debug_compilation_dir: params.debug_compilation_dir.clone(),
                 single_module: params.single_module,
                 online_change: if params.online_change {
                     OnlineChange::Enabled {
@@ -267,6 +269,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 relocation_preference,
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
+                output_directory: params.get_output_directory(),
                 linker_script,
                 module_name: self.get_module_name(),
             }
@@ -916,6 +919,8 @@ impl AnnotatedProject {
             unit.file,
             compile_options.optimization,
             compile_options.debug_level,
+            &compile_options.debug_prefix_maps,
+            compile_options.debug_compilation_dir.as_deref(),
             //FIXME don't clone here
             compile_options.online_change.clone(),
             target,
@@ -929,6 +934,7 @@ impl AnnotatedProject {
             dependencies,
             &self.index,
             got_layout,
+            compile_options.constructors_only,
         )?;
         code_generator
             .generate(
@@ -1045,7 +1051,13 @@ impl GeneratedProject {
         output: &str,
         link_options: LinkOptions,
     ) -> Result<Object, Diagnostic> {
-        let output_location = build_location
+        // The final artifact is placed under `output_directory` only for the
+        // `build` subcommand. For non-`build` flows, the user-supplied `-o`
+        // path is honored as-is (relative to cwd, or absolute), independent
+        // of `--build-location` which only governs intermediates.
+        let output_location = link_options
+            .output_directory
+            .as_deref()
             .map(|it| self.target.append_to(it))
             .map(|it| it.join(output))
             .unwrap_or_else(|| PathBuf::from(output));

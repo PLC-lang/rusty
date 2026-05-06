@@ -1,11 +1,29 @@
 use std::fs;
 use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 
 use insta::assert_snapshot;
 
 use crate::get_test_file;
 use driver::compile;
+
+fn contains_file_recursive(path: &Path) -> bool {
+    let Ok(entries) = fs::read_dir(path) else {
+        return false;
+    };
+
+    entries.flatten().any(|entry| {
+        let entry_path = entry.path();
+        if entry_path.is_file() {
+            true
+        } else if entry_path.is_dir() {
+            contains_file_recursive(&entry_path)
+        } else {
+            false
+        }
+    })
+}
 
 #[test]
 fn ir_generation_full_pass() {
@@ -77,6 +95,66 @@ fn stdlib_string_function_headers_compile_to_ir() {
         compile(&["plc", file.as_str(), "-o", &path, "--ir"]).is_ok(),
         "Expected file to compile without errors"
     )
+}
+
+#[test]
+fn global_build_location_is_used_for_non_build_compile_temp_artifacts() {
+    let file = get_test_file("json/simple_program.st");
+    let build_dir = tempfile::tempdir().unwrap();
+    let output_dir = tempfile::tempdir().unwrap();
+    let output_file = output_dir.path().join("simple_program.o");
+    let build_dir_str = build_dir.path().to_string_lossy().to_string();
+    let output_file_str = output_file.to_string_lossy().to_string();
+
+    compile(&["plc", file.as_str(), "--build-location", &build_dir_str, "-c", "-o", &output_file_str])
+        .unwrap();
+
+    assert!(output_file.is_file());
+    assert!(contains_file_recursive(build_dir.path()));
+}
+
+#[test]
+fn relative_output_with_build_location_lands_in_cwd_for_non_build() {
+    // For non-`build` commands, `--build-location` must only govern intermediate
+    // artifacts. A relative `-o` must be honored as cwd-relative and NOT be
+    // rebased under `--build-location`.
+    let file = get_test_file("json/simple_program.st");
+    let build_dir = tempfile::tempdir().unwrap();
+    let build_dir_str = build_dir.path().to_string_lossy().to_string();
+
+    let unique_name = format!("relative_output_{}.ll", std::process::id());
+
+    compile(&["plc", file.as_str(), "--build-location", &build_dir_str, "--ir", "-o", &unique_name]).unwrap();
+
+    let cwd_output = std::env::current_dir().unwrap().join(&unique_name);
+    let exists = cwd_output.is_file();
+
+    // Walk the build dir and ensure the output filename is not present anywhere under it.
+    fn walk(path: &Path, out: &mut Vec<std::path::PathBuf>) {
+        if let Ok(entries) = fs::read_dir(path) {
+            for entry in entries.flatten() {
+                let entry_path = entry.path();
+                if entry_path.is_dir() {
+                    walk(&entry_path, out);
+                } else {
+                    out.push(entry_path);
+                }
+            }
+        }
+    }
+    let mut entries = Vec::new();
+    walk(build_dir.path(), &mut entries);
+    let target_name = std::ffi::OsStr::new(unique_name.as_str());
+    let relocated_under_build_dir = entries.iter().any(|p| p.file_name() == Some(target_name));
+
+    // Always clean up before asserting so a failure does not leave artifacts behind.
+    let _ = fs::remove_file(&cwd_output);
+
+    assert!(exists, "expected `{unique_name}` to be created in cwd, not relocated under build-location");
+    assert!(
+        !relocated_under_build_dir,
+        "`{unique_name}` was relocated under --build-location; expected cwd-relative placement",
+    );
 }
 
 #[test]

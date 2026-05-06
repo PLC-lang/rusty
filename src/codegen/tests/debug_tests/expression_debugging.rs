@@ -138,12 +138,12 @@ fn ref_assignment_statement_have_location() {
     entry:
       %a = alloca i32, align [filtered]
       %b = alloca ptr, align [filtered]
-        #dbg_declare(ptr %a, !9, !DIExpression(), !11)
+        #dbg_declare(ptr %a, !8, !DIExpression(), !10)
       store i32 0, ptr %a, align [filtered]
-        #dbg_declare(ptr %b, !12, !DIExpression(), !15)
+        #dbg_declare(ptr %b, !11, !DIExpression(), !14)
       store ptr null, ptr %b, align [filtered]
-      store ptr %a, ptr %b, align [filtered], !dbg !16
-      ret void, !dbg !17
+      store ptr %a, ptr %b, align [filtered], !dbg !15
+      ret void, !dbg !16
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -152,21 +152,20 @@ fn ref_assignment_statement_have_location() {
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-    !3 = !DIFile(filename: "<internal>", directory: "src")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-    !5 = !DIFile(filename: "<internal>", directory: "")
-    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
-    !7 = !{null}
-    !8 = !{}
-    !9 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !10, align [filtered])
-    !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !11 = !DILocation(line: 4, column: 12, scope: !4)
-    !12 = !DILocalVariable(name: "b", scope: !4, file: !5, line: 5, type: !13, align [filtered])
-    !13 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____myFunc_b", scope: !3, file: !3, baseType: !14, align [filtered])
-    !14 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__myFunc_b", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !15 = !DILocation(line: 5, column: 12, scope: !4)
-    !16 = !DILocation(line: 7, column: 12, scope: !4)
-    !17 = !DILocation(line: 8, column: 8, scope: !4)
+    !3 = !DIFile(filename: "<internal>", directory: "")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+    !6 = !{null}
+    !7 = !{}
+    !8 = !DILocalVariable(name: "a", scope: !4, file: !3, line: 4, type: !9, align [filtered])
+    !9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !10 = !DILocation(line: 4, column: 12, scope: !4)
+    !11 = !DILocalVariable(name: "b", scope: !4, file: !3, line: 5, type: !12, align [filtered])
+    !12 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____myFunc_b", scope: !3, file: !3, baseType: !13, align [filtered])
+    !13 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__myFunc_b", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !14 = !DILocation(line: 5, column: 12, scope: !4)
+    !15 = !DILocation(line: 7, column: 12, scope: !4)
+    !16 = !DILocation(line: 8, column: 8, scope: !4)
     "#);
 }
 
@@ -198,13 +197,13 @@ fn function_with_ctor_triggering_local_still_has_debug_info() {
     entry:
       %myFunc = alloca i32, align [filtered]
       %b = alloca ptr, align [filtered]
-        #dbg_declare(ptr %b, !9, !DIExpression(), !13)
+        #dbg_declare(ptr %b, !8, !DIExpression(), !12)
       store ptr null, ptr %b, align [filtered]
-        #dbg_declare(ptr %myFunc, !14, !DIExpression(), !15)
+        #dbg_declare(ptr %myFunc, !13, !DIExpression(), !14)
       store i32 0, ptr %myFunc, align [filtered]
-      store i32 1, ptr %myFunc, align [filtered], !dbg !16
-      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
-      ret i32 %myFunc_ret, !dbg !17
+      store i32 1, ptr %myFunc, align [filtered], !dbg !15
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !16
+      ret i32 %myFunc_ret, !dbg !16
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -213,21 +212,20 @@ fn function_with_ctor_triggering_local_still_has_debug_info() {
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-    !3 = !DIFile(filename: "<internal>", directory: "src")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-    !5 = !DIFile(filename: "<internal>", directory: "")
-    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
-    !7 = !{null}
-    !8 = !{}
-    !9 = !DILocalVariable(name: "b", scope: !4, file: !5, line: 4, type: !10, align [filtered])
-    !10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____myFunc_b", scope: !3, file: !3, baseType: !11, align [filtered])
-    !11 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__myFunc_b", baseType: !12, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !12 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !13 = !DILocation(line: 4, column: 12, scope: !4)
-    !14 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !12, align [filtered])
-    !15 = !DILocation(line: 2, column: 17, scope: !4)
-    !16 = !DILocation(line: 6, column: 12, scope: !4)
-    !17 = !DILocation(line: 7, column: 8, scope: !4)
+    !3 = !DIFile(filename: "<internal>", directory: "")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+    !6 = !{null}
+    !7 = !{}
+    !8 = !DILocalVariable(name: "b", scope: !4, file: !3, line: 4, type: !9, align [filtered])
+    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____myFunc_b", scope: !3, file: !3, baseType: !10, align [filtered])
+    !10 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__myFunc_b", baseType: !11, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !11 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !12 = !DILocation(line: 4, column: 12, scope: !4)
+    !13 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !11, align [filtered])
+    !14 = !DILocation(line: 2, column: 17, scope: !4)
+    !15 = !DILocation(line: 6, column: 12, scope: !4)
+    !16 = !DILocation(line: 7, column: 8, scope: !4)
     "#);
 }
 
@@ -256,14 +254,14 @@ fn function_with_value_initialized_local_still_has_debug_info() {
     entry:
       %myFunc = alloca i32, align [filtered]
       %a = alloca i32, align [filtered]
-        #dbg_declare(ptr %a, !9, !DIExpression(), !11)
+        #dbg_declare(ptr %a, !8, !DIExpression(), !10)
       store i32 5, ptr %a, align [filtered]
-        #dbg_declare(ptr %myFunc, !12, !DIExpression(), !13)
+        #dbg_declare(ptr %myFunc, !11, !DIExpression(), !12)
       store i32 0, ptr %myFunc, align [filtered]
-      %load_a = load i32, ptr %a, align [filtered], !dbg !14
-      store i32 %load_a, ptr %myFunc, align [filtered], !dbg !14
-      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !15
-      ret i32 %myFunc_ret, !dbg !15
+      %load_a = load i32, ptr %a, align [filtered], !dbg !13
+      store i32 %load_a, ptr %myFunc, align [filtered], !dbg !13
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !14
+      ret i32 %myFunc_ret, !dbg !14
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -272,19 +270,18 @@ fn function_with_value_initialized_local_still_has_debug_info() {
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-    !3 = !DIFile(filename: "<internal>", directory: "src")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-    !5 = !DIFile(filename: "<internal>", directory: "")
-    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
-    !7 = !{null}
-    !8 = !{}
-    !9 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !10, align [filtered])
-    !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !11 = !DILocation(line: 4, column: 12, scope: !4)
-    !12 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !10, align [filtered])
-    !13 = !DILocation(line: 2, column: 17, scope: !4)
-    !14 = !DILocation(line: 6, column: 12, scope: !4)
-    !15 = !DILocation(line: 7, column: 8, scope: !4)
+    !3 = !DIFile(filename: "<internal>", directory: "")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+    !6 = !{null}
+    !7 = !{}
+    !8 = !DILocalVariable(name: "a", scope: !4, file: !3, line: 4, type: !9, align [filtered])
+    !9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !10 = !DILocation(line: 4, column: 12, scope: !4)
+    !11 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !9, align [filtered])
+    !12 = !DILocation(line: 2, column: 17, scope: !4)
+    !13 = !DILocation(line: 6, column: 12, scope: !4)
+    !14 = !DILocation(line: 7, column: 8, scope: !4)
     "#);
 }
 
@@ -316,15 +313,15 @@ fn function_with_struct_local_still_has_debug_info() {
     entry:
       %myFunc = alloca i32, align [filtered]
       %s = alloca %S, align [filtered]
-        #dbg_declare(ptr %s, !9, !DIExpression(), !14)
+        #dbg_declare(ptr %s, !8, !DIExpression(), !13)
       call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 ptrtoint (ptr getelementptr (%S, ptr null, i32 1) to i64), i1 false)
-        #dbg_declare(ptr %myFunc, !15, !DIExpression(), !16)
+        #dbg_declare(ptr %myFunc, !14, !DIExpression(), !15)
       store i32 0, ptr %myFunc, align [filtered]
-      %x = getelementptr inbounds nuw %S, ptr %s, i32 0, i32 0, !dbg !17
-      %load_x = load i32, ptr %x, align [filtered], !dbg !17
-      store i32 %load_x, ptr %myFunc, align [filtered], !dbg !17
-      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
-      ret i32 %myFunc_ret, !dbg !18
+      %x = getelementptr inbounds nuw %S, ptr %s, i32 0, i32 0, !dbg !16
+      %load_x = load i32, ptr %x, align [filtered], !dbg !16
+      store i32 %load_x, ptr %myFunc, align [filtered], !dbg !16
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
+      ret i32 %myFunc_ret, !dbg !17
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
@@ -338,22 +335,21 @@ fn function_with_struct_local_still_has_debug_info() {
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-    !3 = !DIFile(filename: "<internal>", directory: "src")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 4, type: !6, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-    !5 = !DIFile(filename: "<internal>", directory: "")
-    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
-    !7 = !{null}
-    !8 = !{}
-    !9 = !DILocalVariable(name: "s", scope: !4, file: !5, line: 6, type: !10, align [filtered])
-    !10 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", scope: !5, file: !5, line: 2, size: 32, align [filtered], flags: DIFlagPublic, elements: !11, identifier: "S")
-    !11 = !{!12}
-    !12 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !5, file: !5, line: 2, baseType: !13, size: 32, align [filtered], flags: DIFlagPublic)
-    !13 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !14 = !DILocation(line: 6, column: 12, scope: !4)
-    !15 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 4, type: !13, align [filtered])
-    !16 = !DILocation(line: 4, column: 17, scope: !4)
-    !17 = !DILocation(line: 8, column: 12, scope: !4)
-    !18 = !DILocation(line: 9, column: 8, scope: !4)
+    !3 = !DIFile(filename: "<internal>", directory: "")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 4, type: !5, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+    !6 = !{null}
+    !7 = !{}
+    !8 = !DILocalVariable(name: "s", scope: !4, file: !3, line: 6, type: !9, align [filtered])
+    !9 = !DICompositeType(tag: DW_TAG_structure_type, name: "S", scope: !3, file: !3, line: 2, size: 32, align [filtered], flags: DIFlagPublic, elements: !10, identifier: "S")
+    !10 = !{!11}
+    !11 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !3, file: !3, line: 2, baseType: !12, size: 32, align [filtered], flags: DIFlagPublic)
+    !12 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !13 = !DILocation(line: 6, column: 12, scope: !4)
+    !14 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 4, type: !12, align [filtered])
+    !15 = !DILocation(line: 4, column: 17, scope: !4)
+    !16 = !DILocation(line: 8, column: 12, scope: !4)
+    !17 = !DILocation(line: 9, column: 8, scope: !4)
     "#);
 }
 
@@ -382,15 +378,15 @@ fn function_with_initialized_array_local_still_has_debug_info() {
     entry:
       %myFunc = alloca i32, align [filtered]
       %arr = alloca [3 x i32], align [filtered]
-        #dbg_declare(ptr %arr, !9, !DIExpression(), !14)
+        #dbg_declare(ptr %arr, !8, !DIExpression(), !13)
       call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %arr, ptr align [filtered] @__myFunc.arr__init, i64 ptrtoint (ptr getelementptr ([3 x i32], ptr null, i32 1) to i64), i1 false)
-        #dbg_declare(ptr %myFunc, !15, !DIExpression(), !16)
+        #dbg_declare(ptr %myFunc, !14, !DIExpression(), !15)
       store i32 0, ptr %myFunc, align [filtered]
-      %tmpVar = getelementptr inbounds [3 x i32], ptr %arr, i32 0, i32 0, !dbg !17
-      %load_tmpVar = load i32, ptr %tmpVar, align [filtered], !dbg !17
-      store i32 %load_tmpVar, ptr %myFunc, align [filtered], !dbg !17
-      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
-      ret i32 %myFunc_ret, !dbg !18
+      %tmpVar = getelementptr inbounds [3 x i32], ptr %arr, i32 0, i32 0, !dbg !16
+      %load_tmpVar = load i32, ptr %tmpVar, align [filtered], !dbg !16
+      store i32 %load_tmpVar, ptr %myFunc, align [filtered], !dbg !16
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !17
+      ret i32 %myFunc_ret, !dbg !17
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
@@ -404,22 +400,21 @@ fn function_with_initialized_array_local_still_has_debug_info() {
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-    !3 = !DIFile(filename: "<internal>", directory: "src")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-    !5 = !DIFile(filename: "<internal>", directory: "")
-    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
-    !7 = !{null}
-    !8 = !{}
-    !9 = !DILocalVariable(name: "arr", scope: !4, file: !5, line: 4, type: !10, align [filtered])
-    !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 96, align [filtered], elements: !12)
-    !11 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !12 = !{!13}
-    !13 = !DISubrange(count: 3, lowerBound: 0)
-    !14 = !DILocation(line: 4, column: 12, scope: !4)
-    !15 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !11, align [filtered])
-    !16 = !DILocation(line: 2, column: 17, scope: !4)
-    !17 = !DILocation(line: 6, column: 12, scope: !4)
-    !18 = !DILocation(line: 7, column: 8, scope: !4)
+    !3 = !DIFile(filename: "<internal>", directory: "")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+    !6 = !{null}
+    !7 = !{}
+    !8 = !DILocalVariable(name: "arr", scope: !4, file: !3, line: 4, type: !9, align [filtered])
+    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 96, align [filtered], elements: !11)
+    !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !11 = !{!12}
+    !12 = !DISubrange(count: 3, lowerBound: 0)
+    !13 = !DILocation(line: 4, column: 12, scope: !4)
+    !14 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !10, align [filtered])
+    !15 = !DILocation(line: 2, column: 17, scope: !4)
+    !16 = !DILocation(line: 6, column: 12, scope: !4)
+    !17 = !DILocation(line: 7, column: 8, scope: !4)
     "#);
 }
 
@@ -450,17 +445,17 @@ fn function_with_reference_to_initializer_still_has_debug_info() {
       %myFunc = alloca i32, align [filtered]
       %a = alloca i32, align [filtered]
       %b = alloca ptr, align [filtered]
-        #dbg_declare(ptr %a, !9, !DIExpression(), !11)
+        #dbg_declare(ptr %a, !8, !DIExpression(), !10)
       store i32 0, ptr %a, align [filtered]
-        #dbg_declare(ptr %b, !12, !DIExpression(), !15)
+        #dbg_declare(ptr %b, !11, !DIExpression(), !14)
       store ptr null, ptr %b, align [filtered]
-        #dbg_declare(ptr %myFunc, !16, !DIExpression(), !17)
+        #dbg_declare(ptr %myFunc, !15, !DIExpression(), !16)
       store i32 0, ptr %myFunc, align [filtered]
-      %deref = load ptr, ptr %b, align [filtered], !dbg !18
-      %load_b = load i32, ptr %deref, align [filtered], !dbg !18
-      store i32 %load_b, ptr %myFunc, align [filtered], !dbg !18
-      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !19
-      ret i32 %myFunc_ret, !dbg !19
+      %deref = load ptr, ptr %b, align [filtered], !dbg !17
+      %load_b = load i32, ptr %deref, align [filtered], !dbg !17
+      store i32 %load_b, ptr %myFunc, align [filtered], !dbg !17
+      %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !18
+      ret i32 %myFunc_ret, !dbg !18
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -469,23 +464,22 @@ fn function_with_reference_to_initializer_still_has_debug_info() {
     !0 = !{i32 2, !"Dwarf Version", i32 5}
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
-    !3 = !DIFile(filename: "<internal>", directory: "src")
-    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !5, file: !5, line: 2, type: !6, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-    !5 = !DIFile(filename: "<internal>", directory: "")
-    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
-    !7 = !{null}
-    !8 = !{}
-    !9 = !DILocalVariable(name: "a", scope: !4, file: !5, line: 4, type: !10, align [filtered])
-    !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !11 = !DILocation(line: 4, column: 12, scope: !4)
-    !12 = !DILocalVariable(name: "b", scope: !4, file: !5, line: 5, type: !13, align [filtered])
-    !13 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____myFunc_b", scope: !3, file: !3, baseType: !14, align [filtered])
-    !14 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__myFunc_b", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !15 = !DILocation(line: 5, column: 12, scope: !4)
-    !16 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !10, align [filtered])
-    !17 = !DILocation(line: 2, column: 17, scope: !4)
-    !18 = !DILocation(line: 7, column: 12, scope: !4)
-    !19 = !DILocation(line: 8, column: 8, scope: !4)
+    !3 = !DIFile(filename: "<internal>", directory: "")
+    !4 = distinct !DISubprogram(name: "myFunc", linkageName: "myFunc", scope: !3, file: !3, line: 2, type: !5, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+    !6 = !{null}
+    !7 = !{}
+    !8 = !DILocalVariable(name: "a", scope: !4, file: !3, line: 4, type: !9, align [filtered])
+    !9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !10 = !DILocation(line: 4, column: 12, scope: !4)
+    !11 = !DILocalVariable(name: "b", scope: !4, file: !3, line: 5, type: !12, align [filtered])
+    !12 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____myFunc_b", scope: !3, file: !3, baseType: !13, align [filtered])
+    !13 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__myFunc_b", baseType: !9, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !14 = !DILocation(line: 5, column: 12, scope: !4)
+    !15 = !DILocalVariable(name: "myFunc", scope: !4, file: !3, line: 2, type: !9, align [filtered])
+    !16 = !DILocation(line: 2, column: 17, scope: !4)
+    !17 = !DILocation(line: 7, column: 12, scope: !4)
+    !18 = !DILocation(line: 8, column: 8, scope: !4)
     "#);
 }
 

@@ -183,26 +183,30 @@ impl GlobalValidator {
 
     ///validate the uniqueness of POUs (programs, functions, function_blocks, classes)
     fn validate_unique_pous(&mut self, index: &Index) {
-        //inner filter
-        fn only_toplevel_pous(pou: &&PouIndexEntry) -> bool {
-            !pou.is_action() && !pou.is_method() && !pou.is_generic()
+        // Top-level POUs only — actions and methods belong to their parent and are
+        // uniqueness-checked elsewhere.
+        fn included_in_cluster(pou: &&PouIndexEntry) -> bool {
+            !pou.is_action() && !pou.is_method()
         }
 
-        let pou_clusters = index
-            .get_pous()
-            .entries()
-            .filter(|(_, entries_per_name)| entries_per_name.iter().filter(only_toplevel_pous).count() > 1)
-            .map(|(name, pous)| {
-                (
-                    name.as_str(),
-                    pous.iter()
-                        .filter(|p| only_toplevel_pous(p) && !p.is_generic())
-                        .map(|p| p.get_location()),
-                )
-            });
+        // Two POUs sharing a (case-insensitive) name are reported as a conflict UNLESS
+        // both are generic functions: per PR #1054 generic functions may share a name
+        // (overload by type parameters), e.g. ADD<T1,T2> and ADD<K,V>.
+        // A non-generic POU colliding with anything (generic or not) is always
+        // ambiguous — it would cause the codegen lookup to pick whichever entry the
+        // index merge happens to surface first.
+        let pou_clusters = index.get_pous().entries().filter_map(|(name, pous)| {
+            let cluster: Vec<&PouIndexEntry> = pous.iter().filter(included_in_cluster).collect();
+            let has_non_generic = cluster.iter().any(|p| !p.is_generic());
+            if cluster.len() > 1 && has_non_generic {
+                Some((name.as_str(), cluster.iter().map(|p| p.get_location()).collect::<Vec<_>>()))
+            } else {
+                None
+            }
+        });
 
-        for (name, cluster) in pou_clusters {
-            self.report_name_conflict(name, &cluster.collect::<Vec<_>>(), None);
+        for (name, locations) in pou_clusters {
+            self.report_name_conflict(name, &locations, None);
         }
     }
 

@@ -827,6 +827,9 @@ pub enum DataType {
     SubRangeType {
         name: Option<String>,
         referenced_type: String,
+        /// Source location of `referenced_type`. Used by validation to point at
+        /// the actual offending token when the referenced type is unknown.
+        referenced_type_location: SourceLocation,
         bounds: Option<AstNode>,
     },
     ArrayType {
@@ -1651,6 +1654,8 @@ pub enum Operator {
     And,
     Or,
     Xor,
+    AndThen,
+    OrElse,
 }
 
 impl Display for Operator {
@@ -1671,6 +1676,8 @@ impl Display for Operator {
             Operator::And => "AND",
             Operator::Or => "OR",
             Operator::Xor => "XOR",
+            Operator::AndThen => "AND_THEN",
+            Operator::OrElse => "OR_ELSE",
             Operator::Exponentiation => "**",
         };
         f.write_str(symbol)

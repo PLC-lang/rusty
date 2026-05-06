@@ -2385,7 +2385,17 @@ impl<'i> TypeAnnotator<'i> {
     ) {
         // first resolve base
         if let Some(base) = base {
-            self.visit_statement(ctx, base);
+            // The base of a `ReferenceExpr` is a value-producing expression, never the call
+            // target itself (only the leaf is). When the outer expression is a call, `ctx`
+            // carries `call_operator_scopes` (FunctionsOnly first), which would otherwise let
+            // a builtin/function shadow a same-named local in expressions like `ref.foo()`.
+            // `default_scopes()` (Variable → POU → DataType) is the right replacement here:
+            // a tighter strategy like `VariablesOnly` would reject a legitimate global
+            // function whose return value is itself dotted into (e.g. `someGlobalFn().m`).
+            // Leaf resolution below still inherits `ctx`, preserving the call/assignment
+            // asymmetry encoded in `call_operator_scopes`.
+            let base_ctx = ctx.with_resolving_strategy(ResolvingStrategy::default_scopes());
+            self.visit_statement(&base_ctx, base);
         };
 
         match (
