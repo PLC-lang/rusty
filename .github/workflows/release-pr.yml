@@ -48,14 +48,34 @@ jobs:
       - name: Check if bump needed
         id: version
         run: |
+          # `release.yml` opens a post-release PR that preemptively bumps the
+          # workspace to `<patch+1>-dev` after every release, so master visibly
+          # diverges from the released tag. After that PR merges, this workflow
+          # must NOT fire until a real fix/feat lands — but git-cliff returns
+          # the last tag's version (e.g. `0.5.0`) which is *less than* CURRENT
+          # (`0.5.1-dev`), so a naive equality check would try to downgrade
+          # and break (#1690). Strip the `-dev` suffix before comparing, and
+          # explicitly handle the "drop -dev to release" case where cliff
+          # agrees with the version we'd preemptively bumped to.
           CURRENT=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
           NEXT=$(echo "${{ steps.cliff-version.outputs.content }}" | sed 's/^v//')
+          CURRENT_BASE="${CURRENT%-dev}"
           echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
-          if [ -z "$NEXT" ] || [ "$NEXT" = "$CURRENT" ]; then
+          if [ -z "$NEXT" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
+          elif printf '%s\n%s\n' "$CURRENT_BASE" "$NEXT" | sort -V -C \
+               && [ "$NEXT" != "$CURRENT_BASE" ]; then
+            # NEXT > CURRENT_BASE: real upgrade (overwrites any -dev).
             echo "skip=false" >> "$GITHUB_OUTPUT"
+          elif [ "$NEXT" = "$CURRENT_BASE" ] && [ "$CURRENT" != "$CURRENT_BASE" ]; then
+            # Master is at <NEXT>-dev and cliff agrees the next release is
+            # <NEXT>: drop the -dev suffix, open a release PR.
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            # NEXT < CURRENT_BASE, or NEXT == CURRENT with no -dev to drop:
+            # nothing warranted yet.
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Bump versions
