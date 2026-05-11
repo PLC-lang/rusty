@@ -195,26 +195,26 @@ fn global_initializers_are_wrapped_in_single_init_function() {
     let AnnotatedProject { units, index, .. } = annotated_project;
     let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
 
-    // The ProjectInit should be named __unit___internal____ctor
+    // The ProjectInit should be named __unit___internal___bd9efc6f__ctor
     // (unit name is derived from file path which is "<internal>" for SourceCode::from)
-    assert!(index.find_pou("__unit___internal____ctor").is_some());
+    assert!(index.find_pou("__unit___internal___bd9efc6f__ctor").is_some());
 
     // The ProjectInit should be in the first (and only) unit
     let unit = &units[0];
     let init_pou = unit
         .pous
         .iter()
-        .find(|pou| pou.name == "__unit___internal____ctor")
-        .expect("__unit___internal____ctor POU not found");
+        .find(|pou| pou.name == "__unit___internal___bd9efc6f__ctor")
+        .expect("__unit___internal___bd9efc6f__ctor POU not found");
     assert_eq!(init_pou.kind, plc_ast::ast::PouType::ProjectInit);
     assert!(init_pou.variable_blocks.is_empty());
 
     let init_impl = unit
         .implementations
         .iter()
-        .find(|impl_| impl_.name == "__unit___internal____ctor")
-        .expect("__unit___internal____ctor implementation not found");
-    assert_eq!(&init_impl.name, "__unit___internal____ctor");
+        .find(|impl_| impl_.name == "__unit___internal___bd9efc6f__ctor")
+        .expect("__unit___internal___bd9efc6f__ctor implementation not found");
+    assert_eq!(&init_impl.name, "__unit___internal___bd9efc6f__ctor");
     // Just verify it has some initialization statements
     assert!(!init_impl.statements.is_empty());
 }
@@ -326,7 +326,7 @@ fn generating_init_functions() {
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
     @baz_instance = global %baz zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -465,7 +465,7 @@ fn generating_init_functions() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @myStruct__ctor(ptr @s)
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
@@ -521,7 +521,7 @@ fn intializing_temporary_variables() {
     @ps = global [81 x i8] zeroinitializer
     @ps2 = global [81 x i8] zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -632,7 +632,7 @@ fn intializing_temporary_variables() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -675,7 +675,7 @@ fn initializing_method_variables() {
     %foo = type { ptr }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -760,7 +760,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -805,7 +805,7 @@ fn initializing_method_variables() {
 
     @y = global i32 0
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -925,7 +925,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -959,7 +959,7 @@ fn initializing_method_variables() {
     %foo = type { ptr, i32 }
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -1049,7 +1049,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       ret void
@@ -1093,7 +1093,7 @@ fn external_initializers() {
 
     @fb_global = global %foo { ptr null, i32 5 }
     @__vtable_foo_instance = external global %__vtable_foo
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     declare void @foo(ptr)
 
@@ -1117,7 +1117,7 @@ fn external_initializers() {
 
     declare void @____vtable_foo___body__ctor(ptr)
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @foo__ctor(ptr @fb_global)
       ret void
@@ -1170,7 +1170,7 @@ fn external_initializers_in_fbs() {
     @main_inst = global %main { ptr null, %foo { ptr null, i32 5 } }
     @__vtable_main_instance = global %__vtable_main zeroinitializer
     @__vtable_foo_instance = external global %__vtable_foo
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @main(ptr %0) {
     entry:
@@ -1235,7 +1235,7 @@ fn external_initializers_in_fbs() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @main__ctor(ptr @main_inst)
       call void @__vtable_main__ctor(ptr @__vtable_main_instance)
@@ -1283,7 +1283,7 @@ fn external_inherited_initializers() {
 
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
     @__vtable_foo_instance = external global %__vtable_foo
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @bar(ptr %0) {
     entry:
@@ -1318,14 +1318,11 @@ fn external_inherited_initializers() {
       %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @foo__ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
-      call void @foo__ctor(ptr %__foo2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %y = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 1
+      %y = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 1
       store i32 10, ptr %y, align [filtered]
-      %deref4 = load ptr, ptr %self, align [filtered]
-      %__foo5 = getelementptr inbounds nuw %bar, ptr %deref4, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo5, i32 0, i32 0
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__foo3 = getelementptr inbounds nuw %bar, ptr %deref2, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo3, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -1356,7 +1353,7 @@ fn external_inherited_initializers() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_bar__ctor(ptr @__vtable_bar_instance)
       ret void
@@ -1400,7 +1397,7 @@ fn external_struct_and_program_initializers() {
     %myStruct = type { i32 }
 
     @baz_instance = external global %baz
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     declare void @baz(ptr)
 
@@ -1417,7 +1414,7 @@ fn external_struct_and_program_initializers() {
 
     declare void @myStruct__ctor(ptr)
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @baz__ctor(ptr @baz_instance)
       ret void

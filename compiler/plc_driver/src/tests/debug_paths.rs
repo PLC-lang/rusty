@@ -365,7 +365,7 @@ END_PROGRAM
         !16 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !17, splitDebugInlining: false)
         "#);
 
-        assert!(ir.contains("@__unit_test_st__ctor"), "expected constructor function in IR, got:\n{ir}");
+        assert!(ir.contains("@__unit_test_st_"), "expected constructor function in IR, got:\n{ir}");
         assert!(
             !ir.contains("declare !dbg"),
             "expected constructors-only declarations without !dbg attachments, got:\n{ir}"
@@ -951,7 +951,7 @@ END_PROGRAM
         !17 = distinct !DICompileUnit(language: DW_LANG_C, file: !10, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !18, splitDebugInlining: false)
         "#);
 
-        assert!(ir.contains("@__unit_test_st__ctor"), "expected constructor function in IR, got:\n{ir}");
+        assert!(ir.contains("@__unit_test_st_"), "expected constructor function in IR, got:\n{ir}");
         assert!(
             !ir.contains("declare !dbg"),
             "expected constructors-only declarations without !dbg attachments, got:\n{ir}"

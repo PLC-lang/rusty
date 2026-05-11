@@ -7,7 +7,7 @@ target triple = "[filtered]"
 %__vtable_conditional_return.1 = type { ptr }
 %conditional_return = type { ptr, i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit_conditional_return_negated_cfc__ctor, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit_conditional_return_negated_cfc_[ctor-hash]__ctor, ptr null }]
 @__vtable_conditional_return_instance = global %__vtable_conditional_return.1 zeroinitializer
 
 define i32 @main() {
@@ -34,7 +34,7 @@ entry:
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
 declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-define void @__unit_conditional_return_negated_cfc__ctor() {
+define void @__unit_conditional_return_negated_cfc_[ctor-hash]__ctor() {
 entry:
   call void @__vtable_conditional_return__ctor(ptr @__vtable_conditional_return_instance)
   ret void

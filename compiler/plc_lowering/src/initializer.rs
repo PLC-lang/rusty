@@ -232,6 +232,9 @@ impl AstVisitor for Initializer {
         let index = self.index.as_ref().expect("index is set at this stage");
         let variable_block_type =
             self.context.current_variable_block.expect("variable block is set at this stage");
+        if is_injected_base_member(variable, self.context.current_pou.as_deref(), index) {
+            return;
+        }
         // Find if the parent is stateful
         let is_stateful = if let Some(pou_name) = &self.context.current_pou {
             index.find_pou(pou_name).is_some_and(|it| it.is_stateful())
@@ -556,6 +559,24 @@ fn is_simple_identifier_address(address: &AstNode) -> bool {
     matches!(address.get_stmt(), plc_ast::ast::AstStatement::Identifier(_))
 }
 
+/// Inheritance lowering injects a hidden `__<Super>` member into derived POUs (see
+/// `inheritance.rs`). The derived constructor already emits an explicit base-constructor call
+/// before walking members, so this synthetic field must not be initialized as a regular member
+/// as well.
+fn is_injected_base_member(variable: &Variable, current_pou: Option<&str>, index: &Index) -> bool {
+    let Some(current_pou) = current_pou else { return false };
+    let Some(super_class) = index.find_pou(current_pou).and_then(|pou| pou.get_super_class()) else {
+        return false;
+    };
+
+    variable.location.is_internal()
+        && variable.get_name() == format!("__{super_class}")
+        && variable
+            .data_type_declaration
+            .get_referenced_type()
+            .is_some_and(|referenced_type| referenced_type == super_class)
+}
+
 impl Initializer {
     pub fn new(id_provider: IdProvider, generate_externals: bool) -> Initializer {
         Initializer {
@@ -795,9 +816,12 @@ impl Initializer {
     /// if one is registered and exists as a method in the index.
     fn get_user_defined_constructor_call(&mut self, type_name: &str, var_name: &str) -> Option<AstNode> {
         if let Some(index) = self.index.as_ref() {
-            // Search for the user defined constructor for the given struct
+            // Search for the user defined constructor for the given struct.
+            // Use `find_pou` (exact match), not `find_method` (which walks the super class):
+            // an inherited FB_INIT is already invoked by the base ctor we emitted in
+            // `visit_pou`, and recursing here would call it a second time.
             if let Some(user_defined_ctor_name) = self.user_defined_constructors.get(type_name) {
-                if let Some(_pou) = index.find_method(type_name, user_defined_ctor_name) {
+                if let Some(_pou) = index.find_pou(&format!("{type_name}.{user_defined_ctor_name}")) {
                     // Create an explicit base reference (e.g., "self")
                     // Wrap in a ReferenceExpr with Member access for consistency
                     let base_ident = AstFactory::create_identifier(
@@ -958,6 +982,188 @@ mod tests {
         }
         initializer.index = None;
         initializer
+    }
+
+    fn parse_with_default_lowering(src: &str) -> AnnotatedProject {
+        let diagnostician = Diagnostician::buffered();
+        let sources: Vec<SourceCode> = vec![src.into()];
+        let mut pipeline = BuildPipeline::from_sources("test.st", sources, diagnostician).unwrap();
+        pipeline.register_default_mut_participants();
+        pipeline.parse_and_annotate().unwrap()
+    }
+
+    fn lowered_implementation_body(project: &AnnotatedProject, implementation_name: &str) -> String {
+        let implementation = project
+            .units
+            .iter()
+            .flat_map(|unit| unit.get_unit().implementations.iter())
+            .find(|implementation| implementation.name == implementation_name)
+            .unwrap_or_else(|| panic!("implementation `{implementation_name}` not found"));
+
+        print_to_string(&implementation.statements)
+    }
+
+    #[test]
+    fn inherited_function_block_base_constructor_is_emitted_once_after_full_lowering() {
+        let src = r#"
+        FUNCTION_BLOCK Base
+        VAR
+            x : DINT;
+        END_VAR
+            METHOD FB_INIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK Child EXTENDS Base
+            METHOD FB_INIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        VAR_GLOBAL
+            gChild : Child;
+        END_VAR
+        "#;
+
+        let project = parse_with_default_lowering(src);
+        let body = lowered_implementation_body(&project, "Child__ctor");
+        let base_ctor_calls = body.matches("Base__ctor(").count();
+
+        assert_eq!(base_ctor_calls, 1, "Child__ctor should call Base__ctor exactly once; body:\n{body}");
+    }
+
+    #[test]
+    fn inherited_fb_init_is_not_called_again_after_base_constructor() {
+        let src = r#"
+        FUNCTION_BLOCK Base
+            METHOD FB_INIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK Child EXTENDS Base
+        END_FUNCTION_BLOCK
+
+        VAR_GLOBAL
+            gChild : Child;
+        END_VAR
+        "#;
+
+        let project = parse_with_default_lowering(src);
+        let body = lowered_implementation_body(&project, "Child__ctor");
+
+        assert!(body.contains("Base__ctor("), "Child__ctor should call Base__ctor; body:\n{body}");
+        assert!(
+            !body.contains("FB_INIT"),
+            "Child__ctor must not call inherited FB_INIT again; body:\n{body}"
+        );
+    }
+
+    #[test]
+    fn child_ctor_does_not_double_initialize_base_when_no_fb_init_exists() {
+        // Isolates issue #1 (duplicate `Base__ctor` from the synthetic `__Base` member walk):
+        // neither POU declares `FB_INIT`, so only the base-ctor duplication can regress here.
+        let src = r#"
+        FUNCTION_BLOCK Base
+        VAR
+            x : DINT;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK Child EXTENDS Base
+        END_FUNCTION_BLOCK
+
+        VAR_GLOBAL
+            gChild : Child;
+        END_VAR
+        "#;
+
+        let project = parse_with_default_lowering(src);
+        let body = lowered_implementation_body(&project, "Child__ctor");
+
+        insta::assert_snapshot!(body, @"
+        Base__ctor(self.__Base)
+        self.__Base.__vtable := ADR(__vtable_Child_instance)
+        ");
+    }
+
+    #[test]
+    fn fb_init_is_emitted_only_at_the_level_that_declares_it() {
+        // Multi-level chain with `FB_INIT` only at the leaf. Verifies that switching
+        // `find_method` -> `find_pou` did not regress the legitimate emit at the
+        // declaring level, and that intermediate levels stay clean.
+        let src = r#"
+        FUNCTION_BLOCK Base
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK Mid EXTENDS Base
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK Leaf EXTENDS Mid
+            METHOD FB_INIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        VAR_GLOBAL
+            gLeaf : Leaf;
+        END_VAR
+        "#;
+
+        let project = parse_with_default_lowering(src);
+        insta::assert_snapshot!(lowered_implementation_body(&project, "Base__ctor"), @"
+        __Base___vtable__ctor(self.__vtable)
+        self.__vtable := ADR(__vtable_Base_instance)
+        ");
+        insta::assert_snapshot!(lowered_implementation_body(&project, "Mid__ctor"), @"
+        Base__ctor(self.__Base)
+        self.__Base.__vtable := ADR(__vtable_Mid_instance)
+        ");
+        insta::assert_snapshot!(lowered_implementation_body(&project, "Leaf__ctor"), @"
+        Mid__ctor(self.__Mid)
+        self.__Mid.__Base.__vtable := ADR(__vtable_Leaf_instance)
+        self.FB_INIT()
+        ");
+    }
+
+    #[test]
+    fn each_level_calls_only_its_own_fb_init() {
+        // Multi-level chain with `FB_INIT` declared at every level. Each ctor must
+        // emit exactly one FB_INIT call (its own) and one base-ctor chain call.
+        let src = r#"
+        FUNCTION_BLOCK Base
+            METHOD FB_INIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK Mid EXTENDS Base
+            METHOD FB_INIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK Leaf EXTENDS Mid
+            METHOD FB_INIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        VAR_GLOBAL
+            gLeaf : Leaf;
+        END_VAR
+        "#;
+
+        let project = parse_with_default_lowering(src);
+        insta::assert_snapshot!(lowered_implementation_body(&project, "Base__ctor"), @"
+        __Base___vtable__ctor(self.__vtable)
+        self.__vtable := ADR(__vtable_Base_instance)
+        self.FB_INIT()
+        ");
+        insta::assert_snapshot!(lowered_implementation_body(&project, "Mid__ctor"), @"
+        Base__ctor(self.__Base)
+        self.__Base.__vtable := ADR(__vtable_Mid_instance)
+        self.FB_INIT()
+        ");
+        insta::assert_snapshot!(lowered_implementation_body(&project, "Leaf__ctor"), @"
+        Mid__ctor(self.__Mid)
+        self.__Mid.__Base.__vtable := ADR(__vtable_Leaf_instance)
+        self.FB_INIT()
+        ");
     }
 
     #[test]
@@ -1529,12 +1735,12 @@ mod tests {
         self.FB_INIT()
         ");
 
-        // child constructor calls baseFb__ctor first, then sets up its own vtable
+        // child constructor calls baseFb__ctor first, then sets up its own vtable.
+        // It must not call the inherited FB_INIT again; baseFb__ctor already does that.
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("child").unwrap()), @"
         intern:
         baseFb__ctor(self.__baseFb)
         self.__vtable := ADR(__vtable_child_instance)
-        self.FB_INIT()
         ");
     }
 

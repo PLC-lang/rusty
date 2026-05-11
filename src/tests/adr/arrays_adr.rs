@@ -21,7 +21,7 @@ fn declaring_an_array() {
     target triple = "[filtered]"
 
     @d = global [10 x i32] zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @Data__ctor(ptr %0) {
     entry:
@@ -30,7 +30,7 @@ fn declaring_an_array() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @Data__ctor(ptr @d)
       ret void
@@ -59,7 +59,7 @@ fn initializing_an_array() {
     target triple = "[filtered]"
 
     @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
     @.const_init = private unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 
     define void @Data__ctor(ptr %0) {
@@ -71,7 +71,7 @@ fn initializing_an_array() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @Data__ctor(ptr @d)
       ret void
@@ -112,7 +112,7 @@ fn assigning_full_arrays() {
     %prg = type { [10 x i32], [10 x i32] }
 
     @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
     @.const_init = private unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 
     define void @prg(ptr %0) {
@@ -145,7 +145,7 @@ fn assigning_full_arrays() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @prg__ctor(ptr @prg_instance)
       ret void
@@ -193,7 +193,7 @@ fn accessing_array_elements() {
     %prg = type { [10 x i32], [3 x i32] }
 
     @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [3 x i32] [i32 3, i32 4, i32 5] }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
     @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
     @__prg.b__init.1 = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
     @.const_init = private unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
@@ -242,7 +242,7 @@ fn accessing_array_elements() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @prg__ctor(ptr @prg_instance)
       ret void
