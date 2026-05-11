@@ -8,7 +8,7 @@ target datalayout = "[filtered]"
 target triple = "[filtered]"
 
 @gInt = global i32 0, !dbg !0
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
 define void @myInt__ctor(ptr %0) {
 entry:
@@ -17,7 +17,7 @@ entry:
   ret void
 }
 
-define void @__unit___internal____ctor() {
+define void @__unit___internal___[ctor-hash]__ctor() {
 entry:
   call void @myInt__ctor(ptr @gInt)
   ret void

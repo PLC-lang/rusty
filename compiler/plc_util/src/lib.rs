@@ -32,6 +32,13 @@ macro_rules! __plc_add_common_snapshot_filters {
         // `tests/lit/ir_tests/sub32_int_ffi_extension.st`.
         $settings.add_filter(r#" (signext|zeroext)"#, "");
 
+        // The 8-hex-char suffix in `__unit_<basename>_<hash>__ctor` symbols
+        // is derived from the full source path (see
+        // `src/lowering/helper.rs::get_unit_name`), so it differs between
+        // build environments (e.g. local `/home/<user>/...` vs CI
+        // `/workspace/...`). Mask it so codegen snapshots stay stable.
+        $settings.add_filter(r"(__unit_[A-Za-z0-9_]+?)_[0-9a-f]{8}(__ctor)", r"${1}_[ctor-hash]${2}");
+
         if let Ok(cwd) = std::env::current_dir() {
             let cwd = cwd.to_string_lossy().to_string();
             for path in [cwd.clone(), cwd.replace('\\', "/"), format!(r"\\?\{}", cwd)].into_iter() {

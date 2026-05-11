@@ -32,7 +32,7 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -78,10 +78,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       call void @foo__ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
-      call void @foo__ctor(ptr %__foo2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__foo4 = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -140,7 +137,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       call void @__vtable_bar__ctor(ptr @__vtable_bar_instance)
@@ -188,7 +185,7 @@ fn write_to_parent_variable_qualified_access() {
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
     @__vtable_fb2_instance = global %__vtable_fb2 zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @fb(ptr %0) {
     entry:
@@ -242,10 +239,7 @@ fn write_to_parent_variable_qualified_access() {
       call void @fb__ctor(ptr %__fb)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__fb2 = getelementptr inbounds nuw %fb2, ptr %deref1, i32 0, i32 0
-      call void @fb__ctor(ptr %__fb2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__fb4 = getelementptr inbounds nuw %fb2, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %fb, ptr %__fb4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %__fb2, i32 0, i32 0
       store ptr @__vtable_fb2_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -340,7 +334,7 @@ fn write_to_parent_variable_qualified_access() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_fb__ctor(ptr @__vtable_fb_instance)
       call void @__vtable_fb2__ctor(ptr @__vtable_fb2_instance)
@@ -390,7 +384,7 @@ fn write_to_parent_variable_in_instance() {
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
 
@@ -458,10 +452,7 @@ fn write_to_parent_variable_in_instance() {
       call void @foo__ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
-      call void @foo__ctor(ptr %__foo2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__foo4 = getelementptr inbounds nuw %bar, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -539,7 +530,7 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       call void @__vtable_bar__ctor(ptr @__vtable_bar_instance)
@@ -609,7 +600,7 @@ fn array_in_parent_generated() {
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @grandparent(ptr %0) {
     entry:
@@ -696,14 +687,11 @@ fn array_in_parent_generated() {
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @grandparent__ctor(ptr %__grandparent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
-      call void @grandparent__ctor(ptr %__grandparent2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %x = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 1
+      %x = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 1
       call void @__parent_x__ctor(ptr %x)
-      %deref4 = load ptr, ptr %self, align [filtered]
-      %__grandparent5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent5, i32 0, i32 0
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__grandparent3 = getelementptr inbounds nuw %parent, ptr %deref2, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -716,14 +704,11 @@ fn array_in_parent_generated() {
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @parent__ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      call void @parent__ctor(ptr %__parent2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %z = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1
+      %z = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 1
       call void @__child_z__ctor(ptr %z)
-      %deref4 = load ptr, ptr %self, align [filtered]
-      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__parent3 = getelementptr inbounds nuw %child, ptr %deref2, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent3, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
@@ -824,7 +809,7 @@ fn array_in_parent_generated() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_grandparent__ctor(ptr @__vtable_grandparent_instance)
       call void @__vtable_parent__ctor(ptr @__vtable_parent_instance)
@@ -882,7 +867,7 @@ fn complex_array_access_generated() {
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @grandparent(ptr %0) {
     entry:
@@ -961,14 +946,11 @@ fn complex_array_access_generated() {
       %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @grandparent__ctor(ptr %__grandparent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
-      call void @grandparent__ctor(ptr %__grandparent2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %x = getelementptr inbounds nuw %parent, ptr %deref3, i32 0, i32 1
+      %x = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 1
       call void @__parent_x__ctor(ptr %x)
-      %deref4 = load ptr, ptr %self, align [filtered]
-      %__grandparent5 = getelementptr inbounds nuw %parent, ptr %deref4, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent5, i32 0, i32 0
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__grandparent3 = getelementptr inbounds nuw %parent, ptr %deref2, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -981,14 +963,11 @@ fn complex_array_access_generated() {
       %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @parent__ctor(ptr %__parent)
       %deref1 = load ptr, ptr %self, align [filtered]
-      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
-      call void @parent__ctor(ptr %__parent2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %z = getelementptr inbounds nuw %child, ptr %deref3, i32 0, i32 1
+      %z = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 1
       call void @__child_z__ctor(ptr %z)
-      %deref4 = load ptr, ptr %self, align [filtered]
-      %__parent5 = getelementptr inbounds nuw %child, ptr %deref4, i32 0, i32 0
-      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent5, i32 0, i32 0
+      %deref2 = load ptr, ptr %self, align [filtered]
+      %__parent3 = getelementptr inbounds nuw %child, ptr %deref2, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent3, i32 0, i32 0
       %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align [filtered]
       ret void
@@ -1082,7 +1061,7 @@ fn complex_array_access_generated() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_grandparent__ctor(ptr @__vtable_grandparent_instance)
       call void @__vtable_parent__ctor(ptr @__vtable_parent_instance)
@@ -1166,7 +1145,7 @@ fn this_in_method_call_chain() {
     %FB_Test = type { ptr }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1260,7 +1239,7 @@ fn this_in_method_call_chain() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -1295,7 +1274,7 @@ fn this_in_method_and_body_in_function_block() {
     %FB_Test = type { ptr, i16 }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1386,7 +1365,7 @@ fn this_in_method_and_body_in_function_block() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -1435,7 +1414,7 @@ fn pass_this_to_method() {
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
     @__vtable_FB_Test2_instance = global %__vtable_FB_Test2 zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1603,7 +1582,7 @@ fn pass_this_to_method() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       call void @__vtable_FB_Test2__ctor(ptr @__vtable_FB_Test2_instance)
@@ -1647,7 +1626,7 @@ fn this_with_shadowed_variable() {
     %FB_Test = type { ptr, i16 }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1736,7 +1715,7 @@ fn this_with_shadowed_variable() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -1772,7 +1751,7 @@ fn this_calling_function_and_passing_this() {
     %FB_Test = type { ptr, i16 }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -1846,7 +1825,7 @@ fn this_calling_function_and_passing_this() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -1886,7 +1865,7 @@ fn this_in_property_and_calling_method() {
     %FB_Test = type { ptr, i16 }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -2029,7 +2008,7 @@ fn this_in_property_and_calling_method() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -2064,7 +2043,7 @@ fn this_with_self_pointer() {
     %FB_Test = type { ptr, ptr }
 
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @FB_Test(ptr %0) {
     entry:
@@ -2153,7 +2132,7 @@ fn this_with_self_pointer() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_FB_Test__ctor(ptr @__vtable_FB_Test_instance)
       ret void
@@ -2186,7 +2165,7 @@ fn this_in_variable_initialization() {
     %FB = type { ptr, i16, ptr, i16 }
 
     @__vtable_FB_instance = global %__vtable_FB zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @FB(ptr %0) {
     entry:
@@ -2252,7 +2231,7 @@ fn this_in_variable_initialization() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_FB__ctor(ptr @__vtable_FB_instance)
       ret void
@@ -2282,7 +2261,7 @@ fn this_in_action_in_functionblock() {
     %fb = type { ptr }
 
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @fb(ptr %0) {
     entry:
@@ -2332,7 +2311,7 @@ fn this_in_action_in_functionblock() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_fb__ctor(ptr @__vtable_fb_instance)
       ret void
@@ -2371,7 +2350,7 @@ fn this_calling_functionblock_body_from_method() {
     %fb = type { ptr }
 
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @fb(ptr %0) {
     entry:
@@ -2447,7 +2426,7 @@ fn this_calling_functionblock_body_from_method() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_fb__ctor(ptr @__vtable_fb_instance)
       ret void
@@ -2491,7 +2470,7 @@ fn fb_extension_with_output() {
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_foo2_instance = global %__vtable_foo2 zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2557,10 +2536,7 @@ fn fb_extension_with_output() {
       call void @foo__ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %foo2, ptr %deref1, i32 0, i32 0
-      call void @foo__ctor(ptr %__foo2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__foo4 = getelementptr inbounds nuw %foo2, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_foo2_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -2638,7 +2614,7 @@ fn fb_extension_with_output() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       call void @__vtable_foo2__ctor(ptr @__vtable_foo2_instance)
@@ -2696,7 +2672,7 @@ fn function_with_output_used_in_main_by_extension() {
 
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_foo2_instance = global %__vtable_foo2 zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @foo(ptr %0) {
     entry:
@@ -2781,10 +2757,7 @@ fn function_with_output_used_in_main_by_extension() {
       call void @foo__ctor(ptr %__foo)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__foo2 = getelementptr inbounds nuw %foo2, ptr %deref1, i32 0, i32 0
-      call void @foo__ctor(ptr %__foo2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__foo4 = getelementptr inbounds nuw %foo2, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_foo2_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -2862,7 +2835,7 @@ fn function_with_output_used_in_main_by_extension() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_foo__ctor(ptr @__vtable_foo_instance)
       call void @__vtable_foo2__ctor(ptr @__vtable_foo2_instance)

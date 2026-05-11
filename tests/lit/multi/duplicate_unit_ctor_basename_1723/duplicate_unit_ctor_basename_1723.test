@@ -1,0 +1,9 @@
+// Regression for #1723: two source files sharing a basename across different
+// directories used to mint the same `__unit_<basename>__ctor` symbol and
+// fail to link with a duplicate-symbol error. Each file's per-unit
+// constructor now carries an 8-hex-char path-derived suffix, so the symbols
+// are distinct. The two `globals.st` files declare disjoint globals; main
+// reads both — if either constructor were missing or the wiring went wrong,
+// the runtime sum would be different and the test would not print `ok`.
+RUN: %COMPILE %S/main.st %S/a/globals.st %S/b/globals.st && %RUN | %CHECK %s
+CHECK: ok
