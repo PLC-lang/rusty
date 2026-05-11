@@ -6,9 +6,12 @@ use which::which;
 
 use std::{
     error::Error,
+    io::Write,
     path::{Path, PathBuf},
     process::{Command, Stdio},
 };
+
+use tempfile::NamedTempFile;
 
 use std::sync::{Arc, Mutex};
 
@@ -460,7 +463,38 @@ impl LinkerInterface for CcLinker {
         log::debug!("Linker command : {}", self.get_build_command()?);
 
         let args = self.command_args();
-        let status = match Command::new(&linker_location).args(&args).status() {
+
+        // Route through a response file when the assembled command line would
+        // approach the Windows `CreateProcess` limit (32,767 bytes). The temp
+        // file must outlive the spawned linker, so bind it in the function
+        // scope.
+        let response_file = if should_use_response_file(&linker_location, &args) {
+            match write_response_file(&args) {
+                Ok(f) => {
+                    log::debug!(
+                        "Linker command line is {} bytes across {} args; routing through response file: {}",
+                        approximate_cmdline_len(&linker_location, &args),
+                        args.len(),
+                        f.path().display()
+                    );
+                    Some(f)
+                }
+                Err(e) => {
+                    log::debug!("Failed to write linker response file ({e}); using direct args");
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
+        let mut command = Command::new(&linker_location);
+        if let Some(ref rf) = response_file {
+            command.arg(format!("@{}", rf.path().display()));
+        } else {
+            command.args(&args);
+        }
+        let status = match command.status() {
             Ok(s) => s,
             Err(e) => return Err(diagnose_spawn_error(&e, &linker_location, &args)),
         };
@@ -601,10 +635,7 @@ impl<T: Error> From<T> for LinkerError {
 /// also list known user-facing workarounds.
 fn diagnose_spawn_error(err: &std::io::Error, linker: &Path, args: &[String]) -> LinkerError {
     let arg_count = args.len();
-    // Approximate cmdline length: byte sum of args plus one space separator per gap.
-    // We deliberately don't model Windows quoting rules — the figure is meant as
-    // a rough scale, not a re-implementation of CommandLineToArgvW.
-    let cmdline_len: usize = args.iter().map(String::len).sum::<usize>() + arg_count.saturating_sub(1);
+    let cmdline_len = approximate_cmdline_len(linker, args);
     let (longest_idx, longest_len) =
         args.iter().enumerate().map(|(i, a)| (i, a.len())).max_by_key(|(_, len)| *len).unwrap_or((0, 0));
     let longest_value = args.get(longest_idx).map(String::as_str).unwrap_or("");
@@ -632,6 +663,81 @@ fn diagnose_spawn_error(err: &std::io::Error, linker: &Path, args: &[String]) ->
     }
 
     LinkerError::Link(message)
+}
+
+/// Conservative threshold below the Windows `CreateProcess` 32,767-byte limit
+/// (which applies to the quoted command line including the program path). Our
+/// estimate already counts the linker path, so the remaining ~2.7 KB margin
+/// absorbs quoting and escaping overhead. `clang` uses a similar margin.
+const RESPONSE_FILE_THRESHOLD: usize = 30_000;
+
+/// Approximates the assembled command-line byte length, matching what Windows
+/// `CreateProcess` actually measures: the program path, a separator, and the
+/// byte sum of each arg with one space separator per gap. We deliberately do
+/// not model platform quoting rules — this is a scale estimate, not a
+/// re-implementation of `CommandLineToArgvW`.
+fn approximate_cmdline_len(linker: &Path, args: &[String]) -> usize {
+    let linker_len = linker.as_os_str().len();
+    let args_len: usize = args.iter().map(String::len).sum();
+    // One separator after the linker (if any args follow) and between adjacent args.
+    let separators = args.len();
+    linker_len + separators + args_len
+}
+
+/// Decide whether to invoke the linker via a response file (`@file`) instead of
+/// passing args directly. The mitigation only targets the Windows
+/// `CreateProcess` overflow case; other platforms have effectively unbounded
+/// argv on the systems we ship for. The environment override
+/// `PLC_LINKER_RESPONSE_FILE=1` forces the response-file path on any platform
+/// for testing.
+fn should_use_response_file(linker: &Path, args: &[String]) -> bool {
+    if matches!(std::env::var("PLC_LINKER_RESPONSE_FILE").as_deref(), Ok("1") | Ok("force")) {
+        return true;
+    }
+    cfg!(windows) && approximate_cmdline_len(linker, args) > RESPONSE_FILE_THRESHOLD
+}
+
+/// Write linker args to a temp response file in GNU format: one argument per
+/// line, args containing whitespace are double-quoted and have backslashes and
+/// embedded quotes escaped. Accepted by `lld`/`ld.lld`/`ld.bfd`/`gold`/`gcc`/
+/// `clang` (and by `lld-link`/MSVC `link.exe`, which use the same convention).
+fn write_response_file(args: &[String]) -> std::io::Result<NamedTempFile> {
+    let mut file = NamedTempFile::new()?;
+    let arg_bytes: usize = args.iter().map(String::len).sum();
+    let mut buf = String::with_capacity(arg_bytes + args.len());
+    for arg in args {
+        buf.push_str(&quote_response_file_arg(arg));
+        buf.push('\n');
+    }
+    file.write_all(buf.as_bytes())?;
+    file.flush()?;
+    Ok(file)
+}
+
+/// Quote a single argument for a GNU-format response file. Args without
+/// whitespace or embedded quotes are emitted unchanged so Windows paths like
+/// `C:\foo` survive unescaped (an unquoted backslash is literal in this
+/// format). When quoting is required, backslashes are doubled inside the
+/// quoted region so the file parses identically under `lld` and binutils-style
+/// linkers.
+fn quote_response_file_arg(arg: &str) -> String {
+    if arg.is_empty() {
+        return "\"\"".to_string();
+    }
+    let needs_quoting = arg.chars().any(|c| c == ' ' || c == '\t' || c == '\n' || c == '"');
+    if !needs_quoting {
+        return arg.to_string();
+    }
+    let mut out = String::with_capacity(arg.len() + 2);
+    out.push('"');
+    for c in arg.chars() {
+        if c == '"' || c == '\\' {
+            out.push('\\');
+        }
+        out.push(c);
+    }
+    out.push('"');
+    out
 }
 
 #[cfg(test)]
@@ -730,7 +836,7 @@ mod test {
         Diagnostic context:
           - linker:          /usr/bin/ld.lld
           - args:            3
-          - cmdline length:  19 bytes
+          - cmdline length:  35 bytes
           - longest arg:     12 bytes ('longer-arg-2')
         ");
     }
@@ -759,7 +865,7 @@ mod test {
             Diagnostic context:
               - linker:          ld.lld.exe
               - args:            2
-              - cmdline length:  9 bytes
+              - cmdline length:  20 bytes
               - longest arg:     5 bytes ('three')
             Possible causes on Windows (ERROR_FILENAME_EXCED_RANGE):
               - The assembled command line exceeded 32,767 bytes (CreateProcess limit).
@@ -769,5 +875,133 @@ mod test {
               - Enable Windows long paths (LongPathsEnabled registry / process manifest).
             ");
         });
+    }
+
+    #[cfg(windows)]
+    use crate::linker::RESPONSE_FILE_THRESHOLD;
+    use crate::linker::{
+        approximate_cmdline_len, quote_response_file_arg, should_use_response_file, write_response_file,
+    };
+    use serial_test::serial;
+
+    #[test]
+    fn response_file_quoting_leaves_plain_args_alone() {
+        assert_eq!(quote_response_file_arg("-O2"), "-O2");
+        assert_eq!(quote_response_file_arg("--target=x86_64-linux-gnu"), "--target=x86_64-linux-gnu");
+        assert_eq!(quote_response_file_arg("/tmp/libfoo.so.1"), "/tmp/libfoo.so.1");
+        // Backslashes without whitespace stay unescaped — unquoted backslash is
+        // literal in the GNU response-file format.
+        assert_eq!(quote_response_file_arg(r"C:\foo\bar.o"), r"C:\foo\bar.o");
+    }
+
+    #[test]
+    fn response_file_quoting_escapes_args_with_whitespace() {
+        // Whitespace forces quoting; backslashes inside the quoted region are
+        // doubled so the file parses identically under lld and binutils.
+        assert_eq!(quote_response_file_arg(r"C:\Program Files\foo.o"), r#""C:\\Program Files\\foo.o""#);
+        assert_eq!(quote_response_file_arg("a b"), r#""a b""#);
+        assert_eq!(quote_response_file_arg("with\ttab"), "\"with\ttab\"");
+    }
+
+    #[test]
+    fn response_file_quoting_escapes_embedded_quotes() {
+        assert_eq!(quote_response_file_arg(r#"say "hi""#), r#""say \"hi\"""#);
+    }
+
+    #[test]
+    fn response_file_quoting_emits_empty_arg_as_quoted_empty() {
+        assert_eq!(quote_response_file_arg(""), "\"\"");
+    }
+
+    #[test]
+    #[serial(plc_linker_response_file_env)]
+    fn should_use_response_file_honors_env_override() {
+        // SAFETY: tests touching process-global env vars are serialised via
+        // `#[serial]`; the override is cleared before returning.
+        let prev = std::env::var("PLC_LINKER_RESPONSE_FILE").ok();
+        unsafe {
+            std::env::set_var("PLC_LINKER_RESPONSE_FILE", "1");
+        }
+        let short = vec!["-o".to_string(), "out".to_string()];
+        let used = should_use_response_file(Path::new("/usr/bin/ld.lld"), &short);
+        unsafe {
+            match prev {
+                Some(v) => std::env::set_var("PLC_LINKER_RESPONSE_FILE", v),
+                None => std::env::remove_var("PLC_LINKER_RESPONSE_FILE"),
+            }
+        }
+        assert!(used, "env override should force response-file use on any platform");
+    }
+
+    #[test]
+    #[serial(plc_linker_response_file_env)]
+    fn should_use_response_file_false_for_short_cmdline_on_non_windows() {
+        let prev = std::env::var("PLC_LINKER_RESPONSE_FILE").ok();
+        // SAFETY: serialised via `#[serial]`; restored before returning.
+        unsafe {
+            std::env::remove_var("PLC_LINKER_RESPONSE_FILE");
+        }
+        let short = vec!["-o".to_string(), "out".to_string(), "obj.o".to_string()];
+        let used = should_use_response_file(Path::new("/usr/bin/ld.lld"), &short);
+        unsafe {
+            if let Some(v) = prev {
+                std::env::set_var("PLC_LINKER_RESPONSE_FILE", v);
+            }
+        }
+        // On Windows the cmdline is well under the threshold; on Linux/macOS
+        // we only use response files when the env override forces it.
+        assert!(!used);
+    }
+
+    #[test]
+    #[cfg(windows)]
+    #[serial(plc_linker_response_file_env)]
+    fn should_use_response_file_true_on_windows_when_cmdline_exceeds_threshold() {
+        let prev = std::env::var("PLC_LINKER_RESPONSE_FILE").ok();
+        unsafe {
+            std::env::remove_var("PLC_LINKER_RESPONSE_FILE");
+        }
+        // One arg longer than the threshold guarantees we trip it regardless of
+        // separator accounting.
+        let big = vec!["x".repeat(RESPONSE_FILE_THRESHOLD + 1)];
+        let used = should_use_response_file(Path::new("ld.lld.exe"), &big);
+        unsafe {
+            if let Some(v) = prev {
+                std::env::set_var("PLC_LINKER_RESPONSE_FILE", v);
+            }
+        }
+        assert!(used);
+    }
+
+    #[test]
+    fn approximate_cmdline_len_includes_linker_path_and_separators() {
+        // Empty arg list: linker only, no trailing separator.
+        assert_eq!(approximate_cmdline_len(Path::new("ld"), &[]), 2);
+        // Single arg: linker + space + arg.
+        assert_eq!(approximate_cmdline_len(Path::new("ld"), &["abc".to_string()]), 2 + 1 + 3);
+        // Two args: linker + space + arg + space + arg.
+        assert_eq!(
+            approximate_cmdline_len(Path::new("ld"), &["ab".to_string(), "cd".to_string()]),
+            2 + 1 + 2 + 1 + 2
+        );
+    }
+
+    #[test]
+    fn write_response_file_emits_one_arg_per_line_with_quoting() {
+        let args = vec![
+            "-o".to_string(),
+            "out.exe".to_string(),
+            r"C:\Program Files\foo.o".to_string(),
+            "/tmp/libbar.so.1".to_string(),
+        ];
+        let file = write_response_file(&args).expect("write response file");
+        let contents = std::fs::read_to_string(file.path()).expect("read response file back");
+        assert_eq!(
+            contents,
+            "-o\n\
+             out.exe\n\
+             \"C:\\\\Program Files\\\\foo.o\"\n\
+             /tmp/libbar.so.1\n",
+        );
     }
 }
