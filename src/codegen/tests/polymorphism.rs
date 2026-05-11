@@ -58,7 +58,7 @@ fn simple_overridden_method() {
 
     @__vtable_A_instance = global %__vtable_A zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -247,7 +247,7 @@ fn simple_overridden_method() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_A__ctor(ptr @__vtable_A_instance)
       call void @__vtable_B__ctor(ptr @__vtable_B_instance)
@@ -291,7 +291,7 @@ fn method_call_within_method() {
     %A = type { ptr }
 
     @__vtable_A_instance = global %__vtable_A zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -395,7 +395,7 @@ fn method_call_within_method() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_A__ctor(ptr @__vtable_A_instance)
       ret void
@@ -458,7 +458,7 @@ fn this_is_untouched() {
     @__vtable_A_instance = global %__vtable_A zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
     @__vtable_C_instance = global %__vtable_C zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -727,7 +727,7 @@ fn this_is_untouched() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_A__ctor(ptr @__vtable_A_instance)
       call void @__vtable_B__ctor(ptr @__vtable_B_instance)
@@ -784,7 +784,7 @@ fn super_is_untouched() {
 
     @__vtable_A_instance = global %__vtable_A zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -974,7 +974,7 @@ fn super_is_untouched() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_A__ctor(ptr @__vtable_A_instance)
       call void @__vtable_B__ctor(ptr @__vtable_B_instance)
