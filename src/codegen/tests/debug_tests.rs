@@ -72,7 +72,7 @@ fn test_global_var_enum_added_to_debug_info() {
     @__global_en3.a = unnamed_addr constant i64 0
     @__global_en3.b = unnamed_addr constant i64 1
     @__global_en3.c = unnamed_addr constant i64 2
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @en1__ctor(ptr %0) {
     entry:
@@ -95,7 +95,7 @@ fn test_global_var_enum_added_to_debug_info() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__global_en3__ctor(ptr @en3)
       ret void
@@ -164,7 +164,7 @@ fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
     @Flags.Read = unnamed_addr constant i8 4
     @Flags.Write = unnamed_addr constant i8 8
     @Flags.Execute = unnamed_addr constant i8 16
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @Colors__ctor(ptr %0) {
     entry:
@@ -187,7 +187,7 @@ fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @Colors__ctor(ptr @color)
       call void @Status__ctor(ptr @status)
@@ -269,7 +269,7 @@ fn test_global_var_struct_with_enum_members_added_to_debug_info() {
     @Priority.Low = unnamed_addr constant i8 1
     @Priority.Medium = unnamed_addr constant i8 5
     @Priority.High = unnamed_addr constant i8 10
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @Status__ctor(ptr %0) {
     entry:
@@ -298,7 +298,7 @@ fn test_global_var_struct_with_enum_members_added_to_debug_info() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @Device__ctor(ptr @device)
       ret void
@@ -648,7 +648,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     %fb = type { ptr }
 
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @fb(ptr %0) !dbg !4 {
     entry:
@@ -721,7 +721,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       ret void, !dbg !15
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_fb__ctor(ptr @__vtable_fb_instance), !dbg !15
       ret void, !dbg !15
@@ -786,7 +786,7 @@ fn action_with_var_temp() {
     %PLC_PRG = type {}
 
     @PLC_PRG_instance = global %PLC_PRG zeroinitializer, !dbg !0
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define i32 @main() !dbg !9 {
     entry:
@@ -816,7 +816,7 @@ fn action_with_var_temp() {
       ret void, !dbg !26
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @PLC_PRG__ctor(ptr @PLC_PRG_instance), !dbg !26
       ret void, !dbg !26
@@ -1205,7 +1205,7 @@ fn constants_are_tagged_as_such() {
     @s = unnamed_addr constant [81 x i8] zeroinitializer, !dbg !5
     @f = unnamed_addr constant %foo zeroinitializer, !dbg !13
     @prog_instance = global %prog zeroinitializer, !dbg !19
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @prog(ptr %0) !dbg !30 {
     entry:
@@ -1242,7 +1242,7 @@ fn constants_are_tagged_as_such() {
       ret void, !dbg !43
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @prog__ctor(ptr @prog_instance), !dbg !43
       ret void, !dbg !43
@@ -1325,7 +1325,7 @@ fn test_debug_info_regular_pointer_types() {
     @array_ptr = global ptr null, !dbg !6
     @struct_ptr = global ptr null, !dbg !13
     @string_ptr = global ptr null, !dbg !22
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @myStruct__ctor(ptr %0) {
     entry:
@@ -1369,7 +1369,7 @@ fn test_debug_info_regular_pointer_types() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__global_basic_ptr__ctor(ptr @basic_ptr)
       call void @__global_array_ptr__ctor(ptr @array_ptr)
@@ -1452,7 +1452,7 @@ fn test_debug_info_auto_deref_parameters() {
     %test_with_ref_params = type { ptr, ptr, ptr, ptr, ptr }
 
     @test_with_ref_params_instance = global %test_with_ref_params zeroinitializer, !dbg !0
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @test_with_ref_params(ptr %0) !dbg !38 {
     entry:
@@ -1500,7 +1500,7 @@ fn test_debug_info_auto_deref_parameters() {
       ret void, !dbg !43
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @test_with_ref_params__ctor(ptr @test_with_ref_params_instance), !dbg !43
       ret void, !dbg !43
@@ -1586,7 +1586,7 @@ fn test_debug_info_auto_deref_alias_pointers() {
     @alias_int = global ptr null, !dbg !4
     @global_struct = global %myStruct zeroinitializer, !dbg !8
     @alias_struct = global ptr null, !dbg !15
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @myStruct__ctor(ptr %0) {
     entry:
@@ -1609,7 +1609,7 @@ fn test_debug_info_auto_deref_alias_pointers() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       store i32 42, ptr @global_var, align [filtered]
       %deref = load ptr, ptr @alias_int, align [filtered]
@@ -1685,7 +1685,7 @@ fn test_debug_info_mixed_pointer_types() {
     @regular_ptr = global ptr null, !dbg !0
     @alias_var = global ptr null, !dbg !6
     @mixed_ptr_instance = global %mixed_ptr zeroinitializer, !dbg !12
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @mixed_ptr(ptr %0) !dbg !38 {
     entry:
@@ -1745,7 +1745,7 @@ fn test_debug_info_mixed_pointer_types() {
       ret void, !dbg !43
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__global_regular_ptr__ctor(ptr @regular_ptr), !dbg !43
       %deref = load ptr, ptr @alias_var, align [filtered], !dbg !43
@@ -1845,7 +1845,7 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     @struct_reference = global ptr null, !dbg !13
     @string_reference = global ptr null, !dbg !22
     @test_with_reference_params_instance = global %test_with_reference_params zeroinitializer, !dbg !31
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @test_with_reference_params(ptr %0) !dbg !51 {
     entry:
@@ -1945,7 +1945,7 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
       ret void, !dbg !56
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       %deref = load ptr, ptr @basic_reference, align [filtered], !dbg !56
       call void @__global_basic_reference__ctor(ptr %deref), !dbg !56
@@ -2203,7 +2203,7 @@ fn range_datatype_fqn_reference_bounds_debug() {
     %prog = type { i32, i32 }
 
     @prog_instance = global %prog { i32 10, i32 0 }, !dbg !0
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @prog(ptr %0) !dbg !14 {
     entry:
@@ -2232,7 +2232,7 @@ fn range_datatype_fqn_reference_bounds_debug() {
       ret void, !dbg !19
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @prog__ctor(ptr @prog_instance), !dbg !19
       ret void, !dbg !19
@@ -2293,7 +2293,7 @@ fn range_datatype_debug_alias_reused() {
     %prog = type { i32, i32, i32, i32 }
 
     @prog_instance = global %prog { i32 10, i32 0, i32 0, i32 0 }, !dbg !0
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @prog(ptr %0) !dbg !16 {
     entry:
@@ -2337,7 +2337,7 @@ fn range_datatype_debug_alias_reused() {
       ret void, !dbg !21
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @prog__ctor(ptr @prog_instance), !dbg !21
       ret void, !dbg !21

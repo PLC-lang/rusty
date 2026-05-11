@@ -7,7 +7,7 @@ target triple = "[filtered]"
 %main = type { i32, i32 }
 
 @main_instance = global %main zeroinitializer, !dbg !0
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___cfc__ctor, ptr null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___cfc_[ctor-hash]__ctor, ptr null }]
 
 define void @main(ptr %0) !dbg !12 {
 entry:
@@ -27,7 +27,7 @@ entry:
   ret void
 }
 
-define void @__unit___internal___cfc__ctor() {
+define void @__unit___internal___cfc_[ctor-hash]__ctor() {
 entry:
   call void @main__ctor(ptr @main_instance)
   ret void
