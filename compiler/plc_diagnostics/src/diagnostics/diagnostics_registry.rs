@@ -236,6 +236,7 @@ lazy_static! {
         E132,   Ignore,    include_str!("./error_codes/E132.md"),  // Mixing implicit and explicit call parameters
         E133,   Error,      include_str!("./error_codes/E133.md"),  // AND_THEN/OR_ELSE with non-boolean operands
         E136,   Error,      include_str!("./error_codes/E136.md"),  // Incomplete hardware address in FUNCTION/METHOD
+        E137,   Error,      include_str!("./error_codes/E137.md"),  // Member access on a non-auto-deref pointer base
     );
 }
 

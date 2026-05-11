@@ -314,12 +314,6 @@ fn super_accessor_cannot_be_accessed_from_outside_of_its_pou() {
     16 │             fb.SUPER.x := 2;
        │                ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` must be dereferenced to access its members.
-       ┌─ <internal>:16:22
-       │
-    16 │             fb.SUPER.x := 2;
-       │                      ^ `SUPER` must be dereferenced to access its members.
-
     error[E119]: `SUPER` is not allowed in member-access position.
        ┌─ <internal>:17:16
        │
@@ -975,12 +969,6 @@ fn invalid_super_dereferencing_patterns() {
     16 │             SUPER^.SUPER.x := 40;
        │                    ^^^^^ `SUPER` is not allowed in member-access position.
 
-    error[E119]: `SUPER` must be dereferenced to access its members.
-       ┌─ <internal>:16:26
-       │
-    16 │             SUPER^.SUPER.x := 40;
-       │                          ^ `SUPER` must be dereferenced to access its members.
-
     warning[E049]: Illegal access to private member parent.x
        ┌─ <internal>:16:26
        │
@@ -1268,12 +1256,12 @@ fn super_dereferencing_with_method_calls() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` must be dereferenced to access its members.
+    assert_snapshot!(diagnostics, @"
+    error[E137]: Cannot access `get_value` on `POINTER TO parent`; dereference with `^` first
        ┌─ <internal>:19:28
        │
     19 │                 x := SUPER.get_value();    // Trying to call method on pointer
-       │                            ^^^^^^^^^ `SUPER` must be dereferenced to access its members.
+       │                            ^^^^^^^^^ Cannot access `get_value` on `POINTER TO parent`; dereference with `^` first
 
     error[E037]: Invalid assignment: cannot assign 'get_value' to 'parent'
        ┌─ <internal>:20:17
@@ -1307,18 +1295,18 @@ fn super_without_deref_accessing_members() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` must be dereferenced to access its members.
+    assert_snapshot!(diagnostics, @"
+    error[E137]: Cannot access `x` on `POINTER TO parent`; dereference with `^` first
        ┌─ <internal>:11:19
        │
     11 │             SUPER.x := 20; // Should be SUPER^.x
-       │                   ^ `SUPER` must be dereferenced to access its members.
+       │                   ^ Cannot access `x` on `POINTER TO parent`; dereference with `^` first
 
-    error[E119]: `SUPER` must be dereferenced to access its members.
+    error[E137]: Cannot access `ptr` on `POINTER TO parent`; dereference with `^` first
        ┌─ <internal>:14:19
        │
     14 │             SUPER.ptr^ := 30; // Should be SUPER^.ptr^
-       │                   ^^^ `SUPER` must be dereferenced to access its members.
+       │                   ^^^ Cannot access `ptr` on `POINTER TO parent`; dereference with `^` first
 
     warning[E049]: Illegal access to private member parent.ptr
        ┌─ <internal>:17:20
@@ -1366,18 +1354,18 @@ fn super_with_property_access_errors() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` must be dereferenced to access its members.
+    assert_snapshot!(diagnostics, @"
+    error[E137]: Cannot access `prop` on `POINTER TO parent`; dereference with `^` first
        ┌─ <internal>:21:19
        │
     21 │             SUPER.prop := 10;    // Should be SUPER^.prop
-       │                   ^^^^ `SUPER` must be dereferenced to access its members.
+       │                   ^^^^ Cannot access `prop` on `POINTER TO parent`; dereference with `^` first
 
-    error[E119]: `SUPER` must be dereferenced to access its members.
+    error[E137]: Cannot access `prop` on `POINTER TO parent`; dereference with `^` first
        ┌─ <internal>:22:24
        │
     22 │             x := SUPER.prop;     // Should be SUPER^.prop
-       │                        ^^^^ `SUPER` must be dereferenced to access its members.
+       │                        ^^^^ Cannot access `prop` on `POINTER TO parent`; dereference with `^` first
 
     error[E007]: Properties cannot be called like functions. Remove `()`
        ┌─ <internal>:25:13
