@@ -118,22 +118,22 @@ fn init_wrapper_function_created() {
     .unwrap();
     let AnnotatedProject { units, .. } = annotated_project;
 
-    // we expect to find a `__unit___internal__ctor` function in the compilation unit
+    // we expect to find a `__unit___internal___bd9efc6f__ctor` function in the compilation unit
     // Note: the name has multiple underscores because the source path is "<internal>"
     let unit = units[0].get_unit();
     let implementation = unit
         .implementations
         .iter()
-        .find(|impl_| dbg!(&impl_.name) == "__unit___internal____ctor")
-        .expect("__unit___internal____ctor implementation not found in unit");
+        .find(|impl_| dbg!(&impl_.name) == "__unit___internal___bd9efc6f__ctor")
+        .expect("__unit___internal___bd9efc6f__ctor implementation not found in unit");
     assert_eq!(implementation.pou_type, PouType::ProjectInit);
 
     // The ProjectInit function should have no parameters
     let project_init_pou = unit
         .pous
         .iter()
-        .find(|pou| pou.name == "__unit___internal____ctor")
-        .expect("__unit___internal____ctor POU not found");
+        .find(|pou| pou.name == "__unit___internal___bd9efc6f__ctor")
+        .expect("__unit___internal___bd9efc6f__ctor POU not found");
     assert!(project_init_pou.variable_blocks.is_empty());
 
     // Verify it has initialization statements
