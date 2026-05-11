@@ -62,6 +62,10 @@ pub struct CompileOptions {
     pub single_module: bool,
     pub online_change: OnlineChange,
     pub constructors_only: bool,
+    /// Producer string embedded in the compiled module's `llvm.ident` named
+    /// metadata. Surfaces in the ELF `.comment` section post-link. `None`
+    /// skips emission entirely.
+    pub build_info: Option<String>,
 }
 
 impl Default for CompileOptions {
@@ -80,6 +84,7 @@ impl Default for CompileOptions {
             single_module: false,
             online_change: OnlineChange::Disabled,
             constructors_only: false,
+            build_info: None,
         }
     }
 }
@@ -328,12 +333,14 @@ pub fn generate_to_string_constructors_only<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let context = GlobalContext::new().with_source(project.get_sources(), None)?;
     let diagnostician = Diagnostician::default();
+    // `--fno-ident` keeps IR snapshots stable across `plc` upgrades.
     let mut params = cli::CompileParameters::parse(&[
         "plc",
         "--ir",
         "--single-module",
         "-O",
         "none",
+        "--fno-ident",
         "--constructors-only",
     ])
     .map_err(|e| Diagnostic::new(e.to_string()))?;
@@ -369,8 +376,10 @@ fn generate_to_string_internal<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let context = GlobalContext::new().with_source(project.get_sources(), None)?;
     let diagnostician = Diagnostician::default();
-    let mut params = cli::CompileParameters::parse(&["plc", "--ir", "--single-module", "-O", "none"])
-        .map_err(|e| Diagnostic::new(e.to_string()))?;
+    // `--fno-ident` keeps IR snapshots stable across `plc` upgrades.
+    let mut params =
+        cli::CompileParameters::parse(&["plc", "--ir", "--single-module", "-O", "none", "--fno-ident"])
+            .map_err(|e| Diagnostic::new(e.to_string()))?;
     params.generate_debug = debug;
     let mut pipeline = BuildPipeline {
         context,
