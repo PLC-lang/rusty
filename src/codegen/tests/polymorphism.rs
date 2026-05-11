@@ -58,7 +58,7 @@ fn simple_overridden_method() {
 
     @__vtable_A_instance = global %__vtable_A zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -162,10 +162,7 @@ fn simple_overridden_method() {
       call void @A__ctor(ptr %__A)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__A2 = getelementptr inbounds nuw %B, ptr %deref1, i32 0, i32 0
-      call void @A__ctor(ptr %__A2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__A4 = getelementptr inbounds nuw %B, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %A, ptr %__A4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_B_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -250,7 +247,7 @@ fn simple_overridden_method() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_A__ctor(ptr @__vtable_A_instance)
       call void @__vtable_B__ctor(ptr @__vtable_B_instance)
@@ -294,7 +291,7 @@ fn method_call_within_method() {
     %A = type { ptr }
 
     @__vtable_A_instance = global %__vtable_A zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -398,7 +395,7 @@ fn method_call_within_method() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_A__ctor(ptr @__vtable_A_instance)
       ret void
@@ -461,7 +458,7 @@ fn this_is_untouched() {
     @__vtable_A_instance = global %__vtable_A zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
     @__vtable_C_instance = global %__vtable_C zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -566,10 +563,7 @@ fn this_is_untouched() {
       call void @A__ctor(ptr %__A)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__A2 = getelementptr inbounds nuw %B, ptr %deref1, i32 0, i32 0
-      call void @A__ctor(ptr %__A2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__A4 = getelementptr inbounds nuw %B, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %A, ptr %__A4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_B_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -583,10 +577,7 @@ fn this_is_untouched() {
       call void @A__ctor(ptr %__A)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__A2 = getelementptr inbounds nuw %C, ptr %deref1, i32 0, i32 0
-      call void @A__ctor(ptr %__A2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__A4 = getelementptr inbounds nuw %C, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %A, ptr %__A4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_C_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -736,7 +727,7 @@ fn this_is_untouched() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_A__ctor(ptr @__vtable_A_instance)
       call void @__vtable_B__ctor(ptr @__vtable_B_instance)
@@ -793,7 +784,7 @@ fn super_is_untouched() {
 
     @__vtable_A_instance = global %__vtable_A zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @A(ptr %0) {
     entry:
@@ -879,10 +870,7 @@ fn super_is_untouched() {
       call void @A__ctor(ptr %__A)
       %deref1 = load ptr, ptr %self, align [filtered]
       %__A2 = getelementptr inbounds nuw %B, ptr %deref1, i32 0, i32 0
-      call void @A__ctor(ptr %__A2)
-      %deref3 = load ptr, ptr %self, align [filtered]
-      %__A4 = getelementptr inbounds nuw %B, ptr %deref3, i32 0, i32 0
-      %__vtable = getelementptr inbounds nuw %A, ptr %__A4, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_B_instance, ptr %__vtable, align [filtered]
       ret void
     }
@@ -986,7 +974,7 @@ fn super_is_untouched() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @__vtable_A__ctor(ptr @__vtable_A_instance)
       call void @__vtable_B__ctor(ptr @__vtable_B_instance)
