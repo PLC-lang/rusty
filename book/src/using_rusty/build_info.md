@@ -1,6 +1,6 @@
 # Embedded Compiler Version
 
-By default, every artifact RuSTy compiles carries a small piece of metadata that records *which version of `plc` produced it*. The metadata follows the same convention `clang`, `rustc`, and `gcc` use for their own producer identification — it lives in the module's `!llvm.ident` named metadata, which the linker preserves into the ELF `.comment` section of the final binary.
+By default, every artifact RuSTy compiles carries a small piece of metadata that records *which version of `plc` produced it*. On ELF targets the producer line surfaces in the `.comment` section of the compiled object and the final linked binary — the same section `clang`, `rustc`, and `gcc` use for their own producer self-identification.
 
 ## What gets embedded
 
@@ -60,10 +60,5 @@ plc --fno-ident src/main.st
 
 With `--fno-ident`:
 
-- No `!llvm.ident` named metadata is emitted into the module.
 - No `plc version …` line appears in `.comment` of the compiled artifact.
 - All other producer information (linker, C runtime) is unaffected — those come from tools outside `plc`.
-
-## Implementation detail
-
-The string is injected at module construction time via inkwell's `Module::add_global_metadata` with the named metadata key `"llvm.ident"`. The same mechanism is used by `clang` and `rustc`. Library consumers of `plc` as a Rust crate can override the string by setting `CompileOptions::build_info` to any `Option<String>` they wish — `None` disables emission entirely, matching `--fno-ident`.

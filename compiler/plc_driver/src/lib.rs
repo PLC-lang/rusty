@@ -62,9 +62,9 @@ pub struct CompileOptions {
     pub single_module: bool,
     pub online_change: OnlineChange,
     pub constructors_only: bool,
-    /// Producer string embedded in the compiled module's `llvm.ident` named
-    /// metadata. Surfaces in the ELF `.comment` section post-link. `None`
-    /// skips emission entirely.
+    /// Producer string embedded via a `.ident` directive at module level.
+    /// Surfaces in the ELF `.comment` section post-link. `None` skips
+    /// emission entirely.
     pub build_info: Option<String>,
 }
 

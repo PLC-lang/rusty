@@ -9,7 +9,7 @@ END_FUNCTION
 ";
 
 #[test]
-fn codegen_emits_llvm_ident_when_build_info_is_set() {
+fn codegen_emits_module_asm_ident_directive_when_build_info_is_set() {
     let ir = codegen_debug_without_unwrap_oc_with_build_info(
         TRIVIAL_SOURCE,
         DebugLevel::None,
@@ -18,16 +18,18 @@ fn codegen_emits_llvm_ident_when_build_info_is_set() {
     )
     .expect("codegen");
 
-    // The named-metadata entry and its referenced MDString must both appear.
-    assert!(ir.contains("!llvm.ident"), "expected !llvm.ident in IR; got:\n{ir}");
     assert!(
-        ir.contains(r#"!"plc version test-placeholder""#),
-        "expected build_info string operand in IR; got:\n{ir}",
+        ir.contains(r#"module asm ".ident"#),
+        "expected `module asm \".ident...\"` directive in IR; got:\n{ir}",
+    );
+    assert!(
+        ir.contains("plc version test-placeholder"),
+        "expected the build_info text to appear in the IR; got:\n{ir}",
     );
 }
 
 #[test]
-fn codegen_omits_llvm_ident_when_build_info_is_none() {
+fn codegen_omits_ident_directive_when_build_info_is_none() {
     let ir = codegen_debug_without_unwrap_oc_with_build_info(
         TRIVIAL_SOURCE,
         DebugLevel::None,
@@ -36,11 +38,12 @@ fn codegen_omits_llvm_ident_when_build_info_is_none() {
     )
     .expect("codegen");
 
-    assert!(!ir.contains("!llvm.ident"), "expected NO !llvm.ident when build_info=None; got:\n{ir}");
+    assert!(!ir.contains("module asm"), "expected NO `module asm` line when build_info=None; got:\n{ir}");
+    assert!(!ir.contains(".ident"), "expected NO `.ident` directive when build_info=None; got:\n{ir}");
 }
 
 #[test]
-fn codegen_emits_exactly_one_llvm_ident_entry_per_module() {
+fn codegen_emits_exactly_one_ident_directive_per_module() {
     let ir = codegen_debug_without_unwrap_oc_with_build_info(
         TRIVIAL_SOURCE,
         DebugLevel::None,
@@ -49,9 +52,6 @@ fn codegen_emits_exactly_one_llvm_ident_entry_per_module() {
     )
     .expect("codegen");
 
-    // Count occurrences of the named-metadata declaration. Multiple identical
-    // entries would indicate double-emission at module construction; multiple
-    // distinct entries would indicate a bug in how we thread build_info.
-    let occurrences = ir.matches("!llvm.ident = ").count();
-    assert_eq!(occurrences, 1, "expected exactly one !llvm.ident declaration; got {occurrences} in:\n{ir}");
+    let occurrences = ir.matches(r#"module asm ".ident"#).count();
+    assert_eq!(occurrences, 1, "expected exactly one `.ident` directive; got {occurrences} in:\n{ir}");
 }
