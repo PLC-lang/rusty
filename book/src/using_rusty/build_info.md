@@ -1,6 +1,6 @@
 # Embedded Compiler Version
 
-By default, every artifact RuSTy compiles carries a small piece of metadata that records *which version of `plc` produced it*. On ELF targets the producer line surfaces in the `.comment` section of the compiled object and the final linked binary — the same section `clang`, `rustc`, and `gcc` use for their own producer self-identification.
+By default, every artifact RuSTy compiles carries a small piece of metadata that records *which version of `plc` produced it*. The metadata follows the same convention `clang`, `rustc`, and `gcc` use for their own producer identification — it lives in the module's `!llvm.ident` named metadata, which the linker preserves into the ELF `.comment` section of the final binary.
 
 ## What gets embedded
 

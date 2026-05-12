@@ -139,18 +139,14 @@ impl<'ink> CodeGen<'ink> {
         module.set_data_layout(&target_data.get_data_layout());
         module.set_triple(&triple);
 
-        // Self-identify the compiled module via a `.ident` assembler
-        // directive — produces `.comment` on ELF after link. The named-
-        // metadata path (`!llvm.ident`, what clang and rustc use) was tried
-        // first and does not survive into `.o` files when plc itself runs
-        // on aarch64 hosts (cause unidentified; clang/rustc on the same
-        // host/target do emit `.comment` correctly via that path). The MC
-        // layer honours `.ident` uniformly across targets.
+        // Emit `!llvm.ident` so the module self-identifies (`.comment` on ELF
+        // after link). Skipped when `None`.
         if let Some(info) = build_info {
-            // Escape backslashes and embedded double-quotes so the directive
-            // parses even if `info` happens to contain them.
-            let escaped = info.replace('\\', "\\\\").replace('"', "\\\"");
-            module.set_inline_assembly(&format!(".ident \"{escaped}\"\n"));
+            let ident_string = context.metadata_string(info);
+            let ident_node = context.metadata_node(&[ident_string.into()]);
+            module
+                .add_global_metadata("llvm.ident", &ident_node)
+                .expect("add_global_metadata on llvm.ident accepts a node value");
         }
 
         let debug_level = if file_marker.is_internal() { DebugLevel::None } else { debug_level };
