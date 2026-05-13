@@ -357,13 +357,18 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
 
 impl PipelineParticipantMut for PolymorphismLowerer {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, index, _unresolvables } = indexed_project;
-        let changed = self.table(&index, &mut project.units);
-        if changed {
-            project.index(self.ids.clone())
-        } else {
-            IndexedProject { project, index, _unresolvables }
+        let IndexedProject { mut project, mut index, _unresolvables } = indexed_project;
+        let mutated = self.table(&index, &mut project.units);
+        if mutated.is_empty() {
+            return IndexedProject { project, index, _unresolvables };
         }
+        // Re-index only the units the table generator actually touched.
+        // The pipeline previously re-indexed the whole project here.
+        for unit_idx in &mutated {
+            let unit_id = plc::index::UnitId::source(*unit_idx);
+            index.reindex_unit(unit_id, &mut project.units[*unit_idx], self.ids.clone());
+        }
+        IndexedProject { project, index, _unresolvables }
     }
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {

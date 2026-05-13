@@ -584,6 +584,9 @@ Supporting changes:
 
 ### Phase 4 — Cross-unit lowerer hygiene
 
+_In progress._ Wall-clock comparison across phase boundaries is in
+`docs/baselines/phase4_progress.md`.
+
 Tighten the genuinely cross-unit passes so their deltas are honest and
 minimal.
 
