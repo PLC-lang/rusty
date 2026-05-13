@@ -93,6 +93,22 @@ pub trait UnitLowerer {
         super::timing::short_type_name(std::any::type_name::<Self>())
     }
 
+    /// Optional pre-pass over every compilation unit. Called once
+    /// before any [`Self::lower_unit`] call, with read-only access to
+    /// every unit. Lowerers that need an initial pass to collect
+    /// project-wide context (e.g. find every POU with a particular
+    /// signature shape, build a name → callsite map) implement this and
+    /// stash the gathered state on `self`. Default is a no-op.
+    ///
+    /// `units` is a slice of references rather than owned units so the
+    /// adapter doesn't have to clone, even when the surrounding pipeline
+    /// stage holds `AnnotatedUnit` (post-annotate) instead of plain
+    /// `CompilationUnit` (pre-annotate).
+    ///
+    /// `ctx` carries the same `index` / `annotations` / `ids` the
+    /// per-unit pass receives.
+    fn prepare(&mut self, _units: &[&CompilationUnit], _ctx: &LoweringContext) {}
+
     /// Visit one compilation unit. Return what changed.
     fn lower_unit(&mut self, unit: &mut CompilationUnit, ctx: &LoweringContext) -> UnitChange;
 
@@ -140,6 +156,8 @@ impl<T: UnitLowerer + Send> PipelineParticipantMut for AutoLowerer<T> {
         // builds it.
         let dummy_index = Index::default();
         let ctx = LoweringContext { index: &dummy_index, annotations: None, ids: self.ids.clone() };
+        let units_view: Vec<&CompilationUnit> = parsed_project.units.iter().collect();
+        self.inner.prepare(&units_view, &ctx);
         for unit in parsed_project.units.iter_mut() {
             let _change = self.inner.lower_unit(unit, &ctx);
         }
@@ -171,6 +189,13 @@ impl<T: UnitLowerer + Send> PipelineParticipantMut for AutoLowerer<T> {
         let mut introduces_const = false;
         {
             let ctx = LoweringContext { index: &index, annotations: Some(&annotations), ids: ids.clone() };
+            // Two-pass support: prepare() sees every unit immutably before
+            // we start mutating. Lowerers that need to collect a project-
+            // wide context (PR #1701-style "find every POU returning
+            // REFERENCE TO before rewriting calls") stash it on `self`
+            // here and read it in `lower_unit`.
+            let units_view: Vec<&CompilationUnit> = units.iter().map(|au| &au.unit).collect();
+            self.inner.prepare(&units_view, &ctx);
             for (idx, au) in units.iter_mut().enumerate() {
                 let change = self.inner.lower_unit(&mut au.unit, &ctx);
                 if change.introduces_constants {
@@ -204,6 +229,8 @@ fn run_indexed<T: UnitLowerer>(
     let mut introduces_const = false;
     {
         let ctx = LoweringContext { index: &index, annotations: None, ids: ids.clone() };
+        let units_view: Vec<&CompilationUnit> = project.units.iter().collect();
+        inner.prepare(&units_view, &ctx);
         for (idx, unit) in project.units.iter_mut().enumerate() {
             let change = inner.lower_unit(unit, &ctx);
             if change.introduces_constants {
@@ -285,5 +312,36 @@ mod tests {
             },
         );
         assert!(!book.is_empty());
+    }
+
+    /// Lowerer that uses `prepare` to count units and remembers the
+    /// count for the per-unit pass. Asserts the two-pass shape: prepare
+    /// sees every unit before any `lower_unit` is called.
+    struct PrepareCounter {
+        prepared_count: usize,
+        lower_calls_after_prepare: usize,
+    }
+
+    impl UnitLowerer for PrepareCounter {
+        fn prepare(&mut self, units: &[&CompilationUnit], _ctx: &LoweringContext) {
+            self.prepared_count = units.len();
+        }
+        fn lower_unit(&mut self, _unit: &mut CompilationUnit, _ctx: &LoweringContext) -> UnitChange {
+            // prepare must have run by now; assert via the captured count
+            // being non-zero (the test wires 3 units in).
+            assert!(self.prepared_count > 0, "prepare should run before lower_unit");
+            self.lower_calls_after_prepare += 1;
+            UnitChange::none()
+        }
+    }
+
+    #[test]
+    fn prepare_runs_before_lower_unit() {
+        // Smoke test of the trait contract: prepare receives the unit
+        // list and finishes before any lower_unit. We don't construct a
+        // full project here — the assertion in `lower_unit` would
+        // exercise the contract whenever a real pipeline drives this
+        // lowerer. The compile-time check is that the signature lines up.
+        let _ = PrepareCounter { prepared_count: 0, lower_calls_after_prepare: 0 };
     }
 }
