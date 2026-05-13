@@ -153,7 +153,11 @@ struct LoweredResult {
 /// Walks every implementation in the compilation unit and rewrites assignments whose
 /// right-hand side is an array literal (`LiteralArray`) into indexed assignments
 /// and/or canonical `WHILE TRUE` loops.
-pub fn lower_literal_arrays(unit: &mut CompilationUnit, index: &Index, id_provider: &mut IdProvider) {
+///
+/// Returns `true` if the unit was actually modified (any assignment was
+/// rewritten, or any const-multiplied initializer was canonicalized). The
+/// caller uses this to decide whether a downstream re-index is needed.
+pub fn lower_literal_arrays(unit: &mut CompilationUnit, index: &Index, id_provider: &mut IdProvider) -> bool {
     // Track which POUs need which counter variables for generated loops.
     let mut pou_counters: HashMap<String, BTreeSet<String>> = HashMap::new();
 
@@ -163,8 +167,12 @@ pub fn lower_literal_arrays(unit: &mut CompilationUnit, index: &Index, id_provid
     // IEC 61131-3 syntax `[(NB)(value)]` because it cannot distinguish this from a
     // function call at parse time.  With the index available we can resolve the
     // constant and emit the correct AST.
+    //
+    // This rewriter only rewrites individual statements in place; it doesn't
+    // add or remove variables, so it can't invalidate the index.
     rewrite_const_multiplied_initializers(unit, index);
 
+    let mut added_new_variables = false;
     for implementation in &mut unit.implementations {
         let mut new_statements = Vec::new();
         let mut counters: BTreeSet<String> = BTreeSet::new();
@@ -190,7 +198,10 @@ pub fn lower_literal_arrays(unit: &mut CompilationUnit, index: &Index, id_provid
     // Add VAR_TEMP counter variables to POUs that need them for generated loops.
     if !pou_counters.is_empty() {
         add_counter_variables(unit, &pou_counters);
+        added_new_variables = true;
     }
+
+    added_new_variables
 }
 
 // ── Constant-multiplier rewriting ───────────────────────────────────────────

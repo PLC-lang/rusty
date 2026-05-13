@@ -100,6 +100,11 @@ where
         self.inner_map.contains_key(key)
     }
 
+    /// Returns `true` if this map has no entries.
+    pub fn is_empty(&self) -> bool {
+        self.inner_map.is_empty()
+    }
+
     /// Removes entries at `key` that don't satisfy `predicate`. If the key has
     /// no remaining entries after the filter, the key itself is dropped (so
     /// `contains_key` returns `false` afterwards). Preserves the insertion

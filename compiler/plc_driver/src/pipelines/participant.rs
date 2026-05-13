@@ -15,6 +15,7 @@ use std::{
 use ast::provider::IdProvider;
 use plc::{
     codegen::GeneratedModule,
+    index::{Index, PouIndexEntry},
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
     ConfigFormat, OnlineChange, Target,
@@ -272,13 +273,21 @@ impl ArrayLowerer {
 
 impl PipelineParticipantMut for ArrayLowerer {
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { project: ParsedProject { mut units }, index, .. } = indexed_project;
+        let IndexedProject { project: ParsedProject { mut units }, index, _unresolvables } = indexed_project;
+        let mut changed = false;
         for unit in &mut units {
-            array_lowering::lower_literal_arrays(unit, &index, &mut self.id_provider);
+            if array_lowering::lower_literal_arrays(unit, &index, &mut self.id_provider) {
+                changed = true;
+            }
         }
-        // Re-index since we modified the AST (new statements, possible new alloca variables)
         let project = ParsedProject { units };
-        project.index(self.id_provider.clone())
+        if changed {
+            // Re-index since we modified the AST (new statements, possible new alloca variables)
+            project.index(self.id_provider.clone())
+        } else {
+            // Nothing was lowered; the existing index is still authoritative.
+            IndexedProject { project, index, _unresolvables }
+        }
     }
 }
 
@@ -290,6 +299,13 @@ impl PipelineParticipantMut for InheritanceLowerer {
     }
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        // Skip if the project declares no inheritance or interfaces — the
+        // visit would be a no-op and the implicit re-annotate would only
+        // recompute the same annotations.
+        if !project_uses_inheritance(&annotated_project.index) {
+            return annotated_project;
+        }
+
         let AnnotatedProject { mut units, index, annotations, diagnostics } = annotated_project;
         self.annotations = Some(Box::new(annotations));
         self.index = Some(index);
@@ -311,6 +327,13 @@ impl PipelineParticipantMut for InheritanceLowerer {
 
 impl PipelineParticipantMut for AggregateTypeLowerer {
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        // Skip if no POU has an aggregate return type — the visit would walk
+        // every unit and rewrite nothing, and the re-index/re-annotate would
+        // reproduce the existing state.
+        if !project_has_aggregate_returns(&annotated_project.index) {
+            return annotated_project;
+        }
+
         let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
         self.index = Some(index);
         self.annotation = Some(Box::new(annotations));
@@ -334,14 +357,28 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
 
 impl PipelineParticipantMut for PolymorphismLowerer {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, index, .. } = indexed_project;
-
-        self.table(&index, &mut project.units);
-
-        project.index(self.ids.clone())
+        let IndexedProject { mut project, index, _unresolvables } = indexed_project;
+        let changed = self.table(&index, &mut project.units);
+        if changed {
+            project.index(self.ids.clone())
+        } else {
+            IndexedProject { project, index, _unresolvables }
+        }
     }
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        // Dispatch lowering only has work to do if the project has any
+        // polymorphic constructs (classes, function blocks, methods, or
+        // interfaces). The precheck is an exact predicate: if none of those
+        // are in the index, the dispatch visitor wouldn't rewrite anything
+        // and the implicit re-index + re-annotate would reproduce the
+        // existing state. Threading a `changed` flag through the dispatch
+        // visitors is more invasive; the index precheck gives the same
+        // answer for cheaper.
+        if !project_uses_polymorphism(&annotated_project.index) {
+            return annotated_project;
+        }
+
         let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
         let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
 
@@ -364,11 +401,15 @@ impl PipelineParticipantMut for PolymorphismLowerer {
 
 impl PipelineParticipantMut for RetainParticipant {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, index, .. } = indexed_project;
-        self.lower_retain(&mut project.units, index);
-
-        // Re-index
-        project.index(self.ids.clone())
+        let IndexedProject { mut project, index, _unresolvables } = indexed_project;
+        let changed = self.lower_retain(&mut project.units, &index);
+        if changed {
+            project.index(self.ids.clone())
+        } else {
+            // The lowerer reported no rewrites; the existing index is still
+            // authoritative.
+            IndexedProject { project, index, _unresolvables }
+        }
     }
 }
 
@@ -396,4 +437,60 @@ impl PipelineParticipantMut for ReferenceToReturnParticipant {
         self.lower_reference_to_return(&mut units);
         ParsedProject { units }
     }
+}
+
+// ─── Precheck helpers ──────────────────────────────────────────────────────
+//
+// Several lowering participants used to unconditionally re-run a whole-project
+// index or annotate after their hook fired, even when the lowerer had nothing
+// to do on this project. The helpers below answer "is there any work for me?"
+// from the already-built index (or the units themselves) so the participant
+// can skip both the work and the implicit re-pass when the answer is no.
+
+/// True if the project contains any object-oriented constructs that the
+/// [`PolymorphismLowerer`] would rewrite: interfaces, classes, or function
+/// blocks. Inheritance-only constructs (super-class chains on functions) are
+/// caught by `project_uses_inheritance` instead.
+fn project_uses_polymorphism(index: &Index) -> bool {
+    if !index.get_interfaces().is_empty() {
+        return true;
+    }
+    index.get_pous().values().any(|p| {
+        matches!(
+            p,
+            PouIndexEntry::Class { .. } | PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Method { .. }
+        )
+    })
+}
+
+/// True if any POU's return type is aggregate (array, struct, or string), in
+/// which case [`AggregateTypeLowerer`] needs to rewrite that POU's signature.
+fn project_has_aggregate_returns(index: &Index) -> bool {
+    for pou in index.get_pous().values() {
+        let return_type = match pou {
+            PouIndexEntry::Function { return_type, .. } | PouIndexEntry::Method { return_type, .. } => {
+                return_type.as_str()
+            }
+            _ => continue,
+        };
+        if return_type.is_empty() {
+            continue;
+        }
+        if index.get_effective_type_or_void_by_name(return_type).is_aggregate_type() {
+            return true;
+        }
+    }
+    false
+}
+
+/// True if any POU declares a super-class or any interfaces, in which case
+/// [`InheritanceLowerer`] needs to rewrite calls and walk inheritance chains.
+fn project_uses_inheritance(index: &Index) -> bool {
+    index.get_pous().values().any(|p| match p {
+        PouIndexEntry::FunctionBlock { super_class, interfaces, .. }
+        | PouIndexEntry::Class { super_class, interfaces, .. } => {
+            super_class.is_some() || !interfaces.is_empty()
+        }
+        _ => false,
+    })
 }
