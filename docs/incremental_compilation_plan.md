@@ -818,8 +818,8 @@ base branch.
 | 9 | `incremental/phase-4.2-unit-lowerer-trait` | PR #8 | `feat(driver): UnitLowerer trait + AutoLowerer adapter` _(landed locally)_ | Option B. New lowerers opt in. `PipelineParticipantMut` keeps working. `RetainParticipant`'s `post_index` migrated as the worked example. |
 | 10 | `incremental/phase-4.3-prepare-pass` | PR #9 | `feat(driver): UnitLowerer::prepare for two-pass context-gather` _(landed locally)_ | Optional pre-pass for lowerers that scan all units before transforming any. Default no-op; existing impls unaffected. |
 | 11 | `incremental/phase-4.4-array-migration` | PR #10 | `refactor(driver): migrate ArrayLowerer to UnitLowerer` _(landed locally)_ | Old direct `PipelineParticipantMut` impl removed; replaced by `ArrayUnitLowerer` registered through `AutoLowerer`. |
-| ~~12~~ | ~~`incremental/phase-4.5-polymorphism-table-migration`~~ | ~~PR #11~~ | `refactor(driver): migrate PolymorphismLowerer table to UnitLowerer` **_(reverted — 13 initializer tests broke; see Phase 4.5 status below for the root-cause sketch)_** | Splits the polymorphism participant; needs follow-up to keep the table pass on the same `PolymorphismLowerer` instance as dispatch. |
-| 12 | `incremental/phase-5-incremental-driver` | PR #11 _or later_ | _(future)_ `feat(driver): in-process incremental driver` | The LSP-ready core. Phase 5 of the plan above. |
+| 12 | `incremental/phase-4.5-polymorphism-table-migration` | PR #11 | `refactor(driver): migrate PolymorphismLowerer table to UnitLowerer (shared instance)` _(landed locally on retry; first attempt reverted, see Phase 4.5 status)_ | Two adapters share a single `Rc<RefCell<PolymorphismLowerer>>` so the table-pass `ids` / vtable-name state stays in lockstep with dispatch. |
+| 13 | `incremental/phase-5-incremental-driver` | PR #12 _or later_ | _(future)_ `feat(driver): in-process incremental driver` | The LSP-ready core. Phase 5 of the plan above. |
 
 Stacked-diff workflow:
 
@@ -980,41 +980,53 @@ into `AutoLowerer`. Participant body went from ~15 lines to a 3-line
 
 ### Phase 4.5 — Status
 
-_Reverted (commit `85181cb1a3`)._ The attempted migration of
-`PolymorphismLowerer::post_index` (vtable / itable table pass) into a
-separate `UnitLowerer` registered alongside the surviving
-`PolymorphismLowerer` participant (which kept its `post_annotate`
-dispatch impl) passed `cargo check`, `cargo xtask lit`, and
-`cargo test --workspace --test-threads=8` but broke **13 initializer
-tests** in `plc_lowering/src/initializer.rs`: the
+_Landed locally on retry._ The first attempt (commit `9263b6cc34`,
+reverted by `85181cb1a3`) broke 13 initializer tests: the
 `__vtable__ctor(self.__vtable)` constructor call disappeared from
-generated constructor bodies (e.g.
-`alias_variable_in_function_block_wrapped_in_adr`,
-`class_with_fb_init_calls_user_defined_constructor`,
-`fb_without_fb_init_has_no_user_defined_call`).
+generated bodies. Root cause was the wrapper constructing a fresh
+`PolymorphismLowerer` instance per participant slot, diverging the
+`IdProvider` / vtable-name state from the dispatch participant that
+ran later. The fix is to register *two* adapters that share the same
+`PolymorphismLowerer` instance through an `Rc<RefCell<...>>` handle.
 
-Suspected root cause is an interaction between the per-unit table
-pass and the later `InitParticipant`'s constructor-synthesis. The
-table pass patches `__vtable` members into each unit's POUs and adds
-vtable types into `user_types`; `Index::reindex_unit` then refreshes
-the global index. By the time `InitParticipant` walks members and
-emits per-member `__ctor` calls, either:
+**Landed**
 
-- the `IdProvider` shared with the rest of the pipeline lost a
-  sequence (the wrapper builds a new `PolymorphismLowerer` whose
-  state — including vtable-instance type names that hash the source
-  path — diverged), or
-- the per-unit `reindex_unit` doesn't make the patched `__vtable`
-  member visible to `InitParticipant` in the form it expects.
+- `PolymorphismLowerer::table_one_unit(&self, &Index, &mut CompilationUnit) -> bool`
+  added in `src/lowering/polymorphism/mod.rs`. Documents the
+  shared-instance requirement.
+- `SharedPolymorphismLowerer` type alias and
+  `shared_polymorphism_lowerer(ids, gen_externals)` constructor in
+  `participant.rs` for the `Rc<RefCell<PolymorphismLowerer>>` handle.
+- `PolymorphismTableUnitLowerer { inner: SharedPolymorphismLowerer }`
+  — `UnitLowerer` for the table pass. Borrows the inner for each
+  `lower_unit` call, delegates to `table_one_unit`. Registered via
+  `AutoLowerer::new(...)` at `LoweringStage::PostIndex`.
+- `PolymorphismDispatchAdapter { inner: SharedPolymorphismLowerer }`
+  — `PipelineParticipantMut` for the dispatch pass. Borrows the
+  inner mutably to run `dispatch()` + diagnostics. Registered
+  alongside the table adapter; both share the *same*
+  `Rc<RefCell<PolymorphismLowerer>>` so `ids` and
+  `generate_external_constructors` stay in lockstep.
+- `get_default_mut_participants` constructs the shared handle once,
+  passes a clone to each adapter, and inserts them into the
+  participant list in order (table at PostIndex, dispatch at
+  PostAnnotate). The direct `Box::new(PolymorphismLowerer::new(...))`
+  registration is gone.
+- `AutoLowerer<T>` lost its `Send` bound — sharing state via
+  `Rc<RefCell<...>>` is single-threaded (the participant chain runs
+  sequentially; `par_iter` only fires inside the inner re-index /
+  re-annotate steps).
+- `impl PipelineParticipantMut for PolymorphismLowerer` is kept as
+  is. It still owns both `post_index` and `post_annotate` impls so
+  that `plc_lowering`'s test helper `parse_and_init_internal`
+  (which directly registers a `Box<PolymorphismLowerer>` without
+  going through the driver's default participants) still works
+  unchanged. That was the failure mode of the first attempt:
+  removing `post_index` from the impl broke the test path.
 
-For the next attempt: keep the table pass running through the
-*same* `PolymorphismLowerer` instance (don't construct a fresh one
-inside the wrapper), and add a focused snapshot test that asserts
-the constructor body shape after splitting — exactly the shape the
-13 reverted snapshots already capture. Until then,
-`PolymorphismLowerer::post_index` stays on the original
-`PipelineParticipantMut` path. The per-unit reindex landed in the
-Phase 4 step 1 commit `4cca9fdeb5` is still in effect.
+All 51 initializer tests pass. Workspace tests, lit suite, and the
+multi-file oscat baseline are bit-identical to Phase 4.4 (oscat-multi
+annotate median ~154 ms within noise).
 
 ### Lowerer-API ergonomics work (post-chain)
 

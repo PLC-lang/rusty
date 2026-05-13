@@ -23,7 +23,7 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index, UnitId},
     linker::LinkerType,
-    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
+    lowering::{calls::AggregateTypeLowerer, property::PropertyLowerer},
     output::{FormatOption, RelocationPreference},
     parser::parse_file,
     resolver::{
@@ -343,14 +343,32 @@ impl<T: SourceContainer> BuildPipeline<T> {
     pub fn get_default_mut_participants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
         use participant::InitParticipant;
 
+        // Polymorphism lowering runs as two stages that share state.
+        // The table pass (per-unit, vtable / itable emission) plugs into
+        // the per-unit `AutoLowerer` framework; dispatch (project-wide,
+        // post_annotate) keeps its existing project-wide shape and
+        // carries diagnostics. Both adapters wrap the same
+        // `Rc<RefCell<PolymorphismLowerer>>` so they share `ids` and
+        // `generate_external_constructors` — diverging that state
+        // breaks `InitParticipant`'s constructor synthesis.
+        let polymorphism = participant::shared_polymorphism_lowerer(
+            self.context.provider(),
+            self.context.should_generate_external_constructors(),
+        );
+        let polymorphism_table: Box<dyn PipelineParticipantMut> = Box::new(unit_lowerer::AutoLowerer::new(
+            participant::PolymorphismTableUnitLowerer::from_shared(polymorphism.clone()),
+            unit_lowerer::LoweringStage::PostIndex,
+            self.context.provider(),
+        ));
+        let polymorphism_dispatch: Box<dyn PipelineParticipantMut> =
+            Box::new(participant::PolymorphismDispatchAdapter::from_shared(polymorphism));
+
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
             Box::new(LoopDesugarer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
-            Box::new(PolymorphismLowerer::new(
-                self.context.provider(),
-                self.context.should_generate_external_constructors(),
-            )),
+            polymorphism_table,
+            polymorphism_dispatch,
             Box::new(ControlStatementParticipant::new(self.context.provider())),
             Box::new(ReferenceToReturnParticipant::new(self.context.provider())),
             Box::new(unit_lowerer::AutoLowerer::new(

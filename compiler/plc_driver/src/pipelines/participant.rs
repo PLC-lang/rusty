@@ -447,6 +447,104 @@ impl PipelineParticipantMut for PolymorphismLowerer {
     }
 }
 
+/// Shared handle to a [`PolymorphismLowerer`] used by both the table
+/// pass (per-unit, via [`PolymorphismTableUnitLowerer`]) and the
+/// dispatch pass (project-wide, via [`PolymorphismDispatchAdapter`]).
+///
+/// The two passes have to see the same `PolymorphismLowerer` state —
+/// in particular the same `ids: IdProvider` and the same
+/// `generate_external_constructors` flag — so the vtable type names
+/// the table pass emits line up with what dispatch later rewrites
+/// calls to dereference through. Constructing a fresh
+/// `PolymorphismLowerer` for each pass diverges that state and breaks
+/// `InitParticipant`'s constructor synthesis (it stops emitting
+/// `__<container>___vtable__ctor(self.__vtable)` for FB/class
+/// members).
+pub type SharedPolymorphismLowerer = std::rc::Rc<std::cell::RefCell<PolymorphismLowerer>>;
+
+pub fn shared_polymorphism_lowerer(
+    ids: ast::provider::IdProvider,
+    generate_external_constructors: bool,
+) -> SharedPolymorphismLowerer {
+    std::rc::Rc::new(std::cell::RefCell::new(PolymorphismLowerer::new(ids, generate_external_constructors)))
+}
+
+/// `UnitLowerer` wrapper for the polymorphism table pass. Holds a
+/// shared handle to the same [`PolymorphismLowerer`] the dispatch
+/// adapter uses. Registered at [`LoweringStage::PostIndex`].
+pub struct PolymorphismTableUnitLowerer {
+    inner: SharedPolymorphismLowerer,
+}
+
+impl PolymorphismTableUnitLowerer {
+    pub fn from_shared(inner: SharedPolymorphismLowerer) -> Self {
+        Self { inner }
+    }
+}
+
+impl super::unit_lowerer::UnitLowerer for PolymorphismTableUnitLowerer {
+    fn name(&self) -> &'static str {
+        "PolymorphismLowerer (table)"
+    }
+
+    fn lower_unit(
+        &mut self,
+        unit: &mut ast::ast::CompilationUnit,
+        ctx: &super::unit_lowerer::LoweringContext,
+    ) -> super::unit_lowerer::UnitChange {
+        let mutated = self.inner.borrow().table_one_unit(ctx.index, unit);
+        if mutated {
+            super::unit_lowerer::UnitChange::mutated()
+        } else {
+            super::unit_lowerer::UnitChange::none()
+        }
+    }
+}
+
+/// Project-wide `post_annotate` adapter that forwards to the shared
+/// [`PolymorphismLowerer`]'s dispatch pass. Paired with
+/// [`PolymorphismTableUnitLowerer`] via a common
+/// [`SharedPolymorphismLowerer`] handle.
+pub struct PolymorphismDispatchAdapter {
+    inner: SharedPolymorphismLowerer,
+}
+
+impl PolymorphismDispatchAdapter {
+    pub fn from_shared(inner: SharedPolymorphismLowerer) -> Self {
+        Self { inner }
+    }
+}
+
+impl PipelineParticipantMut for PolymorphismDispatchAdapter {
+    fn name(&self) -> &'static str {
+        "PolymorphismLowerer (dispatch)"
+    }
+
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        if !project_uses_polymorphism(&annotated_project.index) {
+            return annotated_project;
+        }
+
+        let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
+        let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
+
+        let mut inner = self.inner.borrow_mut();
+        let new_diagnostics = inner.dispatch(index, annotations.annotation_map, &mut units);
+        inner.stash_diagnostics(new_diagnostics);
+        drop(inner);
+
+        let project = ParsedProject { units };
+        let mut project =
+            project.index(self.inner.borrow().ids.clone()).annotate(self.inner.borrow().ids.clone());
+        project.diagnostics = diagnostics;
+        project
+    }
+
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        self.inner.borrow_mut().take_diagnostics()
+    }
+}
+
 /// `UnitLowerer` wrapper for [`RetainParticipant`]. The retain rewrite
 /// is naturally per-unit (each unit's `VAR RETAIN` blocks are hoisted to
 /// the same unit's global vars), so this is the first lowerer ported to

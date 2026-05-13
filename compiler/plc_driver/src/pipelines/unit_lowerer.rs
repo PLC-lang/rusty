@@ -139,7 +139,7 @@ impl<T: UnitLowerer> AutoLowerer<T> {
     }
 }
 
-impl<T: UnitLowerer + Send> PipelineParticipantMut for AutoLowerer<T> {
+impl<T: UnitLowerer> PipelineParticipantMut for AutoLowerer<T> {
     fn name(&self) -> &'static str {
         // Forward through so phase-timing output stays readable.
         self.inner.name()
