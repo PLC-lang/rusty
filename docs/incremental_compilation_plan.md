@@ -487,6 +487,101 @@ This phase delivers a full-build speedup before any LSP work.
   output on the corpus before flipping the default on. Snapshot diffs and
   binary `.o` comparison.
 
+### Phase 3 — Status
+
+_Complete._ Headline win delivered: oscat `annotate (driver)` dropped
+**from 605 ms to 390 ms (-35 %)** with no behavioural changes. Full
+numbers in `docs/baselines/phase3_oscat_after.md`.
+
+**Landed**
+
+Each lowering participant that previously triggered a whole-project
+re-index or re-annotate is now gated. Some report "did I change
+anything?" from the lowerer itself; the others use an exact-predicate
+precheck against the `Index`. Both produce the same coarse "skip the
+re-pass when nothing to do" win.
+
+Migrated participants:
+
+- `ArrayLowerer::pre_annotate` —
+  `array_lowering::lower_literal_arrays` now returns `bool`. Re-index
+  skipped when no array literal was lowered. oscat saves ~12 ms.
+- `RetainParticipant::post_index` — `lower_retain` returns `bool`,
+  driven by an internal `changed` flag on `RetainLowerer`. The lowerer
+  now borrows the index instead of consuming it, so the caller can
+  reuse the unchanged `IndexedProject` when nothing was rewritten.
+  oscat saves ~6 ms.
+- `PolymorphismLowerer::post_index` — `PolymorphismLowerer::table()`,
+  `TableGenerator::generate`, `VirtualTableGenerator::generate`, and
+  `InterfaceTableGenerator::generate` now return `bool` (true if any
+  vtable/itable definition or instance was emitted). Re-index skipped
+  on no-class / no-FB / no-interface projects.
+- `PolymorphismLowerer::post_annotate` — gated on an
+  `Index`-precheck (`project_uses_polymorphism`) that's exact for the
+  condition it checks (no classes / FBs / interfaces ⇒ no dispatch
+  sites to rewrite). Threading a `changed` flag through the dispatch
+  visitors is invasive and deferred to Phase 4.
+- `AggregateTypeLowerer::post_annotate` — gated on
+  `project_has_aggregate_returns`. Exact predicate.
+- `InheritanceLowerer::post_annotate` — gated on
+  `project_uses_inheritance` (any POU with `super_class` or
+  `interfaces`). Exact predicate. **oscat saves ~115 ms** here.
+- `PropertyLowerer::post_annotate` — gated on a new
+  `Index::has_any_properties()` accessor. **oscat saves ~113 ms** here.
+
+Supporting changes:
+
+- `SymbolMap::is_empty()` added.
+- `Index::has_any_properties()` added.
+
+**Deviations from the original plan**
+
+- The plan called for introducing a `PipelineDelta` return type on
+  participant hooks. After discussion, deferred to Phase 4 or later.
+  The participant hook signatures are unchanged in this phase. The
+  bool-returning lowerer functions are an internal contract between
+  each lowerer and its participant hook, not a trait-level API.
+- Mixed strategy by design: "lowerer reports `bool`" for participants
+  where the visitor naturally tracks it (Array, Retain, Polymorphism
+  table); `Index`-precheck for participants where threading a
+  `changed` flag would be invasive (Polymorphism dispatch, Aggregate,
+  Inheritance, Property). Both paths land at the same outcome and the
+  prechecks are exact predicates for their conditions.
+- The original Phase 0 baseline doc incorrectly listed
+  `LoopDesugarer::post_annotate` as an offender; it has no
+  `post_annotate` impl at all. The actual seventh offender was
+  `PropertyLowerer::post_annotate`, which is now also migrated.
+
+**Gotchas / for the next implementer**
+
+- The current win is "skip the re-pass when the lowerer is a no-op
+  project-wide." The three big-cost participants on oscat
+  (`PolymorphismLowerer::post_annotate`, `AggregateTypeLowerer`,
+  `PolymorphismLowerer::post_index`) still re-index/re-annotate the
+  whole project when even a single class / aggregate-returning
+  function exists. Reducing those needs the lowerer to report *which
+  units* it actually mutated, not just "yes/no." That's Phase 4+.
+- The "exact-precheck" approach (Polymorphism dispatch, Aggregate,
+  Inheritance, Property) relies on the index field staying in sync
+  with what each lowerer actually touches. If anyone adds a new
+  lowerer feature that activates on a different signal than the
+  precheck checks (e.g. polymorphism that doesn't go through classes /
+  FBs / interfaces), the precheck must be widened or moved to a
+  lowerer-reports approach.
+- `RetainLowerer` now takes `&Index` not `Index`. If anyone changes the
+  visitor to need an owned index (e.g. for `transfer_constants`), the
+  signature has to revert; check the call sites.
+
+**Carries into Phase 4**
+
+- The natural next step is per-unit deltas: `lower_retain`,
+  `TableGenerator::generate`, etc. report a `Vec<UnitId>` describing
+  the units they touched. The pipeline then re-indexes only those,
+  and re-annotates the reverse-dependency closure built in Phase 2.
+- The remaining ~390 ms `annotate` phase on oscat is dominated by the
+  three participants that genuinely have work to do. They're the
+  primary Phase 4 targets.
+
 ### Phase 4 — Cross-unit lowerer hygiene
 
 Tighten the genuinely cross-unit passes so their deltas are honest and

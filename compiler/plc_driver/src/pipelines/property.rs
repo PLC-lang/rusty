@@ -19,6 +19,13 @@ impl PipelineParticipantMut for PropertyLowerer {
     }
 
     fn post_annotate(&mut self, project: AnnotatedProject) -> AnnotatedProject {
+        // Skip if no POU defines a property — there are no property accesses
+        // to rewrite into function calls, and the implicit re-annotate would
+        // reproduce the existing state.
+        if !project.index.has_any_properties() {
+            return project;
+        }
+
         let AnnotatedProject { mut units, index, annotations, diagnostics } = project;
         self.annotations = Some(annotations);
 

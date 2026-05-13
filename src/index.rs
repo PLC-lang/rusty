@@ -1775,6 +1775,13 @@ impl Index {
         self.properties.get_all(pou_name).unwrap_or(&vec![]).to_vec()
     }
 
+    /// Returns `true` if any POU in the index defines a property. Used by
+    /// the `PropertyLowerer` participant to decide whether the property-to-
+    /// function-call rewrite has any work to do on this project.
+    pub fn has_any_properties(&self) -> bool {
+        !self.properties.is_empty()
+    }
+
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
     /// a delimiter. (e.g. "PLC_PRG.x", or "MyClass.MyMethod.x")
     pub fn find_fully_qualified_variable(&self, fully_qualified_name: &str) -> Option<&VariableIndexEntry> {

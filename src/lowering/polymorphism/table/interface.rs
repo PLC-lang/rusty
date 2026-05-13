@@ -78,10 +78,16 @@ impl InterfaceTableGenerator {
     }
 
     /// Generates itable definitions and instances for every compilation unit.
-    pub fn generate(&mut self, index: &Index, units: &mut [CompilationUnit]) {
+    /// Returns `true` if any unit was modified.
+    pub fn generate(&mut self, index: &Index, units: &mut [CompilationUnit]) -> bool {
+        let mut changed = false;
         for unit in units.iter_mut() {
             let definitions = self.generate_itable_definitions(index, unit);
             let (internal_instances, external_instances) = self.generate_itable_instances(index, unit);
+
+            if !definitions.is_empty() || !internal_instances.is_empty() || !external_instances.is_empty() {
+                changed = true;
+            }
 
             unit.user_types.extend(definitions);
             if !internal_instances.is_empty() {
@@ -95,6 +101,7 @@ impl InterfaceTableGenerator {
                 );
             }
         }
+        changed
     }
 
     /// Creates `__itable_<interface>` struct definitions for every interface declared in this unit.

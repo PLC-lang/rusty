@@ -87,7 +87,10 @@ impl VirtualTableGenerator {
         VirtualTableGenerator { ids, generate_external_constructors }
     }
 
-    pub fn generate(&mut self, index: &Index, units: &mut Vec<CompilationUnit>) {
+    /// Returns `true` if any vtable definition or instance was emitted.
+    /// When `false`, the caller can skip the downstream re-index.
+    pub fn generate(&mut self, index: &Index, units: &mut Vec<CompilationUnit>) -> bool {
+        let mut changed = false;
         for unit in units {
             let mut definitions = Vec::new();
             let mut internal_instances = Vec::new();
@@ -106,6 +109,10 @@ impl VirtualTableGenerator {
                 }
             }
 
+            if !definitions.is_empty() || !internal_instances.is_empty() || !external_instances.is_empty() {
+                changed = true;
+            }
+
             unit.user_types.extend(definitions);
             unit.global_vars.push(VariableBlock::global().with_variables(internal_instances));
             if !external_instances.is_empty() {
@@ -116,6 +123,7 @@ impl VirtualTableGenerator {
                 );
             }
         }
+        changed
     }
 
     /// Patches a `__vtable: POINTER TO __VOID` member variable into the given POU
