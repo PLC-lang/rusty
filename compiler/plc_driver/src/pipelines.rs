@@ -347,6 +347,19 @@ impl<T: SourceContainer> BuildPipeline<T> {
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
             Box::new(LoopDesugarer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
+            // Table generation (post_index) and dispatch (post_annotate) used
+            // to share a single `PolymorphismLowerer` participant. They are
+            // now registered separately: the table pass via the per-unit
+            // `AutoLowerer` framework, the dispatch pass via the original
+            // `PipelineParticipantMut` impl (which carries diagnostics).
+            Box::new(unit_lowerer::AutoLowerer::new(
+                participant::PolymorphismTableUnitLowerer::new(
+                    self.context.provider(),
+                    self.context.should_generate_external_constructors(),
+                ),
+                unit_lowerer::LoweringStage::PostIndex,
+                self.context.provider(),
+            )),
             Box::new(PolymorphismLowerer::new(
                 self.context.provider(),
                 self.context.should_generate_external_constructors(),

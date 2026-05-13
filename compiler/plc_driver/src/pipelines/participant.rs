@@ -398,22 +398,41 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
     }
 }
 
-impl PipelineParticipantMut for PolymorphismLowerer {
-    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, mut index, _unresolvables } = indexed_project;
-        let mutated = self.table(&index, &mut project.units);
-        if mutated.is_empty() {
-            return IndexedProject { project, index, _unresolvables };
-        }
-        // Re-index only the units the table generator actually touched.
-        // The pipeline previously re-indexed the whole project here.
-        for unit_idx in &mutated {
-            let unit_id = plc::index::UnitId::source(*unit_idx);
-            index.reindex_unit(unit_id, &mut project.units[*unit_idx], self.ids.clone());
-        }
-        IndexedProject { project, index, _unresolvables }
+/// `UnitLowerer` wrapper for the vtable / itable generation pass.
+/// Registered separately from [`PolymorphismLowerer`] (which keeps its
+/// `post_annotate` dispatch impl) so the table pass plugs into the
+/// [`AutoLowerer`] framework while dispatch stays on the existing
+/// project-wide `PipelineParticipantMut`.
+pub struct PolymorphismTableUnitLowerer {
+    inner: PolymorphismLowerer,
+}
+
+impl PolymorphismTableUnitLowerer {
+    pub fn new(ids: ast::provider::IdProvider, generate_external_constructors: bool) -> Self {
+        Self { inner: PolymorphismLowerer::new(ids, generate_external_constructors) }
+    }
+}
+
+impl super::unit_lowerer::UnitLowerer for PolymorphismTableUnitLowerer {
+    fn name(&self) -> &'static str {
+        "PolymorphismLowerer (table)"
     }
 
+    fn lower_unit(
+        &mut self,
+        unit: &mut ast::ast::CompilationUnit,
+        ctx: &super::unit_lowerer::LoweringContext,
+    ) -> super::unit_lowerer::UnitChange {
+        let mutated = self.inner.table_one_unit(ctx.index, unit);
+        if mutated {
+            super::unit_lowerer::UnitChange::mutated()
+        } else {
+            super::unit_lowerer::UnitChange::none()
+        }
+    }
+}
+
+impl PipelineParticipantMut for PolymorphismLowerer {
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         // Dispatch lowering only has work to do if the project has any
         // polymorphic constructs (classes, function blocks, methods, or
