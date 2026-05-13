@@ -341,7 +341,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
     }
 
     pub fn get_default_mut_participants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
-        use participant::{ArrayLowerer, InitParticipant};
+        use participant::InitParticipant;
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
@@ -364,7 +364,11 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 self.context.provider(),
                 self.context.should_generate_external_constructors(),
             )),
-            Box::new(ArrayLowerer::new(self.context.provider())),
+            Box::new(unit_lowerer::AutoLowerer::new(
+                participant::ArrayUnitLowerer::new(self.context.provider()),
+                unit_lowerer::LoweringStage::PreAnnotate,
+                self.context.provider(),
+            )),
         ];
         mut_participants
     }

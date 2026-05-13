@@ -270,28 +270,50 @@ impl ArrayLowerer {
     pub fn new(id_provider: IdProvider) -> Self {
         Self { id_provider }
     }
+
+    /// Lowers literal-array assignments in a single compilation unit.
+    /// Returns `true` if the unit was modified (a literal array was
+    /// rewritten into indexed assignments and/or a counter loop). Used
+    /// by per-unit adapters such as the `UnitLowerer` framework.
+    pub fn lower_one_unit(
+        &mut self,
+        unit: &mut ast::ast::CompilationUnit,
+        index: &plc::index::Index,
+    ) -> bool {
+        array_lowering::lower_literal_arrays(unit, index, &mut self.id_provider)
+    }
 }
 
-impl PipelineParticipantMut for ArrayLowerer {
-    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { project: ParsedProject { mut units }, mut index, _unresolvables } =
-            indexed_project;
-        // Track which units actually had a literal array lowered (and a
-        // VAR_TEMP counter added) so we can re-index only those.
-        let mut mutated = Vec::new();
-        for (idx, unit) in units.iter_mut().enumerate() {
-            if array_lowering::lower_literal_arrays(unit, &index, &mut self.id_provider) {
-                mutated.push(idx);
-            }
+/// `UnitLowerer` wrapper for [`ArrayLowerer`]. Walks each unit
+/// independently — literal-array lowering is naturally per-unit (counter
+/// variables are added to the same POU's `VAR_TEMP`). Registered as
+/// `AutoLowerer::new(ArrayUnitLowerer::new(...), LoweringStage::PreAnnotate, ids)`.
+pub struct ArrayUnitLowerer {
+    inner: ArrayLowerer,
+}
+
+impl ArrayUnitLowerer {
+    pub fn new(ids: ast::provider::IdProvider) -> Self {
+        Self { inner: ArrayLowerer::new(ids) }
+    }
+}
+
+impl super::unit_lowerer::UnitLowerer for ArrayUnitLowerer {
+    fn name(&self) -> &'static str {
+        "ArrayLowerer"
+    }
+
+    fn lower_unit(
+        &mut self,
+        unit: &mut ast::ast::CompilationUnit,
+        ctx: &super::unit_lowerer::LoweringContext,
+    ) -> super::unit_lowerer::UnitChange {
+        let mutated = self.inner.lower_one_unit(unit, ctx.index);
+        if mutated {
+            super::unit_lowerer::UnitChange::mutated()
+        } else {
+            super::unit_lowerer::UnitChange::none()
         }
-        if mutated.is_empty() {
-            return IndexedProject { project: ParsedProject { units }, index, _unresolvables };
-        }
-        for idx in &mutated {
-            let unit_id = plc::index::UnitId::source(*idx);
-            index.reindex_unit(unit_id, &mut units[*idx], self.id_provider.clone());
-        }
-        IndexedProject { project: ParsedProject { units }, index, _unresolvables }
     }
 }
 
