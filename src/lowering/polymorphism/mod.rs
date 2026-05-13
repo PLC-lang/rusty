@@ -47,20 +47,6 @@ impl PolymorphismLowerer {
         TableGenerator::generate(self.ids.clone(), self.generate_external_constructors, index, units)
     }
 
-    /// Same as [`Self::table`] but for a single compilation unit. Returns
-    /// `true` if the unit was modified (a vtable or itable was emitted).
-    /// Used by per-unit adapters such as the `UnitLowerer` framework in
-    /// the driver.
-    pub fn table_one_unit(&self, index: &Index, unit: &mut CompilationUnit) -> bool {
-        !TableGenerator::generate(
-            self.ids.clone(),
-            self.generate_external_constructors,
-            index,
-            std::slice::from_mut(unit),
-        )
-        .is_empty()
-    }
-
     /// Rewrites call sites and type declarations to route through the generated tables.
     ///
     /// 1. Interface dispatch: replaces interface-typed declarations with `__FATPOINTER`,
