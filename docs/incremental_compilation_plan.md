@@ -816,7 +816,10 @@ base branch.
 | 7 | `incremental/phase-4-retain-array-per-unit` | PR #6 | `perf(driver): per-unit re-index for Retain + Array` | Smaller follow-up. Uniform pattern across the remaining bool-returning lowerers. |
 | 8 | `incremental/phase-4.1-lowering-bookkeeper` | PR #7 | `feat(driver): LoweringBookkeeper helper for participant bookkeeping` _(landed locally)_ | Option A from the ergonomics brainstorm. No new trait; existing participants migrate one-by-one in follow-ups. AggregateTypeLowerer migrated in the same commit as the worked example. |
 | 9 | `incremental/phase-4.2-unit-lowerer-trait` | PR #8 | `feat(driver): UnitLowerer trait + AutoLowerer adapter` _(landed locally)_ | Option B. New lowerers opt in. `PipelineParticipantMut` keeps working. `RetainParticipant`'s `post_index` migrated as the worked example. |
-| 10 | `incremental/phase-5-incremental-driver` | PR #9 _or later_ | _(future)_ `feat(driver): in-process incremental driver` | The LSP-ready core. Phase 5 of the plan above. |
+| 10 | `incremental/phase-4.3-prepare-pass` | PR #9 | `feat(driver): UnitLowerer::prepare for two-pass context-gather` _(landed locally)_ | Optional pre-pass for lowerers that scan all units before transforming any. Default no-op; existing impls unaffected. |
+| 11 | `incremental/phase-4.4-array-migration` | PR #10 | `refactor(driver): migrate ArrayLowerer to UnitLowerer` _(landed locally)_ | Old direct `PipelineParticipantMut` impl removed; replaced by `ArrayUnitLowerer` registered through `AutoLowerer`. |
+| ~~12~~ | ~~`incremental/phase-4.5-polymorphism-table-migration`~~ | ~~PR #11~~ | `refactor(driver): migrate PolymorphismLowerer table to UnitLowerer` **_(reverted — 13 initializer tests broke; see Phase 4.5 status below for the root-cause sketch)_** | Splits the polymorphism participant; needs follow-up to keep the table pass on the same `PolymorphismLowerer` instance as dispatch. |
+| 12 | `incremental/phase-5-incremental-driver` | PR #11 _or later_ | _(future)_ `feat(driver): in-process incremental driver` | The LSP-ready core. Phase 5 of the plan above. |
 
 Stacked-diff workflow:
 
@@ -934,10 +937,84 @@ bit-identical to Phase 4.1; oscat-multi annotate median sits at ~149 ms.
   `UnitLowerer` (concise, recommended) or `PipelineParticipantMut`
   (full control, still supported).
 
-**Two-pass support is not yet in**: PR #1701-style "gather context
-across all units, then transform with the context" needs an optional
-`gather_context` step on `UnitLowerer`. Deferred to a small follow-up
-PR (Phase 4.3 in the chain table).
+**Two-pass support landed in Phase 4.3 below.**
+
+### Phase 4.3 — Status
+
+_Landed locally._
+
+**Landed**
+
+- `UnitLowerer::prepare(&[&CompilationUnit], &LoweringContext)` —
+  optional pre-pass for two-pass lowerers (gather context, then
+  transform). Default no-op. `AutoLowerer` calls `prepare` once
+  before walking units, building a `Vec<&CompilationUnit>` view at
+  each stage so existing `Vec<AnnotatedUnit>` (post-annotate) and
+  `Vec<CompilationUnit>` (pre-annotate) shapes both work without
+  cloning units.
+- One demo test (`PrepareCounter`) confirming the contract: prepare
+  sees every unit before any `lower_unit` call.
+
+The two-pass shape PR #1701's `ReferenceToReturnParticipant` uses
+(`gather_context` then `lower_reference_to_return`) now has a
+first-class home on `UnitLowerer` — once #1701 lands, its
+participant impl could collapse onto this API.
+
+### Phase 4.4 — Status
+
+_Landed locally._
+
+**Landed**
+
+- `ArrayLowerer::lower_one_unit(&mut CompilationUnit, &Index) -> bool`
+  added in `participant.rs`; calls the existing
+  `array_lowering::lower_literal_arrays` free function on a single
+  unit.
+- `ArrayUnitLowerer` wrapper implements `UnitLowerer`. Registered as
+  `AutoLowerer::new(ArrayUnitLowerer::new(...), PreAnnotate, ids)`.
+- Old `impl PipelineParticipantMut for ArrayLowerer` removed.
+
+The bookkeeping (per-unit re-index when any unit was mutated) moves
+into `AutoLowerer`. Participant body went from ~15 lines to a 3-line
+`lower_unit`.
+
+### Phase 4.5 — Status
+
+_Reverted (commit `85181cb1a3`)._ The attempted migration of
+`PolymorphismLowerer::post_index` (vtable / itable table pass) into a
+separate `UnitLowerer` registered alongside the surviving
+`PolymorphismLowerer` participant (which kept its `post_annotate`
+dispatch impl) passed `cargo check`, `cargo xtask lit`, and
+`cargo test --workspace --test-threads=8` but broke **13 initializer
+tests** in `plc_lowering/src/initializer.rs`: the
+`__vtable__ctor(self.__vtable)` constructor call disappeared from
+generated constructor bodies (e.g.
+`alias_variable_in_function_block_wrapped_in_adr`,
+`class_with_fb_init_calls_user_defined_constructor`,
+`fb_without_fb_init_has_no_user_defined_call`).
+
+Suspected root cause is an interaction between the per-unit table
+pass and the later `InitParticipant`'s constructor-synthesis. The
+table pass patches `__vtable` members into each unit's POUs and adds
+vtable types into `user_types`; `Index::reindex_unit` then refreshes
+the global index. By the time `InitParticipant` walks members and
+emits per-member `__ctor` calls, either:
+
+- the `IdProvider` shared with the rest of the pipeline lost a
+  sequence (the wrapper builds a new `PolymorphismLowerer` whose
+  state — including vtable-instance type names that hash the source
+  path — diverged), or
+- the per-unit `reindex_unit` doesn't make the patched `__vtable`
+  member visible to `InitParticipant` in the form it expects.
+
+For the next attempt: keep the table pass running through the
+*same* `PolymorphismLowerer` instance (don't construct a fresh one
+inside the wrapper), and add a focused snapshot test that asserts
+the constructor body shape after splitting — exactly the shape the
+13 reverted snapshots already capture. Until then,
+`PolymorphismLowerer::post_index` stays on the original
+`PipelineParticipantMut` path. The per-unit reindex landed in the
+Phase 4 step 1 commit `4cca9fdeb5` is still in effect.
 
 ### Lowerer-API ergonomics work (post-chain)
 
