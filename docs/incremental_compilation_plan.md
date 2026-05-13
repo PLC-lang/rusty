@@ -788,6 +788,105 @@ blockers right now.
 
 ---
 
+## Release strategy & PR chain
+
+This whole effort lands **after v1**. The v1 cut-line is PR #1701
+("properties now support the REFERENCE TO type") plus the rest of the
+`1.0` label backlog. We let v1 finish first; this work rebases onto
+post-v1 `master` once it does. The rebase touches one substantive hunk
+(see "PR #1701 interaction" below); everything else is textual
+adjacency.
+
+The work is split into a chain of small PRs rather than one giant
+branch. Each PR is reviewable on its own, and each one builds on the
+previous (stacked diffs). Nothing is opened yet — this section is the
+tracking ledger for what will be opened, in what order, against which
+base branch.
+
+### PR chain
+
+| # | Branch / scope | Base | Commits on this branch | Notes |
+|---|---|---|---|---|
+| 1 | `incremental/phase-0-timing` | `master` (post-v1) | `docs: add incremental compilation plan` · `feat(driver): per-phase timing instrumentation` · `docs(book): phase-timing development page` | Plumbing only. No behaviour change. Baselines doc included so reviewers see the target. |
+| 2 | `incremental/phase-1-unit-id` | PR #1 | `feat(index): per-unit symbol ownership` | Adds `UnitId`, side-table provenance, `Index::remove_unit`. Still no behaviour change; snapshots stay byte-identical via `#[serde(skip)]`. |
+| 3 | `incremental/phase-2-signature-graph` | PR #2 | `feat(index): signature hashing and reverse-dependency graph` | Adds `SignatureHash`, `ReverseDependencyGraph`, dep-tracker audit doc. Still inert plumbing. |
+| 4 | `incremental/phase-3-skip-no-op-re-passes` | PR #3 | `perf(driver): skip redundant lowering re-passes when nothing to do` | **Headline win starts here.** Precheck/bool gates on each lowering participant. oscat `annotate` drops from 252 ms to 162 ms in the docs. |
+| 5 | `incremental/phase-4-polymorphism-table-per-unit` | PR #4 | `perf(driver): per-unit re-index after polymorphism table generation` · new `tests/lit/multi/incremental_polymorphism_p4/` | First per-unit reindex. Adds `Index::reindex_unit`. |
+| 6 | `incremental/phase-4-aggregate-partial-reannotate` | PR #5 | `perf(driver): partial re-annotation after AggregateTypeLowerer` · new cross-unit aggregate lit test | Adds `AnnotatedProject::reannotate_units`, `AnnotationMap::into_any_box`, `compute_reannotate_closure`. oscat `annotate` drops to 152 ms. Largest single behavioural surface; expect the most review. |
+| 7 | `incremental/phase-4-retain-array-per-unit` | PR #6 | `perf(driver): per-unit re-index for Retain + Array` | Smaller follow-up. Uniform pattern across the remaining bool-returning lowerers. |
+| 8 | `incremental/phase-4.1-lowering-bookkeeper` | PR #7 | _(future)_ `feat(driver): LoweringBookkeeper helper for participant bookkeeping` | Option A from the ergonomics brainstorm. No new trait; existing participants migrate one-by-one in follow-ups. |
+| 9 | `incremental/phase-4.2-unit-lowerer-trait` | PR #8 | _(future)_ `feat(driver): UnitLowerer trait + AutoLowerer adapter` | Option B. New lowerers can opt in. `PipelineParticipantMut` keeps working. |
+| 10 | `incremental/phase-5-incremental-driver` | PR #9 _or later_ | _(future)_ `feat(driver): in-process incremental driver` | The LSP-ready core. Phase 5 of the plan above. |
+
+Stacked-diff workflow:
+
+- Each PR's *target* branch is the previous PR's *head* branch. GitHub
+  auto-rebases the next one onto `master` when the previous lands.
+- Once a PR is opened, comment on the dependents to mark them
+  "blocked by #N" so reviewers see the chain.
+- We rebase, don't squash, except inside a PR where multiple commits
+  obviously belong together (`docs: ... + feat(driver): ... + docs(book): ...`
+  on PR #1, for example).
+
+### PR #1701 interaction
+
+PR #1701 ("fix: properties now support the REFERENCE TO type") is
+scoped for v1 and will land first. The conflict surface for this work
+is one substantive hunk and several textual ones:
+
+| File | Their change | Our change | Conflict severity |
+|---|---|---|---|
+| `compiler/plc_driver/src/pipelines.rs` `get_default_mut_participants` | reorders participant list | none of substance | trivial |
+| `compiler/plc_driver/src/pipelines/participant.rs` `InitParticipant` | moves hook `pre_annotate` → `post_annotate` | none | trivial |
+| `compiler/plc_driver/src/pipelines/participant.rs` `ArrayLowerer` | moves hook to `post_annotate`, body ends in `.index().annotate()` | keeps hook on `pre_annotate`, replaces body with per-unit reindex | **needs reconciliation in PR #7** |
+| `compiler/plc_driver/src/pipelines/participant.rs` `ReferenceToReturnParticipant` | adds new `post_annotate` doing `.index().annotate()` | none | additive — leaves a follow-up opportunity to migrate the new participant onto the per-unit path |
+| `compiler/plc_lowering/src/reference_to_return.rs` | +491 lines | none | clean |
+| `src/lowering/polymorphism/dispatch/interface.rs` | +113 lines for property dispatch | none | clean for now; relevant when Phase 4 dispatch migration happens later |
+
+**Rebase plan for the chain post-#1701:**
+
+1. PR #1701 merges to `master`.
+2. Rebase `incremental_compilation` onto new `master`. The only real
+   conflict is on `ArrayLowerer`'s impl block — keep our per-unit
+   reindex body but move it to the new `post_annotate` hook position
+   they introduced. (Per-unit reindex composes with either hook; the
+   behaviour is the same.)
+3. Re-run workspace tests + lit; numbers in
+   `docs/baselines/phase4_progress.md` may shift slightly with the
+   new participant order. Re-capture if they do.
+4. Split the rebased branch into the seven PRs above (each PR =
+   `git cherry-pick`-style on a fresh branch).
+
+**Optional follow-up after the chain lands**: a small PR migrating
+`ReferenceToReturnParticipant::post_annotate` from `.index().annotate()`
+to the per-unit + closure pattern. This wasn't part of #1701's scope
+and is exactly the kind of "new participant immediately benefits from
+the framework" win the ergonomics brainstorm is about.
+
+### Lowerer-API ergonomics work (post-chain)
+
+The full brainstorm lives in `~/.claude/plans/phase4-extension-api-ergonomics.md`
+(not committed; it's a working doc). The summary that's relevant for
+this plan:
+
+- **Option A** (`LoweringBookkeeper` helper): no trait changes,
+  participants opt in. Reduces the per-participant boilerplate that
+  Phases 3–4 added. Targeted as PR #8 above.
+- **Option B** (`UnitLowerer` trait + `AutoLowerer<T>` adapter): new
+  lowerers can write a tight per-unit transform and get all
+  bookkeeping for free. `PipelineParticipantMut` keeps working.
+  Targeted as PR #9 above.
+- **Option C** (rewrite `PipelineParticipantMut` to return a delta):
+  explicitly ruled out. Breaks every existing impl, every in-flight
+  PR, and gives no benefit Option B doesn't.
+
+The Option A/B distinction matters for PR coordination too: A is the
+substrate B is built on, and a participant author can mix the two
+freely. New PRs in flight at the time of these slices don't need to
+do anything special.
+
+---
+
 ## Status log
 
 A subsection per phase is appended here as work lands. The intent is that
