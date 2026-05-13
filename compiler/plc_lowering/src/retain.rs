@@ -54,18 +54,23 @@ impl RetainParticipant {
         Self { ids }
     }
 
-    /// Lowers `RETAIN` variables across the project. Returns `true` if any
-    /// unit was actually rewritten (a retain variable was hoisted to a
-    /// global, or a retain block was added). When `false`, the caller can
-    /// skip the downstream re-index because the AST and the variable
-    /// table are unchanged.
-    pub fn lower_retain(&mut self, units: &mut [CompilationUnit], index: &plc::index::Index) -> bool {
+    /// Lowers `RETAIN` variables across the project. Returns the positional
+    /// indices of units that were actually rewritten (a retain variable was
+    /// hoisted to a global, or a retain block was demoted out of a program).
+    /// An empty `Vec` means no unit changed; the caller can skip the
+    /// downstream re-index entirely.
+    pub fn lower_retain(&mut self, units: &mut [CompilationUnit], index: &plc::index::Index) -> Vec<usize> {
         let mut lowerer =
             RetainLowerer { ids: self.ids.clone(), index, context: Context::default(), changed: false };
-        for unit in units {
+        let mut mutated = Vec::new();
+        for (idx, unit) in units.iter_mut().enumerate() {
+            lowerer.changed = false;
             lowerer.visit_compilation_unit(unit);
+            if lowerer.changed {
+                mutated.push(idx);
+            }
         }
-        lowerer.changed
+        mutated
     }
 }
 

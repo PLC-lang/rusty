@@ -274,21 +274,24 @@ impl ArrayLowerer {
 
 impl PipelineParticipantMut for ArrayLowerer {
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { project: ParsedProject { mut units }, index, _unresolvables } = indexed_project;
-        let mut changed = false;
-        for unit in &mut units {
+        let IndexedProject { project: ParsedProject { mut units }, mut index, _unresolvables } =
+            indexed_project;
+        // Track which units actually had a literal array lowered (and a
+        // VAR_TEMP counter added) so we can re-index only those.
+        let mut mutated = Vec::new();
+        for (idx, unit) in units.iter_mut().enumerate() {
             if array_lowering::lower_literal_arrays(unit, &index, &mut self.id_provider) {
-                changed = true;
+                mutated.push(idx);
             }
         }
-        let project = ParsedProject { units };
-        if changed {
-            // Re-index since we modified the AST (new statements, possible new alloca variables)
-            project.index(self.id_provider.clone())
-        } else {
-            // Nothing was lowered; the existing index is still authoritative.
-            IndexedProject { project, index, _unresolvables }
+        if mutated.is_empty() {
+            return IndexedProject { project: ParsedProject { units }, index, _unresolvables };
         }
+        for idx in &mutated {
+            let unit_id = plc::index::UnitId::source(*idx);
+            index.reindex_unit(unit_id, &mut units[*idx], self.id_provider.clone());
+        }
+        IndexedProject { project: ParsedProject { units }, index, _unresolvables }
     }
 }
 
@@ -448,15 +451,17 @@ impl PipelineParticipantMut for PolymorphismLowerer {
 
 impl PipelineParticipantMut for RetainParticipant {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, index, _unresolvables } = indexed_project;
-        let changed = self.lower_retain(&mut project.units, &index);
-        if changed {
-            project.index(self.ids.clone())
-        } else {
-            // The lowerer reported no rewrites; the existing index is still
-            // authoritative.
-            IndexedProject { project, index, _unresolvables }
+        let IndexedProject { mut project, mut index, _unresolvables } = indexed_project;
+        let mutated = self.lower_retain(&mut project.units, &index);
+        if mutated.is_empty() {
+            return IndexedProject { project, index, _unresolvables };
         }
+        // Re-index only the units the retain lowerer actually rewrote.
+        for idx in &mutated {
+            let unit_id = plc::index::UnitId::source(*idx);
+            index.reindex_unit(unit_id, &mut project.units[*idx], self.ids.clone());
+        }
+        IndexedProject { project, index, _unresolvables }
     }
 }
 
