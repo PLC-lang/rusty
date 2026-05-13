@@ -17,6 +17,25 @@ use crate::{
 use plc_source::source_location::SourceLocation;
 
 pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
+    // XXX: Track which hardware-backing globals (__PI_*, __M_*, __G_*) have already been created.
+    // Seeded from existing globals so re-runs of the pipeline (e.g. lowering re-indexes) don't
+    // produce duplicates. This is a workaround for the fact that pre_process is called multiple
+    // times during the pipeline and should be removed when the lowering phase is refactored.
+    let mut known_hw_globals: rustc_hash::FxHashSet<String> = unit
+        .global_vars
+        .iter()
+        .flat_map(|block| &block.variables)
+        .filter(|var| {
+            var.name.starts_with("__PI_") || var.name.starts_with("__M_") || var.name.starts_with("__G_")
+        })
+        .map(|var| var.name.clone())
+        .collect();
+
+    // POU-scoped variables with a complete hardware address (FB / PROGRAM / FUNCTION / METHOD
+    // blocks) — handled before the data-type rewrite below so the still-inline alias-pointer
+    // definition unwraps to the pointee type for the synthesized backing global.
+    process_pou_hardware_variables(unit, &mut id_provider, &mut known_hw_globals);
+
     //process all local variables from POUs
     for pou in unit.pous.iter_mut() {
         //Find all generic types in that pou
@@ -35,20 +54,6 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
             process_property(property, &interface.ident.name, LinkageType::Internal, &mut unit.user_types);
         }
     }
-
-    // XXX: Track which hardware-backing globals (__PI_*, __M_*, __G_*) have already been created.
-    // Seeded from existing globals so re-runs of the pipeline (e.g. lowering re-indexes) don't
-    // produce duplicates. This is a workaround for the fact that pre_process is called multiple
-    // times during the pipeline and should be removed when the lowering phase is refactored.
-    let mut known_hw_globals: rustc_hash::FxHashSet<String> = unit
-        .global_vars
-        .iter()
-        .flat_map(|block| &block.variables)
-        .filter(|var| {
-            var.name.starts_with("__PI_") || var.name.starts_with("__M_") || var.name.starts_with("__G_")
-        })
-        .map(|var| var.name.clone())
-        .collect();
 
     //process all variables from GVLs
     process_global_variables(unit, &mut id_provider, &mut known_hw_globals);
@@ -332,6 +337,50 @@ fn process_struct_hardware_variables(
                         }
                     }
                 }
+            }
+        }
+    }
+
+    update_generated_globals(unit, mangled_globals);
+}
+
+fn process_pou_hardware_variables(
+    unit: &mut CompilationUnit,
+    id_provider: &mut IdProvider,
+    known_hw_globals: &mut rustc_hash::FxHashSet<String>,
+) {
+    let mut mangled_globals = Vec::new();
+
+    for pou in unit.pous.iter_mut() {
+        for var in pou.variable_blocks.iter_mut().flat_map(|b| b.variables.iter_mut()) {
+            let Some(ref node) = var.address else { continue };
+            let AstStatement::HardwareAccess(hardware) = &node.stmt else { continue };
+
+            // Incomplete `AT %I*` placeholders are bound at runtime via VAR_CONFIG; E136 already
+            // rejects them in FUNCTION / METHOD.
+            if hardware.is_template() {
+                continue;
+            }
+
+            let name = hardware.get_mangled_variable_name();
+            let ref_ty = var.data_type_declaration.get_inner_pointer_ty();
+
+            let mangled_initializer = AstFactory::create_member_reference(
+                AstFactory::create_identifier(&name, SourceLocation::internal(), id_provider.next_id()),
+                None,
+                id_provider.next_id(),
+            );
+
+            var.initializer = Some(mangled_initializer);
+
+            if known_hw_globals.insert(name.clone()) {
+                mangled_globals.push(Variable {
+                    name,
+                    data_type_declaration: ref_ty.unwrap_or(var.data_type_declaration.clone()),
+                    initializer: None,
+                    address: None,
+                    location: node.location.clone(),
+                });
             }
         }
     }
