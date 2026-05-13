@@ -1,6 +1,6 @@
 //! Pipeline phase timing.
 //!
-//! Enabled by setting `PLC_INCR_TIMING=1` in the environment. When enabled,
+//! Enabled by setting `PLC_TIMING=1` in the environment. When enabled,
 //! each timed scope logs its elapsed wall-clock time to stderr on drop,
 //! indented by nesting depth so re-entrant work (e.g. a participant that
 //! triggers a project-wide re-index) is visible.
@@ -19,14 +19,14 @@ thread_local! {
 
 fn enabled() -> bool {
     INIT.call_once(|| {
-        let on = std::env::var("PLC_INCR_TIMING").map(|v| !v.is_empty() && v != "0").unwrap_or(false);
+        let on = std::env::var("PLC_TIMING").map(|v| !v.is_empty() && v != "0").unwrap_or(false);
         ENABLED.store(on, Ordering::Relaxed);
     });
     ENABLED.load(Ordering::Relaxed)
 }
 
 /// RAII guard that records a labelled phase timing. Logs to stderr on drop
-/// when `PLC_INCR_TIMING` is enabled. No-op otherwise.
+/// when `PLC_TIMING` is enabled. No-op otherwise.
 pub struct PhaseTimer {
     label: String,
     start: Instant,

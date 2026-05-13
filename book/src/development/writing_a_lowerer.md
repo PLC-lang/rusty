@@ -320,7 +320,7 @@ difference is the visitor's state pattern stays under your control.
 
 ## Debugging
 
-Set `PLC_INCR_TIMING=1` to see every participant's wall-clock time
+Set `PLC_TIMING=1` to see every participant's wall-clock time
 in the build trace. Wrappers forward their `name()` through, so
 e.g. an `AutoLowerer<MyUnitLowerer>` shows up as
 `post_index/MyUnitLowerer: 1.234ms` rather than as

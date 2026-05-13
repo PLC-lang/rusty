@@ -10,7 +10,7 @@ representative multi-unit corpus.
 Run from the repo root after cloning oscat into `.baseline/oscat/`:
 
     git clone --depth 1 https://github.com/plc-lang/oscat .baseline/oscat
-    python3 docs/baselines/oscat_multi_split.py
+    python3 scripts/oscat_multi_split.py
 
 The output directory is gitignored. Pass `--out` to override.
 """

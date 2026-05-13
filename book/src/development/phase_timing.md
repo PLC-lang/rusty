@@ -9,11 +9,11 @@ pipeline.
 
 ## Enabling
 
-Set the environment variable `PLC_INCR_TIMING=1` before invoking the
+Set the environment variable `PLC_TIMING=1` before invoking the
 compiler:
 
 ```sh
-PLC_INCR_TIMING=1 plc --check my_project.st
+PLC_TIMING=1 plc --check my_project.st
 ```
 
 When the variable is unset (or set to `0` / empty), the timers compile
