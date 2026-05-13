@@ -27,3 +27,4 @@
   - [Model-to-Model Conversion](./cfc/m2m.md)
 - [Development]()
   - [Profiling Build Phases](./development/phase_timing.md)
+  - [Writing a Lowering Pass](./development/writing_a_lowerer.md)
