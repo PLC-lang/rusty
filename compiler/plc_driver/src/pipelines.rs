@@ -44,7 +44,7 @@ use plc_header_generator::{
 use plc_index::GlobalContext;
 use plc_lowering::{
     control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, loops::LoopDesugarer,
-    reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
+    reference_to_return::ReferenceToReturnParticipant,
 };
 use project::{
     object::Object,
@@ -60,6 +60,7 @@ use toml;
 pub mod bookkeeping;
 pub mod participant;
 pub mod timing;
+pub mod unit_lowerer;
 
 use timing::PhaseTimer;
 pub mod property;
@@ -352,7 +353,11 @@ impl<T: SourceContainer> BuildPipeline<T> {
             )),
             Box::new(ControlStatementParticipant::new(self.context.provider())),
             Box::new(ReferenceToReturnParticipant::new(self.context.provider())),
-            Box::new(RetainParticipant::new(self.context.provider())),
+            Box::new(unit_lowerer::AutoLowerer::new(
+                participant::RetainUnitLowerer::new(self.context.provider()),
+                unit_lowerer::LoweringStage::PostIndex,
+                self.context.provider(),
+            )),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(

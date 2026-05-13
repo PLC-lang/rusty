@@ -72,6 +72,16 @@ impl RetainParticipant {
         }
         mutated
     }
+
+    /// Same as [`Self::lower_retain`] for a single unit. Returns `true` if
+    /// any retain variable was rewritten. Used by per-unit adapters such
+    /// as the `UnitLowerer` framework in the driver.
+    pub fn lower_one_unit(&mut self, unit: &mut CompilationUnit, index: &plc::index::Index) -> bool {
+        let mut lowerer =
+            RetainLowerer { ids: self.ids.clone(), index, context: Context::default(), changed: false };
+        lowerer.visit_compilation_unit(unit);
+        lowerer.changed
+    }
 }
 
 struct RetainLowerer<'idx> {

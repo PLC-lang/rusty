@@ -815,7 +815,7 @@ base branch.
 | 6 | `incremental/phase-4-aggregate-partial-reannotate` | PR #5 | `perf(driver): partial re-annotation after AggregateTypeLowerer` · new cross-unit aggregate lit test | Adds `AnnotatedProject::reannotate_units`, `AnnotationMap::into_any_box`, `compute_reannotate_closure`. oscat `annotate` drops to 152 ms. Largest single behavioural surface; expect the most review. |
 | 7 | `incremental/phase-4-retain-array-per-unit` | PR #6 | `perf(driver): per-unit re-index for Retain + Array` | Smaller follow-up. Uniform pattern across the remaining bool-returning lowerers. |
 | 8 | `incremental/phase-4.1-lowering-bookkeeper` | PR #7 | `feat(driver): LoweringBookkeeper helper for participant bookkeeping` _(landed locally)_ | Option A from the ergonomics brainstorm. No new trait; existing participants migrate one-by-one in follow-ups. AggregateTypeLowerer migrated in the same commit as the worked example. |
-| 9 | `incremental/phase-4.2-unit-lowerer-trait` | PR #8 | _(future)_ `feat(driver): UnitLowerer trait + AutoLowerer adapter` | Option B. New lowerers can opt in. `PipelineParticipantMut` keeps working. |
+| 9 | `incremental/phase-4.2-unit-lowerer-trait` | PR #8 | `feat(driver): UnitLowerer trait + AutoLowerer adapter` _(landed locally)_ | Option B. New lowerers opt in. `PipelineParticipantMut` keeps working. `RetainParticipant`'s `post_index` migrated as the worked example. |
 | 10 | `incremental/phase-5-incremental-driver` | PR #9 _or later_ | _(future)_ `feat(driver): in-process incremental driver` | The LSP-ready core. Phase 5 of the plan above. |
 
 Stacked-diff workflow:
@@ -893,6 +893,51 @@ post-Phase-4 numbers (~150 ms median annotate, noise band ~±10 ms).
 have NOT been migrated yet** — each is a tiny follow-up PR.
 Migrating them is mechanical (the bookkeeper handles their case
 trivially since they only mutate units, no signature changes).
+
+### Phase 4.2 — Status
+
+_Landed locally._
+
+**Landed**
+
+- `compiler/plc_driver/src/pipelines/unit_lowerer.rs`: new module with
+  `LoweringStage`, `LoweringContext`, `UnitLowerer` trait, `UnitChange`
+  struct, `AutoLowerer<T>` adapter implementing
+  `PipelineParticipantMut`. The adapter walks units at the registered
+  stage, calls `T::lower_unit` per unit, aggregates `UnitChange` into a
+  `LoweringBookkeeper`, and dispatches the bookkeeping. `name()`
+  forwards through so phase-timing labels stay readable.
+- `RetainParticipant::lower_one_unit(&mut CompilationUnit, &Index) -> bool`
+  added in `plc_lowering/src/retain.rs` for use by adapters.
+- `RetainUnitLowerer` wrapper in `participant.rs` implements
+  `UnitLowerer` by delegating to `RetainParticipant::lower_one_unit`.
+  Registered via `AutoLowerer::new(...)` in `get_default_mut_participants`,
+  replacing the previous `Box::new(RetainParticipant::new(...))`. The old
+  `impl PipelineParticipantMut for RetainParticipant` is removed.
+- 5 unit tests in `unit_lowerer.rs` covering `UnitChange` constructors,
+  `absorb`'s handling of mutated / unmutated / signature-only changes.
+
+`PipelineParticipantMut` is untouched. Existing participants
+(`PolymorphismLowerer`, `AggregateTypeLowerer`, `InheritanceLowerer`,
+`ArrayLowerer`, etc.) still use it. Workspace tests + lit suite are
+bit-identical to Phase 4.1; oscat-multi annotate median sits at ~149 ms.
+
+**What this enables**
+
+- A new lowerer author writes a `UnitLowerer` impl (one trait method)
+  and registers it via `AutoLowerer::new(impl, stage, ids)`. The
+  framework drives the per-unit walk, runs `evaluate_constants` when
+  flagged, computes the reverse-dep closure, partial-re-annotates the
+  closure in parallel. None of that bookkeeping appears in the
+  lowerer's source.
+- New PRs in flight that need a new lowering pass can either implement
+  `UnitLowerer` (concise, recommended) or `PipelineParticipantMut`
+  (full control, still supported).
+
+**Two-pass support is not yet in**: PR #1701-style "gather context
+across all units, then transform with the context" needs an optional
+`gather_context` step on `UnitLowerer`. Deferred to a small follow-up
+PR (Phase 4.3 in the chain table).
 
 ### Lowerer-API ergonomics work (post-chain)
 

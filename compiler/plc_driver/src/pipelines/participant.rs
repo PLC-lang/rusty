@@ -425,19 +425,37 @@ impl PipelineParticipantMut for PolymorphismLowerer {
     }
 }
 
-impl PipelineParticipantMut for RetainParticipant {
-    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, mut index, _unresolvables } = indexed_project;
-        let mutated = self.lower_retain(&mut project.units, &index);
-        if mutated.is_empty() {
-            return IndexedProject { project, index, _unresolvables };
+/// `UnitLowerer` wrapper for [`RetainParticipant`]. The retain rewrite
+/// is naturally per-unit (each unit's `VAR RETAIN` blocks are hoisted to
+/// the same unit's global vars), so this is the first lowerer ported to
+/// the new adapter framework. Registered as
+/// `AutoLowerer::new(RetainUnitLowerer::new(...), LoweringStage::PostIndex, ids)`.
+pub struct RetainUnitLowerer {
+    inner: RetainParticipant,
+}
+
+impl RetainUnitLowerer {
+    pub fn new(ids: ast::provider::IdProvider) -> Self {
+        Self { inner: RetainParticipant::new(ids) }
+    }
+}
+
+impl super::unit_lowerer::UnitLowerer for RetainUnitLowerer {
+    fn name(&self) -> &'static str {
+        "RetainParticipant"
+    }
+
+    fn lower_unit(
+        &mut self,
+        unit: &mut ast::ast::CompilationUnit,
+        ctx: &super::unit_lowerer::LoweringContext,
+    ) -> super::unit_lowerer::UnitChange {
+        let mutated = self.inner.lower_one_unit(unit, ctx.index);
+        if mutated {
+            super::unit_lowerer::UnitChange::mutated()
+        } else {
+            super::unit_lowerer::UnitChange::none()
         }
-        // Re-index only the units the retain lowerer actually rewrote.
-        for idx in &mutated {
-            let unit_id = plc::index::UnitId::source(*idx);
-            index.reindex_unit(unit_id, &mut project.units[*idx], self.ids.clone());
-        }
-        IndexedProject { project, index, _unresolvables }
     }
 }
 
