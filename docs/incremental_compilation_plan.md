@@ -814,7 +814,7 @@ base branch.
 | 5 | `incremental/phase-4-polymorphism-table-per-unit` | PR #4 | `perf(driver): per-unit re-index after polymorphism table generation` · new `tests/lit/multi/incremental_polymorphism_p4/` | First per-unit reindex. Adds `Index::reindex_unit`. |
 | 6 | `incremental/phase-4-aggregate-partial-reannotate` | PR #5 | `perf(driver): partial re-annotation after AggregateTypeLowerer` · new cross-unit aggregate lit test | Adds `AnnotatedProject::reannotate_units`, `AnnotationMap::into_any_box`, `compute_reannotate_closure`. oscat `annotate` drops to 152 ms. Largest single behavioural surface; expect the most review. |
 | 7 | `incremental/phase-4-retain-array-per-unit` | PR #6 | `perf(driver): per-unit re-index for Retain + Array` | Smaller follow-up. Uniform pattern across the remaining bool-returning lowerers. |
-| 8 | `incremental/phase-4.1-lowering-bookkeeper` | PR #7 | _(future)_ `feat(driver): LoweringBookkeeper helper for participant bookkeeping` | Option A from the ergonomics brainstorm. No new trait; existing participants migrate one-by-one in follow-ups. |
+| 8 | `incremental/phase-4.1-lowering-bookkeeper` | PR #7 | `feat(driver): LoweringBookkeeper helper for participant bookkeeping` _(landed locally)_ | Option A from the ergonomics brainstorm. No new trait; existing participants migrate one-by-one in follow-ups. AggregateTypeLowerer migrated in the same commit as the worked example. |
 | 9 | `incremental/phase-4.2-unit-lowerer-trait` | PR #8 | _(future)_ `feat(driver): UnitLowerer trait + AutoLowerer adapter` | Option B. New lowerers can opt in. `PipelineParticipantMut` keeps working. |
 | 10 | `incremental/phase-5-incremental-driver` | PR #9 _or later_ | _(future)_ `feat(driver): in-process incremental driver` | The LSP-ready core. Phase 5 of the plan above. |
 
@@ -862,6 +862,37 @@ is one substantive hunk and several textual ones:
 to the per-unit + closure pattern. This wasn't part of #1701's scope
 and is exactly the kind of "new participant immediately benefits from
 the framework" win the ergonomics brainstorm is about.
+
+### Phase 4.1 — Status
+
+_Landed locally._
+
+**Landed**
+
+- `compiler/plc_driver/src/pipelines/bookkeeping.rs`: a new
+  `LoweringBookkeeper` struct that accumulates per-unit mutation
+  effects (mutated units, changed signatures, const-introduction
+  flag) and drives the matching invalidation via
+  `apply_to_indexed` / `apply_to_annotated`. The hidden invariants
+  (per-unit reindex order, `evaluate_constants` placement, closure
+  computation against the *pre-mutation* reverse-dep graph) all
+  live here now.
+- `AggregateTypeLowerer::post_annotate` migrated from its bespoke
+  ~70-line body to ~15 lines that just describe what it changed
+  and hand the project to the bookkeeper. The free function
+  `compute_reannotate_closure` is removed (the bookkeeper absorbs
+  it).
+- 5 unit tests in `bookkeeping.rs` covering empty / mark / dedup /
+  signature / const-flag.
+
+No trait changes; no behavioural change. Workspace tests, lit
+suite, and the multi-file oscat baseline are bit-identical to the
+post-Phase-4 numbers (~150 ms median annotate, noise band ~±10 ms).
+
+**Remaining participants (PolymorphismLowerer table, Retain, Array)
+have NOT been migrated yet** — each is a tiny follow-up PR.
+Migrating them is mechanical (the bookkeeper handles their case
+trivially since they only mutate units, no signature changes).
 
 ### Lowerer-API ergonomics work (post-chain)
 

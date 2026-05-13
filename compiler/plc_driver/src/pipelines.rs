@@ -57,6 +57,7 @@ use source_code::{source_location::SourceLocation, SourceContainer};
 use serde_json;
 use toml;
 
+pub mod bookkeeping;
 pub mod participant;
 pub mod timing;
 
