@@ -78,6 +78,12 @@ pub struct AggregateTypeLowerer {
     /// New statements to be added during visit, that should happen after the call. This should always be drained when read
     post_stmts: Vec<Vec<AstNode>>,
     counter: AtomicI32,
+    /// Incremented every time the lowerer mutates the AST in a way that
+    /// affects the global index (POU signature changes) or the annotations
+    /// (new pre/post statements inserted). Compared before / after a unit
+    /// visit so the participant can decide whether to re-index / re-annotate
+    /// that unit.
+    mutations: usize,
 }
 
 impl AggregateTypeLowerer {
@@ -91,6 +97,15 @@ impl AggregateTypeLowerer {
 
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
+    }
+
+    /// Visits a single unit and returns whether the lowerer actually mutated
+    /// it. The caller uses the result to scope re-indexing / re-annotation
+    /// to only the units that need it.
+    pub fn visit_unit_tracked(&mut self, unit: &mut CompilationUnit) -> bool {
+        let before = self.mutations;
+        self.visit_compilation_unit(unit);
+        self.mutations > before
     }
 
     fn steal_and_walk_list(&mut self, list: &mut Vec<AstNode>) {
@@ -112,6 +127,7 @@ impl AggregateTypeLowerer {
     fn push_pre_statement(&mut self, stmt: AstNode) {
         if let Some(stmts) = self.pre_stmts.last_mut() {
             stmts.push(stmt);
+            self.mutations += 1;
         } else {
             unreachable!("Statement lists should exist at this point");
         }
@@ -124,6 +140,7 @@ impl AggregateTypeLowerer {
     fn push_post_statement(&mut self, stmt: AstNode) {
         if let Some(stmts) = self.post_stmts.last_mut() {
             stmts.push(stmt);
+            self.mutations += 1;
         } else {
             unreachable!("Statement lists should exist at this point");
         }
@@ -175,6 +192,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
         // If the return type is aggregate, remove it from the signature and add a matching variable
         // in a VAR_IN_OUT block
         if index.get_effective_type_or_void_by_name(&return_type_name).is_aggregate_type() {
+            self.mutations += 1;
             let original_return = pou.return_type.take().unwrap();
             let location = original_return.get_location();
             //Create a new return type for the pou

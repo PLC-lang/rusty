@@ -584,8 +584,110 @@ Supporting changes:
 
 ### Phase 4 — Cross-unit lowerer hygiene
 
-_In progress._ Wall-clock comparison across phase boundaries is in
+_Mostly complete._ Two big participants migrated to per-unit
+re-index + closure-scoped re-annotate. Numbers in
 `docs/baselines/phase4_progress.md`.
+
+**Landed**
+
+- `Index::reindex_unit(unit_id, &mut unit, ids)` — pre-processes the
+  unit then drops the unit's previous entries (via the side-table
+  Phase 1 built) and re-imports them from the unit's current AST.
+- `AnnotatedProject::reannotate_units(&[usize], ids)` — runs
+  `TypeAnnotator::visit_unit` in parallel on the listed units against
+  the current `self.index`, merges the resulting annotations into the
+  existing `AstAnnotations`, replaces each unit's `dependencies` /
+  `literals`, and folds `new_index` (generic instantiations) into the
+  project index as `UnitId::SYNTHETIC`.
+- `AnnotationMap::into_any_box` — small downcast hook so a
+  `post_annotate` participant can take its annotations back from
+  `Box<dyn AnnotationMap>` after the visitor finishes and rebuild a
+  concrete `AstAnnotations` for partial re-annotation.
+- `PolymorphismLowerer::table()` (and the inner vtable + itable
+  generators) now return `Vec<usize>` of touched unit indices instead
+  of `bool`. `PolymorphismLowerer::post_index` re-indexes only those
+  units.
+- `AggregateTypeLowerer` tracks per-unit mutations via a counter on
+  itself; `visit_unit_tracked` returns whether a unit was modified.
+  `AggregateTypeLowerer::post_annotate` builds the reverse-dep
+  closure of mutated units (callers of POUs whose signature just
+  changed), re-indexes the mutated units, runs `evaluate_constants`
+  to settle new const-id-backed entries, and re-annotates the
+  closure in parallel.
+- `compute_reannotate_closure(mutated, units, &reverse_deps)` —
+  shared helper that walks each mutated unit's `pous` and unions in
+  the dependents recorded by the Phase-2 reverse-dep graph.
+- Two new lit tests under `tests/lit/multi/`:
+  - `incremental_polymorphism_p4/` — cross-unit vtable generation
+    and dispatch through `POINTER TO Base`.
+  - `cross_unit_aggregate_signature/` — a STRING-returning function
+    declared in one unit and called from another, asserting that
+    `AggregateTypeLowerer`'s per-unit re-pass refreshes the caller's
+    annotations against the new VAR_IN_OUT signature.
+- Multi-file oscat corpus (`.baseline/oscat-multi/`, 556 files one
+  POU per file) and a reproducible splitter
+  (`docs/baselines/oscat_multi_split.py`).
+
+**Numbers from `docs/baselines/phase4_progress.md`**
+
+| Phase                | annotate (driver) median |
+|----------------------|-------------------------:|
+| pre Phase 3          | 252 ms                   |
+| post Phase 3         | 162 ms                   |
+| post Phase 4 step 1  | 160 ms                   |
+| post Phase 4 step 2  | **152 ms**               |
+
+On the small polymorphism test the Phase 4 step 1 win is bigger
+(~40 % off `index`) because the project has 3 units and the per-unit
+re-index entirely avoids walking the unchanged ones; on oscat with
+556 units the saving is smaller per absolute number but the
+infrastructure now exists for Phase 5 to use the same
+remove-and-re-import + reannotate-closure machinery on file edits.
+
+**Deviations from the original plan**
+
+- The plan called for migrating
+  `PolymorphismLowerer::post_annotate` (dispatch lowering) too.
+  Skipped in this pass — the dispatch visitors (`InterfaceDispatch`,
+  `PolymorphicCallLowerer`) don't track per-unit mutation today, and
+  threading a `changed` flag through them is more invasive than the
+  AggregateTypeLowerer migration. The participant still gates on the
+  `project_uses_polymorphism` precheck from Phase 3, so the
+  whole-project re-pass only fires when polymorphism is actually
+  present. A targeted migration of the dispatch visitors is a
+  follow-up Phase 4.x.
+- The plan also listed init-function synthesis and generic
+  instantiation ownership. The init pass is currently per-unit and
+  not on the hot path; the generic-instantiation ownership fix is a
+  correctness item for Phase 5 (source-file-edit incremental
+  rebuilds) rather than a perf item, so it's parked there.
+
+**Gotchas / for the next implementer**
+
+- The `post_annotate` partial re-annotate path calls
+  `const_evaluator::evaluate_constants` because per-unit re-import
+  adds entries with un-evaluated `ConstId`-backed expressions (e.g.
+  `STRING[K+1]`). Without that call, downstream codegen panics in
+  `typesystem::extract_int_constant`. Phase 5 will need the same
+  step on every re-import path.
+- The reverse-dep closure is conservative — it adds every dependent
+  of every POU declared in a mutated unit. For oscat that ends up
+  wide because most units call aggregate-returning helpers. Phase 5
+  can tighten by hashing pre/post POU signatures and only invoking
+  the closure when the signature actually changed.
+- `AnnotationMap::into_any_box` is a load-bearing trait method. Any
+  new `impl AnnotationMap for ...` must provide it or downcasting
+  breaks at participant boundary.
+
+**Carries into Phase 5**
+
+- The `reindex_unit` + `reannotate_units` pair is the partial-rebuild
+  primitive Phase 5 will drive from "this file changed."
+- The closure builder (`compute_reannotate_closure`) is exactly what
+  Phase 5 will use when a signature-hashed comparison reports a
+  changed POU.
+- The dispatch-visitor migration (`PolymorphismLowerer::post_annotate`)
+  remains the biggest single perf opportunity left in `annotate`.
 
 Tighten the genuinely cross-unit passes so their deltas are honest and
 minimal.

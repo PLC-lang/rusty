@@ -18,6 +18,7 @@ use plc::{
     index::{Index, PouIndexEntry},
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
+    resolver::AstAnnotations,
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -334,22 +335,63 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
             return annotated_project;
         }
 
-        let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
+        // Build the reverse-dep graph BEFORE we mutate. The graph reflects
+        // each unit's pre-mutation `Dependency` set, which is what we need
+        // to identify callers / users of the POUs we're about to rewrite.
+        let reverse_deps = annotated_project.reverse_dependencies();
+
+        let AnnotatedProject { mut units, index, annotations, diagnostics } = annotated_project;
         self.index = Some(index);
         self.annotation = Some(Box::new(annotations));
 
-        let units = units
-            .into_iter()
-            .map(|AnnotatedUnit { mut unit, .. }| {
-                self.visit_unit(&mut unit);
-                unit
-            })
-            .collect();
+        // Walk each unit and remember which ones the visitor actually
+        // mutated. `visit_unit_tracked` increments the lowerer's mutation
+        // counter on POU signature changes and pre/post statement
+        // insertions; comparing the counter before/after one unit isolates
+        // changes to that unit.
+        let mut mutated_indices = Vec::new();
+        for (idx, annotated_unit) in units.iter_mut().enumerate() {
+            if self.visit_unit_tracked(&mut annotated_unit.unit) {
+                mutated_indices.push(idx);
+            }
+        }
 
-        // Re-index from modified units so the index reflects POU signature
-        // changes (e.g. aggregate returns converted to VAR_IN_OUT parameters).
-        let project = ParsedProject { units };
-        let mut project = project.index(self.id_provider.clone()).annotate(self.id_provider.clone());
+        // Reclaim the index and annotations from `self`. The visitor stored
+        // them as `Option`s for the duration of the walk.
+        let mut index = self.index.take().expect("index returned by visit");
+        let annotations = self.annotation.take().expect("annotations returned by visit");
+        // The visitor produced a fresh `AstAnnotations` reference but we need
+        // a concrete `AstAnnotations` value to rebuild `AnnotatedProject`.
+        // The Box<dyn AnnotationMap> we received in the hook is the same
+        // object the resolver produced; downcasting to AstAnnotations is the
+        // simplest way to recover it.
+        let annotations = *annotations
+            .into_any_box()
+            .downcast::<AstAnnotations>()
+            .expect("post_annotate participant always receives AstAnnotations");
+
+        // Re-index only the units the lowerer actually mutated.
+        for idx in &mutated_indices {
+            let unit_id = plc::index::UnitId::source(*idx);
+            index.reindex_unit(unit_id, &mut units[*idx].unit, self.id_provider.clone());
+        }
+
+        // The freshly imported entries carry un-evaluated `ConstId`-backed
+        // expressions (string sizes, array dimensions). The annotate phase
+        // ran `evaluate_constants` before any participant fired, so the
+        // global index was consistent then; we need to do the same pass
+        // again now that we've patched in new entries.
+        let (index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(index);
+
+        // Compute the reverse-dep closure. The lowerer changes POU
+        // signatures (adds a VAR_IN_OUT parameter for the aggregate
+        // return), so every caller of a touched POU needs its annotations
+        // refreshed against the new signature, not just the unit that owns
+        // the POU.
+        let to_reannotate = compute_reannotate_closure(&mutated_indices, &units, &reverse_deps);
+
+        let mut project = AnnotatedProject { units, index, annotations, diagnostics: Vec::new() };
+        project.reannotate_units(&to_reannotate, self.id_provider.clone());
         project.diagnostics = diagnostics;
         project
     }
@@ -486,6 +528,41 @@ fn project_has_aggregate_returns(index: &Index) -> bool {
         }
     }
     false
+}
+
+/// Returns the union of `mutated_indices` and every unit that depended on a
+/// symbol declared in any mutated unit, sorted ascending.
+///
+/// A participant that rewrites POU signatures (e.g. AggregateTypeLowerer
+/// adding a VAR_IN_OUT parameter, or PolymorphismLowerer changing
+/// interface-typed declarations to `__FATPOINTER`) makes the recorded
+/// annotations in caller units stale. The closure built here is the set of
+/// units that need to be re-annotated against the patched index for the
+/// project to stay consistent.
+///
+/// The closure only walks POU names today. Globals and types declared in a
+/// mutated unit aren't typically rewritten by the participants Phase 4
+/// targets, but if a future participant rewrites them the corresponding
+/// names should be added to the lookup loop here.
+fn compute_reannotate_closure(
+    mutated_indices: &[usize],
+    units: &[super::AnnotatedUnit],
+    reverse_deps: &super::ReverseDependencyGraph,
+) -> Vec<usize> {
+    use std::collections::BTreeSet;
+    let mut closure: BTreeSet<usize> = mutated_indices.iter().copied().collect();
+    for &idx in mutated_indices {
+        for pou in &units[idx].get_unit().pous {
+            if let Some(dependents) = reverse_deps.dependents(&pou.name) {
+                for unit_id in dependents {
+                    if unit_id.is_source() {
+                        closure.insert(unit_id.raw() as usize);
+                    }
+                }
+            }
+        }
+    }
+    closure.into_iter().collect()
 }
 
 /// True if any POU declares a super-class or any interfaces, in which case

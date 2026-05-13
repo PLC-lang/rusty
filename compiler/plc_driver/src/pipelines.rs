@@ -897,6 +897,46 @@ impl AnnotatedProject {
         ReverseDependencyGraph { edges }
     }
 
+    /// Re-runs the type annotator on the given subset of units (by positional
+    /// index) against the current `self.index`, merging the resulting
+    /// annotations into the existing [`AstAnnotations`]. Each touched
+    /// unit's `dependencies` and `literals` are replaced with the
+    /// freshly-computed set. Generic instantiations / synthetic types the
+    /// resolver produced into `new_index` are folded into `self.index` as
+    /// `UnitId::SYNTHETIC` so a later per-unit invalidation doesn't
+    /// accidentally drop them.
+    ///
+    /// Used by participants that mutate a subset of units in `post_annotate`
+    /// and need annotations refreshed for just those units instead of
+    /// re-annotating the whole project.
+    ///
+    /// `AnnotationMapImpl` is keyed by `AstId`; re-running `visit_unit` on a
+    /// mutated unit overwrites entries with the same id and adds entries for
+    /// any newly-inserted AST nodes. Annotations for AST nodes that the
+    /// lowerer removed linger as dead entries but never get looked up.
+    pub fn reannotate_units(&mut self, unit_indices: &[usize], id_provider: IdProvider) {
+        // Re-annotate the listed units in parallel, mirroring the main
+        // `IndexedProject::annotate` path. Each visit reads `self.index`
+        // immutably, so the par_iter is safe.
+        let results: Vec<(usize, _, _, _)> = unit_indices
+            .par_iter()
+            .map(|&idx| {
+                let (annotation, deps, literals) =
+                    TypeAnnotator::visit_unit(&self.index, &self.units[idx].unit, id_provider.clone());
+                (idx, annotation, deps, literals)
+            })
+            .collect();
+
+        let mut merged = AnnotationMapImpl::default();
+        for (idx, annotation, deps, literals) in results {
+            self.units[idx].dependencies = deps;
+            self.units[idx].literals = literals;
+            merged.import(annotation);
+        }
+        self.index.import_with_unit(std::mem::take(&mut merged.new_index), UnitId::SYNTHETIC);
+        self.annotations.annotation_map.import(merged);
+    }
+
     /// Validates the project, reports any new diagnostics on the fly
     pub fn validate(
         &self,

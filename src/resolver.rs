@@ -1014,6 +1014,12 @@ impl Dependency {
 }
 
 pub trait AnnotationMap {
+    /// Erases the trait object back to `Box<dyn Any>` so the caller can
+    /// downcast to a concrete type (e.g. `AstAnnotations`) after a visitor
+    /// took ownership of the annotations and is handing them back.
+    /// Implementations should return `self` directly.
+    fn into_any_box(self: Box<Self>) -> Box<dyn std::any::Any>;
+
     fn get(&self, s: &AstNode) -> Option<&StatementAnnotation> {
         self.get_with_id(s.get_id())
     }
@@ -1116,6 +1122,10 @@ pub struct AstAnnotations {
 }
 
 impl AnnotationMap for AstAnnotations {
+    fn into_any_box(self: Box<Self>) -> Box<dyn std::any::Any> {
+        self
+    }
+
     fn get_with_id(&self, id: AstId) -> Option<&StatementAnnotation> {
         if id == self.bool_id {
             Some(&self.bool_annotation)
@@ -1232,6 +1242,10 @@ impl AnnotationMapImpl {
 }
 
 impl AnnotationMap for AnnotationMapImpl {
+    fn into_any_box(self: Box<Self>) -> Box<dyn std::any::Any> {
+        self
+    }
+
     fn get_with_id(&self, id: AstId) -> Option<&StatementAnnotation> {
         self.type_map.get(&id)
     }
