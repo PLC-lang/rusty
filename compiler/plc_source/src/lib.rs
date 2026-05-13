@@ -1,5 +1,6 @@
 use std::{
     fs::File,
+    hash::Hasher,
     io::Read,
     path::{Path, PathBuf},
 };
@@ -7,8 +8,25 @@ use std::{
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use serde::{Deserialize, Serialize};
+use siphasher::sip::SipHasher13;
 
 pub mod source_location;
+
+/// A content-addressed hash of a source unit. Two `SourceCode` values with the
+/// same `source` string produce the same `SourceHash` regardless of path or
+/// load order; the hash is used by incremental compilation to decide whether a
+/// unit has actually changed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct SourceHash(pub u64);
+
+impl SourceHash {
+    /// Computes a stable hash of the given source content.
+    pub fn of(content: &str) -> Self {
+        let mut h = SipHasher13::new();
+        h.write(content.as_bytes());
+        SourceHash(h.finish())
+    }
+}
 /// Represents the type of source a SourceContainer holds
 #[derive(Clone, Copy, Debug)]
 pub enum SourceType {
@@ -137,6 +155,12 @@ impl SourceCode {
     pub fn with_path(mut self, name: impl Into<PathBuf>) -> Self {
         self.path = Some(name.into());
         self
+    }
+
+    /// Returns a stable content hash of the source. Recomputed on every call;
+    /// callers that want to cache it should keep their own copy.
+    pub fn content_hash(&self) -> SourceHash {
+        SourceHash::of(&self.source)
     }
 }
 

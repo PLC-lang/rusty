@@ -278,6 +278,78 @@ Goal: measure where time goes today, especially the redundant re-passes.
 No invalidation logic yet; just enough plumbing to know what came from
 where and to take it out again.
 
+### Phase 1 — Status
+
+_Complete._
+
+**Landed**
+
+- `SourceCode::content_hash()` (`compiler/plc_source/src/lib.rs`): returns
+  a `SourceHash` (siphash13 of the source bytes). Computed on demand;
+  callers cache if they need stability.
+- `UnitId` newtype + sentinels (`BUILTIN`, `SYNTHETIC`, `UNTAGGED`) in
+  `src/index/unit_id.rs`, plus `SymbolKind`, `OwnedSymbol`, and a
+  `UnitSymbolIndex` side-table.
+- `Index` grows a `#[serde(skip)] unit_symbols: UnitSymbolIndex` field
+  (skipped from serde so existing snapshots stay byte-identical).
+- New `Index::import_with_unit(other, unit_id)` records every imported
+  entry's `(kind, map_key, identifier)` triple in `unit_symbols`. The old
+  `Index::import` is now a thin wrapper that passes `UnitId::UNTAGGED`,
+  so existing callers keep working.
+- New `Index::remove_unit(unit_id)` walks `unit_symbols[unit_id]` and
+  drops only the contributions for that unit, even when the underlying
+  `SymbolMap` key is shared with another unit. `SymbolMap::retain_at_key`
+  added in `src/index/symbol.rs` to support precise per-entry removal.
+- `pipelines.rs` threads UnitIds at the three merge sites:
+  source-unit indices use `UnitId::source(idx)`, the built-in functions
+  use `UnitId::BUILTIN`, and the resolver's `new_index` (generic
+  instantiations + synthetic types) uses `UnitId::SYNTHETIC`.
+- `test_utils::tests::do_index` and `index_unit_with_id` also use
+  `import_with_unit`, so `Index::remove_unit(UnitId::source(0))` in tests
+  drops exactly the test fixture's contributions.
+- Three focused tests in `src/index/tests/unit_id_tests.rs` cover the
+  global / POU / shared-enum-key cases; unit tests in `unit_id.rs` cover
+  the `UnitId` constructors and sentinel disjointness.
+
+**Deviations from the original plan**
+
+- `IndexedProject` does **not** retain `unit_indices: Vec<Index>`.
+  Walking through the Phase 3 / Phase 5 flow showed that an incremental
+  rebuild calls `remove_unit(uid)` + `import_with_unit(fresh_per_unit_index,
+  uid)` and never references the old per-unit index — retaining it would
+  just duplicate memory. If a Phase 5 use case turns up that genuinely
+  needs the old per-unit index, the field can be added back; `Index` is
+  not yet `Clone`, so adding it later requires a derive too.
+- `unit_id` is **not** stamped onto each entry struct (`VariableIndexEntry`,
+  `PouIndexEntry`, etc.). Per-entry ownership is tracked via the
+  side-table only, which keeps the diff localized and avoids snapshot
+  churn. The side-table records `(map_key, identifier)` per entry, so
+  the precision required for Phase 3 is already there.
+
+**Gotchas / for the next implementer**
+
+- `UnitId::source(0)` is what tests use after going through the test
+  helpers. If a test sets up its own `Index` manually, it must pick a
+  `UnitId` or the entries land under `UnitId::UNTAGGED` and
+  `remove_unit(source(0))` won't see them.
+- `Index::register_type` / `register_pou` / `register_pou_type` (used
+  for built-in primitives) do **not** record into `unit_symbols`. That's
+  intentional — primitives never need to be invalidated. If Phase 3
+  participants call `register_*` directly to add new entries, they need
+  to either route through `import_with_unit` or record into
+  `unit_symbols` manually.
+- `labels` and `config_variables` are not yet covered by the side-table;
+  they don't surface in any cross-unit invalidation scenarios in Phases
+  1–3. Revisit if a real use case appears.
+
+**Carries into Phase 2**
+
+- The `unit_symbols` side-table is the natural place to extend with
+  "this symbol's `PublicSignatureHash`" once Phase 2 introduces it.
+- The reverse-dep graph (Phase 2) will key on the same symbol names
+  used here as `identifier`, so the cross-phase identifier convention is
+  already locked in.
+
 ### Phase 2 — Audit/extend the dependency tracker; reverse-dep graph; signature hashing
 
 The resolver already produces a per-unit `FxIndexSet<Dependency>`
