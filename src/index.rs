@@ -29,9 +29,11 @@ use self::{
 pub mod const_expressions;
 pub mod indexer;
 mod instance_iterator;
+pub mod signature;
 pub mod symbol;
 mod unit_id;
 
+pub use signature::SignatureHash;
 pub use unit_id::{OwnedSymbol, SymbolKind, UnitId, UnitSymbolIndex};
 
 #[cfg(test)]

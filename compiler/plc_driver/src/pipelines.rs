@@ -808,6 +808,13 @@ pub struct AnnotatedUnit {
 }
 
 impl AnnotatedUnit {
+    /// Returns the dependencies this unit recorded during annotation
+    /// (by-name calls, type references, and variable references). Used to
+    /// build the project's reverse-dependency graph.
+    pub fn dependencies(&self) -> &FxIndexSet<Dependency> {
+        &self.dependencies
+    }
+
     pub fn new(
         unit: CompilationUnit,
         dependencies: FxIndexSet<Dependency>,
@@ -839,7 +846,57 @@ pub struct AnnotatedProject {
     pub diagnostics: Vec<Diagnostic>,
 }
 
+/// Reverse-dependency graph: for each symbol name, the set of units that
+/// recorded a dependency on it during annotation. Used by an incremental
+/// rebuild to compute the closure of units that need re-annotating when a
+/// symbol's public signature changes.
+///
+/// Symbol names are matched as the resolver records them
+/// ([`Dependency::Datatype`], [`Dependency::Call`], [`Dependency::Variable`])
+/// — i.e. with the case the resolver saw, not lowercased. The graph stores
+/// `UnitId::source(i)` keyed against `AnnotatedProject.units[i]`.
+#[derive(Debug, Default, Clone)]
+pub struct ReverseDependencyGraph {
+    edges: std::collections::HashMap<String, std::collections::HashSet<UnitId>>,
+}
+
+impl ReverseDependencyGraph {
+    /// Returns the units that depend on the given symbol, if any.
+    pub fn dependents(&self, symbol: &str) -> Option<&std::collections::HashSet<UnitId>> {
+        self.edges.get(symbol)
+    }
+
+    /// Returns true if `symbol` has no recorded dependents.
+    pub fn is_empty_for(&self, symbol: &str) -> bool {
+        self.edges.get(symbol).map(|s| s.is_empty()).unwrap_or(true)
+    }
+
+    /// Total number of distinct symbols that have at least one dependent.
+    pub fn len(&self) -> usize {
+        self.edges.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.edges.is_empty()
+    }
+}
+
 impl AnnotatedProject {
+    /// Builds the reverse-dependency graph from each unit's recorded
+    /// [`Dependency`] set. Unit ids match `units[i] -> UnitId::source(i)`.
+    /// Recomputed on every call; cheap (single pass over the dep sets).
+    pub fn reverse_dependencies(&self) -> ReverseDependencyGraph {
+        let mut edges: std::collections::HashMap<String, std::collections::HashSet<UnitId>> =
+            std::collections::HashMap::new();
+        for (idx, unit) in self.units.iter().enumerate() {
+            let unit_id = UnitId::source(idx);
+            for dep in unit.dependencies() {
+                edges.entry(dep.get_name().to_string()).or_default().insert(unit_id);
+            }
+        }
+        ReverseDependencyGraph { edges }
+    }
+
     /// Validates the project, reports any new diagnostics on the fly
     pub fn validate(
         &self,

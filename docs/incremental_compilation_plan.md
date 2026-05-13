@@ -387,6 +387,81 @@ invalidation, then inverts it.
   exercised by at least one test. Snapshot test: dep-set for a
   representative project is stable across runs.
 
+### Phase 2 — Status
+
+_Complete._
+
+**Landed**
+
+- `src/index/signature.rs`: a new module that hashes the public
+  surface of POUs, globals, types, and implementations into a
+  `SignatureHash(u64)` (siphash13). Internal bodies, source locations,
+  and `ConstId`-dependent values (e.g. `String { size }`) are
+  deliberately excluded so editing a function body doesn't shift the
+  signature of its callers. Re-exported as `plc::index::SignatureHash`.
+- `AnnotatedProject::reverse_dependencies()` and a
+  `ReverseDependencyGraph` helper in
+  `compiler/plc_driver/src/pipelines.rs`. The graph inverts each
+  unit's `Dependency::{Call,Datatype,Variable}` set into
+  `symbol_name → Set<UnitId>` using the same `UnitId::source(i)`
+  convention Phase 1 established.
+- `AnnotatedUnit::dependencies()` accessor so the graph builder (and
+  later phases) don't need to reach into private fields.
+- Audit document at `docs/baselines/dependency_coverage.md`: lists
+  every site in `src/resolver.rs` that inserts into
+  `self.dependencies`, plus the known gaps and a verdict on whether
+  the existing tracker is sufficient for the headline near-term win.
+- Tests: four `SignatureHash` tests in `src/index/signature.rs` cover
+  stability across runs and detect return-type / struct-field /
+  global-type changes. Three `tests/reverse_deps.rs` tests in
+  `plc_driver` cover caller→callee, struct-user, and unrelated-unit
+  isolation.
+
+**Deviations from the original plan**
+
+- The plan called for extending the existing dep tracker to cover
+  generic instantiations and const-expression value-deps. The audit
+  produced a clear verdict that those gaps don't block Phases 3–4
+  (lowering re-pass elimination doesn't need them) but will block
+  Phase 5 (source-file-edit incremental rebuilds). Extensions are
+  deferred to a Phase 5 prerequisite step rather than landing now —
+  changing the dep set has subtle downstream effects on codegen
+  (which already consumes the set) and would risk the bit-identical
+  invariant if rushed.
+- The signature hash is computed on demand (free functions in
+  `signature` module) rather than stored on `Index`. Storing was not
+  necessary for Phase 2 and would have added serde churn. Phase 3 /
+  Phase 5 can introduce a `SignatureCache` if profiling shows
+  recomputation is hot; for now it's a single pass per query.
+
+**Gotchas / for the next implementer**
+
+- `hash_pou` / `hash_global` / `hash_type` use `LinkageType as u8` —
+  this assumes `LinkageType` stays `#[repr]`-friendly and that variant
+  additions append (don't reorder). If `LinkageType` reorders, hashes
+  shift silently. Add a defensive snapshot test if this becomes a
+  worry.
+- The reverse-dep graph uses `dep.get_name().to_string()` as the key,
+  preserving whatever case the resolver recorded. Lookups must use
+  the same casing — don't `.to_lowercase()` at the lookup site.
+- `String { size: _ }` is intentionally skipped in
+  `hash_data_type_information`: `size` is a `ConstId` that can shift
+  between const-evaluation runs even when the source spec didn't
+  change. Symptom if you re-include it: hashes thrash across rebuilds
+  for no actual interface change.
+
+**Carries into Phase 3**
+
+- `ReverseDependencyGraph::dependents(symbol)` is the closure-building
+  primitive Phase 3 will call when a participant reports a changed
+  signature.
+- Signature hashing is in place but **not yet stored or compared** —
+  Phase 3 will compute and compare hashes during the delta-aware
+  pipeline.
+- The dep-tracker gaps documented in
+  `docs/baselines/dependency_coverage.md` are a TODO for Phase 5; they
+  don't block Phase 3.
+
 ### Phase 3 — Delta-aware participant pipeline
 
 This phase delivers a full-build speedup before any LSP work.
