@@ -189,7 +189,7 @@ fn super_is_a_reserved_keyword() {
     //                  Related: https://github.com/PLC-lang/rusty/issues/1408
 
     let diagnostics = parse_and_report_parse_errors_buffered(src);
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E006]: Expected a name for the interface definition but got nothing
       ┌─ <internal>:2:5
       │
@@ -273,7 +273,7 @@ fn this_is_a_reserved_keyword() {
     // TODO(mhasel):    the parser produces a lot of noise for keyword errors,
     //                  we need to find a way to handle keywords as identifiers
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E006]: Expected a name for the interface definition but got nothing
       ┌─ <internal>:2:5
       │

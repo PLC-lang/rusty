@@ -5,7 +5,7 @@ use plc_ast::ast::{AstId, DirectAccessType, HardwareAccessType};
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
-pub use tokens::Token;
+pub use tokens::{Token, TokenClass};
 
 #[cfg(test)]
 mod tests;
@@ -78,6 +78,13 @@ impl<'a> ParseSession<'a> {
         }
 
         false
+    }
+
+    /// Returns the token that follows the current one without consuming the
+    /// current token.
+    pub fn peek(&self) -> Token {
+        let mut peeked = self.lexer.clone();
+        peeked.next().unwrap_or(Token::End)
     }
 
     pub fn try_consume_or_report(&mut self, token: Token) {

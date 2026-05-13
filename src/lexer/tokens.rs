@@ -459,4 +459,39 @@ impl Token {
     pub fn is_identifier_like(&self) -> bool {
         matches!(self, Token::Identifier | Token::KeywordPropertyGet | Token::KeywordPropertySet)
     }
+
+    /// Linguistic classification of this token, returned as a slice so a
+    /// token can carry more than one class. Empty when nothing currently
+    /// classifies the token.
+    pub fn classes(&self) -> &'static [TokenClass] {
+        use TokenClass::*;
+        match self {
+            Token::KeywordConstant
+            | Token::KeywordRetain
+            | Token::KeywordNonRetain
+            | Token::KeywordAbstract
+            | Token::KeywordFinal
+            | Token::KeywordOverride
+            | Token::KeywordAccessPublic
+            | Token::KeywordAccessPrivate
+            | Token::KeywordAccessInternal
+            | Token::KeywordAccessProtected => &[Modifier],
+
+            Token::KeywordExit => &[ControlFlowJump],
+
+            Token::KeywordString | Token::KeywordWideString => &[BuiltinDatatype],
+
+            _ => &[],
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TokenClass {
+    /// Declaration modifier that qualifies a following construct.
+    Modifier,
+    /// Standalone control-flow jump statement.
+    ControlFlowJump,
+    /// Built-in datatype keyword.
+    BuiltinDatatype,
 }
