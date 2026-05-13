@@ -34,6 +34,11 @@ use super::{AnnotatedProject, AnnotatedUnit, GeneratedProject, IndexedProject, P
 /// Implementors can decide parse the Ast and project information
 /// to do actions like validation or logging
 pub trait PipelineParticipant: Sync + Send {
+    /// Short label for this participant, used by the phase-timing
+    /// instrumentation. Default returns the implementing type's name.
+    fn name(&self) -> &'static str {
+        super::timing::short_type_name(std::any::type_name::<Self>())
+    }
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
     fn pre_index(&mut self, _parsed_project: &ParsedProject) {}
@@ -69,6 +74,11 @@ pub trait PipelineParticipant: Sync + Send {
 /// If a previous step is being modified, such as the AST or index,
 /// the caller is responsible for calling the previous steps
 pub trait PipelineParticipantMut {
+    /// Short label for this participant, used by the phase-timing
+    /// instrumentation. Default returns the implementing type's name.
+    fn name(&self) -> &'static str {
+        super::timing::short_type_name(std::any::type_name::<Self>())
+    }
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
     fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
