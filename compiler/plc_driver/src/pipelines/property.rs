@@ -19,6 +19,13 @@ impl PipelineParticipantMut for PropertyLowerer {
     }
 
     fn post_annotate(&mut self, project: AnnotatedProject) -> AnnotatedProject {
+        // Skip the rewrite pass + implicit re-annotate when the project
+        // declares no properties at all. Exact predicate: nothing to rewrite
+        // means re-annotation would reproduce the existing state.
+        if !project.index.has_any_properties() {
+            return project;
+        }
+
         let AnnotatedProject { mut units, index, annotations, diagnostics } = project;
         self.annotations = Some(annotations);
 

@@ -1,0 +1,11 @@
+{
+    "name" : "ConcreteMemberCallNotDispatched",
+    "files" : [
+        "src/lib.st",
+        "src/extension.st",
+        "src/main.st",
+        "../../util/printf.pli"
+    ],
+    "compile_type" : "Static",
+    "output" : "app"
+}

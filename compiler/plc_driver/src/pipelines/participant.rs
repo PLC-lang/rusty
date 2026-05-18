@@ -15,6 +15,7 @@ use std::{
 use ast::provider::IdProvider;
 use plc::{
     codegen::GeneratedModule,
+    index::{Index, PouIndexEntry},
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
     ConfigFormat, OnlineChange, Target,
@@ -294,6 +295,13 @@ impl PipelineParticipantMut for InheritanceLowerer {
     }
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        // Skip if the project declares no inheritance or interfaces — the
+        // visit would be a no-op and the implicit re-annotate would only
+        // recompute the same annotations.
+        if !project_uses_inheritance(&annotated_project.index) {
+            return annotated_project;
+        }
+
         let AnnotatedProject { mut units, index, annotations, diagnostics } = annotated_project;
         self.annotations = Some(Box::new(annotations));
         self.index = Some(index);
@@ -315,6 +323,13 @@ impl PipelineParticipantMut for InheritanceLowerer {
 
 impl PipelineParticipantMut for AggregateTypeLowerer {
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        // Skip if no POU has an aggregate return type — the visit would walk
+        // every unit and rewrite nothing, and the implicit re-index +
+        // re-annotate would reproduce the existing state.
+        if !project_has_aggregate_returns(&annotated_project.index) {
+            return annotated_project;
+        }
+
         let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
         self.index = Some(index);
         self.annotation = Some(Box::new(annotations));
@@ -338,6 +353,15 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
 
 impl PipelineParticipantMut for PolymorphismLowerer {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        // The table pass emits a `__vtable` type and instance member for
+        // every FB / class — even methodless ones. The slot is part of the
+        // FB ABI: a downstream library consumer that extends one of these
+        // FBs must see a layout-compatible base. Skip only when the
+        // project has no FBs, classes, methods, or interfaces at all.
+        if !project_needs_vtables(&indexed_project.index) {
+            return indexed_project;
+        }
+
         let IndexedProject { mut project, index, .. } = indexed_project;
 
         self.table(&index, &mut project.units);
@@ -346,6 +370,18 @@ impl PipelineParticipantMut for PolymorphismLowerer {
     }
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        // Dispatch lowering rewrites call sites that need vtable
+        // indirection: method calls / body invocations through
+        // `POINTER TO <FB>`, calls through interface variables, and
+        // `SUPER^`. None of those can exist without methods or interfaces
+        // declared somewhere in the project — pre-OOP libraries (FBs
+        // with no methods, no `EXTENDS`, no interfaces) have nothing to
+        // rewrite even when their FBs ship with vtable slots for
+        // downstream extenders.
+        if !project_uses_polymorphic_dispatch(&annotated_project.index) {
+            return annotated_project;
+        }
+
         let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
         let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
 
@@ -400,4 +436,88 @@ impl PipelineParticipantMut for ReferenceToReturnParticipant {
         self.lower_reference_to_return(&mut units);
         ParsedProject { units }
     }
+}
+
+// ─── Precheck helpers ──────────────────────────────────────────────────────
+//
+// Several lowering participants used to unconditionally re-run a whole-project
+// index or annotate after their hook fired, even when the lowerer had nothing
+// to do on this project. The helpers below answer "is there any work for me?"
+// from the already-built index so the participant can skip both the walk and
+// the implicit re-pass when the answer is no. Each helper is an exact
+// predicate: if it returns `false`, the lowerer would produce a project
+// identical to its input.
+
+/// True if the project has any FB, class, method, or interface — i.e. any
+/// type that needs a vtable slot emitted. The vtable layout is part of the
+/// FB ABI: even a methodless FB ships with a `__vtable` member so that a
+/// downstream library consumer extending that FB sees a layout-compatible
+/// base. Used by `PolymorphismLowerer::post_index` (table pass).
+fn project_needs_vtables(index: &Index) -> bool {
+    if index.get_interfaces().keys().next().is_some() {
+        return true;
+    }
+    index.get_pous().values().any(|p| {
+        matches!(
+            p,
+            PouIndexEntry::Class { .. } | PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Method { .. }
+        )
+    })
+}
+
+/// True if the project has any construct whose call sites the dispatch pass
+/// might rewrite into vtable-indirected form:
+///
+/// - methods, or interfaces (method-call dispatch through the vtable)
+/// - any FB or class with `EXTENDS` (body-call dispatch through the vtable
+///   when a `POINTER TO Base` points at a derived instance, plus `SUPER^`
+///   calls).
+///
+/// A pre-OOP library that uses only standalone FBs (no `EXTENDS`, no
+/// methods, no interfaces) has no expressions the dispatch pass would
+/// touch even though its FBs ship with vtable slots. Used by
+/// `PolymorphismLowerer::post_annotate`.
+fn project_uses_polymorphic_dispatch(index: &Index) -> bool {
+    if index.get_interfaces().keys().next().is_some() {
+        return true;
+    }
+    index.get_pous().values().any(|p| match p {
+        PouIndexEntry::Method { .. } => true,
+        PouIndexEntry::FunctionBlock { super_class, .. } | PouIndexEntry::Class { super_class, .. } => {
+            super_class.is_some()
+        }
+        _ => false,
+    })
+}
+
+/// True if any POU's return type is aggregate (array, struct, or string), in
+/// which case `AggregateTypeLowerer` needs to rewrite that POU's signature.
+fn project_has_aggregate_returns(index: &Index) -> bool {
+    for pou in index.get_pous().values() {
+        let return_type = match pou {
+            PouIndexEntry::Function { return_type, .. } | PouIndexEntry::Method { return_type, .. } => {
+                return_type.as_str()
+            }
+            _ => continue,
+        };
+        if return_type.is_empty() {
+            continue;
+        }
+        if index.get_effective_type_or_void_by_name(return_type).is_aggregate_type() {
+            return true;
+        }
+    }
+    false
+}
+
+/// True if any POU declares a super-class or any interfaces, in which case
+/// `InheritanceLowerer` needs to rewrite calls and walk inheritance chains.
+fn project_uses_inheritance(index: &Index) -> bool {
+    index.get_pous().values().any(|p| match p {
+        PouIndexEntry::FunctionBlock { super_class, interfaces, .. }
+        | PouIndexEntry::Class { super_class, interfaces, .. } => {
+            super_class.is_some() || !interfaces.is_empty()
+        }
+        _ => false,
+    })
 }
