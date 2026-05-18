@@ -18,7 +18,6 @@ use plc::{
     index::{Index, PouIndexEntry},
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
-    resolver::AstAnnotations,
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -365,18 +364,24 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
 
         let AnnotatedProject { mut units, index, annotations, diagnostics } = annotated_project;
         self.index = Some(index);
-        self.annotation = Some(Box::new(annotations));
+        self.annotation = Some(annotations);
 
         // Walk each unit; bookkeeper records which were mutated and which
         // POU names had their signature rewritten (aggregate return →
         // VAR_IN_OUT). Constants enter the index because the new
         // VAR_IN_OUT parameter's type can be e.g. `STRING[K+1]`.
+        //
+        // `signature_changed_pous()` returns only POUs whose interface was
+        // actually rewritten — body-only mutations (e.g. inserted alloca
+        // prelude for an aggregate-returning call site) flip the dirty
+        // flag but must not invalidate callers of every other POU in the
+        // unit.
         let mut book = super::bookkeeping::LoweringBookkeeper::new();
         for (idx, annotated_unit) in units.iter_mut().enumerate() {
             if self.visit_unit_tracked(&mut annotated_unit.unit) {
                 book.mark_unit(idx);
-                for pou in &annotated_unit.unit.pous {
-                    book.signature_changed(&pou.name);
+                for name in self.signature_changed_pous() {
+                    book.signature_changed(&name);
                 }
             }
         }
@@ -388,10 +393,6 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
         // borrowed them for the walk).
         let index = self.index.take().expect("index returned by visit");
         let annotations = self.annotation.take().expect("annotations returned by visit");
-        let annotations = *annotations
-            .into_any_box()
-            .downcast::<AstAnnotations>()
-            .expect("post_annotate participant always receives AstAnnotations");
 
         let project = AnnotatedProject { units, index, annotations, diagnostics };
         book.apply_to_annotated(project, &reverse_deps, self.id_provider.clone())

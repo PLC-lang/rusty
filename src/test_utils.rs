@@ -178,7 +178,9 @@ pub mod tests {
 
         let mut aggregate_lowerer = AggregateTypeLowerer::new(id_provider.clone());
         aggregate_lowerer.index.replace(index);
-        aggregate_lowerer.annotation.replace(Box::new(all_annotations));
+        aggregate_lowerer
+            .annotation
+            .replace(AstAnnotations::new(all_annotations, id_provider.clone().next_id()));
         aggregate_lowerer.visit_unit(&mut unit);
         let mut full_index = aggregate_lowerer.index.take().unwrap();
         let mut all_annotations = AnnotationMapImpl::default();
