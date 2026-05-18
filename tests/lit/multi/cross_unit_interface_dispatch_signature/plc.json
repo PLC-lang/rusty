@@ -1,0 +1,12 @@
+{
+    "name": "CrossUnitInterfaceDispatchSignature",
+    "files": [
+        "main.st",
+        "src/iface.st",
+        "src/impl.st",
+        "src/dispatcher.st",
+        "../../util/printf.pli"
+    ],
+    "compile_type": "Static",
+    "libraries": []
+}

@@ -19,6 +19,7 @@ mod debug_paths;
 mod external_files;
 mod header_generator;
 mod multi_files;
+mod reverse_deps;
 
 #[derive(Serialize, Deserialize)]
 #[serde(bound(deserialize = "'de: 'static"))]
