@@ -1,0 +1,12 @@
+{
+    "name": "CrossUnitVtableCtorInMember",
+    "files": [
+        "main.st",
+        "src/base.st",
+        "src/derived.st",
+        "src/wrapper.st",
+        "../../util/printf.pli"
+    ],
+    "compile_type": "Static",
+    "libraries": []
+}
