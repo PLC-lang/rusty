@@ -27,7 +27,22 @@ nesting depth. Children appear *before* their parent's log line (the
 parent prints when it drops, i.e. at end-of-scope), which matches the
 standard flame-graph convention.
 
-A condensed example from compiling a small project:
+Each participant invocation is timed individually with a label of
+the form `<hook>/<participant-type-name>`, e.g.
+`post_index/PolymorphismLowerer`. `ParsedProject::index` and
+`IndexedProject::annotate` self-time, so any participant that
+re-invokes them appears with a nested `ParsedProject::index` (or
+`IndexedProject::annotate`) child line. Those nested re-passes are
+the main thing to look for when investigating slow builds.
+
+## Examples
+
+### `plc build` (full pipeline)
+
+`plc build plc.json` runs every phase end-to-end — parsing, indexing,
+annotation, codegen, and linking. The trace shows all four
+top-level driver scopes, with `link` nested inside
+`generate (driver)`:
 
 ```text
 [plc-timing] parse: 25.7ms
@@ -42,19 +57,30 @@ A condensed example from compiling a small project:
 [plc-timing]       ParsedProject::index: 5.8ms
 [plc-timing] index (driver): 47.6ms
 [plc-timing] annotate (driver): 615.2ms
+[plc-timing]   link: 32.1ms
+[plc-timing] generate (driver): 184.4ms
 ```
 
-A few things to note from this trace:
+The default mode (`plc <files>` without a subcommand) follows the
+same shape — same four scopes, same nesting.
 
-- The outer `parse`, `index (driver)`, `annotate (driver)`, and
-  `generate (driver)` scopes correspond to the four top-level phases.
-- Each participant invocation is timed individually with a label of the
-  form `<hook>/<participant-type-name>`, e.g. `post_index/PolymorphismLowerer`.
-- `ParsedProject::index` and `IndexedProject::annotate` self-time, so
-  any participant that re-invokes them appears with a nested
-  `ParsedProject::index` (or `IndexedProject::annotate`) child line.
-  Those nested re-passes are the main thing to look for when
-  investigating slow builds.
+### `plc check` (front-end only)
+
+`plc check plc.json` (or the global `--check` flag) stops the
+pipeline after annotation; codegen and linking never run, so the
+trace ends at `annotate`:
+
+```text
+[plc-timing] parse: 24.9ms
+[plc-timing]   pre_index (participants): 12.4ms
+[plc-timing]   ParsedProject::index: 7.3ms
+[plc-timing]   post_index (participants): 27.0ms
+[plc-timing] index (driver): 47.0ms
+[plc-timing] annotate (driver): 612.8ms
+```
+
+This is the right mode for measuring front-end work in isolation —
+the codegen and link costs are excluded.
 
 ## What to look for
 

@@ -28,6 +28,7 @@ use plc_lowering::{
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
+use super::timing::PhaseTimer;
 use super::{AnnotatedProject, AnnotatedUnit, GeneratedProject, IndexedProject, ParsedProject};
 
 /// A Build particitpant for different steps in the pipeline
@@ -210,13 +211,16 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
     fn post_generate(&self) -> Result<(), Diagnostic> {
         let output_name = &self.compile_options.output;
 
-        let _objects = self.objects.read().expect("Failed to aquire read lock for objects").link(
-            &[], //Original project objects embedded in participant
-            self.link_options.build_location.as_deref(),
-            self.link_options.lib_location.as_deref(),
-            output_name,
-            self.link_options.clone(),
-        )?;
+        let _objects = {
+            let _t = PhaseTimer::new("link");
+            self.objects.read().expect("Failed to aquire read lock for objects").link(
+                &[], //Original project objects embedded in participant
+                self.link_options.build_location.as_deref(),
+                self.link_options.lib_location.as_deref(),
+                output_name,
+                self.link_options.clone(),
+            )?
+        };
         if let Some(lib_location) = &self.link_options.lib_location {
             for library in self.libraries.iter().filter(|it| it.should_copy()).map(|it| it.get_compiled_lib())
             {
