@@ -30,6 +30,9 @@ pub mod const_expressions;
 pub mod indexer;
 mod instance_iterator;
 pub mod symbol;
+mod unit_id;
+
+pub use unit_id::{OwnedSymbol, SymbolKind, UnitId, UnitSymbolIndex};
 
 #[cfg(test)]
 mod tests;
@@ -1327,6 +1330,14 @@ pub struct Index {
     labels: FxIndexMap<String, SymbolMap<String, Label>>,
 
     config_variables: Vec<ConfigVariable>,
+
+    /// Reverse map from owning [`UnitId`] to the set of entries that unit
+    /// contributed. Populated by [`Index::import_with_unit`] and consumed by
+    /// [`Index::remove_unit`] so a unit's contributions can be dropped without
+    /// scanning every map. Skipped over by serde so existing snapshots stay
+    /// stable.
+    #[serde(skip)]
+    unit_symbols: UnitSymbolIndex,
 }
 
 impl Index {
@@ -1335,7 +1346,16 @@ impl Index {
     /// imports all global_variables, types and implementations
     /// # Arguments
     /// - `other` the other index. The elements are drained from the given index and moved into the current one
-    pub fn import(&mut self, mut other: Index) {
+    pub fn import(&mut self, other: Index) {
+        self.import_with_unit(other, UnitId::UNTAGGED);
+    }
+
+    /// Like [`Index::import`] but records every entry's `unit_id` in the
+    /// internal reverse map. [`Index::remove_unit`] uses that record to drop a
+    /// single unit's contributions later. Pass [`UnitId::BUILTIN`] for
+    /// built-in symbols and [`UnitId::SYNTHETIC`] for symbols created by
+    /// lowering or generic-instantiation passes.
+    pub fn import_with_unit(&mut self, mut other: Index, unit_id: UnitId) {
         //global variables
         for (name, e) in other.global_variables.drain(..) {
             // Synthetic hardware-backing globals (`__PI_*` / `__M_*` / `__G_*`) are
@@ -1350,6 +1370,12 @@ impl Index {
                 .into_iter()
                 .map(|it| self.transfer_constants(it, &mut other.constant_expressions))
                 .collect::<Vec<_>>();
+            for entry in &entries {
+                self.unit_symbols.record(
+                    unit_id,
+                    OwnedSymbol::new(SymbolKind::GlobalVariable, &name, entry.get_qualified_name()),
+                );
+            }
             self.global_variables.insert_many(name, entries);
         }
 
@@ -1359,6 +1385,12 @@ impl Index {
                 .into_iter()
                 .map(|e| self.transfer_constants(e, &mut other.constant_expressions))
                 .collect::<Vec<_>>();
+            for entry in &elements {
+                self.unit_symbols.record(
+                    unit_id,
+                    OwnedSymbol::new(SymbolKind::GlobalInitializer, &name, entry.get_qualified_name()),
+                );
+            }
             self.global_initializers.insert_many(name, elements);
         }
 
@@ -1402,7 +1434,16 @@ impl Index {
                                 .collect::<Vec<_>>();
 
                             for e in variables.iter() {
-                                self.enum_global_variables.insert(e.get_name().to_lowercase(), e.clone());
+                                let map_key = e.get_name().to_lowercase();
+                                self.unit_symbols.record(
+                                    unit_id,
+                                    OwnedSymbol::new(
+                                        SymbolKind::EnumGlobalVariable,
+                                        &map_key,
+                                        e.get_qualified_name(),
+                                    ),
+                                );
+                                self.enum_global_variables.insert(map_key, e.clone());
                             }
                             variants.append(&mut variables);
                         }
@@ -1416,6 +1457,8 @@ impl Index {
                         _ => {}
                     }
 
+                    self.unit_symbols
+                        .record(unit_id, OwnedSymbol::new(SymbolKind::Type, &name, e.get_name()));
                     self.type_index.types.insert(name.clone(), e)
                 }
             }
@@ -1434,22 +1477,42 @@ impl Index {
                     members.append(&mut variables);
                 }
             });
+            for entry in &elements {
+                self.unit_symbols
+                    .record(unit_id, OwnedSymbol::new(SymbolKind::PouType, &name, entry.get_name()));
+            }
             self.type_index.pou_types.insert_many(name, elements)
         }
 
         //implementations
+        for (name, entry) in &other.implementations {
+            self.unit_symbols
+                .record(unit_id, OwnedSymbol::new(SymbolKind::Implementation, name, entry.get_call_name()));
+        }
         self.implementations.extend(other.implementations);
 
         // interfaces
+        for name in other.interfaces.keys() {
+            self.unit_symbols.record(unit_id, OwnedSymbol::unique(SymbolKind::Interface, name));
+        }
         self.interfaces.extend(other.interfaces);
 
         // properties
+        for name in other.properties.keys() {
+            self.unit_symbols.record(unit_id, OwnedSymbol::unique(SymbolKind::Property, name));
+        }
         self.properties.extend(other.properties);
 
         //pous
         for (name, elements) in other.pous.drain(..) {
             for ele in elements {
-                // skip automatically generated pou's if they are already in the target index
+                // Always record this unit's stake in the entry — even when we
+                // skip the actual `pous.insert` for a colliding auto-gen, so
+                // that `remove_unit` knows another owner remains and won't
+                // drop a shared entry on the first removal.
+                self.unit_symbols.record(unit_id, OwnedSymbol::new(SymbolKind::Pou, &name, ele.get_name()));
+                // Skip automatically generated POUs that another unit already
+                // contributed under the same name.
                 if !ele.is_auto_generated_function() || !self.pous.contains_key(&name) {
                     self.pous.insert(name.clone(), ele);
                 }
@@ -1463,6 +1526,70 @@ impl Index {
 
         //Constant expressions are intentionally not imported
         // self.constant_expressions.import(other.constant_expressions)
+    }
+
+    /// Drops every entry recorded for `unit_id` from this index. Pairs with
+    /// [`Index::import_with_unit`]: only entries imported under that exact
+    /// `unit_id` are touched, so other units' contributions under the same
+    /// map key (e.g. enum variants from a different enum) are preserved.
+    ///
+    /// Does nothing if `unit_id` has no recorded contributions. After a call
+    /// the `unit_id` is removed from the reverse map, so re-importing the
+    /// unit later with the same id starts from a clean slate.
+    pub fn remove_unit(&mut self, unit_id: UnitId) {
+        let symbols = self.unit_symbols.take(unit_id);
+        for sym in symbols {
+            // If any other unit still claims ownership of this exact symbol
+            // (kind + map_key + identifier), the underlying entry is shared.
+            // Drop only this unit's stake; leave the entry for the remaining
+            // owner(s). Without this guard, the first removal of a shared
+            // entry (e.g. an auto-generated POU contributed by several units,
+            // or an implementation whose key collides across units) would
+            // delete the entry and orphan the other units' ownership rows.
+            if self.unit_symbols.has_owner_other_than(unit_id, sym.kind, &sym.map_key, &sym.identifier) {
+                continue;
+            }
+            match sym.kind {
+                SymbolKind::GlobalVariable => {
+                    self.global_variables
+                        .retain_at_key(sym.map_key.as_str(), |e| e.get_qualified_name() != sym.identifier);
+                }
+                SymbolKind::GlobalInitializer => {
+                    self.global_initializers
+                        .retain_at_key(sym.map_key.as_str(), |e| e.get_qualified_name() != sym.identifier);
+                }
+                SymbolKind::EnumGlobalVariable => {
+                    self.enum_global_variables
+                        .retain_at_key(sym.map_key.as_str(), |e| e.get_qualified_name() != sym.identifier);
+                }
+                SymbolKind::Pou => {
+                    self.pous.retain_at_key(sym.map_key.as_str(), |e| e.get_name() != sym.identifier);
+                }
+                SymbolKind::Interface => {
+                    self.interfaces.retain_at_key(sym.map_key.as_str(), |_| false);
+                }
+                SymbolKind::Property => {
+                    self.properties.retain_at_key(sym.map_key.as_str(), |_| false);
+                }
+                SymbolKind::Implementation => {
+                    if let Some(entry) = self.implementations.get(sym.map_key.as_str()) {
+                        if entry.get_call_name() == sym.identifier {
+                            self.implementations.shift_remove(sym.map_key.as_str());
+                        }
+                    }
+                }
+                SymbolKind::Type => {
+                    self.type_index
+                        .types
+                        .retain_at_key(sym.map_key.as_str(), |e| e.get_name() != sym.identifier);
+                }
+                SymbolKind::PouType => {
+                    self.type_index
+                        .pou_types
+                        .retain_at_key(sym.map_key.as_str(), |e| e.get_name() != sym.identifier);
+                }
+            }
+        }
     }
 
     fn transfer_constants(

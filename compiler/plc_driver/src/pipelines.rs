@@ -21,7 +21,7 @@ use itertools::Itertools;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::{indexer, FxIndexSet, Index},
+    index::{indexer, FxIndexSet, Index, UnitId},
     linker::LinkerType,
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
     output::{FormatOption, RelocationPreference},
@@ -732,9 +732,9 @@ impl ParsedProject {
 
         let mut global_index = Index::default();
         let mut units = vec![];
-        for (index, unit) in indexed_units {
+        for (idx, (index, unit)) in indexed_units.into_iter().enumerate() {
             units.push(unit);
-            global_index.import(index);
+            global_index.import_with_unit(index, UnitId::source(idx));
         }
 
         // import built-in types like INT, BOOL, etc.
@@ -744,7 +744,7 @@ impl ParsedProject {
 
         // import builtin functions
         let builtins = plc::builtins::parse_built_ins(id_provider);
-        global_index.import(indexer::index(&builtins));
+        global_index.import_with_unit(indexer::index(&builtins), UnitId::BUILTIN);
 
         //TODO: evaluate constants should probably be a participant
         let (index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
@@ -788,7 +788,10 @@ impl IndexedProject {
         }
 
         let mut index = self.index;
-        index.import(std::mem::take(&mut all_annotations.new_index));
+        // The resolver's `new_index` carries generic instantiations and
+        // synthetic types created during annotation; tag them as synthetic so
+        // a later per-unit invalidation doesn't accidentally drop them.
+        index.import_with_unit(std::mem::take(&mut all_annotations.new_index), UnitId::SYNTHETIC);
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 

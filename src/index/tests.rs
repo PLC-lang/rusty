@@ -4,3 +4,4 @@ mod generic_tests;
 mod index_tests;
 mod instance_resolver_tests;
 mod interface_tests;
+mod unit_id_tests;
