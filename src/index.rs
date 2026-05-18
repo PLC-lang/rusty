@@ -1592,6 +1592,27 @@ impl Index {
         }
     }
 
+    /// Re-imports a single unit's index entries: drops the unit's previous
+    /// contributions (using the side-table built by [`Index::import_with_unit`])
+    /// and re-imports them from the unit's current AST. Pre-processes the
+    /// unit first to match the behaviour of the project-wide indexing path
+    /// (which fills in anonymous pointer / array names that lowering can
+    /// leave behind).
+    ///
+    /// Used by participants that mutate a subset of units and need the
+    /// global index to reflect the new state without rebuilding from
+    /// scratch.
+    pub fn reindex_unit(
+        &mut self,
+        unit_id: UnitId,
+        unit: &mut plc_ast::ast::CompilationUnit,
+        id_provider: plc_ast::provider::IdProvider,
+    ) {
+        plc_ast::ast::pre_process(unit, id_provider);
+        self.remove_unit(unit_id);
+        self.import_with_unit(indexer::index(unit), unit_id);
+    }
+
     fn transfer_constants(
         &mut self,
         mut variable: VariableIndexEntry,

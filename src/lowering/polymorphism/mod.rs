@@ -40,10 +40,10 @@ impl PolymorphismLowerer {
     /// Generates vtable and itable struct definitions, `__vtable` member fields on root POUs,
     /// and global table instances. Must be called before [`dispatch`](Self::dispatch).
     ///
-    /// Returns `true` if any unit was actually modified. The caller uses
-    /// this to skip the downstream re-index when the project contains no
-    /// classes, function blocks, or interfaces.
-    pub fn table(&self, index: &Index, units: &mut Vec<CompilationUnit>) -> bool {
+    /// Returns the positional indices of units that were actually modified.
+    /// An empty result means the project has no classes, function blocks,
+    /// or interfaces and the caller can skip the downstream re-index.
+    pub fn table(&self, index: &Index, units: &mut [CompilationUnit]) -> Vec<usize> {
         TableGenerator::generate(self.ids.clone(), self.generate_external_constructors, index, units)
     }
 
