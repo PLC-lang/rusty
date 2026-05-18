@@ -1314,8 +1314,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             };
 
             // From https://llvm.org/docs/LangRef.html#bitcast-to-instruction: The ‘bitcast’ instruction takes
-            // a value to cast, which must be a **non-aggregate** first class value [...]
-            if !actual_type_info.is_aggregate() && actual_type_info != target_type_info {
+            // a value to cast, which must be a **non-aggregate** first class value, and a type to cast it to,
+            // which must also be a non-aggregate first class type.
+            if !actual_type_info.is_aggregate()
+                && !target_type_info.is_aggregate()
+                && actual_type_info != target_type_info
+            {
                 return Ok(self.llvm.builder.build_bit_cast(
                     value,
                     self.llvm_index.get_associated_type(hint.get_name())?,
