@@ -28,3 +28,5 @@
 - [Development]()
   - [Profiling Build Phases](./development/phase_timing.md)
   - [Writing a Lowering Pass](./development/writing_a_lowerer.md)
+  - [Signature Hash (deferred)](./development/signature_hash.md)
+  - [Reverse Dependency Graph (deferred)](./development/reverse_dependency_graph.md)
