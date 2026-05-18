@@ -18,6 +18,7 @@ use plc::{
     index::{Index, PouIndexEntry},
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
+    typesystem::DataTypeInformation,
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -468,23 +469,53 @@ fn project_needs_vtables(index: &Index) -> bool {
 /// True if the project has any construct whose call sites the dispatch pass
 /// might rewrite into vtable-indirected form:
 ///
-/// - methods, or interfaces (method-call dispatch through the vtable)
-/// - any FB or class with `EXTENDS` (body-call dispatch through the vtable
-///   when a `POINTER TO Base` points at a derived instance, plus `SUPER^`
-///   calls).
+/// - methods or interfaces (method-call dispatch through the vtable);
+/// - any FB or class with `EXTENDS` (body-call dispatch and `SUPER^`);
+/// - any `POINTER TO <FB-or-Class>` type. A pre-OOP library may declare a
+///   pointer-to-FB member and call it via `ptr^()` with no `EXTENDS` or
+///   methods in its own compilation. The lib has no way to know whether
+///   a downstream consumer will retarget that pointer to a derived
+///   instance, so the call site must be vtable-indirected — otherwise
+///   the library binary bakes in a static call to the base body and the
+///   derived body never runs. `REFERENCE TO X` is encoded as a
+///   `Pointer { auto_deref: Some(_) }` in the type system, so it is
+///   covered by the same check.
 ///
-/// A pre-OOP library that uses only standalone FBs (no `EXTENDS`, no
-/// methods, no interfaces) has no expressions the dispatch pass would
-/// touch even though its FBs ship with vtable slots. Used by
-/// `PolymorphismLowerer::post_annotate`.
+/// Used by `PolymorphismLowerer::post_annotate`.
 fn project_uses_polymorphic_dispatch(index: &Index) -> bool {
     if index.get_interfaces().keys().next().is_some() {
         return true;
     }
-    index.get_pous().values().any(|p| match p {
+    let pou_match = index.get_pous().values().any(|p| match p {
         PouIndexEntry::Method { .. } => true,
         PouIndexEntry::FunctionBlock { super_class, .. } | PouIndexEntry::Class { super_class, .. } => {
             super_class.is_some()
+        }
+        _ => false,
+    });
+    if pou_match {
+        return true;
+    }
+    let is_pou_type = |type_name: &str| {
+        index
+            .find_effective_type_by_name(type_name)
+            .map(|t| {
+                let info = t.get_type_information();
+                info.is_function_block() || info.is_class()
+            })
+            .unwrap_or(false)
+    };
+    index.get_types().values().any(|dt| match &dt.information {
+        DataTypeInformation::Pointer { inner_type_name, is_function, .. } => {
+            // Exclude two kinds of compiler-synthesized pointers:
+            //  * function pointers (`is_function: true`) — vtable body
+            //    slots, not user-declared pointers-to-FB;
+            //  * internal `__auto_pointer_to_X` types emitted alongside
+            //    every FB / class.
+            // Both of these exist in oscat-like libraries that have no
+            // user-declared `POINTER TO FB` at all; counting them would
+            // cause the dispatch pass to fire unnecessarily.
+            !is_function && !dt.is_internal() && is_pou_type(inner_type_name)
         }
         _ => false,
     })
