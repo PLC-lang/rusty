@@ -39,7 +39,12 @@ pub fn extract_workspace_root(params: &InitializeParams) -> Option<PathBuf> {
         .and_then(|uri| file_uri_to_path(&uri))
 }
 
-fn file_uri_to_path(uri: &lsp_types::Uri) -> Option<PathBuf> {
+/// Map an `lsp_types::Uri` to a filesystem path when the URI is a
+/// `file://` URI. Returns `None` for other schemes. The current
+/// implementation is a strip_prefix; it doesn't handle percent-encoding
+/// or Windows `file:///C:/...` URLs — sufficient for the prototype's
+/// Linux dev target. See decisions log entry D2.
+pub fn file_uri_to_path(uri: &lsp_types::Uri) -> Option<PathBuf> {
     let s = uri.as_str();
     s.strip_prefix("file://").map(PathBuf::from)
 }

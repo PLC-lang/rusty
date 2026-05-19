@@ -66,6 +66,12 @@ impl DocumentStore {
     pub fn is_empty(&self) -> bool {
         self.docs.is_empty()
     }
+
+    /// Iterate `(uri, buffer)` pairs for every tracked document.
+    /// Used by the compile snapshot builder.
+    pub fn iter(&self) -> impl Iterator<Item = (&Uri, &DocumentBuffer)> {
+        self.docs.iter()
+    }
 }
 
 #[cfg(test)]

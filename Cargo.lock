@@ -2509,11 +2509,14 @@ name = "plc_lsp"
 version = "0.5.0"
 dependencies = [
  "anyhow",
+ "crossbeam-channel",
  "env_logger",
  "insta",
  "log",
  "lsp-server",
  "lsp-types",
+ "plc_diagnostics",
+ "rustc-hash",
  "serde",
  "serde_json",
  "tempfile",

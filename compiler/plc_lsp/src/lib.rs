@@ -1,6 +1,8 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 use anyhow::Context as _;
+use crossbeam_channel::{select, Sender};
 use lsp_server::{Connection, IoThreads, Message, Notification, Request, Response, ResponseError};
 use lsp_types::{
     ClientCapabilities, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
@@ -8,33 +10,27 @@ use lsp_types::{
     TextDocumentSyncCapability, TextDocumentSyncKind,
 };
 
+pub mod compile;
 pub mod document;
 pub mod project;
 
-/// Runtime configuration for the server. Currently only carries an
-/// optional `plc.json` override path supplied via the CLI; the LSP
-/// client can supply the same override via
-/// `initializationOptions.plcConfigPath`.
+/// Runtime configuration for the server.
 #[derive(Default, Debug, Clone)]
 pub struct Settings {
     pub config_override: Option<PathBuf>,
 }
 
 pub struct ServerState {
-    /// Encoding negotiated during the initialize handshake. Phases that
-    /// exchange positions on the wire (diagnostics, hover, …) read this to
-    /// decide how to convert their byte offsets.
     pub position_encoding: PositionEncodingKind,
-    /// In-memory view of every editor-open buffer.
     pub documents: document::DocumentStore,
-    /// Workspace folder root captured at `initialize`. Used by project
-    /// discovery; `None` for clients that don't supply one (rare in
-    /// practice — every modern editor sends at least `rootUri`).
     pub workspace_root: Option<PathBuf>,
-    /// Resolved `plc.json` override path (CLI arg or
-    /// `initializationOptions.plcConfigPath`). Takes precedence over
-    /// discovery.
     pub plc_config_override: Option<PathBuf>,
+    /// True when a compile request has been sent to the worker and no
+    /// result has come back yet.
+    pub compile_pending: bool,
+    /// True when a compile trigger arrived while one was already pending.
+    /// Honoured when the in-flight compile finishes — see decisions log D1.
+    pub compile_dirty: bool,
 }
 
 impl ServerState {
@@ -48,15 +44,12 @@ impl ServerState {
             documents: document::DocumentStore::new(),
             workspace_root,
             plc_config_override,
+            compile_pending: false,
+            compile_dirty: false,
         }
     }
 }
 
-/// Pick the position encoding from what the client offers. We prefer UTF-8
-/// (no byte-offset conversion) but fall back to UTF-16 when the client
-/// doesn't advertise utf-8 — notably `vscode-languageclient` v9 only ever
-/// advertises utf-16, and per LSP the server must pick from the client's
-/// offered list.
 fn pick_position_encoding(client_capabilities: &ClientCapabilities) -> PositionEncodingKind {
     let offered = client_capabilities.general.as_ref().and_then(|g| g.position_encodings.as_ref());
     match offered {
@@ -120,16 +113,19 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
     log::info!("plc-lsp initialized; entering main loop");
 
     let mut state = ServerState::new(position_encoding, workspace_root, plc_config_override);
-    main_loop(connection, &mut state)?;
+    let worker = compile::CompileWorker::spawn();
+
+    // Q11: initial compile as soon as we're initialized so the user
+    // sees diagnostics before opening any file.
+    trigger_compile(&mut state, &worker.compile_tx);
+
+    let main_loop_result = main_loop(connection, &mut state, &worker);
 
     log::info!("plc-lsp shutting down");
-    Ok(())
+    worker.join();
+    main_loop_result
 }
 
-/// Combine the server result with the I/O-thread result.
-/// When the server errors with a "disconnected channel" style message, the real
-/// cause usually sits in the I/O thread (e.g., a framing error on stdin). We
-/// join the threads here and surface their error as additional context.
 fn finalize(server_result: anyhow::Result<()>, io_threads: IoThreads) -> anyhow::Result<()> {
     match (server_result, io_threads.join()) {
         (Ok(()), Ok(())) => Ok(()),
@@ -139,24 +135,44 @@ fn finalize(server_result: anyhow::Result<()>, io_threads: IoThreads) -> anyhow:
     }
 }
 
-fn main_loop(connection: &Connection, state: &mut ServerState) -> anyhow::Result<()> {
-    for msg in &connection.receiver {
-        match msg {
-            Message::Request(req) => {
-                if connection.handle_shutdown(&req)? {
+fn main_loop(
+    connection: &Connection,
+    state: &mut ServerState,
+    worker: &compile::CompileWorker,
+) -> anyhow::Result<()> {
+    loop {
+        select! {
+            recv(connection.receiver) -> msg => {
+                let Ok(msg) = msg else {
+                    // Receiver disconnected — client closed stdin.
                     return Ok(());
+                };
+                match msg {
+                    Message::Request(req) => {
+                        if connection.handle_shutdown(&req)? {
+                            return Ok(());
+                        }
+                        handle_request(state, connection, req);
+                    }
+                    Message::Notification(notif) => {
+                        if !handle_notification(state, &worker.compile_tx, notif)? {
+                            return Ok(());
+                        }
+                    }
+                    Message::Response(_) => {
+                        log::debug!("unexpected response from client");
+                    }
                 }
-                handle_request(state, connection, req);
             }
-            Message::Notification(notif) => {
-                handle_notification(state, notif)?;
-            }
-            Message::Response(_) => {
-                log::debug!("unexpected response from client");
+            recv(worker.result_rx) -> result => {
+                let Ok(result) = result else {
+                    log::error!("compile worker result channel closed unexpectedly");
+                    return Ok(());
+                };
+                handle_compile_result(state, &worker.compile_tx, result);
             }
         }
     }
-    Ok(())
 }
 
 fn handle_request(_state: &mut ServerState, connection: &Connection, req: Request) {
@@ -175,12 +191,23 @@ fn handle_request(_state: &mut ServerState, connection: &Connection, req: Reques
     }
 }
 
-fn handle_notification(state: &mut ServerState, notif: Notification) -> anyhow::Result<()> {
+/// Returns `false` when the notification should end the main loop
+/// (an `exit` arriving here without prior shutdown is a protocol
+/// violation, but we treat it as a clean termination request rather
+/// than panicking).
+fn handle_notification(
+    state: &mut ServerState,
+    compile_tx: &Sender<compile::CompileRequest>,
+    notif: Notification,
+) -> anyhow::Result<bool> {
     match notif.method.as_str() {
-        "exit" => anyhow::bail!("exit notification without prior shutdown"),
+        "exit" => return Ok(false),
         "textDocument/didOpen" => handle_did_open(state, notif),
         "textDocument/didChange" => handle_did_change(state, notif),
-        "textDocument/didSave" => handle_did_save(state, notif),
+        "textDocument/didSave" => {
+            handle_did_save(state, notif);
+            trigger_compile(state, compile_tx);
+        }
         "textDocument/didClose" => handle_did_close(state, notif),
         "$/setTrace" | "$/cancelRequest" => {
             log::debug!("{} ignored in phase 1", notif.method);
@@ -189,7 +216,7 @@ fn handle_notification(state: &mut ServerState, notif: Notification) -> anyhow::
             log::debug!("unhandled notification: {other}");
         }
     }
-    Ok(())
+    Ok(true)
 }
 
 fn handle_did_open(state: &mut ServerState, notif: Notification) {
@@ -231,7 +258,8 @@ fn handle_did_change(state: &mut ServerState, notif: Notification) {
 }
 
 fn handle_did_save(_state: &mut ServerState, _notif: Notification) {
-    // Phase 2: no-op. Phase 3 turns this into the compile trigger.
+    // Compile is triggered by handle_notification's dispatch arm; here
+    // we just acknowledge the notification.
 }
 
 fn handle_did_close(state: &mut ServerState, notif: Notification) {
@@ -247,4 +275,59 @@ fn handle_did_close(state: &mut ServerState, notif: Notification) {
 
 fn accept_language_id(language_id: &str) -> bool {
     matches!(language_id, "structured-text" | "st" | "iecst")
+}
+
+/// Build a snapshot from current ServerState and send it to the worker.
+/// If a compile is already in flight, just mark the state dirty so we
+/// re-fire when the result arrives.
+fn trigger_compile(state: &mut ServerState, compile_tx: &Sender<compile::CompileRequest>) {
+    if state.compile_pending {
+        state.compile_dirty = true;
+        log::debug!("compile already pending; marking dirty");
+        return;
+    }
+    let snapshot = build_snapshot(state);
+    if compile_tx.send(compile::CompileRequest { snapshot }).is_err() {
+        log::error!("compile worker channel closed; cannot send request");
+        return;
+    }
+    state.compile_pending = true;
+    state.compile_dirty = false;
+}
+
+fn handle_compile_result(
+    state: &mut ServerState,
+    compile_tx: &Sender<compile::CompileRequest>,
+    result: compile::CompileResult,
+) {
+    state.compile_pending = false;
+    if let Some(err) = &result.error {
+        log::error!("compile pipeline error: {err}");
+    }
+    log::debug!("compile produced {} diagnostics", result.diagnostics.len());
+    // Phase 4 publishes diagnostics here.
+
+    if state.compile_dirty {
+        log::debug!("re-firing compile due to dirty state");
+        state.compile_dirty = false;
+        trigger_compile(state, compile_tx);
+    }
+}
+
+fn build_snapshot(state: &ServerState) -> compile::CompileSnapshot {
+    let mut open_buffers: HashMap<PathBuf, String> = HashMap::new();
+    for (uri, buf) in state.documents.iter() {
+        if let Some(path) = project::file_uri_to_path(uri) {
+            open_buffers.insert(path, buf.content.clone());
+        }
+    }
+    compile::CompileSnapshot {
+        plc_config_path: project::resolve_plc_config_path(
+            state.workspace_root.as_deref(),
+            state.plc_config_override.as_deref(),
+        ),
+        workspace_root: state.workspace_root.clone(),
+        open_buffers,
+        position_encoding: state.position_encoding.clone(),
+    }
 }
