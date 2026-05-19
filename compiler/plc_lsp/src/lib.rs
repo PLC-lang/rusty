@@ -1,21 +1,33 @@
 use anyhow::Context as _;
 use lsp_server::{Connection, IoThreads, Message, Notification, Request, Response, ResponseError};
 use lsp_types::{
-    InitializeParams, InitializeResult, PositionEncodingKind, ServerCapabilities, ServerInfo,
-    TextDocumentSyncCapability, TextDocumentSyncKind,
+    ClientCapabilities, InitializeParams, InitializeResult, PositionEncodingKind, ServerCapabilities,
+    ServerInfo, TextDocumentSyncCapability, TextDocumentSyncKind,
 };
 
-pub struct ServerState;
+pub struct ServerState {
+    /// Encoding negotiated during the initialize handshake. Phases that
+    /// exchange positions on the wire (diagnostics, hover, …) read this to
+    /// decide how to convert their byte offsets.
+    pub position_encoding: PositionEncodingKind,
+}
 
 impl ServerState {
-    pub fn new() -> Self {
-        ServerState
+    pub fn new(position_encoding: PositionEncodingKind) -> Self {
+        ServerState { position_encoding }
     }
 }
 
-impl Default for ServerState {
-    fn default() -> Self {
-        Self::new()
+/// Pick the position encoding from what the client offers. We prefer UTF-8
+/// (no byte-offset conversion) but fall back to UTF-16 when the client
+/// doesn't advertise utf-8 — notably `vscode-languageclient` v9 only ever
+/// advertises utf-16, and per LSP the server must pick from the client's
+/// offered list.
+fn pick_position_encoding(client_capabilities: &ClientCapabilities) -> PositionEncodingKind {
+    let offered = client_capabilities.general.as_ref().and_then(|g| g.position_encodings.as_ref());
+    match offered {
+        Some(encodings) if encodings.contains(&PositionEncodingKind::UTF8) => PositionEncodingKind::UTF8,
+        _ => PositionEncodingKind::UTF16,
     }
 }
 
@@ -28,18 +40,21 @@ pub fn run() -> anyhow::Result<()> {
 pub fn serve(connection: &Connection) -> anyhow::Result<()> {
     log::info!("plc-lsp starting; performing initialize handshake");
 
-    let server_capabilities = ServerCapabilities {
-        text_document_sync: Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
-        position_encoding: Some(PositionEncodingKind::UTF8),
-        ..Default::default()
-    };
-
     let (init_id, init_params_val) = connection.initialize_start().context(
         "LSP initialize handshake failed waiting for the client's initialize request \
          (LSP messages must be framed as 'Content-Length: N\\r\\n\\r\\n<json>')",
     )?;
-    let _init_params: InitializeParams = serde_json::from_value(init_params_val)
+    let init_params: InitializeParams = serde_json::from_value(init_params_val)
         .context("client's initialize params did not match the LSP InitializeParams schema")?;
+
+    let position_encoding = pick_position_encoding(&init_params.capabilities);
+    log::info!("plc-lsp negotiated position encoding: {position_encoding:?}");
+
+    let server_capabilities = ServerCapabilities {
+        text_document_sync: Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
+        position_encoding: Some(position_encoding.clone()),
+        ..Default::default()
+    };
 
     let init_result = InitializeResult {
         capabilities: server_capabilities,
@@ -54,7 +69,7 @@ pub fn serve(connection: &Connection) -> anyhow::Result<()> {
 
     log::info!("plc-lsp initialized; entering main loop");
 
-    let mut state = ServerState::new();
+    let mut state = ServerState::new(position_encoding);
     main_loop(connection, &mut state)?;
 
     log::info!("plc-lsp shutting down");
