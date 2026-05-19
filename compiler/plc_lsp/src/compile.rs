@@ -84,8 +84,90 @@ fn worker_loop(compile_rx: Receiver<CompileRequest>, result_tx: Sender<CompileRe
     log::info!("compile worker exiting");
 }
 
-fn run_compile(_req: CompileRequest) -> CompileResult {
-    // Phase 3.4 fills this in.
-    log::debug!("compile worker: run_compile invoked (no-op; pipeline lands in phase 3.4)");
-    CompileResult { diagnostics: Vec::new(), file_paths: FxHashMap::default(), error: None }
+fn run_compile(req: CompileRequest) -> CompileResult {
+    let snapshot = req.snapshot;
+
+    let Some(config_path) = snapshot.plc_config_path.as_deref() else {
+        log::warn!("compile: no plc.json available; skipping");
+        return CompileResult { diagnostics: Vec::new(), file_paths: FxHashMap::default(), error: None };
+    };
+
+    log::info!("compile: starting with plc.json={config_path:?}");
+
+    let project = match plc_project::project::Project::from_config(config_path) {
+        Ok(p) => p,
+        Err(e) => {
+            return CompileResult {
+                diagnostics: Vec::new(),
+                file_paths: FxHashMap::default(),
+                error: Some(format!("failed to load plc.json at {config_path:?}: {e}")),
+            };
+        }
+    };
+
+    let sources = build_sources(project.get_sources(), &snapshot.open_buffers);
+    log::debug!("compile: built {} sources", sources.len());
+
+    let reporter = plc_diagnostics::reporter::lsp::LspReporter::new();
+    let handle = reporter.clone();
+    let diagnostician = plc_diagnostics::diagnostician::Diagnostician::with_reporter(Box::new(reporter));
+
+    let mut pipeline = match plc_driver::pipelines::BuildPipeline::from_sources(
+        project.get_name(),
+        sources,
+        diagnostician,
+    ) {
+        Ok(p) => p,
+        Err(e) => {
+            return CompileResult {
+                diagnostics: handle.take_collected(),
+                file_paths: handle.file_paths(),
+                error: Some(format!("from_sources failed: {e:?}")),
+            };
+        }
+    };
+
+    pipeline.register_default_mut_participants();
+
+    let pipeline_error = run_stages(&mut pipeline).err().map(|e| format!("{e:?}"));
+
+    CompileResult {
+        diagnostics: handle.take_collected(),
+        file_paths: handle.file_paths(),
+        error: pipeline_error,
+    }
+}
+
+fn run_stages(
+    pipeline: &mut plc_driver::pipelines::BuildPipeline<plc_source::SourceCode>,
+) -> Result<(), plc_diagnostics::diagnostics::Diagnostic> {
+    use plc_driver::pipelines::Pipeline as _;
+    let parsed = pipeline.parse()?;
+    let indexed = pipeline.index(parsed)?;
+    let annotated = pipeline.annotate(indexed)?;
+    let _ = annotated.validate(&pipeline.context, &mut pipeline.diagnostician);
+    Ok(())
+}
+
+fn build_sources(
+    project_paths: &[PathBuf],
+    open_buffers: &HashMap<PathBuf, String>,
+) -> Vec<plc_source::SourceCode> {
+    project_paths
+        .iter()
+        .filter_map(|path| {
+            let content = if let Some(buf) = open_buffers.get(path) {
+                buf.clone()
+            } else {
+                match std::fs::read_to_string(path) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        log::warn!("compile: failed to read {path:?}: {e}");
+                        return None;
+                    }
+                }
+            };
+            Some(plc_source::SourceCode { source: content, path: Some(path.clone()) })
+        })
+        .collect()
 }
