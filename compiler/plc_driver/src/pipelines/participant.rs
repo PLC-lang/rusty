@@ -384,7 +384,7 @@ impl PipelineParticipantMut for LoopDesugarer {
 impl PipelineParticipantMut for ReferenceToReturnParticipant {
     fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         let ParsedProject { mut units } = parsed_project;
-        self.gather_context(&mut units);
+        self.gather_context(&mut units, None);
         ParsedProject { units }
     }
 

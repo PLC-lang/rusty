@@ -52,11 +52,12 @@ impl ReferenceToReturnParticipant {
         Self { ids, pou_context: Vec::new(), implementation_context: Vec::new() }
     }
 
-    pub fn gather_context(&mut self, units: &mut [CompilationUnit]) {
+    pub fn gather_context(&mut self, units: &mut [CompilationUnit], annotations: Option<&AstAnnotations>) {
         // Pre-populate context with gathered setup information
         let mut context_gatherer = ReferenceToReturnContextGatherer::new(
             self.pou_context.clone(),
             self.implementation_context.clone(),
+            annotations,
         );
 
         for unit in &mut *units {
@@ -73,7 +74,7 @@ impl ReferenceToReturnParticipant {
         index: Index,
         annotations: AstAnnotations,
     ) {
-        self.gather_context(units);
+        self.gather_context(units, Some(&annotations));
 
         // Perform the lowering process
         let mut lowerer = ReferenceToReturnLowerer::new(
@@ -110,24 +111,40 @@ pub struct ReferenceToReturnLowerer {
     current_implementation_pou_context: ReferenceToReturnImplementationPouContext,
 }
 
-struct ReferenceToReturnContextGatherer {
+struct ReferenceToReturnContextGatherer<'a> {
     pou_context: Vec<ReferenceToReturnPouContext>,
     implementation_context: Vec<ReferenceToReturnImplementationContext>,
     current_implementation_context: Option<ReferenceToReturnImplementationContext>,
+    annotations: Option<&'a AstAnnotations>,
 }
 
-impl ReferenceToReturnContextGatherer {
+impl<'a> ReferenceToReturnContextGatherer<'a> {
     pub fn new(
         pou_context: Vec<ReferenceToReturnPouContext>,
         implementation_context: Vec<ReferenceToReturnImplementationContext>,
+        annotations: Option<&'a AstAnnotations>,
     ) -> Self {
-        Self { pou_context, implementation_context, current_implementation_context: None }
+        Self { pou_context, implementation_context, current_implementation_context: None, annotations }
+    }
+
+    fn get_call_statement_qualified_name(&self, call_statement: &CallStatement) -> Option<String> {
+        let Some(annotations) = self.annotations else {
+            unreachable!("annotations must be set to get call statement qualified name")
+        };
+
+        if let Some(Some(call_statement_name)) =
+            annotations.get(&call_statement.operator).map(|it| it.qualified_name())
+        {
+            return Some(call_statement_name.to_string());
+        }
+
+        None
     }
 }
 
-impl Default for ReferenceToReturnContextGatherer {
+impl<'a> Default for ReferenceToReturnContextGatherer<'a> {
     fn default() -> Self {
-        Self::new(Vec::new(), Vec::new())
+        Self::new(Vec::new(), Vec::new(), None)
     }
 }
 
@@ -190,7 +207,7 @@ impl Default for ReferenceToReturnImplementationPouContext {
     }
 }
 
-impl AstVisitorMut for ReferenceToReturnContextGatherer {
+impl<'a> AstVisitorMut for ReferenceToReturnContextGatherer<'a> {
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
         unit.walk(self);
     }
@@ -245,10 +262,14 @@ impl AstVisitorMut for ReferenceToReturnContextGatherer {
 
     fn visit_call_statement(&mut self, node: &mut AstNode) {
         if let AstStatement::CallStatement(call_statement) = &mut node.stmt {
-            if let Some(call_statement_name) = call_statement.operator.get_flat_reference_name() {
+            if self.annotations.is_some() {
                 if let Some(context) = self.pou_context.iter().find(|it| {
-                    let de_qualified_name = de_qualify_name(&it.pou_name);
-                    de_qualified_name == call_statement_name
+                    // If the pou name is qualified, we are dealing with a method and need to perform the check differently
+                    if let Some(qualified_name) = self.get_call_statement_qualified_name(call_statement) {
+                        return it.pou_name == qualified_name;
+                    }
+
+                    false
                 }) {
                     if let Some(current_implementation_context) = &mut self.current_implementation_context {
                         let call_statement_name = context.pou_name.to_string();
@@ -483,10 +504,12 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
             if self.current_implementation_call_context.in_context
                 && self.call_statement_referenced_pou_is_reference_to_return(call_statement)
             {
-                let call_statement_name = call_statement
-                    .operator
-                    .get_flat_reference_name()
-                    .expect("this must have a name")
+                let call_statement_name = self
+                    .annotations
+                    .get(&call_statement.operator)
+                    .map(|it| it.qualified_name())
+                    .expect("this must have an annotation")
+                    .expect("this must have a qualified name")
                     .to_string();
 
                 let current_index = self.get_and_bump_index_for_current_call_state(call_statement);
@@ -588,7 +611,8 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                         ),
                     );
 
-                    let statement = if self.current_implementation_call_context.value_is_used {
+                    // Return the member reference to the pointer in place of the function
+                    Some(
                         AstFactory::create_member_reference(
                             AstFactory::create_identifier(
                                 return_variable_name.to_string(),
@@ -598,13 +622,8 @@ impl AstVisitorMut for ReferenceToReturnLowerer {
                             None,
                             self.ids.next_id(),
                         )
-                        .stmt
-                    } else {
-                        AstStatement::EmptyStatement(EmptyStatement {})
-                    };
-
-                    // Return the member reference to the pointer in place of the function
-                    Some(statement)
+                        .stmt,
+                    )
                 };
             } else {
                 // We should still walk the call statement to ensure that we catch any downstream references
@@ -787,7 +806,7 @@ impl ReferenceToReturnLowerer {
     }
 
     fn get_return_variable_name(&self, name: &str) -> String {
-        let name = de_qualify_name(name);
+        let name = name.replace(".", "_");
 
         if name.starts_with("__") {
             format!("{}_return_val", name)
@@ -1625,6 +1644,7 @@ mod tests {
         refVal REF= tmpVal;
         __referenceFunc_return_val_1 REF= __referenceFunc_return_val_store_1;
         referenceFunc(__referenceFunc_return_val_1, refVal);
+        __referenceFunc_return_val_1;
         conVal := refVal;
         ");
     }
@@ -1680,7 +1700,7 @@ mod tests {
 
         assert_snapshot!(AstSerializer::format_variable_block(input_block, unit), @"
         VAR_INPUT
-            __get_myStructuredVar_return_val : REFERENCE TO structuredTypeOrFb;
+            __fb___get_myStructuredVar_return_val : REFERENCE TO structuredTypeOrFb;
         END_VAR
         ");
 
@@ -1691,7 +1711,7 @@ mod tests {
 
         assert_snapshot!(AstSerializer::format_nodes(&implementation.statements), @"
         __fb.__get_myStructuredVar_myStructuredVar__ctor(myStructuredVar);
-        __get_myStructuredVar_return_val := _myStructuredVar;
+        __fb___get_myStructuredVar_return_val := _myStructuredVar;
         ");
 
         let test_method = pous.iter().find(|i| i.name == "test").expect("test pou should exist");
@@ -1704,8 +1724,8 @@ mod tests {
 
         assert_snapshot!(AstSerializer::format_variable_block(test_temp_block, unit), @"
         VAR_TEMP
-            __get_myStructuredVar_return_val_1 : REFERENCE TO structuredTypeOrFb;
-            __get_myStructuredVar_return_val_store_1 : structuredTypeOrFb;
+            __fb___get_myStructuredVar_return_val_1 : REFERENCE TO structuredTypeOrFb;
+            __fb___get_myStructuredVar_return_val_store_1 : structuredTypeOrFb;
         END_VAR
         ");
 
@@ -1713,11 +1733,11 @@ mod tests {
             implementations.iter().find(|i| i.name == "test").expect("test implementation should exist");
 
         assert_snapshot!(AstSerializer::format_nodes(&test_implementation.statements), @"
-        __test__get_myStructuredVar_return_val_1__ctor(__get_myStructuredVar_return_val_1);
-        structuredTypeOrFb__ctor(__get_myStructuredVar_return_val_store_1);
-        __get_myStructuredVar_return_val_1 REF= __get_myStructuredVar_return_val_store_1;
-        fb.__get_myStructuredVar(__get_myStructuredVar_return_val_1);
-        y := __get_myStructuredVar_return_val_1.x;
+        __test__fb___get_myStructuredVar_return_val_1__ctor(__fb___get_myStructuredVar_return_val_1);
+        structuredTypeOrFb__ctor(__fb___get_myStructuredVar_return_val_store_1);
+        __fb___get_myStructuredVar_return_val_1 REF= __fb___get_myStructuredVar_return_val_store_1;
+        fb.__get_myStructuredVar(__fb___get_myStructuredVar_return_val_1);
+        y := __fb___get_myStructuredVar_return_val_1.x;
         ");
     }
 
@@ -1789,22 +1809,22 @@ mod tests {
 
         assert_snapshot!(AstSerializer::format_nodes(&get_implementation.statements), @"
         __fb.__get_myStructuredVar_myStructuredVar__ctor(myStructuredVar);
-        __get_myStructuredVar_return_val := _myStructuredVar;
+        __fb___get_myStructuredVar_return_val := _myStructuredVar;
         ");
 
         let test_implementation =
             implementations.iter().find(|i| i.name == "test").expect("test implementation should exist");
 
         assert_snapshot!(AstSerializer::format_nodes(&test_implementation.statements), @"
-        __test__get_myStructuredVar_return_val_1__ctor(__get_myStructuredVar_return_val_1);
-        structuredTypeOrFb__ctor(__get_myStructuredVar_return_val_store_1);
+        __test__fb___get_myStructuredVar_return_val_1__ctor(__fb___get_myStructuredVar_return_val_1);
+        structuredTypeOrFb__ctor(__fb___get_myStructuredVar_return_val_store_1);
         tempStruct REF= tempStruct_store;
         tempStruct.x := 51;
         fb.__set_myStructuredVar(tempStruct);
-        __get_myStructuredVar_return_val_1 REF= __get_myStructuredVar_return_val_store_1;
-        fb.__get_myStructuredVar(__get_myStructuredVar_return_val_1);
+        __fb___get_myStructuredVar_return_val_1 REF= __fb___get_myStructuredVar_return_val_store_1;
+        fb.__get_myStructuredVar(__fb___get_myStructuredVar_return_val_1);
         printf('%d
-        ', __get_myStructuredVar_return_val_1.x);
+        ', __fb___get_myStructuredVar_return_val_1.x);
         ");
     }
 
@@ -1875,17 +1895,108 @@ mod tests {
             implementations.iter().find(|i| i.name == "test").expect("test implementation should exist");
 
         assert_snapshot!(AstSerializer::format_nodes(&test_implementation.statements), @"
-        __test__get_myStructuredVar_return_val_1__ctor(__get_myStructuredVar_return_val_1);
-        structuredTypeOrFb__ctor(__get_myStructuredVar_return_val_store_1);
+        __test__fb___get_myStructuredVar_return_val_1__ctor(__fb___get_myStructuredVar_return_val_1);
+        structuredTypeOrFb__ctor(__fb___get_myStructuredVar_return_val_store_1);
         y := 51;
         tempStruct2_store.x REF= y;
         tempStruct_store.subType REF= tempStruct2_store;
         tempStruct REF= tempStruct_store;
         fb.__set_myStructuredVar(tempStruct);
-        __get_myStructuredVar_return_val_1 REF= __get_myStructuredVar_return_val_store_1;
-        fb.__get_myStructuredVar(__get_myStructuredVar_return_val_1);
+        __fb___get_myStructuredVar_return_val_1 REF= __fb___get_myStructuredVar_return_val_store_1;
+        fb.__get_myStructuredVar(__fb___get_myStructuredVar_return_val_1);
         printf('%d
-        ', __get_myStructuredVar_return_val_1.subType.x);
+        ', __fb___get_myStructuredVar_return_val_1.subType.x);
+        ");
+    }
+
+    #[test]
+    fn reference_to_property_is_lowered_to_void_with_temporary_return_correctly_with_colliding_methods() {
+        let src: SourceCode = r#"
+            {external}
+            FUNCTION printf : DINT
+            VAR_IN_OUT
+                format: STRING;
+            END_VAR
+            VAR_INPUT
+                args: ...;
+            END_VAR
+            END_FUNCTION
+
+            PROGRAM test
+                VAR
+                    fb1 : fb1;
+                    fb1_value_store : INT;
+
+                    fb2 : fb2;
+                    fb2_value_store : STRING;
+                END_VAR
+
+                fb1_value_store := 51;
+                fb1.value := fb1_value_store;
+
+                fb2_value_store := 'Hello';
+                fb2.value := fb2_value_store;
+
+                // CHECK: FB1-Value: 51
+                printf('FB1-Value: %d$N', fb1.value);
+
+                // CHECK: FB2-Value: Hello
+                printf('FB2-Value: %d$N', fb2.value);
+            END_PROGRAM
+
+            // Integer Container
+            FUNCTION_BLOCK fb1
+                VAR
+                    _value	: INT;
+                END_VAR
+
+                PROPERTY_GET value : REFERENCE TO INT
+                    value REF= _value;
+                END_PROPERTY
+
+                PROPERTY_SET value : REFERENCE TO INT
+                    _value := value;
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+
+            // String Container
+            FUNCTION_BLOCK fb2
+                VAR
+                    _value	: STRING;
+                END_VAR
+
+                PROPERTY_GET value : REFERENCE TO STRING
+                    value REF= _value;
+                END_PROPERTY
+
+                PROPERTY_SET value : REFERENCE TO STRING
+                    _value := value;
+                END_PROPERTY
+            END_FUNCTION_BLOCK
+            "#
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).expect("must parse and annotation");
+        let unit = &project.units[0].get_unit();
+        let implementations = &unit.implementations;
+        let test_implementation =
+            implementations.iter().find(|i| i.name == "test").expect("test implementation should exist");
+
+        assert_snapshot!(AstSerializer::format_nodes(&test_implementation.statements), @"
+        __test__fb1___get_value_return_val_1__ctor(__fb1___get_value_return_val_1);
+        __test__fb2___get_value_return_val_1__ctor(__fb2___get_value_return_val_1);
+        fb1_value_store := 51;
+        fb1.__set_value(fb1_value_store);
+        fb2_value_store := 'Hello';
+        fb2.__set_value(fb2_value_store);
+        __fb1___get_value_return_val_1 REF= __fb1___get_value_return_val_store_1;
+        fb1.__get_value(__fb1___get_value_return_val_1);
+        printf('FB1-Value: %d
+        ', __fb1___get_value_return_val_1);
+        __fb2___get_value_return_val_1 REF= __fb2___get_value_return_val_store_1;
+        fb2.__get_value(__fb2___get_value_return_val_1);
+        printf('FB2-Value: %d
+        ', __fb2___get_value_return_val_1);
         ");
     }
 }

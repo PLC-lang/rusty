@@ -1233,8 +1233,8 @@ fn property_reference_type_match_is_accepted() {
         FUNCTION main
             VAR
                 instance : FbA;
-                y : INT;
-                refY : REFERENCE TO INT;
+                y : DINT;
+                refY : REFERENCE TO DINT;
             END_VAR
 
             y := 5;
@@ -1273,8 +1273,8 @@ fn property_reference_alias_type_match_is_accepted() {
         FUNCTION main
             VAR
                 instance : FbA;
-                y : INT;
-                refY : REFERENCE TO INT;
+                y : DINT;
+                refY : REFERENCE TO DINT;
             END_VAR
 
             y := 5;
