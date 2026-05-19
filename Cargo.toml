@@ -83,9 +83,10 @@ members = [
     "compiler/plc_lowering",
     "compiler/plc_llvm",
     "compiler/plc_header_generator",
+    "compiler/plc_lsp",
     "tests/test_utils",
 ]
-default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
+default-members = [".", "compiler/plc_driver", "compiler/plc_xml", "compiler/plc_lsp"]
 
 [workspace.dependencies]
 inkwell = { version = "0.8", features = ["llvm21-1"] }

@@ -1,0 +1,25 @@
+[package]
+name = "plc_lsp"
+version = "0.5.0"
+edition = "2021"
+license = "LGPL-3.0"
+description = "LSP server for IEC 61131-3 Structured Text"
+
+[dependencies]
+lsp-server = "0.7"
+lsp-types = "0.97"
+log.workspace = true
+env_logger = "0.10"
+anyhow.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+
+[lib]
+name = "plc_lsp"
+path = "./src/lib.rs"
+
+[[bin]]
+name = "plc-lsp"
+path = "./src/main.rs"
