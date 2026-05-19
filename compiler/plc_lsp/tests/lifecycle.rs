@@ -13,7 +13,8 @@ use serde_json::json;
 /// returns the pretty-printed responses for snapshotting.
 fn drive_lifecycle(params: InitializeParams) -> (String, String) {
     let (server_conn, client_conn) = Connection::memory();
-    let server_thread = thread::spawn(move || plc_lsp::serve(&server_conn));
+    let server_thread =
+        thread::spawn(move || plc_lsp::serve(&server_conn, plc_lsp::Settings::default()));
 
     // initialize
     client_conn

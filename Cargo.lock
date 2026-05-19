@@ -2514,7 +2514,9 @@ dependencies = [
  "log",
  "lsp-server",
  "lsp-types",
+ "serde",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]

@@ -11,10 +11,12 @@ lsp-types = "0.97"
 log.workspace = true
 env_logger = "0.10"
 anyhow.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
 insta.workspace = true
+tempfile = "3"
 
 [lib]
 name = "plc_lsp"

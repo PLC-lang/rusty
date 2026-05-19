@@ -14,7 +14,7 @@ use serde_json::json;
 #[test]
 fn document_notifications_survive_through_to_shutdown() {
     let (server_conn, client_conn) = Connection::memory();
-    let server_thread = thread::spawn(move || plc_lsp::serve(&server_conn));
+    let server_thread = thread::spawn(move || plc_lsp::serve(&server_conn, plc_lsp::Settings::default()));
 
     // --- initialize + initialized ---
     client_conn

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::Context as _;
 use lsp_server::{Connection, IoThreads, Message, Notification, Request, Response, ResponseError};
 use lsp_types::{
@@ -7,6 +9,16 @@ use lsp_types::{
 };
 
 pub mod document;
+pub mod project;
+
+/// Runtime configuration for the server. Currently only carries an
+/// optional `plc.json` override path supplied via the CLI; the LSP
+/// client can supply the same override via
+/// `initializationOptions.plcConfigPath`.
+#[derive(Default, Debug, Clone)]
+pub struct Settings {
+    pub config_override: Option<PathBuf>,
+}
 
 pub struct ServerState {
     /// Encoding negotiated during the initialize handshake. Phases that
@@ -15,11 +27,28 @@ pub struct ServerState {
     pub position_encoding: PositionEncodingKind,
     /// In-memory view of every editor-open buffer.
     pub documents: document::DocumentStore,
+    /// Workspace folder root captured at `initialize`. Used by project
+    /// discovery; `None` for clients that don't supply one (rare in
+    /// practice — every modern editor sends at least `rootUri`).
+    pub workspace_root: Option<PathBuf>,
+    /// Resolved `plc.json` override path (CLI arg or
+    /// `initializationOptions.plcConfigPath`). Takes precedence over
+    /// discovery.
+    pub plc_config_override: Option<PathBuf>,
 }
 
 impl ServerState {
-    pub fn new(position_encoding: PositionEncodingKind) -> Self {
-        ServerState { position_encoding, documents: document::DocumentStore::new() }
+    pub fn new(
+        position_encoding: PositionEncodingKind,
+        workspace_root: Option<PathBuf>,
+        plc_config_override: Option<PathBuf>,
+    ) -> Self {
+        ServerState {
+            position_encoding,
+            documents: document::DocumentStore::new(),
+            workspace_root,
+            plc_config_override,
+        }
     }
 }
 
@@ -36,13 +65,13 @@ fn pick_position_encoding(client_capabilities: &ClientCapabilities) -> PositionE
     }
 }
 
-pub fn run() -> anyhow::Result<()> {
+pub fn run(settings: Settings) -> anyhow::Result<()> {
     let (connection, io_threads) = Connection::stdio();
-    let result = serve(&connection);
+    let result = serve(&connection, settings);
     finalize(result, io_threads)
 }
 
-pub fn serve(connection: &Connection) -> anyhow::Result<()> {
+pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> {
     log::info!("plc-lsp starting; performing initialize handshake");
 
     let (init_id, init_params_val) = connection.initialize_start().context(
@@ -54,6 +83,22 @@ pub fn serve(connection: &Connection) -> anyhow::Result<()> {
 
     let position_encoding = pick_position_encoding(&init_params.capabilities);
     log::info!("plc-lsp negotiated position encoding: {position_encoding:?}");
+
+    let workspace_root = project::extract_workspace_root(&init_params);
+    let init_options = init_params
+        .initialization_options
+        .as_ref()
+        .and_then(|v| serde_json::from_value::<project::InitializationOptions>(v.clone()).ok())
+        .unwrap_or_default();
+    let plc_config_override =
+        settings.config_override.clone().or_else(|| init_options.plc_config_path.map(PathBuf::from));
+
+    if let Some(root) = &workspace_root {
+        log::info!("plc-lsp workspace root: {root:?}");
+    }
+    if let Some(override_path) = &plc_config_override {
+        log::info!("plc-lsp plc.json override: {override_path:?}");
+    }
 
     let server_capabilities = ServerCapabilities {
         text_document_sync: Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
@@ -74,7 +119,7 @@ pub fn serve(connection: &Connection) -> anyhow::Result<()> {
 
     log::info!("plc-lsp initialized; entering main loop");
 
-    let mut state = ServerState::new(position_encoding);
+    let mut state = ServerState::new(position_encoding, workspace_root, plc_config_override);
     main_loop(connection, &mut state)?;
 
     log::info!("plc-lsp shutting down");
