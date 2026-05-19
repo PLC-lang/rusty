@@ -1,4 +1,13 @@
-use std::collections::HashMap;
+// `lsp_types::Uri` wraps `fluent_uri::Uri`, which has internal Cell-based
+// caching for parsed components. That makes clippy fire `mutable_key_type`
+// when we use `Uri` as a HashMap/HashSet key — but the hash itself is
+// stable for a given URI value (the cache holds derived data, not
+// identity), so the lint is conservative here. We use `Uri` as a key
+// throughout the publish path; allowing the lint module-wide is cleaner
+// than scattering attribute annotations.
+#![allow(clippy::mutable_key_type)]
+
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
 use anyhow::Context as _;
@@ -6,11 +15,12 @@ use crossbeam_channel::{select, Sender};
 use lsp_server::{Connection, IoThreads, Message, Notification, Request, Response, ResponseError};
 use lsp_types::{
     ClientCapabilities, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
-    InitializeParams, InitializeResult, PositionEncodingKind, ServerCapabilities, ServerInfo,
-    TextDocumentSyncCapability, TextDocumentSyncKind,
+    InitializeParams, InitializeResult, PositionEncodingKind, PublishDiagnosticsParams, ServerCapabilities,
+    ServerInfo, TextDocumentSyncCapability, TextDocumentSyncKind, Uri,
 };
 
 pub mod compile;
+pub mod diagnostics;
 pub mod document;
 pub mod project;
 
@@ -31,6 +41,10 @@ pub struct ServerState {
     /// True when a compile trigger arrived while one was already pending.
     /// Honoured when the in-flight compile finishes — see decisions log D1.
     pub compile_dirty: bool,
+    /// URIs we've published non-empty diagnostics for on the most recent
+    /// compile. Used to send empty `publishDiagnostics` for files that
+    /// previously had errors and now don't, so the editor clears them.
+    pub published_uris: HashSet<Uri>,
 }
 
 impl ServerState {
@@ -46,6 +60,7 @@ impl ServerState {
             plc_config_override,
             compile_pending: false,
             compile_dirty: false,
+            published_uris: HashSet::new(),
         }
     }
 }
@@ -169,7 +184,7 @@ fn main_loop(
                     log::error!("compile worker result channel closed unexpectedly");
                     return Ok(());
                 };
-                handle_compile_result(state, &worker.compile_tx, result);
+                handle_compile_result(state, connection, &worker.compile_tx, result);
             }
         }
     }
@@ -297,6 +312,7 @@ fn trigger_compile(state: &mut ServerState, compile_tx: &Sender<compile::Compile
 
 fn handle_compile_result(
     state: &mut ServerState,
+    connection: &Connection,
     compile_tx: &Sender<compile::CompileRequest>,
     result: compile::CompileResult,
 ) {
@@ -305,12 +321,47 @@ fn handle_compile_result(
         log::error!("compile pipeline error: {err}");
     }
     log::debug!("compile produced {} diagnostics", result.diagnostics.len());
-    // Phase 4 publishes diagnostics here.
+
+    publish_diagnostics(state, connection, result);
 
     if state.compile_dirty {
         log::debug!("re-firing compile due to dirty state");
         state.compile_dirty = false;
         trigger_compile(state, compile_tx);
+    }
+}
+
+fn publish_diagnostics(state: &mut ServerState, connection: &Connection, result: compile::CompileResult) {
+    let grouped = diagnostics::map_collected(result.diagnostics, &result.file_paths);
+    let new_uris: HashSet<Uri> = grouped.keys().cloned().collect();
+
+    // Clear diagnostics for any URI we published last time but isn't in the new set.
+    for stale in state.published_uris.difference(&new_uris) {
+        send_diagnostics(connection, stale.clone(), Vec::new(), None);
+    }
+
+    // Publish the new set.
+    for (uri, diags) in grouped {
+        let version = state.documents.get(&uri).map(|b| b.version);
+        send_diagnostics(connection, uri, diags, version);
+    }
+
+    state.published_uris = new_uris;
+}
+
+fn send_diagnostics(
+    connection: &Connection,
+    uri: Uri,
+    diagnostics: Vec<lsp_types::Diagnostic>,
+    version: Option<i32>,
+) {
+    let params = PublishDiagnosticsParams { uri, diagnostics, version };
+    let notif = Notification {
+        method: "textDocument/publishDiagnostics".to_string(),
+        params: serde_json::to_value(params).expect("PublishDiagnosticsParams serialise must succeed"),
+    };
+    if let Err(e) = connection.sender.send(Message::Notification(notif)) {
+        log::error!("failed to send publishDiagnostics: {e}");
     }
 }
 
