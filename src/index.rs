@@ -1583,15 +1583,20 @@ impl Index {
         variable_name: &str,
         seen: &mut FxHashSet<String>,
     ) -> Option<&VariableIndexEntry> {
+        // METHODs have their own stack frame, so VAR_TEMP declared on the enclosing
+        // POU is not visible inside method bodies. ACTIONs share the parent's frame
+        // and may still see it.
+        let is_method = self.find_pou(container_name).is_some_and(|it| it.is_method());
+
         self.type_index
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
             .or(self.find_enum_variant_in_pou(container_name, variable_name))
             // underlying type of an `ACTION` or `METHOD`
-            .or(container_name
-                .rfind('.')
-                .map(|p| &container_name[..p])
-                .and_then(|qualifier| self.find_member_recursive(qualifier, variable_name, seen)))
+            .or(container_name.rfind('.').map(|p| &container_name[..p]).and_then(|qualifier| {
+                self.find_member_recursive(qualifier, variable_name, seen)
+                    .filter(|it| !(is_method && it.is_temp()))
+            }))
             // 'self' instance of a POUs init function
             .or(container_name
                 .rfind("__init_")

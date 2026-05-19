@@ -601,6 +601,12 @@ fn validate_reference<T: AnnotationMap>(
 
             _ => (),
         };
+
+        if let Some(diagnostic) = fb_temp_referenced_from_method(context, ref_name, location) {
+            validator.push_diagnostic(diagnostic);
+            return;
+        }
+
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         // was this meant as a direct access?
@@ -660,6 +666,35 @@ fn validate_reference<T: AnnotationMap>(
             }
         _ => (),
     }
+}
+
+/// Produces a focused diagnostic when a METHOD references a `VAR_TEMP` declared on its
+/// enclosing POU. Methods have their own stack frame, so the temp is not visible — the
+/// resolver therefore leaves the reference unannotated. Returning a dedicated diagnostic
+/// here yields a clearer message than the generic "unresolved reference".
+fn fb_temp_referenced_from_method<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    ref_name: &str,
+    location: &SourceLocation,
+) -> Option<Diagnostic> {
+    let pou = context.qualifier.and_then(|q| context.index.find_pou(q))?;
+    if !pou.is_method() {
+        return None;
+    }
+    let parent = pou.get_parent_pou_name()?;
+    let temp = context
+        .index
+        .get_pou_members(parent)
+        .iter()
+        .find(|m| m.is_temp() && m.get_name().eq_ignore_ascii_case(ref_name))?;
+    Some(
+        Diagnostic::new(format!(
+            "`{ref_name}` is a VAR_TEMP of `{parent}` and is not visible inside its METHODs"
+        ))
+        .with_error_code("E137")
+        .with_location(location)
+        .with_secondary_location(&temp.source_location),
+    )
 }
 
 fn visit_array_access<T: AnnotationMap>(
