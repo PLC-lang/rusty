@@ -89,6 +89,17 @@ impl Diagnostician {
         }
     }
 
+    /// Creates a Diagnostician backed by a caller-supplied reporter. Lets
+    /// the LSP server share an `LspReporter` clone with the Diagnostician
+    /// while keeping a typed handle for draining once the compile is done.
+    pub fn with_reporter(reporter: Box<dyn DiagnosticReporter>) -> Diagnostician {
+        Diagnostician {
+            assessor: Box::<DiagnosticsRegistry>::default(),
+            reporter,
+            filename_fileid_mapping: FxHashMap::default(),
+        }
+    }
+
     /// Creates a clang-format-diagnostician that reports diagnostics in clang format
     pub fn clang_format_diagnostician() -> Diagnostician {
         Diagnostician {

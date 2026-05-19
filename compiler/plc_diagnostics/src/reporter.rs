@@ -4,6 +4,7 @@ use crate::diagnostics::Severity;
 
 pub mod clang;
 pub mod codespan;
+pub mod lsp;
 pub mod null;
 
 /// the DiagnosticReporter decides on the format and where to report the diagnostic to.
