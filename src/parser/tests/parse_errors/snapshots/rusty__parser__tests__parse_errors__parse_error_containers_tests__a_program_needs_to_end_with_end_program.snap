@@ -2,8 +2,8 @@
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
 expression: diagnostics
 ---
-error[E007]: Unexpected token: expected KeywordEndProgram but found ''
+error[E007]: Unexpected token: expected `END_PROGRAM` but found ''
   ┌─ <internal>:1:13
   │
 1 │ PROGRAM buz 
-  │             ^ Unexpected token: expected KeywordEndProgram but found ''
+  │             ^ Unexpected token: expected `END_PROGRAM` but found ''

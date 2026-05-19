@@ -107,7 +107,7 @@ fn test_incomplete_var_config_block() {
 
     ";
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E006]: Missing expected Token AT
       ┌─ <internal>:4:26
       │
@@ -126,17 +126,17 @@ fn test_incomplete_var_config_block() {
     5 │                 instance2.bar AT;
       │                                 ^ Missing expected Token hardware access
 
-    error[E006]: Missing expected Token KeywordColon
+    error[E006]: Missing expected Token `:`
       ┌─ <internal>:6:40
       │
     6 │                 instance3.bar AT %IX3.1;
-      │                                        ^ Missing expected Token KeywordColon
+      │                                        ^ Missing expected Token `:`
 
-    error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordSemicolon
+    error[E007]: Unexpected token: expected DataTypeDefinition but found `;`
       ┌─ <internal>:6:40
       │
     6 │                 instance3.bar AT %IX3.1;
-      │                                        ^ Unexpected token: expected DataTypeDefinition but found KeywordSemicolon
+      │                                        ^ Unexpected token: expected DataTypeDefinition but found `;`
 
     error[E006]: Missing expected Token AT
       ┌─ <internal>:8:31
@@ -150,19 +150,13 @@ fn test_incomplete_var_config_block() {
     8 │                 instance5.bar : BOOL;
       │                               ^ Missing expected Token hardware access
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found ': BOOL'
-      ┌─ <internal>:8:31
-      │
-    8 │                 instance5.bar : BOOL;
-      │                               ^^^^^^ Unexpected token: expected KeywordSemicolon but found ': BOOL'
-
-    error[E007]: Unexpected token: expected KeywordEndVar but found 'AT %IX3.1;
+    error[E007]: Unexpected token: expected `END_VAR` but found 'AT %IX3.1;
                     %IX3.1;'
        ┌─ <internal>:9:17
        │  
      9 │ ╭                 AT %IX3.1;
     10 │ │                 %IX3.1;
-       │ ╰───────────────────────^ Unexpected token: expected KeywordEndVar but found 'AT %IX3.1;
+       │ ╰───────────────────────^ Unexpected token: expected `END_VAR` but found 'AT %IX3.1;
                     %IX3.1;'
 
     error[E101]: Template variable `bar` does not exist

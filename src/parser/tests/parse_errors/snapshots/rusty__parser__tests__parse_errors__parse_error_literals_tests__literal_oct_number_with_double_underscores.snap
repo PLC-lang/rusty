@@ -2,8 +2,8 @@
 source: src/parser/tests/parse_errors/parse_error_literals_tests.rs
 expression: diagnostics
 ---
-error[E007]: Unexpected token: expected KeywordSemicolon but found '__7'
+error[E007]: Unexpected token: expected `;` but found '__7'
   ┌─ <internal>:1:16
   │
 1 │ PROGRAM exp 8#7__7; END_PROGRAM
-  │                ^^^ Unexpected token: expected KeywordSemicolon but found '__7'
+  │                ^^^ Unexpected token: expected `;` but found '__7'

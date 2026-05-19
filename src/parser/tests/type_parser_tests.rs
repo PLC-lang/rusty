@@ -558,12 +558,12 @@ fn enum_mixed_style_type_before_and_after_list() {
     );
     // This should produce a diagnostic since types are specified twice
     assert!(!diagnostics.is_empty(), "Expected diagnostic for mixed enum type syntax");
-    assert_snapshot!(diagnostics, @r"
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'DWORD'
+    assert_snapshot!(diagnostics, @"
+    error[E007]: Unexpected token: expected `;` but found 'DWORD'
       ┌─ <internal>:2:44
       │
     2 │         TYPE MyEnum : INT (a := 1, b := 2) DWORD;
-      │                                            ^^^^^ Unexpected token: expected KeywordSemicolon but found 'DWORD'
+      │                                            ^^^^^ Unexpected token: expected `;` but found 'DWORD'
     ");
 }
 
@@ -912,18 +912,18 @@ fn enum_with_no_elements_produces_syntax_error() {
         "#,
     );
     assert!(!diagnostics.is_empty());
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E007]: Unexpected token: expected Literal but found )
       ┌─ <internal>:2:32
       │
     2 │         TYPE EMPTY_ENUM : INT ();
       │                                ^ Unexpected token: expected Literal but found )
 
-    error[E007]: Unexpected token: expected KeywordEndType but found ''
+    error[E007]: Unexpected token: expected `END_TYPE` but found ''
       ┌─ <internal>:6:9
       │
     6 │         
-      │         ^ Unexpected token: expected KeywordEndType but found ''
+      │         ^ Unexpected token: expected `END_TYPE` but found ''
     ");
     // User type should still be created despite the error (error recovery)
     assert_debug_snapshot!(result.user_types[0], @r#"

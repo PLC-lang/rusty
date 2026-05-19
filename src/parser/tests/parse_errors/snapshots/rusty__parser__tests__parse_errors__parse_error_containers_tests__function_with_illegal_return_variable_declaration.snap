@@ -2,11 +2,11 @@
 source: src/parser/tests/parse_errors/parse_error_containers_tests.rs
 expression: diagnostics
 ---
-error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordVar
+error[E007]: Unexpected token: expected DataTypeDefinition but found `VAR`
   ┌─ <internal>:3:13
   │
 3 │             VAR END_VAR
-  │             ^^^ Unexpected token: expected DataTypeDefinition but found KeywordVar
+  │             ^^^ Unexpected token: expected DataTypeDefinition but found `VAR`
 
 error[E007]: Unexpected token: expected Datatype but found VAR
   ┌─ <internal>:3:13

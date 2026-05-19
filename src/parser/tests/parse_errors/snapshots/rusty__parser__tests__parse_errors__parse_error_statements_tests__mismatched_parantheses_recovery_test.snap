@@ -2,14 +2,8 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-error[E006]: Missing expected Token [KeywordParensClose]
+error[E006]: Missing expected Token `)`
   ┌─ <internal>:3:19
   │
 3 │             (1 + 2;
-  │                   ^ Missing expected Token [KeywordParensClose]
-
-error[E007]: Unexpected token: expected KeywordParensClose but found ';'
-  ┌─ <internal>:3:19
-  │
-3 │             (1 + 2;
-  │                   ^ Unexpected token: expected KeywordParensClose but found ';'
+  │                   ^ Missing expected Token `)`

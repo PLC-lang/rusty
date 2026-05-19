@@ -4,7 +4,7 @@ expression: errors.first().unwrap()
 ---
 Diagnostic {
     inner: DiagnosticsInner {
-        message: "Unexpected token: expected KeywordAction but found BRAVO",
+        message: "Unexpected token: expected `ACTION` but found BRAVO",
         primary_location: SourceLocation {
             span: Range(0:13 - 0:18),
         },

@@ -14,8 +14,8 @@ error[E007]: Unexpected token: expected Literal but found %
 3 │     b.%f6;   // f is no valid direct access modifier
   │       ^ Unexpected token: expected Literal but found %
 
-error[E007]: Unexpected token: expected KeywordSemicolon but found '%f6'
+error[E007]: Unexpected token: expected `;` but found '%f6'
   ┌─ <internal>:3:7
   │
 3 │     b.%f6;   // f is no valid direct access modifier
-  │       ^^^ Unexpected token: expected KeywordSemicolon but found '%f6'
+  │       ^^^ Unexpected token: expected `;` but found '%f6'

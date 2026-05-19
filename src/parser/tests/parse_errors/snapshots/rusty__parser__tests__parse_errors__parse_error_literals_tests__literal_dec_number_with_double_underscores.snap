@@ -2,8 +2,8 @@
 source: src/parser/tests/parse_errors/parse_error_literals_tests.rs
 expression: diagnostics
 ---
-error[E007]: Unexpected token: expected KeywordSemicolon but found '__000'
+error[E007]: Unexpected token: expected `;` but found '__000'
   ┌─ <internal>:1:15
   │
 1 │ PROGRAM exp 43__000; END_PROGRAM
-  │               ^^^^^ Unexpected token: expected KeywordSemicolon but found '__000'
+  │               ^^^^^ Unexpected token: expected `;` but found '__000'

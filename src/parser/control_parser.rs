@@ -1,5 +1,5 @@
 use plc_ast::{
-    ast::{AstFactory, AstNode, AstStatement},
+    ast::{AstFactory, AstNode},
     control_statements::{CaseStatement, ConditionalBlock, ForLoopStatement, IfStatement, LoopStatement},
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -7,10 +7,11 @@ use plc_diagnostics::diagnostics::Diagnostic;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::{
     expect_token,
-    lexer::Token::*,
-    parser::{parse_any_in_region, parse_body_in_region},
+    lexer::Token::{self, *},
+    parser::{parse_any_in_region_until_element_when, parse_body_in_region},
 };
 
+use super::recovery;
 use super::ParseSession;
 use super::{parse_expression, parse_reference, parse_statement};
 
@@ -53,12 +54,7 @@ fn parse_if_statement(lexer: &mut ParseSession) -> AstNode {
 
     while lexer.last_token == KeywordElseIf || lexer.last_token == KeywordIf {
         let condition = parse_expression(lexer);
-        expect_token!(
-            lexer,
-            KeywordThen,
-            AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
-        );
-        lexer.advance();
+        lexer.try_consume_or_report(KeywordThen);
 
         let condition_block = ConditionalBlock {
             condition: Box::new(condition),
@@ -97,8 +93,18 @@ fn parse_for_statement(lexer: &mut ParseSession) -> AstNode {
     lexer.advance();
 
     let start_expression = parse_expression(lexer);
-    expect_token!(lexer, KeywordTo, AstFactory::create_empty_statement(lexer.location(), lexer.next_id()));
-    lexer.advance();
+    if !lexer.try_consume(KeywordTo) {
+        if lexer.token == Identifier && lexer.peek_token() == Identifier {
+            lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+                KeywordTo.to_string().as_str(),
+                lexer.slice(),
+                lexer.location(),
+            ));
+            return AstFactory::create_empty_statement(lexer.location(), lexer.next_id());
+        }
+
+        lexer.accept_diagnostic(Diagnostic::missing_token(KeywordTo.to_string().as_str(), lexer.location()));
+    }
     let end_expression = parse_expression(lexer);
 
     let step = if lexer.token == KeywordBy {
@@ -150,7 +156,9 @@ fn parse_repeat_statement(lexer: &mut ParseSession) -> AstNode {
 
     let body = parse_body_in_region(lexer, vec![KeywordUntil, KeywordEndRepeat]); //UNTIL
     let condition = if lexer.last_token == KeywordUntil {
-        parse_any_in_region(lexer, vec![KeywordEndRepeat], parse_expression)
+        let condition = parse_expression(lexer);
+        lexer.try_consume_or_report(KeywordEndRepeat);
+        condition
     } else {
         AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
     };
@@ -169,47 +177,20 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstNode {
 
     let selector = parse_expression(lexer);
 
-    expect_token!(lexer, KeywordOf, AstFactory::create_empty_statement(lexer.location(), lexer.next_id()));
-
-    lexer.advance();
+    lexer.try_consume_or_report(KeywordOf);
 
     let mut case_blocks = Vec::new();
-    if lexer.token != KeywordEndCase && lexer.token != KeywordElse {
-        let body = parse_body_in_region(lexer, vec![KeywordEndCase, KeywordElse]);
 
-        let mut current_condition = None;
-        let mut current_body = vec![];
-        for statement in body {
-            if let AstNode { stmt: AstStatement::CaseCondition(condition), .. } = statement {
-                if let Some(condition) = current_condition {
-                    let block = ConditionalBlock { condition, body: current_body };
-                    case_blocks.push(block);
-                    current_body = vec![];
-                }
-                current_condition = Some(condition);
-            } else {
-                //If no current condition is available, log a diagnostic and add an empty condition
-                if current_condition.is_none() {
-                    lexer.accept_diagnostic(
-                        Diagnostic::new("Missing Case-Condition")
-                            .with_error_code("E012")
-                            .with_location(lexer.location()),
-                    );
-                    current_condition =
-                        Some(Box::new(AstFactory::create_empty_statement(lexer.location(), lexer.next_id())));
-                }
-                current_body.push(statement);
-            }
-        }
-        if let Some(condition) = current_condition {
-            let block = ConditionalBlock { condition, body: current_body };
-            case_blocks.push(block);
-        }
+    while !lexer.closes_open_region(&lexer.token) && !is_case_block_boundary(lexer) {
+        let condition = parse_case_condition(lexer);
+        let body = parse_case_selection_body(lexer);
+        case_blocks.push(ConditionalBlock { condition, body });
     }
 
-    let else_block = if lexer.last_token == KeywordElse {
+    let else_block = if lexer.try_consume(KeywordElse) {
         parse_body_in_region(lexer, vec![KeywordEndCase])
     } else {
+        lexer.try_consume_or_report(KeywordEndCase);
         vec![]
     };
 
@@ -224,5 +205,111 @@ fn parse_case_statement(lexer: &mut ParseSession) -> AstNode {
         stmt,
         lexer.source_range_factory.create_range(start..end),
         lexer.next_id(),
+    )
+}
+
+fn parse_case_condition(lexer: &mut ParseSession) -> Box<AstNode> {
+    if lexer.try_consume(KeywordColon) {
+        return Box::new(AstFactory::create_empty_statement(lexer.last_location(), lexer.next_id()));
+    }
+
+    let condition = parse_any_in_region_until_element_when(
+        lexer,
+        vec![KeywordColon],
+        recovery::STATEMENT_BLOCK_BOUNDARY,
+        None,
+        is_case_condition_recovery_boundary,
+        parse_expression,
+    );
+
+    Box::new(condition)
+}
+
+fn parse_case_selection_body(lexer: &mut ParseSession) -> Vec<AstNode> {
+    let recovery_tokens =
+        recovery::combine(&[KeywordEndCase, KeywordElse], recovery::STATEMENT_BLOCK_BOUNDARY);
+    let mut statements = Vec::new();
+    while !lexer.closes_open_region(&lexer.token)
+        && !is_case_block_boundary(lexer)
+        && lexer.token != KeywordColon
+        && !is_case_selection_start(lexer)
+    {
+        let statement = match lexer.token {
+            KeywordIf | KeywordFor | KeywordWhile | KeywordRepeat | KeywordCase | KeywordReturn
+            | KeywordContinue | KeywordExit => parse_control_statement(lexer),
+            _ => parse_case_body_statement(lexer, &recovery_tokens),
+        };
+        statements.push(statement);
+    }
+
+    statements
+}
+
+fn parse_case_body_statement(lexer: &mut ParseSession, recovery_tokens: &[Token]) -> AstNode {
+    let result = parse_any_in_region_until_element_when(
+        lexer,
+        vec![KeywordSemicolon, KeywordColon],
+        recovery_tokens,
+        None,
+        is_case_selection_start,
+        parse_expression,
+    );
+    if lexer.last_token == KeywordColon {
+        let location = result.location.span(&lexer.last_location());
+        AstFactory::create_case_condition(result, location, lexer.next_id())
+    } else {
+        result
+    }
+}
+
+fn is_case_condition_recovery_boundary(lexer: &ParseSession) -> bool {
+    is_case_block_boundary(lexer) || is_case_selection_start(lexer) || is_statement_start(lexer)
+}
+
+fn is_case_block_boundary(lexer: &ParseSession) -> bool {
+    lexer.token == KeywordEndCase
+        || lexer.token == KeywordElse
+        || recovery::STATEMENT_BLOCK_BOUNDARY.contains(&lexer.token)
+}
+
+fn is_case_selection_start(lexer: &ParseSession) -> bool {
+    matches!(
+        lexer.token,
+        Identifier
+            | KeywordPropertyGet
+            | KeywordPropertySet
+            | LiteralIntegerHex
+            | LiteralIntegerOct
+            | LiteralIntegerBin
+            | LiteralInteger
+            | LiteralNull
+            | LiteralTrue
+            | LiteralFalse
+            | LiteralDate
+            | LiteralDateAndTime
+            | LiteralTimeOfDay
+            | LiteralTime
+            | LiteralString
+            | LiteralWideString
+            | TypeCastPrefix
+            | KeywordParensOpen
+    ) && lexer.token_appears_before(KeywordColon, &[KeywordSemicolon, KeywordEndCase, KeywordElse])
+}
+
+fn is_statement_start(lexer: &ParseSession) -> bool {
+    matches!(
+        lexer.token,
+        Identifier
+            | KeywordPropertyGet
+            | KeywordPropertySet
+            | KeywordIf
+            | KeywordFor
+            | KeywordWhile
+            | KeywordRepeat
+            | KeywordCase
+            | KeywordReturn
+            | KeywordContinue
+            | KeywordExit
+            | KeywordSuper
     )
 }
