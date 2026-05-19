@@ -1,20 +1,25 @@
 use anyhow::Context as _;
 use lsp_server::{Connection, IoThreads, Message, Notification, Request, Response, ResponseError};
 use lsp_types::{
-    ClientCapabilities, InitializeParams, InitializeResult, PositionEncodingKind, ServerCapabilities,
-    ServerInfo, TextDocumentSyncCapability, TextDocumentSyncKind,
+    ClientCapabilities, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+    InitializeParams, InitializeResult, PositionEncodingKind, ServerCapabilities, ServerInfo,
+    TextDocumentSyncCapability, TextDocumentSyncKind,
 };
+
+pub mod document;
 
 pub struct ServerState {
     /// Encoding negotiated during the initialize handshake. Phases that
     /// exchange positions on the wire (diagnostics, hover, …) read this to
     /// decide how to convert their byte offsets.
     pub position_encoding: PositionEncodingKind,
+    /// In-memory view of every editor-open buffer.
+    pub documents: document::DocumentStore,
 }
 
 impl ServerState {
     pub fn new(position_encoding: PositionEncodingKind) -> Self {
-        ServerState { position_encoding }
+        ServerState { position_encoding, documents: document::DocumentStore::new() }
     }
 }
 
@@ -125,9 +130,13 @@ fn handle_request(_state: &mut ServerState, connection: &Connection, req: Reques
     }
 }
 
-fn handle_notification(_state: &mut ServerState, notif: Notification) -> anyhow::Result<()> {
+fn handle_notification(state: &mut ServerState, notif: Notification) -> anyhow::Result<()> {
     match notif.method.as_str() {
         "exit" => anyhow::bail!("exit notification without prior shutdown"),
+        "textDocument/didOpen" => handle_did_open(state, notif),
+        "textDocument/didChange" => handle_did_change(state, notif),
+        "textDocument/didSave" => handle_did_save(state, notif),
+        "textDocument/didClose" => handle_did_close(state, notif),
         "$/setTrace" | "$/cancelRequest" => {
             log::debug!("{} ignored in phase 1", notif.method);
         }
@@ -136,4 +145,61 @@ fn handle_notification(_state: &mut ServerState, notif: Notification) -> anyhow:
         }
     }
     Ok(())
+}
+
+fn handle_did_open(state: &mut ServerState, notif: Notification) {
+    let params: DidOpenTextDocumentParams = match serde_json::from_value(notif.params) {
+        Ok(p) => p,
+        Err(e) => {
+            log::warn!("textDocument/didOpen: malformed params: {e}");
+            return;
+        }
+    };
+    let item = params.text_document;
+    if !accept_language_id(&item.language_id) {
+        log::debug!("ignoring didOpen: unsupported language_id={:?}", item.language_id);
+        return;
+    }
+    state.documents.open(item.uri, item.language_id, item.version, item.text);
+}
+
+fn handle_did_change(state: &mut ServerState, notif: Notification) {
+    let params: DidChangeTextDocumentParams = match serde_json::from_value(notif.params) {
+        Ok(p) => p,
+        Err(e) => {
+            log::warn!("textDocument/didChange: malformed params: {e}");
+            return;
+        }
+    };
+    let id = params.text_document;
+
+    let Some(change) = params.content_changes.into_iter().next() else {
+        log::warn!("textDocument/didChange: no content_changes");
+        return;
+    };
+    if change.range.is_some() {
+        log::warn!("textDocument/didChange: incremental change received but server advertised Full sync");
+        return;
+    }
+
+    state.documents.change(&id.uri, id.version, change.text);
+}
+
+fn handle_did_save(_state: &mut ServerState, _notif: Notification) {
+    // Phase 2: no-op. Phase 3 turns this into the compile trigger.
+}
+
+fn handle_did_close(state: &mut ServerState, notif: Notification) {
+    let params: DidCloseTextDocumentParams = match serde_json::from_value(notif.params) {
+        Ok(p) => p,
+        Err(e) => {
+            log::warn!("textDocument/didClose: malformed params: {e}");
+            return;
+        }
+    };
+    state.documents.close(&params.text_document.uri);
+}
+
+fn accept_language_id(language_id: &str) -> bool {
+    matches!(language_id, "structured-text" | "st" | "iecst")
 }
