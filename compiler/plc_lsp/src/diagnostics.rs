@@ -115,9 +115,12 @@ fn related_info(
     })
 }
 
+/// Build an `lsp_types::Uri` from a file path string. The diagnostician
+/// stores paths as `String`; we delegate to `project::path_to_file_uri`
+/// (backed by the `url` crate) which handles Linux, Windows drive
+/// letters, and UNC paths uniformly.
 fn path_to_uri(path: &str) -> Option<Uri> {
-    let uri_str = if path.starts_with("file://") { path.to_string() } else { format!("file://{path}") };
-    uri_str.parse().ok()
+    crate::project::path_to_file_uri(std::path::Path::new(path))
 }
 
 #[cfg(test)]

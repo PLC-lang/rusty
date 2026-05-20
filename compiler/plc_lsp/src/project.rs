@@ -40,13 +40,26 @@ pub fn extract_workspace_root(params: &InitializeParams) -> Option<PathBuf> {
 }
 
 /// Map an `lsp_types::Uri` to a filesystem path when the URI is a
-/// `file://` URI. Returns `None` for other schemes. The current
-/// implementation is a strip_prefix; it doesn't handle percent-encoding
-/// or Windows `file:///C:/...` URLs — sufficient for the prototype's
-/// Linux dev target. See decisions log entry D2.
+/// `file://` URI. Returns `None` for other schemes.
+///
+/// We round-trip through `url::Url` because `lsp_types::Uri` (a
+/// `fluent_uri::Uri`) doesn't expose a `to_file_path` method that
+/// handles all the edge cases — Windows drive letters
+/// (`file:///C:/...`), UNC paths, percent-encoding. `url::Url` does.
+/// Cost: one extra parse per call; not in a hot loop.
 pub fn file_uri_to_path(uri: &lsp_types::Uri) -> Option<PathBuf> {
-    let s = uri.as_str();
-    s.strip_prefix("file://").map(PathBuf::from)
+    let url = url::Url::parse(uri.as_str()).ok()?;
+    url.to_file_path().ok()
+}
+
+/// Inverse of `file_uri_to_path`. Constructs a `file://` URI from a
+/// filesystem path. Returns `None` for relative paths or paths
+/// `url::Url::from_file_path` rejects (e.g., paths that can't be
+/// canonicalised). Used by the diagnostics mapper when building
+/// per-URI publish notifications.
+pub fn path_to_file_uri(path: &Path) -> Option<lsp_types::Uri> {
+    let url = url::Url::from_file_path(path).ok()?;
+    url.as_str().parse().ok()
 }
 
 /// Resolve the project's `plc.json` location. Honours an explicit
@@ -166,5 +179,25 @@ mod tests {
     #[test]
     fn resolve_returns_none_with_no_root_and_no_override() {
         assert!(resolve_plc_config_path(None, None).is_none());
+    }
+
+    #[test]
+    fn uri_path_round_trip_for_absolute_path() {
+        let original = PathBuf::from("/some/plc/main.st");
+        let uri = path_to_file_uri(&original).expect("absolute path → uri");
+        let back = file_uri_to_path(&uri).expect("uri → path");
+        assert_eq!(back, original);
+    }
+
+    #[test]
+    fn path_to_uri_returns_none_for_relative_paths() {
+        // url::Url::from_file_path requires an absolute path.
+        assert!(path_to_file_uri(Path::new("relative/path.st")).is_none());
+    }
+
+    #[test]
+    fn file_uri_to_path_rejects_non_file_scheme() {
+        let uri: lsp_types::Uri = "https://example.com/x".parse().unwrap();
+        assert!(file_uri_to_path(&uri).is_none());
     }
 }
