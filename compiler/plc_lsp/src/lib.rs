@@ -17,17 +17,19 @@ use lsp_server::{
 };
 use lsp_types::{
     request::{GotoDeclarationParams, GotoDeclarationResponse},
-    ClientCapabilities, DeclarationCapability, DidChangeTextDocumentParams, DidChangeWatchedFilesParams,
-    DidCloseTextDocumentParams, DidOpenTextDocumentParams, DocumentSymbol, DocumentSymbolParams,
-    DocumentSymbolResponse, ExecuteCommandOptions, ExecuteCommandParams, FileChangeType,
-    GotoDefinitionParams, GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability,
-    InitializeParams, InitializeResult, Location, MarkupContent, MarkupKind, MessageType, OneOf,
-    PositionEncodingKind, PublishDiagnosticsParams, ReferenceParams, ServerCapabilities, ServerInfo,
-    ShowMessageParams, TextDocumentSyncCapability, TextDocumentSyncKind, Unregistration,
-    UnregistrationParams, Uri,
+    CallHierarchyIncomingCallsParams, CallHierarchyItem, CallHierarchyOutgoingCallsParams,
+    CallHierarchyPrepareParams, CallHierarchyServerCapability, ClientCapabilities, DeclarationCapability,
+    DidChangeTextDocumentParams, DidChangeWatchedFilesParams, DidCloseTextDocumentParams,
+    DidOpenTextDocumentParams, DocumentSymbol, DocumentSymbolParams, DocumentSymbolResponse,
+    ExecuteCommandOptions, ExecuteCommandParams, FileChangeType, GotoDefinitionParams,
+    GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability, InitializeParams,
+    InitializeResult, Location, MarkupContent, MarkupKind, MessageType, OneOf, PositionEncodingKind,
+    PublishDiagnosticsParams, ReferenceParams, ServerCapabilities, ServerInfo, ShowMessageParams,
+    TextDocumentSyncCapability, TextDocumentSyncKind, Unregistration, UnregistrationParams, Uri,
 };
 use plc_diagnostics::cancellation::CancellationToken;
 
+pub mod call_hierarchy;
 pub mod compile;
 pub mod diagnostics;
 pub mod document;
@@ -212,6 +214,11 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
         // index built on the worker (`reverse_index::ReverseIndex`)
         // and cached on `ServerState`. Honours `context.includeDeclaration`.
         references_provider: Some(OneOf::Left(true)),
+        // Phase 11: call hierarchy. `prepareCallHierarchy` returns an
+        // item for callable POUs; `incomingCalls` filters the reverse
+        // index to call sites grouped by container; `outgoingCalls`
+        // walks the POU body once per request.
+        call_hierarchy_provider: Some(CallHierarchyServerCapability::Simple(true)),
         ..Default::default()
     };
 
@@ -322,6 +329,9 @@ fn handle_request(
         "textDocument/definition" => handle_definition(state, connection, req),
         "textDocument/declaration" => handle_declaration(state, connection, req),
         "textDocument/references" => handle_references(state, connection, req),
+        "textDocument/prepareCallHierarchy" => handle_prepare_call_hierarchy(state, connection, req),
+        "callHierarchy/incomingCalls" => handle_incoming_calls(state, connection, req),
+        "callHierarchy/outgoingCalls" => handle_outgoing_calls(state, connection, req),
         _ => {
             log::debug!("unhandled request: method={} id={:?}", req.method, req.id);
             let response = Response {
@@ -569,12 +579,140 @@ fn references_for_position(state: &ServerState, params: &ReferenceParams) -> Opt
             out.push(loc);
         }
     }
-    for usage in reverse_index.lookup(&resolved.declaration_location) {
-        if let Some(loc) = source_location_to_lsp(usage, &state.position_encoding) {
+    for entry in reverse_index.lookup(&resolved.declaration_location) {
+        if let Some(loc) = source_location_to_lsp(&entry.location, &state.position_encoding) {
             out.push(loc);
         }
     }
     Some(out)
+}
+
+/// Answer `textDocument/prepareCallHierarchy`. Returns one item if the
+/// cursor sits on a callable POU; null otherwise (Q6 strict).
+fn handle_prepare_call_hierarchy(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: CallHierarchyPrepareParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed CallHierarchyPrepareParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let result = prepare_call_hierarchy(state, &params).map(|item| vec![item]);
+    send_json_response(connection, req_id, serde_json::to_value(result));
+}
+
+fn prepare_call_hierarchy(
+    state: &ServerState,
+    params: &CallHierarchyPrepareParams,
+) -> Option<CallHierarchyItem> {
+    let annotated = state.annotated.as_ref()?;
+    let ctxt = state.ctxt.as_ref()?;
+    let source_contents = build_source_contents(state);
+
+    let pos = &params.text_document_position_params;
+    let symbol = position::symbol_under_cursor(
+        annotated,
+        ctxt,
+        &pos.text_document.uri,
+        pos.position,
+        &state.position_encoding,
+        &source_contents,
+    )?;
+    let resolved = symbol.resolved?;
+    call_hierarchy::item_for_symbol(annotated, &resolved, &state.position_encoding)
+}
+
+/// Answer `callHierarchy/incomingCalls`. The client passes back the
+/// item we returned from prepare; we decode its qualified name, look
+/// up the POU, filter the reverse index to call sites grouped by
+/// container POU.
+fn handle_incoming_calls(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: CallHierarchyIncomingCallsParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed CallHierarchyIncomingCallsParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let calls = incoming_calls_for(state, &params.item).unwrap_or_default();
+    send_json_response(connection, req_id, serde_json::to_value(calls));
+}
+
+fn incoming_calls_for(
+    state: &ServerState,
+    item: &CallHierarchyItem,
+) -> Option<Vec<lsp_types::CallHierarchyIncomingCall>> {
+    let annotated = state.annotated.as_ref()?;
+    let reverse_index = state.reverse_index.as_ref()?;
+    let qualified_name = call_hierarchy::decode_item(item)?;
+    let pou = annotated.index.find_pou(&qualified_name)?;
+    Some(call_hierarchy::incoming_calls(
+        annotated,
+        reverse_index,
+        pou.get_location(),
+        &state.position_encoding,
+    ))
+}
+
+/// Answer `callHierarchy/outgoingCalls`. Walks the POU's implementation
+/// body, collects each call's callee, returns one entry per callee.
+fn handle_outgoing_calls(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: CallHierarchyOutgoingCallsParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed CallHierarchyOutgoingCallsParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let calls = outgoing_calls_for(state, &params.item).unwrap_or_default();
+    send_json_response(connection, req_id, serde_json::to_value(calls));
+}
+
+fn outgoing_calls_for(
+    state: &ServerState,
+    item: &CallHierarchyItem,
+) -> Option<Vec<lsp_types::CallHierarchyOutgoingCall>> {
+    let annotated = state.annotated.as_ref()?;
+    let qualified_name = call_hierarchy::decode_item(item)?;
+    Some(call_hierarchy::outgoing_calls(annotated, &qualified_name, &state.position_encoding))
+}
+
+fn send_json_response(
+    connection: &Connection,
+    req_id: RequestId,
+    body: serde_json::Result<serde_json::Value>,
+) {
+    let response = match body {
+        Ok(value) => Response { id: req_id, result: Some(value), error: None },
+        Err(e) => {
+            log::error!("failed to serialise response: {e}");
+            return;
+        }
+    };
+    if let Err(e) = connection.sender.send(Message::Response(response)) {
+        log::error!("failed to send response: {e}");
+    }
 }
 
 /// Convert an internal `SourceLocation` into an LSP `Location`.
