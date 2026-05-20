@@ -465,38 +465,72 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
-        self.cancellation().check()?;
-        self.participants.iter_mut().for_each(|p| {
+        // Clone the token so the per-iteration `check()?` calls below
+        // don't need a borrow of `self` (which would conflict with the
+        // `iter_mut` borrow of `self.participants`). The clone is a
+        // cheap `Arc` clone.
+        let cancellation = self.cancellation().clone();
+        cancellation.check()?;
+        self.participants.iter_mut().try_for_each(|p| -> Result<(), Diagnostic> {
+            cancellation.check()?;
             p.pre_index(&project);
-        });
-        let project = self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));
-        self.cancellation().check()?;
+            Ok(())
+        })?;
+        let project = self.mutable_participants.iter_mut().try_fold(
+            project,
+            |project, p| -> Result<_, Diagnostic> {
+                cancellation.check()?;
+                Ok(p.pre_index(project))
+            },
+        )?;
+        cancellation.check()?;
         let indexed_project = project.index(self.context.provider());
-        self.participants.iter().for_each(|p| {
+        self.participants.iter().try_for_each(|p| -> Result<(), Diagnostic> {
+            cancellation.check()?;
             p.post_index(&indexed_project);
-        });
-        let project =
-            self.mutable_participants.iter_mut().fold(indexed_project, |project, p| p.post_index(project));
+            Ok(())
+        })?;
+        let project = self.mutable_participants.iter_mut().try_fold(
+            indexed_project,
+            |project, p| -> Result<_, Diagnostic> {
+                cancellation.check()?;
+                Ok(p.post_index(project))
+            },
+        )?;
 
         Ok(project)
     }
 
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic> {
-        self.cancellation().check()?;
-        self.participants.iter().for_each(|p| {
+        // See `index` for why the token is cloned out before the loops.
+        let cancellation = self.cancellation().clone();
+        cancellation.check()?;
+        self.participants.iter().try_for_each(|p| -> Result<(), Diagnostic> {
+            cancellation.check()?;
             p.pre_annotate(&project);
-        });
-        let project =
-            self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_annotate(project));
-        self.cancellation().check()?;
+            Ok(())
+        })?;
+        let project = self.mutable_participants.iter_mut().try_fold(
+            project,
+            |project, p| -> Result<_, Diagnostic> {
+                cancellation.check()?;
+                Ok(p.pre_annotate(project))
+            },
+        )?;
+        cancellation.check()?;
         let annotated_project = project.annotate(self.context.provider());
-        self.participants.iter().for_each(|p| {
+        self.participants.iter().try_for_each(|p| -> Result<(), Diagnostic> {
+            cancellation.check()?;
             p.post_annotate(&annotated_project);
-        });
-        let mut annotated_project = self
-            .mutable_participants
-            .iter_mut()
-            .fold(annotated_project, |project, p| p.post_annotate(project));
+            Ok(())
+        })?;
+        let mut annotated_project = self.mutable_participants.iter_mut().try_fold(
+            annotated_project,
+            |project, p| -> Result<_, Diagnostic> {
+                cancellation.check()?;
+                Ok(p.post_annotate(project))
+            },
+        )?;
 
         // Collect diagnostics from participants that validated during lowering.
         for p in &mut self.mutable_participants {
@@ -659,6 +693,7 @@ impl ParsedProject {
             .get_sources()
             .iter()
             .map(|it| {
+                ctxt.cancellation().check()?;
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
 
                 let parse_func = match source.get_type() {
@@ -678,6 +713,7 @@ impl ParsedProject {
             .get_includes()
             .iter()
             .map(|it| {
+                ctxt.cancellation().check()?;
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
                 parse_file(source, LinkageType::Include, ctxt.provider(), diagnostician)
             })
@@ -690,6 +726,7 @@ impl ParsedProject {
             .iter()
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
+                ctxt.cancellation().check()?;
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
                 parse_file(source, LinkageType::Include, ctxt.provider(), diagnostician)
             })
