@@ -78,6 +78,9 @@ fn handshake_with_default_caps_falls_back_to_utf16() {
           "hoverProvider": true,
           "positionEncoding": "utf-16",
           "referencesProvider": true,
+          "renameProvider": {
+            "prepareProvider": true
+          },
           "textDocumentSync": 1
         },
         "serverInfo": {
@@ -123,6 +126,9 @@ fn handshake_with_utf8_capable_client_negotiates_utf8() {
           "hoverProvider": true,
           "positionEncoding": "utf-8",
           "referencesProvider": true,
+          "renameProvider": {
+            "prepareProvider": true
+          },
           "textDocumentSync": 1
         },
         "serverInfo": {

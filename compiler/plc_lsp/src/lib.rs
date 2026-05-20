@@ -24,7 +24,8 @@ use lsp_types::{
     ExecuteCommandOptions, ExecuteCommandParams, FileChangeType, GotoDefinitionParams,
     GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability, InitializeParams,
     InitializeResult, Location, MarkupContent, MarkupKind, MessageType, OneOf, PositionEncodingKind,
-    PublishDiagnosticsParams, ReferenceParams, ServerCapabilities, ServerInfo, ShowMessageParams,
+    PrepareRenameResponse, PublishDiagnosticsParams, ReferenceParams, RenameOptions, RenameParams,
+    ServerCapabilities, ServerInfo, ShowMessageParams, TextDocumentPositionParams,
     TextDocumentSyncCapability, TextDocumentSyncKind, Unregistration, UnregistrationParams, Uri,
 };
 use plc_diagnostics::cancellation::CancellationToken;
@@ -37,6 +38,7 @@ pub mod hover_format;
 pub mod outline;
 pub mod position;
 pub mod project;
+pub mod rename;
 pub mod reverse_index;
 pub mod watcher;
 
@@ -219,6 +221,15 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
         // index to call sites grouped by container; `outgoingCalls`
         // walks the POU body once per request.
         call_hierarchy_provider: Some(CallHierarchyServerCapability::Simple(true)),
+        // Phase 12: rename. `prepareRename` runs the same position
+        // lookup as the other cursor features; `rename` emits a
+        // `WorkspaceEdit` editing the declaration site + every
+        // reverse-index entry. `prepare_provider: true` tells clients
+        // to call prepareRename first.
+        rename_provider: Some(OneOf::Right(RenameOptions {
+            prepare_provider: Some(true),
+            work_done_progress_options: Default::default(),
+        })),
         ..Default::default()
     };
 
@@ -332,6 +343,8 @@ fn handle_request(
         "textDocument/prepareCallHierarchy" => handle_prepare_call_hierarchy(state, connection, req),
         "callHierarchy/incomingCalls" => handle_incoming_calls(state, connection, req),
         "callHierarchy/outgoingCalls" => handle_outgoing_calls(state, connection, req),
+        "textDocument/prepareRename" => handle_prepare_rename(state, connection, req),
+        "textDocument/rename" => handle_rename(state, connection, req),
         _ => {
             log::debug!("unhandled request: method={} id={:?}", req.method, req.id);
             let response = Response {
@@ -696,6 +709,112 @@ fn outgoing_calls_for(
     let annotated = state.annotated.as_ref()?;
     let qualified_name = call_hierarchy::decode_item(item)?;
     Some(call_hierarchy::outgoing_calls(annotated, &qualified_name, &state.position_encoding))
+}
+
+/// Answer `textDocument/prepareRename`. Returns the rename range +
+/// placeholder name when the cursor sits on a renamable symbol;
+/// null otherwise (Q6 strict).
+fn handle_prepare_rename(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: TextDocumentPositionParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed TextDocumentPositionParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let result = prepare_rename_for(state, &params);
+    send_json_response(connection, req_id, serde_json::to_value(result));
+}
+
+fn prepare_rename_for(
+    state: &ServerState,
+    params: &TextDocumentPositionParams,
+) -> Option<PrepareRenameResponse> {
+    let annotated = state.annotated.as_ref()?;
+    let ctxt = state.ctxt.as_ref()?;
+    let source_contents = build_source_contents(state);
+    let symbol = position::symbol_under_cursor(
+        annotated,
+        ctxt,
+        &params.text_document.uri,
+        params.position,
+        &state.position_encoding,
+        &source_contents,
+    )?;
+    rename::prepare_rename(&symbol, &state.position_encoding)
+}
+
+/// Answer `textDocument/rename`. Validates the new name + emits a
+/// `WorkspaceEdit` listing the declaration site and every recorded
+/// usage. On validation failure returns `InvalidRequest` so the editor
+/// surfaces the message to the user.
+fn handle_rename(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: RenameParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed RenameParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let Some(annotated) = state.annotated.as_ref() else {
+        send_error_response(
+            connection,
+            req_id,
+            ErrorCode::InvalidRequest,
+            "no successful compile yet".into(),
+        );
+        return;
+    };
+    let Some(ctxt) = state.ctxt.as_ref() else {
+        send_error_response(connection, req_id, ErrorCode::InvalidRequest, "no compile context".into());
+        return;
+    };
+    let Some(reverse_index) = state.reverse_index.as_ref() else {
+        send_error_response(
+            connection,
+            req_id,
+            ErrorCode::InvalidRequest,
+            "no reverse index available".into(),
+        );
+        return;
+    };
+    let source_contents = build_source_contents(state);
+    let Some(symbol) = position::symbol_under_cursor(
+        annotated,
+        ctxt,
+        &params.text_document_position.text_document.uri,
+        params.text_document_position.position,
+        &state.position_encoding,
+        &source_contents,
+    ) else {
+        send_error_response(
+            connection,
+            req_id,
+            ErrorCode::InvalidRequest,
+            "no symbol at this position".into(),
+        );
+        return;
+    };
+
+    match rename::rename_symbol(annotated, reverse_index, &symbol, &params.new_name, &state.position_encoding)
+    {
+        Ok(edit) => send_json_response(connection, req_id, serde_json::to_value(edit)),
+        Err(msg) => send_error_response(connection, req_id, ErrorCode::InvalidRequest, msg),
+    }
 }
 
 fn send_json_response(
