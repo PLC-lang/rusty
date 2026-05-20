@@ -81,14 +81,19 @@ impl ReverseIndex {
 
         let mut by_declaration: HashMap<SourceLocation, Vec<ReferenceEntry>> = HashMap::new();
         for (decl, entry) in walker.pairs {
-            let entries = by_declaration.entry(decl).or_default();
-            // Same identifier often gets annotated on both an outer
-            // `ReferenceExpr` and its inner `Identifier` (resolver
-            // copies the annotation onto both). Dedup linearly on
-            // location — list per decl stays small.
-            if !entries.iter().any(|e| e.location == entry.location) {
-                entries.push(entry);
-            }
+            by_declaration.entry(decl).or_default().push(entry);
+        }
+        // For each decl, drop entries whose location *encloses* another
+        // entry's location in the same file. The annotator copies a
+        // resolution onto both the outer `ReferenceExpr` and the inner
+        // `Identifier` (`src/resolver.rs:2415-2416`), so a member
+        // access like `s.myInt` records both the whole
+        // `s.myInt` span and the bare `myInt` span. Find-references
+        // would show two overlapping highlights; rename would emit
+        // overlapping `TextEdit`s and corrupt the file. Keeping only
+        // the tightest (inner) span fixes both at the source.
+        for entries in by_declaration.values_mut() {
+            dedupe_overlapping(entries);
         }
         ReverseIndex { by_declaration }
     }
@@ -106,6 +111,61 @@ impl ReverseIndex {
     pub fn len(&self) -> usize {
         self.by_declaration.len()
     }
+}
+
+/// Drop entries whose `location` *strictly encloses* another entry's
+/// `location` in the same file. The outer entry is invariably the
+/// `ReferenceExpr` wrapper the resolver also annotated; the inner
+/// entry is the tighter identifier span we want for hover / rename /
+/// references.
+///
+/// Also dedupes identical locations (`==`) — same as the previous
+/// behaviour for the simpler "outer and inner have the same range"
+/// case.
+fn dedupe_overlapping(entries: &mut Vec<ReferenceEntry>) {
+    // Indices to drop. `Vec::retain` preserves the rest.
+    let mut drop_idx: Vec<usize> = Vec::new();
+    for (i, a) in entries.iter().enumerate() {
+        let Some(file_a) = a.location.get_file_name() else { continue };
+        let Some(range_a) = a.location.to_range() else { continue };
+        let mut should_drop = false;
+        for (j, b) in entries.iter().enumerate() {
+            if i == j {
+                continue;
+            }
+            if a.location == b.location {
+                // Identical locations: keep the earlier index, drop later.
+                if i > j {
+                    should_drop = true;
+                    break;
+                }
+                continue;
+            }
+            if file_a != b.location.get_file_name().unwrap_or("") {
+                continue;
+            }
+            let Some(range_b) = b.location.to_range() else { continue };
+            let strictly_encloses =
+                range_a.start <= range_b.start && range_a.end >= range_b.end && range_a != range_b;
+            if strictly_encloses {
+                should_drop = true;
+                break;
+            }
+        }
+        if should_drop {
+            drop_idx.push(i);
+        }
+    }
+    if drop_idx.is_empty() {
+        return;
+    }
+    let drop_set: std::collections::HashSet<usize> = drop_idx.into_iter().collect();
+    let mut i = 0usize;
+    entries.retain(|_| {
+        let keep = !drop_set.contains(&i);
+        i += 1;
+        keep
+    });
 }
 
 /// Single-pass visitor recording `(declaration → ReferenceEntry)` pairs
