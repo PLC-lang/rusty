@@ -460,17 +460,17 @@ fn handle_did_change_watched_files(
             continue;
         }
 
-        // Project source. If the buffer is open AND dirty, the editor has
-        // unsaved edits and is authoritative — disk is stale relative to
-        // the editor's view. If the buffer is open and clean (or not open
-        // at all), the disk is authoritative and we recompile. See
-        // decisions log D7.
-        if let Some(buf) = state.documents.get(&event.uri) {
-            if buf.dirty {
-                log::debug!("watched-files: dirty buffer {:?}; ignoring", event.uri);
-                continue;
-            }
-            log::debug!("watched-files: clean buffer {:?}; recompiling", event.uri);
+        // Project source. We always recompile on a watched-files event,
+        // even when the buffer is open. The LSP can't reliably tell an
+        // editor-driven didChange (user typing) from an external-reload
+        // didChange (the client refreshing a clean buffer to match disk),
+        // so the dirty-aware variant tried earlier misfires whenever the
+        // client emits didChange before the watched-files event. The
+        // cost is at most one extra compile per user save (when both
+        // didSave and the OS-level watcher fire); the trade-off lets
+        // external edits always rebuild. See decisions log D7.
+        if state.documents.get(&event.uri).is_some() {
+            log::debug!("watched-files: change to open buffer {:?}; recompiling", event.uri);
         }
         any_source_change = true;
     }
