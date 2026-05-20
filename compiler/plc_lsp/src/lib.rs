@@ -219,10 +219,7 @@ fn handle_notification(
         "exit" => return Ok(false),
         "textDocument/didOpen" => handle_did_open(state, notif),
         "textDocument/didChange" => handle_did_change(state, notif),
-        "textDocument/didSave" => {
-            handle_did_save(state, notif);
-            trigger_compile(state, compile_tx);
-        }
+        "textDocument/didSave" => handle_did_save(state, compile_tx, notif),
         "textDocument/didClose" => handle_did_close(state, notif),
         "$/setTrace" | "$/cancelRequest" => {
             log::debug!("{} ignored in phase 1", notif.method);
@@ -272,9 +269,12 @@ fn handle_did_change(state: &mut ServerState, notif: Notification) {
     state.documents.change(&id.uri, id.version, change.text);
 }
 
-fn handle_did_save(_state: &mut ServerState, _notif: Notification) {
-    // Compile is triggered by handle_notification's dispatch arm; here
-    // we just acknowledge the notification.
+fn handle_did_save(
+    state: &mut ServerState,
+    compile_tx: &Sender<compile::CompileRequest>,
+    _notif: Notification,
+) {
+    trigger_compile(state, compile_tx);
 }
 
 fn handle_did_close(state: &mut ServerState, notif: Notification) {
