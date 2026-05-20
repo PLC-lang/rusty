@@ -133,10 +133,16 @@ mod tests {
 
     #[test]
     fn extract_globs_leaves_absolute_patterns_alone() {
+        // Host-absolute pattern: `/abs/path/*.st` on Unix is absolute and
+        // gets passed through verbatim; on Windows it is *not* absolute
+        // (Windows wants a drive letter), so to test the
+        // already-absolute branch on Windows we use `C:/abs/...`.
         let dir = tempdir().unwrap();
         let plc = dir.path().join("plc.json");
-        fs::write(&plc, r#"{ "name": "p", "files": ["/abs/path/*.st"] }"#).unwrap();
+        let absolute_glob = if cfg!(windows) { "C:/abs/path/*.st" } else { "/abs/path/*.st" };
+        let json = format!(r#"{{ "name": "p", "files": ["{absolute_glob}"] }}"#);
+        fs::write(&plc, &json).unwrap();
         let globs = extract_source_globs(&plc).unwrap();
-        assert_eq!(globs[0], "/abs/path/*.st");
+        assert_eq!(globs[0], absolute_glob);
     }
 }

@@ -182,6 +182,19 @@ mod tests {
         pairs.iter().map(|(h, p)| (*h, p.to_string())).collect()
     }
 
+    /// Build a host-absolute path string from a relative-looking fixture.
+    /// Linux/macOS: `"/a.st"`. Windows: `"C:/a.st"`. We need this because
+    /// `url::Url::from_file_path` only accepts paths the host considers
+    /// absolute — a hard-coded `"/a.st"` works on Unix but fails on
+    /// Windows, where it isn't a valid drive-rooted path.
+    fn test_path(name: &str) -> String {
+        if cfg!(windows) {
+            format!("C:/{name}")
+        } else {
+            format!("/{name}")
+        }
+    }
+
     fn diag(
         code: &str,
         severity: Severity,
@@ -206,7 +219,9 @@ mod tests {
 
     #[test]
     fn groups_per_uri() {
-        let paths = handle_paths(&[(1, "/a.st"), (2, "/b.st")]);
+        let a_path = test_path("a.st");
+        let b_path = test_path("b.st");
+        let paths = handle_paths(&[(1, &a_path), (2, &b_path)]);
         let diags = vec![
             diag("E001", Severity::Error, 1, 0, 0, 5),
             diag("E002", Severity::Error, 2, 1, 2, 4),
@@ -214,15 +229,16 @@ mod tests {
         ];
         let grouped = map_collected(diags, &paths, &PositionEncodingKind::UTF8, &HashMap::new());
 
-        let a = grouped.get(&path_to_uri("/a.st").unwrap()).expect("URI a");
-        let b = grouped.get(&path_to_uri("/b.st").unwrap()).expect("URI b");
+        let a = grouped.get(&path_to_uri(&a_path).unwrap()).expect("URI a");
+        let b = grouped.get(&path_to_uri(&b_path).unwrap()).expect("URI b");
         assert_eq!(a.len(), 2);
         assert_eq!(b.len(), 1);
     }
 
     #[test]
     fn maps_severity_filtering_ignore() {
-        let paths = handle_paths(&[(1, "/a.st")]);
+        let a_path = test_path("a.st");
+        let paths = handle_paths(&[(1, &a_path)]);
         let diags = vec![
             diag("E001", Severity::Error, 1, 0, 0, 5),
             diag("W001", Severity::Warning, 1, 1, 0, 5),
@@ -230,7 +246,7 @@ mod tests {
             diag("X001", Severity::Ignore, 1, 3, 0, 5), // filtered out
         ];
         let grouped = map_collected(diags, &paths, &PositionEncodingKind::UTF8, &HashMap::new());
-        let entry = grouped.get(&path_to_uri("/a.st").unwrap()).unwrap();
+        let entry = grouped.get(&path_to_uri(&a_path).unwrap()).unwrap();
         assert_eq!(entry.len(), 3);
         assert_eq!(entry[0].severity, Some(DiagnosticSeverity::ERROR));
         assert_eq!(entry[1].severity, Some(DiagnosticSeverity::WARNING));
@@ -294,9 +310,10 @@ mod tests {
         // Under utf-8 negotiation, LSP `character` is the byte offset
         // (3). Under utf-16, it should be the utf-16 code-unit count
         // (1). This test makes that conversion measurable.
+        let a_path = test_path("a.st");
         let mut sources = HashMap::new();
-        sources.insert("/a.st".to_string(), "名 := 1;".to_string());
-        let paths = handle_paths(&[(1, "/a.st")]);
+        sources.insert(a_path.clone(), "名 := 1;".to_string());
+        let paths = handle_paths(&[(1, &a_path)]);
 
         let d_utf8 = diag("E001", Severity::Error, 1, 0, 3, 5);
         let d_utf16 = d_utf8.clone();
@@ -317,7 +334,8 @@ mod tests {
         // the worker), we fall back to raw byte offsets. Correct for
         // ASCII content, slightly off for non-ASCII — better than
         // dropping the diagnostic.
-        let paths = handle_paths(&[(1, "/a.st")]);
+        let a_path = test_path("a.st");
+        let paths = handle_paths(&[(1, &a_path)]);
         let d = diag("E001", Severity::Error, 1, 0, 7, 9);
         let grouped = map_collected(vec![d], &paths, &PositionEncodingKind::UTF16, &HashMap::new());
         let diag_out = grouped.into_values().next().unwrap().pop().unwrap();
@@ -326,7 +344,8 @@ mod tests {
 
     #[test]
     fn fields_match_phase_4_decisions() {
-        let paths = handle_paths(&[(1, "/a.st")]);
+        let a_path = test_path("a.st");
+        let paths = handle_paths(&[(1, &a_path)]);
         let d = diag("E033", Severity::Error, 1, 2, 4, 8);
         let grouped = map_collected(vec![d], &paths, &PositionEncodingKind::UTF8, &HashMap::new());
         let mut entries: Vec<_> = grouped.into_iter().collect();

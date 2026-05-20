@@ -183,7 +183,15 @@ mod tests {
 
     #[test]
     fn uri_path_round_trip_for_absolute_path() {
-        let original = PathBuf::from("/some/plc/main.st");
+        // Host-absolute path: `/some/plc/main.st` on Unix,
+        // `C:\some\plc\main.st` on Windows. `url::Url::from_file_path`
+        // only accepts paths the host considers absolute, so hard-coded
+        // Unix paths fail in the Windows CI runner.
+        let original = if cfg!(windows) {
+            PathBuf::from(r"C:\some\plc\main.st")
+        } else {
+            PathBuf::from("/some/plc/main.st")
+        };
         let uri = path_to_file_uri(&original).expect("absolute path → uri");
         let back = file_uri_to_path(&uri).expect("uri → path");
         assert_eq!(back, original);
