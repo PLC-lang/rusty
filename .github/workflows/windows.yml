@@ -2,9 +2,9 @@ name: Build Windows
 
 on:
   push:
-    branches: [master]
+    branches: [master, lsp-prototyping]
   pull_request:
-    branches: [master]
+    branches: [master, lsp-prototyping]
   merge_group:
 
   # Allows you to run this workflow manually from the Actions tab
@@ -49,6 +49,12 @@ jobs:
         with:
           name: plc.exe
           path: target/release/plc.exe
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: plc-lsp.exe
+          path: target/release/plc-lsp.exe
+          if-no-files-found: error
 
       - uses: actions/upload-artifact@v7
         with:

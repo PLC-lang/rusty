@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [master]
+    branches: [master, lsp-prototyping]
   pull_request:
-    branches: [master]
+    branches: [master, lsp-prototyping]
   merge_group:
 
   # Allows you to run this workflow manually from the Actions tab

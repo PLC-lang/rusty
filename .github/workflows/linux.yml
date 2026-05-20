@@ -2,9 +2,9 @@ name: Build Linux
 
 on:
   push:
-    branches: [master]
+    branches: [master, lsp-prototyping]
   pull_request:
-    branches: [master]
+    branches: [master, lsp-prototyping]
   merge_group:
 
   # Allows you to run this workflow manually from the Actions tab
@@ -96,6 +96,12 @@ jobs:
         with:
           name: plc-${{ matrix.config.arch }}
           path: target/release/plc
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: plc-lsp-${{ matrix.config.arch }}
+          path: target/release/plc-lsp
           if-no-files-found: error
 
       - uses: actions/upload-artifact@v7
