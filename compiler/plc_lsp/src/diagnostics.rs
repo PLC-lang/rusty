@@ -99,7 +99,7 @@ fn map_severity(sev: Severity) -> Option<DiagnosticSeverity> {
 /// wasn't available, e.g. read failure), the raw byte offsets are used
 /// as a best-effort fallback — slightly off for non-ASCII content but
 /// better than dropping the diagnostic.
-fn code_span_to_range(
+pub(crate) fn code_span_to_range(
     span: &CodeSpan,
     encoding: &PositionEncodingKind,
     source: Option<&str>,
@@ -168,7 +168,7 @@ fn related_info(
 /// stores paths as `String`; we delegate to `project::path_to_file_uri`
 /// (backed by the `url` crate) which handles Linux, Windows drive
 /// letters, and UNC paths uniformly.
-fn path_to_uri(path: &str) -> Option<Uri> {
+pub(crate) fn path_to_uri(path: &str) -> Option<Uri> {
     crate::project::path_to_file_uri(std::path::Path::new(path))
 }
 

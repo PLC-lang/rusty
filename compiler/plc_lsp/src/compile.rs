@@ -11,10 +11,12 @@ use std::path::PathBuf;
 use std::thread::{self, JoinHandle};
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
-use lsp_types::PositionEncodingKind;
+use lsp_types::{DocumentSymbol, PositionEncodingKind};
 use plc_diagnostics::cancellation::CancellationToken;
 use plc_diagnostics::reporter::ResolvedDiagnostics;
 use rustc_hash::FxHashMap;
+
+use crate::outline;
 
 /// Snapshot of the inputs a compile needs. Built on the main thread and
 /// shipped to the worker so the worker thread doesn't reach into
@@ -66,6 +68,12 @@ pub struct CompileResult {
     /// Encoding the worker had at the time of compile; the mapper uses
     /// this to decide whether to walk the source for utf-16 conversion.
     pub position_encoding: PositionEncodingKind,
+    /// Pre-computed `textDocument/documentSymbol` outline per source
+    /// file path. Pre-computing on the worker (rather than holding the
+    /// whole `AnnotatedProject` on the main thread) keeps the shipping
+    /// surface small and `Send`-clean. See phase-7-10 plan §2.1. Empty
+    /// when the pipeline failed before annotate completed.
+    pub document_symbols: HashMap<String, Vec<DocumentSymbol>>,
 }
 
 /// Handles to the compile worker. Call `join` to stop it cleanly; if
@@ -126,6 +134,7 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
         error: None,
         source_contents: HashMap::new(),
         position_encoding: position_encoding.clone(),
+        document_symbols: HashMap::new(),
     };
 
     let Some(config_path) = snapshot.plc_config_path.as_deref() else {
@@ -177,6 +186,7 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
                 error: Some(format!("from_sources failed: {e:?}")),
                 source_contents,
                 position_encoding,
+                document_symbols: HashMap::new(),
             });
         }
     };
@@ -188,7 +198,8 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
 
     pipeline.register_default_mut_participants();
 
-    let pipeline_error = run_stages(&mut pipeline).err().map(|e| format!("{e:?}"));
+    let stage_result = run_stages(&mut pipeline);
+    let pipeline_error = stage_result.as_ref().err().map(|e| format!("{e:?}"));
 
     // Post-check: did the pipeline bail because we cancelled it? The
     // outcome enum from Q2 says cancelled → Cancelled variant; the
@@ -200,24 +211,36 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
         return CompileOutcome::Cancelled;
     }
 
+    // Pre-compute the per-file outline now while the AnnotatedProject is
+    // in scope. Shipping the derived map (rather than the project
+    // itself) keeps the cross-thread surface small and `Send`-clean.
+    let document_symbols = stage_result
+        .as_ref()
+        .ok()
+        .map(|annotated| outline::build_outline_map(annotated, &position_encoding, &source_contents))
+        .unwrap_or_default();
+
     CompileOutcome::Done(CompileResult {
         diagnostics: handle.take_collected(),
         file_paths: handle.file_paths(),
         error: pipeline_error,
         source_contents,
         position_encoding,
+        document_symbols,
     })
 }
 
 fn run_stages(
     pipeline: &mut plc_driver::pipelines::BuildPipeline<plc_source::SourceCode>,
-) -> Result<(), plc_diagnostics::diagnostics::Diagnostic> {
+) -> Result<plc_driver::pipelines::AnnotatedProject, plc_diagnostics::diagnostics::Diagnostic> {
     use plc_driver::pipelines::Pipeline as _;
     let parsed = pipeline.parse()?;
     let indexed = pipeline.index(parsed)?;
     let annotated = pipeline.annotate(indexed)?;
+    // `validate` takes &self; ignore its Result (existing carve-out
+    // from phase 3 — validator failures don't gate the publish path).
     let _ = annotated.validate(&pipeline.context, &mut pipeline.diagnostician);
-    Ok(())
+    Ok(annotated)
 }
 
 fn build_sources(

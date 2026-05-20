@@ -17,9 +17,10 @@ use lsp_server::{
 };
 use lsp_types::{
     ClientCapabilities, DidChangeTextDocumentParams, DidChangeWatchedFilesParams, DidCloseTextDocumentParams,
-    DidOpenTextDocumentParams, ExecuteCommandOptions, ExecuteCommandParams, FileChangeType, InitializeParams,
-    InitializeResult, MessageType, PositionEncodingKind, PublishDiagnosticsParams, ServerCapabilities,
-    ServerInfo, ShowMessageParams, TextDocumentSyncCapability, TextDocumentSyncKind, Unregistration,
+    DidOpenTextDocumentParams, DocumentSymbol, DocumentSymbolParams, DocumentSymbolResponse,
+    ExecuteCommandOptions, ExecuteCommandParams, FileChangeType, InitializeParams, InitializeResult,
+    MessageType, OneOf, PositionEncodingKind, PublishDiagnosticsParams, ServerCapabilities, ServerInfo,
+    ShowMessageParams, TextDocumentSyncCapability, TextDocumentSyncKind, Unregistration,
     UnregistrationParams, Uri,
 };
 use plc_diagnostics::cancellation::CancellationToken;
@@ -27,6 +28,7 @@ use plc_diagnostics::cancellation::CancellationToken;
 pub mod compile;
 pub mod diagnostics;
 pub mod document;
+pub mod outline;
 pub mod project;
 pub mod watcher;
 
@@ -75,6 +77,11 @@ pub struct ServerState {
     /// compile. Used to send empty `publishDiagnostics` for files that
     /// previously had errors and now don't, so the editor clears them.
     pub published_uris: HashSet<Uri>,
+    /// Per-URI outline (file symbols) from the last *successful*
+    /// compile. Replaced atomically on each successful compile;
+    /// survives failed and cancelled compiles so queries answer from
+    /// the last-known-good state. See phase-7-10 plan §2.1.
+    pub document_symbols: HashMap<Uri, Vec<DocumentSymbol>>,
     /// Request ID we used for the in-flight `client/registerCapability` or
     /// `client/unregisterCapability` send; used to recognise the matching
     /// Response when it comes back.
@@ -102,6 +109,7 @@ impl ServerState {
             compile_dirty: false,
             active_compile_token: None,
             published_uris: HashSet::new(),
+            document_symbols: HashMap::new(),
             pending_registration: None,
             next_request_id: 0,
         }
@@ -163,6 +171,9 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
             commands: vec![REPARSE_PROJECT_COMMAND.to_string()],
             work_done_progress_options: Default::default(),
         }),
+        // Phase 7: file outline. We always answer from the cached
+        // outline on `ServerState` — never recompile per request.
+        document_symbol_provider: Some(OneOf::Left(true)),
         ..Default::default()
     };
 
@@ -268,6 +279,7 @@ fn handle_request(
 ) {
     match req.method.as_str() {
         "workspace/executeCommand" => handle_execute_command(state, connection, compile_tx, req),
+        "textDocument/documentSymbol" => handle_document_symbol(state, connection, req),
         _ => {
             log::debug!("unhandled request: method={} id={:?}", req.method, req.id);
             let response = Response {
@@ -283,6 +295,37 @@ fn handle_request(
                 log::error!("failed to send response: {e}");
             }
         }
+    }
+}
+
+/// Answer `textDocument/documentSymbol` from the cached outline on
+/// `ServerState`. If the file hasn't been seen by a successful compile
+/// yet, we return an empty list (the editor handles that gracefully —
+/// shows "no symbols yet" rather than an error). Never recompiles per
+/// request; see phase-7-10 plan §2.1.
+fn handle_document_symbol(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: DocumentSymbolParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed DocumentSymbolParams: {e}"),
+            );
+            return;
+        }
+    };
+    let symbols = state.document_symbols.get(&params.text_document.uri).cloned().unwrap_or_default();
+    let result = DocumentSymbolResponse::Nested(symbols);
+    let response = Response {
+        id: req_id,
+        result: Some(serde_json::to_value(result).expect("DocumentSymbolResponse must serialise")),
+        error: None,
+    };
+    if let Err(e) = connection.sender.send(Message::Response(response)) {
+        log::error!("failed to send documentSymbol response: {e}");
     }
 }
 
@@ -632,6 +675,22 @@ fn handle_compile_outcome(
                 log::error!("compile pipeline error: {err}");
             }
             log::debug!("compile produced {} diagnostics", result.diagnostics.len());
+            // Cache the per-URI outline before consuming the result for
+            // diagnostics publishing. We only replace on a *successful*
+            // compile (`result.document_symbols` is empty when the
+            // pipeline didn't reach annotate); failed compiles preserve
+            // the last-good outline so the user keeps seeing structure
+            // while they're fixing a broken file. See phase-7-10 plan
+            // §2.1 / Q7c.
+            if !result.document_symbols.is_empty() {
+                let mut by_uri: HashMap<Uri, Vec<DocumentSymbol>> = HashMap::new();
+                for (path, syms) in &result.document_symbols {
+                    if let Some(uri) = diagnostics::path_to_uri(path) {
+                        by_uri.insert(uri, syms.clone());
+                    }
+                }
+                state.document_symbols = by_uri;
+            }
             publish_diagnostics(state, connection, result);
         }
     }
