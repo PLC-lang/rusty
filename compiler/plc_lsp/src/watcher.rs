@@ -12,7 +12,15 @@ use lsp_types::{
     RegistrationParams, WatchKind,
 };
 
+/// Fixed identifier used when registering the file watcher with the
+/// client. We use a single stable ID (rather than generating one per
+/// registration) because we need to unregister + re-register the same
+/// capability when `plc.json` changes — and unregistration matches by
+/// id + method.
 pub const WATCHER_REGISTRATION_ID: &str = "rusty.fileWatcher";
+
+/// The LSP method name we're registering for. Promoted to a constant so
+/// the register and unregister call sites can't drift apart.
 pub const DID_CHANGE_WATCHED_FILES_METHOD: &str = "workspace/didChangeWatchedFiles";
 
 /// Build a RegistrationParams for the project's source globs + plc.json
@@ -20,6 +28,12 @@ pub const DID_CHANGE_WATCHED_FILES_METHOD: &str = "workspace/didChangeWatchedFil
 /// Change + Delete only (Create doesn't apply — it already existed when
 /// the server resolved it on startup, and a re-create would surface as a
 /// Change event in practice).
+///
+/// We use `GlobPattern::String` (a single absolute glob string) rather
+/// than `GlobPattern::Relative` (base URI + pattern, introduced in LSP
+/// 3.17). Both work for our case; the string form avoids a client-side
+/// capability check and keeps the snippet copy-pasteable into config
+/// dumps for debugging.
 pub fn build_registration(plc_config_path: &Path, source_globs: &[String]) -> RegistrationParams {
     let mut watchers: Vec<FileSystemWatcher> = source_globs
         .iter()
@@ -62,6 +76,9 @@ pub fn extract_source_globs(plc_config_path: &Path) -> Result<Vec<String>, anyho
     Ok(files.iter().filter_map(|v| v.as_str()).map(|s| absolute_glob(parent, Path::new(s))).collect())
 }
 
+/// Join a glob with `base` only if the glob isn't already absolute.
+/// LSP watcher patterns are matched against absolute URIs, so any
+/// `plc.json`-relative glob needs to be made absolute first.
 fn absolute_glob(base: &Path, glob: &Path) -> String {
     let joined = if glob.is_absolute() { glob.to_path_buf() } else { base.join(glob) };
     joined.to_string_lossy().into_owned()

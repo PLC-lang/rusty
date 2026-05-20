@@ -31,7 +31,10 @@ pub mod watcher;
 
 const REPARSE_PROJECT_COMMAND: &str = "rusty.reparseProject";
 
-/// Runtime configuration for the server.
+/// Runtime configuration for the server. Currently only carries an
+/// optional `plc.json` override path supplied via the CLI; the LSP
+/// client can supply the same override via
+/// `initializationOptions.plcConfigPath`.
 #[derive(Default, Debug, Clone)]
 pub struct Settings {
     pub config_override: Option<PathBuf>,
@@ -402,8 +405,14 @@ fn handle_did_change(state: &mut ServerState, notif: Notification) {
 fn handle_did_save(
     state: &mut ServerState,
     compile_tx: &Sender<compile::CompileRequest>,
-    _notif: Notification,
+    notif: Notification,
 ) {
+    // Clear the dirty flag on the saved buffer so a subsequent
+    // watched-files event for the same URI knows the buffer matches disk.
+    // See decisions log D7.
+    if let Ok(params) = serde_json::from_value::<lsp_types::DidSaveTextDocumentParams>(notif.params) {
+        state.documents.mark_saved(&params.text_document.uri);
+    }
     trigger_compile(state, compile_tx);
 }
 
@@ -451,10 +460,17 @@ fn handle_did_change_watched_files(
             continue;
         }
 
-        // Project source. Editor-owned buffer wins over disk events.
-        if state.documents.get(&event.uri).is_some() {
-            log::debug!("watched-files: ignoring change to open buffer {:?}", event.uri);
-            continue;
+        // Project source. If the buffer is open AND dirty, the editor has
+        // unsaved edits and is authoritative — disk is stale relative to
+        // the editor's view. If the buffer is open and clean (or not open
+        // at all), the disk is authoritative and we recompile. See
+        // decisions log D7.
+        if let Some(buf) = state.documents.get(&event.uri) {
+            if buf.dirty {
+                log::debug!("watched-files: dirty buffer {:?}; ignoring", event.uri);
+                continue;
+            }
+            log::debug!("watched-files: clean buffer {:?}; recompiling", event.uri);
         }
         any_source_change = true;
     }

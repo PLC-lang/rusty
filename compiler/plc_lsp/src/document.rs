@@ -15,6 +15,11 @@ pub struct DocumentBuffer {
     pub content: String,
     pub version: i32,
     pub language_id: String,
+    /// True between a `didChange` and the next `didSave`/`didOpen`. The
+    /// watched-files handler uses this to decide whether a disk event
+    /// should trigger a recompile (clean buffer) or be ignored (user
+    /// has unsaved edits). See decisions log D7.
+    pub dirty: bool,
 }
 
 /// Map of every editor-open buffer the server is currently tracking.
@@ -30,21 +35,31 @@ impl DocumentStore {
 
     /// Insert a buffer on `didOpen`. A duplicate open without an intervening
     /// close is a client-side protocol error, but we tolerate it by
-    /// replacing the prior entry.
+    /// replacing the prior entry. `dirty` resets to false — the buffer's
+    /// content matches what the client just told us is on disk.
     pub fn open(&mut self, uri: Uri, language_id: String, version: i32, text: String) {
-        self.docs.insert(uri, DocumentBuffer { content: text, version, language_id });
+        self.docs.insert(uri, DocumentBuffer { content: text, version, language_id, dirty: false });
     }
 
     /// Replace the content of a buffer on `didChange` (Full sync). Logs and
     /// ignores changes for unknown URIs; the protocol allows races between
-    /// the client's didClose and a late didChange.
+    /// the client's didClose and a late didChange. Marks the buffer dirty
+    /// — see decisions log D7.
     pub fn change(&mut self, uri: &Uri, version: i32, text: String) {
         match self.docs.get_mut(uri) {
             Some(buf) => {
                 buf.content = text;
                 buf.version = version;
+                buf.dirty = true;
             }
             None => log::warn!("ignoring didChange for unknown URI: {uri:?}"),
+        }
+    }
+
+    /// Clear the `dirty` flag on `didSave`. No-op if the buffer is unknown.
+    pub fn mark_saved(&mut self, uri: &Uri) {
+        if let Some(buf) = self.docs.get_mut(uri) {
+            buf.dirty = false;
         }
     }
 
