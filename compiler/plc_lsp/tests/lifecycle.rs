@@ -66,6 +66,11 @@ fn handshake_with_default_caps_falls_back_to_utf16() {
       "id": 1,
       "result": {
         "capabilities": {
+          "executeCommandProvider": {
+            "commands": [
+              "rusty.reparseProject"
+            ]
+          },
           "positionEncoding": "utf-16",
           "textDocumentSync": 1
         },
@@ -100,6 +105,11 @@ fn handshake_with_utf8_capable_client_negotiates_utf8() {
       "id": 1,
       "result": {
         "capabilities": {
+          "executeCommandProvider": {
+            "commands": [
+              "rusty.reparseProject"
+            ]
+          },
           "positionEncoding": "utf-8",
           "textDocumentSync": 1
         },
@@ -113,9 +123,13 @@ fn handshake_with_utf8_capable_client_negotiates_utf8() {
 }
 
 fn expect_response(client: &Connection) -> lsp_server::Response {
-    match client.receiver.recv().expect("server closed channel before responding") {
-        Message::Response(r) => r,
-        other => panic!("expected a response, got {other:?}"),
+    // Drain server-initiated notifications / requests (e.g. window/showMessage,
+    // client/registerCapability) while waiting for the response we asked for.
+    loop {
+        if let Message::Response(r) = client.receiver.recv().expect("server closed channel before responding")
+        {
+            return r;
+        }
     }
 }
 

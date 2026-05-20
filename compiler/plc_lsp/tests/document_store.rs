@@ -105,8 +105,12 @@ fn notification(client: &Connection, method: &str, params: serde_json::Value) {
 }
 
 fn expect_response(client: &Connection) -> lsp_server::Response {
-    match client.receiver.recv().expect("server closed channel before responding") {
-        Message::Response(r) => r,
-        other => panic!("expected a response, got {other:?}"),
+    // Drain server-initiated notifications / requests (e.g. window/showMessage,
+    // client/registerCapability) while waiting for the response we asked for.
+    loop {
+        if let Message::Response(r) = client.receiver.recv().expect("server closed channel before responding")
+        {
+            return r;
+        }
     }
 }
