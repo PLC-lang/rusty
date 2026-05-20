@@ -22,6 +22,7 @@ use lsp_types::{
     ServerInfo, ShowMessageParams, TextDocumentSyncCapability, TextDocumentSyncKind, Unregistration,
     UnregistrationParams, Uri,
 };
+use plc_diagnostics::cancellation::CancellationToken;
 
 pub mod compile;
 pub mod diagnostics;
@@ -64,6 +65,12 @@ pub struct ServerState {
     /// True when a compile trigger arrived while one was already pending.
     /// Honoured when the in-flight compile finishes — see decisions log D1.
     pub compile_dirty: bool,
+    /// Cancellation handle for the in-flight compile (Some when
+    /// `compile_pending` is true). On a new trigger arriving mid-compile
+    /// we call `.cancel()` on this — the worker observes the flag at
+    /// the next pipeline check point and bails with
+    /// `CompileOutcome::Cancelled`. See phase-6 Q3.
+    pub active_compile_token: Option<CancellationToken>,
     /// URIs we've published non-empty diagnostics for on the most recent
     /// compile. Used to send empty `publishDiagnostics` for files that
     /// previously had errors and now don't, so the editor clears them.
@@ -93,6 +100,7 @@ impl ServerState {
             plc_config_path,
             compile_pending: false,
             compile_dirty: false,
+            active_compile_token: None,
             published_uris: HashSet::new(),
             pending_registration: None,
             next_request_id: 0,
@@ -241,12 +249,12 @@ fn main_loop(
                     }
                 }
             }
-            recv(worker.result_rx) -> result => {
-                let Ok(result) = result else {
+            recv(worker.result_rx) -> outcome => {
+                let Ok(outcome) = outcome else {
                     log::error!("compile worker result channel closed unexpectedly");
                     return Ok(());
                 };
-                handle_compile_result(state, connection, &worker.compile_tx, result);
+                handle_compile_outcome(state, connection, &worker.compile_tx, outcome);
             }
         }
     }
@@ -577,36 +585,56 @@ fn send_error_response(connection: &Connection, id: RequestId, code: ErrorCode, 
 }
 
 /// Build a snapshot from current ServerState and send it to the worker.
-/// If a compile is already in flight, just mark the state dirty so we
-/// re-fire when the result arrives.
+/// If a compile is already in flight, cancel it (so the worker can bail
+/// at the next pipeline check point) and mark the state dirty so the
+/// next compile fires when the in-flight one returns its
+/// `CompileOutcome::Cancelled`. See phase-6 Q3.
 fn trigger_compile(state: &mut ServerState, compile_tx: &Sender<compile::CompileRequest>) {
     if state.compile_pending {
+        if let Some(token) = &state.active_compile_token {
+            token.cancel();
+            log::debug!("compile already pending; cancelling in-flight + marking dirty");
+        } else {
+            log::debug!("compile already pending (no token?); marking dirty");
+        }
         state.compile_dirty = true;
-        log::debug!("compile already pending; marking dirty");
         return;
     }
-    let snapshot = build_snapshot(state);
+    let cancellation = CancellationToken::new();
+    let snapshot = build_snapshot(state, cancellation.clone());
     if compile_tx.send(compile::CompileRequest { snapshot }).is_err() {
         log::error!("compile worker channel closed; cannot send request");
         return;
     }
+    state.active_compile_token = Some(cancellation);
     state.compile_pending = true;
     state.compile_dirty = false;
 }
 
-fn handle_compile_result(
+fn handle_compile_outcome(
     state: &mut ServerState,
     connection: &Connection,
     compile_tx: &Sender<compile::CompileRequest>,
-    result: compile::CompileResult,
+    outcome: compile::CompileOutcome,
 ) {
     state.compile_pending = false;
-    if let Some(err) = &result.error {
-        log::error!("compile pipeline error: {err}");
-    }
-    log::debug!("compile produced {} diagnostics", result.diagnostics.len());
+    state.active_compile_token = None;
 
-    publish_diagnostics(state, connection, result);
+    match outcome {
+        compile::CompileOutcome::Cancelled => {
+            log::debug!("compile cancelled; skipping publish");
+            // No diagnostics to publish; the next trigger (queued via
+            // compile_dirty by whoever cancelled us) will produce fresh
+            // results from the latest state.
+        }
+        compile::CompileOutcome::Done(result) => {
+            if let Some(err) = &result.error {
+                log::error!("compile pipeline error: {err}");
+            }
+            log::debug!("compile produced {} diagnostics", result.diagnostics.len());
+            publish_diagnostics(state, connection, result);
+        }
+    }
 
     if state.compile_dirty {
         log::debug!("re-firing compile due to dirty state");
@@ -654,7 +682,7 @@ fn send_diagnostics(
     }
 }
 
-fn build_snapshot(state: &ServerState) -> compile::CompileSnapshot {
+fn build_snapshot(state: &ServerState, cancellation: CancellationToken) -> compile::CompileSnapshot {
     let mut open_buffers: HashMap<PathBuf, String> = HashMap::new();
     for (uri, buf) in state.documents.iter() {
         if let Some(path) = project::file_uri_to_path(uri) {
@@ -666,5 +694,6 @@ fn build_snapshot(state: &ServerState) -> compile::CompileSnapshot {
         workspace_root: state.workspace_root.clone(),
         open_buffers,
         position_encoding: state.position_encoding.clone(),
+        cancellation,
     }
 }

@@ -12,6 +12,7 @@ use std::thread::{self, JoinHandle};
 
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use lsp_types::PositionEncodingKind;
+use plc_diagnostics::cancellation::CancellationToken;
 use plc_diagnostics::reporter::ResolvedDiagnostics;
 use rustc_hash::FxHashMap;
 
@@ -28,10 +29,25 @@ pub struct CompileSnapshot {
     /// Negotiated position encoding. Phase 4 uses it when mapping
     /// diagnostic ranges back to LSP coordinates.
     pub position_encoding: PositionEncodingKind,
+    /// Per-compile cancellation token. The main thread keeps a clone
+    /// on `ServerState.active_compile_token`; when a new trigger
+    /// arrives mid-compile, the main thread calls `.cancel()` on its
+    /// clone and the worker sees the flag flip at the next pipeline
+    /// check point. See decisions log Q3.
+    pub cancellation: CancellationToken,
 }
 
 pub struct CompileRequest {
     pub snapshot: CompileSnapshot,
+}
+
+/// What the worker sends back. `Cancelled` is a distinct variant
+/// (rather than a flag on `CompileResult`) so the main thread can
+/// match on it and skip the publish path without first inspecting a
+/// half-populated result. See decisions log Q2.
+pub enum CompileOutcome {
+    Done(CompileResult),
+    Cancelled,
 }
 
 pub struct CompileResult {
@@ -57,14 +73,14 @@ pub struct CompileResult {
 /// background.
 pub struct CompileWorker {
     pub compile_tx: Sender<CompileRequest>,
-    pub result_rx: Receiver<CompileResult>,
+    pub result_rx: Receiver<CompileOutcome>,
     handle: JoinHandle<()>,
 }
 
 impl CompileWorker {
     pub fn spawn() -> Self {
         let (compile_tx, compile_rx) = unbounded::<CompileRequest>();
-        let (result_tx, result_rx) = unbounded::<CompileResult>();
+        let (result_tx, result_rx) = unbounded::<CompileOutcome>();
 
         let handle = thread::spawn(move || worker_loop(compile_rx, result_tx));
 
@@ -81,11 +97,11 @@ impl CompileWorker {
     }
 }
 
-fn worker_loop(compile_rx: Receiver<CompileRequest>, result_tx: Sender<CompileResult>) {
+fn worker_loop(compile_rx: Receiver<CompileRequest>, result_tx: Sender<CompileOutcome>) {
     log::info!("compile worker started");
     while let Ok(req) = compile_rx.recv() {
-        let result = run_compile(req);
-        if result_tx.send(result).is_err() {
+        let outcome = run_compile(req);
+        if result_tx.send(outcome).is_err() {
             // Main thread is gone; we should exit too.
             break;
         }
@@ -93,9 +109,16 @@ fn worker_loop(compile_rx: Receiver<CompileRequest>, result_tx: Sender<CompileRe
     log::info!("compile worker exiting");
 }
 
-fn run_compile(req: CompileRequest) -> CompileResult {
+fn run_compile(req: CompileRequest) -> CompileOutcome {
     let snapshot = req.snapshot;
     let position_encoding = snapshot.position_encoding.clone();
+    let cancellation = snapshot.cancellation.clone();
+
+    // Early bail: the main thread may have cancelled before the
+    // worker even pulled the request off the channel.
+    if cancellation.is_cancelled() {
+        return CompileOutcome::Cancelled;
+    }
 
     let empty_result = || CompileResult {
         diagnostics: Vec::new(),
@@ -107,7 +130,7 @@ fn run_compile(req: CompileRequest) -> CompileResult {
 
     let Some(config_path) = snapshot.plc_config_path.as_deref() else {
         log::warn!("compile: no plc.json available; skipping");
-        return empty_result();
+        return CompileOutcome::Done(empty_result());
     };
 
     log::info!("compile: starting with plc.json={config_path:?}");
@@ -115,10 +138,10 @@ fn run_compile(req: CompileRequest) -> CompileResult {
     let project = match plc_project::project::Project::from_config(config_path) {
         Ok(p) => p,
         Err(e) => {
-            return CompileResult {
+            return CompileOutcome::Done(CompileResult {
                 error: Some(format!("failed to load plc.json at {config_path:?}: {e}")),
                 ..empty_result()
-            };
+            });
         }
     };
 
@@ -148,27 +171,42 @@ fn run_compile(req: CompileRequest) -> CompileResult {
     ) {
         Ok(p) => p,
         Err(e) => {
-            return CompileResult {
+            return CompileOutcome::Done(CompileResult {
                 diagnostics: handle.take_collected(),
                 file_paths: handle.file_paths(),
                 error: Some(format!("from_sources failed: {e:?}")),
                 source_contents,
                 position_encoding,
-            };
+            });
         }
     };
+
+    // Install our per-compile cancellation token on the pipeline's
+    // GlobalContext. Stages call `ctxt.cancellation().check()?` at
+    // boundaries and short-circuit if the main thread flips the flag.
+    pipeline.context.set_cancellation(cancellation.clone());
 
     pipeline.register_default_mut_participants();
 
     let pipeline_error = run_stages(&mut pipeline).err().map(|e| format!("{e:?}"));
 
-    CompileResult {
+    // Post-check: did the pipeline bail because we cancelled it? The
+    // outcome enum from Q2 says cancelled → Cancelled variant; the
+    // pipeline_error in that case would be a `Diagnostic::cancelled()`
+    // sentinel, but rather than inspect the error we trust the token —
+    // there's no race here (only the main thread cancels, only the
+    // worker is reading right now).
+    if cancellation.is_cancelled() {
+        return CompileOutcome::Cancelled;
+    }
+
+    CompileOutcome::Done(CompileResult {
         diagnostics: handle.take_collected(),
         file_paths: handle.file_paths(),
         error: pipeline_error,
         source_contents,
         position_encoding,
-    }
+    })
 }
 
 fn run_stages(
