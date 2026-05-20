@@ -34,6 +34,7 @@ use plc::{
     ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
 };
 use plc_diagnostics::{
+    cancellation::CancellationToken,
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
 };
@@ -167,6 +168,16 @@ impl BuildPipeline<PathBuf> {
 }
 
 impl<T: SourceContainer> BuildPipeline<T> {
+    /// Cooperative cancellation handle for this compile. Cheap (an
+    /// `Arc<AtomicBool>` borrow). Pipeline stages call
+    /// `self.cancellation().check()?` at known boundaries to
+    /// short-circuit on cancellation. Routed via [`GlobalContext`] so
+    /// non-`BuildPipeline` call sites (e.g. `AnnotatedProject::validate`)
+    /// can reach the same token through their `&GlobalContext` arg.
+    pub fn cancellation(&self) -> &CancellationToken {
+        self.context.cancellation()
+    }
+
     pub fn register_mut_participant(&mut self, participant: Box<dyn PipelineParticipantMut>) {
         self.mutable_participants.push(participant)
     }
@@ -448,15 +459,18 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {
+        self.cancellation().check()?;
         let project = ParsedProject::parse(&self.context, &self.project, &mut self.diagnostician)?;
         Ok(project)
     }
 
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
+        self.cancellation().check()?;
         self.participants.iter_mut().for_each(|p| {
             p.pre_index(&project);
         });
         let project = self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));
+        self.cancellation().check()?;
         let indexed_project = project.index(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_index(&indexed_project);
@@ -468,11 +482,13 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic> {
+        self.cancellation().check()?;
         self.participants.iter().for_each(|p| {
             p.pre_annotate(&project);
         });
         let project =
             self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_annotate(project));
+        self.cancellation().check()?;
         let annotated_project = project.annotate(self.context.provider());
         self.participants.iter().for_each(|p| {
             p.post_annotate(&annotated_project);
@@ -634,6 +650,7 @@ impl ParsedProject {
         project: &Project<T>,
         diagnostician: &mut Diagnostician,
     ) -> Result<Self, Diagnostic> {
+        ctxt.cancellation().check()?;
         //TODO in parallel
         //Parse the source files
         let mut units = vec![];
@@ -811,22 +828,27 @@ impl AnnotatedProject {
         ctxt: &GlobalContext,
         diagnostician: &mut Diagnostician,
     ) -> Result<(), Diagnostic> {
+        ctxt.cancellation().check()?;
         let mut severity = diagnostician.handle(&self.diagnostics);
 
         // perform global validation
+        ctxt.cancellation().check()?;
         let mut validator = Validator::new(ctxt);
         validator.perform_global_validation(&self.index);
         let diagnostics = validator.diagnostics();
         severity = severity.max(diagnostician.handle(&diagnostics));
 
-        //Perform per unit validation
-        self.units.iter().for_each(|AnnotatedUnit { unit, .. }| {
+        // Perform per unit validation. try_for_each (vs for_each) so a
+        // mid-loop cancellation check can short-circuit with Err.
+        self.units.iter().try_for_each(|AnnotatedUnit { unit, .. }| -> Result<(), Diagnostic> {
+            ctxt.cancellation().check()?;
             // validate unit
             validator.visit_unit(&self.annotations, &self.index, unit);
             // log errors
             let diagnostics = validator.diagnostics();
             severity = severity.max(diagnostician.handle(&diagnostics));
-        });
+            Ok(())
+        })?;
         if severity == Severity::Error {
             Err(Diagnostic::new("Compilation aborted due to critical errors"))
         } else {
