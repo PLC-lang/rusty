@@ -118,6 +118,15 @@ impl GlobalContext {
         self
     }
 
+    /// Mutating counterpart to [`Self::with_cancellation`]. The LSP
+    /// compile worker uses this after `BuildPipeline::from_sources`
+    /// builds the context internally — by that point a builder that
+    /// consumes `self` would require a `mem::take` dance through
+    /// `Default`.
+    pub fn set_cancellation(&mut self, token: CancellationToken) {
+        self.cancellation = token;
+    }
+
     /// Returns some [`SourceCode`] based on the given key
     pub fn get(&self, key: &str) -> Option<&SourceCode> {
         self.sources.get(key)
