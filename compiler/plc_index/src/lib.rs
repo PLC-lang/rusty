@@ -1,6 +1,7 @@
 use annotate_snippets::Renderer;
 use encoding_rs::Encoding;
 use plc_ast::provider::IdProvider;
+use plc_diagnostics::cancellation::CancellationToken;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
@@ -28,6 +29,17 @@ pub struct GlobalContext {
     error_fmt: ErrorFormat,
     // TODO: Move to a dedicated CompilerOptions struct — this is a compile flag, not global context.
     generate_external_constructors: bool,
+    /// Cooperative cancellation. The compile pipeline checks this at
+    /// known boundaries; non-cancelling callers (CLI, tests) get the
+    /// `Default` token which is never cancelled. The LSP server's
+    /// compile worker calls `with_cancellation` after building the
+    /// pipeline to install its own token.
+    ///
+    /// Skipped during (de)serialisation — runtime cancellation state
+    /// isn't meaningful in a persisted context; the deserialised
+    /// instance gets a fresh never-cancelled token via `Default`.
+    #[serde(skip)]
+    cancellation: CancellationToken,
 }
 
 // XXX: Temporary
@@ -88,6 +100,22 @@ impl GlobalContext {
 
     pub fn should_generate_external_constructors(&self) -> bool {
         self.generate_external_constructors
+    }
+
+    /// The cancellation token attached to this compilation context.
+    /// Pipeline stages call `ctxt.cancellation().check()?` at known
+    /// boundaries to short-circuit on cancellation.
+    pub fn cancellation(&self) -> &CancellationToken {
+        &self.cancellation
+    }
+
+    /// Install a cancellation token (replacing the default
+    /// never-cancelled one). The LSP compile worker calls this after
+    /// `GlobalContext::new()` so the pipeline can observe its
+    /// per-compile cancel signal.
+    pub fn with_cancellation(mut self, token: CancellationToken) -> Self {
+        self.cancellation = token;
+        self
     }
 
     /// Returns some [`SourceCode`] based on the given key

@@ -30,7 +30,7 @@ pub const CANCELLED_ERROR_CODE: &str = "CANCELLED";
 
 /// Shared cancellation flag. Clone is cheap (it's an `Arc<AtomicBool>`
 /// clone); all clones observe the same underlying flag.
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct CancellationToken(Arc<AtomicBool>);
 
 impl CancellationToken {
