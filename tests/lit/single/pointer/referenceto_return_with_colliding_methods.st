@@ -40,7 +40,7 @@ FUNCTION_BLOCK fbIntContainer
     END_PROPERTY
 END_FUNCTION_BLOCK
 
-// LINT Container
+// String Container
 FUNCTION_BLOCK fbStringContainer
     VAR
         _value	: StringContainer;
