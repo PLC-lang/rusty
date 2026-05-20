@@ -38,15 +38,32 @@ pub struct Settings {
 }
 
 pub struct ServerState {
+    /// Encoding negotiated during the initialize handshake. Phases that
+    /// exchange positions on the wire (diagnostics, hover, …) read this to
+    /// decide how to convert their byte offsets.
     pub position_encoding: PositionEncodingKind,
+    /// In-memory view of every editor-open buffer.
     pub documents: document::DocumentStore,
+    /// Workspace folder root captured at `initialize`. Used by project
+    /// discovery; `None` for clients that don't supply one (rare in
+    /// practice — every modern editor sends at least `rootUri`).
     pub workspace_root: Option<PathBuf>,
+    /// Resolved `plc.json` override path (CLI arg or
+    /// `initializationOptions.plcConfigPath`). Takes precedence over
+    /// discovery.
     pub plc_config_override: Option<PathBuf>,
     /// Resolved plc.json path (override or downward discovery). Cleared
     /// if a watched-files notification reports the file was deleted.
     pub plc_config_path: Option<PathBuf>,
+    /// True when a compile request has been sent to the worker and no
+    /// result has come back yet.
     pub compile_pending: bool,
+    /// True when a compile trigger arrived while one was already pending.
+    /// Honoured when the in-flight compile finishes — see decisions log D1.
     pub compile_dirty: bool,
+    /// URIs we've published non-empty diagnostics for on the most recent
+    /// compile. Used to send empty `publishDiagnostics` for files that
+    /// previously had errors and now don't, so the editor clears them.
     pub published_uris: HashSet<Uri>,
     /// Request ID we used for the in-flight `client/registerCapability` or
     /// `client/unregisterCapability` send; used to recognise the matching
@@ -80,6 +97,11 @@ impl ServerState {
     }
 }
 
+/// Pick the position encoding from what the client offers. We prefer UTF-8
+/// (no byte-offset conversion) but fall back to UTF-16 when the client
+/// doesn't advertise utf-8 — notably `vscode-languageclient` v9 only ever
+/// advertises utf-16, and per LSP the server must pick from the client's
+/// offered list.
 fn pick_position_encoding(client_capabilities: &ClientCapabilities) -> PositionEncodingKind {
     let offered = client_capabilities.general.as_ref().and_then(|g| g.position_encodings.as_ref());
     match offered {
@@ -174,6 +196,10 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
     main_loop_result
 }
 
+/// Combine the server result with the I/O-thread result.
+/// When the server errors with a "disconnected channel" style message, the real
+/// cause usually sits in the I/O thread (e.g., a framing error on stdin). We
+/// join the threads here and surface their error as additional context.
 fn finalize(server_result: anyhow::Result<()>, io_threads: IoThreads) -> anyhow::Result<()> {
     match (server_result, io_threads.join()) {
         (Ok(()), Ok(())) => Ok(()),
@@ -192,6 +218,7 @@ fn main_loop(
         select! {
             recv(connection.receiver) -> msg => {
                 let Ok(msg) = msg else {
+                    // Receiver disconnected — client closed stdin.
                     return Ok(());
                 };
                 match msg {
@@ -305,7 +332,10 @@ fn handle_response(state: &mut ServerState, connection: &Connection, resp: Respo
     }
 }
 
-/// Returns `false` when the notification should end the main loop.
+/// Returns `false` when the notification should end the main loop
+/// (an `exit` arriving here without prior shutdown is a protocol
+/// violation, but we treat it as a clean termination request rather
+/// than panicking).
 fn handle_notification(
     state: &mut ServerState,
     connection: &Connection,
@@ -573,10 +603,12 @@ fn publish_diagnostics(state: &mut ServerState, connection: &Connection, result:
     let grouped = diagnostics::map_collected(result.diagnostics, &result.file_paths);
     let new_uris: HashSet<Uri> = grouped.keys().cloned().collect();
 
+    // Clear diagnostics for any URI we published last time but isn't in the new set.
     for stale in state.published_uris.difference(&new_uris) {
         send_diagnostics(connection, stale.clone(), Vec::new(), None);
     }
 
+    // Publish the new set.
     for (uri, diags) in grouped {
         let version = state.documents.get(&uri).map(|b| b.version);
         send_diagnostics(connection, uri, diags, version);
