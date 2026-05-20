@@ -41,6 +41,15 @@ pub struct CompileResult {
     /// here because the underlying `Diagnostic` type isn't `Send`-safe in
     /// every form and we don't need the structure on the main thread.
     pub error: Option<String>,
+    /// Source content per file path, used by the diagnostics mapper to
+    /// convert byte offsets to utf-16 code units when the negotiated
+    /// position encoding is UTF-16. Populated only in that case to avoid
+    /// the memory churn on the utf-8 happy path (helix, nvim). See
+    /// decisions log D4.
+    pub source_contents: HashMap<String, String>,
+    /// Encoding the worker had at the time of compile; the mapper uses
+    /// this to decide whether to walk the source for utf-16 conversion.
+    pub position_encoding: PositionEncodingKind,
 }
 
 /// Handles to the compile worker. Call `join` to stop it cleanly; if
@@ -86,10 +95,19 @@ fn worker_loop(compile_rx: Receiver<CompileRequest>, result_tx: Sender<CompileRe
 
 fn run_compile(req: CompileRequest) -> CompileResult {
     let snapshot = req.snapshot;
+    let position_encoding = snapshot.position_encoding.clone();
+
+    let empty_result = || CompileResult {
+        diagnostics: Vec::new(),
+        file_paths: FxHashMap::default(),
+        error: None,
+        source_contents: HashMap::new(),
+        position_encoding: position_encoding.clone(),
+    };
 
     let Some(config_path) = snapshot.plc_config_path.as_deref() else {
         log::warn!("compile: no plc.json available; skipping");
-        return CompileResult { diagnostics: Vec::new(), file_paths: FxHashMap::default(), error: None };
+        return empty_result();
     };
 
     log::info!("compile: starting with plc.json={config_path:?}");
@@ -98,15 +116,26 @@ fn run_compile(req: CompileRequest) -> CompileResult {
         Ok(p) => p,
         Err(e) => {
             return CompileResult {
-                diagnostics: Vec::new(),
-                file_paths: FxHashMap::default(),
                 error: Some(format!("failed to load plc.json at {config_path:?}: {e}")),
+                ..empty_result()
             };
         }
     };
 
     let sources = build_sources(project.get_sources(), &snapshot.open_buffers);
     log::debug!("compile: built {} sources", sources.len());
+
+    // For utf-16 we need the source text on the main thread to convert
+    // byte-offset positions into utf-16 code units. For utf-8 we'd never
+    // read it, so don't pay the memory cost.
+    let source_contents: HashMap<String, String> = if position_encoding == PositionEncodingKind::UTF16 {
+        sources
+            .iter()
+            .filter_map(|s| s.path.as_ref().map(|p| (p.to_string_lossy().into_owned(), s.source.clone())))
+            .collect()
+    } else {
+        HashMap::new()
+    };
 
     let reporter = plc_diagnostics::reporter::lsp::LspReporter::new();
     let handle = reporter.clone();
@@ -123,6 +152,8 @@ fn run_compile(req: CompileRequest) -> CompileResult {
                 diagnostics: handle.take_collected(),
                 file_paths: handle.file_paths(),
                 error: Some(format!("from_sources failed: {e:?}")),
+                source_contents,
+                position_encoding,
             };
         }
     };
@@ -135,6 +166,8 @@ fn run_compile(req: CompileRequest) -> CompileResult {
         diagnostics: handle.take_collected(),
         file_paths: handle.file_paths(),
         error: pipeline_error,
+        source_contents,
+        position_encoding,
     }
 }
 

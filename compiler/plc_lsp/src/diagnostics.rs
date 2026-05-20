@@ -13,8 +13,8 @@
 use std::collections::HashMap;
 
 use lsp_types::{
-    Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location, NumberOrString, Position, Range,
-    Uri,
+    Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity, Location, NumberOrString, Position,
+    PositionEncodingKind, Range, Uri,
 };
 use plc_diagnostics::diagnostics::Severity;
 use plc_diagnostics::reporter::{ResolvedDiagnostics, ResolvedLocation};
@@ -27,6 +27,8 @@ const INTERNAL_FILENAME: &str = "<internal>";
 pub fn map_collected(
     collected: Vec<ResolvedDiagnostics>,
     file_paths: &FxHashMap<usize, String>,
+    encoding: &PositionEncodingKind,
+    source_contents: &HashMap<String, String>,
 ) -> HashMap<Uri, Vec<Diagnostic>> {
     let mut grouped: HashMap<Uri, Vec<Diagnostic>> = HashMap::new();
 
@@ -48,7 +50,8 @@ pub fn map_collected(
             log::warn!("internal-source diagnostic dropped: code={} message={:?}", diag.code, diag.message);
             continue;
         }
-        let Some(range) = code_span_to_range(&diag.main_location.span) else {
+        let main_source = source_contents.get(path).map(String::as_str);
+        let Some(range) = code_span_to_range(&diag.main_location.span, encoding, main_source) else {
             log::warn!("diagnostic without a text range dropped: code={} file={}", diag.code, path);
             continue;
         };
@@ -58,7 +61,9 @@ pub fn map_collected(
         };
 
         let related = diag.additional_locations.map(|locs| {
-            locs.into_iter().filter_map(|loc| related_info(&loc, file_paths)).collect::<Vec<_>>()
+            locs.into_iter()
+                .filter_map(|loc| related_info(&loc, file_paths, encoding, source_contents))
+                .collect::<Vec<_>>()
         });
 
         let lsp_diag = Diagnostic {
@@ -87,25 +92,69 @@ fn map_severity(sev: Severity) -> Option<DiagnosticSeverity> {
     }
 }
 
-fn code_span_to_range(span: &CodeSpan) -> Option<Range> {
+/// Build an LSP `Range` from a `CodeSpan`, applying the utf-16 column
+/// conversion when the negotiated encoding requires it. `source` is the
+/// source content of the file the span refers to — only consulted on the
+/// utf-16 path. When `source` is None on the utf-16 path (file content
+/// wasn't available, e.g. read failure), the raw byte offsets are used
+/// as a best-effort fallback — slightly off for non-ASCII content but
+/// better than dropping the diagnostic.
+fn code_span_to_range(
+    span: &CodeSpan,
+    encoding: &PositionEncodingKind,
+    source: Option<&str>,
+) -> Option<Range> {
     let CodeSpan::Range(_) = span else {
         return None;
     };
+    let convert_col = |line: usize, byte_col: usize| -> u32 {
+        if encoding == &PositionEncodingKind::UTF16 {
+            source
+                .and_then(|s| s.lines().nth(line))
+                .map(|l| byte_offset_to_utf16_units(l, byte_col))
+                .unwrap_or(byte_col as u32)
+        } else {
+            byte_col as u32
+        }
+    };
+
     Some(Range {
-        start: Position { line: span.get_line() as u32, character: span.get_column() as u32 },
-        end: Position { line: span.get_line_end() as u32, character: span.get_column_end() as u32 },
+        start: Position {
+            line: span.get_line() as u32,
+            character: convert_col(span.get_line(), span.get_column()),
+        },
+        end: Position {
+            line: span.get_line_end() as u32,
+            character: convert_col(span.get_line_end(), span.get_column_end()),
+        },
     })
+}
+
+/// Count utf-16 code units in the byte prefix `line[..byte_offset]`.
+/// Used to convert rusty's byte-offset columns into LSP's utf-16
+/// `character` positions when that encoding was negotiated. See D4.
+fn byte_offset_to_utf16_units(line: &str, byte_offset: usize) -> u32 {
+    line.get(..byte_offset)
+        .map(|prefix| prefix.encode_utf16().count() as u32)
+        // Byte offset not on a char boundary — shouldn't happen with
+        // positions emitted by the rusty parser. Fall back to the raw
+        // byte offset (correct for ASCII, off by a small amount for
+        // non-ASCII).
+        .unwrap_or(byte_offset as u32)
 }
 
 fn related_info(
     loc: &ResolvedLocation,
     file_paths: &FxHashMap<usize, String>,
+    encoding: &PositionEncodingKind,
+    source_contents: &HashMap<String, String>,
 ) -> Option<DiagnosticRelatedInformation> {
     let path = file_paths.get(&loc.file_handle).map(String::as_str)?;
     if path == INTERNAL_FILENAME {
         return None;
     }
-    let range = code_span_to_range(&loc.span)?;
+    let source = source_contents.get(path).map(String::as_str);
+    let range = code_span_to_range(&loc.span, encoding, source)?;
     let uri = path_to_uri(path)?;
     Some(DiagnosticRelatedInformation {
         location: Location { uri, range },
@@ -163,7 +212,7 @@ mod tests {
             diag("E002", Severity::Error, 2, 1, 2, 4),
             diag("E003", Severity::Warning, 1, 3, 0, 1),
         ];
-        let grouped = map_collected(diags, &paths);
+        let grouped = map_collected(diags, &paths, &PositionEncodingKind::UTF8, &HashMap::new());
 
         let a = grouped.get(&path_to_uri("/a.st").unwrap()).expect("URI a");
         let b = grouped.get(&path_to_uri("/b.st").unwrap()).expect("URI b");
@@ -180,7 +229,7 @@ mod tests {
             diag("I001", Severity::Info, 1, 2, 0, 5),
             diag("X001", Severity::Ignore, 1, 3, 0, 5), // filtered out
         ];
-        let grouped = map_collected(diags, &paths);
+        let grouped = map_collected(diags, &paths, &PositionEncodingKind::UTF8, &HashMap::new());
         let entry = grouped.get(&path_to_uri("/a.st").unwrap()).unwrap();
         assert_eq!(entry.len(), 3);
         assert_eq!(entry[0].severity, Some(DiagnosticSeverity::ERROR));
@@ -192,7 +241,7 @@ mod tests {
     fn drops_internal_diagnostics() {
         let paths = handle_paths(&[(1, INTERNAL_FILENAME)]);
         let diags = vec![diag("E001", Severity::Error, 1, 0, 0, 5)];
-        let grouped = map_collected(diags, &paths);
+        let grouped = map_collected(diags, &paths, &PositionEncodingKind::UTF8, &HashMap::new());
         assert!(grouped.is_empty());
     }
 
@@ -200,7 +249,7 @@ mod tests {
     fn drops_diagnostics_with_unknown_file_handle() {
         let paths = handle_paths(&[(1, "/a.st")]);
         let diags = vec![diag("E001", Severity::Error, 99, 0, 0, 5)]; // handle 99 not in map
-        let grouped = map_collected(diags, &paths);
+        let grouped = map_collected(diags, &paths, &PositionEncodingKind::UTF8, &HashMap::new());
         assert!(grouped.is_empty());
     }
 
@@ -209,15 +258,77 @@ mod tests {
         let paths = handle_paths(&[(1, "/a.st")]);
         let mut d = diag("E001", Severity::Error, 1, 0, 0, 5);
         d.main_location.span = CodeSpan::None;
-        let grouped = map_collected(vec![d], &paths);
+        let grouped = map_collected(vec![d], &paths, &PositionEncodingKind::UTF8, &HashMap::new());
         assert!(grouped.is_empty());
+    }
+
+    #[test]
+    fn byte_offset_to_utf16_units_ascii_is_identity() {
+        assert_eq!(byte_offset_to_utf16_units("hello", 5), 5);
+        assert_eq!(byte_offset_to_utf16_units("hello", 0), 0);
+        assert_eq!(byte_offset_to_utf16_units("a := 1;", 4), 4);
+    }
+
+    #[test]
+    fn byte_offset_to_utf16_units_handles_multibyte() {
+        // `名` is 3 bytes in UTF-8 but a single UTF-16 code unit (BMP).
+        assert_eq!(byte_offset_to_utf16_units("名", 3), 1);
+        // ASCII `a` + `名` = 1 + 1 utf-16 units after 4 bytes (a is 1 byte, 名 is 3).
+        assert_eq!(byte_offset_to_utf16_units("a名b", 4), 2);
+    }
+
+    #[test]
+    fn byte_offset_to_utf16_units_handles_surrogate_pair() {
+        // `🌍` is 4 bytes in UTF-8 and encodes as a UTF-16 surrogate pair
+        // (2 code units). This is the case the prototype is most likely to
+        // get wrong if it just counted bytes.
+        assert_eq!(byte_offset_to_utf16_units("🌍", 4), 2);
+    }
+
+    #[test]
+    fn utf16_encoding_converts_non_ascii_columns() {
+        // Source line: `名 := 1;`. `名` is 3 bytes in UTF-8 and 1 utf-16
+        // code unit. A diagnostic span starting at byte offset 3 sits
+        // *after* the `名` character.
+        //
+        // Under utf-8 negotiation, LSP `character` is the byte offset
+        // (3). Under utf-16, it should be the utf-16 code-unit count
+        // (1). This test makes that conversion measurable.
+        let mut sources = HashMap::new();
+        sources.insert("/a.st".to_string(), "名 := 1;".to_string());
+        let paths = handle_paths(&[(1, "/a.st")]);
+
+        let d_utf8 = diag("E001", Severity::Error, 1, 0, 3, 5);
+        let d_utf16 = d_utf8.clone();
+
+        let grouped_utf8 = map_collected(vec![d_utf8], &paths, &PositionEncodingKind::UTF8, &HashMap::new());
+        let grouped_utf16 = map_collected(vec![d_utf16], &paths, &PositionEncodingKind::UTF16, &sources);
+
+        let utf8_diag = grouped_utf8.into_values().next().unwrap().pop().unwrap();
+        let utf16_diag = grouped_utf16.into_values().next().unwrap().pop().unwrap();
+
+        assert_eq!(utf8_diag.range.start.character, 3, "utf-8: raw byte offset");
+        assert_eq!(utf16_diag.range.start.character, 1, "utf-16: code-unit count");
+    }
+
+    #[test]
+    fn utf16_falls_back_to_byte_offset_without_source() {
+        // If source content isn't available (e.g., file read failed in
+        // the worker), we fall back to raw byte offsets. Correct for
+        // ASCII content, slightly off for non-ASCII — better than
+        // dropping the diagnostic.
+        let paths = handle_paths(&[(1, "/a.st")]);
+        let d = diag("E001", Severity::Error, 1, 0, 7, 9);
+        let grouped = map_collected(vec![d], &paths, &PositionEncodingKind::UTF16, &HashMap::new());
+        let diag_out = grouped.into_values().next().unwrap().pop().unwrap();
+        assert_eq!(diag_out.range.start.character, 7);
     }
 
     #[test]
     fn fields_match_phase_4_decisions() {
         let paths = handle_paths(&[(1, "/a.st")]);
         let d = diag("E033", Severity::Error, 1, 2, 4, 8);
-        let grouped = map_collected(vec![d], &paths);
+        let grouped = map_collected(vec![d], &paths, &PositionEncodingKind::UTF8, &HashMap::new());
         let mut entries: Vec<_> = grouped.into_iter().collect();
         let (_uri, mut diags) = entries.pop().unwrap();
         let diag = diags.pop().unwrap();

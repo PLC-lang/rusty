@@ -616,7 +616,12 @@ fn handle_compile_result(
 }
 
 fn publish_diagnostics(state: &mut ServerState, connection: &Connection, result: compile::CompileResult) {
-    let grouped = diagnostics::map_collected(result.diagnostics, &result.file_paths);
+    let grouped = diagnostics::map_collected(
+        result.diagnostics,
+        &result.file_paths,
+        &result.position_encoding,
+        &result.source_contents,
+    );
     let new_uris: HashSet<Uri> = grouped.keys().cloned().collect();
 
     // Clear diagnostics for any URI we published last time but isn't in the new set.
