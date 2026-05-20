@@ -66,13 +66,17 @@ fn handshake_with_default_caps_falls_back_to_utf16() {
       "id": 1,
       "result": {
         "capabilities": {
+          "declarationProvider": true,
+          "definitionProvider": true,
           "documentSymbolProvider": true,
           "executeCommandProvider": {
             "commands": [
               "rusty.reparseProject"
             ]
           },
+          "hoverProvider": true,
           "positionEncoding": "utf-16",
+          "referencesProvider": true,
           "textDocumentSync": 1
         },
         "serverInfo": {
@@ -106,13 +110,17 @@ fn handshake_with_utf8_capable_client_negotiates_utf8() {
       "id": 1,
       "result": {
         "capabilities": {
+          "declarationProvider": true,
+          "definitionProvider": true,
           "documentSymbolProvider": true,
           "executeCommandProvider": {
             "commands": [
               "rusty.reparseProject"
             ]
           },
+          "hoverProvider": true,
           "positionEncoding": "utf-8",
+          "referencesProvider": true,
           "textDocumentSync": 1
         },
         "serverInfo": {

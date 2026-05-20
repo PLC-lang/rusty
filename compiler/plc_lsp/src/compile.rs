@@ -14,9 +14,12 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use lsp_types::{DocumentSymbol, PositionEncodingKind};
 use plc_diagnostics::cancellation::CancellationToken;
 use plc_diagnostics::reporter::ResolvedDiagnostics;
+use plc_driver::pipelines::AnnotatedProject;
+use plc_index::GlobalContext;
 use rustc_hash::FxHashMap;
 
 use crate::outline;
+use crate::reverse_index::ReverseIndex;
 
 /// Snapshot of the inputs a compile needs. Built on the main thread and
 /// shipped to the worker so the worker thread doesn't reach into
@@ -46,9 +49,13 @@ pub struct CompileRequest {
 /// What the worker sends back. `Cancelled` is a distinct variant
 /// (rather than a flag on `CompileResult`) so the main thread can
 /// match on it and skip the publish path without first inspecting a
-/// half-populated result. See decisions log Q2.
+/// half-populated result.
+///
+/// `CompileResult` is boxed: it now carries the full `AnnotatedProject`
+/// (~kilobytes) so the `Done` variant would otherwise dwarf `Cancelled`
+/// and trigger clippy's `large_enum_variant`.
 pub enum CompileOutcome {
-    Done(CompileResult),
+    Done(Box<CompileResult>),
     Cancelled,
 }
 
@@ -71,9 +78,26 @@ pub struct CompileResult {
     /// Pre-computed `textDocument/documentSymbol` outline per source
     /// file path. Pre-computing on the worker (rather than holding the
     /// whole `AnnotatedProject` on the main thread) keeps the shipping
-    /// surface small and `Send`-clean. See phase-7-10 plan §2.1. Empty
-    /// when the pipeline failed before annotate completed.
+    /// surface small and `Send`-clean. Empty when the pipeline failed
+    /// before annotate completed.
     pub document_symbols: HashMap<String, Vec<DocumentSymbol>>,
+    /// The annotated project itself. Owned hand-off (not `Arc`): the
+    /// main thread takes ownership and answers cursor-parameterised
+    /// queries (hover, goto-def, references) by borrowing it. `Some`
+    /// iff the worker's `annotate` stage returned `Ok` — validation
+    /// severity does not gate the attach. `None` on parse fatal,
+    /// lowering failure, cancellation, or any other pipeline error.
+    pub annotated: Option<AnnotatedProject>,
+    /// The compile-time `GlobalContext` paired with `annotated`.
+    /// Cloned out of the pipeline before drop so the main thread can
+    /// call `ctxt.slice(&location)` to recover the user's literal
+    /// source text for display. `None` whenever `annotated` is.
+    pub ctxt: Option<GlobalContext>,
+    /// Pre-built reverse index (declaration → use sites) for
+    /// `textDocument/references`. Built on the worker by walking
+    /// `annotated.units` after annotation completes. `None` whenever
+    /// `annotated` is.
+    pub reverse_index: Option<ReverseIndex>,
 }
 
 /// Handles to the compile worker. Call `join` to stop it cleanly; if
@@ -135,11 +159,14 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
         source_contents: HashMap::new(),
         position_encoding: position_encoding.clone(),
         document_symbols: HashMap::new(),
+        annotated: None,
+        ctxt: None,
+        reverse_index: None,
     };
 
     let Some(config_path) = snapshot.plc_config_path.as_deref() else {
         log::warn!("compile: no plc.json available; skipping");
-        return CompileOutcome::Done(empty_result());
+        return CompileOutcome::Done(Box::new(empty_result()));
     };
 
     log::info!("compile: starting with plc.json={config_path:?}");
@@ -147,10 +174,10 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
     let project = match plc_project::project::Project::from_config(config_path) {
         Ok(p) => p,
         Err(e) => {
-            return CompileOutcome::Done(CompileResult {
+            return CompileOutcome::Done(Box::new(CompileResult {
                 error: Some(format!("failed to load plc.json at {config_path:?}: {e}")),
                 ..empty_result()
-            });
+            }));
         }
     };
 
@@ -180,14 +207,17 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
     ) {
         Ok(p) => p,
         Err(e) => {
-            return CompileOutcome::Done(CompileResult {
+            return CompileOutcome::Done(Box::new(CompileResult {
                 diagnostics: handle.take_collected(),
                 file_paths: handle.file_paths(),
                 error: Some(format!("from_sources failed: {e:?}")),
                 source_contents,
                 position_encoding,
                 document_symbols: HashMap::new(),
-            });
+                annotated: None,
+                ctxt: None,
+                reverse_index: None,
+            }));
         }
     };
 
@@ -212,22 +242,40 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
     }
 
     // Pre-compute the per-file outline now while the AnnotatedProject is
-    // in scope. Shipping the derived map (rather than the project
-    // itself) keeps the cross-thread surface small and `Send`-clean.
+    // in scope. The outline is parameter-free per file, so we ship the
+    // derived map instead of recomputing on each `documentSymbol`
+    // request.
     let document_symbols = stage_result
         .as_ref()
         .ok()
         .map(|annotated| outline::build_outline_map(annotated, &position_encoding, &source_contents))
         .unwrap_or_default();
 
-    CompileOutcome::Done(CompileResult {
+    // Attach iff `annotate` returned Ok — pair the project with a clone
+    // of the pipeline's GlobalContext so the main thread can call
+    // `ctxt.slice(&location)` for the source-text rule applied across
+    // hover / goto / refs. The reverse-index is built here while the
+    // annotated project is still in scope — same `Some`/`None` pairing.
+    let (annotated, ctxt, reverse_index) = match stage_result {
+        Ok(annotated) => {
+            let ctxt = pipeline.context.clone();
+            let reverse_index = ReverseIndex::build(&annotated, &ctxt);
+            (Some(annotated), Some(ctxt), Some(reverse_index))
+        }
+        Err(_) => (None, None, None),
+    };
+
+    CompileOutcome::Done(Box::new(CompileResult {
         diagnostics: handle.take_collected(),
         file_paths: handle.file_paths(),
         error: pipeline_error,
         source_contents,
         position_encoding,
         document_symbols,
-    })
+        annotated,
+        ctxt,
+        reverse_index,
+    }))
 }
 
 fn run_stages(

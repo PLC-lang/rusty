@@ -16,10 +16,13 @@ use lsp_server::{
     Connection, ErrorCode, IoThreads, Message, Notification, Request, RequestId, Response, ResponseError,
 };
 use lsp_types::{
-    ClientCapabilities, DidChangeTextDocumentParams, DidChangeWatchedFilesParams, DidCloseTextDocumentParams,
-    DidOpenTextDocumentParams, DocumentSymbol, DocumentSymbolParams, DocumentSymbolResponse,
-    ExecuteCommandOptions, ExecuteCommandParams, FileChangeType, InitializeParams, InitializeResult,
-    MessageType, OneOf, PositionEncodingKind, PublishDiagnosticsParams, ServerCapabilities, ServerInfo,
+    request::{GotoDeclarationParams, GotoDeclarationResponse},
+    ClientCapabilities, DeclarationCapability, DidChangeTextDocumentParams, DidChangeWatchedFilesParams,
+    DidCloseTextDocumentParams, DidOpenTextDocumentParams, DocumentSymbol, DocumentSymbolParams,
+    DocumentSymbolResponse, ExecuteCommandOptions, ExecuteCommandParams, FileChangeType,
+    GotoDefinitionParams, GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability,
+    InitializeParams, InitializeResult, Location, MarkupContent, MarkupKind, MessageType, OneOf,
+    PositionEncodingKind, PublishDiagnosticsParams, ReferenceParams, ServerCapabilities, ServerInfo,
     ShowMessageParams, TextDocumentSyncCapability, TextDocumentSyncKind, Unregistration,
     UnregistrationParams, Uri,
 };
@@ -28,8 +31,11 @@ use plc_diagnostics::cancellation::CancellationToken;
 pub mod compile;
 pub mod diagnostics;
 pub mod document;
+pub mod hover_format;
 pub mod outline;
+pub mod position;
 pub mod project;
+pub mod reverse_index;
 pub mod watcher;
 
 const REPARSE_PROJECT_COMMAND: &str = "rusty.reparseProject";
@@ -77,11 +83,25 @@ pub struct ServerState {
     /// compile. Used to send empty `publishDiagnostics` for files that
     /// previously had errors and now don't, so the editor clears them.
     pub published_uris: HashSet<Uri>,
-    /// Per-URI outline (file symbols) from the last *successful*
-    /// compile. Replaced atomically on each successful compile;
-    /// survives failed and cancelled compiles so queries answer from
-    /// the last-known-good state. See phase-7-10 plan §2.1.
+    /// Per-URI outline (file symbols) from the last successfully
+    /// attached compile. Replaced atomically on each attach; survives
+    /// failed and cancelled compiles so queries answer from the
+    /// last-known-good state.
     pub document_symbols: HashMap<Uri, Vec<DocumentSymbol>>,
+    /// Result of the last `BuildPipeline::annotate(...)` that returned
+    /// `Ok`. Owned (not `Arc`): the main thread is single-threaded so
+    /// borrows from queries are uncontested. Cursor-parameterised
+    /// queries (hover, goto-def, references) read from here.
+    pub annotated: Option<plc_driver::pipelines::AnnotatedProject>,
+    /// `GlobalContext` paired with `annotated`. Used by hover format
+    /// and position lookup for the source-text display rule: calling
+    /// `ctxt.slice(&location)` recovers the user's literal source for
+    /// type expressions, defusing preprocessor/lowering rewrites.
+    pub ctxt: Option<plc_index::GlobalContext>,
+    /// Project-wide declaration → uses map, used to answer
+    /// `textDocument/references`. Replaced atomically alongside
+    /// `annotated` and `ctxt` on each successfully attached compile.
+    pub reverse_index: Option<reverse_index::ReverseIndex>,
     /// Request ID we used for the in-flight `client/registerCapability` or
     /// `client/unregisterCapability` send; used to recognise the matching
     /// Response when it comes back.
@@ -110,6 +130,9 @@ impl ServerState {
             active_compile_token: None,
             published_uris: HashSet::new(),
             document_symbols: HashMap::new(),
+            annotated: None,
+            ctxt: None,
+            reverse_index: None,
             pending_registration: None,
             next_request_id: 0,
         }
@@ -174,6 +197,21 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
         // Phase 7: file outline. We always answer from the cached
         // outline on `ServerState` — never recompile per request.
         document_symbol_provider: Some(OneOf::Left(true)),
+        // Phase 8: hover. Answers from the cached AnnotatedProject on
+        // `ServerState.annotated`; returns null when the cursor isn't
+        // over a resolvable identifier or when no successful compile
+        // has been attached yet.
+        hover_provider: Some(HoverProviderCapability::Simple(true)),
+        // Phase 9: goto-def and goto-declaration. Collapsed for the
+        // prototype — both endpoints return the same declaration
+        // location. The distinction (interface declaration vs
+        // implementing-FB body) is a refinement for post-phase-13.
+        definition_provider: Some(OneOf::Left(true)),
+        declaration_provider: Some(DeclarationCapability::Simple(true)),
+        // Phase 10: find-references. Powered by a project-wide reverse
+        // index built on the worker (`reverse_index::ReverseIndex`)
+        // and cached on `ServerState`. Honours `context.includeDeclaration`.
+        references_provider: Some(OneOf::Left(true)),
         ..Default::default()
     };
 
@@ -280,6 +318,10 @@ fn handle_request(
     match req.method.as_str() {
         "workspace/executeCommand" => handle_execute_command(state, connection, compile_tx, req),
         "textDocument/documentSymbol" => handle_document_symbol(state, connection, req),
+        "textDocument/hover" => handle_hover(state, connection, req),
+        "textDocument/definition" => handle_definition(state, connection, req),
+        "textDocument/declaration" => handle_declaration(state, connection, req),
+        "textDocument/references" => handle_references(state, connection, req),
         _ => {
             log::debug!("unhandled request: method={} id={:?}", req.method, req.id);
             let response = Response {
@@ -327,6 +369,252 @@ fn handle_document_symbol(state: &ServerState, connection: &Connection, req: Req
     if let Err(e) = connection.sender.send(Message::Response(response)) {
         log::error!("failed to send documentSymbol response: {e}");
     }
+}
+
+/// Answer `textDocument/hover` from the cached `AnnotatedProject` on
+/// `ServerState`. Returns null when there's no successful compile yet,
+/// when the cursor isn't over a resolvable identifier, or when the
+/// resolved declaration has no displayable source (synthetic /
+/// `<internal>` locations).
+fn handle_hover(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: HoverParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed HoverParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let hover = hover_for_position(state, &params);
+    let response = Response {
+        id: req_id,
+        result: Some(serde_json::to_value(hover).expect("Hover must serialise")),
+        error: None,
+    };
+    if let Err(e) = connection.sender.send(Message::Response(response)) {
+        log::error!("failed to send hover response: {e}");
+    }
+}
+
+/// Pure logic for the hover handler — separated so tests can drive it
+/// without spinning up a `Connection`. Returns `None` when there's
+/// nothing to show; callers serialise `null`, which is the LSP-correct
+/// "no hover" reply.
+fn hover_for_position(state: &ServerState, params: &HoverParams) -> Option<Hover> {
+    let annotated = state.annotated.as_ref()?;
+    let ctxt = state.ctxt.as_ref()?;
+    let source_contents = build_source_contents(state);
+
+    let pos = &params.text_document_position_params;
+    let symbol = position::symbol_under_cursor(
+        annotated,
+        ctxt,
+        &pos.text_document.uri,
+        pos.position,
+        &state.position_encoding,
+        &source_contents,
+    )?;
+
+    let body = hover_format::format_symbol(&symbol, &annotated.index)?;
+    let range =
+        diagnostics::code_span_to_range(symbol.usage_location.get_span(), &state.position_encoding, None);
+
+    Some(Hover {
+        contents: HoverContents::Markup(MarkupContent { kind: MarkupKind::Markdown, value: body }),
+        range,
+    })
+}
+
+/// Build a `path → source` map from the open editor buffers — used by
+/// the position lookup to convert utf-16 columns into byte offsets.
+///
+/// We don't cache this on `ServerState` because it has to track every
+/// `didChange` and the documents store is already authoritative for
+/// that data. Building per-request is fine: hover/goto/refs are
+/// interactive and the maps are small (a handful of open files).
+/// Answer `textDocument/definition`. Builds a `SymbolUnderCursor` from
+/// the cached project and returns `resolved.declaration_location` as
+/// an LSP `Location`. Returns null when nothing under the cursor
+/// resolves.
+fn handle_definition(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: GotoDefinitionParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed GotoDefinitionParams: {e}"),
+            );
+            return;
+        }
+    };
+    let result =
+        goto_target(state, &params.text_document_position_params).map(GotoDefinitionResponse::Scalar);
+    send_goto_response(connection, req_id, serde_json::to_value(result));
+}
+
+/// Answer `textDocument/declaration`. Identical to definition for the
+/// prototype — the LSP protocol allows them to differ (interface decl
+/// vs implementation site) but for ST these coincide in nearly every
+/// case.
+fn handle_declaration(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: GotoDeclarationParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed GotoDeclarationParams: {e}"),
+            );
+            return;
+        }
+    };
+    let result =
+        goto_target(state, &params.text_document_position_params).map(GotoDeclarationResponse::Scalar);
+    send_goto_response(connection, req_id, serde_json::to_value(result));
+}
+
+/// Shared core: position lookup → optional `Location`. Returns `None`
+/// when there's no cached project, the cursor isn't over an
+/// identifier, or the identifier resolves to no declaration.
+fn goto_target(state: &ServerState, position: &lsp_types::TextDocumentPositionParams) -> Option<Location> {
+    let annotated = state.annotated.as_ref()?;
+    let ctxt = state.ctxt.as_ref()?;
+    let source_contents = build_source_contents(state);
+
+    let symbol = position::symbol_under_cursor(
+        annotated,
+        ctxt,
+        &position.text_document.uri,
+        position.position,
+        &state.position_encoding,
+        &source_contents,
+    )?;
+    let resolved = symbol.resolved?;
+    let path = resolved.declaration_location.get_file_name()?;
+    let uri = diagnostics::path_to_uri(path)?;
+    let range = diagnostics::code_span_to_range(
+        resolved.declaration_location.get_span(),
+        &state.position_encoding,
+        None,
+    )?;
+    Some(Location { uri, range })
+}
+
+/// Answer `textDocument/references`. Resolves the cursor to a
+/// declaration, looks up its uses in the cached reverse index, and
+/// returns the list (optionally including the declaration itself).
+/// Returns an empty list — not null — when there's nothing to surface,
+/// because that's what most LSP clients expect for "no references."
+fn handle_references(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: ReferenceParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed ReferenceParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let locations = references_for_position(state, &params).unwrap_or_default();
+    let response = Response {
+        id: req_id,
+        result: Some(serde_json::to_value(locations).expect("Vec<Location> must serialise")),
+        error: None,
+    };
+    if let Err(e) = connection.sender.send(Message::Response(response)) {
+        log::error!("failed to send references response: {e}");
+    }
+}
+
+/// Pure-logic core: position lookup → reverse-index query → LSP
+/// `Location`s. Returns `None` only when state is missing entirely;
+/// "no references found" returns `Some(empty)` so the caller can ship
+/// `[]` to the client.
+fn references_for_position(state: &ServerState, params: &ReferenceParams) -> Option<Vec<Location>> {
+    let annotated = state.annotated.as_ref()?;
+    let ctxt = state.ctxt.as_ref()?;
+    let reverse_index = state.reverse_index.as_ref()?;
+    let source_contents = build_source_contents(state);
+
+    let pos = &params.text_document_position;
+    let symbol = position::symbol_under_cursor(
+        annotated,
+        ctxt,
+        &pos.text_document.uri,
+        pos.position,
+        &state.position_encoding,
+        &source_contents,
+    )?;
+    let resolved = symbol.resolved?;
+
+    let mut out: Vec<Location> = Vec::new();
+    if params.context.include_declaration {
+        if let Some(loc) = source_location_to_lsp(&resolved.declaration_location, &state.position_encoding) {
+            out.push(loc);
+        }
+    }
+    for usage in reverse_index.lookup(&resolved.declaration_location) {
+        if let Some(loc) = source_location_to_lsp(usage, &state.position_encoding) {
+            out.push(loc);
+        }
+    }
+    Some(out)
+}
+
+/// Convert an internal `SourceLocation` into an LSP `Location`.
+/// Returns `None` when the location lacks a usable file path or range
+/// (synthetic / `<internal>` / undefined).
+fn source_location_to_lsp(
+    location: &plc_source::source_location::SourceLocation,
+    encoding: &PositionEncodingKind,
+) -> Option<Location> {
+    let path = location.get_file_name()?;
+    let uri = diagnostics::path_to_uri(path)?;
+    let range = diagnostics::code_span_to_range(location.get_span(), encoding, None)?;
+    Some(Location { uri, range })
+}
+
+fn send_goto_response(
+    connection: &Connection,
+    req_id: RequestId,
+    body: serde_json::Result<serde_json::Value>,
+) {
+    let response = match body {
+        Ok(value) => Response { id: req_id, result: Some(value), error: None },
+        Err(e) => {
+            log::error!("goto response failed to serialise: {e}");
+            return;
+        }
+    };
+    if let Err(e) = connection.sender.send(Message::Response(response)) {
+        log::error!("failed to send goto response: {e}");
+    }
+}
+
+fn build_source_contents(state: &ServerState) -> HashMap<String, String> {
+    state
+        .documents
+        .iter()
+        .filter_map(|(uri, buf)| {
+            project::file_uri_to_path(uri).map(|p| (p.to_string_lossy().into_owned(), buf.content.clone()))
+        })
+        .collect()
 }
 
 fn handle_execute_command(
@@ -670,18 +958,17 @@ fn handle_compile_outcome(
             // compile_dirty by whoever cancelled us) will produce fresh
             // results from the latest state.
         }
-        compile::CompileOutcome::Done(result) => {
+        compile::CompileOutcome::Done(mut result) => {
             if let Some(err) = &result.error {
                 log::error!("compile pipeline error: {err}");
             }
             log::debug!("compile produced {} diagnostics", result.diagnostics.len());
             // Cache the per-URI outline before consuming the result for
-            // diagnostics publishing. We only replace on a *successful*
-            // compile (`result.document_symbols` is empty when the
+            // diagnostics publishing. Replace only on a successfully
+            // attached compile (`document_symbols` is empty when the
             // pipeline didn't reach annotate); failed compiles preserve
             // the last-good outline so the user keeps seeing structure
-            // while they're fixing a broken file. See phase-7-10 plan
-            // §2.1 / Q7c.
+            // while they're fixing a broken file.
             if !result.document_symbols.is_empty() {
                 let mut by_uri: HashMap<Uri, Vec<DocumentSymbol>> = HashMap::new();
                 for (path, syms) in &result.document_symbols {
@@ -691,7 +978,20 @@ fn handle_compile_outcome(
                 }
                 state.document_symbols = by_uri;
             }
-            publish_diagnostics(state, connection, result);
+            // Owned hand-off: replace the cached project + context only
+            // when the worker actually produced them. `None` here means
+            // the compile didn't reach a queryable state — the previous
+            // attachment continues to serve hover / goto / references.
+            if let Some(annotated) = result.annotated.take() {
+                state.annotated = Some(annotated);
+            }
+            if let Some(ctxt) = result.ctxt.take() {
+                state.ctxt = Some(ctxt);
+            }
+            if let Some(ri) = result.reverse_index.take() {
+                state.reverse_index = Some(ri);
+            }
+            publish_diagnostics(state, connection, *result);
         }
     }
 
