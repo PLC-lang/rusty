@@ -31,15 +31,27 @@ fn parse_args() -> Result<Settings, String> {
                 settings.config_override = Some(PathBuf::from(path));
             }
             "--help" | "-h" => {
-                println!("plc-lsp [--config <plc.json>]");
+                println!("plc-lsp [--config <plc.json>] [--stdio]");
                 std::process::exit(0);
             }
             "--version" | "-V" => {
                 println!("plc-lsp {}", env!("CARGO_PKG_VERSION"));
                 std::process::exit(0);
             }
-            other => {
-                return Err(format!("Unknown argument: {other}"));
+            // Transport selection flags that LSP clients (notably
+            // `vscode-languageclient`) pass by convention. We only support
+            // stdio; accept --stdio silently, reject the others clearly.
+            "--stdio" => {
+                log::debug!("--stdio accepted (only transport supported)");
+            }
+            "--node-ipc" | "--socket" | "--pipe" => {
+                return Err(format!("transport {arg} not supported by plc-lsp; only stdio is implemented",));
+            }
+            _ => {
+                // `--clientProcessId=<pid>` and other vendor-specific
+                // flags clients sometimes add: warn but keep going so a
+                // new client flag doesn't crash the server.
+                log::warn!("ignoring unknown argument: {arg}");
             }
         }
     }
