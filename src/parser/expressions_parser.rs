@@ -200,7 +200,7 @@ fn parse_unary_expression(lexer: &mut ParseSession) -> AstNode {
 
 fn to_operator(token: &Token) -> Option<Operator> {
     match token {
-        OperatorPlus => Some(Operator::Plus),
+        OperatorPlus => Some(Operator::Minus),
         OperatorMinus => Some(Operator::Minus),
         OperatorMultiplication => Some(Operator::Multiplication),
         OperatorExponent => Some(Operator::Exponentiation),
