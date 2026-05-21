@@ -57,11 +57,21 @@ use tempfile::TempDir;
 //  33:      n := points[                ← array-index DINT-hint probe lands here
 //  34:                                  (closes the index)
 //  35:      ];
-//  36:      n := points[1].             ← array-element member-access probe lands here
-//  37:                                  (closes the expression)
-//  38:      ;
-//  39:  END_FUNCTION
-const MAIN_ST: &str = "TYPE Point : STRUCT\n    x : DINT;\n    y : DINT;\n    name : STRING;\nEND_STRUCT END_TYPE\n\nVAR_GLOBAL\n    origin : Point;\nEND_VAR\n\nFUNCTION compute : DINT\nVAR_INPUT\n    value : DINT;\nEND_VAR\n    compute := value * 2;\nEND_FUNCTION\n\nFUNCTION main : DINT\nVAR\n    p : Point;\n    points : ARRAY[1..3] OF Point;\n    n : DINT;\n    flag : BOOL;\nEND_VAR\n    n := p.x;\n    \n    FOR n := 1 TO \n        ;\n    END_FOR;\n    WHILE \n        DO\n        ;\n    END_WHILE;\n    n := points[\n    ];\n    n := points[1].\n    ;\nEND_FUNCTION\n";
+//  35:      n := points[1].             ← array-element member-access probe lands here
+//  36:      ;
+//  37:      n := compute(               ← call-site probe lands here (line 37, char 17)
+//  38:      );
+//  39:      n := n.                     ← scalar/no-members probe lands here (line 39, char 11)
+//  40:      ;
+//  41:  END_FUNCTION
+//
+// Type-position probe lands on line 12 ("    value : DINT;") char 11 —
+// the byte right after the `:` in `value :`. Detector sees `:` as the
+// preceding non-whitespace byte → TypePosition.
+//
+// Top-level probe lands at line 0, character 0 — file start. Detector
+// walks back through (no) whitespace, lands at idx 0 → TopLevel.
+const MAIN_ST: &str = "TYPE Point : STRUCT\n    x : DINT;\n    y : DINT;\n    name : STRING;\nEND_STRUCT END_TYPE\n\nVAR_GLOBAL\n    origin : Point;\nEND_VAR\n\nFUNCTION compute : DINT\nVAR_INPUT\n    value : DINT;\nEND_VAR\n    compute := value * 2;\nEND_FUNCTION\n\nFUNCTION main : DINT\nVAR\n    p : Point;\n    points : ARRAY[1..3] OF Point;\n    n : DINT;\n    flag : BOOL;\nEND_VAR\n    n := p.x;\n    \n    FOR n := 1 TO \n        ;\n    END_FOR;\n    WHILE \n        DO\n        ;\n    END_WHILE;\n    n := points[\n    ];\n    n := points[1].\n    ;\n    n := compute(\n    );\n    n := n.\n    ;\nEND_FUNCTION\n";
 
 #[test]
 fn completion_probe() {
@@ -164,6 +174,56 @@ fn completion_probe() {
     assert!(arr_mem_labels.contains(&"y".to_string()));
     assert!(arr_mem_labels.contains(&"name".to_string()));
 
+    // --- Case 8 (Q7-5): Call site. `compute(⎵` — emits compute's
+    //     parameters (value : DINT) as tier-0 named-arg candidates plus
+    //     in-scope locals as tier-1 positional-arg candidates.
+    let call_items = completion(&client_conn, &main_uri, Position { line: 37, character: 17 }, Some(1), None);
+    let call_labels = labels_of(&call_items);
+    assert!(
+        call_labels.contains(&"value".to_string()),
+        "call site: compute's input param `value` missing in {call_labels:?}"
+    );
+    assert!(call_labels.contains(&"n".to_string()), "call site: caller local `n` missing");
+    assert!(call_labels.contains(&"origin".to_string()), "call site: global `origin` missing");
+
+    // --- Case 9 (Q7-3): Scalar/no-members. `n.⎵` where n is DINT —
+    //     emits an empty list (DINT has no struct members, no methods).
+    let scalar_items =
+        completion(&client_conn, &main_uri, Position { line: 39, character: 11 }, Some(2), Some("."));
+    let scalar_labels = labels_of(&scalar_items);
+    assert!(
+        scalar_labels.is_empty(),
+        "scalar member access on DINT should emit empty list; got {scalar_labels:?}"
+    );
+
+    // --- Case 10 (Q7-10): Type-position. Cursor right after the `:` in
+    //     `value : DINT;` (line 12 char 11). Emits only types — no
+    //     locals, no statement keywords. Note: the Index lowercases
+    //     type names so labels are `dint` / `point`, not `DINT` /
+    //     `Point` — display-case fidelity is a post-13 follow-up.
+    let type_items = completion(&client_conn, &main_uri, Position { line: 12, character: 11 }, Some(1), None);
+    let type_labels = labels_of(&type_items);
+    assert!(type_labels.contains(&"dint".to_string()), "type pos: dint missing in {type_labels:?}");
+    assert!(type_labels.contains(&"bool".to_string()), "type pos: bool missing");
+    assert!(type_labels.contains(&"point".to_string()), "type pos: user type point missing");
+    assert!(!type_labels.contains(&"IF".to_string()), "type pos: leaked statement keyword");
+    assert!(!type_labels.contains(&"p".to_string()), "type pos: leaked local `p`");
+    for l in &type_labels {
+        assert!(!l.starts_with("__") && !l.ends_with("__ctor"), "type pos: synthetic type leaked: {l}");
+    }
+
+    // --- Case 11 (Q7-11): Top-level. Cursor at file start. Emits
+    //     POU-start + top-level declaration keywords only.
+    let top_items = completion(&client_conn, &main_uri, Position { line: 0, character: 0 }, Some(1), None);
+    let top_labels = labels_of(&top_items);
+    assert!(top_labels.contains(&"PROGRAM".to_string()), "top-level: PROGRAM missing");
+    assert!(top_labels.contains(&"FUNCTION".to_string()), "top-level: FUNCTION missing");
+    assert!(top_labels.contains(&"FUNCTION_BLOCK".to_string()), "top-level: FUNCTION_BLOCK missing");
+    assert!(top_labels.contains(&"TYPE".to_string()), "top-level: TYPE missing");
+    assert!(top_labels.contains(&"VAR_GLOBAL".to_string()), "top-level: VAR_GLOBAL missing");
+    assert!(!top_labels.contains(&"IF".to_string()), "top-level: leaked statement keyword IF");
+    assert!(!top_labels.contains(&"main".to_string()), "top-level: leaked POU name `main`");
+
     eprintln!("\n=== completion_probe ===");
     eprintln!("Case 1: struct member access `p.|`  ({}): {:?}", dot_labels.len(), dot_labels);
     eprintln!("Case 3: statement-position  ({}):", stmt_labels.len());
@@ -176,6 +236,14 @@ fn completion_probe() {
         flag_sort = sort_of(&for_labels_with_sort, "flag").unwrap()
     );
     eprintln!("Case 7: `points[1].|`  ({}): {:?}", arr_mem_labels.len(), arr_mem_labels);
+    eprintln!("Case 8: call-site `compute(|`  ({}): {:?}", call_labels.len(), call_labels);
+    eprintln!("Case 9: scalar `n.|` (no members)  ({})", scalar_labels.len());
+    eprintln!(
+        "Case 10: type-position  ({}): {:?}",
+        type_labels.len(),
+        &type_labels[..type_labels.len().min(15)]
+    );
+    eprintln!("Case 11: top-level  ({}): {:?}", top_labels.len(), top_labels);
 
     shutdown(&client_conn);
     server_thread.join().expect("server thread").expect("server returned error");

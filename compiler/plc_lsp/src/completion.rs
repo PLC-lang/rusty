@@ -617,12 +617,26 @@ fn enumerate_call(
 fn enumerate_type_position(index: &Index) -> Vec<CompletionItem> {
     let mut items: Vec<CompletionItem> = Vec::new();
     for ty_name in index.get_types().keys() {
+        if is_synthetic_name(ty_name) {
+            continue;
+        }
         items.push(make_type_item(ty_name, 0));
     }
     for pou_ty in index.get_pou_types().keys() {
+        if is_synthetic_name(pou_ty) {
+            continue;
+        }
         items.push(make_type_item(pou_ty, 0));
     }
     items
+}
+
+/// Lowering synthesises types like `__main_points`,
+/// `__auto_pointer_to_point`, `__void`, `Point__ctor`, etc. These are
+/// internal and shouldn't surface in completion lists. Same filter shape
+/// as the one in `enumerate_expression_or_statement` for POU names.
+fn is_synthetic_name(name: &str) -> bool {
+    name.starts_with("__") || name.ends_with("__ctor")
 }
 
 fn enumerate_expression_or_statement(
@@ -649,11 +663,10 @@ fn enumerate_expression_or_statement(
         }
         // Lowering synthesises `__ctor` and similar internal POUs that
         // aren't user-callable; filter them. `is_generated` covers
-        // generic instantiations; the `__` name prefix covers the rest
-        // (PolymorphismLowerer / PropertyLowerer / InitParticipant).
+        // generic instantiations; the `__` name prefix / `__ctor` suffix
+        // cover PolymorphismLowerer / PropertyLowerer / InitParticipant.
         if matches!(pou, PouIndexEntry::Function { is_generated: true, .. })
-            || pou.get_name().starts_with("__")
-            || pou.get_name().ends_with("__ctor")
+            || is_synthetic_name(pou.get_name())
         {
             continue;
         }
