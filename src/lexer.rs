@@ -11,6 +11,117 @@ pub use tokens::Token;
 mod tests;
 mod tokens;
 
+/// Categories of source-text bytes that the regular `Token` lexer skips.
+/// Surfaced separately by [`lex_with_trivia`] for cursor-aware LSP walks.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TriviaKind {
+    Whitespace,
+    LineComment,
+    /// Covers both `(* ... *)` (ST) and `/* ... */` (C-style); they nest within
+    /// their own delimiters but not across each other, matching `parse_comments`.
+    BlockComment,
+    /// Unknown `{ ... }` pragma. Recognised pragmas (e.g. `{external}`) stay as
+    /// real tokens; this catches the catch-all `\{` arm that parse_pragma skips.
+    Pragma,
+}
+
+/// A single lexer-produced span: either a real `Token` or skipped trivia.
+/// `Range<usize>` is a byte range into the original source.
+#[derive(Debug, Clone)]
+pub enum LspToken {
+    Token(Token, Range<usize>),
+    Trivia(TriviaKind, Range<usize>),
+}
+
+impl LspToken {
+    pub fn range(&self) -> &Range<usize> {
+        match self {
+            LspToken::Token(_, r) | LspToken::Trivia(_, r) => r,
+        }
+    }
+}
+
+/// Lex `source` into a contiguous stream of real tokens plus the trivia
+/// between them. Strategy: run the regular `Token::lexer` and, in each gap
+/// between adjacent real-token spans, classify the skipped bytes as
+/// whitespace / line comment / block comment / pragma. The output covers
+/// `0..source.len()` with no gaps, which is the invariant downstream
+/// binary-search walks rely on.
+pub fn lex_with_trivia(source: &str) -> Vec<LspToken> {
+    let mut out = Vec::new();
+    let mut lexer = Token::lexer(source);
+    let mut cursor = 0usize;
+    while let Some(tok) = lexer.next() {
+        let span = lexer.span();
+        if cursor < span.start {
+            fill_trivia(source, cursor, span.start, &mut out);
+        }
+        out.push(LspToken::Token(tok, span.clone()));
+        cursor = span.end;
+    }
+    if cursor < source.len() {
+        fill_trivia(source, cursor, source.len(), &mut out);
+    }
+    out
+}
+
+/// Classify bytes in `source[from..to]` (a gap between two real tokens)
+/// into trivia variants.
+fn fill_trivia(source: &str, from: usize, to: usize, out: &mut Vec<LspToken>) {
+    let bytes = source.as_bytes();
+    let mut i = from;
+    while i < to {
+        let start = i;
+        let b = bytes[i];
+        let b1 = bytes.get(i + 1).copied();
+
+        if b == b'/' && b1 == Some(b'/') {
+            // Line comment: `//` to newline (or EOF)
+            while i < to && bytes[i] != b'\n' {
+                i += 1;
+            }
+            out.push(LspToken::Trivia(TriviaKind::LineComment, start..i));
+        } else if (b == b'(' && b1 == Some(b'*')) || (b == b'/' && b1 == Some(b'*')) {
+            // Block comment. Track nesting in the style that opened it.
+            let (open_a, open_b, close_a, close_b) =
+                if b == b'(' { (b'(', b'*', b'*', b')') } else { (b'/', b'*', b'*', b'/') };
+            i += 2;
+            let mut depth = 1u32;
+            while i < to && depth > 0 {
+                if i + 1 < to && bytes[i] == open_a && bytes[i + 1] == open_b {
+                    depth += 1;
+                    i += 2;
+                } else if i + 1 < to && bytes[i] == close_a && bytes[i + 1] == close_b {
+                    depth -= 1;
+                    i += 2;
+                } else {
+                    i += 1;
+                }
+            }
+            out.push(LspToken::Trivia(TriviaKind::BlockComment, start..i));
+        } else if b == b'{' {
+            // Catch-all pragma: skip to `}` (inclusive) or EOF.
+            while i < to && bytes[i] != b'}' {
+                i += 1;
+            }
+            if i < to {
+                i += 1;
+            }
+            out.push(LspToken::Trivia(TriviaKind::Pragma, start..i));
+        } else if b.is_ascii_whitespace() {
+            while i < to && bytes[i].is_ascii_whitespace() {
+                i += 1;
+            }
+            out.push(LspToken::Trivia(TriviaKind::Whitespace, start..i));
+        } else {
+            // Anything else in a gap is unexpected; treat as whitespace one byte
+            // at a time so binary search over spans stays well-formed.
+            i += 1;
+            out.push(LspToken::Trivia(TriviaKind::Whitespace, start..i));
+        }
+    }
+}
+
 pub struct ParseSession<'a> {
     lexer: Lexer<'a, Token>,
     pub token: Token,
