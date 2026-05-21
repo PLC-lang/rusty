@@ -185,14 +185,14 @@ impl<'a> ParseSession<'a> {
 
     /// returns true if the given token closes an open region
     pub fn closes_open_region(&self, token: &Token) -> bool {
-        token == &Token::End || self.get_close_region_level(token).is_some()
+        token == &Token::End || self.get_close_region_level(token).is_some() || is_top_level_sync_token(token)
     }
 
     pub fn recover_until_close(&mut self) {
         let mut hit = self.get_close_region_level(&self.token);
         let start = self.range();
         let mut end = self.range().end;
-        while self.token != Token::End && hit.is_none() {
+        while self.token != Token::End && hit.is_none() && !is_top_level_sync_token(&self.token) {
             end = self.range().end;
             self.advance();
             hit = self.closing_keywords.iter().rposition(|it| it.contains(&self.token));
@@ -223,6 +223,35 @@ impl<'a> ParseSession<'a> {
             }
         }
     }
+}
+
+/// Returns true if `token` is a "synchronisation" keyword — one that, when
+/// encountered inside a body or nested region where it shouldn't appear,
+/// signals that the previous declaration was unclosed and the parser should
+/// bail out of the current region. The top-level dispatcher then picks up
+/// the new declaration cleanly. Without this, the parser would treat the
+/// keyword as a stray identifier-like token and swallow the next declaration
+/// as garbage (the H28/H29 pattern surfaced by the lenient_completion_probe).
+///
+/// Includes top-level POU keywords, `ACTION` / `ACTIONS` (both can appear at
+/// top level), and `METHOD` / `PROPERTY_GET` / `PROPERTY_SET` (sibling
+/// declarations inside an FB / CLASS body).
+fn is_top_level_sync_token(token: &Token) -> bool {
+    matches!(
+        token,
+        Token::KeywordFunction
+            | Token::KeywordFunctionBlock
+            | Token::KeywordProgram
+            | Token::KeywordClass
+            | Token::KeywordType
+            | Token::KeywordVarGlobal
+            | Token::KeywordInterface
+            | Token::KeywordAction
+            | Token::KeywordActions
+            | Token::KeywordMethod
+            | Token::KeywordPropertyGet
+            | Token::KeywordPropertySet
+    )
 }
 
 fn parse_pragma(lexer: &mut Lexer<Token>) -> Filter<()> {

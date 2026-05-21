@@ -189,7 +189,7 @@ fn super_is_a_reserved_keyword() {
     //                  Related: https://github.com/PLC-lang/rusty/issues/1408
 
     let diagnostics = parse_and_report_parse_errors_buffered(src);
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E006]: Expected a name for the interface definition but got nothing
       ┌─ <internal>:2:5
       │
@@ -235,26 +235,47 @@ fn super_is_a_reserved_keyword() {
     6 │         END_VAR
       │         ^^^^^^^ Unexpected token: expected Literal but found END_VAR
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
-            METHOD super END_METHOD'
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR'
       ┌─ <internal>:6:9
-      │  
-    6 │ ╭         END_VAR
-    7 │ │         METHOD super END_METHOD
-      │ ╰───────────────────────────────^ Unexpected token: expected KeywordSemicolon but found 'END_VAR
-            METHOD super END_METHOD'
+      │
+    6 │         END_VAR
+      │         ^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_VAR'
 
-    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'METHOD'
+      ┌─ <internal>:7:9
+      │
+    7 │         METHOD super END_METHOD
+      │         ^^^^^^ Unexpected token: expected KeywordSemicolon but found 'METHOD'
+
+    error[E007]: Unexpected token: expected KeywordEndProgram but found 'METHOD'
+      ┌─ <internal>:7:9
+      │
+    7 │         METHOD super END_METHOD
+      │         ^^^^^^ Unexpected token: expected KeywordEndProgram but found 'METHOD'
+
+    error[E007]: Unexpected token: expected StartKeyword but found METHOD
+      ┌─ <internal>:7:9
+      │
+    7 │         METHOD super END_METHOD
+      │         ^^^^^^ Unexpected token: expected StartKeyword but found METHOD
+
+    error[E007]: Unexpected token: expected StartKeyword but found super
+      ┌─ <internal>:7:16
+      │
+    7 │         METHOD super END_METHOD
+      │                ^^^^^ Unexpected token: expected StartKeyword but found super
+
+    error[E007]: Unexpected token: expected StartKeyword but found END_METHOD
+      ┌─ <internal>:7:22
+      │
+    7 │         METHOD super END_METHOD
+      │                      ^^^^^^^^^^ Unexpected token: expected StartKeyword but found END_METHOD
+
+    error[E007]: Unexpected token: expected StartKeyword but found END_PROGRAM
       ┌─ <internal>:8:5
       │
     8 │     END_PROGRAM
-      │     ^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
-
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
-      ┌─ <internal>:8:5
-      │
-    8 │     END_PROGRAM
-      │     ^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+      │     ^^^^^^^^^^^ Unexpected token: expected StartKeyword but found END_PROGRAM
     ");
 }
 
