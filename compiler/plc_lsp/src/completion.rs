@@ -18,7 +18,13 @@
 //! The handler returns an empty `CompletionList` for now — symbol
 //! enumeration is P13.6.
 
-use lsp_types::{CompletionList, CompletionTriggerKind};
+use lsp_types::{
+    CompletionItem, CompletionItemKind, CompletionList, CompletionTriggerKind, InsertTextFormat,
+};
+use plc::index::{Index, PouIndexEntry, VariableIndexEntry};
+use plc::typesystem::DataTypeInformation;
+use plc_ast::ast::CompilationUnit;
+use plc_driver::pipelines::AnnotatedProject;
 
 /// Detected completion context at the user's cursor. Determines which
 /// category of items the handler emits and how to rank them.
@@ -209,23 +215,404 @@ fn scan_back_call_operator(source: &str, paren_or_comma_idx: usize) -> Option<(u
     Some((op_offset, op_end))
 }
 
-/// Build the `CompletionList` for the given trigger context. Phase 13.5
-/// is the skeleton — returns an empty list. The detector runs and its
-/// output influences logging (so we can verify routing in tests) but no
-/// items are emitted yet. P13.6 fills in enumeration per category.
+// ============================================================================
+// Symbol enumeration (P13.6) — per-context lists of `CompletionItem`s built
+// from the project's `Index` + the byte-heuristic context. sortText tiers per
+// D18: 0=local, 1=member, 2=global, 3=pou, 4=type, 5=keyword. Items whose
+// declared type matches the slot's hint get a leading `-` prefix to float to
+// the top within their tier.
+// ============================================================================
+
+/// Find the qualified name of the POU whose body contains the given byte
+/// offset in the given file. Returns the implementation's `type_name`
+/// (e.g. `"main"`, `"FB.foo"`) which is also the key used to look up
+/// members in the Index. Returns `None` when the cursor is between POUs
+/// or outside any compiled unit.
+fn enclosing_pou_qname<'a>(unit: &'a CompilationUnit, file_path: &str, cursor: usize) -> Option<&'a str> {
+    for impl_ in &unit.implementations {
+        let Some(start) = impl_.location.to_range() else { continue };
+        let end = impl_.end_location.to_range().unwrap_or_else(|| start.clone());
+        let in_file = impl_.location.get_file_name().map(|f| f == file_path).unwrap_or(false);
+        if in_file && cursor >= start.start && cursor <= end.end {
+            return Some(impl_.type_name.as_str());
+        }
+    }
+    None
+}
+
+/// Build the `sortText` field for a completion item. Tier prefix keeps the
+/// 5-category schema visible; the trailing name preserves alphabetic order
+/// within the tier. When `type_match` is true the item gets a leading `-`
+/// so it sorts ahead of non-matches in the same tier (the type-hint
+/// discount from Q6/D18).
+fn sort_text(tier: u8, name: &str, type_match: bool) -> String {
+    if type_match {
+        format!("-{tier}_{name}")
+    } else {
+        format!("{tier}_{name}")
+    }
+}
+
+fn make_variable_item(entry: &VariableIndexEntry, tier: u8, hint_type: Option<&str>) -> CompletionItem {
+    let type_match = hint_type.map(|h| h == entry.get_type_name()).unwrap_or(false);
+    let detail = format!("{} : {}", entry.get_name(), entry.get_type_name());
+    let kind = if entry.is_constant() { CompletionItemKind::CONSTANT } else { CompletionItemKind::VARIABLE };
+    CompletionItem {
+        label: entry.get_name().to_string(),
+        kind: Some(kind),
+        detail: Some(detail),
+        sort_text: Some(sort_text(tier, entry.get_name(), type_match)),
+        filter_text: Some(entry.get_name().to_string()),
+        insert_text: Some(entry.get_name().to_string()),
+        insert_text_format: Some(InsertTextFormat::PLAIN_TEXT),
+        ..Default::default()
+    }
+}
+
+fn make_pou_item(entry: &PouIndexEntry, tier: u8, hint_type: Option<&str>) -> CompletionItem {
+    let (label, kind, detail, type_for_hint) = match entry {
+        PouIndexEntry::Function { name, return_type, .. } => (
+            name.clone(),
+            CompletionItemKind::FUNCTION,
+            format!("FUNCTION {name} : {return_type}"),
+            return_type.as_str(),
+        ),
+        PouIndexEntry::FunctionBlock { name, .. } => {
+            (name.clone(), CompletionItemKind::CLASS, format!("FUNCTION_BLOCK {name}"), name.as_str())
+        }
+        PouIndexEntry::Program { name, .. } => {
+            (name.clone(), CompletionItemKind::MODULE, format!("PROGRAM {name}"), name.as_str())
+        }
+        PouIndexEntry::Class { name, .. } => {
+            (name.clone(), CompletionItemKind::CLASS, format!("CLASS {name}"), name.as_str())
+        }
+        PouIndexEntry::Method { name, return_type, .. } => (
+            name.clone(),
+            CompletionItemKind::METHOD,
+            format!("METHOD {name} : {return_type}"),
+            return_type.as_str(),
+        ),
+        PouIndexEntry::Action { name, .. } => {
+            (name.clone(), CompletionItemKind::METHOD, format!("ACTION {name}"), name.as_str())
+        }
+    };
+    let type_match = hint_type.map(|h| h == type_for_hint).unwrap_or(false);
+    CompletionItem {
+        label: label.clone(),
+        kind: Some(kind),
+        detail: Some(detail),
+        sort_text: Some(sort_text(tier, &label, type_match)),
+        filter_text: Some(label.clone()),
+        insert_text: Some(label),
+        insert_text_format: Some(InsertTextFormat::PLAIN_TEXT),
+        ..Default::default()
+    }
+}
+
+fn make_type_item(name: &str, tier: u8) -> CompletionItem {
+    CompletionItem {
+        label: name.to_string(),
+        kind: Some(CompletionItemKind::TYPE_PARAMETER),
+        detail: Some(format!("TYPE {name}")),
+        sort_text: Some(sort_text(tier, name, false)),
+        filter_text: Some(name.to_string()),
+        insert_text: Some(name.to_string()),
+        insert_text_format: Some(InsertTextFormat::PLAIN_TEXT),
+        ..Default::default()
+    }
+}
+
+fn make_keyword_item(keyword: &str, tier: u8) -> CompletionItem {
+    CompletionItem {
+        label: keyword.to_string(),
+        kind: Some(CompletionItemKind::KEYWORD),
+        sort_text: Some(sort_text(tier, keyword, false)),
+        filter_text: Some(keyword.to_string()),
+        insert_text: Some(keyword.to_string()),
+        insert_text_format: Some(InsertTextFormat::PLAIN_TEXT),
+        ..Default::default()
+    }
+}
+
+/// Resolve a base expression captured by the byte-heuristic detector
+/// (`foo`, `foo.bar`, `THIS^`, etc.) to the type name whose members we
+/// should enumerate. Bare identifiers, simple `.` chains, and `THIS^` /
+/// `SUPER^` are handled. Array-indexed bases (`arr[1].|`) return `None`
+/// for now — element-type-aware member access is a P13.6+ refinement.
+fn resolve_base_to_type<'a>(
+    base_text: &str,
+    enclosing_pou: Option<&'a str>,
+    index: &'a Index,
+) -> Option<&'a str> {
+    if base_text.contains('[') {
+        return None;
+    }
+    let base = base_text.trim_end_matches('^');
+    if base == "THIS" || base == "SUPER" {
+        return enclosing_pou;
+    }
+    match base.split_once('.') {
+        Some((head, rest)) => {
+            let head_type = resolve_simple_variable_type(head, enclosing_pou, index)?;
+            walk_member_chain(head_type, rest, index)
+        }
+        None => resolve_simple_variable_type(base, enclosing_pou, index),
+    }
+}
+
+fn resolve_simple_variable_type<'a>(
+    name: &str,
+    enclosing_pou: Option<&'a str>,
+    index: &'a Index,
+) -> Option<&'a str> {
+    if let Some(pou) = enclosing_pou {
+        if let Some(member) = index.find_member(pou, name) {
+            return Some(member.get_type_name());
+        }
+    }
+    index.find_global_variable(name).map(|g| g.get_type_name())
+}
+
+fn walk_member_chain<'a>(start_type: &'a str, rest: &str, index: &'a Index) -> Option<&'a str> {
+    let mut current = start_type;
+    for segment in rest.split('.') {
+        if segment.is_empty() {
+            continue;
+        }
+        let member = index.find_member(current, segment)?;
+        current = member.get_type_name();
+    }
+    Some(current)
+}
+
+// --- Per-context enumerators ---
+
+fn enumerate_member(base_text: &str, enclosing_pou: Option<&str>, index: &Index) -> Vec<CompletionItem> {
+    let Some(type_name) = resolve_base_to_type(base_text, enclosing_pou, index) else {
+        return vec![];
+    };
+
+    let mut items: Vec<CompletionItem> = Vec::new();
+
+    // POU containers (FB / Class / Program) — members via the POU table.
+    for entry in index.get_pou_members(type_name) {
+        items.push(make_variable_item(entry, 0, None));
+    }
+
+    // User-defined structs — fields off the type information.
+    if let Some(ty) = index.find_type(type_name) {
+        if let DataTypeInformation::Struct { members, .. } = ty.get_type_information() {
+            for m in members {
+                items.push(make_variable_item(m, 0, None));
+            }
+        }
+    }
+
+    // Methods of an FB / Class are POU entries keyed `Parent.name`.
+    let prefix = format!("{type_name}.");
+    for entry in index.get_pous().values() {
+        if let PouIndexEntry::Method { name, .. } = entry {
+            if name.starts_with(&prefix) {
+                items.push(make_pou_item(entry, 0, None));
+            }
+        }
+    }
+
+    items
+}
+
+fn enumerate_call(
+    operator: &str,
+    enclosing_pou: Option<&str>,
+    index: &Index,
+    hint_type: Option<&str>,
+) -> Vec<CompletionItem> {
+    let mut items: Vec<CompletionItem> = Vec::new();
+
+    // Tier 0: callee parameters (named-arg candidates).
+    if let Some(callee) = index.find_pou(operator) {
+        for member in index.get_pou_members(callee.get_name()) {
+            if member.is_input() || member.is_inout() || member.is_output() {
+                items.push(make_variable_item(member, 0, hint_type));
+            }
+        }
+    }
+    // Tier 1: in-scope locals (positional-argument candidates).
+    if let Some(pou) = enclosing_pou {
+        for member in index.get_pou_members(pou) {
+            items.push(make_variable_item(member, 1, hint_type));
+        }
+    }
+    // Tier 2: globals.
+    for global in index.get_globals().values() {
+        items.push(make_variable_item(global, 2, hint_type));
+    }
+
+    items
+}
+
+fn enumerate_type_position(index: &Index) -> Vec<CompletionItem> {
+    let mut items: Vec<CompletionItem> = Vec::new();
+    for ty_name in index.get_types().keys() {
+        items.push(make_type_item(ty_name, 0));
+    }
+    for pou_ty in index.get_pou_types().keys() {
+        items.push(make_type_item(pou_ty, 0));
+    }
+    items
+}
+
+fn enumerate_expression_or_statement(
+    enclosing_pou: Option<&str>,
+    index: &Index,
+    hint_type: Option<&str>,
+    keywords: bool,
+) -> Vec<CompletionItem> {
+    let mut items: Vec<CompletionItem> = Vec::new();
+
+    if let Some(pou) = enclosing_pou {
+        for member in index.get_pou_members(pou) {
+            items.push(make_variable_item(member, 0, hint_type));
+        }
+    }
+    for global in index.get_globals().values() {
+        items.push(make_variable_item(global, 2, hint_type));
+    }
+    for pou in index.get_pous().values() {
+        // Method POUs reached via `instance.method(...)`, not as bare
+        // identifiers — skip in expression context.
+        if matches!(pou, PouIndexEntry::Method { .. }) {
+            continue;
+        }
+        items.push(make_pou_item(pou, 3, hint_type));
+    }
+    if keywords {
+        for kw in STATEMENT_KEYWORDS {
+            items.push(make_keyword_item(kw, 5));
+        }
+    }
+
+    items
+}
+
+fn enumerate_top_level() -> Vec<CompletionItem> {
+    TOP_LEVEL_KEYWORDS.iter().map(|kw| make_keyword_item(kw, 0)).collect()
+}
+
+fn enumerate_var_global_block(index: &Index) -> Vec<CompletionItem> {
+    let mut items: Vec<CompletionItem> = vec![make_keyword_item("CONSTANT", 0)];
+    for ty_name in index.get_types().keys() {
+        items.push(make_type_item(ty_name, 1));
+    }
+    for pou_ty in index.get_pou_types().keys() {
+        items.push(make_type_item(pou_ty, 1));
+    }
+    items
+}
+
+const TOP_LEVEL_KEYWORDS: &[&str] = &[
+    "PROGRAM",
+    "FUNCTION",
+    "FUNCTION_BLOCK",
+    "CLASS",
+    "INTERFACE",
+    "TYPE",
+    "VAR_GLOBAL",
+    "ACTIONS",
+    "ACTION",
+];
+
+const STATEMENT_KEYWORDS: &[&str] = &[
+    "IF",
+    "ELSIF",
+    "ELSE",
+    "THEN",
+    "END_IF",
+    "FOR",
+    "TO",
+    "BY",
+    "DO",
+    "END_FOR",
+    "WHILE",
+    "END_WHILE",
+    "REPEAT",
+    "UNTIL",
+    "END_REPEAT",
+    "CASE",
+    "OF",
+    "END_CASE",
+    "RETURN",
+    "EXIT",
+    "CONTINUE",
+    "TRUE",
+    "FALSE",
+    "NULL",
+    "AND",
+    "OR",
+    "NOT",
+    "XOR",
+];
+
+// ============================================================================
+// Main entry point
+// ============================================================================
+
+/// Build the `CompletionList` for the cursor at `cursor_byte_offset` in
+/// `source`. Branches on the detected context category and routes to
+/// the matching enumerator. `trigger` is consulted per Q5/D17: on
+/// `TriggerCharacter` (the `.` auto-fire) we restrict the output to
+/// member-access items so the editor doesn't get a flood of unrelated
+/// suggestions immediately after a dot.
 ///
-/// `trigger` distinguishes auto-fire (`.` typed) from explicit ctrl-space.
-/// On `.` trigger we'll later restrict to member-access items only; on
-/// `Invoked` we offer the broader context-detected set.
+/// `project` is optional — before the first successful compile only
+/// keyword-based enumerators (TopLevel, statement keywords) have data
+/// to emit; everything else returns an empty list.
 pub fn items_at(
     source: &str,
     cursor_byte_offset: usize,
     trigger: Option<CompletionTriggerKind>,
+    file_path: Option<&str>,
+    project: Option<&AnnotatedProject>,
 ) -> CompletionList {
     let context = detect_context(source, cursor_byte_offset);
+    let is_dot_trigger = matches!(trigger, Some(CompletionTriggerKind::TRIGGER_CHARACTER));
     log::debug!("completion: trigger={trigger:?} cursor={cursor_byte_offset} context={context:?}");
 
-    CompletionList { is_incomplete: false, items: vec![] }
+    let enclosing_pou = match (project, file_path) {
+        (Some(p), Some(path)) => {
+            p.units.iter().find_map(|u| enclosing_pou_qname(u.get_unit(), path, cursor_byte_offset))
+        }
+        _ => None,
+    };
+
+    let items: Vec<CompletionItem> = match (&context, is_dot_trigger, project) {
+        (CompletionContextKind::Member { base_offset, base_end }, _, Some(p)) => {
+            let base_text = &source[*base_offset..*base_end];
+            enumerate_member(base_text, enclosing_pou, &p.index)
+        }
+        // Dot-trigger fired but no project yet → empty list (suppresses
+        // the rest of the routing).
+        (_, true, _) => vec![],
+
+        (CompletionContextKind::Call { operator_offset, operator_end }, false, Some(p)) => {
+            let operator = &source[*operator_offset..*operator_end];
+            enumerate_call(operator, enclosing_pou, &p.index, None)
+        }
+        (CompletionContextKind::TypePosition, false, Some(p)) => enumerate_type_position(&p.index),
+        (CompletionContextKind::Expression { hint_type }, false, Some(p)) => {
+            enumerate_expression_or_statement(enclosing_pou, &p.index, hint_type.as_deref(), false)
+        }
+        (CompletionContextKind::Statement, false, Some(p)) => {
+            enumerate_expression_or_statement(enclosing_pou, &p.index, None, true)
+        }
+        (CompletionContextKind::TopLevel, false, _) => enumerate_top_level(),
+        (CompletionContextKind::VarGlobalBlock, false, Some(p)) => enumerate_var_global_block(&p.index),
+
+        // No project attached + non-keyword context → empty list.
+        _ => vec![],
+    };
+
+    CompletionList { is_incomplete: false, items }
 }
 
 #[cfg(test)]
@@ -340,10 +727,26 @@ mod tests {
     }
 
     #[test]
-    fn items_at_returns_empty_list() {
-        let src = "foo.";
-        let list = items_at(src, src.len(), Some(CompletionTriggerKind::TRIGGER_CHARACTER));
-        assert!(list.items.is_empty());
+    fn items_at_with_no_project_returns_top_level_keywords_only() {
+        // No `project` attached — items_at should still emit the top-level
+        // keyword list when the cursor is at file scope, because that
+        // enumerator doesn't depend on the Index.
+        let src = "";
+        let list = items_at(src, 0, None, None, None);
         assert!(!list.is_incomplete);
+        assert!(!list.items.is_empty(), "top-level keywords should surface without a project");
+        let labels: Vec<&str> = list.items.iter().map(|i| i.label.as_str()).collect();
+        assert!(labels.contains(&"PROGRAM"));
+        assert!(labels.contains(&"FUNCTION"));
+        assert!(labels.contains(&"TYPE"));
+    }
+
+    #[test]
+    fn items_at_dot_trigger_without_project_returns_empty() {
+        // Dot-trigger with no project → no member info available → empty
+        // list. We don't fall back to keyword spam after a `.`.
+        let src = "foo.";
+        let list = items_at(src, src.len(), Some(CompletionTriggerKind::TRIGGER_CHARACTER), None, None);
+        assert!(list.items.is_empty());
     }
 }

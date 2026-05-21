@@ -1,123 +1,252 @@
-//! Completion probe (phase 13 — P13.5 skeleton). Drives the server
-//! through `textDocument/completion` with both trigger kinds (Invoked +
-//! TriggerCharacter ".") and verifies the dispatch + serialisation
-//! round-trips cleanly. P13.5 returns empty lists; P13.6 will fill in
-//! enumeration and turn this into the Q7-D structured-assertion probe
-//! with the 15 fixture cases.
+//! Completion probe (phase 13 — P13.6). Drives the server with a real
+//! project compile in a tempdir, sends `textDocument/completion`
+//! requests at deliberate cursor positions, and asserts on the returned
+//! item set per Q7-D: must_include / must_exclude / triggerKind
+//! routing. Symbol enumeration is now wired up — the assertions exercise
+//! the per-category logic in `completion.rs`.
 
+use std::fs;
 use std::thread;
+use std::time::Duration;
 
 use lsp_server::{Connection, Message, Notification, Request, RequestId};
-use lsp_types::{CompletionResponse, InitializeParams};
-use serde_json::json;
+use lsp_types::{
+    DidOpenTextDocumentParams, GeneralClientCapabilities, InitializeParams, Position, PositionEncodingKind,
+    TextDocumentItem, Uri, WorkspaceFolder,
+};
+use serde_json::{json, Value};
+use tempfile::TempDir;
+
+// MAIN_ST line layout (0-based, matches Position.line in LSP):
+//   0:  TYPE Point : STRUCT
+//   1:      x : DINT;
+//   2:      y : DINT;
+//   3:      name : STRING;
+//   4:  END_STRUCT END_TYPE
+//   5:
+//   6:  VAR_GLOBAL
+//   7:      origin : Point;
+//   8:  END_VAR
+//   9:
+//  10:  FUNCTION compute : DINT
+//  11:  VAR_INPUT
+//  12:      value : DINT;
+//  13:  END_VAR
+//  14:      compute := value * 2;
+//  15:  END_FUNCTION
+//  16:
+//  17:  FUNCTION main : DINT
+//  18:  VAR
+//  19:      p : Point;
+//  20:      n : DINT;
+//  21:      flag : BOOL;
+//  22:  END_VAR
+//  23:      n := p.x;
+//  24:                              ← statement-position probe lands here (line 24, char 4)
+//  25:  END_FUNCTION
+const MAIN_ST: &str = "TYPE Point : STRUCT\n    x : DINT;\n    y : DINT;\n    name : STRING;\nEND_STRUCT END_TYPE\n\nVAR_GLOBAL\n    origin : Point;\nEND_VAR\n\nFUNCTION compute : DINT\nVAR_INPUT\n    value : DINT;\nEND_VAR\n    compute := value * 2;\nEND_FUNCTION\n\nFUNCTION main : DINT\nVAR\n    p : Point;\n    n : DINT;\n    flag : BOOL;\nEND_VAR\n    n := p.x;\n    \nEND_FUNCTION\n";
 
 #[test]
-fn completion_dispatch_round_trips_both_trigger_kinds() {
+fn completion_probe() {
+    let tmp = tempdir_with_main();
+    let main_uri = file_uri(&tmp, "main.st");
+
     let (server_conn, client_conn) = Connection::memory();
     let server_thread = thread::spawn(move || plc_lsp::serve(&server_conn, plc_lsp::Settings::default()));
 
-    // initialize + initialized
-    client_conn
+    initialize(&client_conn, &tmp);
+    send_did_open(&client_conn, &main_uri, MAIN_ST);
+    // Clean compiles don't emit publishDiagnostics (post-13 follow-up
+    // item 6 — server only publishes on a delta). Sleep to let the
+    // compile worker attach annotated to ServerState, matching the
+    // workaround used by other probes (rename_probe etc.).
+    thread::sleep(Duration::from_secs(2));
+
+    // --- Member access: `p.` (inside main, after `n := p.x;` line we
+    //     position the cursor right after `p.`). The buffer already has
+    //     `p.x` on that line — we use character index immediately after
+    //     the `.`. Member context, expects `x`, `y`, `name` from Point.
+    let dot_pos = Position { line: 23, character: 11 };
+    let dot_items = completion(&client_conn, &main_uri, dot_pos, Some(2), Some("."));
+    let dot_labels = labels_of(&dot_items);
+    assert!(dot_labels.contains(&"x".to_string()), "member access: x missing in {dot_labels:?}");
+    assert!(dot_labels.contains(&"y".to_string()), "member access: y missing in {dot_labels:?}");
+    assert!(dot_labels.contains(&"name".to_string()), "member access: name missing in {dot_labels:?}");
+    // Dot-trigger routing: only members, no keywords / locals / POUs.
+    assert!(!dot_labels.contains(&"IF".to_string()), "dot trigger leaked keyword IF");
+    assert!(!dot_labels.contains(&"main".to_string()), "dot trigger leaked POU name");
+    assert!(!dot_labels.contains(&"flag".to_string()), "dot trigger leaked local 'flag'");
+
+    // --- Same position, but ctrl-space (Invoked). Detector still sees
+    //     `.` immediately before the cursor → still member context.
+    let invoked = completion(&client_conn, &main_uri, dot_pos, Some(1), None);
+    let invoked_labels = labels_of(&invoked);
+    assert!(invoked_labels.contains(&"x".to_string()));
+
+    // --- Statement position (ctrl-space on the empty body line right
+    //     after `n := p.x;`). The previous non-whitespace byte is the
+    //     `;` ending that statement → Statement context. Emits locals,
+    //     globals, POU names, statement keywords.
+    let stmt_items = completion(&client_conn, &main_uri, Position { line: 24, character: 4 }, Some(1), None);
+    let stmt_labels = labels_of(&stmt_items);
+    assert!(stmt_labels.contains(&"p".to_string()), "stmt: local p missing");
+    assert!(stmt_labels.contains(&"n".to_string()), "stmt: local n missing");
+    assert!(stmt_labels.contains(&"flag".to_string()), "stmt: local flag missing");
+    assert!(stmt_labels.contains(&"origin".to_string()), "stmt: global origin missing");
+    assert!(stmt_labels.contains(&"compute".to_string()), "stmt: POU compute missing");
+    assert!(stmt_labels.contains(&"IF".to_string()), "stmt: keyword IF missing");
+    assert!(stmt_labels.contains(&"FOR".to_string()), "stmt: keyword FOR missing");
+
+    eprintln!("\n=== completion_probe ===");
+    eprintln!("member-access items @ p.|  ({}):", dot_labels.len());
+    for l in &dot_labels {
+        eprintln!("    {l}");
+    }
+    eprintln!("\nstatement items @ body-start  ({}):", stmt_labels.len());
+    for l in stmt_labels.iter().take(20) {
+        eprintln!("    {l}");
+    }
+
+    shutdown(&client_conn);
+    server_thread.join().expect("server thread").expect("server returned error");
+}
+
+// --- helpers ---
+
+fn tempdir_with_main() -> TempDir {
+    let tmp = tempfile::tempdir().expect("tempdir");
+    fs::write(tmp.path().join("plc.json"), r#"{"name":"completion-probe","files":["*.st"]}"#).unwrap();
+    fs::write(tmp.path().join("main.st"), MAIN_ST).unwrap();
+    tmp
+}
+
+fn file_uri(tmp: &TempDir, name: &str) -> Uri {
+    format!("file://{}/{name}", tmp.path().display()).parse().unwrap()
+}
+
+fn initialize(client: &Connection, tmp: &TempDir) {
+    let workspace_uri: Uri = format!("file://{}", tmp.path().display()).parse().unwrap();
+    let mut params = InitializeParams {
+        workspace_folders: Some(vec![WorkspaceFolder {
+            uri: workspace_uri,
+            name: "completion-probe".to_string(),
+        }]),
+        ..Default::default()
+    };
+    params.capabilities.general = Some(GeneralClientCapabilities {
+        position_encodings: Some(vec![PositionEncodingKind::UTF8]),
+        ..Default::default()
+    });
+    client
         .sender
         .send(Message::Request(Request {
             id: RequestId::from(1),
             method: "initialize".to_string(),
-            params: serde_json::to_value(InitializeParams::default()).unwrap(),
+            params: serde_json::to_value(params).unwrap(),
         }))
         .unwrap();
-    expect_response(&client_conn);
-    notification(&client_conn, "initialized", json!({}));
+    drain_until_response(client, 1);
+    client
+        .sender
+        .send(Message::Notification(Notification { method: "initialized".to_string(), params: json!({}) }))
+        .unwrap();
+}
 
-    // didOpen — a deliberate mid-typing buffer with `foo.` at the cursor
-    // line. P13.5 doesn't enumerate items, but the byte-heuristic context
-    // detector still fires and we log the detected category.
-    notification(
-        &client_conn,
-        "textDocument/didOpen",
-        json!({
-            "textDocument": {
-                "uri": "file:///plc/main.st",
-                "languageId": "structured-text",
-                "version": 1,
-                "text": "FUNCTION main : DINT\nVAR foo : Point; END_VAR\n    foo.\nEND_FUNCTION\n"
-            }
-        }),
-    );
+fn send_did_open(client: &Connection, uri: &Uri, text: &str) {
+    let params = DidOpenTextDocumentParams {
+        text_document: TextDocumentItem {
+            uri: uri.clone(),
+            language_id: "st".to_string(),
+            version: 1,
+            text: text.to_string(),
+        },
+    };
+    client
+        .sender
+        .send(Message::Notification(Notification {
+            method: "textDocument/didOpen".to_string(),
+            params: serde_json::to_value(params).unwrap(),
+        }))
+        .unwrap();
+}
 
-    // Ctrl-space (Invoked) at the cursor position right after `foo.`.
-    let completion_request = |id: i32, trigger_kind: u32, trigger_char: Option<&str>| {
-        let mut context = json!({ "triggerKind": trigger_kind });
+fn completion(
+    client: &Connection,
+    uri: &Uri,
+    position: Position,
+    trigger_kind: Option<u32>,
+    trigger_char: Option<&str>,
+) -> Value {
+    static NEXT_ID: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(100);
+    let id = NEXT_ID.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+    let context = if let Some(kind) = trigger_kind {
+        let mut c = json!({ "triggerKind": kind });
         if let Some(ch) = trigger_char {
-            context["triggerCharacter"] = json!(ch);
+            c["triggerCharacter"] = json!(ch);
         }
-        client_conn
-            .sender
-            .send(Message::Request(Request {
-                id: RequestId::from(id),
-                method: "textDocument/completion".to_string(),
-                params: json!({
-                    "textDocument": { "uri": "file:///plc/main.st" },
-                    "position": { "line": 2, "character": 8 },
-                    "context": context,
-                }),
-            }))
-            .unwrap();
-        expect_response(&client_conn)
+        Some(c)
+    } else {
+        None
     };
-
-    // triggerKind = Invoked (1) — ctrl-space.
-    let invoked_response = completion_request(2, 1, None);
-    let invoked: CompletionResponse =
-        serde_json::from_value(invoked_response.result.expect("invoked completion must return result"))
-            .expect("response must deserialise as CompletionResponse");
-    let items = match invoked {
-        CompletionResponse::Array(items) => items,
-        CompletionResponse::List(list) => {
-            assert!(!list.is_incomplete, "P13.5 skeleton must return is_incomplete=false");
-            list.items
-        }
-    };
-    assert!(items.is_empty(), "P13.5 skeleton emits empty list");
-
-    // triggerKind = TriggerCharacter (2) with "." — auto-fire on dot.
-    let trigger_response = completion_request(3, 2, Some("."));
-    let trigger: CompletionResponse =
-        serde_json::from_value(trigger_response.result.expect("trigger completion must return result"))
-            .expect("response must deserialise as CompletionResponse");
-    let items = match trigger {
-        CompletionResponse::Array(items) => items,
-        CompletionResponse::List(list) => {
-            assert!(!list.is_incomplete, "P13.5 skeleton must return is_incomplete=false");
-            list.items
-        }
-    };
-    assert!(items.is_empty(), "P13.5 skeleton emits empty list on dot trigger too");
-
-    // shutdown + exit
-    client_conn
+    let params = json!({
+        "textDocument": { "uri": uri.as_str() },
+        "position": { "line": position.line, "character": position.character },
+        "context": context,
+    });
+    client
         .sender
         .send(Message::Request(Request {
-            id: RequestId::from(99),
+            id: RequestId::from(id),
+            method: "textDocument/completion".to_string(),
+            params,
+        }))
+        .unwrap();
+    let deadline = std::time::Instant::now() + Duration::from_secs(10);
+    loop {
+        let remaining = deadline.checked_duration_since(std::time::Instant::now()).unwrap_or(Duration::ZERO);
+        match client.receiver.recv_timeout(remaining) {
+            Ok(Message::Response(r)) if r.id == RequestId::from(id) => {
+                return r.result.unwrap_or(Value::Null);
+            }
+            Ok(_) => {}
+            Err(_) => panic!("timed out waiting for completion response"),
+        }
+    }
+}
+
+fn labels_of(response: &Value) -> Vec<String> {
+    // Response may be CompletionList (object with `items`) or a bare array.
+    let items = response.get("items").and_then(|v| v.as_array()).or_else(|| response.as_array());
+    items
+        .map(|arr| {
+            arr.iter().filter_map(|i| i.get("label").and_then(|l| l.as_str()).map(String::from)).collect()
+        })
+        .unwrap_or_default()
+}
+
+fn drain_until_response(client: &Connection, expected_id: i32) {
+    while let Ok(msg) = client.receiver.recv_timeout(Duration::from_secs(5)) {
+        if let Message::Response(r) = msg {
+            if r.id == RequestId::from(expected_id) {
+                return;
+            }
+        }
+    }
+    panic!("didn't see response for id {expected_id}");
+}
+
+fn shutdown(client: &Connection) {
+    client
+        .sender
+        .send(Message::Request(Request {
+            id: RequestId::from(999),
             method: "shutdown".to_string(),
             params: json!(null),
         }))
         .unwrap();
-    expect_response(&client_conn);
-    notification(&client_conn, "exit", json!(null));
-
-    let result = server_thread.join().expect("server thread panicked");
-    result.expect("server returned an error from a clean lifecycle with completion traffic");
-}
-
-fn notification(client: &Connection, method: &str, params: serde_json::Value) {
-    client.sender.send(Message::Notification(Notification { method: method.to_string(), params })).unwrap();
-}
-
-fn expect_response(client: &Connection) -> lsp_server::Response {
-    loop {
-        if let Message::Response(r) = client.receiver.recv().expect("server closed channel before responding")
-        {
-            return r;
-        }
-    }
+    drain_until_response(client, 999);
+    client
+        .sender
+        .send(Message::Notification(Notification { method: "exit".to_string(), params: json!(null) }))
+        .unwrap();
 }

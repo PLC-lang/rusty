@@ -860,9 +860,16 @@ fn handle_completion(state: &ServerState, connection: &Connection, req: Request)
         &source_contents,
     ) {
         Some((path, byte_offset)) => {
-            let source = source_contents.get(path.to_string_lossy().as_ref());
+            let path_str = path.to_string_lossy().into_owned();
+            let source = source_contents.get(&path_str);
             match source {
-                Some(src) => completion::items_at(src, byte_offset, trigger),
+                Some(src) => completion::items_at(
+                    src,
+                    byte_offset,
+                    trigger,
+                    Some(path_str.as_str()),
+                    state.annotated.as_ref(),
+                ),
                 None => CompletionList { is_incomplete: false, items: vec![] },
             }
         }
