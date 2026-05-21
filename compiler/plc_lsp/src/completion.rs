@@ -1,12 +1,9 @@
 //! `textDocument/completion` handler.
 //!
 //! Detects the user's completion context from the cursor position and emits
-//! a `CompletionList`. The Member context (cursor after `.`) walks the
-//! `lex_with_trivia` token stream so comments and arbitrary whitespace
-//! between the base and the dot no longer hide it. Other contexts (Call,
-//! TypePosition, Expression, Statement, TopLevel) currently fall back to a
-//! byte-level walk over the source and are migrated to TokenWalk in
-//! follow-up commits.
+//! a `CompletionList`. Context detection walks the `lex_with_trivia` token
+//! stream (cached per file on `ServerState`), so comments and arbitrary
+//! whitespace between the cursor and the trigger token are transparent.
 
 use lsp_types::{
     CompletionItem, CompletionItemKind, CompletionList, CompletionTriggerKind, InsertTextFormat,
@@ -65,14 +62,10 @@ pub enum CompletionContextKind {
 
 /// Detect the completion context at the cursor.
 ///
-/// Member (cursor after `.`) and Call (cursor inside an arg list) both
-/// go through the `lex_with_trivia` tokens — comments and arbitrary
-/// whitespace no longer hide the trigger character. TypePosition,
-/// Expression, Statement, and TopLevel still byte-walk over `source`;
-/// they are migrated to TokenWalk in follow-up commits.
-///
-/// `cursor_byte_offset` is clamped to `source.len()`.
-pub fn detect_context(tokens: &[LspToken], source: &str, cursor_byte_offset: usize) -> CompletionContextKind {
+/// Routes the entire decision through the `lex_with_trivia` tokens:
+/// position lookup is O(log n) binary search; comments and whitespace
+/// are skipped transparently. Source bytes are no longer consulted.
+pub fn detect_context(tokens: &[LspToken], cursor_byte_offset: usize) -> CompletionContextKind {
     let walk = TokenWalk::new(tokens);
     if let Some(member) = detect_member_via_tokens(&walk, cursor_byte_offset) {
         return member;
@@ -80,39 +73,19 @@ pub fn detect_context(tokens: &[LspToken], source: &str, cursor_byte_offset: usi
     if let Some(call) = detect_call_via_tokens(&walk, cursor_byte_offset) {
         return call;
     }
-
-    let cursor = cursor_byte_offset.min(source.len());
-    let bytes = source.as_bytes();
-
-    // Walk back through whitespace (spaces, tabs, newlines).
-    let mut idx = cursor;
-    while idx > 0 && bytes[idx - 1].is_ascii_whitespace() {
-        idx -= 1;
-    }
-
-    if idx == 0 {
+    let Some(prev_idx) = walk.prev_real_before(cursor_byte_offset) else {
         return CompletionContextKind::TopLevel;
-    }
-
-    let preceding = bytes[idx - 1];
-    match preceding {
-        b':' => {
-            // Disambiguate type-position (`:`) from assignment (`:=`).
-            // `:=` is two consecutive bytes; if the byte AFTER our `:` is
-            // `=`, this isn't a type position. But we walked back through
-            // whitespace, so the `:` we're looking at is the last
-            // non-whitespace character. The byte at `cursor` (or anything
-            // between) is whitespace, not `=`. So a bare `:` here is type
-            // position. CASE labels (`1:`) are followed by a body, not
-            // by cursor-at-end-of-line, so they don't trigger here.
-            CompletionContextKind::TypePosition
-        }
-        b'=' if idx >= 2 && bytes[idx - 2] == b':' => {
-            // Cursor follows `:=` — expression position. P13.6 may enrich
-            // with the LHS's type as a hint via AST walk.
-            CompletionContextKind::Expression { hint_type: None }
-        }
-        b';' => CompletionContextKind::Statement,
+    };
+    match walk.token_kind(prev_idx) {
+        // `VAR x :|` — bare colon is type position. The `:=` assignment
+        // is its own KeywordAssignment token, so this arm never fires for
+        // assignment context.
+        Some(Token::KeywordColon) => CompletionContextKind::TypePosition,
+        // `a :=|` — cursor follows the assignment operator. Hint
+        // refinement happens in `items_at`.
+        Some(Token::KeywordAssignment) => CompletionContextKind::Expression { hint_type: None },
+        // `a := 1;|` — end of a statement.
+        Some(Token::KeywordSemicolon) => CompletionContextKind::Statement,
         _ => CompletionContextKind::Expression { hint_type: None },
     }
 }
@@ -165,11 +138,7 @@ fn find_unmatched_open_paren_via_tokens(walk: &TokenWalk, start_idx: usize) -> O
 
 /// Token-walk path for Member detection. Returns `Some(Member { ... })`
 /// when the last real token at-or-before the cursor is a `.`; otherwise
-/// `None`, deferring to the byte-walk fallback for non-Member contexts.
-///
-/// Replaces the old `byte == b'.'` heuristic which used to false-positive
-/// on `arr[1..|` (range syntax) and lost track when comments sat between
-/// the dot and the cursor.
+/// `None`, letting `detect_context` move on to Call or fall through.
 fn detect_member_via_tokens(walk: &TokenWalk, cursor: usize) -> Option<CompletionContextKind> {
     let prev_idx = walk.prev_real_before(cursor)?;
     if !matches!(walk.token_kind(prev_idx), Some(Token::KeywordDot)) {
@@ -221,102 +190,64 @@ fn scan_base_via_tokens(walk: &TokenWalk, dot_idx: usize) -> usize {
     walk.range_at(last_chain).map(|r| r.start).unwrap_or(0)
 }
 
-/// Scan back from `end` through identifier-only characters (alphanumerics,
-/// `_`). Returns the word's `(start, end)` byte range, or `None` if `end`
-/// isn't preceded by an identifier character. Used by the byte-based
-/// hint refiner to read the preceding keyword (`WHILE`, `IF`, `TO`, ...).
-fn scan_back_word(source: &str, end: usize) -> Option<(usize, usize)> {
-    let bytes = source.as_bytes();
-    if end == 0 || !is_ident_byte(bytes[end - 1]) {
-        return None;
-    }
-    let mut start = end;
-    while start > 0 && is_ident_byte(bytes[start - 1]) {
-        start -= 1;
-    }
-    Some((start, end))
-}
-
-fn is_ident_byte(c: u8) -> bool {
-    c.is_ascii_alphanumeric() || c == b'_'
-}
-
 /// Refine an `Expression { hint_type: None }` to carry a concrete hint
-/// when the byte context immediately before the cursor implies one:
+/// when the token context immediately before the cursor implies one:
 ///
-///   - `[`         → array index slot → `DINT`
-///   - `WHILE` / `UNTIL` / `IF` / `ELSIF` word preceding → `BOOL`
-///   - `TO` / `BY` word preceding inside a FOR — scan back to the
-///     counter's identifier and look up its type
+///   - `[`           → array index slot → `DINT`
+///   - `WHILE` / `UNTIL` / `IF` / `ELSIF`   → `BOOL`
+///   - `TO` / `BY` inside a `FOR`           → counter's declared type
 ///
 /// Returns `None` when no hint can be inferred (cursor is in a generic
 /// expression slot).
 fn refine_expression_hint(
+    tokens: &[LspToken],
     source: &str,
     cursor: usize,
     enclosing_pou: Option<&str>,
     index: &Index,
 ) -> Option<String> {
-    let bytes = source.as_bytes();
-    let mut idx = cursor.min(source.len());
-    while idx > 0 && bytes[idx - 1].is_ascii_whitespace() {
-        idx -= 1;
-    }
-    if idx == 0 {
-        return None;
-    }
-    // Array-index slot: preceding non-whitespace byte is `[`.
-    if bytes[idx - 1] == b'[' {
-        return Some("DINT".to_string());
-    }
-    // Otherwise look at the preceding word.
-    let (word_start, word_end) = scan_back_word(source, idx)?;
-    let word = &source[word_start..word_end];
-    match word.to_uppercase().as_str() {
-        "WHILE" | "UNTIL" | "IF" | "ELSIF" => Some("BOOL".to_string()),
-        "TO" | "BY" => for_counter_type(source, word_start, enclosing_pou, index).map(String::from),
+    let walk = TokenWalk::new(tokens);
+    let prev_idx = walk.prev_real_before(cursor)?;
+    match walk.token_kind(prev_idx)? {
+        Token::KeywordSquareParensOpen => Some("DINT".to_string()),
+        Token::KeywordWhile | Token::KeywordUntil | Token::KeywordIf | Token::KeywordElseIf => {
+            Some("BOOL".to_string())
+        }
+        Token::KeywordTo | Token::KeywordBy => {
+            for_counter_type_via_tokens(&walk, prev_idx, enclosing_pou, index, source).map(String::from)
+        }
         _ => None,
     }
 }
 
-/// `FOR <counter> := <start> TO <cursor>` — scan back from the `TO`/`BY`
-/// keyword to find the counter identifier (the leftmost token in the
-/// FOR header before the `:=`). Returns the counter's declared type
-/// from the Index, or `None` if the lookback hits something unexpected.
-fn for_counter_type<'a>(
-    source: &str,
-    to_word_start: usize,
+/// `FOR <counter> := <start> TO <cursor>` — walk LEFT from the TO/BY
+/// token to find the `:=`, then read the identifier immediately before
+/// the `:=` and the FOR keyword before that as a guard. Returns the
+/// counter's declared type from the Index, or `None` if the lookback
+/// doesn't match the FOR header shape.
+fn for_counter_type_via_tokens<'a>(
+    walk: &TokenWalk,
+    to_or_by_idx: usize,
     enclosing_pou: Option<&'a str>,
     index: &'a Index,
+    source: &str,
 ) -> Option<&'a str> {
-    let bytes = source.as_bytes();
-    // Walk back to find `:=`. Bail if we don't find it within a few
-    // hundred bytes (defensive — a real FOR header is short).
-    let limit = to_word_start.saturating_sub(512);
-    let mut probe = to_word_start;
-    while probe > limit {
-        probe = probe.saturating_sub(1);
-        if probe + 1 < source.len() && bytes[probe] == b':' && bytes[probe + 1] == b'=' {
-            // Found `:=`. The counter identifier is the word immediately
-            // before, skipping whitespace.
-            let mut id_end = probe;
-            while id_end > 0 && bytes[id_end - 1].is_ascii_whitespace() {
-                id_end -= 1;
-            }
-            let (id_start, id_end) = scan_back_word(source, id_end)?;
-            let counter = &source[id_start..id_end];
-            // Make sure the keyword before the counter is FOR (defensive
-            // — guards against treating non-FOR `:=` as a counter).
-            let mut for_end = id_start;
-            while for_end > 0 && bytes[for_end - 1].is_ascii_whitespace() {
-                for_end -= 1;
-            }
-            let (for_start, for_end) = scan_back_word(source, for_end)?;
-            if !source[for_start..for_end].eq_ignore_ascii_case("FOR") {
+    let mut current = to_or_by_idx;
+    while let Some(prev) = walk.prev_real(current) {
+        if matches!(walk.token_kind(prev), Some(Token::KeywordAssignment)) {
+            let counter_idx = walk.prev_real(prev)?;
+            if !matches!(walk.token_kind(counter_idx), Some(Token::Identifier)) {
                 return None;
             }
-            return resolve_simple_variable_type(counter, enclosing_pou, index);
+            let for_idx = walk.prev_real(counter_idx)?;
+            if !matches!(walk.token_kind(for_idx), Some(Token::KeywordFor)) {
+                return None;
+            }
+            let counter_range = walk.range_at(counter_idx)?;
+            let counter_name = &source[counter_range.clone()];
+            return resolve_simple_variable_type(counter_name, enclosing_pou, index);
         }
+        current = prev;
     }
     None
 }
@@ -847,7 +778,7 @@ pub fn items_at(
     file_path: Option<&str>,
     project: Option<&AnnotatedProject>,
 ) -> CompletionList {
-    let context = detect_context(tokens, source, cursor_byte_offset);
+    let context = detect_context(tokens, cursor_byte_offset);
     let is_dot_trigger = matches!(trigger, Some(CompletionTriggerKind::TRIGGER_CHARACTER));
     log::debug!("completion: trigger={trigger:?} cursor={cursor_byte_offset} context={context:?}");
 
@@ -875,9 +806,9 @@ pub fn items_at(
         (CompletionContextKind::Expression { hint_type }, false, Some(p)) => {
             // hint_type is `None` from the detector; refine via byte
             // patterns (WHILE → BOOL, `[` → DINT, FOR counter lookup …).
-            let refined_owned = hint_type
-                .clone()
-                .or_else(|| refine_expression_hint(source, cursor_byte_offset, enclosing_pou, &p.index));
+            let refined_owned = hint_type.clone().or_else(|| {
+                refine_expression_hint(tokens, source, cursor_byte_offset, enclosing_pou, &p.index)
+            });
             enumerate_expression_or_statement(enclosing_pou, &p.index, refined_owned.as_deref(), false)
         }
         (CompletionContextKind::Statement, false, Some(p)) => {
@@ -907,7 +838,7 @@ mod tests {
     /// the cache integration on every call.
     fn ctx(src: &str, cursor: usize) -> CompletionContextKind {
         let tokens = lex_with_trivia(src);
-        detect_context(&tokens, src, cursor)
+        detect_context(&tokens, cursor)
     }
 
     #[test]
@@ -1029,6 +960,24 @@ mod tests {
         let src = "a := 1;";
         let cursor = at(src, "a := 1;");
         assert_eq!(ctx(src, cursor), CompletionContextKind::Statement);
+    }
+
+    #[test]
+    fn detect_statement_through_trailing_comment() {
+        // `a := 1; // note` — byte-walk used to land on `e` and pick
+        // Expression. TokenWalk skips the LineComment and lands on `;`.
+        let src = "a := 1; // note\n";
+        let cursor = src.len();
+        assert_eq!(ctx(src, cursor), CompletionContextKind::Statement);
+    }
+
+    #[test]
+    fn detect_type_position_through_block_comment() {
+        // `VAR x : (* hint *)|` — cursor after a comment that follows the
+        // colon. Token-walk still sees the bare `:` as the last real token.
+        let src = "VAR x : (* hint *)";
+        let cursor = src.len();
+        assert_eq!(ctx(src, cursor), CompletionContextKind::TypePosition);
     }
 
     #[test]
