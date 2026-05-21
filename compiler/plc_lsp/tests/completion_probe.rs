@@ -186,6 +186,26 @@ fn completion_probe() {
     assert!(call_labels.contains(&"n".to_string()), "call site: caller local `n` missing");
     assert!(call_labels.contains(&"origin".to_string()), "call site: global `origin` missing");
 
+    // --- Case 8b (L14): Callee parameter inserts the named-arg separator.
+    //     `value` is VAR_INPUT → insert text "value := ". Label / filterText
+    //     stay bare so fuzzy filter still matches user typing `value`.
+    //     Caller-scope items (locals like `n`, globals like `origin`)
+    //     should NOT get the separator — they're positional candidates.
+    let value_insert = call_items
+        .get("items")
+        .and_then(|v| v.as_array())
+        .and_then(|arr| arr.iter().find(|i| i.get("label").and_then(|l| l.as_str()) == Some("value")))
+        .and_then(|i| i.get("insertText").and_then(|t| t.as_str()).map(String::from))
+        .expect("value's insert_text should be present");
+    assert_eq!(value_insert, "value := ", "VAR_INPUT param should insert `name := `, got {value_insert:?}");
+    let n_insert = call_items
+        .get("items")
+        .and_then(|v| v.as_array())
+        .and_then(|arr| arr.iter().find(|i| i.get("label").and_then(|l| l.as_str()) == Some("n")))
+        .and_then(|i| i.get("insertText").and_then(|t| t.as_str()).map(String::from))
+        .expect("n's insert_text should be present");
+    assert_eq!(n_insert, "n", "caller-scope local should insert bare name, got {n_insert:?}");
+
     // --- Case 9 (Q7-3): Scalar/no-members. `n.⎵` where n is DINT —
     //     emits an empty list (DINT has no struct members, no methods).
     let scalar_items =
