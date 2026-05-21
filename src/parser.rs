@@ -66,6 +66,29 @@ pub fn parse_file(
     }
 }
 
+/// Lenient counterpart to `parse_file` used by the LSP completion path.
+/// Returns the partial `CompilationUnit` produced by the lenient parser core
+/// regardless of whether error-severity diagnostics fired. The diagnostician
+/// is still consulted so the source file gets registered and diagnostics flow
+/// through whatever reporter the caller attached; only the parse-time error
+/// gate is bypassed. CLI callers should keep using `parse_file`.
+pub fn parse_file_lenient(
+    source: &SourceCode,
+    linkage: LinkageType,
+    id_provider: IdProvider,
+    diagnostician: &mut Diagnostician,
+) -> (CompilationUnit, Vec<Diagnostic>) {
+    let location_factory = SourceLocationFactory::for_source(source);
+    let (unit, errors) = parse(
+        lexer::lex_with_ids(&source.source, id_provider, location_factory),
+        linkage,
+        source.get_location_str(),
+    );
+    diagnostician.register_file(source.get_location_str().to_string(), source.source.clone());
+    let _ = diagnostician.handle(&errors);
+    (unit, errors)
+}
+
 pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str) -> ParsedAst {
     let mut unit = CompilationUnit::new(file_name).with_linkage(lnk);
 

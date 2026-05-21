@@ -25,7 +25,7 @@ use plc::{
     linker::LinkerType,
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
     output::{FormatOption, RelocationPreference},
-    parser::parse_file,
+    parser::{parse_file, parse_file_lenient},
     resolver::{
         const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
         TypeAnnotator,
@@ -176,6 +176,15 @@ impl<T: SourceContainer> BuildPipeline<T> {
     /// can reach the same token through their `&GlobalContext` arg.
     pub fn cancellation(&self) -> &CancellationToken {
         self.context.cancellation()
+    }
+
+    /// Lenient parse entry point for callers that need a partial
+    /// `ParsedProject` even when error-severity parse diagnostics fired.
+    /// Mirrors the `Pipeline::parse` trait method but skips the error gate.
+    /// Used by the LSP completion path; CLI / lit-test paths should keep
+    /// using the trait `parse` so the existing gate behaviour is preserved.
+    pub fn parse_lenient(&mut self) -> ParsedProject {
+        ParsedProject::parse_lenient(&self.context, &self.project, &mut self.diagnostician)
     }
 
     pub fn register_mut_participant(&mut self, participant: Box<dyn PipelineParticipantMut>) {
@@ -736,6 +745,74 @@ impl ParsedProject {
         let units = units.into_iter().collect::<Result<Vec<_>, Diagnostic>>()?;
 
         Ok(ParsedProject { units })
+    }
+
+    /// Lenient analogue of `parse`. Calls `parse_file_lenient` per source so
+    /// the partial AST survives per-file parse errors. Never bails — every
+    /// source contributes a `CompilationUnit` to the project. Diagnostics
+    /// still flow through the diagnostician (each `parse_file_lenient` call
+    /// invokes `diagnostician.handle`). Used by the LSP completion path where
+    /// mid-typing buffers routinely contain parse errors that the user is
+    /// actively fixing.
+    ///
+    /// XML/CFC sources keep using the gated `parse_file`; on Err we skip the
+    /// unit. The LSP doesn't currently serve CFC, so this is a no-op in
+    /// practice — left in place so the function's behaviour stays defined
+    /// when CFC source files appear in the project.
+    pub fn parse_lenient<T: SourceContainer + Sync>(
+        ctxt: &GlobalContext,
+        project: &Project<T>,
+        diagnostician: &mut Diagnostician,
+    ) -> Self {
+        let mut units = vec![];
+
+        for src_path in project.get_sources() {
+            if ctxt.cancellation().is_cancelled() {
+                break;
+            }
+            let source = ctxt.get(src_path.get_location_str()).expect("All sources should've been read");
+
+            match source.get_type() {
+                source_code::SourceType::Text => {
+                    let (unit, _errors) =
+                        parse_file_lenient(source, LinkageType::Internal, ctxt.provider(), diagnostician);
+                    units.push(unit);
+                }
+                source_code::SourceType::Xml => {
+                    if let Ok(unit) = cfc::xml_parser::parse_file(
+                        source,
+                        LinkageType::Internal,
+                        ctxt.provider(),
+                        diagnostician,
+                    ) {
+                        units.push(unit);
+                    }
+                }
+                source_code::SourceType::Unknown => unreachable!(),
+            }
+        }
+
+        for inc_path in project.get_includes() {
+            if ctxt.cancellation().is_cancelled() {
+                break;
+            }
+            let source = ctxt.get(inc_path.get_location_str()).expect("All sources should've been read");
+            let (unit, _errors) =
+                parse_file_lenient(source, LinkageType::Include, ctxt.provider(), diagnostician);
+            units.push(unit);
+        }
+
+        for inc_path in project.get_libraries().iter().flat_map(LibraryInformation::get_includes) {
+            if ctxt.cancellation().is_cancelled() {
+                break;
+            }
+            let source = ctxt.get(inc_path.get_location_str()).expect("All sources should've been read");
+            let (unit, _errors) =
+                parse_file_lenient(source, LinkageType::Include, ctxt.provider(), diagnostician);
+            units.push(unit);
+        }
+
+        ParsedProject { units }
     }
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
