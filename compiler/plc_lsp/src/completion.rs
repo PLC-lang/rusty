@@ -18,9 +18,6 @@ use crate::token_walk::TokenWalk;
 
 /// Detected completion context at the user's cursor. Determines which
 /// category of items the handler emits and how to rank them.
-///
-/// Each variant carries the offsets / spans the enumeration step (P13.6)
-/// will need; the detector populates them but doesn't dereference yet.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompletionContextKind {
     /// Cursor immediately after a `.` — member-access completion against
@@ -253,11 +250,9 @@ fn for_counter_type_via_tokens<'a>(
 }
 
 // ============================================================================
-// Symbol enumeration (P13.6) — per-context lists of `CompletionItem`s built
-// from the project's `Index` + the byte-heuristic context. sortText tiers per
-// D18: 0=local, 1=member, 2=global, 3=pou, 4=type, 5=keyword. Items whose
-// declared type matches the slot's hint get a leading `-` prefix to float to
-// the top within their tier.
+// Per-context symbol enumeration. sortText tiers: 0=local, 1=member, 2=global,
+// 3=pou, 4=type, 5=keyword. Items whose declared type matches the slot's hint
+// get a leading `-` prefix to float to the top within their tier.
 // ============================================================================
 
 /// Find the qualified name of the POU whose body contains the given byte
