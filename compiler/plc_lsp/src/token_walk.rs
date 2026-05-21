@@ -15,6 +15,81 @@ use std::ops::Range;
 
 use plc::lexer::{LspToken, Token, TriviaKind};
 
+/// Look up the doc body adjacent to a declaration at `decl_offset` in
+/// `source`. Returns the concatenation of every contiguous leading
+/// comment (block or line), with markers stripped and individual
+/// comments separated by a blank line for markdown paragraph breaks.
+///
+/// `is_decl_prefix` lets the caller widen the attachment anchor past
+/// keywords that syntactically precede the name (e.g. `FUNCTION` before
+/// a POU's identifier) — a doc comment sits above the `FUNCTION` line,
+/// not above the identifier itself. Return `true` for keywords that are
+/// part of the declaration's syntactic prefix; the walker skips them
+/// and then scans for leading comments.
+///
+/// Returns `None` when no leading comments attach to the declaration.
+pub fn docstring_at(
+    tokens: &[LspToken],
+    source: &str,
+    decl_offset: usize,
+    is_decl_prefix: impl Fn(&Token) -> bool,
+) -> Option<String> {
+    let walk = TokenWalk::new(tokens);
+    let mut anchor = walk.token_at(decl_offset)?;
+    // Widen the anchor past declaration-prefix keywords so a comment
+    // above `FUNCTION foo` attaches to foo (not to FUNCTION).
+    while let Some(prev) = walk.prev_real(anchor) {
+        match walk.token_kind(prev) {
+            Some(t) if is_decl_prefix(t) => anchor = prev,
+            _ => break,
+        }
+    }
+    let leading = walk.leading_comments(anchor);
+    if leading.is_empty() {
+        return None;
+    }
+    let mut body = String::new();
+    for &idx in &leading {
+        let range = walk.range_at(idx)?;
+        let stripped = strip_comment_markers(&source[range.clone()]);
+        if stripped.is_empty() {
+            continue;
+        }
+        if !body.is_empty() {
+            body.push_str("\n\n");
+        }
+        body.push_str(&stripped);
+    }
+    if body.is_empty() {
+        None
+    } else {
+        Some(body)
+    }
+}
+
+/// Trim the comment delimiters off a single comment span. Recognises
+/// `// …`, `(* … *)`, and `/* … */`. The interior text is trimmed of
+/// leading/trailing whitespace; embedded newlines are preserved.
+fn strip_comment_markers(raw: &str) -> String {
+    let s = raw.trim();
+    if let Some(rest) = s.strip_prefix("//") {
+        return rest.trim().to_string();
+    }
+    if let Some(rest) = s.strip_prefix("(*") {
+        if let Some(inner) = rest.strip_suffix("*)") {
+            return inner.trim().to_string();
+        }
+        return rest.trim().to_string();
+    }
+    if let Some(rest) = s.strip_prefix("/*") {
+        if let Some(inner) = rest.strip_suffix("*/") {
+            return inner.trim().to_string();
+        }
+        return rest.trim().to_string();
+    }
+    s.to_string()
+}
+
 /// Stateless walker over a slice of `LspToken`. Cheap to construct.
 pub struct TokenWalk<'a> {
     tokens: &'a [LspToken],
@@ -293,5 +368,85 @@ mod tests {
         let leading = w.leading_comments(func);
         assert_eq!(leading.len(), 1);
         assert_eq!(&src[w.range_at(leading[0]).unwrap().clone()], "// short doc");
+    }
+
+    /// Closure used by the docstring tests: treat POU-introducing keywords
+    /// as part of the declaration prefix so a comment above `FUNCTION foo`
+    /// attaches to `foo`.
+    fn pou_prefix(tok: &Token) -> bool {
+        matches!(tok, Token::KeywordFunction | Token::KeywordFunctionBlock | Token::KeywordProgram)
+    }
+
+    /// Closure for tests that anchor directly on a name (variables, members):
+    /// no keyword is part of the prefix.
+    fn no_prefix(_tok: &Token) -> bool {
+        false
+    }
+
+    #[test]
+    fn docstring_strips_st_block_markers() {
+        let src = "(* Computes the running average *)\nFUNCTION moving_avg : INT END_FUNCTION";
+        let (tokens, _) = walk(src);
+        // Anchor on the POU's name to mirror how SymbolUnderCursor's
+        // declaration_location points at the identifier, not the keyword.
+        let offset = src.find("moving_avg").unwrap();
+        let doc = docstring_at(&tokens, src, offset, pou_prefix).expect("doc body");
+        assert_eq!(doc, "Computes the running average");
+    }
+
+    #[test]
+    fn docstring_strips_c_block_markers() {
+        let src = "/* C-style docs */\nFUNCTION foo : INT END_FUNCTION";
+        let (tokens, _) = walk(src);
+        let offset = src.find("foo").unwrap();
+        let doc = docstring_at(&tokens, src, offset, pou_prefix).expect("doc body");
+        assert_eq!(doc, "C-style docs");
+    }
+
+    #[test]
+    fn docstring_strips_line_markers() {
+        let src = "// short doc\nFUNCTION foo : INT END_FUNCTION";
+        let (tokens, _) = walk(src);
+        let offset = src.find("foo").unwrap();
+        let doc = docstring_at(&tokens, src, offset, pou_prefix).expect("doc body");
+        assert_eq!(doc, "short doc");
+    }
+
+    #[test]
+    fn docstring_joins_multiple_blocks_with_blank_line() {
+        let src = "(* line one *)\n(* line two *)\nFUNCTION foo : INT END_FUNCTION";
+        let (tokens, _) = walk(src);
+        let offset = src.find("foo").unwrap();
+        let doc = docstring_at(&tokens, src, offset, pou_prefix).expect("doc body");
+        assert_eq!(doc, "line one\n\nline two");
+    }
+
+    #[test]
+    fn docstring_returns_none_when_no_leading_comments() {
+        let src = "FUNCTION foo : INT END_FUNCTION";
+        let (tokens, _) = walk(src);
+        let offset = src.find("foo").unwrap();
+        assert!(docstring_at(&tokens, src, offset, pou_prefix).is_none());
+    }
+
+    #[test]
+    fn docstring_preserves_internal_newlines() {
+        let src = "(* line one\n   line two *)\nFUNCTION foo : INT END_FUNCTION";
+        let (tokens, _) = walk(src);
+        let offset = src.find("foo").unwrap();
+        let doc = docstring_at(&tokens, src, offset, pou_prefix).expect("doc body");
+        assert!(doc.contains("line one"));
+        assert!(doc.contains("line two"));
+    }
+
+    #[test]
+    fn docstring_anchors_on_variable_name_directly() {
+        // Variables don't need keyword walk-back: the comment sits right
+        // above the identifier.
+        let src = "VAR\n(* width of buffer *)\nlen : INT;\nEND_VAR";
+        let (tokens, _) = walk(src);
+        let offset = src.find("len").unwrap();
+        let doc = docstring_at(&tokens, src, offset, no_prefix).expect("doc body");
+        assert_eq!(doc, "width of buffer");
     }
 }

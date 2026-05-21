@@ -434,7 +434,7 @@ fn handle_document_symbol(state: &ServerState, connection: &Connection, req: Req
 /// when the cursor isn't over a resolvable identifier, or when the
 /// resolved declaration has no displayable source (synthetic /
 /// `<internal>` locations).
-fn handle_hover(state: &ServerState, connection: &Connection, req: Request) {
+fn handle_hover(state: &mut ServerState, connection: &Connection, req: Request) {
     let req_id = req.id.clone();
     let params: HoverParams = match serde_json::from_value(req.params) {
         Ok(p) => p,
@@ -463,29 +463,74 @@ fn handle_hover(state: &ServerState, connection: &Connection, req: Request) {
 /// Pure logic for the hover handler — separated so tests can drive it
 /// without spinning up a `Connection`. Returns `None` when there's
 /// nothing to show; callers serialise `null`, which is the LSP-correct
-/// "no hover" reply.
-fn hover_for_position(state: &ServerState, params: &HoverParams) -> Option<Hover> {
-    let annotated = state.annotated.as_ref()?;
-    let ctxt = state.ctxt.as_ref()?;
-    let source_contents = build_source_contents(state);
-
+/// "no hover" reply. Takes `&mut ServerState` because the docstring
+/// lookup populates the token cache for declarations in other files.
+fn hover_for_position(state: &mut ServerState, params: &HoverParams) -> Option<Hover> {
+    let position_encoding = state.position_encoding.clone();
     let pos = &params.text_document_position_params;
-    let symbol = position::symbol_under_cursor(
-        annotated,
-        ctxt,
-        &pos.text_document.uri,
-        pos.position,
-        &state.position_encoding,
-        &source_contents,
-    )?;
 
-    let body = hover_format::format_symbol(&symbol, &annotated.index)?;
-    let range =
-        diagnostics::code_span_to_range(symbol.usage_location.get_span(), &state.position_encoding, None);
+    let (symbol, body) = {
+        let annotated = state.annotated.as_ref()?;
+        let ctxt = state.ctxt.as_ref()?;
+        let source_contents = build_source_contents(state);
+        let symbol = position::symbol_under_cursor(
+            annotated,
+            ctxt,
+            &pos.text_document.uri,
+            pos.position,
+            &position_encoding,
+            &source_contents,
+        )?;
+        let body = hover_format::format_symbol(&symbol, &annotated.index)?;
+        (symbol, body)
+    };
+
+    let range = diagnostics::code_span_to_range(symbol.usage_location.get_span(), &position_encoding, None);
+    let mut body = body;
+    if let Some(doc) = lookup_docstring(state, &symbol) {
+        body.push_str("\n\n---\n\n");
+        body.push_str(&doc);
+    }
 
     Some(Hover {
         contents: HoverContents::Markup(MarkupContent { kind: MarkupKind::Markdown, value: body }),
         range,
+    })
+}
+
+/// Pull the doc body attached to the symbol's declaration site, if any.
+/// Crosses files transparently: source comes from the in-memory buffer
+/// when open, disk otherwise; tokens come from the per-path cache.
+fn lookup_docstring(state: &mut ServerState, symbol: &position::SymbolUnderCursor) -> Option<String> {
+    use plc::lexer::Token;
+    use position::SymbolKind;
+    let resolved = symbol.resolved.as_ref()?;
+    let file_name = resolved.declaration_location.get_file_name()?;
+    let path = std::path::Path::new(file_name);
+    let range = resolved.declaration_location.to_range()?;
+    let source = state.source_for(path)?;
+    let tokens = state.token_cache.get_or_recompute(path, &source);
+    let kind = resolved.kind;
+    token_walk::docstring_at(tokens.as_slice(), &source, range.start, |tok| match kind {
+        // POU names live after the introducing keyword on the same line.
+        SymbolKind::Pou => matches!(
+            tok,
+            Token::KeywordFunction
+                | Token::KeywordFunctionBlock
+                | Token::KeywordProgram
+                | Token::KeywordClass
+                | Token::KeywordInterface
+                | Token::KeywordMethod
+                | Token::KeywordAction
+                | Token::KeywordActions
+                | Token::KeywordPropertyGet
+                | Token::KeywordPropertySet
+        ),
+        // `TYPE foo : STRUCT …` — widen past TYPE.
+        SymbolKind::Type => matches!(tok, Token::KeywordType),
+        // Variable / Argument / Member declarations: the identifier
+        // already is the docstring anchor.
+        SymbolKind::Variable | SymbolKind::Argument | SymbolKind::Member => false,
     })
 }
 

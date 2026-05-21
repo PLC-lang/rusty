@@ -77,7 +77,7 @@ pub struct ResolvedSymbol {
 /// Classification of a resolved symbol — drives per-kind hover format
 /// and the outline's `lsp_types::SymbolKind` mapping. Local to the LSP
 /// crate (no compiler-side change).
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SymbolKind {
     Pou,
     Variable,
