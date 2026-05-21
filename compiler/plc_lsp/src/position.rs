@@ -558,7 +558,7 @@ fn resolve_via_ancestor_chain(
 /// Symmetric counterpart to `diagnostics::code_span_to_range` —
 /// reuses the same utf-16 ↔ byte-offset arithmetic in the inverse
 /// direction.
-fn position_to_byte_offset(
+pub fn position_to_byte_offset(
     uri: &Uri,
     position: Position,
     encoding: &PositionEncodingKind,

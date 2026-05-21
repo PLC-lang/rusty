@@ -67,6 +67,12 @@ fn handshake_with_default_caps_falls_back_to_utf16() {
       "result": {
         "capabilities": {
           "callHierarchyProvider": true,
+          "completionProvider": {
+            "resolveProvider": false,
+            "triggerCharacters": [
+              "."
+            ]
+          },
           "declarationProvider": true,
           "definitionProvider": true,
           "documentSymbolProvider": true,
@@ -115,6 +121,12 @@ fn handshake_with_utf8_capable_client_negotiates_utf8() {
       "result": {
         "capabilities": {
           "callHierarchyProvider": true,
+          "completionProvider": {
+            "resolveProvider": false,
+            "triggerCharacters": [
+              "."
+            ]
+          },
           "declarationProvider": true,
           "definitionProvider": true,
           "documentSymbolProvider": true,

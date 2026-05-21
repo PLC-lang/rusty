@@ -18,20 +18,22 @@ use lsp_server::{
 use lsp_types::{
     request::{GotoDeclarationParams, GotoDeclarationResponse},
     CallHierarchyIncomingCallsParams, CallHierarchyItem, CallHierarchyOutgoingCallsParams,
-    CallHierarchyPrepareParams, CallHierarchyServerCapability, ClientCapabilities, DeclarationCapability,
-    DidChangeTextDocumentParams, DidChangeWatchedFilesParams, DidCloseTextDocumentParams,
-    DidOpenTextDocumentParams, DocumentSymbol, DocumentSymbolParams, DocumentSymbolResponse,
-    ExecuteCommandOptions, ExecuteCommandParams, FileChangeType, GotoDefinitionParams,
-    GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability, InitializeParams,
-    InitializeResult, Location, MarkupContent, MarkupKind, MessageType, OneOf, PositionEncodingKind,
-    PrepareRenameResponse, PublishDiagnosticsParams, ReferenceParams, RenameOptions, RenameParams,
-    ServerCapabilities, ServerInfo, ShowMessageParams, TextDocumentPositionParams,
-    TextDocumentSyncCapability, TextDocumentSyncKind, Unregistration, UnregistrationParams, Uri,
+    CallHierarchyPrepareParams, CallHierarchyServerCapability, ClientCapabilities, CompletionList,
+    CompletionOptions, CompletionParams, DeclarationCapability, DidChangeTextDocumentParams,
+    DidChangeWatchedFilesParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams, DocumentSymbol,
+    DocumentSymbolParams, DocumentSymbolResponse, ExecuteCommandOptions, ExecuteCommandParams,
+    FileChangeType, GotoDefinitionParams, GotoDefinitionResponse, Hover, HoverContents, HoverParams,
+    HoverProviderCapability, InitializeParams, InitializeResult, Location, MarkupContent, MarkupKind,
+    MessageType, OneOf, PositionEncodingKind, PrepareRenameResponse, PublishDiagnosticsParams,
+    ReferenceParams, RenameOptions, RenameParams, ServerCapabilities, ServerInfo, ShowMessageParams,
+    TextDocumentPositionParams, TextDocumentSyncCapability, TextDocumentSyncKind, Unregistration,
+    UnregistrationParams, Uri,
 };
 use plc_diagnostics::cancellation::CancellationToken;
 
 pub mod call_hierarchy;
 pub mod compile;
+pub mod completion;
 pub mod diagnostics;
 pub mod document;
 pub mod hover_format;
@@ -230,6 +232,17 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
             prepare_provider: Some(true),
             work_done_progress_options: Default::default(),
         })),
+        // Phase 13: completion. Only `.` is advertised as an auto-trigger
+        // per the grill decision (Q5/D17); everything else relies on the
+        // user's explicit ctrl-space request. `resolve_provider: false` —
+        // we send fully-populated CompletionItems and don't implement
+        // `completionItem/resolve`. P13.5 ships the skeleton; symbol
+        // enumeration follows in P13.6.
+        completion_provider: Some(CompletionOptions {
+            trigger_characters: Some(vec![".".to_string()]),
+            resolve_provider: Some(false),
+            ..Default::default()
+        }),
         ..Default::default()
     };
 
@@ -345,6 +358,7 @@ fn handle_request(
         "callHierarchy/outgoingCalls" => handle_outgoing_calls(state, connection, req),
         "textDocument/prepareRename" => handle_prepare_rename(state, connection, req),
         "textDocument/rename" => handle_rename(state, connection, req),
+        "textDocument/completion" => handle_completion(state, connection, req),
         _ => {
             log::debug!("unhandled request: method={} id={:?}", req.method, req.id);
             let response = Response {
@@ -815,6 +829,47 @@ fn handle_rename(state: &ServerState, connection: &Connection, req: Request) {
         Ok(edit) => send_json_response(connection, req_id, serde_json::to_value(edit)),
         Err(msg) => send_error_response(connection, req_id, ErrorCode::InvalidRequest, msg),
     }
+}
+
+/// Answer `textDocument/completion` (phase 13 — P13.5 skeleton). Looks
+/// up the source for the cursor's URI, converts the position to a byte
+/// offset, and delegates context detection + item enumeration to
+/// `completion::items_at`. P13.5 returns an empty list; P13.6 fills in
+/// enumeration. Always returns a valid CompletionList; never errors.
+fn handle_completion(state: &ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: CompletionParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed CompletionParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let trigger = params.context.as_ref().map(|c| c.trigger_kind);
+    let source_contents = build_source_contents(state);
+    let result = match position::position_to_byte_offset(
+        &params.text_document_position.text_document.uri,
+        params.text_document_position.position,
+        &state.position_encoding,
+        &source_contents,
+    ) {
+        Some((path, byte_offset)) => {
+            let source = source_contents.get(path.to_string_lossy().as_ref());
+            match source {
+                Some(src) => completion::items_at(src, byte_offset, trigger),
+                None => CompletionList { is_incomplete: false, items: vec![] },
+            }
+        }
+        None => CompletionList { is_incomplete: false, items: vec![] },
+    };
+
+    send_json_response(connection, req_id, serde_json::to_value(result));
 }
 
 fn send_json_response(
