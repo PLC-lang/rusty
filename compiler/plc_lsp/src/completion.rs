@@ -65,10 +65,10 @@ pub enum CompletionContextKind {
 
 /// Detect the completion context at the cursor.
 ///
-/// Member detection (cursor after `.`) goes through the `tokens` slice
-/// from `lex_with_trivia` — comments and arbitrary whitespace around the
-/// dot no longer hide it. The remaining branches (Call, TypePosition,
-/// Expression, Statement, TopLevel) still byte-walk over `source`;
+/// Member (cursor after `.`) and Call (cursor inside an arg list) both
+/// go through the `lex_with_trivia` tokens — comments and arbitrary
+/// whitespace no longer hide the trigger character. TypePosition,
+/// Expression, Statement, and TopLevel still byte-walk over `source`;
 /// they are migrated to TokenWalk in follow-up commits.
 ///
 /// `cursor_byte_offset` is clamped to `source.len()`.
@@ -76,6 +76,9 @@ pub fn detect_context(tokens: &[LspToken], source: &str, cursor_byte_offset: usi
     let walk = TokenWalk::new(tokens);
     if let Some(member) = detect_member_via_tokens(&walk, cursor_byte_offset) {
         return member;
+    }
+    if let Some(call) = detect_call_via_tokens(&walk, cursor_byte_offset) {
+        return call;
     }
 
     let cursor = cursor_byte_offset.min(source.len());
@@ -93,19 +96,6 @@ pub fn detect_context(tokens: &[LspToken], source: &str, cursor_byte_offset: usi
 
     let preceding = bytes[idx - 1];
     match preceding {
-        b'(' | b',' => {
-            // Both `other(|` and `other(x,|` are call-context positions.
-            // Walk back through the arg list to find the operator that
-            // opened the parens. For now, naively scan back past balanced
-            // commas/expressions and look for the operator identifier
-            // before `(`. The naive heuristic: walk back to the matching
-            // `(` and capture the identifier preceding it.
-            if let Some((op_offset, op_end)) = scan_back_call_operator(source, idx - 1) {
-                CompletionContextKind::Call { operator_offset: op_offset, operator_end: op_end }
-            } else {
-                CompletionContextKind::Expression { hint_type: None }
-            }
-        }
         b':' => {
             // Disambiguate type-position (`:`) from assignment (`:=`).
             // `:=` is two consecutive bytes; if the byte AFTER our `:` is
@@ -125,6 +115,52 @@ pub fn detect_context(tokens: &[LspToken], source: &str, cursor_byte_offset: usi
         b';' => CompletionContextKind::Statement,
         _ => CompletionContextKind::Expression { hint_type: None },
     }
+}
+
+/// Token-walk path for Call detection. The last real token at-or-before
+/// the cursor must be `(` (call site opener) or `,` (next positional or
+/// named argument). On match, walk left through balanced parens to find
+/// the unmatched `(`, then take the identifier immediately preceding it
+/// as the operator.
+///
+/// Returns `None` when no Identifier sits in front of the opening paren
+/// — that's a parenthesised expression (`(x + |`), not a call.
+fn detect_call_via_tokens(walk: &TokenWalk, cursor: usize) -> Option<CompletionContextKind> {
+    let prev_idx = walk.prev_real_before(cursor)?;
+    let trigger = walk.token_kind(prev_idx)?;
+    let open_paren_idx = match trigger {
+        Token::KeywordParensOpen => prev_idx,
+        Token::KeywordComma => find_unmatched_open_paren_via_tokens(walk, prev_idx)?,
+        _ => return None,
+    };
+    let op_idx = walk.prev_real(open_paren_idx)?;
+    if !matches!(walk.token_kind(op_idx), Some(Token::Identifier)) {
+        return None;
+    }
+    let op_range = walk.range_at(op_idx)?;
+    Some(CompletionContextKind::Call { operator_offset: op_range.start, operator_end: op_range.end })
+}
+
+/// Walk LEFT from `start_idx` through balanced parens until we find the
+/// unmatched `(`. Used by Call detection when the cursor sits after a
+/// comma — the enclosing call's open paren may be several args back.
+fn find_unmatched_open_paren_via_tokens(walk: &TokenWalk, start_idx: usize) -> Option<usize> {
+    let mut depth: i32 = 0;
+    let mut current = start_idx;
+    while let Some(prev) = walk.prev_real(current) {
+        match walk.token_kind(prev) {
+            Some(Token::KeywordParensClose) => depth += 1,
+            Some(Token::KeywordParensOpen) => {
+                if depth == 0 {
+                    return Some(prev);
+                }
+                depth -= 1;
+            }
+            _ => {}
+        }
+        current = prev;
+    }
+    None
 }
 
 /// Token-walk path for Member detection. Returns `Some(Member { ... })`
@@ -283,90 +319,6 @@ fn for_counter_type<'a>(
         }
     }
     None
-}
-
-/// Scan back from `end` through identifier/qualified-access characters
-/// (alphanumerics, `_`, `^`, `.`, `[`, `]`) to find the start of the base
-/// expression. Stops at the first non-token character. Used by the member
-/// detector to capture `foo.bar` or `arr[1]` or `THIS^` as the base.
-fn scan_back_qualified_token(source: &str, end: usize) -> usize {
-    let bytes = source.as_bytes();
-    let mut start = end;
-    let mut bracket_depth: i32 = 0;
-    while start > 0 {
-        let c = bytes[start - 1];
-        match c {
-            b']' => {
-                bracket_depth += 1;
-                start -= 1;
-            }
-            b'[' => {
-                if bracket_depth == 0 {
-                    break;
-                }
-                bracket_depth -= 1;
-                start -= 1;
-            }
-            c if bracket_depth > 0 => {
-                // inside brackets, accept any char (including whitespace
-                // and operators inside index expressions)
-                start -= 1;
-                let _ = c;
-            }
-            c if c.is_ascii_alphanumeric() || c == b'_' || c == b'^' || c == b'.' => {
-                start -= 1;
-            }
-            _ => break,
-        }
-    }
-    start
-}
-
-/// Scan back from a `(` or `,` to find the operator (callee identifier)
-/// at the head of the call. When `paren_or_comma_idx` points directly at
-/// `(`, that's the opening paren. When it points at `,`, walk back
-/// through balanced parens until we find the unmatched `(`. Returns
-/// `(operator_offset, operator_end)`, or `None` when no operator can be
-/// identified (e.g. cursor is in a bare parenthesised expression with no
-/// callee identifier in front of it).
-fn scan_back_call_operator(source: &str, paren_or_comma_idx: usize) -> Option<(usize, usize)> {
-    let bytes = source.as_bytes();
-
-    let opening_paren_idx = match bytes.get(paren_or_comma_idx) {
-        Some(&b'(') => paren_or_comma_idx,
-        Some(&b',') => {
-            let mut paren_depth: i32 = 0;
-            let mut probe = paren_or_comma_idx;
-            loop {
-                if probe == 0 {
-                    return None;
-                }
-                probe -= 1;
-                match bytes[probe] {
-                    b')' => paren_depth += 1,
-                    b'(' => {
-                        if paren_depth == 0 {
-                            break probe;
-                        }
-                        paren_depth -= 1;
-                    }
-                    _ => {}
-                }
-            }
-        }
-        _ => return None,
-    };
-
-    // Operator is immediately before the opening `(`, skipping whitespace.
-    let mut op_end = opening_paren_idx;
-    while op_end > 0 && bytes[op_end - 1].is_ascii_whitespace() {
-        op_end -= 1;
-    }
-    let op_offset = scan_back_qualified_token(source, op_end);
-    if op_offset == op_end {
-        return None;
-    }
-    Some((op_offset, op_end))
 }
 
 // ============================================================================
@@ -1033,6 +985,20 @@ mod tests {
     fn detect_call_after_comma() {
         let src = "    other(x,";
         let cursor = at(src, "other(x,");
+        match ctx(src, cursor) {
+            CompletionContextKind::Call { operator_offset, operator_end } => {
+                assert_eq!(&src[operator_offset..operator_end], "other");
+            }
+            other => panic!("expected Call, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn detect_call_through_inline_comment() {
+        // `other(/* doc */ x,|` — byte-walk used to land on `*`/`/` and lose
+        // track of the call. TokenWalk skips the BlockComment trivia.
+        let src = "    other(/* arg1 */ x,";
+        let cursor = at(src, "other(/* arg1 */ x,");
         match ctx(src, cursor) {
             CompletionContextKind::Call { operator_offset, operator_end } => {
                 assert_eq!(&src[operator_offset..operator_end], "other");
