@@ -1776,16 +1776,32 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
 
     lexer.try_consume(KeywordSemicolon);
 
-    if let Some((data_type, initializer)) = parse_definition_opt {
-        for (name, range) in var_names {
-            variables.push(Variable {
-                name,
-                data_type_declaration: data_type.clone(),
-                location: lexer.source_range_factory.create_range(range),
-                initializer: initializer.clone(),
-                address: address.clone(),
-            });
-        }
+    // Lenient recovery (Bucket 2 — phase 13): when the type after `:` failed
+    // to parse (typically because the user is mid-typing `VAR x :|`), fall
+    // back to a placeholder `DataTypeDeclaration::Reference` with an empty
+    // name so the Variable entries still surface. The downstream annotator
+    // won't resolve the empty type, but the LSP needs the Variables to exist
+    // in the variable_block to know what's in scope. Diagnostics for the
+    // malformed shape were already emitted by the name loop / colon parser /
+    // type parser before they returned None.
+    let (data_type, initializer) = parse_definition_opt.unwrap_or_else(|| {
+        (
+            DataTypeDeclaration::Reference {
+                referenced_type: String::new(),
+                location: lexer.last_location(),
+            },
+            None,
+        )
+    });
+
+    for (name, range) in var_names {
+        variables.push(Variable {
+            name,
+            data_type_declaration: data_type.clone(),
+            location: lexer.source_range_factory.create_range(range),
+            initializer: initializer.clone(),
+            address: address.clone(),
+        });
     }
 
     variables

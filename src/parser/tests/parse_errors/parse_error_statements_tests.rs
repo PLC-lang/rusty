@@ -236,14 +236,51 @@ fn invalid_variable_data_type_error_recovery() {
 
     let (cu, diagnostics) = parse_buffered(src);
     let pou = &cu.pous[0];
+    // Phase-13 lenient recovery: when the type after `:` fails to parse, the
+    // variable parser now emits placeholder Variable entries with an empty
+    // referenced_type instead of dropping the names. The annotator/validator
+    // won't resolve the empty type, but the LSP needs the names in the block.
+    // Surfaced names include those from malformed name-lists (e.g. `a DINT :`
+    // → both `a` and `DINT` as separate Variables). Diagnostics for the
+    // malformed shapes are unchanged.
     assert_eq!(
         format!("{:#?}", pou.variable_blocks[0]),
         r#"VariableBlock {
     variables: [
         Variable {
+            name: "a",
+            data_type: DataTypeReference {
+                referenced_type: "",
+            },
+        },
+        Variable {
+            name: "DINT",
+            data_type: DataTypeReference {
+                referenced_type: "",
+            },
+        },
+        Variable {
             name: "c",
             data_type: DataTypeReference {
                 referenced_type: "INT",
+            },
+        },
+        Variable {
+            name: "h",
+            data_type: DataTypeReference {
+                referenced_type: "",
+            },
+        },
+        Variable {
+            name: "f",
+            data_type: DataTypeReference {
+                referenced_type: "",
+            },
+        },
+        Variable {
+            name: "INT",
+            data_type: DataTypeReference {
+                referenced_type: "",
             },
         },
     ],
