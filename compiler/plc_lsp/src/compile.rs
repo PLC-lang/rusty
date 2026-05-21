@@ -195,8 +195,21 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
         }
     };
 
-    let sources = build_sources(project.get_sources(), &snapshot.open_buffers);
-    log::debug!("compile: built {} sources", sources.len());
+    // Build the source list: project sources (with open-buffer overrides
+    // for edited files) + project includes + every library's includes.
+    // Without the include sweep the annotator can't resolve references
+    // into the standard library (oscat uses `unit_to_real`, `STRING_LENGTH`,
+    // etc.) and run_stages bails before `state.annotated` updates — so
+    // even buffer-side new variables never reach the Index. Library
+    // includes don't take open-buffer overrides; they always come from
+    // disk.
+    let mut sources = build_sources(project.get_sources(), &snapshot.open_buffers);
+    let no_overrides = HashMap::new();
+    sources.extend(build_sources(project.get_includes(), &no_overrides));
+    for lib in project.get_libraries() {
+        sources.extend(build_sources(lib.get_includes(), &no_overrides));
+    }
+    log::debug!("compile: built {} sources (incl. includes + library headers)", sources.len());
 
     // For utf-16 we need the source text on the main thread to convert
     // byte-offset positions into utf-16 code units. For utf-8 we'd never
