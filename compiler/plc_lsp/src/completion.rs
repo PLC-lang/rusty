@@ -562,7 +562,12 @@ fn enumerate_member(base_text: &str, enclosing_pou: Option<&str>, index: &Index)
     let mut items: Vec<CompletionItem> = Vec::new();
 
     // POU containers (FB / Class / Program) — members via the POU table.
+    // Skip lowering-synthesised members (`__vtable`, inheritance back-
+    // pointers, etc.) — their `source_location.is_internal()` flags them.
     for entry in index.get_pou_members(type_name) {
+        if is_synthetic_variable(entry) {
+            continue;
+        }
         items.push(make_variable_item(entry, 0, None));
     }
 
@@ -570,6 +575,9 @@ fn enumerate_member(base_text: &str, enclosing_pou: Option<&str>, index: &Index)
     if let Some(ty) = index.find_type(type_name) {
         if let DataTypeInformation::Struct { members, .. } = ty.get_type_information() {
             for m in members {
+                if is_synthetic_variable(m) {
+                    continue;
+                }
                 items.push(make_variable_item(m, 0, None));
             }
         }
@@ -578,8 +586,8 @@ fn enumerate_member(base_text: &str, enclosing_pou: Option<&str>, index: &Index)
     // Methods of an FB / Class are POU entries keyed `Parent.name`.
     let prefix = format!("{type_name}.");
     for entry in index.get_pous().values() {
-        if let PouIndexEntry::Method { name, .. } = entry {
-            if name.starts_with(&prefix) {
+        if let PouIndexEntry::Method { .. } = entry {
+            if entry.get_name().starts_with(&prefix) && !is_synthetic_pou(entry) {
                 items.push(make_pou_item(entry, 0, None));
             }
         }
@@ -599,6 +607,9 @@ fn enumerate_call(
     // Tier 0: callee parameters (named-arg candidates).
     if let Some(callee) = index.find_pou(operator) {
         for member in index.get_pou_members(callee.get_name()) {
+            if is_synthetic_variable(member) {
+                continue;
+            }
             if member.is_input() || member.is_inout() || member.is_output() {
                 items.push(make_variable_item(member, 0, hint_type));
             }
@@ -607,11 +618,17 @@ fn enumerate_call(
     // Tier 1: in-scope locals (positional-argument candidates).
     if let Some(pou) = enclosing_pou {
         for member in index.get_pou_members(pou) {
+            if is_synthetic_variable(member) {
+                continue;
+            }
             items.push(make_variable_item(member, 1, hint_type));
         }
     }
     // Tier 2: globals.
     for global in index.get_globals().values() {
+        if is_synthetic_variable(global) {
+            continue;
+        }
         items.push(make_variable_item(global, 2, hint_type));
     }
 
@@ -625,14 +642,14 @@ fn enumerate_type_position(index: &Index) -> Vec<CompletionItem> {
     // `point` instead of `DINT` / `Point` to the user).
     for (_key, datatype) in index.get_types().elements() {
         let label = datatype.get_name();
-        if is_synthetic_name(label) {
+        if is_synthetic_data_type_name(label) {
             continue;
         }
         items.push(make_type_item(label, 0));
     }
     for (_key, datatype) in index.get_pou_types().elements() {
         let label = datatype.get_name();
-        if is_synthetic_name(label) {
+        if is_synthetic_data_type_name(label) {
             continue;
         }
         items.push(make_type_item(label, 0));
@@ -640,11 +657,38 @@ fn enumerate_type_position(index: &Index) -> Vec<CompletionItem> {
     items
 }
 
-/// Lowering synthesises types like `__main_points`,
-/// `__auto_pointer_to_point`, `__void`, `Point__ctor`, etc. These are
-/// internal and shouldn't surface in completion lists. Same filter shape
-/// as the one in `enumerate_expression_or_statement` for POU names.
-fn is_synthetic_name(name: &str) -> bool {
+/// Identify entities synthesised by lowering. Where possible we use
+/// structural markers from the AST/Index rather than name-shape:
+///
+/// - `is_synthetic_variable` checks `entry.source_location.is_internal()`
+///   — vtable members, inheritance back-pointers, and other synthesised
+///   variables are created with `SourceLocation::internal()` /
+///   `internal_in_unit(...)`, both of which have `span: None` and so
+///   report `is_internal() == true`.
+///
+/// - `is_synthetic_pou` checks `pou.get_location().is_internal()` plus
+///   the `is_generated` flag on `Function`. `*__ctor` and `__unit_*__ctor`
+///   POUs are created via `new_constructor` / `new_unit_constructor`
+///   with `SourceLocation::internal()`.
+///
+/// - `is_synthetic_data_type_name` is the name-based fallback for
+///   types. `DataType` lacks a "compiler-generated" tag the way
+///   `UserTypeDeclaration.scope` does in the AST, so completion still
+///   has to discriminate `__main_points` / `__vtable_FB` from
+///   user-declared types by name. Adding a structural marker to
+///   `DataType` is logged as L13 in the phase-13 plan.
+fn is_synthetic_variable(entry: &VariableIndexEntry) -> bool {
+    entry.source_location.is_internal()
+}
+
+fn is_synthetic_pou(pou: &PouIndexEntry) -> bool {
+    if pou.get_location().is_internal() {
+        return true;
+    }
+    matches!(pou, PouIndexEntry::Function { is_generated: true, .. })
+}
+
+fn is_synthetic_data_type_name(name: &str) -> bool {
     name.starts_with("__") || name.ends_with("__ctor")
 }
 
@@ -658,10 +702,16 @@ fn enumerate_expression_or_statement(
 
     if let Some(pou) = enclosing_pou {
         for member in index.get_pou_members(pou) {
+            if is_synthetic_variable(member) {
+                continue;
+            }
             items.push(make_variable_item(member, 0, hint_type));
         }
     }
     for global in index.get_globals().values() {
+        if is_synthetic_variable(global) {
+            continue;
+        }
         items.push(make_variable_item(global, 2, hint_type));
     }
     // POU map can hold multiple entries per qualified name (the user's
@@ -675,9 +725,7 @@ fn enumerate_expression_or_statement(
         if matches!(pou, PouIndexEntry::Method { .. }) {
             continue;
         }
-        if matches!(pou, PouIndexEntry::Function { is_generated: true, .. })
-            || is_synthetic_name(pou.get_name())
-        {
+        if is_synthetic_pou(pou) {
             continue;
         }
         if !seen.insert(pou.get_name()) {
@@ -702,14 +750,14 @@ fn enumerate_var_global_block(index: &Index) -> Vec<CompletionItem> {
     let mut items: Vec<CompletionItem> = vec![make_keyword_item("CONSTANT", 0)];
     for (_key, datatype) in index.get_types().elements() {
         let label = datatype.get_name();
-        if is_synthetic_name(label) {
+        if is_synthetic_data_type_name(label) {
             continue;
         }
         items.push(make_type_item(label, 1));
     }
     for (_key, datatype) in index.get_pou_types().elements() {
         let label = datatype.get_name();
-        if is_synthetic_name(label) {
+        if is_synthetic_data_type_name(label) {
             continue;
         }
         items.push(make_type_item(label, 1));

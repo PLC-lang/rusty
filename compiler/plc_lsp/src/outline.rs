@@ -94,6 +94,15 @@ pub fn document_symbols(
         if is_internal(&ty.location) {
             continue;
         }
+        // `UserTypeDeclaration.scope: Option<String>` is documented as
+        // "stores the original scope for compiler-generated types" —
+        // a structural marker for synthesised types like `__main_points`,
+        // `__vtable_FB`, etc. that share the user file's location. Skip
+        // anything with a scope set; only user-declared types (where the
+        // user wrote `TYPE ... END_TYPE`) have `scope: None`.
+        if ty.scope.is_some() {
+            continue;
+        }
         if let Some(symbol) = build_type_symbol(ty, encoding, source) {
             symbols.push(symbol);
         }
