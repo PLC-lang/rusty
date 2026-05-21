@@ -294,7 +294,7 @@ fn this_is_a_reserved_keyword() {
     // TODO(mhasel):    the parser produces a lot of noise for keyword errors,
     //                  we need to find a way to handle keywords as identifiers
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E006]: Expected a name for the interface definition but got nothing
       ┌─ <internal>:2:5
       │
@@ -340,26 +340,47 @@ fn this_is_a_reserved_keyword() {
     6 │         END_VAR
       │         ^^^^^^^ Unexpected token: expected Literal but found END_VAR
 
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
-            METHOD this END_METHOD'
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR'
       ┌─ <internal>:6:9
-      │  
-    6 │ ╭         END_VAR
-    7 │ │         METHOD this END_METHOD
-      │ ╰──────────────────────────────^ Unexpected token: expected KeywordSemicolon but found 'END_VAR
-            METHOD this END_METHOD'
+      │
+    6 │         END_VAR
+      │         ^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_VAR'
 
-    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'METHOD'
+      ┌─ <internal>:7:9
+      │
+    7 │         METHOD this END_METHOD
+      │         ^^^^^^ Unexpected token: expected KeywordSemicolon but found 'METHOD'
+
+    error[E007]: Unexpected token: expected KeywordEndProgram but found 'METHOD'
+      ┌─ <internal>:7:9
+      │
+    7 │         METHOD this END_METHOD
+      │         ^^^^^^ Unexpected token: expected KeywordEndProgram but found 'METHOD'
+
+    error[E007]: Unexpected token: expected StartKeyword but found METHOD
+      ┌─ <internal>:7:9
+      │
+    7 │         METHOD this END_METHOD
+      │         ^^^^^^ Unexpected token: expected StartKeyword but found METHOD
+
+    error[E007]: Unexpected token: expected StartKeyword but found this
+      ┌─ <internal>:7:16
+      │
+    7 │         METHOD this END_METHOD
+      │                ^^^^ Unexpected token: expected StartKeyword but found this
+
+    error[E007]: Unexpected token: expected StartKeyword but found END_METHOD
+      ┌─ <internal>:7:21
+      │
+    7 │         METHOD this END_METHOD
+      │                     ^^^^^^^^^^ Unexpected token: expected StartKeyword but found END_METHOD
+
+    error[E007]: Unexpected token: expected StartKeyword but found END_PROGRAM
       ┌─ <internal>:8:5
       │
     8 │     END_PROGRAM
-      │     ^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
-
-    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
-      ┌─ <internal>:8:5
-      │
-    8 │     END_PROGRAM
-      │     ^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+      │     ^^^^^^^^^^^ Unexpected token: expected StartKeyword but found END_PROGRAM
 
     error[E079]: Case condition used outside of case statement! Did you mean to use ';'?
       ┌─ <internal>:3:13
