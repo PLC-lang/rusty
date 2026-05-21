@@ -478,7 +478,20 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Option<AstNode> {
                     let location = index.get_location();
                     AstFactory::create_direct_access(DirectAccessType::Bit, index, lexer.next_id(), location)
                 } else {
-                    parse_atomic_leaf_expression(lexer)?
+                    // Lenient recovery: if the RHS isn't a valid leaf
+                    // expression (typically because the user is mid-typing —
+                    // `foo.|<EOF>` or `foo.|<END_FUNCTION>`), fall back to an
+                    // EmptyStatement at the cursor instead of collapsing the
+                    // whole qualified reference. Mirrors how the
+                    // `[`/`]` path handles missing index expressions via
+                    // `parse_any_in_region`. `parse_atomic_leaf_expression`
+                    // already emitted the diagnostic on the bail path, so we
+                    // don't lose the user-facing error message — we just keep
+                    // the partial AST shape so the LSP can recognise this as
+                    // a member-access context.
+                    parse_atomic_leaf_expression(lexer).unwrap_or_else(|| {
+                        AstFactory::create_empty_statement(lexer.location(), lexer.next_id())
+                    })
                 };
                 current = Some(AstFactory::create_member_reference(member, Some(base), lexer.next_id()));
             }
