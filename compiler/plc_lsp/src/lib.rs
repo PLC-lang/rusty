@@ -1005,8 +1005,8 @@ fn handle_notification(
 ) -> anyhow::Result<bool> {
     match notif.method.as_str() {
         "exit" => return Ok(false),
-        "textDocument/didOpen" => handle_did_open(state, notif),
-        "textDocument/didChange" => handle_did_change(state, notif),
+        "textDocument/didOpen" => handle_did_open(state, compile_tx, notif),
+        "textDocument/didChange" => handle_did_change(state, compile_tx, notif),
         "textDocument/didSave" => handle_did_save(state, compile_tx, notif),
         "textDocument/didClose" => handle_did_close(state, notif),
         "workspace/didChangeWatchedFiles" => {
@@ -1022,7 +1022,11 @@ fn handle_notification(
     Ok(true)
 }
 
-fn handle_did_open(state: &mut ServerState, notif: Notification) {
+fn handle_did_open(
+    state: &mut ServerState,
+    compile_tx: &Sender<compile::CompileRequest>,
+    notif: Notification,
+) {
     let params: DidOpenTextDocumentParams = match serde_json::from_value(notif.params) {
         Ok(p) => p,
         Err(e) => {
@@ -1036,9 +1040,17 @@ fn handle_did_open(state: &mut ServerState, notif: Notification) {
         return;
     }
     state.documents.open(item.uri, item.language_id, item.version, item.text);
+    // Trigger a recompile so the buffer (which may differ from disk for
+    // freshly-opened editors that show unsaved state) feeds the next
+    // query. Latest-wins scheduling cancels any in-flight compile.
+    trigger_compile(state, compile_tx);
 }
 
-fn handle_did_change(state: &mut ServerState, notif: Notification) {
+fn handle_did_change(
+    state: &mut ServerState,
+    compile_tx: &Sender<compile::CompileRequest>,
+    notif: Notification,
+) {
     let params: DidChangeTextDocumentParams = match serde_json::from_value(notif.params) {
         Ok(p) => p,
         Err(e) => {
@@ -1058,6 +1070,18 @@ fn handle_did_change(state: &mut ServerState, notif: Notification) {
     }
 
     state.documents.change(&id.uri, id.version, change.text);
+    // Trigger a recompile against the latest buffer so completion /
+    // hover / find-references / diagnostics see fresh state on the next
+    // query. Latest-wins scheduling cancels any in-flight compile;
+    // back-to-back keystrokes only run the final compile to completion.
+    //
+    // P13.7 placeholder: the original design (post-13 follow-up item 14)
+    // was "trigger a fresh compile on explicit user actions" — completion
+    // / rename / call-hierarchy block until the compile finishes. That
+    // requires response-queuing on the main thread; deferred until after
+    // phase-13 lands. For now we accept the per-keystroke cost as the
+    // cancellation token keeps it manageable.
+    trigger_compile(state, compile_tx);
 }
 
 fn handle_did_save(
