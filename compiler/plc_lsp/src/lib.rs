@@ -8,7 +8,7 @@
 #![allow(clippy::mutable_key_type)]
 
 use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Context as _;
 use crossbeam_channel::{select, Sender};
@@ -42,6 +42,8 @@ pub mod position;
 pub mod project;
 pub mod rename;
 pub mod reverse_index;
+pub mod token_cache;
+pub mod token_walk;
 pub mod watcher;
 
 const REPARSE_PROJECT_COMMAND: &str = "rusty.reparseProject";
@@ -115,6 +117,10 @@ pub struct ServerState {
     /// Counter for server-initiated request IDs (string-namespaced to
     /// avoid colliding with client-side IDs).
     pub next_request_id: u64,
+    /// Per-file cache of `lex_with_trivia` output. Keyed by path; entries
+    /// hash-invalidate on content change. Consumed by completion and hover
+    /// to walk tokens (and comments) around the cursor.
+    pub token_cache: token_cache::TokenCache,
 }
 
 impl ServerState {
@@ -141,7 +147,22 @@ impl ServerState {
             reverse_index: None,
             pending_registration: None,
             next_request_id: 0,
+            token_cache: token_cache::TokenCache::new(),
         }
+    }
+
+    /// Acquire source text for `path`. Returns the in-memory editor buffer
+    /// when the file is open, otherwise reads from disk. Owned `String` is
+    /// deliberate: the caller usually passes it into `token_cache` which
+    /// borrows `&mut self`, which would otherwise conflict with a borrow
+    /// of `self.documents`.
+    pub fn source_for(&self, path: &Path) -> Option<String> {
+        if let Some(uri) = project::path_to_file_uri(path) {
+            if let Some(buf) = self.documents.get(&uri) {
+                return Some(buf.content.clone());
+            }
+        }
+        std::fs::read_to_string(path).ok()
     }
 }
 
@@ -1106,6 +1127,9 @@ fn handle_did_close(state: &mut ServerState, notif: Notification) {
             return;
         }
     };
+    if let Some(path) = project::file_uri_to_path(&params.text_document.uri) {
+        state.token_cache.invalidate(&path);
+    }
     state.documents.close(&params.text_document.uri);
 }
 
