@@ -1,30 +1,23 @@
-//! `textDocument/completion` handler — phase 13 (P13.5 skeleton).
+//! `textDocument/completion` handler.
 //!
 //! Detects the user's completion context from the cursor position and emits
-//! a `CompletionList`. The context detector here is a byte-level heuristic:
-//! we walk back from the cursor through whitespace and inspect the
-//! preceding non-whitespace character (`.` → member access, `(` → call
-//! site, `:` → type position, etc.).
-//!
-//! The heuristic is deliberately not AST-based for P13.5. The lenient
-//! parser preserves enough structure that an AST-walk would also work for
-//! most cases (see the dot-path fix that emits `Member(EmptyStatement)`),
-//! but the A6 merge case (`foo.\na := 1;` parses cleanly as `foo.a := 1;`
-//! with no diagnostic) is genuinely invisible to the AST. Source bytes are
-//! the only signal that survives that case, so we make them the primary
-//! input here. P13.6 layers type-hint enrichment on top by consulting the
-//! AnnotationMap once the context is known.
-//!
-//! The handler returns an empty `CompletionList` for now — symbol
-//! enumeration is P13.6.
+//! a `CompletionList`. The Member context (cursor after `.`) walks the
+//! `lex_with_trivia` token stream so comments and arbitrary whitespace
+//! between the base and the dot no longer hide it. Other contexts (Call,
+//! TypePosition, Expression, Statement, TopLevel) currently fall back to a
+//! byte-level walk over the source and are migrated to TokenWalk in
+//! follow-up commits.
 
 use lsp_types::{
     CompletionItem, CompletionItemKind, CompletionList, CompletionTriggerKind, InsertTextFormat,
 };
 use plc::index::{Index, PouIndexEntry, VariableIndexEntry};
+use plc::lexer::{LspToken, Token};
 use plc::typesystem::DataTypeInformation;
 use plc_ast::ast::CompilationUnit;
 use plc_driver::pipelines::AnnotatedProject;
+
+use crate::token_walk::TokenWalk;
 
 /// Detected completion context at the user's cursor. Determines which
 /// category of items the handler emits and how to rank them.
@@ -70,13 +63,21 @@ pub enum CompletionContextKind {
     Statement,
 }
 
-/// Detect the completion context at the given cursor position by walking
-/// back from the cursor through whitespace and inspecting the preceding
-/// non-whitespace character (and a few characters of lookback for
-/// multi-char operators like `:=`).
+/// Detect the completion context at the cursor.
+///
+/// Member detection (cursor after `.`) goes through the `tokens` slice
+/// from `lex_with_trivia` — comments and arbitrary whitespace around the
+/// dot no longer hide it. The remaining branches (Call, TypePosition,
+/// Expression, Statement, TopLevel) still byte-walk over `source`;
+/// they are migrated to TokenWalk in follow-up commits.
 ///
 /// `cursor_byte_offset` is clamped to `source.len()`.
-pub fn detect_context(source: &str, cursor_byte_offset: usize) -> CompletionContextKind {
+pub fn detect_context(tokens: &[LspToken], source: &str, cursor_byte_offset: usize) -> CompletionContextKind {
+    let walk = TokenWalk::new(tokens);
+    if let Some(member) = detect_member_via_tokens(&walk, cursor_byte_offset) {
+        return member;
+    }
+
     let cursor = cursor_byte_offset.min(source.len());
     let bytes = source.as_bytes();
 
@@ -92,11 +93,6 @@ pub fn detect_context(source: &str, cursor_byte_offset: usize) -> CompletionCont
 
     let preceding = bytes[idx - 1];
     match preceding {
-        b'.' => {
-            let base_end = idx - 1;
-            let base_offset = scan_back_qualified_token(source, base_end);
-            CompletionContextKind::Member { base_offset, base_end }
-        }
         b'(' | b',' => {
             // Both `other(|` and `other(x,|` are call-context positions.
             // Walk back through the arg list to find the operator that
@@ -129,6 +125,64 @@ pub fn detect_context(source: &str, cursor_byte_offset: usize) -> CompletionCont
         b';' => CompletionContextKind::Statement,
         _ => CompletionContextKind::Expression { hint_type: None },
     }
+}
+
+/// Token-walk path for Member detection. Returns `Some(Member { ... })`
+/// when the last real token at-or-before the cursor is a `.`; otherwise
+/// `None`, deferring to the byte-walk fallback for non-Member contexts.
+///
+/// Replaces the old `byte == b'.'` heuristic which used to false-positive
+/// on `arr[1..|` (range syntax) and lost track when comments sat between
+/// the dot and the cursor.
+fn detect_member_via_tokens(walk: &TokenWalk, cursor: usize) -> Option<CompletionContextKind> {
+    let prev_idx = walk.prev_real_before(cursor)?;
+    if !matches!(walk.token_kind(prev_idx), Some(Token::KeywordDot)) {
+        return None;
+    }
+    let dot_range = walk.range_at(prev_idx)?;
+    let base_end = dot_range.start;
+    let base_offset = scan_base_via_tokens(walk, prev_idx);
+    Some(CompletionContextKind::Member { base_offset, base_end })
+}
+
+/// Walk LEFT from the `.` token, collecting the qualified base expression
+/// (`Identifier`, `.`, `^`, balanced `[ ... ]`). Returns the byte offset
+/// where the base starts; that, with the dot's `range.start` as the end,
+/// is the slice the enumerator passes to `Index::find_member` for type
+/// resolution.
+fn scan_base_via_tokens(walk: &TokenWalk, dot_idx: usize) -> usize {
+    let mut last_chain = dot_idx;
+    let mut current = dot_idx;
+    let mut bracket_depth: i32 = 0;
+    while let Some(prev) = walk.prev_real(current) {
+        let kind = walk.token_kind(prev);
+        let advance = match kind {
+            Some(Token::KeywordSquareParensClose) => {
+                bracket_depth += 1;
+                true
+            }
+            Some(Token::KeywordSquareParensOpen) => {
+                if bracket_depth == 0 {
+                    break;
+                }
+                bracket_depth -= 1;
+                true
+            }
+            _ if bracket_depth > 0 => true,
+            Some(Token::Identifier)
+            | Some(Token::KeywordDot)
+            | Some(Token::OperatorDeref)
+            | Some(Token::KeywordThis)
+            | Some(Token::KeywordSuper) => true,
+            _ => false,
+        };
+        if !advance {
+            break;
+        }
+        last_chain = prev;
+        current = prev;
+    }
+    walk.range_at(last_chain).map(|r| r.start).unwrap_or(0)
 }
 
 /// Scan back from `end` through identifier-only characters (alphanumerics,
@@ -829,14 +883,19 @@ const STATEMENT_KEYWORDS: &[&str] = &[
 /// `project` is optional — before the first successful compile only
 /// keyword-based enumerators (TopLevel, statement keywords) have data
 /// to emit; everything else returns an empty list.
+///
+/// `tokens` is the cached `lex_with_trivia` output for the current
+/// buffer; reused for context detection so completion costs O(log n)
+/// position lookup rather than re-lexing per request.
 pub fn items_at(
+    tokens: &[LspToken],
     source: &str,
     cursor_byte_offset: usize,
     trigger: Option<CompletionTriggerKind>,
     file_path: Option<&str>,
     project: Option<&AnnotatedProject>,
 ) -> CompletionList {
-    let context = detect_context(source, cursor_byte_offset);
+    let context = detect_context(tokens, source, cursor_byte_offset);
     let is_dot_trigger = matches!(trigger, Some(CompletionTriggerKind::TRIGGER_CHARACTER));
     log::debug!("completion: trigger={trigger:?} cursor={cursor_byte_offset} context={context:?}");
 
@@ -885,23 +944,32 @@ pub fn items_at(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use plc::lexer::lex_with_trivia;
 
     fn at(src: &str, marker: &str) -> usize {
         src.find(marker).expect("marker not found") + marker.len()
+    }
+
+    /// Convenience: lex the source and call `detect_context`. Lets tests
+    /// stay focused on the context-detection contract without restating
+    /// the cache integration on every call.
+    fn ctx(src: &str, cursor: usize) -> CompletionContextKind {
+        let tokens = lex_with_trivia(src);
+        detect_context(&tokens, src, cursor)
     }
 
     #[test]
     fn detect_member_after_dot() {
         let src = "    foo.";
         let cursor = at(src, "foo.");
-        assert!(matches!(detect_context(src, cursor), CompletionContextKind::Member { .. }));
+        assert!(matches!(ctx(src, cursor), CompletionContextKind::Member { .. }));
     }
 
     #[test]
     fn detect_member_captures_qualified_base() {
         let src = "    foo.bar.";
         let cursor = at(src, "foo.bar.");
-        match detect_context(src, cursor) {
+        match ctx(src, cursor) {
             CompletionContextKind::Member { base_offset, base_end } => {
                 assert_eq!(&src[base_offset..base_end], "foo.bar");
             }
@@ -913,7 +981,7 @@ mod tests {
     fn detect_member_handles_array_then_dot() {
         let src = "    arr[1].";
         let cursor = at(src, "arr[1].");
-        match detect_context(src, cursor) {
+        match ctx(src, cursor) {
             CompletionContextKind::Member { base_offset, base_end } => {
                 assert_eq!(&src[base_offset..base_end], "arr[1]");
             }
@@ -925,9 +993,25 @@ mod tests {
     fn detect_member_handles_deref() {
         let src = "    THIS^.";
         let cursor = at(src, "THIS^.");
-        match detect_context(src, cursor) {
+        match ctx(src, cursor) {
             CompletionContextKind::Member { base_offset, base_end } => {
                 assert_eq!(&src[base_offset..base_end], "THIS^");
+            }
+            other => panic!("expected Member, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn detect_member_after_comment_between_base_and_dot() {
+        // Comment between the base and the dot must not hide the dot from
+        // the detector — this is one of the bugs the token-cache migration
+        // targets.
+        let src = "    foo (* mid *).";
+        let cursor = at(src, "foo (* mid *).");
+        match ctx(src, cursor) {
+            CompletionContextKind::Member { base_offset, base_end } => {
+                let base = &src[base_offset..base_end];
+                assert!(base.starts_with("foo"), "expected base starting with foo, got {base:?}");
             }
             other => panic!("expected Member, got {other:?}"),
         }
@@ -937,7 +1021,7 @@ mod tests {
     fn detect_call_after_open_paren() {
         let src = "    other(";
         let cursor = at(src, "other(");
-        match detect_context(src, cursor) {
+        match ctx(src, cursor) {
             CompletionContextKind::Call { operator_offset, operator_end } => {
                 assert_eq!(&src[operator_offset..operator_end], "other");
             }
@@ -949,7 +1033,7 @@ mod tests {
     fn detect_call_after_comma() {
         let src = "    other(x,";
         let cursor = at(src, "other(x,");
-        match detect_context(src, cursor) {
+        match ctx(src, cursor) {
             CompletionContextKind::Call { operator_offset, operator_end } => {
                 assert_eq!(&src[operator_offset..operator_end], "other");
             }
@@ -961,14 +1045,14 @@ mod tests {
     fn detect_type_position_after_colon() {
         let src = "VAR x :";
         let cursor = at(src, "VAR x :");
-        assert_eq!(detect_context(src, cursor), CompletionContextKind::TypePosition);
+        assert_eq!(ctx(src, cursor), CompletionContextKind::TypePosition);
     }
 
     #[test]
     fn detect_expression_after_assignment() {
         let src = "a := ";
         let cursor = at(src, "a := ");
-        match detect_context(src, cursor) {
+        match ctx(src, cursor) {
             CompletionContextKind::Expression { .. } => {}
             other => panic!("expected Expression, got {other:?}"),
         }
@@ -978,19 +1062,19 @@ mod tests {
     fn detect_statement_after_semicolon() {
         let src = "a := 1;";
         let cursor = at(src, "a := 1;");
-        assert_eq!(detect_context(src, cursor), CompletionContextKind::Statement);
+        assert_eq!(ctx(src, cursor), CompletionContextKind::Statement);
     }
 
     #[test]
     fn detect_top_level_at_file_start() {
         let src = "";
-        assert_eq!(detect_context(src, 0), CompletionContextKind::TopLevel);
+        assert_eq!(ctx(src, 0), CompletionContextKind::TopLevel);
     }
 
     #[test]
     fn detect_top_level_with_leading_whitespace() {
         let src = "   \n  ";
-        assert_eq!(detect_context(src, src.len()), CompletionContextKind::TopLevel);
+        assert_eq!(ctx(src, src.len()), CompletionContextKind::TopLevel);
     }
 
     #[test]
@@ -999,7 +1083,8 @@ mod tests {
         // keyword list when the cursor is at file scope, because that
         // enumerator doesn't depend on the Index.
         let src = "";
-        let list = items_at(src, 0, None, None, None);
+        let tokens = lex_with_trivia(src);
+        let list = items_at(&tokens, src, 0, None, None, None);
         assert!(!list.is_incomplete);
         assert!(!list.items.is_empty(), "top-level keywords should surface without a project");
         let labels: Vec<&str> = list.items.iter().map(|i| i.label.as_str()).collect();
@@ -1013,7 +1098,9 @@ mod tests {
         // Dot-trigger with no project → no member info available → empty
         // list. We don't fall back to keyword spam after a `.`.
         let src = "foo.";
-        let list = items_at(src, src.len(), Some(CompletionTriggerKind::TRIGGER_CHARACTER), None, None);
+        let tokens = lex_with_trivia(src);
+        let list =
+            items_at(&tokens, src, src.len(), Some(CompletionTriggerKind::TRIGGER_CHARACTER), None, None);
         assert!(list.items.is_empty());
     }
 }

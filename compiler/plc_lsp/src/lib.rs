@@ -852,12 +852,13 @@ fn handle_rename(state: &ServerState, connection: &Connection, req: Request) {
     }
 }
 
-/// Answer `textDocument/completion` (phase 13 — P13.5 skeleton). Looks
-/// up the source for the cursor's URI, converts the position to a byte
-/// offset, and delegates context detection + item enumeration to
-/// `completion::items_at`. P13.5 returns an empty list; P13.6 fills in
-/// enumeration. Always returns a valid CompletionList; never errors.
-fn handle_completion(state: &ServerState, connection: &Connection, req: Request) {
+/// Answer `textDocument/completion`. Looks up the source for the cursor's
+/// URI, fetches the cached `lex_with_trivia` tokens for that file, and
+/// delegates context detection + item enumeration to
+/// `completion::items_at`. Always returns a valid CompletionList; never
+/// errors. Takes `&mut ServerState` because the token cache stores its
+/// hash-indexed entries inside it.
+fn handle_completion(state: &mut ServerState, connection: &Connection, req: Request) {
     let req_id = req.id.clone();
     let params: CompletionParams = match serde_json::from_value(req.params) {
         Ok(p) => p,
@@ -882,15 +883,19 @@ fn handle_completion(state: &ServerState, connection: &Connection, req: Request)
     ) {
         Some((path, byte_offset)) => {
             let path_str = path.to_string_lossy().into_owned();
-            let source = source_contents.get(&path_str);
+            let source = source_contents.get(&path_str).cloned();
             match source {
-                Some(src) => completion::items_at(
-                    src,
-                    byte_offset,
-                    trigger,
-                    Some(path_str.as_str()),
-                    state.annotated.as_ref(),
-                ),
+                Some(src) => {
+                    let tokens = state.token_cache.get_or_recompute(&path, &src);
+                    completion::items_at(
+                        tokens.as_slice(),
+                        &src,
+                        byte_offset,
+                        trigger,
+                        Some(path_str.as_str()),
+                        state.annotated.as_ref(),
+                    )
+                }
                 None => CompletionList { is_incomplete: false, items: vec![] },
             }
         }
