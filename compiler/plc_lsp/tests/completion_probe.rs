@@ -17,7 +17,10 @@ use lsp_types::{
 use serde_json::{json, Value};
 use tempfile::TempDir;
 
-// MAIN_ST line layout (0-based, matches Position.line in LSP):
+// MAIN_ST line layout (0-based, matches Position.line in LSP). Designed
+// so each P13.7 probe lands on a deliberate cursor position with the
+// shape it exercises.
+//
 //   0:  TYPE Point : STRUCT
 //   1:      x : DINT;
 //   2:      y : DINT;
@@ -38,13 +41,27 @@ use tempfile::TempDir;
 //  17:  FUNCTION main : DINT
 //  18:  VAR
 //  19:      p : Point;
-//  20:      n : DINT;
-//  21:      flag : BOOL;
-//  22:  END_VAR
-//  23:      n := p.x;
-//  24:                              ← statement-position probe lands here (line 24, char 4)
-//  25:  END_FUNCTION
-const MAIN_ST: &str = "TYPE Point : STRUCT\n    x : DINT;\n    y : DINT;\n    name : STRING;\nEND_STRUCT END_TYPE\n\nVAR_GLOBAL\n    origin : Point;\nEND_VAR\n\nFUNCTION compute : DINT\nVAR_INPUT\n    value : DINT;\nEND_VAR\n    compute := value * 2;\nEND_FUNCTION\n\nFUNCTION main : DINT\nVAR\n    p : Point;\n    n : DINT;\n    flag : BOOL;\nEND_VAR\n    n := p.x;\n    \nEND_FUNCTION\n";
+//  20:      points : ARRAY[1..3] OF Point;
+//  21:      n : DINT;
+//  22:      flag : BOOL;
+//  23:  END_VAR
+//  24:      n := p.x;
+//  25:                              ← statement-position probe lands here
+//  26:      FOR n := 1 TO          ← FOR-counter type-hint probe lands here
+//  27:          ;                  (closes the FOR)
+//  28:      END_FOR;
+//  29:      WHILE                   ← WHILE-condition type-hint probe lands here
+//  30:          DO
+//  31:          ;
+//  32:      END_WHILE;
+//  33:      n := points[                ← array-index DINT-hint probe lands here
+//  34:                                  (closes the index)
+//  35:      ];
+//  36:      n := points[1].             ← array-element member-access probe lands here
+//  37:                                  (closes the expression)
+//  38:      ;
+//  39:  END_FUNCTION
+const MAIN_ST: &str = "TYPE Point : STRUCT\n    x : DINT;\n    y : DINT;\n    name : STRING;\nEND_STRUCT END_TYPE\n\nVAR_GLOBAL\n    origin : Point;\nEND_VAR\n\nFUNCTION compute : DINT\nVAR_INPUT\n    value : DINT;\nEND_VAR\n    compute := value * 2;\nEND_FUNCTION\n\nFUNCTION main : DINT\nVAR\n    p : Point;\n    points : ARRAY[1..3] OF Point;\n    n : DINT;\n    flag : BOOL;\nEND_VAR\n    n := p.x;\n    \n    FOR n := 1 TO \n        ;\n    END_FOR;\n    WHILE \n        DO\n        ;\n    END_WHILE;\n    n := points[\n    ];\n    n := points[1].\n    ;\nEND_FUNCTION\n";
 
 #[test]
 fn completion_probe() {
@@ -66,46 +83,99 @@ fn completion_probe() {
     //     position the cursor right after `p.`). The buffer already has
     //     `p.x` on that line — we use character index immediately after
     //     the `.`. Member context, expects `x`, `y`, `name` from Point.
-    let dot_pos = Position { line: 23, character: 11 };
+    // --- Case 1: Struct member access (`p.|`). Dot-trigger restricts
+    //     output to members only — no keywords / locals / POUs.
+    let dot_pos = Position { line: 24, character: 11 };
     let dot_items = completion(&client_conn, &main_uri, dot_pos, Some(2), Some("."));
     let dot_labels = labels_of(&dot_items);
-    assert!(dot_labels.contains(&"x".to_string()), "member access: x missing in {dot_labels:?}");
-    assert!(dot_labels.contains(&"y".to_string()), "member access: y missing in {dot_labels:?}");
-    assert!(dot_labels.contains(&"name".to_string()), "member access: name missing in {dot_labels:?}");
-    // Dot-trigger routing: only members, no keywords / locals / POUs.
+    assert_eq!(dot_labels.len(), 3, "struct member access should emit exactly 3 fields: {dot_labels:?}");
+    assert!(dot_labels.contains(&"x".to_string()));
+    assert!(dot_labels.contains(&"y".to_string()));
+    assert!(dot_labels.contains(&"name".to_string()));
     assert!(!dot_labels.contains(&"IF".to_string()), "dot trigger leaked keyword IF");
     assert!(!dot_labels.contains(&"main".to_string()), "dot trigger leaked POU name");
-    assert!(!dot_labels.contains(&"flag".to_string()), "dot trigger leaked local 'flag'");
 
-    // --- Same position, but ctrl-space (Invoked). Detector still sees
-    //     `.` immediately before the cursor → still member context.
+    // --- Case 2: Same position via ctrl-space — still member context.
     let invoked = completion(&client_conn, &main_uri, dot_pos, Some(1), None);
-    let invoked_labels = labels_of(&invoked);
-    assert!(invoked_labels.contains(&"x".to_string()));
+    assert!(labels_of(&invoked).contains(&"x".to_string()));
 
-    // --- Statement position (ctrl-space on the empty body line right
-    //     after `n := p.x;`). The previous non-whitespace byte is the
-    //     `;` ending that statement → Statement context. Emits locals,
-    //     globals, POU names, statement keywords.
-    let stmt_items = completion(&client_conn, &main_uri, Position { line: 24, character: 4 }, Some(1), None);
+    // --- Case 3: Statement position (ctrl-space on empty body line).
+    //     Previous non-whitespace byte is `;` → Statement. Emits
+    //     locals + globals + POU names + statement keywords. The
+    //     synthesised lowering POUs (`__unit_xxx__ctor`, `Point__ctor`)
+    //     must be filtered out per the P13.7 noise pass.
+    let stmt_items = completion(&client_conn, &main_uri, Position { line: 25, character: 4 }, Some(1), None);
     let stmt_labels = labels_of(&stmt_items);
     assert!(stmt_labels.contains(&"p".to_string()), "stmt: local p missing");
-    assert!(stmt_labels.contains(&"n".to_string()), "stmt: local n missing");
-    assert!(stmt_labels.contains(&"flag".to_string()), "stmt: local flag missing");
+    assert!(stmt_labels.contains(&"points".to_string()), "stmt: local points missing");
     assert!(stmt_labels.contains(&"origin".to_string()), "stmt: global origin missing");
     assert!(stmt_labels.contains(&"compute".to_string()), "stmt: POU compute missing");
     assert!(stmt_labels.contains(&"IF".to_string()), "stmt: keyword IF missing");
     assert!(stmt_labels.contains(&"FOR".to_string()), "stmt: keyword FOR missing");
+    for l in &stmt_labels {
+        assert!(!l.contains("__ctor"), "stmt: generated __ctor POU leaked: {l}");
+        assert!(!l.starts_with("__"), "stmt: synthesised __-prefixed POU leaked: {l}");
+    }
+
+    // --- Case 4: FOR counter type-hint. `FOR n := 1 TO ⎵` with `n :
+    //     DINT`. Hint = DINT, so DINT-typed items get sortText with a
+    //     leading `-` and float above BOOL-typed items in tier 0.
+    let for_items = completion(&client_conn, &main_uri, Position { line: 26, character: 18 }, Some(1), None);
+    let for_labels_with_sort = items_with_sort(&for_items);
+    let n_sort = sort_of(&for_labels_with_sort, "n");
+    let flag_sort = sort_of(&for_labels_with_sort, "flag");
+    assert!(n_sort.is_some(), "FOR hint: local n missing");
+    assert!(flag_sort.is_some(), "FOR hint: local flag missing");
+    let n_sort = n_sort.unwrap();
+    let flag_sort = flag_sort.unwrap();
+    assert!(
+        n_sort.starts_with('-'),
+        "FOR DINT hint: n should have type-match discount; got sortText={n_sort:?}"
+    );
+    assert!(
+        !flag_sort.starts_with('-'),
+        "FOR DINT hint: flag (BOOL) should NOT have discount; got {flag_sort:?}"
+    );
+
+    // --- Case 5: WHILE condition type-hint. Hint = BOOL.
+    let while_items =
+        completion(&client_conn, &main_uri, Position { line: 29, character: 10 }, Some(1), None);
+    let while_sorts = items_with_sort(&while_items);
+    let flag_sort = sort_of(&while_sorts, "flag").expect("flag missing in WHILE hint");
+    let n_sort = sort_of(&while_sorts, "n").expect("n missing in WHILE hint");
+    assert!(flag_sort.starts_with('-'), "WHILE BOOL hint: flag should have discount; got {flag_sort:?}");
+    assert!(!n_sort.starts_with('-'), "WHILE BOOL hint: n (DINT) should NOT have discount; got {n_sort:?}");
+
+    // --- Case 6: Array index DINT-hint. `points[⎵`.
+    let idx_items = completion(&client_conn, &main_uri, Position { line: 33, character: 16 }, Some(1), None);
+    let idx_sorts = items_with_sort(&idx_items);
+    let n_sort = sort_of(&idx_sorts, "n").expect("n missing in array-index hint");
+    assert!(n_sort.starts_with('-'), "array-index DINT hint: n should have discount; got {n_sort:?}");
+
+    // --- Case 7: Array-element member access. `points[1].⎵` — element
+    //     type is Point, members `x`, `y`, `name` should all appear.
+    let arr_mem_items =
+        completion(&client_conn, &main_uri, Position { line: 35, character: 19 }, Some(2), Some("."));
+    let arr_mem_labels = labels_of(&arr_mem_items);
+    assert!(
+        arr_mem_labels.contains(&"x".to_string()),
+        "array-element member access: x missing in {arr_mem_labels:?}"
+    );
+    assert!(arr_mem_labels.contains(&"y".to_string()));
+    assert!(arr_mem_labels.contains(&"name".to_string()));
 
     eprintln!("\n=== completion_probe ===");
-    eprintln!("member-access items @ p.|  ({}):", dot_labels.len());
-    for l in &dot_labels {
-        eprintln!("    {l}");
-    }
-    eprintln!("\nstatement items @ body-start  ({}):", stmt_labels.len());
+    eprintln!("Case 1: struct member access `p.|`  ({}): {:?}", dot_labels.len(), dot_labels);
+    eprintln!("Case 3: statement-position  ({}):", stmt_labels.len());
     for l in stmt_labels.iter().take(20) {
         eprintln!("    {l}");
     }
+    eprintln!(
+        "Case 4: FOR DINT hint — n sortText {n_sort:?}, flag sortText {flag_sort:?}",
+        n_sort = sort_of(&for_labels_with_sort, "n").unwrap(),
+        flag_sort = sort_of(&for_labels_with_sort, "flag").unwrap()
+    );
+    eprintln!("Case 7: `points[1].|`  ({}): {:?}", arr_mem_labels.len(), arr_mem_labels);
 
     shutdown(&client_conn);
     server_thread.join().expect("server thread").expect("server returned error");
@@ -222,6 +292,27 @@ fn labels_of(response: &Value) -> Vec<String> {
             arr.iter().filter_map(|i| i.get("label").and_then(|l| l.as_str()).map(String::from)).collect()
         })
         .unwrap_or_default()
+}
+
+/// Returns `(label, sortText)` for every item in the response. Used by
+/// ranking-assertion probes that need to inspect the type-hint discount.
+fn items_with_sort(response: &Value) -> Vec<(String, String)> {
+    let items = response.get("items").and_then(|v| v.as_array()).or_else(|| response.as_array());
+    items
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|i| {
+                    let label = i.get("label").and_then(|l| l.as_str())?.to_string();
+                    let sort = i.get("sortText").and_then(|s| s.as_str())?.to_string();
+                    Some((label, sort))
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn sort_of(items: &[(String, String)], label: &str) -> Option<String> {
+    items.iter().find(|(l, _)| l == label).map(|(_, s)| s.clone())
 }
 
 fn drain_until_response(client: &Connection, expected_id: i32) {

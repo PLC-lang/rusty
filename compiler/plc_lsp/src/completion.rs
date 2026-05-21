@@ -131,6 +131,106 @@ pub fn detect_context(source: &str, cursor_byte_offset: usize) -> CompletionCont
     }
 }
 
+/// Scan back from `end` through identifier-only characters (alphanumerics,
+/// `_`). Returns the word's `(start, end)` byte range, or `None` if `end`
+/// isn't preceded by an identifier character. Used by the byte-based
+/// hint refiner to read the preceding keyword (`WHILE`, `IF`, `TO`, ...).
+fn scan_back_word(source: &str, end: usize) -> Option<(usize, usize)> {
+    let bytes = source.as_bytes();
+    if end == 0 || !is_ident_byte(bytes[end - 1]) {
+        return None;
+    }
+    let mut start = end;
+    while start > 0 && is_ident_byte(bytes[start - 1]) {
+        start -= 1;
+    }
+    Some((start, end))
+}
+
+fn is_ident_byte(c: u8) -> bool {
+    c.is_ascii_alphanumeric() || c == b'_'
+}
+
+/// Refine an `Expression { hint_type: None }` to carry a concrete hint
+/// when the byte context immediately before the cursor implies one:
+///
+///   - `[`         → array index slot → `DINT`
+///   - `WHILE` / `UNTIL` / `IF` / `ELSIF` word preceding → `BOOL`
+///   - `TO` / `BY` word preceding inside a FOR — scan back to the
+///     counter's identifier and look up its type
+///
+/// Returns `None` when no hint can be inferred (cursor is in a generic
+/// expression slot).
+fn refine_expression_hint(
+    source: &str,
+    cursor: usize,
+    enclosing_pou: Option<&str>,
+    index: &Index,
+) -> Option<String> {
+    let bytes = source.as_bytes();
+    let mut idx = cursor.min(source.len());
+    while idx > 0 && bytes[idx - 1].is_ascii_whitespace() {
+        idx -= 1;
+    }
+    if idx == 0 {
+        return None;
+    }
+    // Array-index slot: preceding non-whitespace byte is `[`.
+    if bytes[idx - 1] == b'[' {
+        return Some("DINT".to_string());
+    }
+    // Otherwise look at the preceding word.
+    let (word_start, word_end) = scan_back_word(source, idx)?;
+    let word = &source[word_start..word_end];
+    match word.to_uppercase().as_str() {
+        "WHILE" | "UNTIL" | "IF" | "ELSIF" => Some("BOOL".to_string()),
+        "TO" | "BY" => for_counter_type(source, word_start, enclosing_pou, index).map(String::from),
+        _ => None,
+    }
+}
+
+/// `FOR <counter> := <start> TO <cursor>` — scan back from the `TO`/`BY`
+/// keyword to find the counter identifier (the leftmost token in the
+/// FOR header before the `:=`). Returns the counter's declared type
+/// from the Index, or `None` if the lookback hits something unexpected.
+fn for_counter_type<'a>(
+    source: &str,
+    to_word_start: usize,
+    enclosing_pou: Option<&'a str>,
+    index: &'a Index,
+) -> Option<&'a str> {
+    let bytes = source.as_bytes();
+    // Walk back to find `:=`. Bail if we don't find it within a few
+    // hundred bytes (defensive — a real FOR header is short).
+    let limit = to_word_start.saturating_sub(512);
+    let mut probe = to_word_start;
+    while probe > limit {
+        probe = probe.saturating_sub(1);
+        if probe + 1 < source.len() && bytes[probe] == b':' && bytes[probe + 1] == b'=' {
+            // Found `:=`. The counter identifier is the word immediately
+            // before, skipping whitespace.
+            let mut id_end = probe;
+            while id_end > 0 && bytes[id_end - 1].is_ascii_whitespace() {
+                id_end -= 1;
+            }
+            let (id_start, id_end) = scan_back_word(source, id_end)?;
+            let counter = &source[id_start..id_end];
+            // Make sure the keyword before the counter is FOR (defensive
+            // — guards against treating non-FOR `:=` as a counter).
+            let mut for_end = id_start;
+            while for_end > 0 && bytes[for_end - 1].is_ascii_whitespace() {
+                for_end -= 1;
+            }
+            let (for_start, for_end) = scan_back_word(source, for_end)?;
+            if !source[for_start..for_end].eq_ignore_ascii_case("FOR") {
+                return None;
+            }
+            return resolve_simple_variable_type(counter, enclosing_pou, index);
+        }
+    }
+    None
+}
+
 /// Scan back from `end` through identifier/qualified-access characters
 /// (alphanumerics, `_`, `^`, `.`, `[`, `]`) to find the start of the base
 /// expression. Stops at the first non-token character. Used by the member
@@ -335,28 +435,103 @@ fn make_keyword_item(keyword: &str, tier: u8) -> CompletionItem {
 }
 
 /// Resolve a base expression captured by the byte-heuristic detector
-/// (`foo`, `foo.bar`, `THIS^`, etc.) to the type name whose members we
-/// should enumerate. Bare identifiers, simple `.` chains, and `THIS^` /
-/// `SUPER^` are handled. Array-indexed bases (`arr[1].|`) return `None`
-/// for now — element-type-aware member access is a P13.6+ refinement.
+/// (`foo`, `foo.bar`, `THIS^`, `arr[1]`, `arr[1].field` …) to the type
+/// name whose members we should enumerate. Bare identifiers, simple
+/// `.` chains, `THIS^` / `SUPER^`, and arrays-indexed bases are all
+/// handled. Member chains traverse via `Index::find_member`; array
+/// indexing peels the element type from `DataTypeInformation::Array`.
 fn resolve_base_to_type<'a>(
     base_text: &str,
     enclosing_pou: Option<&'a str>,
     index: &'a Index,
 ) -> Option<&'a str> {
-    if base_text.contains('[') {
-        return None;
-    }
     let base = base_text.trim_end_matches('^');
     if base == "THIS" || base == "SUPER" {
         return enclosing_pou;
     }
-    match base.split_once('.') {
-        Some((head, rest)) => {
-            let head_type = resolve_simple_variable_type(head, enclosing_pou, index)?;
-            walk_member_chain(head_type, rest, index)
+    // Peel one head segment at a time. A segment is either an identifier
+    // (`foo`) or an identifier followed by `[..]` (`arr[1]`), separated
+    // by `.`. We resolve `head` to a type, then walk the remaining
+    // segments through `find_member` / array-element peeling.
+    let mut segments = split_member_segments(base);
+    let head = segments.next()?;
+    let mut current_type = resolve_segment(head, enclosing_pou, index)?;
+    for segment in segments {
+        current_type = step_member(current_type, segment, index)?;
+    }
+    Some(current_type)
+}
+
+/// Split `foo.bar[1].baz` into `["foo", "bar[1]", "baz"]`. Honours
+/// `.`-separation outside brackets so bounds expressions like
+/// `arr[foo.bar]` don't get split mid-index.
+fn split_member_segments(s: &str) -> impl Iterator<Item = &str> + '_ {
+    let bytes = s.as_bytes();
+    let mut segments = Vec::new();
+    let mut start = 0;
+    let mut depth: i32 = 0;
+    for (i, &c) in bytes.iter().enumerate() {
+        match c {
+            b'[' => depth += 1,
+            b']' => depth -= 1,
+            b'.' if depth == 0 => {
+                if i > start {
+                    segments.push(&s[start..i]);
+                }
+                start = i + 1;
+            }
+            _ => {}
         }
-        None => resolve_simple_variable_type(base, enclosing_pou, index),
+    }
+    if start < s.len() {
+        segments.push(&s[start..]);
+    }
+    segments.into_iter()
+}
+
+/// Resolve the *first* segment of a base expression. Pure identifier →
+/// variable lookup (POU member or global). Identifier-with-brackets
+/// (`arr[1]`) → look up the array, then peel the element type from its
+/// `DataTypeInformation::Array`.
+fn resolve_segment<'a>(segment: &str, enclosing_pou: Option<&'a str>, index: &'a Index) -> Option<&'a str> {
+    let (name, has_index) = match segment.find('[') {
+        Some(i) => (&segment[..i], true),
+        None => (segment, false),
+    };
+    let var_type = resolve_simple_variable_type(name, enclosing_pou, index)?;
+    if has_index {
+        array_element_type(var_type, index)
+    } else {
+        Some(var_type)
+    }
+}
+
+/// Step one member into the chain. Honours `[..]` on the segment so
+/// `field[3].next` properly walks to the indexed element's type.
+fn step_member<'a>(current_type: &'a str, segment: &str, index: &'a Index) -> Option<&'a str> {
+    let (name, has_index) = match segment.find('[') {
+        Some(i) => (&segment[..i], true),
+        None => (segment, false),
+    };
+    if name.is_empty() {
+        return None;
+    }
+    let member_type = index.find_member(current_type, name)?.get_type_name();
+    if has_index {
+        array_element_type(member_type, index)
+    } else {
+        Some(member_type)
+    }
+}
+
+/// Peel the element type from an array type. Returns `None` if the
+/// type isn't an array (`arr[1].|` only makes sense if `arr` is an
+/// `ARRAY[..] OF T`).
+fn array_element_type<'a>(type_name: &str, index: &'a Index) -> Option<&'a str> {
+    let ty = index.find_type(type_name)?;
+    match ty.get_type_information() {
+        DataTypeInformation::Array { inner_type_name, .. } => Some(inner_type_name.as_str()),
+        _ => None,
     }
 }
 
@@ -371,18 +546,6 @@ fn resolve_simple_variable_type<'a>(
         }
     }
     index.find_global_variable(name).map(|g| g.get_type_name())
-}
-
-fn walk_member_chain<'a>(start_type: &'a str, rest: &str, index: &'a Index) -> Option<&'a str> {
-    let mut current = start_type;
-    for segment in rest.split('.') {
-        if segment.is_empty() {
-            continue;
-        }
-        let member = index.find_member(current, segment)?;
-        current = member.get_type_name();
-    }
-    Some(current)
 }
 
 // --- Per-context enumerators ---
@@ -482,6 +645,16 @@ fn enumerate_expression_or_statement(
         // Method POUs reached via `instance.method(...)`, not as bare
         // identifiers — skip in expression context.
         if matches!(pou, PouIndexEntry::Method { .. }) {
+            continue;
+        }
+        // Lowering synthesises `__ctor` and similar internal POUs that
+        // aren't user-callable; filter them. `is_generated` covers
+        // generic instantiations; the `__` name prefix covers the rest
+        // (PolymorphismLowerer / PropertyLowerer / InitParticipant).
+        if matches!(pou, PouIndexEntry::Function { is_generated: true, .. })
+            || pou.get_name().starts_with("__")
+            || pou.get_name().ends_with("__ctor")
+        {
             continue;
         }
         items.push(make_pou_item(pou, 3, hint_type));
@@ -600,7 +773,12 @@ pub fn items_at(
         }
         (CompletionContextKind::TypePosition, false, Some(p)) => enumerate_type_position(&p.index),
         (CompletionContextKind::Expression { hint_type }, false, Some(p)) => {
-            enumerate_expression_or_statement(enclosing_pou, &p.index, hint_type.as_deref(), false)
+            // hint_type is `None` from the detector; refine via byte
+            // patterns (WHILE → BOOL, `[` → DINT, FOR counter lookup …).
+            let refined_owned = hint_type
+                .clone()
+                .or_else(|| refine_expression_hint(source, cursor_byte_offset, enclosing_pou, &p.index));
+            enumerate_expression_or_statement(enclosing_pou, &p.index, refined_owned.as_deref(), false)
         }
         (CompletionContextKind::Statement, false, Some(p)) => {
             enumerate_expression_or_statement(enclosing_pou, &p.index, None, true)

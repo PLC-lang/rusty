@@ -282,7 +282,15 @@ fn run_stages(
     pipeline: &mut plc_driver::pipelines::BuildPipeline<plc_source::SourceCode>,
 ) -> Result<plc_driver::pipelines::AnnotatedProject, plc_diagnostics::diagnostics::Diagnostic> {
     use plc_driver::pipelines::Pipeline as _;
-    let parsed = pipeline.parse()?;
+    // Lenient parse: the LSP worker must produce a partial AST even when
+    // error-severity parse diagnostics fired so the user's mid-typing
+    // buffers update the cached `annotated` state. `parse_lenient`
+    // collects diagnostics through the same diagnostician but never bails.
+    // Lowering-on-partial-AST safety was probed (see
+    // `lenient_completion_probe::lowering_on_partial_ast` in plc-compiler)
+    // — none of the 11 default mut_participants panic on the partial
+    // shapes the dot-path / VAR / POU-sync recovery emit.
+    let parsed = pipeline.parse_lenient();
     let indexed = pipeline.index(parsed)?;
     let annotated = pipeline.annotate(indexed)?;
     // `validate` takes &self; ignore its Result (existing carve-out
