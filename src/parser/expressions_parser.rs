@@ -417,7 +417,7 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Option<AstNode> {
     // like `foo()[...]^` and `foo()^[...]`.
     let mut result = call;
     loop {
-        if lexer.try_consume(KeywordSquareParensOpen) {
+        if lexer.try_cXXXXXXXonsume(KeywordSquareParensOpen) {
             let index = parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
             result = AstFactory::create_index_reference(
                 index,
