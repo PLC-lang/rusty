@@ -98,6 +98,14 @@ pub struct CompileResult {
     /// `annotated.units` after annotation completes. `None` whenever
     /// `annotated` is.
     pub reverse_index: Option<ReverseIndex>,
+    /// Absolute paths of every source file the worker tried to load
+    /// (project sources + project includes + library includes). The
+    /// main thread uses this to know which URIs to publish empty
+    /// diagnostics for on a clean compile, so the editor clears any
+    /// stale errors from a previous LSP session that this server
+    /// otherwise wouldn't know about (its own `published_uris`
+    /// starts empty on restart).
+    pub project_paths: Vec<PathBuf>,
 }
 
 /// Handles to the compile worker. Call `join` to stop it cleanly; if
@@ -176,6 +184,7 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
         annotated: None,
         ctxt: None,
         reverse_index: None,
+        project_paths: Vec::new(),
     };
 
     let Some(config_path) = snapshot.plc_config_path.as_deref() else {
@@ -209,6 +218,12 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
     for lib in project.get_libraries() {
         sources.extend(build_sources(lib.get_includes(), &no_overrides));
     }
+    // Track the project source paths separately so the main thread can
+    // clear stale diagnostics for them on a clean compile — see L4 in
+    // the phase-13 plan. We don't include library / project includes
+    // here because the editor wouldn't have published diagnostics for
+    // those (they're not the user's files).
+    let project_paths: Vec<PathBuf> = project.get_sources().to_vec();
     log::debug!("compile: built {} sources (incl. includes + library headers)", sources.len());
 
     // For utf-16 we need the source text on the main thread to convert
@@ -244,6 +259,7 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
                 annotated: None,
                 ctxt: None,
                 reverse_index: None,
+                project_paths: project_paths.clone(),
             }));
         }
     };
@@ -302,6 +318,7 @@ fn run_compile(req: CompileRequest) -> CompileOutcome {
         annotated,
         ctxt,
         reverse_index,
+        project_paths,
     }))
 }
 

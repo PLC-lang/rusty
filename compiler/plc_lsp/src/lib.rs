@@ -1354,8 +1354,19 @@ fn publish_diagnostics(state: &mut ServerState, connection: &Connection, result:
     );
     let new_uris: HashSet<Uri> = grouped.keys().cloned().collect();
 
-    // Clear diagnostics for any URI we published last time but isn't in the new set.
-    for stale in state.published_uris.difference(&new_uris) {
+    // Build the "expected to be empty" set: every project URI the worker
+    // touched that doesn't have diagnostics this round. We track this via
+    // `result.project_paths` so a fresh LSP session can clear stale
+    // diagnostics the editor was still showing from a *previous* session
+    // — `state.published_uris` is empty on restart and can't drive that
+    // by itself (L4 fix).
+    let project_uris: HashSet<Uri> =
+        result.project_paths.iter().filter_map(|p| diagnostics::path_to_uri(p.to_str()?)).collect();
+    let mut clear_set: HashSet<Uri> = state.published_uris.union(&project_uris).cloned().collect();
+    for uri in &new_uris {
+        clear_set.remove(uri);
+    }
+    for stale in &clear_set {
         send_diagnostics(connection, stale.clone(), Vec::new(), None);
     }
 

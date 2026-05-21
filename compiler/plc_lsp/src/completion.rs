@@ -386,12 +386,16 @@ fn make_pou_item(entry: &PouIndexEntry, tier: u8, hint_type: Option<&str>) -> Co
         PouIndexEntry::Class { name, .. } => {
             (name.clone(), CompletionItemKind::CLASS, format!("CLASS {name}"), name.as_str())
         }
-        PouIndexEntry::Method { name, return_type, .. } => (
-            name.clone(),
-            CompletionItemKind::METHOD,
-            format!("METHOD {name} : {return_type}"),
-            return_type.as_str(),
-        ),
+        PouIndexEntry::Method { name, return_type, parent_name, .. } => {
+            // Methods are indexed as `Parent.method` — strip the parent
+            // prefix from the label so completion in `w.|` shows `process`
+            // (not `Worker.process`). Keep the qualified name in `detail`
+            // so the user can still distinguish overloads / inherited
+            // methods at a glance.
+            let prefix = format!("{parent_name}.");
+            let bare = name.strip_prefix(&prefix).unwrap_or(name).to_string();
+            (bare, CompletionItemKind::METHOD, format!("METHOD {name} : {return_type}"), return_type.as_str())
+        }
         PouIndexEntry::Action { name, .. } => {
             (name.clone(), CompletionItemKind::METHOD, format!("ACTION {name}"), name.as_str())
         }
@@ -616,17 +620,22 @@ fn enumerate_call(
 
 fn enumerate_type_position(index: &Index) -> Vec<CompletionItem> {
     let mut items: Vec<CompletionItem> = Vec::new();
-    for ty_name in index.get_types().keys() {
-        if is_synthetic_name(ty_name) {
+    // Iterate values so we read the original-case name off `DataType.name`
+    // rather than the lowercased SymbolMap key (which would show `dint` /
+    // `point` instead of `DINT` / `Point` to the user).
+    for (_key, datatype) in index.get_types().elements() {
+        let label = datatype.get_name();
+        if is_synthetic_name(label) {
             continue;
         }
-        items.push(make_type_item(ty_name, 0));
+        items.push(make_type_item(label, 0));
     }
-    for pou_ty in index.get_pou_types().keys() {
-        if is_synthetic_name(pou_ty) {
+    for (_key, datatype) in index.get_pou_types().elements() {
+        let label = datatype.get_name();
+        if is_synthetic_name(label) {
             continue;
         }
-        items.push(make_type_item(pou_ty, 0));
+        items.push(make_type_item(label, 0));
     }
     items
 }
@@ -655,19 +664,23 @@ fn enumerate_expression_or_statement(
     for global in index.get_globals().values() {
         items.push(make_variable_item(global, 2, hint_type));
     }
+    // POU map can hold multiple entries per qualified name (the user's
+    // POU + a lowering-synthesised wrapper share the same key in the
+    // SymbolMap). Dedup on qualified name so `main` doesn't surface
+    // twice — see L10. Filter methods / synthetic / generated before
+    // the dedup so we don't accidentally keep a Method version of a
+    // user POU.
+    let mut seen: std::collections::HashSet<&str> = std::collections::HashSet::new();
     for pou in index.get_pous().values() {
-        // Method POUs reached via `instance.method(...)`, not as bare
-        // identifiers — skip in expression context.
         if matches!(pou, PouIndexEntry::Method { .. }) {
             continue;
         }
-        // Lowering synthesises `__ctor` and similar internal POUs that
-        // aren't user-callable; filter them. `is_generated` covers
-        // generic instantiations; the `__` name prefix / `__ctor` suffix
-        // cover PolymorphismLowerer / PropertyLowerer / InitParticipant.
         if matches!(pou, PouIndexEntry::Function { is_generated: true, .. })
             || is_synthetic_name(pou.get_name())
         {
+            continue;
+        }
+        if !seen.insert(pou.get_name()) {
             continue;
         }
         items.push(make_pou_item(pou, 3, hint_type));
@@ -687,11 +700,19 @@ fn enumerate_top_level() -> Vec<CompletionItem> {
 
 fn enumerate_var_global_block(index: &Index) -> Vec<CompletionItem> {
     let mut items: Vec<CompletionItem> = vec![make_keyword_item("CONSTANT", 0)];
-    for ty_name in index.get_types().keys() {
-        items.push(make_type_item(ty_name, 1));
+    for (_key, datatype) in index.get_types().elements() {
+        let label = datatype.get_name();
+        if is_synthetic_name(label) {
+            continue;
+        }
+        items.push(make_type_item(label, 1));
     }
-    for pou_ty in index.get_pou_types().keys() {
-        items.push(make_type_item(pou_ty, 1));
+    for (_key, datatype) in index.get_pou_types().elements() {
+        let label = datatype.get_name();
+        if is_synthetic_name(label) {
+            continue;
+        }
+        items.push(make_type_item(label, 1));
     }
     items
 }

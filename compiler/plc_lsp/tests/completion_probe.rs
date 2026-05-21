@@ -198,14 +198,14 @@ fn completion_probe() {
 
     // --- Case 10 (Q7-10): Type-position. Cursor right after the `:` in
     //     `value : DINT;` (line 12 char 11). Emits only types — no
-    //     locals, no statement keywords. Note: the Index lowercases
-    //     type names so labels are `dint` / `point`, not `DINT` /
-    //     `Point` — display-case fidelity is a post-13 follow-up.
+    //     locals, no statement keywords. Labels preserve original case
+    //     by reading `DataType.name` (L8 fix); the SymbolMap key alone
+    //     would yield lowercase.
     let type_items = completion(&client_conn, &main_uri, Position { line: 12, character: 11 }, Some(1), None);
     let type_labels = labels_of(&type_items);
-    assert!(type_labels.contains(&"dint".to_string()), "type pos: dint missing in {type_labels:?}");
-    assert!(type_labels.contains(&"bool".to_string()), "type pos: bool missing");
-    assert!(type_labels.contains(&"point".to_string()), "type pos: user type point missing");
+    assert!(type_labels.contains(&"DINT".to_string()), "type pos: DINT missing in {type_labels:?}");
+    assert!(type_labels.contains(&"BOOL".to_string()), "type pos: BOOL missing");
+    assert!(type_labels.contains(&"Point".to_string()), "type pos: user type Point missing");
     assert!(!type_labels.contains(&"IF".to_string()), "type pos: leaked statement keyword");
     assert!(!type_labels.contains(&"p".to_string()), "type pos: leaked local `p`");
     for l in &type_labels {
