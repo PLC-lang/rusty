@@ -132,7 +132,21 @@ impl CompileWorker {
 fn worker_loop(compile_rx: Receiver<CompileRequest>, result_tx: Sender<CompileOutcome>) {
     log::info!("compile worker started");
     while let Ok(req) = compile_rx.recv() {
-        let outcome = run_compile(req);
+        // Wrap in catch_unwind so a panic in any pipeline stage (parser,
+        // index, annotate, lowering, validate) doesn't kill the worker
+        // thread and leave the LSP unresponsive. The intended graceful
+        // failure path is `Err(Diagnostic)`; we should keep that and treat
+        // panics as a transient failure of this particular compile.
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run_compile(req)))
+            .unwrap_or_else(|payload| {
+                let msg = payload
+                    .downcast_ref::<&str>()
+                    .map(|s| (*s).to_string())
+                    .or_else(|| payload.downcast_ref::<String>().cloned())
+                    .unwrap_or_else(|| "<non-string panic payload>".to_string());
+                log::error!("compile worker recovered from panic: {msg}");
+                CompileOutcome::Cancelled
+            });
         if result_tx.send(outcome).is_err() {
             // Main thread is gone; we should exit too.
             break;

@@ -735,11 +735,22 @@ impl DataTypeInformation {
         let res = match self {
             DataTypeInformation::Integer { size, .. } => Ok(Bytes::from_bits(*size)),
             DataTypeInformation::Float { size, .. } => Ok(Bytes::from_bits(*size)),
-            DataTypeInformation::String { size, encoding } => Ok(size
-                .as_int_value(index)
-                .map(|size| encoding.get_bytes_per_char() * size as u32)
-                .map(Bytes::new)
-                .unwrap()),
+            DataTypeInformation::String { size, encoding } => {
+                // The string size is a constant expression (`STRING_LENGTH + 1`
+                // and similar). On well-formed input the const-evaluator
+                // reduces it to an int; under partial AST (LSP mid-typing
+                // buffers where references temporarily fail to resolve) it
+                // returns Err. Propagate rather than unwrap so the LSP
+                // compile worker doesn't panic on transient evaluation
+                // failures; CLI / lit-tests are unaffected because the
+                // parse gate keeps them on well-formed input.
+                let bytes = size
+                    .as_int_value(index)
+                    .map(|size| encoding.get_bytes_per_char() * size as u32)
+                    .map(Bytes::new)
+                    .map_err(|e| anyhow::anyhow!(e))?;
+                Ok(bytes)
+            }
             DataTypeInformation::Struct { members, .. } => members
                 .iter()
                 .map(|it| it.get_type_name())
