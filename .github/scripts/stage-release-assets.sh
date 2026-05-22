@@ -17,6 +17,8 @@ case "$workflow_name" in
   "Build Linux")
     install -m 755 "$download_dir/plc-x86_64/plc" "$staging_dir/plc-linux-x86_64"
     install -m 755 "$download_dir/plc-aarch64/plc" "$staging_dir/plc-linux-aarch64"
+    install -m 755 "$download_dir/plc-lsp-x86_64/plc-lsp" "$staging_dir/plc-lsp-linux-x86_64"
+    install -m 755 "$download_dir/plc-lsp-aarch64/plc-lsp" "$staging_dir/plc-lsp-linux-aarch64"
 
     install -m 644 \
       "$download_dir/deb-x86_64/plc-compiler_${version}-1_amd64.deb" \
@@ -35,6 +37,7 @@ case "$workflow_name" in
     ;;
   "Build Windows")
     install -m 755 "$download_dir/plc.exe/plc.exe" "$staging_dir/plc.exe"
+    install -m 755 "$download_dir/plc-lsp.exe/plc-lsp.exe" "$staging_dir/plc-lsp.exe"
     install -m 644 "$download_dir/stdlib.dll/iec61131std.dll" "$staging_dir/iec61131std.dll"
     install -m 644 "$download_dir/stdlib.lib/iec61131std.lib" "$staging_dir/iec61131std.lib"
     ;;
