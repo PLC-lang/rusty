@@ -68,26 +68,70 @@ pub fn docstring_at(
 }
 
 /// Trim the comment delimiters off a single comment span. Recognises
-/// `// …`, `(* … *)`, and `/* … */`. The interior text is trimmed of
-/// leading/trailing whitespace; embedded newlines are preserved.
+/// `// …`, `(* … *)`, and `/* … */`. For multi-line block comments
+/// also strips Javadoc / JSDoc style `* ` line prefixes — common in
+/// oscat stdlib docs as
+///
+/// ```text
+/// (********
+///  * Converts DWORD to REAL
+///  *********)
+/// ```
+///
+/// Without the per-line strip the rendered markdown ends up as a
+/// bullet list because each interior line starts with `*`. Pure-`*`
+/// border lines collapse to blank, which in turn merges adjacent
+/// content into a single paragraph for the markdown renderer.
 fn strip_comment_markers(raw: &str) -> String {
     let s = raw.trim();
     if let Some(rest) = s.strip_prefix("//") {
         return rest.trim().to_string();
     }
-    if let Some(rest) = s.strip_prefix("(*") {
-        if let Some(inner) = rest.strip_suffix("*)") {
-            return inner.trim().to_string();
-        }
-        return rest.trim().to_string();
+    let inner = if let Some(rest) = s.strip_prefix("(*") {
+        rest.strip_suffix("*)").unwrap_or(rest)
+    } else if let Some(rest) = s.strip_prefix("/*") {
+        rest.strip_suffix("*/").unwrap_or(rest)
+    } else {
+        return s.to_string();
+    };
+    strip_line_prefix_stars(inner)
+}
+
+/// Strip Javadoc-style `* ` prefixes from each line of a block-comment
+/// body and drop pure-asterisk border lines. Returns the cleaned body
+/// with embedded newlines preserved and outer whitespace trimmed.
+fn strip_line_prefix_stars(body: &str) -> String {
+    if !body.contains('\n') {
+        // Single-line `(* foo *)` — no border to strip; just trim.
+        return body.trim().to_string();
     }
-    if let Some(rest) = s.strip_prefix("/*") {
-        if let Some(inner) = rest.strip_suffix("*/") {
-            return inner.trim().to_string();
-        }
-        return rest.trim().to_string();
+    let mut out: Vec<String> = Vec::new();
+    for line in body.lines() {
+        let trimmed = line.trim_start();
+        let cleaned = if trimmed.chars().all(|c| c == '*') {
+            // Pure border line like `***********` — collapse to blank
+            // so the markdown renderer sees a paragraph break.
+            ""
+        } else if let Some(after) = trimmed.strip_prefix("* ") {
+            after
+        } else if let Some(after) = trimmed.strip_prefix('*') {
+            // Bare `*` with no trailing space — strip the marker but
+            // not any following content.
+            after
+        } else {
+            trimmed
+        };
+        out.push(cleaned.trim_end().to_string());
     }
-    s.to_string()
+    // Drop leading and trailing blank lines so the output doesn't
+    // start / end with markdown gaps.
+    while out.first().is_some_and(|l| l.is_empty()) {
+        out.remove(0);
+    }
+    while out.last().is_some_and(|l| l.is_empty()) {
+        out.pop();
+    }
+    out.join("\n")
 }
 
 /// Stateless walker over a slice of `LspToken`. Cheap to construct.
@@ -454,6 +498,51 @@ mod tests {
         let doc = docstring_at(&tokens, src, offset, pou_prefix).expect("doc body");
         assert!(doc.contains("line one"));
         assert!(doc.contains("line two"));
+    }
+
+    #[test]
+    fn docstring_strips_javadoc_star_borders() {
+        // oscat-style banner: leading/trailing `***` border lines plus
+        // a `* ` line prefix on each content line. Without the strip
+        // the markdown renders as a bullet list.
+        let src = "(********\n\
+                   * Converts DWORD to REAL\n\
+                   *********)\n\
+                   FUNCTION foo : REAL END_FUNCTION";
+        let (tokens, _) = walk(src);
+        let offset = src.find("foo").unwrap();
+        let doc = docstring_at(&tokens, src, offset, pou_prefix).expect("doc body");
+        assert_eq!(doc, "Converts DWORD to REAL");
+    }
+
+    #[test]
+    fn docstring_strips_javadoc_star_prefix_multiline() {
+        // Standard Javadoc-ish shape with `* ` on every continuation line.
+        let src = "(*\n\
+                   * First line.\n\
+                   * Second line.\n\
+                   *)\n\
+                   FUNCTION foo : INT END_FUNCTION";
+        let (tokens, _) = walk(src);
+        let offset = src.find("foo").unwrap();
+        let doc = docstring_at(&tokens, src, offset, pou_prefix).expect("doc body");
+        assert_eq!(doc, "First line.\nSecond line.");
+    }
+
+    #[test]
+    fn docstring_preserves_non_star_prefixed_lines() {
+        // A multiline block comment that doesn't follow the Javadoc
+        // convention should keep its content as-written (minus outer
+        // markers and surrounding blank lines).
+        let src = "(*\n\
+                   First line.\n\
+                   Second line.\n\
+                   *)\n\
+                   FUNCTION foo : INT END_FUNCTION";
+        let (tokens, _) = walk(src);
+        let offset = src.find("foo").unwrap();
+        let doc = docstring_at(&tokens, src, offset, pou_prefix).expect("doc body");
+        assert_eq!(doc, "First line.\nSecond line.");
     }
 
     #[test]
