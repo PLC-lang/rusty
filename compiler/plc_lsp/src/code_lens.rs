@@ -4,14 +4,21 @@
 //! declaration line:
 //!
 //!   - Above an INTERFACE method:  `N implementations`
-//!     Clicking jumps via the editor's `editor.action.showReferences`
-//!     command to a quickpick of the FB/Class method bodies that
+//!     Clicking pops a quickpick of the FB/Class method bodies that
 //!     implement it.
 //!
 //!   - Above an FB/Class METHOD that implements an interface:
 //!     `implements Interface.method`
-//!     Clicking jumps to the interface's method signature via the
-//!     same goto-style command.
+//!     Clicking jumps to the interface's method signature.
+//!
+//! Click command: `plc-lsp.showReferences` (registered by our vscode
+//! extension as a thin wrapper around `editor.action.showReferences`).
+//! The built-in requires `vscode.Uri` / `vscode.Position` /
+//! `vscode.Location[]` instances and the language-client doesn't
+//! auto-convert arguments for arbitrary commands; sending the
+//! built-in directly errors with "argument does not match one of
+//! these constraints". The shim runs protocol2Code conversion and
+//! then forwards to the built-in.
 //!
 //! No per-extension configurability: vscode (and helix) gate
 //! codelenses with a master "show/hide all codelenses" toggle, which
@@ -115,7 +122,7 @@ fn make_n_implementations_lens(
         range,
         command: Some(Command {
             title,
-            command: "editor.action.showReferences".to_string(),
+            command: "plc-lsp.showReferences".to_string(),
             arguments: Some(vec![
                 serde_json::to_value(uri).ok()?,
                 serde_json::to_value(range.start).ok()?,
@@ -153,7 +160,7 @@ fn make_implements_lens(
         range,
         command: Some(Command {
             title,
-            command: "editor.action.showReferences".to_string(),
+            command: "plc-lsp.showReferences".to_string(),
             arguments: Some(vec![
                 serde_json::to_value(self_uri).ok()?,
                 serde_json::to_value(range.start).ok()?,
