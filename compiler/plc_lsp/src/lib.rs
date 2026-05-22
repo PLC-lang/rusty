@@ -33,6 +33,7 @@ use lsp_types::{
 use plc_diagnostics::cancellation::CancellationToken;
 
 pub mod call_hierarchy;
+pub mod code_lens;
 pub mod compile;
 pub mod completion;
 pub mod diagnostics;
@@ -264,6 +265,10 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
         // args. Resolution is computed eagerly per request; no separate
         // resolve roundtrip needed.
         inlay_hint_provider: Some(lsp_types::OneOf::Left(true)),
+        // H3: code lenses for interface / implementation links. The
+        // standard `editor.codeLens` master toggle is the per-user
+        // escape hatch.
+        code_lens_provider: Some(lsp_types::CodeLensOptions { resolve_provider: Some(false) }),
         // F6: server-side semantic highlighting refinement. We advertise
         // `full` only (no range, no delta) for the POC; the legend is
         // sourced from the semantic_tokens module so the wire format
@@ -405,6 +410,7 @@ fn handle_request(
         "textDocument/formatting" => handle_formatting(state, connection, req),
         "textDocument/semanticTokens/full" => handle_semantic_tokens_full(state, connection, req),
         "textDocument/inlayHint" => handle_inlay_hint(state, connection, req),
+        "textDocument/codeLens" => handle_code_lens(state, connection, req),
         _ => {
             log::debug!("unhandled request: method={} id={:?}", req.method, req.id);
             let response = Response {
@@ -1184,6 +1190,43 @@ fn handle_inlay_hint(state: &mut ServerState, connection: &Connection, req: Requ
             }
             _ => Vec::new(),
         };
+
+    send_json_response(connection, req_id, serde_json::to_value(result));
+}
+
+/// `textDocument/codeLens`: interface implementation lenses (H3).
+/// Computes lazily-resolveable lenses for the entire file — we don't
+/// implement codeLens/resolve since each lens already carries its
+/// title and command in the initial response.
+fn handle_code_lens(state: &mut ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: lsp_types::CodeLensParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed CodeLensParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let result: Vec<lsp_types::CodeLens> = match state.annotated.as_ref() {
+        Some(annotated) => {
+            let Some(path) = project::file_uri_to_path(&params.text_document.uri) else {
+                send_json_response(
+                    connection,
+                    req_id,
+                    serde_json::to_value(Vec::<lsp_types::CodeLens>::new()),
+                );
+                return;
+            };
+            code_lens::code_lenses_for_file(annotated, &path, &state.position_encoding)
+        }
+        None => Vec::new(),
+    };
 
     send_json_response(connection, req_id, serde_json::to_value(result));
 }

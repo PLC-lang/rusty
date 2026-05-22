@@ -67,6 +67,9 @@ fn handshake_with_default_caps_falls_back_to_utf16() {
       "result": {
         "capabilities": {
           "callHierarchyProvider": true,
+          "codeLensProvider": {
+            "resolveProvider": false
+          },
           "completionProvider": {
             "resolveProvider": true,
             "triggerCharacters": [
@@ -143,6 +146,9 @@ fn handshake_with_utf8_capable_client_negotiates_utf8() {
       "result": {
         "capabilities": {
           "callHierarchyProvider": true,
+          "codeLensProvider": {
+            "resolveProvider": false
+          },
           "completionProvider": {
             "resolveProvider": true,
             "triggerCharacters": [
