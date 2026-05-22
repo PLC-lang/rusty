@@ -40,6 +40,7 @@ pub mod docstring;
 pub mod document;
 pub mod formatter;
 pub mod hover_format;
+pub mod inlay_hints;
 pub mod outline;
 pub mod position;
 pub mod project;
@@ -258,6 +259,10 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
         }),
         // F5: whole-document formatting (range/on-type left for later).
         document_formatting_provider: Some(OneOf::Left(true)),
+        // H2: inlay hints — parameter-name tags above positional call
+        // args. Resolution is computed eagerly per request; no separate
+        // resolve roundtrip needed.
+        inlay_hint_provider: Some(lsp_types::OneOf::Left(true)),
         // F6: server-side semantic highlighting refinement. We advertise
         // `full` only (no range, no delta) for the POC; the legend is
         // sourced from the semantic_tokens module so the wire format
@@ -398,6 +403,7 @@ fn handle_request(
         "completionItem/resolve" => handle_completion_item_resolve(state, connection, req),
         "textDocument/formatting" => handle_formatting(state, connection, req),
         "textDocument/semanticTokens/full" => handle_semantic_tokens_full(state, connection, req),
+        "textDocument/inlayHint" => handle_inlay_hint(state, connection, req),
         _ => {
             log::debug!("unhandled request: method={} id={:?}", req.method, req.id);
             let response = Response {
@@ -1090,6 +1096,44 @@ fn handle_semantic_tokens_full(state: &mut ServerState, connection: &Connection,
                 lsp_types::SemanticTokensResult::Tokens(tokens)
             }
             _ => lsp_types::SemanticTokensResult::Tokens(lsp_types::SemanticTokens::default()),
+        };
+
+    send_json_response(connection, req_id, serde_json::to_value(result));
+}
+
+/// `textDocument/inlayHint`: emit parameter-name hints for positional
+/// call arguments. Doesn't honour the request's `range` field for the
+/// POC — we always return hints for the full file. The editor will
+/// clip them to the visible viewport client-side.
+fn handle_inlay_hint(state: &mut ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: lsp_types::InlayHintParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed InlayHintParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let result: Vec<lsp_types::InlayHint> =
+        match (state.annotated.as_ref(), state.documents.get(&params.text_document.uri)) {
+            (Some(annotated), Some(buf)) => {
+                let Some(path) = project::file_uri_to_path(&params.text_document.uri) else {
+                    send_json_response(
+                        connection,
+                        req_id,
+                        serde_json::to_value(Vec::<lsp_types::InlayHint>::new()),
+                    );
+                    return;
+                };
+                inlay_hints::inlay_hints_for_file(annotated, &path, &buf.content, &state.position_encoding)
+            }
+            _ => Vec::new(),
         };
 
     send_json_response(connection, req_id, serde_json::to_value(result));
