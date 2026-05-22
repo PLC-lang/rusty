@@ -23,16 +23,26 @@ use lsp_types::{
 use serde_json::{json, Value};
 use tempfile::TempDir;
 
-const MAIN_ST: &str = "PROGRAM main\n\
-VAR\n\
-    p : Widget;\n\
-END_VAR\n\
-END_PROGRAM\n";
+// Raw strings so leading whitespace survives — feedback_raw_strings_for_test_fixtures.
+const MAIN_ST: &str = r#"PROGRAM main
+VAR
+    p : Widget;
+    n : DINT;
+END_VAR
+    n := foo();
+END_PROGRAM
+"#;
 
-const OTHER_ST: &str = "(* A reusable widget with a single counter. *)\n\
-TYPE Widget : STRUCT\n\
-    count : DINT;\n\
-END_STRUCT END_TYPE\n";
+const OTHER_ST: &str = r#"(* A reusable widget with a single counter. *)
+TYPE Widget : STRUCT
+    count : DINT;
+END_STRUCT END_TYPE
+
+(* The famous answer. *)
+FUNCTION foo : DINT
+    foo := 42;
+END_FUNCTION
+"#;
 
 #[test]
 fn cross_file_hover_includes_docstring() {
@@ -64,6 +74,17 @@ fn cross_file_hover_includes_docstring() {
     assert!(
         usage_markdown.contains("---"),
         "expected horizontal rule between signature and docs; got {usage_markdown:?}"
+    );
+
+    // Hover at the call site `foo()` in main.st (line 5 col 9 = `f` of foo).
+    // Should resolve to the function declaration in other.st and surface
+    // the docstring.
+    let call_pos = Position { line: 5, character: 9 };
+    let call_response = request(&client_conn, "textDocument/hover", &hover_params(&main_uri, call_pos));
+    let call_markdown = extract_markdown(&call_response);
+    assert!(
+        call_markdown.contains("famous answer"),
+        "cross-file hover at call site missing docstring; response: {call_response}",
     );
 
     // Hover at the declaration site in other.st. Line 1 col 5 = `W` of Widget.
