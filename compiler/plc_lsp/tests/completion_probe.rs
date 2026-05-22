@@ -176,28 +176,36 @@ fn completion_probe() {
 
     // --- Case 8 (Q7-5): Call site. `compute(⎵` — emits compute's
     //     parameters (value : DINT) as tier-0 named-arg candidates plus
-    //     in-scope locals as tier-1 positional-arg candidates.
+    //     in-scope locals as tier-1 positional-arg candidates. The named
+    //     arg's label carries the `:=` separator so the user sees the
+    //     direction in the completion list before accepting.
     let call_items = completion(&client_conn, &main_uri, Position { line: 37, character: 17 }, Some(1), None);
     let call_labels = labels_of(&call_items);
     assert!(
-        call_labels.contains(&"value".to_string()),
-        "call site: compute's input param `value` missing in {call_labels:?}"
+        call_labels.contains(&"value :=".to_string()),
+        "call site: compute's input param `value :=` missing in {call_labels:?}"
     );
     assert!(call_labels.contains(&"n".to_string()), "call site: caller local `n` missing");
     assert!(call_labels.contains(&"origin".to_string()), "call site: global `origin` missing");
 
-    // --- Case 8b (L14): Callee parameter inserts the named-arg separator.
-    //     `value` is VAR_INPUT → insert text "value := ". Label / filterText
-    //     stay bare so fuzzy filter still matches user typing `value`.
-    //     Caller-scope items (locals like `n`, globals like `origin`)
-    //     should NOT get the separator — they're positional candidates.
-    let value_insert = call_items
+    // --- Case 8b (L14 / L14b): Callee parameter shows the named-arg
+    //     separator in BOTH the label (UX: user sees the direction) and
+    //     the insert text. filterText stays bare so fuzzy matching still
+    //     keys on `value`. Caller-scope items (locals, globals) get no
+    //     separator — they're positional candidates.
+    let value_item = call_items
         .get("items")
         .and_then(|v| v.as_array())
-        .and_then(|arr| arr.iter().find(|i| i.get("label").and_then(|l| l.as_str()) == Some("value")))
-        .and_then(|i| i.get("insertText").and_then(|t| t.as_str()).map(String::from))
-        .expect("value's insert_text should be present");
-    assert_eq!(value_insert, "value := ", "VAR_INPUT param should insert `name := `, got {value_insert:?}");
+        .and_then(|arr| arr.iter().find(|i| i.get("label").and_then(|l| l.as_str()) == Some("value :=")))
+        .expect("value's completion item should be present");
+    let value_insert = value_item.get("insertText").and_then(|t| t.as_str()).expect("insertText");
+    assert_eq!(
+        value_insert, "value := ",
+        "VAR_INPUT param insert should end with `:= `, got {value_insert:?}"
+    );
+    let value_filter = value_item.get("filterText").and_then(|t| t.as_str()).expect("filterText");
+    assert_eq!(value_filter, "value", "filterText must stay bare for fuzzy matching, got {value_filter:?}");
+
     let n_insert = call_items
         .get("items")
         .and_then(|v| v.as_array())

@@ -536,11 +536,11 @@ fn enumerate_call(
 ) -> Vec<CompletionItem> {
     let mut items: Vec<CompletionItem> = Vec::new();
 
-    // Tier 0: callee parameters (named-arg candidates). Insert text
-    // includes the ST named-arg separator so the user only has to type
-    // the value: `VAR_INPUT` / `VAR_IN_OUT` parameters use `:= `;
-    // `VAR_OUTPUT` uses `=> `. Label / filterText stay bare so the
-    // editor's fuzzy filter matches what the user is typing.
+    // Tier 0: callee parameters (named-arg candidates). The label shows
+    // the named-arg separator (`:=` for IN/IN_OUT, `=>` for OUTPUT) so
+    // the user can see the direction in the completion list before
+    // accepting; filterText stays bare so fuzzy matching keys on the
+    // parameter name only.
     if let Some(callee) = index.find_pou(operator) {
         for member in index.get_pou_members(callee.get_name()) {
             if is_synthetic_variable(member) {
@@ -548,8 +548,9 @@ fn enumerate_call(
             }
             if member.is_input() || member.is_inout() || member.is_output() {
                 let mut item = make_variable_item(member, 0, hint_type);
-                let separator = if member.is_output() { "=> " } else { ":= " };
-                item.insert_text = Some(format!("{} {}", member.get_name(), separator));
+                let separator = if member.is_output() { "=>" } else { ":=" };
+                item.label = format!("{} {separator}", member.get_name());
+                item.insert_text = Some(format!("{} {separator} ", member.get_name()));
                 items.push(item);
             }
         }
