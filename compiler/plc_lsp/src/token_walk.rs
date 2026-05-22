@@ -457,6 +457,21 @@ mod tests {
     }
 
     #[test]
+    fn docstring_widens_past_external_property_token() {
+        // oscat stdlib shape: doc comment then `{external}` then declaration.
+        // `{external}` is a real PropertyExternal token, not Pragma trivia;
+        // the prefix closure must include it.
+        let src = "(* Converts DWORD to REAL *)\n{external}\nFUNCTION DWORD_TO_REAL : REAL END_FUNCTION";
+        let (tokens, _) = walk(src);
+        let offset = src.find("DWORD_TO_REAL").unwrap();
+        let prefix = |t: &Token| {
+            matches!(t, Token::KeywordFunction | Token::PropertyExternal | Token::PropertyConstant)
+        };
+        let doc = docstring_at(&tokens, src, offset, prefix).expect("doc body");
+        assert_eq!(doc, "Converts DWORD to REAL");
+    }
+
+    #[test]
     fn docstring_anchors_on_variable_name_directly() {
         // Variables don't need keyword walk-back: the comment sits right
         // above the identifier.

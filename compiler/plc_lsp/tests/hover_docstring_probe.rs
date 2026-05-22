@@ -42,6 +42,14 @@ END_STRUCT END_TYPE
 FUNCTION foo : DINT
     foo := 42;
 END_FUNCTION
+
+(* Converts DWORD to REAL *)
+{external}
+FUNCTION DWORD_TO_REAL : REAL
+VAR_INPUT
+    in : DWORD;
+END_VAR
+END_FUNCTION
 "#;
 
 #[test]
@@ -85,6 +93,19 @@ fn cross_file_hover_includes_docstring() {
     assert!(
         call_markdown.contains("famous answer"),
         "cross-file hover at call site missing docstring; response: {call_response}",
+    );
+
+    // Hover at the `DWORD_TO_REAL` declaration in other.st (the
+    // stdlib-style shape: doc comment then `{external}` then FUNCTION).
+    // `{external}` is a real Token::PropertyExternal, not Pragma trivia;
+    // the prefix walker must widen past it so the comment above attaches.
+    // Line 12 col 9 = `D` of DWORD_TO_REAL in OTHER_ST (line 11 is `{external}`).
+    let stdlib_pos = Position { line: 12, character: 9 };
+    let stdlib_response = request(&client_conn, "textDocument/hover", &hover_params(&other_uri, stdlib_pos));
+    let stdlib_markdown = extract_markdown(&stdlib_response);
+    assert!(
+        stdlib_markdown.contains("Converts DWORD to REAL"),
+        "stdlib-style hover missing docstring across {{external}}; response: {stdlib_response}",
     );
 
     // Hover at the declaration site in other.st. Line 1 col 5 = `W` of Widget.

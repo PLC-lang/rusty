@@ -502,17 +502,27 @@ fn hover_for_position(state: &mut ServerState, params: &HoverParams) -> Option<H
 /// Crosses files transparently: source comes from the in-memory buffer
 /// when open, disk otherwise; tokens come from the per-path cache.
 fn lookup_docstring(state: &mut ServerState, symbol: &position::SymbolUnderCursor) -> Option<String> {
-    use plc::lexer::Token;
-    use position::SymbolKind;
     let resolved = symbol.resolved.as_ref()?;
     let file_name = resolved.declaration_location.get_file_name()?;
     let path = std::path::Path::new(file_name);
     let range = resolved.declaration_location.to_range()?;
     let source = state.source_for(path)?;
     let tokens = state.token_cache.get_or_recompute(path, &source);
-    let kind = resolved.kind;
-    token_walk::docstring_at(tokens.as_slice(), &source, range.start, |tok| match kind {
-        // POU names live after the introducing keyword on the same line.
+    let prefix = decl_prefix_for(resolved.kind);
+    token_walk::docstring_at(tokens.as_slice(), &source, range.start, prefix)
+}
+
+/// Closure that picks out the keyword/attribute tokens that syntactically
+/// precede a declaration's name on the same line — `docstring_at` walks
+/// past these to find the user-visible doc comment above the
+/// declaration. POU names sit after `FUNCTION`/`PROGRAM`/…; types sit
+/// after `TYPE`; both can also have `{external}` / `{constant}` / `{ref}`
+/// / `{sized}` attribute tokens between the keyword and the name in
+/// oscat-style stdlib declarations.
+fn decl_prefix_for(kind: position::SymbolKind) -> impl Fn(&plc::lexer::Token) -> bool {
+    use plc::lexer::Token;
+    use position::SymbolKind;
+    move |tok: &Token| match kind {
         SymbolKind::Pou => matches!(
             tok,
             Token::KeywordFunction
@@ -525,13 +535,21 @@ fn lookup_docstring(state: &mut ServerState, symbol: &position::SymbolUnderCurso
                 | Token::KeywordActions
                 | Token::KeywordPropertyGet
                 | Token::KeywordPropertySet
+                | Token::PropertyExternal
+                | Token::PropertyByRef
+                | Token::PropertyConstant
+                | Token::PropertySized
         ),
-        // `TYPE foo : STRUCT …` — widen past TYPE.
-        SymbolKind::Type => matches!(tok, Token::KeywordType),
-        // Variable / Argument / Member declarations: the identifier
-        // already is the docstring anchor.
+        SymbolKind::Type => matches!(
+            tok,
+            Token::KeywordType
+                | Token::PropertyExternal
+                | Token::PropertyByRef
+                | Token::PropertyConstant
+                | Token::PropertySized
+        ),
         SymbolKind::Variable | SymbolKind::Argument | SymbolKind::Member => false,
-    })
+    }
 }
 
 /// Build a `path → source` map from the open editor buffers — used by
