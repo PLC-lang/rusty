@@ -24,12 +24,17 @@ use serde_json::{json, Value};
 use tempfile::TempDir;
 
 // Raw strings so leading whitespace survives — feedback_raw_strings_for_test_fixtures.
-const MAIN_ST: &str = r#"PROGRAM main
+const MAIN_ST: &str = r#"VAR_GLOBAL CONSTANT
+    gc : DINT := 42;
+END_VAR
+
+PROGRAM main
 VAR
     p : Widget;
     n : DINT;
 END_VAR
     n := foo();
+    n := gc;
 END_PROGRAM
 "#;
 
@@ -68,11 +73,11 @@ fn cross_file_hover_includes_docstring() {
     // worker to attach AnnotatedProject to ServerState.
     thread::sleep(Duration::from_secs(2));
 
-    // Hover at the usage site in main.st. Line 2 col 8 lands on `Widget`
+    // Hover at the usage site in main.st. Line 6 col 8 lands on `Widget`
     // in `p : Widget;` — the type reference. The hover handler resolves it
     // to the type's declaration in other.st and the docstring lookup
     // crosses the file boundary via the token cache.
-    let usage_pos = Position { line: 2, character: 8 };
+    let usage_pos = Position { line: 6, character: 8 };
     let usage_response = request(&client_conn, "textDocument/hover", &hover_params(&main_uri, usage_pos));
     let usage_markdown = extract_markdown(&usage_response);
     assert!(
@@ -84,15 +89,26 @@ fn cross_file_hover_includes_docstring() {
         "expected horizontal rule between signature and docs; got {usage_markdown:?}"
     );
 
-    // Hover at the call site `foo()` in main.st (line 5 col 9 = `f` of foo).
+    // Hover at the call site `foo()` in main.st (line 9 col 9 = `f` of foo).
     // Should resolve to the function declaration in other.st and surface
     // the docstring.
-    let call_pos = Position { line: 5, character: 9 };
+    let call_pos = Position { line: 9, character: 9 };
     let call_response = request(&client_conn, "textDocument/hover", &hover_params(&main_uri, call_pos));
     let call_markdown = extract_markdown(&call_response);
     assert!(
         call_markdown.contains("famous answer"),
         "cross-file hover at call site missing docstring; response: {call_response}",
+    );
+
+    // Hover at the use of the constant global `gc` (line 10 col 9 = `g`).
+    // The hover section keyword must reflect the CONSTANT modifier, not
+    // bare `VAR_GLOBAL`.
+    let gc_pos = Position { line: 10, character: 9 };
+    let gc_response = request(&client_conn, "textDocument/hover", &hover_params(&main_uri, gc_pos));
+    let gc_markdown = extract_markdown(&gc_response);
+    assert!(
+        gc_markdown.contains("VAR_GLOBAL CONSTANT"),
+        "constant global hover should say `VAR_GLOBAL CONSTANT`; got {gc_markdown:?}",
     );
 
     // Hover at the `DWORD_TO_REAL` declaration in other.st (the

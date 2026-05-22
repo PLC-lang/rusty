@@ -76,15 +76,15 @@ fn format_pou(resolved: &ResolvedSymbol, index: &Index) -> Option<String> {
     // Group parameters by section so the signature reads naturally.
     let params = index.get_available_parameters(pou.get_name());
     if !params.is_empty() {
-        let mut last_section: Option<&'static str> = None;
+        let mut last_section: Option<String> = None;
         for entry in params {
             let section = section_keyword(entry);
-            if last_section != Some(section) {
+            if last_section.as_deref() != Some(section.as_str()) {
                 if last_section.is_some() {
                     out.push_str("\n    END_VAR");
                 }
                 out.push_str("\n    ");
-                out.push_str(section);
+                out.push_str(&section);
                 last_section = Some(section);
             }
             let type_name = effective_type_name(entry.get_type_name(), index);
@@ -134,8 +134,8 @@ fn lookup_variable<'a>(index: &'a Index, qualified_name: &str) -> Option<&'a Var
     }
 }
 
-fn section_keyword(entry: &VariableIndexEntry) -> &'static str {
-    match entry.get_variable_type() {
+fn section_keyword(entry: &VariableIndexEntry) -> String {
+    let base = match entry.get_variable_type() {
         VariableType::Input => "VAR_INPUT",
         VariableType::Output => "VAR_OUTPUT",
         VariableType::InOut => "VAR_IN_OUT",
@@ -145,6 +145,15 @@ fn section_keyword(entry: &VariableIndexEntry) -> &'static str {
         VariableType::External => "VAR_EXTERNAL",
         VariableType::Return => "(return)",
         VariableType::Property => "PROPERTY",
+    };
+    // CONSTANT / RETAIN / NON_RETAIN are modifiers on the block, not
+    // separate VariableType variants. Reflect them in the hover so
+    // `VAR_GLOBAL CONSTANT gc : DINT` renders with the full prefix
+    // the user wrote rather than a bare `VAR_GLOBAL`.
+    if entry.is_constant() {
+        format!("{base} CONSTANT")
+    } else {
+        base.to_string()
     }
 }
 
