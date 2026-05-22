@@ -49,10 +49,6 @@ pub enum CompletionContextKind {
     /// keywords (`PROGRAM`, `FUNCTION`, ...) plus type / global keywords.
     TopLevel,
 
-    /// Cursor inside a `VAR_GLOBAL` block. Offers `CONSTANT` modifier,
-    /// then type names (after `:`), then identifier-name patterns.
-    VarGlobalBlock,
-
     /// Generic statement position inside a POU body — all in-scope items
     /// (locals, globals, POU names) plus ST statement keywords.
     Statement,
@@ -706,25 +702,6 @@ fn enumerate_top_level() -> Vec<CompletionItem> {
     TOP_LEVEL_KEYWORDS.iter().map(|kw| make_keyword_item(kw, 0)).collect()
 }
 
-fn enumerate_var_global_block(index: &Index) -> Vec<CompletionItem> {
-    let mut items: Vec<CompletionItem> = vec![make_keyword_item("CONSTANT", 0)];
-    for (_key, datatype) in index.get_types().elements() {
-        let label = datatype.get_name();
-        if is_synthetic_data_type_name(label) {
-            continue;
-        }
-        items.push(make_type_item(label, 1));
-    }
-    for (_key, datatype) in index.get_pou_types().elements() {
-        let label = datatype.get_name();
-        if is_synthetic_data_type_name(label) {
-            continue;
-        }
-        items.push(make_type_item(label, 1));
-    }
-    items
-}
-
 const TOP_LEVEL_KEYWORDS: &[&str] = &[
     "PROGRAM",
     "FUNCTION",
@@ -830,7 +807,6 @@ pub fn items_at(
             enumerate_expression_or_statement(enclosing_pou, &p.index, None, true)
         }
         (CompletionContextKind::TopLevel, false, _) => enumerate_top_level(),
-        (CompletionContextKind::VarGlobalBlock, false, Some(p)) => enumerate_var_global_block(&p.index),
 
         // No project attached + non-keyword context → empty list.
         _ => vec![],
