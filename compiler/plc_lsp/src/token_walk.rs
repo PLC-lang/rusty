@@ -187,8 +187,11 @@ impl<'a> TokenWalk<'a> {
     /// Comment trivia indices immediately preceding `index`, in source order.
     ///
     /// Strict-contiguous semantics: scanning LEFT from `index - 1`, accept
-    /// `Whitespace` (blank lines included) and comment trivia; stop on the
-    /// first real `Token` or `Pragma`. The returned indices point to
+    /// `Whitespace` (blank lines included), comment trivia, and pragmas;
+    /// stop on the first real `Token`. Pragmas (`{ref}`, `{external}`, …)
+    /// transparently pass through so a doc comment above the pragma still
+    /// attaches to the declaration below — mirrors Rust's `///`-then-
+    /// `#[...]`-then-`fn` convention. The returned indices point to
     /// `LineComment` / `BlockComment` items, in left-to-right source order.
     pub fn leading_comments(&self, index: usize) -> Vec<usize> {
         let mut comments = Vec::new();
@@ -202,9 +205,7 @@ impl<'a> TokenWalk<'a> {
                 LspToken::Trivia(TriviaKind::LineComment | TriviaKind::BlockComment, _) => {
                     comments.push(i);
                 }
-                LspToken::Trivia(TriviaKind::Whitespace, _) => {
-                    // pass-through; blank lines are still "contiguous"
-                }
+                LspToken::Trivia(TriviaKind::Whitespace | TriviaKind::Pragma, _) => {}
                 _ => break,
             }
         }
@@ -215,7 +216,7 @@ impl<'a> TokenWalk<'a> {
     /// Comment trivia indices immediately following `index`, in source order.
     ///
     /// Mirror of `leading_comments`: scan RIGHT from `index + 1`, allow
-    /// whitespace + comments, stop at the first real token or pragma.
+    /// whitespace, pragmas, and comments; stop at the first real token.
     pub fn trailing_comments(&self, index: usize) -> Vec<usize> {
         let mut comments = Vec::new();
         let mut i = index + 1;
@@ -224,7 +225,7 @@ impl<'a> TokenWalk<'a> {
                 LspToken::Trivia(TriviaKind::LineComment | TriviaKind::BlockComment, _) => {
                     comments.push(i);
                 }
-                LspToken::Trivia(TriviaKind::Whitespace, _) => {}
+                LspToken::Trivia(TriviaKind::Whitespace | TriviaKind::Pragma, _) => {}
                 _ => break,
             }
             i += 1;
@@ -336,14 +337,30 @@ mod tests {
     }
 
     #[test]
-    fn leading_comments_break_on_pragma() {
+    fn leading_comments_pass_through_pragmas() {
+        // Rust convention: `///` doc lines sit ABOVE the `#[attribute]`s.
+        // ST allows the same — `(* doc *)\n{external}\nFUNCTION foo` should
+        // still attach the doc comment to the function.
         let src = "(* doc *)\n{unknown_pragma}\nFUNCTION foo : INT END_FUNCTION";
         let (tokens, _) = walk(src);
         let w = TokenWalk::new(&tokens);
         let func_offset = src.find("FUNCTION").unwrap();
         let func = w.token_at(func_offset).unwrap();
         let leading = w.leading_comments(func);
-        assert_eq!(leading.len(), 0, "pragma must break attachment");
+        assert_eq!(leading.len(), 1, "pragma must transparently pass through");
+        assert_eq!(&src[w.range_at(leading[0]).unwrap().clone()], "(* doc *)");
+    }
+
+    #[test]
+    fn leading_comments_break_on_other_declaration() {
+        // The chain still breaks when a real token sits in the way.
+        let src = "FUNCTION a : INT END_FUNCTION\n(* not attached *)\n{ext}\nFUNCTION b END_FUNCTION";
+        let (tokens, _) = walk(src);
+        let w = TokenWalk::new(&tokens);
+        let b_offset = src.find("FUNCTION b").unwrap();
+        let b = w.token_at(b_offset).unwrap();
+        let leading = w.leading_comments(b);
+        assert_eq!(leading.len(), 1, "comment between two POUs still attaches to the second");
     }
 
     #[test]
