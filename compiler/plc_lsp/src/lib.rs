@@ -41,6 +41,7 @@ pub mod document;
 pub mod formatter;
 pub mod hover_format;
 pub mod inlay_hints;
+pub mod interfaces;
 pub mod outline;
 pub mod position;
 pub mod project;
@@ -560,10 +561,11 @@ fn handle_definition(state: &ServerState, connection: &Connection, req: Request)
     send_goto_response(connection, req_id, serde_json::to_value(result));
 }
 
-/// Answer `textDocument/declaration`. Identical to definition for the
-/// prototype — the LSP protocol allows them to differ (interface decl
-/// vs implementation site) but for ST these coincide in nearly every
-/// case.
+/// Answer `textDocument/declaration`. For a method that overrides an
+/// interface signature, returns the *interface's* method site rather
+/// than the FB's concrete method body — that's the LSP split between
+/// declaration and definition. For everything else, falls back to the
+/// same site `handle_definition` would return.
 fn handle_declaration(state: &ServerState, connection: &Connection, req: Request) {
     let req_id = req.id.clone();
     let params: GotoDeclarationParams = match serde_json::from_value(req.params) {
@@ -578,9 +580,46 @@ fn handle_declaration(state: &ServerState, connection: &Connection, req: Request
             return;
         }
     };
-    let result =
-        goto_target(state, &params.text_document_position_params).map(GotoDeclarationResponse::Scalar);
+    let result = goto_declaration_target(state, &params.text_document_position_params)
+        .map(GotoDeclarationResponse::Scalar);
     send_goto_response(connection, req_id, serde_json::to_value(result));
+}
+
+/// Like `goto_target` but consults the interface-implementation
+/// linkage. When the cursor resolves to a method on an FB/Class that
+/// implements an interface method, redirect to the interface's
+/// declaration site.
+fn goto_declaration_target(
+    state: &ServerState,
+    position: &lsp_types::TextDocumentPositionParams,
+) -> Option<Location> {
+    let annotated = state.annotated.as_ref()?;
+    let ctxt = state.ctxt.as_ref()?;
+    let source_contents = build_source_contents(state);
+
+    let symbol = position::symbol_under_cursor(
+        annotated,
+        ctxt,
+        &position.text_document.uri,
+        position.position,
+        &state.position_encoding,
+        &source_contents,
+    )?;
+    let resolved = symbol.resolved?;
+
+    // If the resolved symbol is a method whose container implements an
+    // interface declaring the same method, prefer the interface site.
+    let target_location = if matches!(resolved.kind, position::SymbolKind::Pou) {
+        interfaces::interface_method_decl_for(&annotated.index, &resolved.qualified_name)
+            .unwrap_or(resolved.declaration_location.clone())
+    } else {
+        resolved.declaration_location.clone()
+    };
+
+    let path = target_location.get_file_name()?;
+    let uri = diagnostics::path_to_uri(path)?;
+    let range = diagnostics::code_span_to_range(target_location.get_span(), &state.position_encoding, None)?;
+    Some(Location { uri, range })
 }
 
 /// Shared core: position lookup → optional `Location`. Returns `None`
@@ -671,6 +710,16 @@ fn references_for_position(state: &ServerState, params: &ReferenceParams) -> Opt
     for entry in reverse_index.lookup(&resolved.declaration_location) {
         if let Some(loc) = source_location_to_lsp(&entry.location, &state.position_encoding) {
             out.push(loc);
+        }
+    }
+    // Interface method → also list every FB/Class implementation. The
+    // user asked for find-references on an interface method to
+    // surface both the impls and the call sites.
+    if matches!(resolved.kind, position::SymbolKind::Pou) {
+        for impl_loc in interfaces::implementations_of(&annotated.index, &resolved.qualified_name) {
+            if let Some(loc) = source_location_to_lsp(&impl_loc, &state.position_encoding) {
+                out.push(loc);
+            }
         }
     }
     Some(out)
