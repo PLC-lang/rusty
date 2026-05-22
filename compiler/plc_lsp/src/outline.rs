@@ -34,8 +34,8 @@ use std::collections::HashMap;
 
 use lsp_types::{DocumentSymbol, PositionEncodingKind, Range, SymbolKind};
 use plc_ast::ast::{
-    ArgumentProperty, CompilationUnit, DataType, DataTypeDeclaration, Pou, PouType, UserTypeDeclaration,
-    Variable, VariableBlockType,
+    ArgumentProperty, CompilationUnit, DataType, DataTypeDeclaration, Interface, Pou, PouType,
+    UserTypeDeclaration, Variable, VariableBlockType,
 };
 use plc_source::source_location::{FileMarker, SourceLocation};
 
@@ -55,7 +55,17 @@ pub fn document_symbols(
     encoding: &PositionEncodingKind,
     source: Option<&str>,
 ) -> Vec<DocumentSymbol> {
-    let mut symbols = Vec::new();
+    // Per-kind buckets. Each emits at most one synthetic group node
+    // (a `Namespace` symbol) that wraps the actual declarations as
+    // children. Order of the `add_group` calls below sets the order
+    // the editor shows the groups in.
+    let mut programs = Vec::new();
+    let mut functions = Vec::new();
+    let mut function_blocks = Vec::new();
+    let mut classes = Vec::new();
+    let mut interfaces = Vec::new();
+    let mut types = Vec::new();
+    let mut globals = Vec::new();
 
     // ST puts methods at the top level of the AST with a `parent`
     // string, not nested in their FB's struct. First pass collects
@@ -71,22 +81,32 @@ pub fn document_symbols(
         }
     }
 
-    // Second pass: emit top-level POUs with their methods as children.
-    // We intentionally skip Action/Init/ProjectInit — they're either
-    // attached to a parent FB (Action — TODO confirm parsing) or
-    // synthesised (Init/ProjectInit). For the prototype we accept
-    // Actions not appearing in the outline as a known limitation.
     for pou in &unit.pous {
         if is_internal(&pou.location) {
             continue;
         }
-        if !matches!(pou.kind, PouType::Program | PouType::Function | PouType::FunctionBlock | PouType::Class)
-        {
+        let methods = methods_by_parent.remove(&pou.name).unwrap_or_default();
+        let Some(symbol) = build_pou_symbol(pou, &methods, encoding, source) else {
+            continue;
+        };
+        match pou.kind {
+            PouType::Program => programs.push(symbol),
+            PouType::Function => functions.push(symbol),
+            PouType::FunctionBlock => function_blocks.push(symbol),
+            PouType::Class => classes.push(symbol),
+            // Method / Action / Init / ProjectInit are skipped at the
+            // top level — methods are attached as children of their
+            // parent above; the rest are synthesised or not user-facing.
+            _ => {}
+        }
+    }
+
+    for iface in &unit.interfaces {
+        if is_internal(&iface.location) {
             continue;
         }
-        let methods = methods_by_parent.remove(&pou.name).unwrap_or_default();
-        if let Some(symbol) = build_pou_symbol(pou, &methods, encoding, source) {
-            symbols.push(symbol);
+        if let Some(symbol) = build_interface_symbol(iface, encoding, source) {
+            interfaces.push(symbol);
         }
     }
 
@@ -104,7 +124,7 @@ pub fn document_symbols(
             continue;
         }
         if let Some(symbol) = build_type_symbol(ty, encoding, source) {
-            symbols.push(symbol);
+            types.push(symbol);
         }
     }
 
@@ -117,12 +137,47 @@ pub fn document_symbols(
                 continue;
             }
             if let Some(symbol) = build_variable_symbol(var, &block.kind, encoding, source) {
-                symbols.push(symbol);
+                globals.push(symbol);
             }
         }
     }
 
-    symbols
+    // Wrap each non-empty bucket in a synthetic `Namespace` group node.
+    // Order chosen so the outline reads "what types exist → what
+    // globals are visible → what POUs implement them".
+    let mut out: Vec<DocumentSymbol> = Vec::new();
+    add_group(&mut out, "Types", types);
+    add_group(&mut out, "Globals", globals);
+    add_group(&mut out, "Interfaces", interfaces);
+    add_group(&mut out, "Programs", programs);
+    add_group(&mut out, "Functions", functions);
+    add_group(&mut out, "Function Blocks", function_blocks);
+    add_group(&mut out, "Classes", classes);
+    out
+}
+
+/// Push a synthetic parent `DocumentSymbol` of kind Namespace into
+/// `out` wrapping `children`. No-op when `children` is empty so the
+/// editor doesn't show vacant group rows. The wrapper's range spans
+/// from the first child to the last so "go to symbol" on the group
+/// itself jumps to a sensible place.
+fn add_group(out: &mut Vec<DocumentSymbol>, name: &str, children: Vec<DocumentSymbol>) {
+    if children.is_empty() {
+        return;
+    }
+    let first_range = children.first().expect("non-empty after the check").range;
+    let last_range = children.last().expect("non-empty after the check").range;
+    out.push(DocumentSymbol {
+        name: name.to_string(),
+        detail: None,
+        kind: SymbolKind::NAMESPACE,
+        tags: None,
+        #[allow(deprecated)]
+        deprecated: None,
+        range: Range { start: first_range.start, end: last_range.end },
+        selection_range: first_range,
+        children: Some(children),
+    });
 }
 
 fn is_internal(location: &SourceLocation) -> bool {
@@ -168,6 +223,36 @@ fn build_pou_symbol(
         tags: None,
         // The `deprecated` field is deprecated in the LSP spec itself
         // (use the tags vec instead). Leave None.
+        deprecated: None,
+        range,
+        selection_range,
+        children: nonempty(children),
+    })
+}
+
+fn build_interface_symbol(
+    iface: &Interface,
+    encoding: &PositionEncodingKind,
+    source: Option<&str>,
+) -> Option<DocumentSymbol> {
+    let range = location_to_range(&iface.location, encoding, source)?;
+    let selection_range = location_to_range(&iface.ident.location, encoding, source).unwrap_or(range);
+
+    let mut children = Vec::new();
+    for method in &iface.methods {
+        if is_internal(&method.location) {
+            continue;
+        }
+        if let Some(child) = build_method_symbol(method, encoding, source) {
+            children.push(child);
+        }
+    }
+
+    Some(DocumentSymbol {
+        name: iface.ident.name.clone(),
+        detail: Some("INTERFACE".to_string()),
+        kind: SymbolKind::INTERFACE,
+        tags: None,
         deprecated: None,
         range,
         selection_range,
@@ -538,6 +623,18 @@ mod tests {
         assert!(syms.is_empty());
     }
 
+    /// Locate the synthetic group named `group_name` in the flat
+    /// top-level symbol list and return its children. Lets the
+    /// per-shape tests keep asserting on the actual declarations
+    /// without restating the group wrapper each time.
+    fn group<'a>(syms: &'a [DocumentSymbol], group_name: &str) -> &'a [DocumentSymbol] {
+        let g = syms
+            .iter()
+            .find(|s| s.name == group_name)
+            .unwrap_or_else(|| panic!("missing group {group_name:?}; got {syms:?}"));
+        g.children.as_deref().unwrap_or(&[])
+    }
+
     #[test]
     fn single_program_with_local_var() {
         let h = Harness::new();
@@ -547,8 +644,9 @@ mod tests {
         unit.pous.push(pou);
 
         let syms = document_symbols(&unit, &PositionEncodingKind::UTF8, None);
-        assert_eq!(syms.len(), 1);
-        let main = &syms[0];
+        let programs = group(&syms, "Programs");
+        assert_eq!(programs.len(), 1);
+        let main = &programs[0];
         assert_eq!(main.name, "Main");
         assert_eq!(main.kind, SymbolKind::FUNCTION); // PROGRAM
         let children = main.children.as_ref().expect("Main should have a child");
@@ -573,8 +671,9 @@ mod tests {
         unit.pous.push(fb);
 
         let syms = document_symbols(&unit, &PositionEncodingKind::UTF8, None);
-        assert_eq!(syms.len(), 1);
-        let fb_sym = &syms[0];
+        let fbs = group(&syms, "Function Blocks");
+        assert_eq!(fbs.len(), 1);
+        let fb_sym = &fbs[0];
         assert_eq!(fb_sym.kind, SymbolKind::CLASS); // FUNCTION_BLOCK → Class
         let children = fb_sym.children.as_ref().expect("MyFB should have children");
         assert_eq!(children.len(), 2);
@@ -603,8 +702,9 @@ mod tests {
         unit.pous.push(method);
 
         let syms = document_symbols(&unit, &PositionEncodingKind::UTF8, None);
-        assert_eq!(syms.len(), 1, "method should not show as top-level");
-        let fb_sym = &syms[0];
+        let fbs = group(&syms, "Function Blocks");
+        assert_eq!(fbs.len(), 1, "method should not show as top-level");
+        let fb_sym = &fbs[0];
         let children = fb_sym.children.as_ref().expect("MyFB should have a child");
         assert_eq!(children.len(), 1);
         assert_eq!(children[0].name, "doStuff");
@@ -620,7 +720,8 @@ mod tests {
         unit.pous.push(fb);
 
         let syms = document_symbols(&unit, &PositionEncodingKind::UTF8, None);
-        assert_eq!(syms[0].detail.as_deref(), Some("EXTENDS Parent"));
+        let fbs = group(&syms, "Function Blocks");
+        assert_eq!(fbs[0].detail.as_deref(), Some("EXTENDS Parent"));
     }
 
     #[test]
@@ -639,8 +740,9 @@ mod tests {
         });
 
         let syms = document_symbols(&unit, &PositionEncodingKind::UTF8, None);
-        assert_eq!(syms.len(), 1);
-        let point = &syms[0];
+        let types = group(&syms, "Types");
+        assert_eq!(types.len(), 1);
+        let point = &types[0];
         assert_eq!(point.name, "Point");
         assert_eq!(point.kind, SymbolKind::STRUCT);
         let fields = point.children.as_ref().expect("struct should have fields");
@@ -657,10 +759,11 @@ mod tests {
         unit.global_vars.push(h.block(VariableBlockType::Global, vec![h.var("g", 100)], 0));
 
         let syms = document_symbols(&unit, &PositionEncodingKind::UTF8, None);
-        assert_eq!(syms.len(), 1);
-        assert_eq!(syms[0].name, "g");
-        assert_eq!(syms[0].kind, SymbolKind::VARIABLE);
-        assert_eq!(syms[0].detail.as_deref(), Some("VAR_GLOBAL : INT"));
+        let globals = group(&syms, "Globals");
+        assert_eq!(globals.len(), 1);
+        assert_eq!(globals[0].name, "g");
+        assert_eq!(globals[0].kind, SymbolKind::VARIABLE);
+        assert_eq!(globals[0].detail.as_deref(), Some("VAR_GLOBAL : INT"));
     }
 
     #[test]

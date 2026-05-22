@@ -67,16 +67,29 @@ fn document_symbol_returns_outline_after_initial_compile() {
         panic!("expected nested DocumentSymbolResponse, got {result:?}");
     };
 
-    let names: Vec<&str> = symbols.iter().map(|s| s.name.as_str()).collect();
-    assert!(names.contains(&"Main"), "Main should appear: got {names:?}");
-    assert!(names.contains(&"MyFB"), "MyFB should appear: got {names:?}");
+    // The outline is now grouped by declaration kind: the top-level
+    // symbols are synthetic Namespace nodes ("Programs", "Function
+    // Blocks", "Types", "Globals", ...) and the actual declarations
+    // are their children.
+    let group_names: Vec<&str> = symbols.iter().map(|s| s.name.as_str()).collect();
+    assert!(group_names.contains(&"Programs"), "Programs group should appear: got {group_names:?}");
+    assert!(group_names.contains(&"Function Blocks"), "FB group should appear: got {group_names:?}");
 
-    let main = symbols.iter().find(|s| s.name == "Main").unwrap();
+    let programs = symbols.iter().find(|s| s.name == "Programs").unwrap();
+    let programs_children: Vec<&str> =
+        programs.children.as_ref().map(|c| c.iter().map(|s| s.name.as_str()).collect()).unwrap_or_default();
+    assert!(
+        programs_children.contains(&"Main"),
+        "Programs group should include Main: got {programs_children:?}"
+    );
+
+    let main = programs.children.as_ref().unwrap().iter().find(|s| s.name == "Main").unwrap();
     let main_children: Vec<&str> =
         main.children.as_ref().map(|c| c.iter().map(|s| s.name.as_str()).collect()).unwrap_or_default();
     assert!(main_children.contains(&"x"), "Main's children should include x: got {main_children:?}");
 
-    let fb = symbols.iter().find(|s| s.name == "MyFB").unwrap();
+    let fb_group = symbols.iter().find(|s| s.name == "Function Blocks").unwrap();
+    let fb = fb_group.children.as_ref().unwrap().iter().find(|s| s.name == "MyFB").unwrap();
     assert_eq!(fb.kind, SymbolKind::CLASS, "MyFB should map to Class kind");
     let fb_children: Vec<&str> =
         fb.children.as_ref().map(|c| c.iter().map(|s| s.name.as_str()).collect()).unwrap_or_default();
