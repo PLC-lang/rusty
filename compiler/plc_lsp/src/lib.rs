@@ -128,6 +128,15 @@ pub struct ServerState {
     /// hash-invalidate on content change. Consumed by completion and hover
     /// to walk tokens (and comments) around the cursor.
     pub token_cache: token_cache::TokenCache,
+    /// Whether the client advertised `workspace.semanticTokens.refreshSupport`.
+    /// After each successful compile we send `workspace/semanticTokens/refresh`
+    /// to clients that support it so the editor re-paints with fresh
+    /// annotations rather than caching the empty pre-annotate response.
+    pub supports_semantic_tokens_refresh: bool,
+    /// Mirror of the above for `workspace.inlayHint.refreshSupport`.
+    pub supports_inlay_hint_refresh: bool,
+    /// Mirror for `workspace.codeLens.refreshSupport`.
+    pub supports_code_lens_refresh: bool,
 }
 
 impl ServerState {
@@ -155,6 +164,9 @@ impl ServerState {
             pending_registration: None,
             next_request_id: 0,
             token_cache: token_cache::TokenCache::new(),
+            supports_semantic_tokens_refresh: false,
+            supports_inlay_hint_refresh: false,
+            supports_code_lens_refresh: false,
         }
     }
 }
@@ -307,6 +319,18 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
     log::info!("plc-lsp initialized; entering main loop");
 
     let mut state = ServerState::new(position_encoding, workspace_root, plc_config_override);
+    // Read refresh-support advertisements from the client capabilities
+    // so we know which `workspace/<feature>/refresh` requests are safe
+    // to send when annotated lands. vscode advertises all three;
+    // helix/nvim builtin LSP varies.
+    if let Some(ws) = init_params.capabilities.workspace.as_ref() {
+        state.supports_semantic_tokens_refresh =
+            ws.semantic_tokens.as_ref().and_then(|s| s.refresh_support).unwrap_or(false);
+        state.supports_inlay_hint_refresh =
+            ws.inlay_hint.as_ref().and_then(|s| s.refresh_support).unwrap_or(false);
+        state.supports_code_lens_refresh =
+            ws.code_lens.as_ref().and_then(|s| s.refresh_support).unwrap_or(false);
+    }
     if let Some(path) = &state.plc_config_path {
         log::info!("plc-lsp resolved plc.json at {path:?}");
     } else {
@@ -1588,6 +1612,36 @@ fn unregister_file_watchers(state: &mut ServerState, connection: &Connection) {
     }
 }
 
+/// Ping the client to drop its cached responses for views that depend
+/// on `state.annotated`. Sent after each compile attaches a fresh
+/// AnnotatedProject; without this the editor keeps showing the stale
+/// (or empty) results from before annotation finished.
+///
+/// Each refresh is a server-initiated request. We don't wait for the
+/// response — the client will send fresh feature requests on its own
+/// schedule. Only fire to clients that advertised refresh support;
+/// older clients ignore unknown methods, but sending the request still
+/// burns an id roundtrip.
+fn refresh_annotated_views(state: &mut ServerState, connection: &Connection) {
+    if state.supports_semantic_tokens_refresh {
+        send_workspace_refresh(state, connection, "workspace/semanticTokens/refresh");
+    }
+    if state.supports_inlay_hint_refresh {
+        send_workspace_refresh(state, connection, "workspace/inlayHint/refresh");
+    }
+    if state.supports_code_lens_refresh {
+        send_workspace_refresh(state, connection, "workspace/codeLens/refresh");
+    }
+}
+
+fn send_workspace_refresh(state: &mut ServerState, connection: &Connection, method: &str) {
+    let id = next_request_id(state);
+    let request = Request { id, method: method.to_string(), params: serde_json::Value::Null };
+    if let Err(e) = connection.sender.send(Message::Request(request)) {
+        log::warn!("failed to send {method}: {e}");
+    }
+}
+
 fn next_request_id(state: &mut ServerState) -> RequestId {
     let id = state.next_request_id;
     state.next_request_id += 1;
@@ -1680,6 +1734,7 @@ fn handle_compile_outcome(
             // when the worker actually produced them. `None` here means
             // the compile didn't reach a queryable state — the previous
             // attachment continues to serve hover / goto / references.
+            let annotated_attached = result.annotated.is_some();
             if let Some(annotated) = result.annotated.take() {
                 state.annotated = Some(annotated);
             }
@@ -1690,6 +1745,12 @@ fn handle_compile_outcome(
                 state.reverse_index = Some(ri);
             }
             publish_diagnostics(state, connection, *result);
+            // Ping the client to re-request the views that depend on
+            // annotated. Without this the editor caches the empty
+            // pre-compile response and only refreshes on the next edit.
+            if annotated_attached {
+                refresh_annotated_views(state, connection);
+            }
         }
     }
 
