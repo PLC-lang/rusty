@@ -243,6 +243,14 @@ impl VariableIndexEntry {
         self.is_constant
     }
 
+    /// Whether the variable was declared in a `RETAIN` block. Distinct from
+    /// [`should_retain`], which also returns true if a nested datatype contains
+    /// a retain field — this accessor reports the block modifier the user
+    /// actually typed, which is what hover / display callers want.
+    pub fn is_retain(&self) -> bool {
+        self.is_retain
+    }
+
     pub fn is_var_external(&self) -> bool {
         self.is_var_external
     }

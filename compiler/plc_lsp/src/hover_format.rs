@@ -146,15 +146,21 @@ fn section_keyword(entry: &VariableIndexEntry) -> String {
         VariableType::Return => "(return)",
         VariableType::Property => "PROPERTY",
     };
-    // CONSTANT / RETAIN / NON_RETAIN are modifiers on the block, not
-    // separate VariableType variants. Reflect them in the hover so
+    // CONSTANT / RETAIN are modifiers on the block, not separate
+    // VariableType variants. Reflect them in the hover so
     // `VAR_GLOBAL CONSTANT gc : DINT` renders with the full prefix
     // the user wrote rather than a bare `VAR_GLOBAL`.
+    // NON_RETAIN is parsed-and-dropped today (parser.rs:1599 just
+    // consumes the token); plumbing it through requires AST + index
+    // changes and is filed as a separate follow-up.
+    let mut keyword = base.to_string();
     if entry.is_constant() {
-        format!("{base} CONSTANT")
-    } else {
-        base.to_string()
+        keyword.push_str(" CONSTANT");
     }
+    if entry.is_retain() {
+        keyword.push_str(" RETAIN");
+    }
+    keyword
 }
 
 fn pou_keyword(pou: &PouIndexEntry) -> &'static str {

@@ -21,12 +21,12 @@ use crate::token_walk::TokenWalk;
 /// category of items the handler emits and how to rank them.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompletionContextKind {
-    /// Cursor immediately after a `.` — member-access completion against
-    /// the resolved type of the base expression preceding the dot. The
-    /// `base_offset..base_end` range captures the base token (e.g. `foo`
-    /// in `foo.|` or `arr[1]` in `arr[1].|`); the enumerator resolves it
-    /// through the AnnotationMap to get the type whose members to offer.
-    Member { base_offset: usize, base_end: usize },
+    /// Cursor immediately after a `.`. `base_text` is the qualified
+    /// expression on the LHS of the dot (e.g. `foo`, `foo.bar`,
+    /// `arr[1]`), reconstructed from the chain tokens so trivia
+    /// between them (comments, whitespace) doesn't leak into the
+    /// lookup string the enumerator passes to `Index::find_member`.
+    Member { base_text: String },
 
     /// Cursor inside the argument list of a call (`other(|`,
     /// `other(x,|`). The `operator_offset..operator_end` range captures
@@ -63,9 +63,9 @@ pub enum CompletionContextKind {
 /// Routes the entire decision through the `lex_with_trivia` tokens:
 /// position lookup is O(log n) binary search; comments and whitespace
 /// are skipped transparently. Source bytes are no longer consulted.
-pub fn detect_context(tokens: &[LspToken], cursor_byte_offset: usize) -> CompletionContextKind {
+pub fn detect_context(tokens: &[LspToken], source: &str, cursor_byte_offset: usize) -> CompletionContextKind {
     let walk = TokenWalk::new(tokens);
-    if let Some(member) = detect_member_via_tokens(&walk, cursor_byte_offset) {
+    if let Some(member) = detect_member_via_tokens(&walk, source, cursor_byte_offset) {
         return member;
     }
     if let Some(call) = detect_call_via_tokens(&walk, cursor_byte_offset) {
@@ -137,24 +137,21 @@ fn find_unmatched_open_paren_via_tokens(walk: &TokenWalk, start_idx: usize) -> O
 /// Token-walk path for Member detection. Returns `Some(Member { ... })`
 /// when the last real token at-or-before the cursor is a `.`; otherwise
 /// `None`, letting `detect_context` move on to Call or fall through.
-fn detect_member_via_tokens(walk: &TokenWalk, cursor: usize) -> Option<CompletionContextKind> {
+fn detect_member_via_tokens(walk: &TokenWalk, source: &str, cursor: usize) -> Option<CompletionContextKind> {
     let prev_idx = walk.prev_real_before(cursor)?;
     if !matches!(walk.token_kind(prev_idx), Some(Token::KeywordDot)) {
         return None;
     }
-    let dot_range = walk.range_at(prev_idx)?;
-    let base_end = dot_range.start;
-    let base_offset = scan_base_via_tokens(walk, prev_idx);
-    Some(CompletionContextKind::Member { base_offset, base_end })
+    let base_text = scan_base_via_tokens(walk, source, prev_idx);
+    Some(CompletionContextKind::Member { base_text })
 }
 
 /// Walk LEFT from the `.` token, collecting the qualified base expression
-/// (`Identifier`, `.`, `^`, balanced `[ ... ]`). Returns the byte offset
-/// where the base starts; that, with the dot's `range.start` as the end,
-/// is the slice the enumerator passes to `Index::find_member` for type
-/// resolution.
-fn scan_base_via_tokens(walk: &TokenWalk, dot_idx: usize) -> usize {
-    let mut last_chain = dot_idx;
+/// (`Identifier`, `.`, `^`, balanced `[ ... ]`). Returns the concatenated
+/// source slices of the chain tokens — skipping trivia between them so
+/// e.g. `foo (* mid *).` resolves to base `foo`, not `foo (* mid *)`.
+fn scan_base_via_tokens(walk: &TokenWalk, source: &str, dot_idx: usize) -> String {
+    let mut chain: Vec<usize> = Vec::new();
     let mut current = dot_idx;
     let mut bracket_depth: i32 = 0;
     while let Some(prev) = walk.prev_real(current) {
@@ -182,10 +179,18 @@ fn scan_base_via_tokens(walk: &TokenWalk, dot_idx: usize) -> usize {
         if !advance {
             break;
         }
-        last_chain = prev;
+        chain.push(prev);
         current = prev;
     }
-    walk.range_at(last_chain).map(|r| r.start).unwrap_or(0)
+    // Reverse to source order, then concatenate each token's source slice.
+    chain.reverse();
+    let mut out = String::new();
+    for idx in chain {
+        if let Some(range) = walk.range_at(idx) {
+            out.push_str(&source[range.clone()]);
+        }
+    }
+    out
 }
 
 /// Refine an `Expression { hint_type: None }` to carry a concrete hint
@@ -789,7 +794,7 @@ pub fn items_at(
     file_path: Option<&str>,
     project: Option<&AnnotatedProject>,
 ) -> CompletionList {
-    let context = detect_context(tokens, cursor_byte_offset);
+    let context = detect_context(tokens, source, cursor_byte_offset);
     let is_dot_trigger = matches!(trigger, Some(CompletionTriggerKind::TRIGGER_CHARACTER));
     log::debug!("completion: trigger={trigger:?} cursor={cursor_byte_offset} context={context:?}");
 
@@ -801,9 +806,8 @@ pub fn items_at(
     };
 
     let items: Vec<CompletionItem> = match (&context, is_dot_trigger, project) {
-        (CompletionContextKind::Member { base_offset, base_end }, _, Some(p)) => {
-            let base_text = &source[*base_offset..*base_end];
-            enumerate_member(base_text, enclosing_pou, &p.index)
+        (CompletionContextKind::Member { base_text }, _, Some(p)) => {
+            enumerate_member(base_text.as_str(), enclosing_pou, &p.index)
         }
         // Dot-trigger fired but no project yet → empty list (suppresses
         // the rest of the routing).
@@ -849,7 +853,7 @@ mod tests {
     /// the cache integration on every call.
     fn ctx(src: &str, cursor: usize) -> CompletionContextKind {
         let tokens = lex_with_trivia(src);
-        detect_context(&tokens, cursor)
+        detect_context(&tokens, src, cursor)
     }
 
     #[test]
@@ -864,8 +868,8 @@ mod tests {
         let src = "    foo.bar.";
         let cursor = at(src, "foo.bar.");
         match ctx(src, cursor) {
-            CompletionContextKind::Member { base_offset, base_end } => {
-                assert_eq!(&src[base_offset..base_end], "foo.bar");
+            CompletionContextKind::Member { base_text } => {
+                assert_eq!(base_text, "foo.bar");
             }
             other => panic!("expected Member, got {other:?}"),
         }
@@ -876,8 +880,8 @@ mod tests {
         let src = "    arr[1].";
         let cursor = at(src, "arr[1].");
         match ctx(src, cursor) {
-            CompletionContextKind::Member { base_offset, base_end } => {
-                assert_eq!(&src[base_offset..base_end], "arr[1]");
+            CompletionContextKind::Member { base_text } => {
+                assert_eq!(base_text, "arr[1]");
             }
             other => panic!("expected Member, got {other:?}"),
         }
@@ -888,8 +892,8 @@ mod tests {
         let src = "    THIS^.";
         let cursor = at(src, "THIS^.");
         match ctx(src, cursor) {
-            CompletionContextKind::Member { base_offset, base_end } => {
-                assert_eq!(&src[base_offset..base_end], "THIS^");
+            CompletionContextKind::Member { base_text } => {
+                assert_eq!(base_text, "THIS^");
             }
             other => panic!("expected Member, got {other:?}"),
         }
@@ -897,15 +901,15 @@ mod tests {
 
     #[test]
     fn detect_member_after_comment_between_base_and_dot() {
-        // Comment between the base and the dot must not hide the dot from
-        // the detector — this is one of the bugs the token-cache migration
-        // targets.
+        // Comment between the base and the dot must neither hide the dot
+        // (Member still classifies) NOR leak into the base text the
+        // enumerator looks up. base_text comes from token concatenation
+        // so trivia is excluded automatically.
         let src = "    foo (* mid *).";
         let cursor = at(src, "foo (* mid *).");
         match ctx(src, cursor) {
-            CompletionContextKind::Member { base_offset, base_end } => {
-                let base = &src[base_offset..base_end];
-                assert!(base.starts_with("foo"), "expected base starting with foo, got {base:?}");
+            CompletionContextKind::Member { base_text } => {
+                assert_eq!(base_text, "foo", "comment leaked into base_text");
             }
             other => panic!("expected Member, got {other:?}"),
         }

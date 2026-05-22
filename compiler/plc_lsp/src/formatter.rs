@@ -334,6 +334,15 @@ impl<'a> Emitter<'a> {
                     if is_decl_block_closer(t) {
                         self.align_stack.pop();
                     }
+                    // Mid-block dedent: `ELSE` / `ELSIF` land at their
+                    // parent IF's depth, not the body's. Temporarily
+                    // step the indent down for this keyword only; the
+                    // following body keeps the original depth (see the
+                    // matching re-indent after emission below).
+                    let mid_block_dedent = is_midblock_dedent(t);
+                    if mid_block_dedent && self.indent_depth > 0 {
+                        self.indent_depth -= 1;
+                    }
 
                     self.flush_pending_newlines();
                     let starting_new_line = self.at_line_start;
@@ -386,6 +395,13 @@ impl<'a> Emitter<'a> {
                     let text = canonical_text(t, &self.source[r.clone()]);
                     self.out.push_str(&text);
                     self.prev_kind = Some(*t);
+
+                    // Re-indent after ELSE / ELSIF — the keyword landed
+                    // at the parent's depth, but its body resumes at
+                    // the original (deeper) depth.
+                    if mid_block_dedent {
+                        self.indent_depth += 1;
+                    }
 
                     // Push indent / alignment for openers AFTER
                     // emitting them — body of the block starts on the
@@ -527,6 +543,16 @@ fn is_indent_token(t: &Token) -> bool {
             | Token::KeywordRepeat
             | Token::KeywordCase
     )
+}
+
+/// Mid-block dedent — keywords that visually sit at the parent
+/// block's depth even though they introduce content that continues
+/// at the deeper depth. `ELSE` and `ELSIF` lines up with `IF`, but
+/// the body after them resumes at the IF's body depth. Case labels
+/// would belong here too but need a richer line-start lookahead to
+/// detect; deferred.
+fn is_midblock_dedent(t: &Token) -> bool {
+    matches!(t, Token::KeywordElse | Token::KeywordElseIf)
 }
 
 /// Tokens that DECREASE the indent depth. Dedent fires BEFORE
@@ -765,6 +791,33 @@ mod tests {
         assert!(!out.contains("\n\n\n"), "blank lines not capped:\n{out:?}");
         // Should still contain the gap (one blank line).
         assert!(out.contains("\n\n"), "blank line collapsed entirely:\n{out:?}");
+    }
+
+    #[test]
+    fn else_outdents_to_if_level() {
+        let src = "FUNCTION foo : INT\nIF a THEN\nb := 1;\nELSE\nb := 2;\nEND_IF\nEND_FUNCTION\n";
+        let out = format_document(src);
+        let lines: Vec<&str> = out.lines().collect();
+        // IF emits at depth 1 (under FUNCTION). Body at depth 2. ELSE
+        // sits at depth 1 — same column as IF. Body after ELSE back
+        // at depth 2.
+        let if_line = lines.iter().find(|l| l.trim_start().starts_with("IF ")).expect("IF line");
+        let else_line = lines.iter().find(|l| l.trim_start().starts_with("ELSE")).expect("ELSE line");
+        let if_indent = if_line.len() - if_line.trim_start().len();
+        let else_indent = else_line.len() - else_line.trim_start().len();
+        assert_eq!(else_indent, if_indent, "ELSE should land at IF's indent column.\nout:\n{out}");
+    }
+
+    #[test]
+    fn elsif_outdents_to_if_level() {
+        let src = "FUNCTION foo : INT\nIF a THEN\nb := 1;\nELSIF c THEN\nb := 2;\nEND_IF\nEND_FUNCTION\n";
+        let out = format_document(src);
+        let lines: Vec<&str> = out.lines().collect();
+        let if_line = lines.iter().find(|l| l.trim_start().starts_with("IF ")).unwrap();
+        let elsif_line = lines.iter().find(|l| l.trim_start().starts_with("ELSIF")).unwrap();
+        let if_indent = if_line.len() - if_line.trim_start().len();
+        let elsif_indent = elsif_line.len() - elsif_line.trim_start().len();
+        assert_eq!(elsif_indent, if_indent, "ELSIF should land at IF's indent column.\nout:\n{out}");
     }
 
     #[test]
