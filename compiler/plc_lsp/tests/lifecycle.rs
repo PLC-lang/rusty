@@ -88,6 +88,26 @@ fn handshake_with_default_caps_falls_back_to_utf16() {
           "renameProvider": {
             "prepareProvider": true
           },
+          "semanticTokensProvider": {
+            "full": true,
+            "legend": {
+              "tokenModifiers": [
+                "readonly",
+                "defaultLibrary"
+              ],
+              "tokenTypes": [
+                "function",
+                "method",
+                "class",
+                "struct",
+                "type",
+                "variable",
+                "parameter",
+                "property"
+              ]
+            },
+            "range": false
+          },
           "textDocumentSync": 1
         },
         "serverInfo": {
@@ -142,6 +162,26 @@ fn handshake_with_utf8_capable_client_negotiates_utf8() {
           "referencesProvider": true,
           "renameProvider": {
             "prepareProvider": true
+          },
+          "semanticTokensProvider": {
+            "full": true,
+            "legend": {
+              "tokenModifiers": [
+                "readonly",
+                "defaultLibrary"
+              ],
+              "tokenTypes": [
+                "function",
+                "method",
+                "class",
+                "struct",
+                "type",
+                "variable",
+                "parameter",
+                "property"
+              ]
+            },
+            "range": false
           },
           "textDocumentSync": 1
         },

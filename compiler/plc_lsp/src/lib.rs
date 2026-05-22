@@ -45,6 +45,7 @@ pub mod position;
 pub mod project;
 pub mod rename;
 pub mod reverse_index;
+pub mod semantic_tokens;
 pub mod token_cache;
 pub mod token_walk;
 pub mod watcher;
@@ -257,6 +258,27 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
         }),
         // F5: whole-document formatting (range/on-type left for later).
         document_formatting_provider: Some(OneOf::Left(true)),
+        // F6: server-side semantic highlighting refinement. We advertise
+        // `full` only (no range, no delta) for the POC; the legend is
+        // sourced from the semantic_tokens module so the wire format
+        // and the collector can't drift apart.
+        semantic_tokens_provider: Some(lsp_types::SemanticTokensServerCapabilities::SemanticTokensOptions(
+            lsp_types::SemanticTokensOptions {
+                work_done_progress_options: Default::default(),
+                legend: lsp_types::SemanticTokensLegend {
+                    token_types: semantic_tokens::TYPES
+                        .iter()
+                        .map(|s| lsp_types::SemanticTokenType::new(s))
+                        .collect(),
+                    token_modifiers: semantic_tokens::MODIFIERS
+                        .iter()
+                        .map(|s| lsp_types::SemanticTokenModifier::new(s))
+                        .collect(),
+                },
+                range: Some(false),
+                full: Some(lsp_types::SemanticTokensFullOptions::Bool(true)),
+            },
+        )),
         ..Default::default()
     };
 
@@ -375,6 +397,7 @@ fn handle_request(
         "textDocument/completion" => handle_completion(state, connection, req),
         "completionItem/resolve" => handle_completion_item_resolve(state, connection, req),
         "textDocument/formatting" => handle_formatting(state, connection, req),
+        "textDocument/semanticTokens/full" => handle_semantic_tokens_full(state, connection, req),
         _ => {
             log::debug!("unhandled request: method={} id={:?}", req.method, req.id);
             let response = Response {
@@ -1022,6 +1045,54 @@ fn end_position(source: &str) -> (u32, u32) {
         }
     }
     (line, last_line_chars)
+}
+
+/// `textDocument/semanticTokens/full`: emit token-kind tags for every
+/// identifier in the document. Used by the editor's theme to colour
+/// `foo` differently depending on whether it resolves to a function /
+/// variable / type / etc. — refinement on top of the TextMate grammar
+/// that serhioromano's vscode-st provides.
+fn handle_semantic_tokens_full(state: &mut ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: lsp_types::SemanticTokensParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed SemanticTokensParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    // Need annotated project + the file's source to produce tokens.
+    // Both are best-effort: if the compile hasn't attached yet, return
+    // empty (the editor will request again on the next edit).
+    let result: lsp_types::SemanticTokensResult =
+        match (state.annotated.as_ref(), state.documents.get(&params.text_document.uri)) {
+            (Some(annotated), Some(buf)) => {
+                let Some(path) = project::file_uri_to_path(&params.text_document.uri) else {
+                    send_json_response(
+                        connection,
+                        req_id,
+                        serde_json::to_value(lsp_types::SemanticTokens::default()),
+                    );
+                    return;
+                };
+                let tokens = semantic_tokens::semantic_tokens_for_file(
+                    annotated,
+                    &path,
+                    &buf.content,
+                    &state.position_encoding,
+                );
+                lsp_types::SemanticTokensResult::Tokens(tokens)
+            }
+            _ => lsp_types::SemanticTokensResult::Tokens(lsp_types::SemanticTokens::default()),
+        };
+
+    send_json_response(connection, req_id, serde_json::to_value(result));
 }
 
 fn send_json_response(
