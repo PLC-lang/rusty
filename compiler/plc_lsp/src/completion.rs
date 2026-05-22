@@ -14,6 +14,7 @@ use plc::typesystem::DataTypeInformation;
 use plc_ast::ast::CompilationUnit;
 use plc_driver::pipelines::AnnotatedProject;
 
+use crate::docstring;
 use crate::token_walk::TokenWalk;
 
 /// Detected completion context at the user's cursor. Determines which
@@ -289,6 +290,12 @@ fn make_variable_item(entry: &VariableIndexEntry, tier: u8, hint_type: Option<&s
     let type_match = hint_type.map(|h| h == entry.get_type_name()).unwrap_or(false);
     let detail = format!("{} : {}", entry.get_name(), entry.get_type_name());
     let kind = if entry.is_constant() { CompletionItemKind::CONSTANT } else { CompletionItemKind::VARIABLE };
+    // Pick the resolve-tag flavour from how the variable lives in the
+    // index. Members of a container resolve via `find_member`; globals
+    // (no `.` in qname) resolve via `find_global_variable`. We treat
+    // both as Variable for docstring widening (no prefix walk).
+    let qname = entry.get_qualified_name();
+    let tag = docstring::ResolveTag::for_variable(qname);
     CompletionItem {
         label: entry.get_name().to_string(),
         kind: Some(kind),
@@ -297,6 +304,7 @@ fn make_variable_item(entry: &VariableIndexEntry, tier: u8, hint_type: Option<&s
         filter_text: Some(entry.get_name().to_string()),
         insert_text: Some(entry.get_name().to_string()),
         insert_text_format: Some(InsertTextFormat::PLAIN_TEXT),
+        data: serde_json::to_value(&tag).ok(),
         ..Default::default()
     }
 }
@@ -333,6 +341,10 @@ fn make_pou_item(entry: &PouIndexEntry, tier: u8, hint_type: Option<&str>) -> Co
         }
     };
     let type_match = hint_type.map(|h| h == type_for_hint).unwrap_or(false);
+    // POUs (and methods) are indexed by name; doc resolver looks up via
+    // `find_pou(name)` regardless of variant. Methods carry the
+    // `Parent.method` qualified name; the label is the bare suffix.
+    let tag = docstring::ResolveTag::for_pou(entry.get_name());
     CompletionItem {
         label: label.clone(),
         kind: Some(kind),
@@ -341,11 +353,13 @@ fn make_pou_item(entry: &PouIndexEntry, tier: u8, hint_type: Option<&str>) -> Co
         filter_text: Some(label.clone()),
         insert_text: Some(label),
         insert_text_format: Some(InsertTextFormat::PLAIN_TEXT),
+        data: serde_json::to_value(&tag).ok(),
         ..Default::default()
     }
 }
 
 fn make_type_item(name: &str, tier: u8) -> CompletionItem {
+    let tag = docstring::ResolveTag::for_type(name);
     CompletionItem {
         label: name.to_string(),
         kind: Some(CompletionItemKind::TYPE_PARAMETER),
@@ -354,6 +368,7 @@ fn make_type_item(name: &str, tier: u8) -> CompletionItem {
         filter_text: Some(name.to_string()),
         insert_text: Some(name.to_string()),
         insert_text_format: Some(InsertTextFormat::PLAIN_TEXT),
+        data: serde_json::to_value(&tag).ok(),
         ..Default::default()
     }
 }

@@ -8,7 +8,7 @@
 #![allow(clippy::mutable_key_type)]
 
 use std::collections::{HashMap, HashSet};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use anyhow::Context as _;
 use crossbeam_channel::{select, Sender};
@@ -35,6 +35,7 @@ pub mod call_hierarchy;
 pub mod compile;
 pub mod completion;
 pub mod diagnostics;
+pub mod docstring;
 pub mod document;
 pub mod hover_format;
 pub mod outline;
@@ -150,20 +151,6 @@ impl ServerState {
             token_cache: token_cache::TokenCache::new(),
         }
     }
-
-    /// Acquire source text for `path`. Returns the in-memory editor buffer
-    /// when the file is open, otherwise reads from disk. Owned `String` is
-    /// deliberate: the caller usually passes it into `token_cache` which
-    /// borrows `&mut self`, which would otherwise conflict with a borrow
-    /// of `self.documents`.
-    pub fn source_for(&self, path: &Path) -> Option<String> {
-        if let Some(uri) = project::path_to_file_uri(path) {
-            if let Some(buf) = self.documents.get(&uri) {
-                return Some(buf.content.clone());
-            }
-        }
-        std::fs::read_to_string(path).ok()
-    }
 }
 
 /// Pick the position encoding from what the client offers. We prefer UTF-8
@@ -257,11 +244,13 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
         // per the grill decision (Q5/D17); everything else relies on the
         // user's explicit ctrl-space request. `resolve_provider: false` —
         // we send fully-populated CompletionItems and don't implement
-        // `completionItem/resolve`. P13.5 ships the skeleton; symbol
-        // enumeration follows in P13.6.
+        // Initial completion lists are returned without docstrings;
+        // the docs come back via `completionItem/resolve` when the
+        // editor focuses an item. Keeps the first response light when
+        // the project has hundreds of entries.
         completion_provider: Some(CompletionOptions {
             trigger_characters: Some(vec![".".to_string()]),
-            resolve_provider: Some(false),
+            resolve_provider: Some(true),
             ..Default::default()
         }),
         ..Default::default()
@@ -380,6 +369,7 @@ fn handle_request(
         "textDocument/prepareRename" => handle_prepare_rename(state, connection, req),
         "textDocument/rename" => handle_rename(state, connection, req),
         "textDocument/completion" => handle_completion(state, connection, req),
+        "completionItem/resolve" => handle_completion_item_resolve(state, connection, req),
         _ => {
             log::debug!("unhandled request: method={} id={:?}", req.method, req.id);
             let response = Response {
@@ -503,53 +493,7 @@ fn hover_for_position(state: &mut ServerState, params: &HoverParams) -> Option<H
 /// when open, disk otherwise; tokens come from the per-path cache.
 fn lookup_docstring(state: &mut ServerState, symbol: &position::SymbolUnderCursor) -> Option<String> {
     let resolved = symbol.resolved.as_ref()?;
-    let file_name = resolved.declaration_location.get_file_name()?;
-    let path = std::path::Path::new(file_name);
-    let range = resolved.declaration_location.to_range()?;
-    let source = state.source_for(path)?;
-    let tokens = state.token_cache.get_or_recompute(path, &source);
-    let prefix = decl_prefix_for(resolved.kind);
-    token_walk::docstring_at(tokens.as_slice(), &source, range.start, prefix)
-}
-
-/// Closure that picks out the keyword/attribute tokens that syntactically
-/// precede a declaration's name on the same line — `docstring_at` walks
-/// past these to find the user-visible doc comment above the
-/// declaration. POU names sit after `FUNCTION`/`PROGRAM`/…; types sit
-/// after `TYPE`; both can also have `{external}` / `{constant}` / `{ref}`
-/// / `{sized}` attribute tokens between the keyword and the name in
-/// oscat-style stdlib declarations.
-fn decl_prefix_for(kind: position::SymbolKind) -> impl Fn(&plc::lexer::Token) -> bool {
-    use plc::lexer::Token;
-    use position::SymbolKind;
-    move |tok: &Token| match kind {
-        SymbolKind::Pou => matches!(
-            tok,
-            Token::KeywordFunction
-                | Token::KeywordFunctionBlock
-                | Token::KeywordProgram
-                | Token::KeywordClass
-                | Token::KeywordInterface
-                | Token::KeywordMethod
-                | Token::KeywordAction
-                | Token::KeywordActions
-                | Token::KeywordPropertyGet
-                | Token::KeywordPropertySet
-                | Token::PropertyExternal
-                | Token::PropertyByRef
-                | Token::PropertyConstant
-                | Token::PropertySized
-        ),
-        SymbolKind::Type => matches!(
-            tok,
-            Token::KeywordType
-                | Token::PropertyExternal
-                | Token::PropertyByRef
-                | Token::PropertyConstant
-                | Token::PropertySized
-        ),
-        SymbolKind::Variable | SymbolKind::Argument | SymbolKind::Member => false,
-    }
+    docstring::fetch(&mut state.token_cache, &state.documents, &resolved.declaration_location, resolved.kind)
 }
 
 /// Build a `path → source` map from the open editor buffers — used by
@@ -966,6 +910,47 @@ fn handle_completion(state: &mut ServerState, connection: &Connection, req: Requ
     };
 
     send_json_response(connection, req_id, serde_json::to_value(result));
+}
+
+/// Lazy second-pass enrichment for `textDocument/completion` items.
+/// VS Code / Helix call this when the user focuses an item; the
+/// `data` field carries a `ResolveTag` set by `make_*_item` that
+/// lets us look up the declaration and attach the docstring without
+/// re-running the enumerator.
+fn handle_completion_item_resolve(state: &mut ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let mut item: lsp_types::CompletionItem = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed CompletionItem: {e}"),
+            );
+            return;
+        }
+    };
+
+    // Best-effort: docstring lookup needs the project + token cache;
+    // if either is unavailable, ship the item back unchanged.
+    let doc = item
+        .data
+        .as_ref()
+        .and_then(|data| serde_json::from_value::<docstring::ResolveTag>(data.clone()).ok())
+        .and_then(|tag| {
+            let annotated = state.annotated.as_ref()?;
+            let kind = tag.parsed_kind()?;
+            let location = docstring::lookup_location(&annotated.index, &tag)?;
+            // Split borrows: documents is read-only, token_cache is mutable.
+            let documents = &state.documents;
+            docstring::fetch(&mut state.token_cache, documents, &location, kind)
+        });
+    if let Some(body) = doc {
+        item.documentation = Some(docstring::as_markdown_documentation(body));
+    }
+
+    send_json_response(connection, req_id, serde_json::to_value(item));
 }
 
 fn send_json_response(
