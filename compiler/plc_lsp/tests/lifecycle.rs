@@ -75,6 +75,7 @@ fn handshake_with_default_caps_falls_back_to_utf16() {
           },
           "declarationProvider": true,
           "definitionProvider": true,
+          "documentFormattingProvider": true,
           "documentSymbolProvider": true,
           "executeCommandProvider": {
             "commands": [
@@ -129,6 +130,7 @@ fn handshake_with_utf8_capable_client_negotiates_utf8() {
           },
           "declarationProvider": true,
           "definitionProvider": true,
+          "documentFormattingProvider": true,
           "documentSymbolProvider": true,
           "executeCommandProvider": {
             "commands": [

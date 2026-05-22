@@ -20,13 +20,14 @@ use lsp_types::{
     CallHierarchyIncomingCallsParams, CallHierarchyItem, CallHierarchyOutgoingCallsParams,
     CallHierarchyPrepareParams, CallHierarchyServerCapability, ClientCapabilities, CompletionList,
     CompletionOptions, CompletionParams, DeclarationCapability, DidChangeTextDocumentParams,
-    DidChangeWatchedFilesParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams, DocumentSymbol,
-    DocumentSymbolParams, DocumentSymbolResponse, ExecuteCommandOptions, ExecuteCommandParams,
-    FileChangeType, GotoDefinitionParams, GotoDefinitionResponse, Hover, HoverContents, HoverParams,
-    HoverProviderCapability, InitializeParams, InitializeResult, Location, MarkupContent, MarkupKind,
-    MessageType, OneOf, PositionEncodingKind, PrepareRenameResponse, PublishDiagnosticsParams,
-    ReferenceParams, RenameOptions, RenameParams, ServerCapabilities, ServerInfo, ShowMessageParams,
-    TextDocumentPositionParams, TextDocumentSyncCapability, TextDocumentSyncKind, Unregistration,
+    DidChangeWatchedFilesParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams,
+    DocumentFormattingParams, DocumentSymbol, DocumentSymbolParams, DocumentSymbolResponse,
+    ExecuteCommandOptions, ExecuteCommandParams, FileChangeType, GotoDefinitionParams,
+    GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability, InitializeParams,
+    InitializeResult, Location, MarkupContent, MarkupKind, MessageType, OneOf, Position,
+    PositionEncodingKind, PrepareRenameResponse, PublishDiagnosticsParams, Range, ReferenceParams,
+    RenameOptions, RenameParams, ServerCapabilities, ServerInfo, ShowMessageParams,
+    TextDocumentPositionParams, TextDocumentSyncCapability, TextDocumentSyncKind, TextEdit, Unregistration,
     UnregistrationParams, Uri,
 };
 use plc_diagnostics::cancellation::CancellationToken;
@@ -37,6 +38,7 @@ pub mod completion;
 pub mod diagnostics;
 pub mod docstring;
 pub mod document;
+pub mod formatter;
 pub mod hover_format;
 pub mod outline;
 pub mod position;
@@ -253,6 +255,8 @@ pub fn serve(connection: &Connection, settings: Settings) -> anyhow::Result<()> 
             resolve_provider: Some(true),
             ..Default::default()
         }),
+        // F5: whole-document formatting (range/on-type left for later).
+        document_formatting_provider: Some(OneOf::Left(true)),
         ..Default::default()
     };
 
@@ -370,6 +374,7 @@ fn handle_request(
         "textDocument/rename" => handle_rename(state, connection, req),
         "textDocument/completion" => handle_completion(state, connection, req),
         "completionItem/resolve" => handle_completion_item_resolve(state, connection, req),
+        "textDocument/formatting" => handle_formatting(state, connection, req),
         _ => {
             log::debug!("unhandled request: method={} id={:?}", req.method, req.id);
             let response = Response {
@@ -951,6 +956,72 @@ fn handle_completion_item_resolve(state: &mut ServerState, connection: &Connecti
     }
 
     send_json_response(connection, req_id, serde_json::to_value(item));
+}
+
+/// `textDocument/formatting`: re-emit the document with normalised
+/// whitespace + indent + keyword case + tabular VAR / STRUCT
+/// alignment. Returns a single whole-document `TextEdit` replacing
+/// the buffer. Falls back to no-op (empty edit list) if the URI isn't
+/// open in the document store — the LSP spec says we may return an
+/// empty list when no formatting is available.
+fn handle_formatting(state: &mut ServerState, connection: &Connection, req: Request) {
+    let req_id = req.id.clone();
+    let params: DocumentFormattingParams = match serde_json::from_value(req.params) {
+        Ok(p) => p,
+        Err(e) => {
+            send_error_response(
+                connection,
+                req_id,
+                ErrorCode::InvalidParams,
+                format!("malformed DocumentFormattingParams: {e}"),
+            );
+            return;
+        }
+    };
+
+    let edits: Vec<TextEdit> = match state.documents.get(&params.text_document.uri) {
+        Some(buf) => {
+            let formatted = formatter::format_document(&buf.content);
+            if formatted == buf.content {
+                vec![]
+            } else {
+                // Replace the entire document with one TextEdit. The
+                // end position is computed from the source's line count —
+                // LSP wants a `Range`, and using {u32::MAX, 0} is a
+                // common idiom for "to end of file" but spec-pedantic
+                // clients prefer the real bound.
+                let (end_line, end_char) = end_position(&buf.content);
+                vec![TextEdit {
+                    range: Range {
+                        start: Position { line: 0, character: 0 },
+                        end: Position { line: end_line, character: end_char },
+                    },
+                    new_text: formatted,
+                }]
+            }
+        }
+        None => vec![],
+    };
+
+    send_json_response(connection, req_id, serde_json::to_value(edits));
+}
+
+/// LSP Position for the end of the document (line is 0-based; character
+/// counts utf-16 code units in our negotiated encoding, but for ASCII
+/// content — which formatter output always is — utf-8 byte count and
+/// utf-16 unit count are equal).
+fn end_position(source: &str) -> (u32, u32) {
+    let mut line: u32 = 0;
+    let mut last_line_chars: u32 = 0;
+    for ch in source.chars() {
+        if ch == '\n' {
+            line += 1;
+            last_line_chars = 0;
+        } else {
+            last_line_chars += 1;
+        }
+    }
+    (line, last_line_chars)
 }
 
 fn send_json_response(
