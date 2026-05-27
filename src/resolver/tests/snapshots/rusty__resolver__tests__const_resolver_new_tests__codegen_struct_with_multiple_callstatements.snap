@@ -1,0 +1,14 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 4855
+expression: ir
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%Calculations = type { i16, i16, i16, i16 }
+
+@calc = unnamed_addr constant %Calculations { i16 30, i16 24, i16 50, i16 100 }
+@__Calculations__init = unnamed_addr constant %Calculations zeroinitializer

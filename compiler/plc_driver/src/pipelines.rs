@@ -31,8 +31,8 @@ use plc::{
     output::FormatOption,
     parser::parse_file,
     resolver::{
-        const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
-        TypeAnnotator,
+        const_evaluator_new::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency,
+        StringLiterals, TypeAnnotator,
     },
     validation::Validator,
     ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
@@ -55,6 +55,7 @@ use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use source_code::{source_location::SourceLocation, SourceContainer};
 
+use plc::resolver::const_evaluator_new::evaluate_constants_new;
 use serde_json;
 use tempfile::NamedTempFile;
 use toml;
@@ -346,7 +347,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
         let indexed_project = self.index(parsed_project)?;
 
         // 3. Resolve
-        let annotated_project = self.annotate(indexed_project)?;
+        let mut annotated_project = self.annotate(indexed_project)?;
 
         if self.compile_parameters.as_ref().is_some_and(|opt| opt.print_ast_lowered) {
             println!("{:#?}", annotated_project.units);
@@ -642,10 +643,8 @@ impl ParsedProject {
         let builtins = plc::builtins::parse_built_ins(id_provider);
         global_index.import(indexer::index(&builtins));
 
-        //TODO: evaluate constants should probably be a participant
-        let (index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
-
-        IndexedProject { project: ParsedProject { units }, index, unresolvables }
+        // Constant evaluation is executed in `validate`, after type checking/annotation completed.
+        IndexedProject { project: ParsedProject { units }, index: global_index, unresolvables: vec![] }
     }
 }
 
@@ -745,7 +744,7 @@ pub struct AnnotatedProject {
 impl AnnotatedProject {
     /// Validates the project, reports any new diagnostics on the fly
     pub fn validate(
-        &self,
+        &mut self,
         ctxt: &GlobalContext,
         diagnostician: &mut Diagnostician,
     ) -> Result<(), Diagnostic> {
@@ -755,6 +754,11 @@ impl AnnotatedProject {
         let diagnostics = validator.diagnostics();
         let mut severity = diagnostician.handle(&diagnostics);
 
+        // TODO: Handle `_unresolvable_constant` cases properly or delete if not needed.
+        let index = std::mem::take(&mut self.index);
+        let (index, _unresolvable_constant) = evaluate_constants_new(index, &mut self.annotations.annotation_map);
+        self.index = index;
+
         //Perform per unit validation
         self.units.iter().for_each(|AnnotatedUnit { unit, .. }| {
             // validate unit
@@ -763,6 +767,8 @@ impl AnnotatedProject {
             let diagnostics = validator.diagnostics();
             severity = severity.max(diagnostician.handle(&diagnostics));
         });
+
+
         if severity == Severity::Error {
             Err(Diagnostic::new("Compilation aborted due to critical errors"))
         } else {

@@ -1,0 +1,14 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 4931
+expression: ir
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%RealCalc = type { float, float }
+
+@real_data = unnamed_addr constant %RealCalc { float 5.000000e+00, float 4.250000e+01 }
+@__RealCalc__init = unnamed_addr constant %RealCalc zeroinitializer

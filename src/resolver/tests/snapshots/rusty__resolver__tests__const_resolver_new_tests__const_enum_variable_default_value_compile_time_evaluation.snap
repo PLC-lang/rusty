@@ -1,0 +1,15 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 3854
+expression: ir
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+@me = unnamed_addr constant i32 3
+@THREE = unnamed_addr constant i16 3
+@MyEnum.a = unnamed_addr constant i32 3
+@MyEnum.b = unnamed_addr constant i32 4
+@MyEnum.c = unnamed_addr constant i32 5

@@ -1,0 +1,17 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 3817
+expression: ir
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%Config = type { i16, float, i8 }
+
+@a = unnamed_addr constant i16 12
+@b = unnamed_addr constant float 5.000000e+00
+@c = unnamed_addr constant i8 1
+@arr = unnamed_addr constant [4 x i16] [i16 2, i16 6, i16 6, i16 4]
+@__Config__init = unnamed_addr constant %Config zeroinitializer

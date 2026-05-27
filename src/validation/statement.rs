@@ -24,7 +24,7 @@ use crate::{
     builtins::{self, BuiltIn},
     codegen::generators::expression_generator::get_implicit_call_parameter,
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
-    resolver::{const_evaluator, AnnotationMap, StatementAnnotation},
+    resolver::{const_evaluator_new, AnnotationMap, StatementAnnotation},
     typesystem::{
         self, get_equals_function_name_for, get_literal_actual_signed_type_name, DataType,
         DataTypeInformation, Dimension, StructSource, BOOL_TYPE, POINTER_SIZE,
@@ -1730,7 +1730,7 @@ fn validate_case_statement<T: AnnotationMap>(
 
         // validate for duplicate conditions
         // first try to evaluate the conditions value
-        const_evaluator::evaluate(condition, context.qualifier, context.index, None)
+        const_evaluator_new::evaluate_expression(condition, context.qualifier, context.index)
             .map_err(|err| {
                 // value evaluation and validation not possible with non constants
                 validator.push_diagnostic(

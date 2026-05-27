@@ -1,0 +1,19 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 1959
+expression: src
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%Wrapper = type { %Point, i16 }
+%Point = type { i16, i16 }
+
+@wrapper = unnamed_addr constant %Wrapper { %Point { i16 7, i16 8 }, i16 2 }
+@__Wrapper__init = unnamed_addr constant %Wrapper zeroinitializer
+@__Wrapper__init.1 = unnamed_addr constant %Wrapper zeroinitializer
+@__Point__init = unnamed_addr constant %Point zeroinitializer
+@nestedX = unnamed_addr constant i16 7
+@nestedY = unnamed_addr constant i16 8

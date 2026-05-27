@@ -1,0 +1,16 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 4972
+expression: ir
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%Item = type { i16, [2 x %SubItem] }
+%SubItem = type { i16 }
+
+@items = unnamed_addr constant [2 x %Item] [%Item { i16 1, [2 x %SubItem] [%SubItem { i16 30 }, %SubItem { i16 70 }] }, %Item { i16 2, [2 x %SubItem] [%SubItem { i16 25 }, %SubItem { i16 100 }] }]
+@__Item__init = unnamed_addr constant %Item zeroinitializer
+@__SubItem__init = unnamed_addr constant %SubItem zeroinitializer

@@ -1,4 +1,4 @@
-mod const_resolver_tests;
+mod const_resolver_new_tests;
 mod fnptr;
 mod lowering;
 mod resolve_and_lower_init_functions;

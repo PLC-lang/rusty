@@ -1,6 +1,6 @@
 use crate::{
     index::{get_init_fn_name, Index, PouIndexEntry, VariableIndexEntry},
-    resolver::const_evaluator::UnresolvableConstant,
+    resolver::const_evaluator_new::UnresolvableConstant,
 };
 use initializers::{get_user_init_fn_name, Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{

@@ -225,7 +225,7 @@ pub fn parse_and_annotate_with_diagnostics<T: SourceContainer + Clone>(
 
 pub fn parse_and_validate<T: SourceContainer + Clone>(name: &str, src: Vec<T>) -> String {
     match parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered()) {
-        Ok((mut pipeline, project)) => {
+        Ok((mut pipeline, mut project)) => {
             let _ = project.validate(&pipeline.context, &mut pipeline.diagnostician);
             pipeline.diagnostician.buffer().unwrap()
         }
@@ -268,7 +268,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     pipeline.register_default_participants();
     let project = pipeline.parse()?;
     let project = pipeline.index(project)?;
-    let project = pipeline.annotate(project)?;
+    let mut project = pipeline.annotate(project)?;
     // Validate
     // TODO: move validation to participants, maybe refactor codegen to stop at generated modules and persist in dedicated step?
     project.validate(&pipeline.context, &mut pipeline.diagnostician)?;

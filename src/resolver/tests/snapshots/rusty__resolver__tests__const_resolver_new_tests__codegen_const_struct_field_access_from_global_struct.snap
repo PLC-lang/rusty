@@ -1,0 +1,25 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 1930
+expression: src
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%PRG = type { %Point }
+%Point = type { i16, i16 }
+
+@xValue = unnamed_addr constant i16 10
+@PRG_instance = global %PRG { %Point { i16 10, i16 20 } }
+@__Point__init = unnamed_addr constant %Point zeroinitializer
+@yValue = unnamed_addr constant i16 20
+@__PRG.point__init = unnamed_addr constant %Point { i16 10, i16 20 }
+@__PRG.point__init.1 = unnamed_addr constant %Point { i16 10, i16 20 }
+
+define void @PRG(ptr %0) {
+entry:
+  %point = getelementptr inbounds nuw %PRG, ptr %0, i32 0, i32 0
+  ret void
+}

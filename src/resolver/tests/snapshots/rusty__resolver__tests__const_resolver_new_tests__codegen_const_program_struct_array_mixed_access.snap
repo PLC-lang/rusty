@@ -1,0 +1,28 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 2040
+expression: src
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%prg = type { %Config }
+%Config = type { %Metrics, [2 x %Metrics] }
+%Metrics = type { [3 x i16], i16 }
+
+@directSample = unnamed_addr constant i16 20
+@prg_instance = global %prg { %Config { %Metrics { [3 x i16] [i16 10, i16 20, i16 30], i16 5 }, [2 x %Metrics] [%Metrics { [3 x i16] [i16 1, i16 2, i16 3], i16 10 }, %Metrics { [3 x i16] [i16 4, i16 5, i16 6], i16 20 }] } }
+@__Config__init = unnamed_addr constant %Config zeroinitializer
+@__Metrics__init = unnamed_addr constant %Metrics zeroinitializer
+@nestedSample = unnamed_addr constant i16 6
+@nestedOffset = unnamed_addr constant i16 10
+@__prg.config__init = unnamed_addr constant %Config { %Metrics { [3 x i16] [i16 10, i16 20, i16 30], i16 5 }, [2 x %Metrics] [%Metrics { [3 x i16] [i16 1, i16 2, i16 3], i16 10 }, %Metrics { [3 x i16] [i16 4, i16 5, i16 6], i16 20 }] }
+@__prg.config__init.1 = unnamed_addr constant %Config { %Metrics { [3 x i16] [i16 10, i16 20, i16 30], i16 5 }, [2 x %Metrics] [%Metrics { [3 x i16] [i16 1, i16 2, i16 3], i16 10 }, %Metrics { [3 x i16] [i16 4, i16 5, i16 6], i16 20 }] }
+
+define void @prg(ptr %0) {
+entry:
+  %config = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  ret void
+}

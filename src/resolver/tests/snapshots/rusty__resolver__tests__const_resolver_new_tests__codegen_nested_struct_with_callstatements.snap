@@ -1,0 +1,17 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 4908
+expression: ir
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%Outer = type { %Inner, i16 }
+%Inner = type { i16 }
+
+@outer = unnamed_addr constant %Outer { %Inner { i16 6 }, i16 25 }
+@__Outer__init = unnamed_addr constant %Outer zeroinitializer
+@__Outer__init.1 = unnamed_addr constant %Outer zeroinitializer
+@__Inner__init = unnamed_addr constant %Inner zeroinitializer

@@ -1,0 +1,21 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 5007
+expression: src
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%RootStruct = type { [2 x %Struct2] }
+%Struct2 = type { [2 x %Struct3] }
+%Struct3 = type { [2 x %LeafStruct] }
+%LeafStruct = type { i16 }
+
+@megaStructure = unnamed_addr constant %RootStruct { [2 x %Struct2] [%Struct2 { [2 x %Struct3] [%Struct3 { [2 x %LeafStruct] [%LeafStruct { i16 10 }, %LeafStruct { i16 20 }] }, %Struct3 { [2 x %LeafStruct] [%LeafStruct { i16 30 }, %LeafStruct { i16 99 }] }] }, %Struct2 { [2 x %Struct3] [%Struct3 { [2 x %LeafStruct] [%LeafStruct { i16 110 }, %LeafStruct { i16 120 }] }, %Struct3 { [2 x %LeafStruct] [%LeafStruct { i16 130 }, %LeafStruct { i16 140 }] }] }] }
+@__RootStruct__init = unnamed_addr constant %RootStruct zeroinitializer
+@__Struct2__init = unnamed_addr constant %Struct2 zeroinitializer
+@__Struct3__init = unnamed_addr constant %Struct3 zeroinitializer
+@__LeafStruct__init = unnamed_addr constant %LeafStruct zeroinitializer
+@nestedResult = unnamed_addr constant i16 99

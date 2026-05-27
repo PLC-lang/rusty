@@ -1,7 +1,7 @@
 use crate::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
     lowering::{create_call_statement, create_member_reference},
-    resolver::const_evaluator::UnresolvableConstant,
+    resolver::const_evaluator_new::UnresolvableConstant,
 };
 use plc_ast::{
     ast::{
@@ -28,7 +28,7 @@ pub(crate) trait Init<'lwr>
 where
     Self: Sized + Default,
 {
-    fn new(candidates: &'lwr [UnresolvableConstant]) -> Self;
+    fn new(candidates: &Vec<UnresolvableConstant>) -> Self;
     /// Inserts an initializer only if no entry exists for the given variable
     fn maybe_insert_initializer(
         &mut self,
@@ -46,7 +46,7 @@ where
 }
 
 impl<'lwr> Init<'lwr> for Initializers {
-    fn new(candidates: &'lwr [UnresolvableConstant]) -> Self {
+    fn new(candidates: &Vec<UnresolvableConstant>) -> Self {
         let mut assignments = Self::default();
         candidates
             .iter()

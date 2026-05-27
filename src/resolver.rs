@@ -37,6 +37,7 @@ use crate::{
 };
 
 pub mod const_evaluator;
+pub mod const_evaluator_new;
 pub mod generics;
 
 #[cfg(test)]

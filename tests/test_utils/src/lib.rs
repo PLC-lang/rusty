@@ -33,7 +33,7 @@ pub fn parse_and_validate_buffered_ast(src: &str) -> Vec<CompilationUnit> {
 
     match driver::parse_and_annotate_with_diagnostics("TestProject", vec![source], Diagnostician::buffered())
     {
-        Ok((mut pipeline, project)) => {
+        Ok((mut pipeline, mut project)) => {
             project.validate(&pipeline.context, &mut pipeline.diagnostician).unwrap();
             project.units.into_iter().map(CompilationUnit::from).collect()
         }

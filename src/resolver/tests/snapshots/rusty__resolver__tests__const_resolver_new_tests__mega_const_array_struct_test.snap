@@ -1,0 +1,30 @@
+---
+source: src/resolver/tests/const_resolver_new_tests.rs
+assertion_line: 4211
+expression: src
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%Point = type { i16, i16 }
+%Outer = type { [2 x %Inner] }
+%Inner = type { i16 }
+
+@a = unnamed_addr constant i16 5
+@arr_mult_mixed = unnamed_addr constant [6 x i16] [i16 1, i16 1, i16 5, i16 5, i16 5, i16 0]
+@arr_const = unnamed_addr constant [3 x i16] [i16 5, i16 6, i16 7]
+@arr_enum = unnamed_addr constant [3 x i32] [i32 0, i32 2, i32 0]
+@MyEnum.A = unnamed_addr constant i32 0
+@MyEnum.C = unnamed_addr constant i32 2
+@arr_nested = unnamed_addr constant [2 x [3 x i16]] [[3 x i16] [i16 1, i16 2, i16 3], [3 x i16] [i16 4, i16 5, i16 6]]
+@arr_struct_partial = unnamed_addr constant [3 x %Point] [%Point { i16 5, i16 0 }, %Point zeroinitializer, %Point zeroinitializer]
+@__Point__init = unnamed_addr constant %Point zeroinitializer
+@arr_struct_full = unnamed_addr constant [2 x %Point] [%Point { i16 10, i16 10 }, %Point { i16 20, i16 20 }]
+@outer_struct = unnamed_addr constant %Outer { [2 x %Inner] [%Inner { i16 1 }, %Inner { i16 2 }] }
+@__Outer__init = unnamed_addr constant %Outer zeroinitializer
+@__Inner__init = unnamed_addr constant %Inner zeroinitializer
+@arr_struct_default = unnamed_addr constant [3 x %Point] zeroinitializer
+@arr_err_too_many = unnamed_addr constant [3 x i16] [i16 1, i16 2, i16 3, i16 4]
+@MyEnum.B = unnamed_addr constant i32 1

@@ -21,8 +21,8 @@ pub mod tests {
         lowering::calls::AggregateTypeLowerer,
         parser,
         resolver::{
-            const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
-            StringLiterals, TypeAnnotator,
+            const_evaluator::evaluate_constants, const_evaluator_new::evaluate_constants_new,
+            AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
         DebugLevel, OnlineChange, Target, Validator,
@@ -136,15 +136,35 @@ pub mod tests {
     type Lowered = (AnnotationMapImpl, Index, (CompilationUnit, FxIndexSet<Dependency>, StringLiterals));
 
     pub fn annotate_and_lower_with_ids(
-        mut unit: CompilationUnit,
+        unit: CompilationUnit,
         index: Index,
         id_provider: IdProvider,
     ) -> Lowered {
         let (mut index, _) = evaluate_constants(index);
-        let mut all_annotations = AnnotationMapImpl::default();
-
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
+
+        annotate_and_lower_with_annotations(unit, index, id_provider, annotations)
+    }
+
+    pub fn annotate_and_lower_with_ids_new_constant_evaluator(
+        unit: CompilationUnit,
+        mut index: Index,
+        id_provider: IdProvider,
+    ) -> Lowered {
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
+        index.import(std::mem::take(&mut annotations.new_index));
+
+        annotate_and_lower_with_annotations(unit, index, id_provider, annotations)
+    }
+
+    fn annotate_and_lower_with_annotations(
+        mut unit: CompilationUnit,
+        index: Index,
+        id_provider: IdProvider,
+        annotations: AnnotationMapImpl,
+    ) -> Lowered {
+        let mut all_annotations = AnnotationMapImpl::default();
         all_annotations.import(annotations);
 
         let mut aggregate_lowerer = AggregateTypeLowerer::new(id_provider.clone());
@@ -273,6 +293,50 @@ pub mod tests {
 
     pub fn codegen(src: &str) -> String {
         codegen_without_unwrap(src).map_err(|it| panic!("{it}")).unwrap()
+    }
+
+    pub fn codegen_with_new_constant_evaluator(src: &str) -> String {
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), src.to_string());
+        let mut id_provider = IdProvider::default();
+        let (unit, index, diagnostics) = index_and_lower(src, id_provider.clone());
+        reporter.handle(&diagnostics);
+
+        let (mut annotations, index, annotated_units) =
+            annotate_and_lower_with_ids_new_constant_evaluator(unit, index, id_provider.clone());
+        let (index, _) = evaluate_constants_new(index, &mut annotations);
+
+        let annotations = AstAnnotations::new(annotations, id_provider.next_id());
+        let got_layout = Mutex::new(HashMap::default());
+
+        let (unit, dependencies, literals) = annotated_units;
+        let context = CodegenContext::create();
+        let path = PathBuf::from_str("src").ok();
+        let mut code_generator = crate::codegen::CodeGen::new(
+            &context,
+            path.as_deref(),
+            unit.file,
+            crate::OptimizationLevel::None,
+            DebugLevel::None,
+            OnlineChange::Disabled,
+            &Target::System,
+        );
+        let llvm_index = code_generator
+            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout)
+            .map_err(|err| {
+                reporter.handle(&[err.into()]);
+                reporter.buffer().unwrap()
+            })
+            .unwrap();
+
+        code_generator
+            .generate(&context, &unit, &annotations, &index, llvm_index)
+            .map(|module| module.persist_to_string())
+            .map_err(|err| {
+                reporter.handle(&[err.into()]);
+                reporter.buffer().unwrap()
+            })
+            .unwrap()
     }
 
     fn codegen_into_modules<T: Compilable>(
