@@ -2190,8 +2190,8 @@
 <a href=#2190 id=2190 data-nosnippet>2190</a>        right_value: BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;,
 <a href=#2191 id=2191 data-nosnippet>2191</a>        is_signed: <span class="prelude-ty">Option</span>&lt;bool&gt;,
 <a href=#2192 id=2192 data-nosnippet>2192</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;, CodegenError&gt; {
-<a href=#2193 id=2193 data-nosnippet>2193</a>        <span class="kw">let </span>int_lvalue = left_value.into_int_value();
-<a href=#2194 id=2194 data-nosnippet>2194</a>        <span class="kw">let </span>int_rvalue = right_value.into_int_value();
+<a href=#2193 id=2193 data-nosnippet>2193</a>        <span class="kw">let </span>int_lvalue = <span class="self">self</span>.convert_to_int_value_if_pointer(left_value)<span class="question-mark">?</span>;
+<a href=#2194 id=2194 data-nosnippet>2194</a>        <span class="kw">let </span>int_rvalue = <span class="self">self</span>.convert_to_int_value_if_pointer(right_value)<span class="question-mark">?</span>;
 <a href=#2195 id=2195 data-nosnippet>2195</a>
 <a href=#2196 id=2196 data-nosnippet>2196</a>        <span class="kw">let </span>value = <span class="kw">match </span>operator {
 <a href=#2197 id=2197 data-nosnippet>2197</a>            Operator::Plus =&gt; <span class="self">self</span>.llvm.builder.build_int_add(int_lvalue, int_rvalue, <span class="string">"tmpVar"</span>)<span class="question-mark">?</span>,
