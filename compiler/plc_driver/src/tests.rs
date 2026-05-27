@@ -100,6 +100,12 @@ where
 
 pub fn compile_args_to_string(args: &[String]) -> Result<String, Diagnostic> {
     let mut pipeline = BuildPipeline::new(args).map_err(|err| Diagnostic::new(err.to_string()))?;
+    // `--fno-ident` keeps IR snapshots stable across `plc` upgrades. Tests
+    // that need to assert on ident emission should use the lower-level codegen
+    // helpers in `src/test_utils.rs`.
+    if let Some(params) = pipeline.compile_parameters.as_mut() {
+        params.fno_ident = true;
+    }
     pipeline.register_default_mut_participants();
     let project = pipeline.parse()?;
     let project = pipeline.index(project)?;

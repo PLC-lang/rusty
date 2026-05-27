@@ -215,6 +215,14 @@ impl<T: SourceContainer> BuildPipeline<T> {
                     OnlineChange::Disabled
                 },
                 constructors_only: params.constructors_only,
+                // Resolved at *this crate's* build time via `build.rs`; if
+                // `RUSTY_BUILD_INFO` was not set we skip rather than embed a
+                // placeholder.
+                build_info: if params.fno_ident {
+                    None
+                } else {
+                    option_env!("RUSTY_BUILD_INFO").map(|info| format!("plc version {info}"))
+                },
             }
         })
     }
@@ -924,6 +932,7 @@ impl AnnotatedProject {
             //FIXME don't clone here
             compile_options.online_change.clone(),
             target,
+            compile_options.build_info.as_deref(),
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types
