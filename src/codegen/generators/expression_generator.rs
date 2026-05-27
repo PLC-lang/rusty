@@ -2190,8 +2190,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         right_value: BasicValueEnum<'ink>,
         is_signed: Option<bool>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
-        let int_lvalue = left_value.into_int_value();
-        let int_rvalue = right_value.into_int_value();
+        let int_lvalue = self.convert_to_int_value_if_pointer(left_value)?;
+        let int_rvalue = self.convert_to_int_value_if_pointer(right_value)?;
 
         let value = match operator {
             Operator::Plus => self.llvm.builder.build_int_add(int_lvalue, int_rvalue, "tmpVar")?,
