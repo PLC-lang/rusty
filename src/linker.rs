@@ -480,7 +480,10 @@ impl LinkerInterface for CcLinker {
                     Some(f)
                 }
                 Err(e) => {
-                    log::debug!("Failed to write linker response file ({e}); using direct args");
+                    log::warn!(
+                        "Could not stage linker response file ({e}); proceeding with direct args — \
+                         link may fail on Windows due to command-line length limits"
+                    );
                     None
                 }
             }
@@ -586,6 +589,12 @@ pub enum LinkerError {
     /// Error emitted by the linker
     Link(String),
 
+    /// Linker subprocess failed to spawn, or the OS rejected the assembled
+    /// command line before the linker ran (e.g. Windows `os error 206`).
+    /// Body is the pre-formatted diagnostic message produced by
+    /// `diagnose_spawn_error`. Surfaces as E139.
+    Spawn(String),
+
     /// Invalid target
     Target(String),
 
@@ -600,6 +609,7 @@ impl From<LinkerError> for Diagnostic {
             LinkerError::Link(e) => {
                 Diagnostic::new(format!("An error occurred during linking: {e}")).with_error_code("E077")
             }
+            LinkerError::Spawn(msg) => Diagnostic::new(msg).with_error_code("E139"),
             LinkerError::Path(path) => {
                 Diagnostic::new(format!("path contains invalid UTF-8 characters: {}", path.display()))
                     .with_error_code("E077")
@@ -618,7 +628,7 @@ impl<T: Error> From<T> for LinkerError {
     }
 }
 
-/// Builds a context-rich [`LinkerError::Link`] for a failed [`Command::status`]
+/// Builds a context-rich [`LinkerError::Spawn`] for a failed [`Command::status`]
 /// call at the linker spawn site. The plain `io::Error::to_string()` is too
 /// terse to be actionable for the operating-system-level failures that surface
 /// here — most notably Windows `ERROR_FILENAME_EXCED_RANGE` (`os error 206`),
@@ -662,7 +672,7 @@ fn diagnose_spawn_error(err: &std::io::Error, linker: &Path, args: &[String]) ->
         );
     }
 
-    LinkerError::Link(message)
+    LinkerError::Spawn(message)
 }
 
 /// Conservative threshold below the Windows `CreateProcess` 32,767-byte limit
@@ -819,10 +829,10 @@ mod test {
     use insta::assert_snapshot;
     use std::path::Path;
 
-    fn unwrap_link_message(err: LinkerError) -> String {
+    fn unwrap_spawn_message(err: LinkerError) -> String {
         match err {
-            LinkerError::Link(msg) => msg,
-            other => panic!("expected LinkerError::Link, got {other:?}"),
+            LinkerError::Spawn(msg) => msg,
+            other => panic!("expected LinkerError::Spawn, got {other:?}"),
         }
     }
 
@@ -830,7 +840,7 @@ mod test {
     fn spawn_diagnostic_for_generic_io_error() {
         let err = std::io::Error::from(std::io::ErrorKind::PermissionDenied);
         let args = vec!["arg1".to_string(), "longer-arg-2".to_string(), "x".to_string()];
-        let msg = unwrap_link_message(diagnose_spawn_error(&err, Path::new("/usr/bin/ld.lld"), &args));
+        let msg = unwrap_spawn_message(diagnose_spawn_error(&err, Path::new("/usr/bin/ld.lld"), &args));
         assert_snapshot!(msg, @r"
         An error occurred during linking: permission denied
         Diagnostic context:
@@ -845,7 +855,7 @@ mod test {
     #[test]
     fn spawn_diagnostic_for_os_error_206_includes_windows_section() {
         let err = std::io::Error::from_raw_os_error(206);
-        let msg = unwrap_link_message(diagnose_spawn_error(
+        let msg = unwrap_spawn_message(diagnose_spawn_error(
             &err,
             Path::new("ld.lld.exe"),
             &["one".to_string(), "three".to_string()],
