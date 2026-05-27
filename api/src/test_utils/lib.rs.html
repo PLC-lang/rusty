@@ -61,28 +61,38 @@
 <a href=#61 id=61 data-nosnippet>61</a>    <span class="kw">let </span>context =
 <a href=#62 id=62 data-nosnippet>62</a>        GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>).map_err(|it| it.to_string())<span class="question-mark">?</span>;
 <a href=#63 id=63 data-nosnippet>63</a>    <span class="kw">let </span>diagnostician = Diagnostician::default();
-<a href=#64 id=64 data-nosnippet>64</a>    <span class="kw">let </span><span class="kw-2">mut </span>args =
-<a href=#65 id=65 data-nosnippet>65</a>        <span class="macro">vec!</span>[<span class="string">"plc"</span>, <span class="string">"--ir"</span>, <span class="string">"--single-module"</span>, <span class="string">"-O"</span>, <span class="string">"none"</span>, <span class="string">"-o"</span>, output.path().to_str().unwrap()];
-<a href=#66 id=66 data-nosnippet>66</a>    <span class="kw">let </span>debug_level = get_debug_param(debug_level);
-<a href=#67 id=67 data-nosnippet>67</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(debug) = <span class="kw-2">&amp;</span>debug_level {
-<a href=#68 id=68 data-nosnippet>68</a>        args.push(debug);
-<a href=#69 id=69 data-nosnippet>69</a>    };
-<a href=#70 id=70 data-nosnippet>70</a>    <span class="kw">let </span>params = cli::CompileParameters::parse(<span class="kw-2">&amp;</span>args).map_err(|e| e.to_string())<span class="question-mark">?</span>;
-<a href=#71 id=71 data-nosnippet>71</a>    <span class="kw">let </span>pipeline = BuildPipeline {
-<a href=#72 id=72 data-nosnippet>72</a>        context,
-<a href=#73 id=73 data-nosnippet>73</a>        project,
-<a href=#74 id=74 data-nosnippet>74</a>        diagnostician,
-<a href=#75 id=75 data-nosnippet>75</a>        compile_parameters: <span class="prelude-val">Some</span>(params),
-<a href=#76 id=76 data-nosnippet>76</a>        linker: LinkerType::Internal,
-<a href=#77 id=77 data-nosnippet>77</a>        mutable_participants: Vec::default(),
-<a href=#78 id=78 data-nosnippet>78</a>        participants: Vec::default(),
-<a href=#79 id=79 data-nosnippet>79</a>        module_name: <span class="prelude-val">Some</span>(<span class="string">"&lt;internal&gt;"</span>.to_string()),
-<a href=#80 id=80 data-nosnippet>80</a>    };
-<a href=#81 id=81 data-nosnippet>81</a>
-<a href=#82 id=82 data-nosnippet>82</a>    driver::compile_with_pipeline(pipeline).map_err(|it| it.to_string())<span class="question-mark">?</span>;
-<a href=#83 id=83 data-nosnippet>83</a>
-<a href=#84 id=84 data-nosnippet>84</a>    <span class="kw">let </span><span class="kw-2">mut </span>res = String::new();
-<a href=#85 id=85 data-nosnippet>85</a>    output.read_to_string(<span class="kw-2">&amp;mut </span>res).map_err(|it| it.to_string())<span class="question-mark">?</span>;
-<a href=#86 id=86 data-nosnippet>86</a>    <span class="prelude-val">Ok</span>(res)
-<a href=#87 id=87 data-nosnippet>87</a>}
+<a href=#64 id=64 data-nosnippet>64</a>    <span class="comment">// `--fno-ident` keeps test snapshots stable across `plc` upgrades; the
+<a href=#65 id=65 data-nosnippet>65</a>    // default payload's date and hash track `plc`'s own build.
+<a href=#66 id=66 data-nosnippet>66</a>    </span><span class="kw">let </span><span class="kw-2">mut </span>args = <span class="macro">vec!</span>[
+<a href=#67 id=67 data-nosnippet>67</a>        <span class="string">"plc"</span>,
+<a href=#68 id=68 data-nosnippet>68</a>        <span class="string">"--ir"</span>,
+<a href=#69 id=69 data-nosnippet>69</a>        <span class="string">"--single-module"</span>,
+<a href=#70 id=70 data-nosnippet>70</a>        <span class="string">"-O"</span>,
+<a href=#71 id=71 data-nosnippet>71</a>        <span class="string">"none"</span>,
+<a href=#72 id=72 data-nosnippet>72</a>        <span class="string">"--fno-ident"</span>,
+<a href=#73 id=73 data-nosnippet>73</a>        <span class="string">"-o"</span>,
+<a href=#74 id=74 data-nosnippet>74</a>        output.path().to_str().unwrap(),
+<a href=#75 id=75 data-nosnippet>75</a>    ];
+<a href=#76 id=76 data-nosnippet>76</a>    <span class="kw">let </span>debug_level = get_debug_param(debug_level);
+<a href=#77 id=77 data-nosnippet>77</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(debug) = <span class="kw-2">&amp;</span>debug_level {
+<a href=#78 id=78 data-nosnippet>78</a>        args.push(debug);
+<a href=#79 id=79 data-nosnippet>79</a>    };
+<a href=#80 id=80 data-nosnippet>80</a>    <span class="kw">let </span>params = cli::CompileParameters::parse(<span class="kw-2">&amp;</span>args).map_err(|e| e.to_string())<span class="question-mark">?</span>;
+<a href=#81 id=81 data-nosnippet>81</a>    <span class="kw">let </span>pipeline = BuildPipeline {
+<a href=#82 id=82 data-nosnippet>82</a>        context,
+<a href=#83 id=83 data-nosnippet>83</a>        project,
+<a href=#84 id=84 data-nosnippet>84</a>        diagnostician,
+<a href=#85 id=85 data-nosnippet>85</a>        compile_parameters: <span class="prelude-val">Some</span>(params),
+<a href=#86 id=86 data-nosnippet>86</a>        linker: LinkerType::Internal,
+<a href=#87 id=87 data-nosnippet>87</a>        mutable_participants: Vec::default(),
+<a href=#88 id=88 data-nosnippet>88</a>        participants: Vec::default(),
+<a href=#89 id=89 data-nosnippet>89</a>        module_name: <span class="prelude-val">Some</span>(<span class="string">"&lt;internal&gt;"</span>.to_string()),
+<a href=#90 id=90 data-nosnippet>90</a>    };
+<a href=#91 id=91 data-nosnippet>91</a>
+<a href=#92 id=92 data-nosnippet>92</a>    driver::compile_with_pipeline(pipeline).map_err(|it| it.to_string())<span class="question-mark">?</span>;
+<a href=#93 id=93 data-nosnippet>93</a>
+<a href=#94 id=94 data-nosnippet>94</a>    <span class="kw">let </span><span class="kw-2">mut </span>res = String::new();
+<a href=#95 id=95 data-nosnippet>95</a>    output.read_to_string(<span class="kw-2">&amp;mut </span>res).map_err(|it| it.to_string())<span class="question-mark">?</span>;
+<a href=#96 id=96 data-nosnippet>96</a>    <span class="prelude-val">Ok</span>(res)
+<a href=#97 id=97 data-nosnippet>97</a>}
 </code></pre></div></section></main></body></html>

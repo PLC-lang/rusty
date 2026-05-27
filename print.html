@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-7f1537a4.js";
+            window.path_to_searchindex_js = "searchindex-7071dd50.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-55781172.js"></script>
+        <script src="toc-cc6ba3c0.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -767,6 +767,45 @@ while virtual roots keep <code>set substitute-path</code> stable across users an
 </code></pre>
 <p>Then pass the matching RuSTy flags shown above.</p>
 <p>Using the same convention for both compilers keeps source lookup consistent in Eclipse, CLI <code>gdb</code>, and DAP frontends.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="embedded-compiler-version"><a class="header" href="#embedded-compiler-version">Embedded Compiler Version</a></h1>
+<p>By default, every artifact RuSTy compiles carries a small piece of metadata that records <em>which version of <code>plc</code> produced it</em>. The metadata follows the same convention <code>clang</code>, <code>rustc</code>, and <code>gcc</code> use for their own producer identification — it lives in the module’s <code>!llvm.ident</code> named metadata, which the linker preserves into the ELF <code>.comment</code> section of the final binary.</p>
+<h2 id="what-gets-embedded"><a class="header" href="#what-gets-embedded">What gets embedded</a></h2>
+<p>A single line of the form:</p>
+<pre><code>plc version &lt;version&gt; (&lt;commit date&gt;, &lt;short hash&gt;)
+</code></pre>
+<p>For example:</p>
+<pre><code>plc version 0.5.0 (Mon May 11 10:32:29 2026 +0000, be1de6f175)
+</code></pre>
+<p>The same string is also reported by <code>plc --version</code>, so a deployed <code>.o</code>, <code>.so</code>, or executable can be matched back to the exact <code>plc</code> build that produced it without access to the source tree or build logs.</p>
+<h2 id="inspecting-a-binary"><a class="header" href="#inspecting-a-binary">Inspecting a binary</a></h2>
+<p>Any of these work on Linux:</p>
+<pre><code class="language-bash">readelf -p .comment my_program
+llvm-objdump --section=.comment my_program
+strings my_program | grep '^plc version'
+</code></pre>
+<p>A real link typically shows several producers stacked in <code>.comment</code> — one per toolchain involved in the build. For example:</p>
+<pre><code>plc version 0.5.0 (Mon May 11 10:32:29 2026 +0000, be1de6f175)
+Linker: Ubuntu LLD 18.1.3
+GCC: (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+</code></pre>
+<p>The <code>plc version …</code> line is the one this feature controls. The others come from the linker driver and any C runtime objects that got pulled in at link time.</p>
+<h2 id="strippability"><a class="header" href="#strippability">Strippability</a></h2>
+<p>The <code>.comment</code> section survives <code>strip --strip-debug</code> and <code>strip --strip-all</code> by default — it is <code>PROGBITS</code> non-<code>ALLOC</code> data that GNU <code>strip</code> preserves. Removing it explicitly takes:</p>
+<pre><code class="language-bash">objcopy --remove-section=.comment my_program
+# or
+strip --remove-section=.comment my_program
+</code></pre>
+<p>If your deployment pipeline strips the comment section as a deliberate policy, the producer information is removed; without that explicit step it persists.</p>
+<h2 id="disabling-for-reproducible-builds"><a class="header" href="#disabling-for-reproducible-builds">Disabling for reproducible builds</a></h2>
+<p>The embedded date and hash refer to the <code>plc</code> binary itself, so the string changes whenever <code>plc</code> is upgraded. Pipelines that need byte-identical artifacts across <code>plc</code> upgrades can suppress the emission with:</p>
+<pre><code class="language-bash">plc --fno-ident src/main.st
+</code></pre>
+<p>With <code>--fno-ident</code>:</p>
+<ul>
+<li>No <code>plc version …</code> line appears in <code>.comment</code> of the compiled artifact.</li>
+<li>All other producer information (linker, C runtime) is unaffected — those come from tools outside <code>plc</code>.</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="error-configuration"><a class="header" href="#error-configuration">Error Configuration</a></h1>
 <p>Errors in a <code>plc</code> project can be configured by providing a json configuration file.
