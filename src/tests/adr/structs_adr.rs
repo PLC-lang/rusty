@@ -84,7 +84,7 @@ fn default_values_of_a_struct() {
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
     @p = global %Person { [6 x i8] c"Jane\00\00", [6 x i8] c"Row\00\00\00", i16 1988, i8 0 }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
     @utf08_literal_0 = private unnamed_addr constant [5 x i8] c"Jane\00"
     @utf08_literal_1 = private unnamed_addr constant [4 x i8] c"Row\00"
 
@@ -127,7 +127,7 @@ fn default_values_of_a_struct() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @Person__ctor(ptr @p)
       ret void
@@ -181,7 +181,7 @@ fn initializing_a_struct() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg { %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }, %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } } }
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
     @__prg.rect1__init = unnamed_addr constant %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }
     @__prg.rect2__init = unnamed_addr constant %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } }
     @__prg.rect1__init.1 = unnamed_addr constant %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }
@@ -267,7 +267,7 @@ fn initializing_a_struct() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @prg__ctor(ptr @prg_instance)
       ret void
@@ -309,7 +309,7 @@ fn assigning_structs() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @prg(ptr %0) {
     entry:
@@ -339,7 +339,7 @@ fn assigning_structs() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @prg__ctor(ptr @prg_instance)
       ret void
@@ -392,7 +392,7 @@ fn accessing_struct_members() {
     %Point = type { i16, i16 }
 
     @prg_instance = global %prg zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal____ctor, ptr null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__unit___internal___[ctor-hash]__ctor, ptr null }]
 
     define void @prg(ptr %0) {
     entry:
@@ -440,7 +440,7 @@ fn accessing_struct_members() {
       ret void
     }
 
-    define void @__unit___internal____ctor() {
+    define void @__unit___internal___[ctor-hash]__ctor() {
     entry:
       call void @prg__ctor(ptr @prg_instance)
       ret void

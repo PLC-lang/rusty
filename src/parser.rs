@@ -1151,11 +1151,16 @@ fn parse_type_reference_type_definition(
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     let start = lexer.range().start;
 
+    let referenced_type_start = lexer.range().start;
     let mut referenced_type = lexer.slice_and_advance();
+    let mut referenced_type_end = lexer.last_range.end;
 
     if lexer.try_consume(KeywordDot) {
         referenced_type = format!("{referenced_type}.{}", lexer.slice_and_advance());
+        referenced_type_end = lexer.last_range.end;
     }
+    let referenced_type_location =
+        lexer.source_range_factory.create_range(referenced_type_start..referenced_type_end);
 
     let bounds = if lexer.try_consume(KeywordParensOpen) {
         // INT (..) :=
@@ -1207,7 +1212,12 @@ fn parse_type_reference_type_definition(
             }
             _ => DataTypeDeclaration::Definition {
                 //something else inside the brackets -> probably a subrange?
-                data_type: Box::new(DataType::SubRangeType { name, referenced_type, bounds }),
+                data_type: Box::new(DataType::SubRangeType {
+                    name,
+                    referenced_type,
+                    referenced_type_location,
+                    bounds,
+                }),
                 location: lexer.source_range_factory.create_range(start..end),
                 scope: lexer.scope.clone(),
             },
@@ -1297,6 +1307,13 @@ fn parse_string_type_definition(
             data_type: Box::new(DataType::SubRangeType {
                 name: Some(name.into()),
                 referenced_type: text,
+                // TODO: shortcut — the STRING-fallback path reuses the whole-decl
+                // location rather than the referenced-type token's span. Practically
+                // never user-visible (string types here only reference synthesised
+                // internal types), but a future use-site validation that surfaces
+                // this would underline the entire declaration instead of the type
+                // name. Refactor when a real consumer needs the tight span.
+                referenced_type_location: location.clone(),
                 bounds: None,
             }),
             location,

@@ -413,20 +413,27 @@ pub fn parse_call_statement(lexer: &mut ParseSession) -> Option<AstNode> {
         })
     };
 
-    // Are we dealing with an array-index access directly after the call, e.g. `foo()[...]`?
-    if lexer.try_consume(KeywordSquareParensOpen) {
-        let index = parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
-        let statement = AstFactory::create_index_reference(
-            index,
-            Some(call),
-            lexer.next_id(),
-            SourceLocation::undefined(),
-        );
-
-        return Some(statement);
+    // Postfix chain after the call: `foo()[...]`, `foo()^`, or combinations
+    // like `foo()[...]^` and `foo()^[...]`.
+    let mut result = call;
+    loop {
+        if lexer.try_consume(KeywordSquareParensOpen) {
+            let index = parse_any_in_region(lexer, vec![KeywordSquareParensClose], parse_expression);
+            result = AstFactory::create_index_reference(
+                index,
+                Some(result),
+                lexer.next_id(),
+                SourceLocation::undefined(),
+            );
+        } else if lexer.try_consume(OperatorDeref) {
+            let deref_loc = lexer.last_location();
+            result =
+                AstFactory::create_deref_reference(result, lexer.next_id(), reference_loc.span(&deref_loc));
+        } else {
+            break;
+        }
     }
-
-    Some(call)
+    Some(result)
 }
 
 pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Option<AstNode> {

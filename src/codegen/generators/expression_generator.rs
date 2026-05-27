@@ -3250,23 +3250,32 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             // `base^`
             (ReferenceAccess::Deref, Some(base)) => {
-                let base_lvalue = self.generate_expression_value(base)?;
+                let base_value = self.generate_expression_value(base)?;
 
-                let value = self.llvm.load_pointer(
-                    // Normally it wouldn't be safe to just assume the pointee in the `load_pointer` call to
-                    // be of type `ptr`. However, we call `into_pointer_value` on the result of it, as such
-                    // LLVM actually expects the type to be `ptr` as it will panic otherwise.
-                    self.llvm.context.ptr_type(
-                        AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
-                        &base_lvalue.get_basic_value_enum().into_pointer_value(),
-                        "deref"
-                    )?;
+                // The dereference target is the pointer to load through. For a variable
+                // holding a pointer (LValue), the variable's slot holds the pointer and we
+                // need one load to extract it. For an RValue (e.g. `REF(x)` or a call that
+                // returns a pointer), the value is already the pointer — loading again
+                // would treat the pointee's bytes as a pointer and segfault.
+                let pointer = match base_value {
+                    ExpressionValue::LValue(addr, _) => self
+                        .llvm
+                        .load_pointer(
+                            // See note below: `load_pointer` is called with `ptr` here because
+                            // we immediately call `into_pointer_value` on the result.
+                            self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
+                            &addr,
+                            "deref",
+                        )?
+                        .into_pointer_value(),
+                    ExpressionValue::RValue(value) => value.into_pointer_value(),
+                };
 
-                    let pointee = {
-                        let datatype = self.annotations.get_type(original_expression, self.index).unwrap();
-                        self.llvm_index.get_associated_type(&datatype.name).unwrap()
-                    };
-                Ok(ExpressionValue::LValue(value.into_pointer_value(), pointee))
+                let pointee = {
+                    let datatype = self.annotations.get_type(original_expression, self.index).unwrap();
+                    self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                };
+                Ok(ExpressionValue::LValue(pointer, pointee))
             }
 
             // `&base`
