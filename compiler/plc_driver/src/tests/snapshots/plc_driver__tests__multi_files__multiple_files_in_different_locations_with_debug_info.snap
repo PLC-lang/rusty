@@ -9,41 +9,36 @@ target triple = "[filtered]"
 
 %mainProg = type {}
 
-@mainProg_instance = external global %mainProg, !dbg !0
+@mainProg_instance = external global %mainProg
 
-define i32 @main() !dbg !10 {
+define i32 @main() !dbg !4 {
 entry:
   %main = alloca i32, align [filtered]
-    #dbg_declare(ptr %main, !13, !DIExpression(), !15)
+    #dbg_declare(ptr %main, !8, !DIExpression(), !10)
   store i32 0, ptr %main, align [filtered]
-  call void @mainProg(ptr @mainProg_instance), !dbg !16
-  %main_ret = load i32, ptr %main, align [filtered], !dbg !17
-  ret i32 %main_ret, !dbg !17
+  call void @mainProg(ptr @mainProg_instance), !dbg !11
+  %main_ret = load i32, ptr %main, align [filtered], !dbg !12
+  ret i32 %main_ret, !dbg !12
 }
 
 declare void @mainProg(ptr)
 
-!llvm.module.flags = !{!5, !6}
-!llvm.dbg.cu = !{!7}
+!llvm.module.flags = !{!0, !1}
+!llvm.dbg.cu = !{!2}
 
-!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-!1 = distinct !DIGlobalVariable(name: "mainProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "lib/file2.st", directory: "root")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !2, file: !2, line: 2, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "mainProg")
-!4 = !{}
-!5 = !{i32 2, !"Dwarf Version", i32 5}
-!6 = !{i32 2, !"Debug Info Version", i32 3}
-!7 = distinct !DICompileUnit(language: DW_LANG_C, file: !8, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !9, splitDebugInlining: false)
-!8 = !DIFile(filename: "app/file1.st", directory: "root")
-!9 = !{!0}
-!10 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !8, file: !8, line: 2, type: !11, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
-!11 = !DISubroutineType(flags: DIFlagPublic, types: !12)
-!12 = !{null}
-!13 = !DILocalVariable(name: "main", scope: !10, file: !8, line: 2, type: !14, align [filtered])
-!14 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!15 = !DILocation(line: 2, column: 13, scope: !10)
-!16 = !DILocation(line: 10, column: 4, scope: !10)
-!17 = !DILocation(line: 11, column: 4, scope: !10)
+!0 = !{i32 2, !"Dwarf Version", i32 5}
+!1 = !{i32 2, !"Debug Info Version", i32 3}
+!2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+!3 = !DIFile(filename: "app/file1.st", directory: "root")
+!4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 2, type: !5, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+!5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+!6 = !{null}
+!7 = !{}
+!8 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !9, align [filtered])
+!9 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!10 = !DILocation(line: 2, column: 13, scope: !4)
+!11 = !DILocation(line: 10, column: 4, scope: !4)
+!12 = !DILocation(line: 11, column: 4, scope: !4)
 
 ; ModuleID = 'lib/file2.st'
 source_filename = "lib/file2.st"
