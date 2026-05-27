@@ -253,6 +253,20 @@ pub mod tests {
         debug_level: DebugLevel,
         online_change: OnlineChange,
     ) -> Result<String, String> {
+        codegen_debug_without_unwrap_oc_with_build_info(src, debug_level, online_change, None)
+    }
+
+    /// Same as [`codegen_debug_without_unwrap_oc`] but lets the caller inject a
+    /// fixed `build_info` string into the produced module. Use this when you
+    /// need to assert on the `!llvm.ident` emission; everywhere else pass
+    /// `None` (via the simpler entry points) so the produced IR stays
+    /// deterministic across test runs.
+    pub fn codegen_debug_without_unwrap_oc_with_build_info(
+        src: &str,
+        debug_level: DebugLevel,
+        online_change: OnlineChange,
+        build_info: Option<&str>,
+    ) -> Result<String, String> {
         let mut reporter = Diagnostician::buffered();
         reporter.register_file("<internal>".to_string(), src.to_string());
         let mut id_provider = IdProvider::default();
@@ -279,6 +293,7 @@ pub mod tests {
             None,
             online_change.clone(),
             &Target::System,
+            build_info,
         );
         let llvm_index = code_generator
             .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout, false)
@@ -352,6 +367,7 @@ pub mod tests {
                     debug_compilation_dir,
                     crate::OnlineChange::Disabled,
                     &Target::System,
+                    None, // build_info: deterministic IR for tests
                 );
                 let got_layout = Mutex::new(HashMap::default());
 
