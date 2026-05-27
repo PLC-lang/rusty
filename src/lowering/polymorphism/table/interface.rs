@@ -78,10 +78,17 @@ impl InterfaceTableGenerator {
     }
 
     /// Generates itable definitions and instances for every compilation unit.
-    pub fn generate(&mut self, index: &Index, units: &mut [CompilationUnit]) {
-        for unit in units.iter_mut() {
+    /// Returns the positional indices of units that were actually modified;
+    /// an empty `Vec` means no work was done.
+    pub fn generate(&mut self, index: &Index, units: &mut [CompilationUnit]) -> Vec<usize> {
+        let mut mutated = Vec::new();
+        for (idx, unit) in units.iter_mut().enumerate() {
             let definitions = self.generate_itable_definitions(index, unit);
             let (internal_instances, external_instances) = self.generate_itable_instances(index, unit);
+
+            if !definitions.is_empty() || !internal_instances.is_empty() || !external_instances.is_empty() {
+                mutated.push(idx);
+            }
 
             unit.user_types.extend(definitions);
             if !internal_instances.is_empty() {
@@ -95,6 +102,7 @@ impl InterfaceTableGenerator {
                 );
             }
         }
+        mutated
     }
 
     /// Creates `__itable_<interface>` struct definitions for every interface declared in this unit.

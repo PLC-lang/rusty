@@ -39,8 +39,33 @@ impl PolymorphismLowerer {
 
     /// Generates vtable and itable struct definitions, `__vtable` member fields on root POUs,
     /// and global table instances. Must be called before [`dispatch`](Self::dispatch).
-    pub fn table(&self, index: &Index, units: &mut Vec<CompilationUnit>) {
-        TableGenerator::generate(self.ids.clone(), self.generate_external_constructors, index, units);
+    ///
+    /// Returns the positional indices of units that were actually modified.
+    /// An empty result means the project has no classes, function blocks,
+    /// or interfaces and the caller can skip the downstream re-index.
+    pub fn table(&self, index: &Index, units: &mut [CompilationUnit]) -> Vec<usize> {
+        TableGenerator::generate(self.ids.clone(), self.generate_external_constructors, index, units)
+    }
+
+    /// Same as [`Self::table`] but for a single compilation unit. Returns
+    /// `true` if the unit was modified. Used by per-unit adapters that
+    /// drive the pass through the `UnitLowerer` framework.
+    ///
+    /// The adapter and any other participant that calls `table_one_unit`
+    /// must share the same `PolymorphismLowerer` instance (e.g. via
+    /// `Rc<RefCell<...>>`) — patching `__vtable` members and emitting
+    /// vtable types is a one-time operation per POU. Re-running it on
+    /// already-patched units would either duplicate the member (if
+    /// `patch_vtable_member` is not idempotent) or silently re-emit the
+    /// vtable types.
+    pub fn table_one_unit(&self, index: &Index, unit: &mut CompilationUnit) -> bool {
+        !TableGenerator::generate(
+            self.ids.clone(),
+            self.generate_external_constructors,
+            index,
+            std::slice::from_mut(unit),
+        )
+        .is_empty()
     }
 
     /// Rewrites call sites and type declarations to route through the generated tables.

@@ -15,6 +15,7 @@ use std::{
 use ast::provider::IdProvider;
 use plc::{
     codegen::GeneratedModule,
+    index::{Index, PouIndexEntry},
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
     ConfigFormat, OnlineChange, Target,
@@ -34,6 +35,11 @@ use super::{AnnotatedProject, AnnotatedUnit, GeneratedProject, IndexedProject, P
 /// Implementors can decide parse the Ast and project information
 /// to do actions like validation or logging
 pub trait PipelineParticipant: Sync + Send {
+    /// Short label for this participant, used by the phase-timing
+    /// instrumentation. Default returns the implementing type's name.
+    fn name(&self) -> &'static str {
+        super::timing::short_type_name(std::any::type_name::<Self>())
+    }
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
     fn pre_index(&mut self, _parsed_project: &ParsedProject) {}
@@ -69,6 +75,11 @@ pub trait PipelineParticipant: Sync + Send {
 /// If a previous step is being modified, such as the AST or index,
 /// the caller is responsible for calling the previous steps
 pub trait PipelineParticipantMut {
+    /// Short label for this participant, used by the phase-timing
+    /// instrumentation. Default returns the implementing type's name.
+    fn name(&self) -> &'static str {
+        super::timing::short_type_name(std::any::type_name::<Self>())
+    }
     /// Implement this to access the project before it gets indexed
     /// This happens directly after parsing
     fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
@@ -258,17 +269,50 @@ impl ArrayLowerer {
     pub fn new(id_provider: IdProvider) -> Self {
         Self { id_provider }
     }
+
+    /// Lowers literal-array assignments in a single compilation unit.
+    /// Returns `true` if the unit was modified (a literal array was
+    /// rewritten into indexed assignments and/or a counter loop). Used
+    /// by per-unit adapters such as the `UnitLowerer` framework.
+    pub fn lower_one_unit(
+        &mut self,
+        unit: &mut ast::ast::CompilationUnit,
+        index: &plc::index::Index,
+    ) -> bool {
+        array_lowering::lower_literal_arrays(unit, index, &mut self.id_provider)
+    }
 }
 
-impl PipelineParticipantMut for ArrayLowerer {
-    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { project: ParsedProject { mut units }, index, .. } = indexed_project;
-        for unit in &mut units {
-            array_lowering::lower_literal_arrays(unit, &index, &mut self.id_provider);
+/// `UnitLowerer` wrapper for [`ArrayLowerer`]. Walks each unit
+/// independently — literal-array lowering is naturally per-unit (counter
+/// variables are added to the same POU's `VAR_TEMP`). Registered as
+/// `AutoLowerer::new(ArrayUnitLowerer::new(...), LoweringStage::PreAnnotate, ids)`.
+pub struct ArrayUnitLowerer {
+    inner: ArrayLowerer,
+}
+
+impl ArrayUnitLowerer {
+    pub fn new(ids: ast::provider::IdProvider) -> Self {
+        Self { inner: ArrayLowerer::new(ids) }
+    }
+}
+
+impl super::unit_lowerer::UnitLowerer for ArrayUnitLowerer {
+    fn name(&self) -> &'static str {
+        "ArrayLowerer"
+    }
+
+    fn lower_unit(
+        &mut self,
+        unit: &mut ast::ast::CompilationUnit,
+        ctx: &super::unit_lowerer::LoweringContext,
+    ) -> super::unit_lowerer::UnitChange {
+        let mutated = self.inner.lower_one_unit(unit, ctx.index);
+        if mutated {
+            super::unit_lowerer::UnitChange::mutated()
+        } else {
+            super::unit_lowerer::UnitChange::none()
         }
-        // Re-index since we modified the AST (new statements, possible new alloca variables)
-        let project = ParsedProject { units };
-        project.index(self.id_provider.clone())
     }
 }
 
@@ -280,6 +324,13 @@ impl PipelineParticipantMut for InheritanceLowerer {
     }
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        // Skip if the project declares no inheritance or interfaces — the
+        // visit would be a no-op and the implicit re-annotate would only
+        // recompute the same annotations.
+        if !project_uses_inheritance(&annotated_project.index) {
+            return annotated_project;
+        }
+
         let AnnotatedProject { mut units, index, annotations, diagnostics } = annotated_project;
         self.annotations = Some(Box::new(annotations));
         self.index = Some(index);
@@ -301,37 +352,82 @@ impl PipelineParticipantMut for InheritanceLowerer {
 
 impl PipelineParticipantMut for AggregateTypeLowerer {
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
-        let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
+        // Skip if no POU has an aggregate return type — nothing to do and
+        // no invalidation needed.
+        if !project_has_aggregate_returns(&annotated_project.index) {
+            return annotated_project;
+        }
+
+        // Capture the reverse-dep graph before mutation; the closure asks
+        // "who used the symbol before its signature changed?".
+        let reverse_deps = annotated_project.reverse_dependencies();
+
+        let AnnotatedProject { mut units, index, annotations, diagnostics } = annotated_project;
         self.index = Some(index);
-        self.annotation = Some(Box::new(annotations));
+        self.annotation = Some(annotations);
 
-        let units = units
-            .into_iter()
-            .map(|AnnotatedUnit { mut unit, .. }| {
-                self.visit_unit(&mut unit);
-                unit
-            })
-            .collect();
+        // Walk each unit; bookkeeper records which were mutated and which
+        // POU names had their signature rewritten (aggregate return →
+        // VAR_IN_OUT). Constants enter the index because the new
+        // VAR_IN_OUT parameter's type can be e.g. `STRING[K+1]`.
+        //
+        // `signature_changed_pous()` returns only POUs whose interface was
+        // actually rewritten — body-only mutations (e.g. inserted alloca
+        // prelude for an aggregate-returning call site) flip the dirty
+        // flag but must not invalidate callers of every other POU in the
+        // unit.
+        let mut book = super::bookkeeping::LoweringBookkeeper::new();
+        for (idx, annotated_unit) in units.iter_mut().enumerate() {
+            if self.visit_unit_tracked(&mut annotated_unit.unit) {
+                book.mark_unit(idx);
+                for name in self.signature_changed_pous() {
+                    book.signature_changed(&name);
+                }
+            }
+        }
+        if !book.is_empty() {
+            book.mark_const_introduced();
+        }
 
-        // Re-index from modified units so the index reflects POU signature
-        // changes (e.g. aggregate returns converted to VAR_IN_OUT parameters).
-        let project = ParsedProject { units };
-        let mut project = project.index(self.id_provider.clone()).annotate(self.id_provider.clone());
-        project.diagnostics = diagnostics;
-        project
+        // Reclaim the index and annotations from `self` (the visitor
+        // borrowed them for the walk).
+        let index = self.index.take().expect("index returned by visit");
+        let annotations = self.annotation.take().expect("annotations returned by visit");
+
+        let project = AnnotatedProject { units, index, annotations, diagnostics };
+        book.apply_to_annotated(project, &reverse_deps, self.id_provider.clone())
     }
 }
 
 impl PipelineParticipantMut for PolymorphismLowerer {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, index, .. } = indexed_project;
-
-        self.table(&index, &mut project.units);
-
-        project.index(self.ids.clone())
+        let IndexedProject { mut project, mut index, _unresolvables } = indexed_project;
+        let mutated = self.table(&index, &mut project.units);
+        if mutated.is_empty() {
+            return IndexedProject { project, index, _unresolvables };
+        }
+        // Re-index only the units the table generator actually touched.
+        // The pipeline previously re-indexed the whole project here.
+        for unit_idx in &mutated {
+            let unit_id = plc::index::UnitId::source(*unit_idx);
+            index.reindex_unit(unit_id, &mut project.units[*unit_idx], self.ids.clone());
+        }
+        IndexedProject { project, index, _unresolvables }
     }
 
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        // Dispatch lowering only has work to do if the project has any
+        // polymorphic constructs (classes, function blocks, methods, or
+        // interfaces). The precheck is an exact predicate: if none of those
+        // are in the index, the dispatch visitor wouldn't rewrite anything
+        // and the implicit re-index + re-annotate would reproduce the
+        // existing state. Threading a `changed` flag through the dispatch
+        // visitors is more invasive; the index precheck gives the same
+        // answer for cheaper.
+        if !project_uses_polymorphism(&annotated_project.index) {
+            return annotated_project;
+        }
+
         let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
         let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
 
@@ -352,13 +448,135 @@ impl PipelineParticipantMut for PolymorphismLowerer {
     }
 }
 
-impl PipelineParticipantMut for RetainParticipant {
-    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, index, .. } = indexed_project;
-        self.lower_retain(&mut project.units, index);
+/// Shared handle to a [`PolymorphismLowerer`] used by both the table
+/// pass (per-unit, via [`PolymorphismTableUnitLowerer`]) and the
+/// dispatch pass (project-wide, via [`PolymorphismDispatchAdapter`]).
+///
+/// The two passes have to see the same `PolymorphismLowerer` state —
+/// in particular the same `ids: IdProvider` and the same
+/// `generate_external_constructors` flag — so the vtable type names
+/// the table pass emits line up with what dispatch later rewrites
+/// calls to dereference through. Constructing a fresh
+/// `PolymorphismLowerer` for each pass diverges that state and breaks
+/// `InitParticipant`'s constructor synthesis (it stops emitting
+/// `__<container>___vtable__ctor(self.__vtable)` for FB/class
+/// members).
+pub type SharedPolymorphismLowerer = std::rc::Rc<std::cell::RefCell<PolymorphismLowerer>>;
 
-        // Re-index
-        project.index(self.ids.clone())
+pub fn shared_polymorphism_lowerer(
+    ids: ast::provider::IdProvider,
+    generate_external_constructors: bool,
+) -> SharedPolymorphismLowerer {
+    std::rc::Rc::new(std::cell::RefCell::new(PolymorphismLowerer::new(ids, generate_external_constructors)))
+}
+
+/// `UnitLowerer` wrapper for the polymorphism table pass. Holds a
+/// shared handle to the same [`PolymorphismLowerer`] the dispatch
+/// adapter uses. Registered at [`LoweringStage::PostIndex`].
+pub struct PolymorphismTableUnitLowerer {
+    inner: SharedPolymorphismLowerer,
+}
+
+impl PolymorphismTableUnitLowerer {
+    pub fn from_shared(inner: SharedPolymorphismLowerer) -> Self {
+        Self { inner }
+    }
+}
+
+impl super::unit_lowerer::UnitLowerer for PolymorphismTableUnitLowerer {
+    fn name(&self) -> &'static str {
+        "PolymorphismLowerer (table)"
+    }
+
+    fn lower_unit(
+        &mut self,
+        unit: &mut ast::ast::CompilationUnit,
+        ctx: &super::unit_lowerer::LoweringContext,
+    ) -> super::unit_lowerer::UnitChange {
+        let mutated = self.inner.borrow().table_one_unit(ctx.index, unit);
+        if mutated {
+            super::unit_lowerer::UnitChange::mutated()
+        } else {
+            super::unit_lowerer::UnitChange::none()
+        }
+    }
+}
+
+/// Project-wide `post_annotate` adapter that forwards to the shared
+/// [`PolymorphismLowerer`]'s dispatch pass. Paired with
+/// [`PolymorphismTableUnitLowerer`] via a common
+/// [`SharedPolymorphismLowerer`] handle.
+pub struct PolymorphismDispatchAdapter {
+    inner: SharedPolymorphismLowerer,
+}
+
+impl PolymorphismDispatchAdapter {
+    pub fn from_shared(inner: SharedPolymorphismLowerer) -> Self {
+        Self { inner }
+    }
+}
+
+impl PipelineParticipantMut for PolymorphismDispatchAdapter {
+    fn name(&self) -> &'static str {
+        "PolymorphismLowerer (dispatch)"
+    }
+
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        if !project_uses_polymorphism(&annotated_project.index) {
+            return annotated_project;
+        }
+
+        let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
+        let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
+
+        let mut inner = self.inner.borrow_mut();
+        let new_diagnostics = inner.dispatch(index, annotations.annotation_map, &mut units);
+        inner.stash_diagnostics(new_diagnostics);
+        drop(inner);
+
+        let project = ParsedProject { units };
+        let mut project =
+            project.index(self.inner.borrow().ids.clone()).annotate(self.inner.borrow().ids.clone());
+        project.diagnostics = diagnostics;
+        project
+    }
+
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        self.inner.borrow_mut().take_diagnostics()
+    }
+}
+
+/// `UnitLowerer` wrapper for [`RetainParticipant`]. The retain rewrite
+/// is naturally per-unit (each unit's `VAR RETAIN` blocks are hoisted to
+/// the same unit's global vars), so this is the first lowerer ported to
+/// the new adapter framework. Registered as
+/// `AutoLowerer::new(RetainUnitLowerer::new(...), LoweringStage::PostIndex, ids)`.
+pub struct RetainUnitLowerer {
+    inner: RetainParticipant,
+}
+
+impl RetainUnitLowerer {
+    pub fn new(ids: ast::provider::IdProvider) -> Self {
+        Self { inner: RetainParticipant::new(ids) }
+    }
+}
+
+impl super::unit_lowerer::UnitLowerer for RetainUnitLowerer {
+    fn name(&self) -> &'static str {
+        "RetainParticipant"
+    }
+
+    fn lower_unit(
+        &mut self,
+        unit: &mut ast::ast::CompilationUnit,
+        ctx: &super::unit_lowerer::LoweringContext,
+    ) -> super::unit_lowerer::UnitChange {
+        let mutated = self.inner.lower_one_unit(unit, ctx.index);
+        if mutated {
+            super::unit_lowerer::UnitChange::mutated()
+        } else {
+            super::unit_lowerer::UnitChange::none()
+        }
     }
 }
 
@@ -386,4 +604,60 @@ impl PipelineParticipantMut for ReferenceToReturnParticipant {
         self.lower_reference_to_return(&mut units);
         ParsedProject { units }
     }
+}
+
+// ─── Precheck helpers ──────────────────────────────────────────────────────
+//
+// Several lowering participants used to unconditionally re-run a whole-project
+// index or annotate after their hook fired, even when the lowerer had nothing
+// to do on this project. The helpers below answer "is there any work for me?"
+// from the already-built index (or the units themselves) so the participant
+// can skip both the work and the implicit re-pass when the answer is no.
+
+/// True if the project contains any object-oriented constructs that the
+/// [`PolymorphismLowerer`] would rewrite: interfaces, classes, or function
+/// blocks. Inheritance-only constructs (super-class chains on functions) are
+/// caught by `project_uses_inheritance` instead.
+fn project_uses_polymorphism(index: &Index) -> bool {
+    if !index.get_interfaces().is_empty() {
+        return true;
+    }
+    index.get_pous().values().any(|p| {
+        matches!(
+            p,
+            PouIndexEntry::Class { .. } | PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Method { .. }
+        )
+    })
+}
+
+/// True if any POU's return type is aggregate (array, struct, or string), in
+/// which case [`AggregateTypeLowerer`] needs to rewrite that POU's signature.
+fn project_has_aggregate_returns(index: &Index) -> bool {
+    for pou in index.get_pous().values() {
+        let return_type = match pou {
+            PouIndexEntry::Function { return_type, .. } | PouIndexEntry::Method { return_type, .. } => {
+                return_type.as_str()
+            }
+            _ => continue,
+        };
+        if return_type.is_empty() {
+            continue;
+        }
+        if index.get_effective_type_or_void_by_name(return_type).is_aggregate_type() {
+            return true;
+        }
+    }
+    false
+}
+
+/// True if any POU declares a super-class or any interfaces, in which case
+/// [`InheritanceLowerer`] needs to rewrite calls and walk inheritance chains.
+fn project_uses_inheritance(index: &Index) -> bool {
+    index.get_pous().values().any(|p| match p {
+        PouIndexEntry::FunctionBlock { super_class, interfaces, .. }
+        | PouIndexEntry::Class { super_class, interfaces, .. } => {
+            super_class.is_some() || !interfaces.is_empty()
+        }
+        _ => false,
+    })
 }

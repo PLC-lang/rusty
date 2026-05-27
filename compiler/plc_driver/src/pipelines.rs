@@ -21,9 +21,9 @@ use itertools::Itertools;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
-    index::{indexer, FxIndexSet, Index},
+    index::{indexer, FxIndexSet, Index, UnitId},
     linker::LinkerType,
-    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
+    lowering::{calls::AggregateTypeLowerer, property::PropertyLowerer},
     output::{FormatOption, RelocationPreference},
     parser::parse_file,
     resolver::{
@@ -44,7 +44,7 @@ use plc_header_generator::{
 use plc_index::GlobalContext;
 use plc_lowering::{
     control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, loops::LoopDesugarer,
-    reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
+    reference_to_return::ReferenceToReturnParticipant,
 };
 use project::{
     object::Object,
@@ -57,7 +57,12 @@ use source_code::{source_location::SourceLocation, SourceContainer};
 use serde_json;
 use toml;
 
+pub mod bookkeeping;
 pub mod participant;
+pub mod timing;
+pub mod unit_lowerer;
+
+use timing::PhaseTimer;
 pub mod property;
 
 pub struct BuildPipeline<T: SourceContainer> {
@@ -344,26 +349,52 @@ impl<T: SourceContainer> BuildPipeline<T> {
     }
 
     pub fn get_default_mut_participants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
-        use participant::{ArrayLowerer, InitParticipant};
+        use participant::InitParticipant;
+
+        // Polymorphism lowering runs as two stages that share state.
+        // The table pass (per-unit, vtable / itable emission) plugs into
+        // the per-unit `AutoLowerer` framework; dispatch (project-wide,
+        // post_annotate) keeps its existing project-wide shape and
+        // carries diagnostics. Both adapters wrap the same
+        // `Rc<RefCell<PolymorphismLowerer>>` so they share `ids` and
+        // `generate_external_constructors` — diverging that state
+        // breaks `InitParticipant`'s constructor synthesis.
+        let polymorphism = participant::shared_polymorphism_lowerer(
+            self.context.provider(),
+            self.context.should_generate_external_constructors(),
+        );
+        let polymorphism_table: Box<dyn PipelineParticipantMut> = Box::new(unit_lowerer::AutoLowerer::new(
+            participant::PolymorphismTableUnitLowerer::from_shared(polymorphism.clone()),
+            unit_lowerer::LoweringStage::PostIndex,
+            self.context.provider(),
+        ));
+        let polymorphism_dispatch: Box<dyn PipelineParticipantMut> =
+            Box::new(participant::PolymorphismDispatchAdapter::from_shared(polymorphism));
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
             Box::new(LoopDesugarer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
-            Box::new(PolymorphismLowerer::new(
-                self.context.provider(),
-                self.context.should_generate_external_constructors(),
-            )),
+            polymorphism_table,
+            polymorphism_dispatch,
             Box::new(ControlStatementParticipant::new(self.context.provider())),
             Box::new(ReferenceToReturnParticipant::new(self.context.provider())),
-            Box::new(RetainParticipant::new(self.context.provider())),
+            Box::new(unit_lowerer::AutoLowerer::new(
+                participant::RetainUnitLowerer::new(self.context.provider()),
+                unit_lowerer::LoweringStage::PostIndex,
+                self.context.provider(),
+            )),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(
                 self.context.provider(),
                 self.context.should_generate_external_constructors(),
             )),
-            Box::new(ArrayLowerer::new(self.context.provider())),
+            Box::new(unit_lowerer::AutoLowerer::new(
+                participant::ArrayUnitLowerer::new(self.context.provider()),
+                unit_lowerer::LoweringStage::PreAnnotate,
+                self.context.provider(),
+            )),
         ];
         mut_participants
     }
@@ -477,39 +508,65 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {
+        let _t = PhaseTimer::new("parse");
         let project = ParsedProject::parse(&self.context, &self.project, &mut self.diagnostician)?;
         Ok(project)
     }
 
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
-        self.participants.iter_mut().for_each(|p| {
-            p.pre_index(&project);
-        });
-        let project = self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));
+        let _t = PhaseTimer::new("index (driver)");
+        let project = {
+            let _t = PhaseTimer::new("pre_index (participants)");
+            self.participants.iter_mut().for_each(|p| {
+                let _t = PhaseTimer::new_with(|| format!("pre_index/{}", p.name()));
+                p.pre_index(&project);
+            });
+            self.mutable_participants.iter_mut().fold(project, |project, p| {
+                let _t = PhaseTimer::new_with(|| format!("pre_index/{}", p.name()));
+                p.pre_index(project)
+            })
+        };
         let indexed_project = project.index(self.context.provider());
-        self.participants.iter().for_each(|p| {
-            p.post_index(&indexed_project);
-        });
-        let project =
-            self.mutable_participants.iter_mut().fold(indexed_project, |project, p| p.post_index(project));
+        let project = {
+            let _t = PhaseTimer::new("post_index (participants)");
+            self.participants.iter().for_each(|p| {
+                let _t = PhaseTimer::new_with(|| format!("post_index/{}", p.name()));
+                p.post_index(&indexed_project);
+            });
+            self.mutable_participants.iter_mut().fold(indexed_project, |project, p| {
+                let _t = PhaseTimer::new_with(|| format!("post_index/{}", p.name()));
+                p.post_index(project)
+            })
+        };
 
         Ok(project)
     }
 
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic> {
-        self.participants.iter().for_each(|p| {
-            p.pre_annotate(&project);
-        });
-        let project =
-            self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_annotate(project));
+        let _t = PhaseTimer::new("annotate (driver)");
+        let project = {
+            let _t = PhaseTimer::new("pre_annotate (participants)");
+            self.participants.iter().for_each(|p| {
+                let _t = PhaseTimer::new_with(|| format!("pre_annotate/{}", p.name()));
+                p.pre_annotate(&project);
+            });
+            self.mutable_participants.iter_mut().fold(project, |project, p| {
+                let _t = PhaseTimer::new_with(|| format!("pre_annotate/{}", p.name()));
+                p.pre_annotate(project)
+            })
+        };
         let annotated_project = project.annotate(self.context.provider());
-        self.participants.iter().for_each(|p| {
-            p.post_annotate(&annotated_project);
-        });
-        let mut annotated_project = self
-            .mutable_participants
-            .iter_mut()
-            .fold(annotated_project, |project, p| p.post_annotate(project));
+        let mut annotated_project = {
+            let _t = PhaseTimer::new("post_annotate (participants)");
+            self.participants.iter().for_each(|p| {
+                let _t = PhaseTimer::new_with(|| format!("post_annotate/{}", p.name()));
+                p.post_annotate(&annotated_project);
+            });
+            self.mutable_participants.iter_mut().fold(annotated_project, |project, p| {
+                let _t = PhaseTimer::new_with(|| format!("post_annotate/{}", p.name()));
+                p.post_annotate(project)
+            })
+        };
 
         // Collect diagnostics from participants that validated during lowering.
         for p in &mut self.mutable_participants {
@@ -520,6 +577,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn generate(&mut self, _context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic> {
+        let _t = PhaseTimer::new("generate (driver)");
         self.participants.iter_mut().try_fold((), |_, participant| participant.pre_generate(&project))?;
         let Some(compile_options) = self.get_compile_options() else {
             log::debug!("No compile options provided");
@@ -715,6 +773,7 @@ impl ParsedProject {
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
     pub fn index(self, id_provider: IdProvider) -> IndexedProject {
+        let _t = PhaseTimer::new("ParsedProject::index");
         let indexed_units = self
             .units
             .into_par_iter()
@@ -730,9 +789,9 @@ impl ParsedProject {
 
         let mut global_index = Index::default();
         let mut units = vec![];
-        for (index, unit) in indexed_units {
+        for (idx, (index, unit)) in indexed_units.into_iter().enumerate() {
             units.push(unit);
-            global_index.import(index);
+            global_index.import_with_unit(index, UnitId::source(idx));
         }
 
         // import built-in types like INT, BOOL, etc.
@@ -742,7 +801,7 @@ impl ParsedProject {
 
         // import builtin functions
         let builtins = plc::builtins::parse_built_ins(id_provider);
-        global_index.import(indexer::index(&builtins));
+        global_index.import_with_unit(indexer::index(&builtins), UnitId::BUILTIN);
 
         //TODO: evaluate constants should probably be a participant
         let (index, _unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
@@ -765,6 +824,7 @@ pub struct IndexedProject {
 impl IndexedProject {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject {
+        let _t = PhaseTimer::new("IndexedProject::annotate");
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
@@ -785,7 +845,10 @@ impl IndexedProject {
         }
 
         let mut index = self.index;
-        index.import(std::mem::take(&mut all_annotations.new_index));
+        // The resolver's `new_index` carries generic instantiations and
+        // synthetic types created during annotation; tag them as synthetic so
+        // a later per-unit invalidation doesn't accidentally drop them.
+        index.import_with_unit(std::mem::take(&mut all_annotations.new_index), UnitId::SYNTHETIC);
 
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
@@ -802,6 +865,13 @@ pub struct AnnotatedUnit {
 }
 
 impl AnnotatedUnit {
+    /// Returns the dependencies this unit recorded during annotation
+    /// (by-name calls, type references, and variable references). Used to
+    /// build the project's reverse-dependency graph.
+    pub fn dependencies(&self) -> &FxIndexSet<Dependency> {
+        &self.dependencies
+    }
+
     pub fn new(
         unit: CompilationUnit,
         dependencies: FxIndexSet<Dependency>,
@@ -833,7 +903,102 @@ pub struct AnnotatedProject {
     pub diagnostics: Vec<Diagnostic>,
 }
 
+/// Reverse-dependency graph: for each symbol name, the set of units that
+/// recorded a dependency on it during annotation. Consumed by lowerers to
+/// compute the partial re-annotation closure when a unit's signature
+/// changes.
+///
+/// Symbol names are matched as the resolver records them
+/// ([`Dependency::Datatype`], [`Dependency::Call`], [`Dependency::Variable`])
+/// — i.e. with the case the resolver saw, not lowercased. The graph stores
+/// `UnitId::source(i)` keyed against `AnnotatedProject.units[i]`.
+///
+/// Closure correctness relies on the resolver recording a `Dependency` for
+/// every cross-unit reference. The full contract — including known gaps
+/// (cross-unit generic monomorphization) and required regression tests —
+/// is documented in `book/src/development/reverse_dependency_graph.md`.
+#[derive(Debug, Default, Clone)]
+pub struct ReverseDependencyGraph {
+    edges: std::collections::HashMap<String, std::collections::HashSet<UnitId>>,
+}
+
+impl ReverseDependencyGraph {
+    /// Returns the units that depend on the given symbol, if any.
+    pub fn dependents(&self, symbol: &str) -> Option<&std::collections::HashSet<UnitId>> {
+        self.edges.get(symbol)
+    }
+
+    /// Returns true if `symbol` has no recorded dependents.
+    pub fn is_empty_for(&self, symbol: &str) -> bool {
+        self.edges.get(symbol).map(|s| s.is_empty()).unwrap_or(true)
+    }
+
+    /// Total number of distinct symbols that have at least one dependent.
+    pub fn len(&self) -> usize {
+        self.edges.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.edges.is_empty()
+    }
+}
+
 impl AnnotatedProject {
+    /// Builds the reverse-dependency graph from each unit's recorded
+    /// [`Dependency`] set. Unit ids match `units[i] -> UnitId::source(i)`.
+    /// Recomputed on every call; cheap (single pass over the dep sets).
+    pub fn reverse_dependencies(&self) -> ReverseDependencyGraph {
+        let mut edges: std::collections::HashMap<String, std::collections::HashSet<UnitId>> =
+            std::collections::HashMap::new();
+        for (idx, unit) in self.units.iter().enumerate() {
+            let unit_id = UnitId::source(idx);
+            for dep in unit.dependencies() {
+                edges.entry(dep.get_name().to_string()).or_default().insert(unit_id);
+            }
+        }
+        ReverseDependencyGraph { edges }
+    }
+
+    /// Re-runs the type annotator on the given subset of units (by positional
+    /// index) against the current `self.index`, merging the resulting
+    /// annotations into the existing [`AstAnnotations`]. Each touched
+    /// unit's `dependencies` and `literals` are replaced with the
+    /// freshly-computed set. Generic instantiations / synthetic types the
+    /// resolver produced into `new_index` are folded into `self.index` as
+    /// `UnitId::SYNTHETIC` so a later per-unit invalidation doesn't
+    /// accidentally drop them.
+    ///
+    /// Used by participants that mutate a subset of units in `post_annotate`
+    /// and need annotations refreshed for just those units instead of
+    /// re-annotating the whole project.
+    ///
+    /// `AnnotationMapImpl` is keyed by `AstId`; re-running `visit_unit` on a
+    /// mutated unit overwrites entries with the same id and adds entries for
+    /// any newly-inserted AST nodes. Annotations for AST nodes that the
+    /// lowerer removed linger as dead entries but never get looked up.
+    pub fn reannotate_units(&mut self, unit_indices: &[usize], id_provider: IdProvider) {
+        // Re-annotate the listed units in parallel, mirroring the main
+        // `IndexedProject::annotate` path. Each visit reads `self.index`
+        // immutably, so the par_iter is safe.
+        let results: Vec<(usize, _, _, _)> = unit_indices
+            .par_iter()
+            .map(|&idx| {
+                let (annotation, deps, literals) =
+                    TypeAnnotator::visit_unit(&self.index, &self.units[idx].unit, id_provider.clone());
+                (idx, annotation, deps, literals)
+            })
+            .collect();
+
+        let mut merged = AnnotationMapImpl::default();
+        for (idx, annotation, deps, literals) in results {
+            self.units[idx].dependencies = deps;
+            self.units[idx].literals = literals;
+            merged.import(annotation);
+        }
+        self.index.import_with_unit(std::mem::take(&mut merged.new_index), UnitId::SYNTHETIC);
+        self.annotations.annotation_map.import(merged);
+    }
+
     /// Validates the project, reports any new diagnostics on the fly
     pub fn validate(
         &self,

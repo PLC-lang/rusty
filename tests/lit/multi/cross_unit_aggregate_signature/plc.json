@@ -1,0 +1,10 @@
+{
+    "name": "CrossUnitAggregateSignature",
+    "files": [
+        "main.st",
+        "src/lib.st",
+        "../../util/printf.pli"
+    ],
+    "compile_type": "Static",
+    "libraries": []
+}

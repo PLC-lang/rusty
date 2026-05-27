@@ -54,18 +54,43 @@ impl RetainParticipant {
         Self { ids }
     }
 
-    pub fn lower_retain(&mut self, units: &mut [CompilationUnit], index: plc::index::Index) {
-        let mut lowerer = RetainLowerer { ids: self.ids.clone(), index, context: Context::default() };
-        for unit in units {
+    /// Lowers `RETAIN` variables across the project. Returns the positional
+    /// indices of units that were actually rewritten (a retain variable was
+    /// hoisted to a global, or a retain block was demoted out of a program).
+    /// An empty `Vec` means no unit changed; the caller can skip the
+    /// downstream re-index entirely.
+    pub fn lower_retain(&mut self, units: &mut [CompilationUnit], index: &plc::index::Index) -> Vec<usize> {
+        let mut lowerer =
+            RetainLowerer { ids: self.ids.clone(), index, context: Context::default(), changed: false };
+        let mut mutated = Vec::new();
+        for (idx, unit) in units.iter_mut().enumerate() {
+            lowerer.changed = false;
             lowerer.visit_compilation_unit(unit);
+            if lowerer.changed {
+                mutated.push(idx);
+            }
         }
+        mutated
+    }
+
+    /// Same as [`Self::lower_retain`] for a single unit. Returns `true` if
+    /// any retain variable was rewritten. Used by per-unit adapters such
+    /// as the `UnitLowerer` framework in the driver.
+    pub fn lower_one_unit(&mut self, unit: &mut CompilationUnit, index: &plc::index::Index) -> bool {
+        let mut lowerer =
+            RetainLowerer { ids: self.ids.clone(), index, context: Context::default(), changed: false };
+        lowerer.visit_compilation_unit(unit);
+        lowerer.changed
     }
 }
 
-struct RetainLowerer {
+struct RetainLowerer<'idx> {
     ids: IdProvider,
-    index: plc::index::Index,
+    index: &'idx plc::index::Index,
     context: Context,
+    /// Set to `true` as soon as the visitor rewrites the AST. Used by the
+    /// caller to decide whether the downstream re-index is needed.
+    changed: bool,
 }
 
 #[derive(Debug, Default)]
@@ -75,11 +100,12 @@ struct Context {
     retain_variables: Vec<Variable>,
 }
 
-impl AstVisitorMut for RetainLowerer {
+impl<'idx> AstVisitorMut for RetainLowerer<'idx> {
     fn visit_compilation_unit(&mut self, unit: &mut CompilationUnit) {
         unit.walk(self);
         // After visiting the compilation unit, add all retain variables to the global vars
         if !self.context.retain_variables.is_empty() {
+            self.changed = true;
             // Find an existing retain global variable block or create a new one if it doesn't exist
             unit.global_vars
                 .iter_mut()
@@ -114,6 +140,7 @@ impl AstVisitorMut for RetainLowerer {
         //If the block is retain but we are in a program, mark the block as non-retain
         if block.retain && self.context.in_program {
             block.retain = false;
+            self.changed = true;
         }
         for variable in variables {
             let Some(variable_index) =
@@ -123,7 +150,7 @@ impl AstVisitorMut for RetainLowerer {
                 continue;
             };
 
-            if !variable_index.should_retain(&self.index) {
+            if !variable_index.should_retain(self.index) {
                 block.variables.push(variable);
                 continue;
             }
@@ -146,7 +173,7 @@ impl AstVisitorMut for RetainLowerer {
     }
 }
 
-impl RetainLowerer {
+impl<'idx> RetainLowerer<'idx> {
     /// Replaces a retain variable in a program with a global retain variable and replaces the original variable with an auto reference to the global variable
     fn replace_with_retain_variable(&mut self, mut variable: Variable) -> (Variable, Variable) {
         let new_name = format!(

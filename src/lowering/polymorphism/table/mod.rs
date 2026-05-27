@@ -15,17 +15,26 @@ use self::pou::VirtualTableGenerator;
 pub struct TableGenerator;
 
 impl TableGenerator {
+    /// Returns the positional indices of units that were modified by either
+    /// vtable or itable generation. Duplicates are removed and the indices
+    /// are sorted, so the caller can iterate directly. An empty `Vec` means
+    /// no compilation unit was modified and the caller can skip the
+    /// downstream re-index.
     pub fn generate(
         ids: IdProvider,
         generate_external_constructors: bool,
         index: &Index,
-        units: &mut Vec<CompilationUnit>,
-    ) {
+        units: &mut [CompilationUnit],
+    ) -> Vec<usize> {
         let mut vtable_gen = VirtualTableGenerator::new(ids.clone(), generate_external_constructors);
-        vtable_gen.generate(index, units);
+        let mut mutated = vtable_gen.generate(index, units);
 
         let mut itable_gen = InterfaceTableGenerator::new(ids, generate_external_constructors);
-        itable_gen.generate(index, units);
+        mutated.extend(itable_gen.generate(index, units));
+
+        mutated.sort_unstable();
+        mutated.dedup();
+        mutated
     }
 }
 

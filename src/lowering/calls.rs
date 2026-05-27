@@ -62,8 +62,8 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::Index,
-    lowering::helper::create_member_reference_with_location,
-    resolver::{AnnotationMap, StatementAnnotation},
+    lowering::{helper::create_member_reference_with_location, mutation::MutationTracker},
+    resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{DataType, DataTypeInformation},
 };
 
@@ -71,13 +71,18 @@ use crate::{
 #[derive(Default)]
 pub struct AggregateTypeLowerer {
     pub index: Option<Index>,
-    pub annotation: Option<Box<dyn AnnotationMap>>,
+    pub annotation: Option<AstAnnotations>,
     pub id_provider: IdProvider,
     /// New statements to be added during visit, that should happen before the call. This should always be drained when read
     pre_stmts: Vec<Vec<AstNode>>,
     /// New statements to be added during visit, that should happen after the call. This should always be drained when read
     post_stmts: Vec<Vec<AstNode>>,
     counter: AtomicI32,
+    /// Set whenever the lowerer mutates the AST in a way that affects the
+    /// global index (POU signature changes) or the annotations (new pre/post
+    /// statements inserted). Reset before each unit walk so the participant
+    /// can decide per unit whether to re-index / re-annotate.
+    mutations: MutationTracker,
 }
 
 impl AggregateTypeLowerer {
@@ -91,6 +96,26 @@ impl AggregateTypeLowerer {
 
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
+    }
+
+    /// Visits a single unit and returns whether the lowerer actually mutated
+    /// it. The caller uses the result to scope re-indexing / re-annotation
+    /// to only the units that need it.
+    ///
+    /// Pair with [`signature_changed_pous`](Self::signature_changed_pous) to
+    /// learn *which* POUs in this unit had their signature rewritten — body
+    /// edits flip the dirty flag but do not invalidate callers of every POU
+    /// in the unit.
+    pub fn visit_unit_tracked(&mut self, unit: &mut CompilationUnit) -> bool {
+        self.mutations.reset();
+        self.visit_compilation_unit(unit);
+        self.mutations.is_dirty()
+    }
+
+    /// Names of POUs whose public signatures were rewritten during the most
+    /// recent [`visit_unit_tracked`](Self::visit_unit_tracked) call.
+    pub fn signature_changed_pous(&self) -> Vec<String> {
+        self.mutations.signature_changed_pous()
     }
 
     fn steal_and_walk_list(&mut self, list: &mut Vec<AstNode>) {
@@ -112,6 +137,7 @@ impl AggregateTypeLowerer {
     fn push_pre_statement(&mut self, stmt: AstNode) {
         if let Some(stmts) = self.pre_stmts.last_mut() {
             stmts.push(stmt);
+            self.mutations.touch();
         } else {
             unreachable!("Statement lists should exist at this point");
         }
@@ -124,6 +150,7 @@ impl AggregateTypeLowerer {
     fn push_post_statement(&mut self, stmt: AstNode) {
         if let Some(stmts) = self.post_stmts.last_mut() {
             stmts.push(stmt);
+            self.mutations.touch();
         } else {
             unreachable!("Statement lists should exist at this point");
         }
@@ -175,6 +202,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
         // If the return type is aggregate, remove it from the signature and add a matching variable
         // in a VAR_IN_OUT block
         if index.get_effective_type_or_void_by_name(&return_type_name).is_aggregate_type() {
+            self.mutations.signature_changed(&pou.name);
             let original_return = pou.return_type.take().unwrap();
             let location = original_return.get_location();
             //Create a new return type for the pou
@@ -356,8 +384,8 @@ impl AstVisitorMut for AggregateTypeLowerer {
             .iter()
             .enumerate()
             .any(|(param_index, param)|
-                is_output_assignment_and_type_cast_needed(param, annotation.as_ref(), index, &qualified_name, param_index, function_entry.is_method())
-                || is_output_assignment_and_has_direct_access(param, annotation.as_ref(), index, &qualified_name, param_index, function_entry.is_method()))
+                is_output_assignment_and_type_cast_needed(param, annotation, index, &qualified_name, param_index, function_entry.is_method())
+                || is_output_assignment_and_has_direct_access(param, annotation, index, &qualified_name, param_index, function_entry.is_method()))
             // Stateful structs (such as function blocks) have their own output assignment mechanism in codegen,
             // and are not handled by this lowerer
             && (function_entry.is_function() || function_entry.is_method())
@@ -374,7 +402,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     (&self.counter, self.id_provider.clone()),
                     param,
                     (&qualified_name, &return_name, function_entry.is_method()),
-                    annotation.as_ref(),
+                    annotation,
                     index,
                     param_index,
                     (&mut pre_statements, &mut expressions, &mut post_statements),
@@ -785,6 +813,7 @@ mod tests {
 
     use crate::index::indexer;
     use crate::lowering::calls::AggregateTypeLowerer;
+    use crate::resolver::AstAnnotations;
     use crate::test_utils::tests::{
         annotate_and_lower_with_ids, annotate_with_ids, index as test_index, index_and_lower,
         index_unit_with_id, index_with_ids,
@@ -954,7 +983,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
@@ -995,7 +1024,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[2]);
     }
@@ -1033,7 +1062,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
@@ -1073,7 +1102,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
@@ -1113,7 +1142,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
@@ -1153,7 +1182,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
@@ -1196,7 +1225,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
@@ -1234,7 +1263,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
@@ -1272,7 +1301,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
@@ -1312,7 +1341,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
@@ -1353,7 +1382,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[1]);
     }
@@ -1381,7 +1410,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[0]);
     }
@@ -1609,7 +1638,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[2].statements[0]);
     }
@@ -1646,7 +1675,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
         assert_debug_snapshot!(unit.implementations[2].statements[0]);
     }
@@ -1690,7 +1719,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
 
         let implementations = &unit.implementations;
@@ -1747,7 +1776,7 @@ mod tests {
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
         let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
-        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.annotation.replace(AstAnnotations::new(annotations, id_provider.clone().next_id()));
         lowerer.visit_compilation_unit(&mut unit);
 
         let implementations = &unit.implementations;

@@ -1,0 +1,11 @@
+{
+    "name": "IncrementalPolymorphismP4",
+    "files": [
+        "main.st",
+        "src/base.st",
+        "src/derived.st",
+        "../../util/printf.pli"
+    ],
+    "compile_type": "Static",
+    "libraries": []
+}
