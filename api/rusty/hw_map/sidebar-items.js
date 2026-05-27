@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["WireAccess","WireDirection"],"fn":["collect_hw_map","serialize_hw_map"],"struct":["HwMap","HwMapEntry"]};

@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Sidecar map from user-facing qualified variable names to the synthetic global names (`__PI_…`, `__M_…`, `__G_…`) the pre-processor emits for hardware-bound variables."><title>rusty::hw_map - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module hw_map</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../rusty/index.html">rusty</a><span class="version">0.5.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module hw_map</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#wire-format" title="Wire format">Wire format</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate rusty</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">rusty</a></div><h1>Module <span>hw_map</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/rusty/hw_map.rs.html#1-618">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Sidecar map from user-facing qualified variable names to the synthetic global
+names (<code>__PI_…</code>, <code>__M_…</code>, <code>__G_…</code>) the pre-processor emits for hardware-bound
+variables.</p>
+<p>Maps synthetic names to source-level identities.</p>
+<h2 id="wire-format"><a class="doc-anchor" href="#wire-format">§</a>Wire format</h2>
+<p>The serialized output is a stability contract with downstream tools (live-monitoring
+debuggers, IDE bridges) that parse DWARF and need to translate user-facing symbol
+subscriptions into the mangled globals the codegen actually emits. The shape is:</p>
+<div class="example-wrap"><pre class="language-json"><code>{
+  &quot;VariableMap&quot;: [
+    {
+      &quot;name&quot;: &quot;prg.foo.bar&quot;,
+      &quot;mangled_name&quot;: &quot;__PI_1_2&quot;,
+      &quot;address&quot;: &quot;%IX1.2&quot;,
+      &quot;direction&quot;: &quot;Input&quot;,
+      &quot;access_type&quot;: &quot;Bit&quot;
+    }
+  ]
+}</code></pre></div>
+<p>Stable keys and string values:</p>
+<ul>
+<li><code>VariableMap</code> — the top-level wrapper.</li>
+<li>Per-entry keys: <code>name</code>, <code>mangled_name</code>, <code>address</code>, <code>direction</code>, <code>access_type</code>.</li>
+<li><code>direction</code> values: <code>Input</code>, <code>Output</code>, <code>Memory</code>, <code>Global</code>.</li>
+<li><code>access_type</code> values: <code>Bit</code>, <code>Byte</code>, <code>Word</code>, <code>DWord</code>, <code>LWord</code>, <code>Template</code>.</li>
+</ul>
+<p>These strings are produced by <code>#[derive(Serialize)]</code> on the local <a href="enum.WireDirection.html" title="enum rusty::hw_map::WireDirection"><code>WireDirection</code></a>
+and <a href="enum.WireAccess.html" title="enum rusty::hw_map::WireAccess"><code>WireAccess</code></a> enums in this module rather than the AST types, so renaming a
+variant in <code>plc_ast</code> cannot silently change the wire format. Adding a new variant
+to either AST enum will fail to compile here via the exhaustive <code>From</code> impls.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.HwMap.html" title="struct rusty::hw_map::HwMap">HwMap</a></dt><dt><a class="struct" href="struct.HwMapEntry.html" title="struct rusty::hw_map::HwMapEntry">HwMap<wbr>Entry</a></dt><dd>One row in the emitted map. <code>name</code> is the qualified user-facing path;
+<code>mangled_name</code> is the synthetic global as it appears in DWARF.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.WireAccess.html" title="enum rusty::hw_map::WireAccess">Wire<wbr>Access</a></dt><dd>Wire-format enum for <code>access_type</code>. Mirrors <a href="../../plc_ast/ast/enum.DirectAccessType.html" title="enum plc_ast::ast::DirectAccessType"><code>DirectAccessType</code></a> but lives here so
+the JSON/TOML contract (see module-level docs) is owned by this module and not by
+the AST.</dd><dt><a class="enum" href="enum.WireDirection.html" title="enum rusty::hw_map::WireDirection">Wire<wbr>Direction</a></dt><dd>Wire-format enum for <code>direction</code>. Mirrors <a href="../../plc_ast/ast/enum.HardwareAccessType.html" title="enum plc_ast::ast::HardwareAccessType"><code>HardwareAccessType</code></a> but lives here so
+the JSON/TOML contract (see module-level docs) is owned by this module and not by
+the AST.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.collect_hw_map.html" title="fn rusty::hw_map::collect_hw_map">collect_<wbr>hw_<wbr>map</a></dt><dd>Walks the index and produces one entry per (instance, hardware address) pair.
+Two passes that are disjoint by construction (and thus the <code>(name, mangled)</code>
+dedup set across them is a defensive belt — see notes below):</dd><dt><a class="fn" href="fn.serialize_hw_map.html" title="fn rusty::hw_map::serialize_hw_map">serialize_<wbr>hw_<wbr>map</a></dt></dl></section></div></main></body></html>
