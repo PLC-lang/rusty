@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-6c82d32f.js";
+            window.path_to_searchindex_js = "searchindex-7f1537a4.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-5f69e249.js"></script>
+        <script src="toc-55781172.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2240,6 +2240,30 @@ END_FUNCTION
 </code></pre>
 <p>Move the variable into a <code>PROGRAM</code>, <code>FUNCTION_BLOCK</code>, or <code>VAR_GLOBAL</code> block, or supply
 a complete address (e.g. <code>AT %IX1.0</code>) directly.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="linker-invocation-failed"><a class="header" href="#linker-invocation-failed">Linker invocation failed</a></h1>
+<p><code>plc</code> could not spawn the linker subprocess, or the OS rejected the assembled
+command line before the linker had a chance to run.</p>
+<p>The diagnostic body includes the linker that was selected, the number of
+arguments, the assembled command-line length in bytes, and the longest single
+argument (and its value). These numbers usually point at the cause.</p>
+<p>Common causes:</p>
+<ul>
+<li><strong>Windows <code>CreateProcess</code> command-line limit (32,767 bytes; 8,191 if the
+spawn went through <code>cmd.exe</code>).</strong> Visible as <code>os error 206</code>. <code>plc</code> already
+routes long command lines through a <code>@response_file</code> to avoid this, but
+the response file can itself fail if the temp directory is unwritable —
+consult any preceding <code>warn</code> log lines.</li>
+<li><strong>Windows <code>MAX_PATH</code> (260 chars) on a single path argument without the
+<code>\\?\</code> prefix.</strong> Also surfaces as <code>os error 206</code>. Shorten paths or relocate
+the build closer to the drive root.</li>
+<li><strong>Linker binary not on <code>PATH</code> / not executable.</strong> <code>os error 2</code> or
+<code>os error 13</code>. Check <code>which &lt;linker&gt;</code> or pass <code>--linker=&lt;path&gt;</code>.</li>
+<li><strong>Insufficient permissions on the temp directory used for the response
+file.</strong> Set <code>TMPDIR</code> (Linux/macOS) or <code>TEMP</code> (Windows) to a writable path.</li>
+</ul>
+<p>If none of the above apply the error string returned by the OS is reproduced
+verbatim and is the primary clue.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
