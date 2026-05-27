@@ -64,6 +64,57 @@ fn hardware_conf_full_pass_json() {
 }
 
 #[test]
+fn hwmap_unsupported_extension_errors() {
+    // `--hwmap-file=foo.xml` should fail with an extension error before/after
+    // codegen — never silently produce an unreadable file.
+    let file = get_test_file("io.st");
+    let dir = tempfile::tempdir().unwrap();
+    let output_path = dir.path().join("prog.ll");
+    let bad_path = dir.path().join("map.xml");
+    let output_str = output_path.to_string_lossy().to_string();
+    let bad_arg = format!("--hwmap-file={}", bad_path.display());
+
+    let result = compile(&["plc", file.as_str(), "-o", &output_str, "--ir", &bad_arg]);
+    assert!(result.is_err(), "expected compile to error on unsupported hwmap extension");
+    assert!(!bad_path.exists(), "no file should be written for an invalid extension");
+}
+
+#[test]
+fn hwmap_default_filename_derived_from_output() {
+    // Passing `--hwmap-file` without a value should derive `<output>.hwmap.json`.
+    let file = get_test_file("io.st");
+    let dir = tempfile::tempdir().unwrap();
+    let output_path = dir.path().join("prog.ll");
+    let output_str = output_path.to_string_lossy().to_string();
+
+    compile(&["plc", file.as_str(), "-o", &output_str, "--ir", "--hwmap-file"]).unwrap();
+
+    let derived = dir.path().join("prog.ll.hwmap.json");
+    assert!(derived.is_file(), "expected derived hwmap file at {}", derived.display());
+    let content = fs::read_to_string(&derived).unwrap();
+    assert!(content.contains("__PI_7_8"));
+}
+
+#[test]
+fn hwmap_full_pass_json() {
+    let file = get_test_file("io.st");
+    let temp_file = tempfile::NamedTempFile::new().unwrap();
+    let path = temp_file.path().to_string_lossy();
+    let hwmap_dir = tempfile::tempdir().unwrap();
+    let hwmap_path = hwmap_dir.path().join("monitor.hwmap.json");
+    let hwmap_arg = format!("--hwmap-file={}", hwmap_path.display());
+
+    compile(&["plc", file.as_str(), "-o", &path, "--ir", &hwmap_arg]).unwrap();
+
+    assert!(hwmap_path.is_file(), "expected hwmap file at {}", hwmap_path.display());
+    let content = fs::read_to_string(&hwmap_path).unwrap();
+    assert!(content.contains("\"VariableMap\""), "missing VariableMap key in: {content}");
+    assert!(content.contains("__PI_7_8"), "expected __PI_7_8 mangled name in: {content}");
+    assert!(content.contains("\"a.binvar\""), "expected qualified name a.binvar in: {content}");
+    assert!(content.contains("\"%IX7.8\""), "expected reconstructed source address in: {content}");
+}
+
+#[test]
 fn hardware_conf_full_pass_toml() {
     let file = get_test_file("io.st");
 
