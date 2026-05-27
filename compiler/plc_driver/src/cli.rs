@@ -148,6 +148,14 @@ pub struct CompileParameters {
     #[clap(long = "fno-pic", global = true, help = "Generate non-PIC code where applicable")]
     pub fno_pic: bool,
 
+    #[clap(
+        long = "fno-ident",
+        global = true,
+        help = "Suppress the compiler-version metadata that is normally embedded \
+                in compiled artifacts. Useful for reproducible builds."
+    )]
+    pub fno_ident: bool,
+
     #[clap(long, name = "target-triple", global = true, help = "A target-triple supported by LLVM")]
     pub target: Option<Target>,
 

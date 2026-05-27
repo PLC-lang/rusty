@@ -31,7 +31,8 @@ fn ir_generation_full_pass() {
 
     let mut temp_file = tempfile::NamedTempFile::new().unwrap();
     let path = temp_file.path().to_string_lossy();
-    compile(&["plc", file.as_str(), "-o", &path, "--ir"]).unwrap();
+    // `--fno-ident` keeps the IR snapshot stable across `plc` upgrades.
+    compile(&["plc", file.as_str(), "-o", &path, "--ir", "--fno-ident"]).unwrap();
 
     //Verify file content
     let mut content = String::new();
