@@ -430,9 +430,18 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             .and_then(|it| it.hardware_config.as_ref())
             .zip(self.compile_parameters.as_ref().and_then(CompileParameters::config_format))
         {
+            eprintln!(
+                "warning: --hardware-conf is deprecated and will be removed in a future release; \
+                 use --hwmap-file instead (it carries the mangled symbol and source-form address \
+                 needed by live-monitoring tools)."
+            );
             annotated_project.generate_hardware_information(format, location)?;
         }
 
+        // Note: hwmap emission runs before the `is_check` early-return below, so
+        // `plc --check --hwmap-file=…` produces the map without codegen. Matches the
+        // behavior of `--hardware-conf` above and is the desired contract: the map
+        // is a property of indexing, not codegen.
         if let Some(params) = self.compile_parameters.as_ref() {
             match params.hwmap_target() {
                 Ok(Some((location, format))) => {
@@ -440,7 +449,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                 }
                 Ok(None) => {}
                 Err(msg) => {
-                    return Err(Diagnostic::new(msg).with_error_code("E002"));
+                    return Err(Diagnostic::new(msg).with_error_code("E134"));
                 }
             }
         }
@@ -1037,9 +1046,12 @@ impl AnnotatedProject {
     pub fn generate_hw_map(&self, format: ConfigFormat, location: &str) -> Result<(), Diagnostic> {
         let map = plc::hw_map::collect_hw_map(&self.index)?;
         let serialized = plc::hw_map::serialize_hw_map(&map, format)?;
-        File::create(location).and_then(|mut it| it.write_all(serialized.as_bytes())).map_err(|it| {
-            Diagnostic::new(it.to_string()).with_internal_error(it.into()).with_error_code("E002")
-        })?;
+        // Bad path / permission denied / ENOSPC are user-environment errors, not
+        // internal-compiler bugs — surface them as plain E002 IO errors without
+        // wrapping them as internal errors.
+        File::create(location)
+            .and_then(|mut it| it.write_all(serialized.as_bytes()))
+            .map_err(|it| Diagnostic::new(format!("{location}: {it}")).with_error_code("E002"))?;
         Ok(())
     }
 }

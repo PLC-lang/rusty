@@ -3,34 +3,100 @@
 //! variables.
 //!
 //! Maps synthetic names to source-level identities.
+//!
+//! # Wire format
+//!
+//! The serialized output is a stability contract with downstream tools (live-monitoring
+//! debuggers, IDE bridges) that parse DWARF and need to translate user-facing symbol
+//! subscriptions into the mangled globals the codegen actually emits. The shape is:
+//!
+//! ```json
+//! {
+//!   "VariableMap": [
+//!     {
+//!       "name": "prg.foo.bar",
+//!       "mangled_name": "__PI_1_2",
+//!       "address": "%IX1.2",
+//!       "direction": "Input",
+//!       "access_type": "Bit"
+//!     }
+//!   ]
+//! }
+//! ```
+//!
+//! Stable keys and string values:
+//! - `VariableMap` — the top-level wrapper.
+//! - Per-entry keys: `name`, `mangled_name`, `address`, `direction`, `access_type`.
+//! - `direction` values: `Input`, `Output`, `Memory`, `Global`.
+//! - `access_type` values: `Bit`, `Byte`, `Word`, `DWord`, `LWord`, `Template`.
+//!
+//! These strings are produced by `#[derive(Serialize)]` on the local [`WireDirection`]
+//! and [`WireAccess`] enums in this module rather than the AST types, so renaming a
+//! variant in `plc_ast` cannot silently change the wire format. Adding a new variant
+//! to either AST enum will fail to compile here via the exhaustive `From` impls.
 
 use plc_ast::ast::{mangle_hw_name, AstStatement, DirectAccessType, HardwareAccessType};
 use plc_diagnostics::diagnostics::Diagnostic;
-use serde::{Serialize, Serializer};
+use serde::Serialize;
 
 use crate::{expression_path::ExpressionPath, index::Index, ConfigFormat};
 
 /// One row in the emitted map. `name` is the qualified user-facing path;
 /// `mangled_name` is the synthetic global as it appears in DWARF.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct HwMapEntry {
     pub name: String,
     pub mangled_name: String,
     pub address: String,
-    pub direction: HardwareAccessType,
-    pub access_type: DirectAccessType,
+    pub direction: WireDirection,
+    pub access_type: WireAccess,
 }
 
-impl Serialize for HwMapEntry {
-    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        use serde::ser::SerializeStruct;
-        let mut st = s.serialize_struct("HwMapEntry", 5)?;
-        st.serialize_field("name", &self.name)?;
-        st.serialize_field("mangled_name", &self.mangled_name)?;
-        st.serialize_field("address", &self.address)?;
-        st.serialize_field("direction", direction_str(self.direction))?;
-        st.serialize_field("access_type", access_type_str(self.access_type))?;
-        st.end()
+/// Wire-format enum for `direction`. Mirrors [`HardwareAccessType`] but lives here so
+/// the JSON/TOML contract (see module-level docs) is owned by this module and not by
+/// the AST.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize)]
+pub enum WireDirection {
+    Input,
+    Output,
+    Memory,
+    Global,
+}
+
+impl From<HardwareAccessType> for WireDirection {
+    fn from(d: HardwareAccessType) -> Self {
+        match d {
+            HardwareAccessType::Input => Self::Input,
+            HardwareAccessType::Output => Self::Output,
+            HardwareAccessType::Memory => Self::Memory,
+            HardwareAccessType::Global => Self::Global,
+        }
+    }
+}
+
+/// Wire-format enum for `access_type`. Mirrors [`DirectAccessType`] but lives here so
+/// the JSON/TOML contract (see module-level docs) is owned by this module and not by
+/// the AST.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize)]
+pub enum WireAccess {
+    Bit,
+    Byte,
+    Word,
+    DWord,
+    LWord,
+    Template,
+}
+
+impl From<DirectAccessType> for WireAccess {
+    fn from(a: DirectAccessType) -> Self {
+        match a {
+            DirectAccessType::Bit => Self::Bit,
+            DirectAccessType::Byte => Self::Byte,
+            DirectAccessType::Word => Self::Word,
+            DirectAccessType::DWord => Self::DWord,
+            DirectAccessType::LWord => Self::LWord,
+            DirectAccessType::Template => Self::Template,
+        }
     }
 }
 
@@ -41,13 +107,19 @@ pub struct HwMap {
 }
 
 /// Walks the index and produces one entry per (instance, hardware address) pair.
-/// Two passes:
+/// Two passes that are disjoint by construction (and thus the `(name, mangled)`
+/// dedup set across them is a defensive belt — see notes below):
 /// - Pass A: instances with direct hardware bindings (`AT %IX0.0`, `AT %QW2.5`, …).
 ///   Templates (`AT %I*`) are skipped — they are resolved in pass B.
 /// - Pass B: `VAR_CONFIG` entries, which resolve templated FB members to a concrete
-///   address. The reference is already instance-qualified by the user.
+///   address. The reference is already instance-qualified by the user. The synthetic
+///   global the pre-processor produces for these has `binding: None`, so the same
+///   instance cannot show up in pass A.
 pub fn collect_hw_map(index: &Index) -> Result<HwMap, Diagnostic> {
     let mut entries = Vec::new();
+    // Keyed on (qualified name, mangled global). Pass A and pass B do not overlap by
+    // design (see fn-level doc); this set guards against a future regression where a
+    // single instance gains both a direct binding and a VAR_CONFIG entry.
     let mut seen = rustc_hash::FxHashSet::<(String, String)>::default();
 
     // Pass A — direct hardware bindings on indexed instances.
@@ -72,22 +144,33 @@ pub fn collect_hw_map(index: &Index) -> Result<HwMap, Diagnostic> {
                     name,
                     mangled_name: mangled.clone(),
                     address: address_literal.clone(),
-                    direction: binding.direction,
-                    access_type: binding.access,
+                    direction: binding.direction.into(),
+                    access_type: binding.access.into(),
                 });
             }
         }
     }
 
-    // Pass B — VAR_CONFIG resolutions. The synthetic global produced by the
-    // pre-processor has `binding: None` so it never shows up in pass A.
+    // Pass B — VAR_CONFIG resolutions.
     for var_config in index.get_config_variables() {
         let AstStatement::HardwareAccess(hw) = &var_config.address.stmt else { continue };
         if matches!(hw.access, DirectAccessType::Template) {
             continue;
         }
-        let address_ints: Vec<i128> =
-            hw.address.iter().filter_map(|node| node.get_literal_integer_value()).collect();
+        // The parser only accepts integer literals in `AT %…` slots, so any non-literal
+        // would be a parser/validation contract violation — surface it instead of
+        // silently skipping the entry.
+        let address_ints = hw
+            .address
+            .iter()
+            .map(|node| {
+                node.get_literal_integer_value().ok_or_else(|| {
+                    Diagnostic::new("VAR_CONFIG hardware address contains non-literal part")
+                        .with_error_code("E002")
+                        .with_location(&var_config.location)
+                })
+            })
+            .collect::<Result<Vec<i128>, _>>()?;
         if address_ints.is_empty() {
             continue;
         }
@@ -104,8 +187,8 @@ pub fn collect_hw_map(index: &Index) -> Result<HwMap, Diagnostic> {
                     name,
                     mangled_name: mangled.clone(),
                     address: address_literal.clone(),
-                    direction: hw.direction,
-                    access_type: hw.access,
+                    direction: hw.direction.into(),
+                    access_type: hw.access.into(),
                 });
             }
         }
@@ -115,6 +198,8 @@ pub fn collect_hw_map(index: &Index) -> Result<HwMap, Diagnostic> {
 }
 
 pub fn serialize_hw_map(map: &HwMap, format: ConfigFormat) -> Result<String, Diagnostic> {
+    // A serializer failure here is a contract violation between this module and serde —
+    // every field is a plain string or a derived enum. Surface it as an internal error.
     match format {
         ConfigFormat::JSON => serde_json::to_string_pretty(map).map_err(|e| {
             Diagnostic::new(e.to_string()).with_error_code("E002").with_internal_error(e.into())
@@ -122,26 +207,6 @@ pub fn serialize_hw_map(map: &HwMap, format: ConfigFormat) -> Result<String, Dia
         ConfigFormat::TOML => toml::ser::to_string_pretty(map).map_err(|e| {
             Diagnostic::new(e.to_string()).with_error_code("E002").with_internal_error(e.into())
         }),
-    }
-}
-
-fn direction_str(d: HardwareAccessType) -> &'static str {
-    match d {
-        HardwareAccessType::Input => "Input",
-        HardwareAccessType::Output => "Output",
-        HardwareAccessType::Memory => "Memory",
-        HardwareAccessType::Global => "Global",
-    }
-}
-
-fn access_type_str(a: DirectAccessType) -> &'static str {
-    match a {
-        DirectAccessType::Bit => "Bit",
-        DirectAccessType::Byte => "Byte",
-        DirectAccessType::Word => "Word",
-        DirectAccessType::DWord => "DWord",
-        DirectAccessType::LWord => "LWord",
-        DirectAccessType::Template => "Template",
     }
 }
 
@@ -325,8 +390,11 @@ mod tests {
         );
         let map = collect_hw_map(&idx).unwrap();
         assert!(map.entries.is_empty(), "expected empty map, got {:?}", map.entries);
-        let json = serialize_hw_map(&map, ConfigFormat::JSON).unwrap();
-        assert!(json.contains("\"VariableMap\""), "wrapper must be present even when empty");
+        insta::assert_snapshot!(serialize_hw_map(&map, ConfigFormat::JSON).unwrap(), @r#"
+        {
+          "VariableMap": []
+        }
+        "#);
     }
 
     #[test]

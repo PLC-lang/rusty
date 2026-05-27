@@ -220,7 +220,7 @@ pub struct CompileParameters {
         long,
         global = true,
         help = "[deprecated, use --hwmap-file] Generate Hardware configuration files to the given location.
-    Format is detected by extenstion.
+    Format is detected by extension.
     Supported formats : json, toml",
     parse(try_from_str = validate_config)
     ) ]
@@ -235,7 +235,9 @@ pub struct CompileParameters {
     resolutions get rewritten to. Live-monitoring tools parse DWARF and need this mapping
     to translate IDE subscriptions into symbol lookups.
     If the flag is given without a value the file is written next to the output binary as
-    <output>.hwmap.json. Format is detected by extension. Supported formats : json, toml",
+    <output>.hwmap.json. Format is detected by extension. Supported formats : json, toml.
+    Note: when supplying a path, use `--hwmap-file=PATH` (the `=` is required);
+    `--hwmap-file PATH` is rejected as a parse error.",
         min_values = 0,
         max_values = 1,
         require_equals = true

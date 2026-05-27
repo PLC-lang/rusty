@@ -235,6 +235,7 @@ lazy_static! {
         E131,   Error,      include_str!("./error_codes/E131.md"),  // Positional argument collides with later named argument
         E132,   Ignore,    include_str!("./error_codes/E132.md"),  // Mixing implicit and explicit call parameters
         E133,   Error,      include_str!("./error_codes/E133.md"),  // AND_THEN/OR_ELSE with non-boolean operands
+        E134,   Error,      include_str!("./error_codes/E134.md"),  // Invalid --hwmap-file argument
     );
 }
 
