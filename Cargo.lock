@@ -2379,6 +2379,8 @@ dependencies = [
 name = "plc_driver"
 version = "0.5.0"
 dependencies = [
+ "anstream",
+ "anstyle",
  "anyhow",
  "clap 3.2.25",
  "encoding_rs",
@@ -2477,6 +2479,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
