@@ -1597,7 +1597,9 @@ pub fn get_literal_actual_signed_type_name(lit: &AstLiteral, signed: bool) -> Op
 
     match lit {
         AstLiteral::Integer(value) => match signed {
-            _ if *value == 0_i128 || *value == 1_i128 => Some(BOOL_TYPE),
+            // BOOL types are not signed
+            false if *value == 0_i128 || *value == 1_i128 => Some(BOOL_TYPE),
+
             true if is_covered_by!(i8, *value) => Some(SINT_TYPE),
             true if is_covered_by!(i16, *value) => Some(INT_TYPE),
             true if is_covered_by!(i32, *value) => Some(DINT_TYPE),

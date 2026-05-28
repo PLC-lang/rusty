@@ -652,11 +652,11 @@ fn super_in_variable_initialization() {
     15 │                 val1 : INT := SUPER^.value;
        │                                      ^^^^^ Illegal access to private member parent.value
 
-    error[E033]: Unresolved constant `val1` variable: `value` is no const reference
+    error[E033]: Unresolved constant `val1` variable
        ┌─ <internal>:15:31
        │
     15 │                 val1 : INT := SUPER^.value;
-       │                               ^^^^^^^^^^^^ Unresolved constant `val1` variable: `value` is no const reference
+       │                               ^^^^^^^^^^^^ Unresolved constant `val1` variable
 
     error[E033]: Unresolved constant `val2` variable: Cannot resolve constant: CallStatement {
         operator: ReferenceExpr {
@@ -666,7 +666,14 @@ fn super_in_variable_initialization() {
                 },
             ),
             base: Some(
-                Super(derefed),
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__parent",
+                        },
+                    ),
+                    base: None,
+                },
             ),
         },
         parameters: None,
@@ -682,7 +689,14 @@ fn super_in_variable_initialization() {
                 },
             ),
             base: Some(
-                Super(derefed),
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__parent",
+                        },
+                    ),
+                    base: None,
+                },
             ),
         },
         parameters: None,
@@ -708,12 +722,18 @@ fn const_super_variable_in_child_variable_initialization() {
     ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     warning[E049]: Illegal access to private member parent.value
        ┌─ <internal>:10:38
        │
     10 │                 val1 : INT := SUPER^.value;
        │                                      ^^^^^ Illegal access to private member parent.value
+
+    error[E033]: Unresolved constant `val1` variable
+       ┌─ <internal>:10:31
+       │
+    10 │                 val1 : INT := SUPER^.value;
+       │                               ^^^^^^^^^^^^ Unresolved constant `val1` variable
     ");
 }
 

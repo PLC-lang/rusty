@@ -35,6 +35,7 @@ pub mod codegen;
 mod datalayout;
 pub mod expression_path;
 pub mod hardware_binding;
+pub mod hw_map;
 pub mod index;
 pub mod lexer;
 pub mod linker;
