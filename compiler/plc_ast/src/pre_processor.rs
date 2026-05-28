@@ -344,6 +344,15 @@ fn process_struct_hardware_variables(
     update_generated_globals(unit, mangled_globals);
 }
 
+/// Processes POU-scoped variables declared with IEC hardware addresses (e.g. `AT %IX1.2.3.4`).
+/// For each such variable, creates a backing global (`__PI_1_2_3_4`) and sets the variable's
+/// initializer to reference it so the lowering emits the alias-pointer binding on entry.
+///
+/// Runs *before* `process_global_variables` and `process_struct_hardware_variables` in
+/// `pre_process`. When multiple declarations share one hardware address with different element
+/// types, whichever pass inserts into `known_hw_globals` first owns the backing global's
+/// allocation type, so today a POU declaration wins over a VAR_GLOBAL or struct member at the
+/// same address. TODO: cross-declaration type mismatches are not yet diagnosed.
 fn process_pou_hardware_variables(
     unit: &mut CompilationUnit,
     id_provider: &mut IdProvider,
