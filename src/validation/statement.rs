@@ -1940,6 +1940,31 @@ fn validate_call<T: AnnotationMap>(
                     // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
                     // save actual location in parent for InOut validation
                     variable_location_in_parent.push(left.get_location_in_parent());
+
+                    // Direction-keyed assignment check (`:=` vs `=>`) at named call args.
+                    // Positional args are neither `is_assignment` nor `is_output_assignment`,
+                    // so they fall through both arms cleanly.
+                    if argument.is_assignment() && left.is_output() {
+                        validator.push_diagnostic(
+                            Diagnostic::new(format!(
+                                "'{}' is an output parameter; use '=>' instead of ':='",
+                                left.get_name()
+                            ))
+                            .with_error_code("E140")
+                            .with_location(*argument),
+                        );
+                    } else if argument.is_output_assignment() && !left.is_output() {
+                        let kind = if left.is_inout() { "in-out" } else { "input" };
+                        validator.push_diagnostic(
+                            Diagnostic::new(format!(
+                                "'{}' is an {} parameter; use ':=' instead of '=>'",
+                                left.get_name(),
+                                kind
+                            ))
+                            .with_error_code("E135")
+                            .with_location(*argument),
+                        );
+                    }
                 }
 
                 // explicit call parameter assignments will be handled by
