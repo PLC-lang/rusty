@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-10fe30e5.js";
+            window.path_to_searchindex_js = "searchindex-c5f6bb8a.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-16709690.js"></script>
+        <script src="toc-988686b9.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2280,6 +2280,31 @@ plc main.st --hwmap-file=output.toml
 <pre><code class="language-sh">plc main.st -o main.so --hwmap-file
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="-used-for-a-non-output-parameter"><a class="header" href="#-used-for-a-non-output-parameter"><code>=&gt;</code> Used for a Non-Output Parameter</a></h1>
+<p><code>=&gt;</code> captures a value <strong>out of</strong> an <code>OUTPUT</code> parameter into a caller variable. Using it for an <code>INPUT</code> or <code>IN_OUT</code> parameter is a direction mismatch — those parameters expect <code>:=</code> to pass a value <strong>into</strong> the call.</p>
+<p>Erroneous code example:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK fb
+VAR_INPUT in_val : DINT; END_VAR
+END_FUNCTION_BLOCK
+
+PROGRAM main
+VAR
+    instance : fb;
+    source   : DINT;
+END_VAR
+    instance(in_val =&gt; source);  // invalid: ':=' expected for an input parameter
+END_PROGRAM
+</code></pre>
+<p>To fix, use <code>:=</code> for the input (or in-out) parameter:</p>
+<pre><code class="language-iecst">PROGRAM main
+VAR
+    instance : fb;
+    source   : DINT;
+END_VAR
+    instance(in_val := source);  // correct
+END_PROGRAM
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="incomplete-hardware-address-in-function-or-method"><a class="header" href="#incomplete-hardware-address-in-function-or-method">Incomplete hardware address in <code>FUNCTION</code> or <code>METHOD</code></a></h1>
 <p>Variables with an incomplete hardware address (e.g. <code>AT %I*</code>) are placeholders that
 expect a complete address to be supplied later by a <code>VAR_CONFIG</code> block. They can only
@@ -2378,6 +2403,33 @@ file.</strong> Set <code>TMPDIR</code> (Linux/macOS) or <code>TEMP</code> (Windo
 </ul>
 <p>If none of the above apply the error string returned by the OS is reproduced
 verbatim and is the primary clue.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="-used-for-an-output-parameter"><a class="header" href="#-used-for-an-output-parameter"><code>:=</code> Used for an Output Parameter</a></h1>
+<p>In a call’s named argument list, <code>:=</code> and <code>=&gt;</code> are direction-keyed: <code>:=</code> writes a value <strong>into</strong> an <code>INPUT</code> (or <code>IN_OUT</code>) parameter, while <code>=&gt;</code> captures a value <strong>out of</strong> an <code>OUTPUT</code> parameter into a caller variable. Using <code>:=</code> for an <code>OUTPUT</code> parameter is a typo for <code>=&gt;</code> and silently produces broken code.</p>
+<p>Erroneous code example:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK fb
+VAR_INPUT  in_val  : DINT; END_VAR
+VAR_OUTPUT out_val : DINT; END_VAR
+    out_val := in_val + 1;
+END_FUNCTION_BLOCK
+
+PROGRAM main
+VAR
+    instance : fb;
+    captured : DINT;
+END_VAR
+    instance(in_val := 5, out_val := captured);  // invalid: '=&gt;' expected for an output parameter
+END_PROGRAM
+</code></pre>
+<p>To fix, use <code>=&gt;</code> for the output parameter:</p>
+<pre><code class="language-iecst">PROGRAM main
+VAR
+    instance : fb;
+    captured : DINT;
+END_VAR
+    instance(in_val := 5, out_val =&gt; captured);  // correct
+END_PROGRAM
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
