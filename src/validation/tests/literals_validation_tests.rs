@@ -167,3 +167,42 @@ fn char_cast_validate() {
 
     assert_snapshot!(&diagnostics);
 }
+
+#[test]
+fn there_should_be_no_downcast_warning_for_literal_assignment_to_integer_types() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        PROGRAM prg
+        VAR
+            varSINT : SINT;
+            varINT : INT;
+            varDINT : DINT;
+            varLINT : LINT;
+
+            varUSINT : USINT;
+            varUINT : UINT;
+            varUDINT : UDINT;
+            varULINT : ULINT;
+
+            varBOOL : BOOL;
+        END_VAR
+
+        varSINT := 0;
+        varINT := 0;
+        varDINT := 0;
+        varLINT := 0;
+
+        varUSINT := 0;
+        varUINT := 0;
+        varUDINT := 0;
+        varULINT := 0;
+
+        // Prove the counter-case, this should still be valid
+        varBOOL := 0;
+
+        END_PROGRAM
+       "#,
+    );
+
+    assert_snapshot!(&diagnostics, @r"");
+}
