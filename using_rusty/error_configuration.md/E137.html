@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>E062 - RuSTy User Documentation</title>
+        <title>E137 - RuSTy User Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -174,17 +174,50 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="invalid-nature"><a class="header" href="#invalid-nature">Invalid Nature</a></h1>
+                        <h1 id="fb-level-var_temp-referenced-from-a-method"><a class="header" href="#fb-level-var_temp-referenced-from-a-method">FB-level VAR_TEMP referenced from a METHOD</a></h1>
+<p>A <code>VAR_TEMP</code> declared in a <code>FUNCTION_BLOCK</code> belongs to the FB body’s call frame.
+A <code>METHOD</code> has its own stack frame, so it cannot share that temporary.</p>
+<p>Erroneous code example:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Bug
+VAR_TEMP
+    scratch : BOOL;
+END_VAR
+METHOD PUBLIC DoIt
+    scratch := TRUE; // ❌ scratch is not visible here
+END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<p>To fix, either declare the variable as a member of the <code>FUNCTION_BLOCK</code> (so it
+becomes part of the instance and is visible to the method), or declare a
+<code>VAR_TEMP</code> local to the method itself:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Bug
+VAR
+    scratch : BOOL; // ✅ instance member, visible to methods
+END_VAR
+METHOD PUBLIC DoIt
+    scratch := TRUE;
+END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<pre><code class="language-iecst">FUNCTION_BLOCK Bug
+METHOD PUBLIC DoIt
+    VAR_TEMP
+        scratch : BOOL; // ✅ method-local temporary
+    END_VAR
+    scratch := TRUE;
+END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../using_rusty/error_configuration.md/E061.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../using_rusty/error_configuration.md/E136.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E063.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E138.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -194,11 +227,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../using_rusty/error_configuration.md/E061.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../using_rusty/error_configuration.md/E136.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E063.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E138.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>

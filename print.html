@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-21bc599b.js";
+            window.path_to_searchindex_js = "searchindex-10fe30e5.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-50537f26.js"></script>
+        <script src="toc-16709690.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2295,6 +2295,41 @@ END_FUNCTION
 </code></pre>
 <p>Move the variable into a <code>PROGRAM</code>, <code>FUNCTION_BLOCK</code>, or <code>VAR_GLOBAL</code> block, or supply
 a complete address (e.g. <code>AT %IX1.0</code>) directly.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="fb-level-var_temp-referenced-from-a-method"><a class="header" href="#fb-level-var_temp-referenced-from-a-method">FB-level VAR_TEMP referenced from a METHOD</a></h1>
+<p>A <code>VAR_TEMP</code> declared in a <code>FUNCTION_BLOCK</code> belongs to the FB body’s call frame.
+A <code>METHOD</code> has its own stack frame, so it cannot share that temporary.</p>
+<p>Erroneous code example:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Bug
+VAR_TEMP
+    scratch : BOOL;
+END_VAR
+METHOD PUBLIC DoIt
+    scratch := TRUE; // ❌ scratch is not visible here
+END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<p>To fix, either declare the variable as a member of the <code>FUNCTION_BLOCK</code> (so it
+becomes part of the instance and is visible to the method), or declare a
+<code>VAR_TEMP</code> local to the method itself:</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK Bug
+VAR
+    scratch : BOOL; // ✅ instance member, visible to methods
+END_VAR
+METHOD PUBLIC DoIt
+    scratch := TRUE;
+END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<pre><code class="language-iecst">FUNCTION_BLOCK Bug
+METHOD PUBLIC DoIt
+    VAR_TEMP
+        scratch : BOOL; // ✅ method-local temporary
+    END_VAR
+    scratch := TRUE;
+END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="reserved-keyword-used-as-a-name"><a class="header" href="#reserved-keyword-used-as-a-name">Reserved keyword used as a name</a></h1>
 <p>A reserved keyword was used in a position that expects a user-defined name
