@@ -183,6 +183,8 @@ fn there_should_be_no_downcast_warning_for_literal_assignment_to_integer_types()
             varUINT : UINT;
             varUDINT : UDINT;
             varULINT : ULINT;
+
+            varBOOL : BOOL;
         END_VAR
 
         varSINT := 0;
@@ -194,6 +196,9 @@ fn there_should_be_no_downcast_warning_for_literal_assignment_to_integer_types()
         varUINT := 0;
         varUDINT := 0;
         varULINT := 0;
+
+        // Prove the counter-case, this should still be valid
+        varBOOL := 0;
 
         END_PROGRAM
        "#,
