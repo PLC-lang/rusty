@@ -28,6 +28,7 @@ use crate::{
     lexer::{
         self, ParseSession,
         Token::{self, *},
+        TokenClass,
     },
     typesystem::DINT_TYPE,
 };
@@ -186,20 +187,18 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
     let location_start = lexer.range().start;
     lexer.try_consume_or_report(KeywordInterface);
 
-    let (name, location_name) = match lexer.token {
-        Token::Identifier => parse_identifier(lexer).expect("unreachable, already matched here"),
+    let (name, location_name) = if is_name_slot_candidate(lexer) {
+        expect_name_slot(lexer, "an interface name").expect("just checked")
+    } else {
+        lexer.accept_diagnostic(
+            Diagnostic::new("Expected a name for the interface definition but got nothing")
+                .with_error_code("E006")
+                .with_location(lexer.last_location()),
+        );
 
-        _ => {
-            lexer.accept_diagnostic(
-                Diagnostic::new("Expected a name for the interface definition but got nothing")
-                    .with_error_code("E006")
-                    .with_location(lexer.last_location()),
-            );
-
-            // We want to keep parsing, hence we return some undefined values; the parser will yield an
-            // unrecoverable error though
-            (String::new(), SourceLocation::undefined())
-        }
+        // We want to keep parsing, hence we return some undefined values; the parser will yield an
+        // unrecoverable error though
+        (String::new(), SourceLocation::undefined())
     };
 
     let mut extensions = Vec::new();
@@ -307,8 +306,17 @@ fn parse_pou(
         // check in validator if pou type allows polymorphism
         let poly_mode = parse_polymorphism_mode(lexer, &kind);
 
-        let (name, name_location) =
-            parse_identifier(lexer).unwrap_or_else(|| ("".to_string(), SourceLocation::undefined())); // parse POU name
+        let pou_slot_label: &'static str = match kind {
+            PouType::Program => "a program name",
+            PouType::Function => "a function name",
+            PouType::FunctionBlock => "a function block name",
+            PouType::Class => "a class name",
+            PouType::Action => "an action name",
+            PouType::Method { .. } => "a method name",
+            PouType::Init | PouType::ProjectInit => "a POU name",
+        };
+        let (name, name_location) = expect_name_slot(lexer, pou_slot_label)
+            .unwrap_or_else(|| ("".to_string(), SourceLocation::undefined()));
 
         let generics = parse_generics(lexer);
 
@@ -489,7 +497,7 @@ fn parse_generics(lexer: &mut ParseSession) -> Vec<GenericBinding> {
             let mut generics = vec![];
             loop {
                 //identifier
-                if let Some((name, _)) = parse_identifier(lexer) {
+                if let Some((name, _)) = expect_name_slot(lexer, "a generic parameter name") {
                     lexer.try_consume_or_report(Token::KeywordColon);
 
                     //Expect a type nature
@@ -684,7 +692,7 @@ fn parse_method(
         let pou_kind = PouType::Method { parent: parent.into(), property: None, declaration_kind };
         let poly_mode = parse_polymorphism_mode(lexer, &pou_kind);
         let overriding = lexer.try_consume(KeywordOverride);
-        let (name, name_location) = parse_identifier(lexer)?;
+        let (name, name_location) = expect_name_slot(lexer, "a method name")?;
         let generics = parse_generics(lexer);
         let return_type = parse_return_type(lexer);
 
@@ -748,9 +756,8 @@ fn parse_property(
     };
     lexer.advance();
 
-    let (name, name_location) = if lexer.token.is_identifier_like() {
-        let name = lexer.slice_and_advance();
-        (name, lexer.last_location())
+    let (name, name_location) = if is_name_slot_candidate(lexer) {
+        expect_name_slot(lexer, "a property name").expect("just checked")
     } else {
         lexer.accept_diagnostic(
             Diagnostic::new("Property definition is missing a name")
@@ -904,6 +911,37 @@ fn parse_identifier(lexer: &mut ParseSession) -> Option<(String, SourceLocation)
     }
 }
 
+/// Consumes the current token as a user-introduced name in a declaration slot.
+/// `slot_label` is the noun phrase used in the E138 message — pass it with its
+/// article, e.g. `"a variable name"`, `"an enum variant name"`.
+fn expect_name_slot(lexer: &mut ParseSession, slot_label: &'static str) -> Option<(String, SourceLocation)> {
+    let slice = lexer.slice().to_string();
+    let classes = lexer.token.classes();
+    if lexer.token.is_identifier_like() || classes.contains(&TokenClass::BuiltinDatatype) {
+        lexer.advance();
+        return Some((slice, lexer.last_location()));
+    }
+    if (classes.contains(&TokenClass::Modifier) || classes.contains(&TokenClass::ControlFlowJump))
+        && !lexer.closes_open_region(&lexer.token)
+    {
+        let location = lexer.location();
+        let upper = slice.to_uppercase();
+        lexer.accept_diagnostic(
+            Diagnostic::new(format!("`{upper}` is a reserved keyword and cannot be used as {slot_label}"))
+                .with_error_code("E138")
+                .with_location(location),
+        );
+        lexer.advance();
+        return Some((slice, lexer.last_location()));
+    }
+    lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
+        "Identifier",
+        slice.as_str(),
+        lexer.location(),
+    ));
+    None
+}
+
 fn parse_implementation(
     lexer: &mut ParseSession,
     linkage: LinkageType,
@@ -987,8 +1025,11 @@ fn parse_type(lexer: &mut ParseSession, linkage: LinkageType) -> Vec<UserTypeDec
     parse_any_in_region(lexer, vec![KeywordEndType], |lexer| {
         let mut declarations = vec![];
         while !lexer.closes_open_region(&lexer.token) {
-            let name = lexer.slice_and_advance();
-            let name_location = lexer.last_location();
+            let Some((name, name_location)) = expect_name_slot(lexer, "a type name") else {
+                // unrecoverable: skip the offending token to avoid an infinite loop
+                lexer.advance();
+                continue;
+            };
             lexer.try_consume_or_report(KeywordColon);
 
             let result = parse_full_data_type_definition(lexer, Some(name));
@@ -1063,7 +1104,7 @@ fn parse_data_type_definition(
     let start = lexer.location();
     if lexer.try_consume(KeywordStruct) {
         // Parse struct
-        let variables = parse_variable_list(lexer);
+        let variables = parse_variable_list(lexer, "a struct field name");
         Some((
             DataTypeDeclaration::Definition {
                 data_type: Box::new(DataType::StructType { name, variables }),
@@ -1390,7 +1431,7 @@ fn parse_enum_elements(lexer: &mut ParseSession) -> Option<AstNode> {
 fn parse_enum_element(lexer: &mut ParseSession) -> Option<AstNode> {
     let start = lexer.location();
 
-    let idfr = parse_identifier(lexer)?;
+    let idfr = expect_name_slot(lexer, "an enum variant name")?;
 
     let identifier_node = AstFactory::create_identifier(&idfr.0, start, lexer.next_id());
     let ref_expr = AstFactory::create_member_reference(identifier_node, None, lexer.next_id());
@@ -1571,14 +1612,20 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
     let location = lexer.location();
     let variable_block_type = parse_variable_block_type(lexer);
 
-    let constant = lexer.try_consume(KeywordConstant);
-
-    let retain = lexer.try_consume(KeywordRetain);
-    lexer.try_consume(KeywordNonRetain);
+    let constant = try_consume_var_modifier(lexer, KeywordConstant);
+    let retain = try_consume_var_modifier(lexer, KeywordRetain);
+    try_consume_var_modifier(lexer, KeywordNonRetain);
 
     let access = parse_access_modifier(lexer);
 
-    let mut variables = parse_any_in_region(lexer, vec![KeywordEndVar], parse_variable_list);
+    let slot_label: &'static str = match variable_block_type {
+        VariableBlockType::Input(_) | VariableBlockType::Output | VariableBlockType::InOut => {
+            "a parameter name"
+        }
+        _ => "a variable name",
+    };
+    let mut variables =
+        parse_any_in_region(lexer, vec![KeywordEndVar], |lexer| parse_variable_list(lexer, slot_label));
 
     if constant && !matches!(variable_block_type, VariableBlockType::External) {
         // sneak in the DefaultValue-Statements if no initializers were defined
@@ -1590,13 +1637,40 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
     VariableBlock { access, constant, retain, variables, kind: variable_block_type, linkage, location }
 }
 
-fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {
+/// Consumes a var-block modifier, but only if the following token is not a
+/// name terminator — otherwise the modifier keyword was meant as a variable
+/// name and is left for `parse_variable_line` to flag with E138.
+fn try_consume_var_modifier(lexer: &mut ParseSession, modifier: Token) -> bool {
+    if lexer.token != modifier {
+        return false;
+    }
+    if matches!(lexer.peek(), KeywordColon | KeywordComma | KeywordAt) {
+        return false;
+    }
+    lexer.advance();
+    true
+}
+
+fn parse_variable_list(lexer: &mut ParseSession, slot_label: &'static str) -> Vec<Variable> {
     let mut variables = vec![];
-    while lexer.token.is_identifier_like() {
-        let mut line_vars = parse_variable_line(lexer);
+    while is_name_slot_candidate(lexer) {
+        let mut line_vars = parse_variable_line(lexer, slot_label);
         variables.append(&mut line_vars);
     }
     variables
+}
+
+/// True when the current token is something [`expect_name_slot`] would consume.
+/// Region closers short-circuit so an enclosing region can still terminate.
+fn is_name_slot_candidate(lexer: &ParseSession) -> bool {
+    if lexer.closes_open_region(&lexer.token) {
+        return false;
+    }
+    let classes = lexer.token.classes();
+    lexer.token.is_identifier_like()
+        || classes.contains(&TokenClass::Modifier)
+        || classes.contains(&TokenClass::ControlFlowJump)
+        || classes.contains(&TokenClass::BuiltinDatatype)
 }
 
 fn parse_config_variables(lexer: &mut ParseSession) -> Vec<ConfigVariable> {
@@ -1679,13 +1753,16 @@ fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> O
     None
 }
 
-fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
+fn parse_variable_line(lexer: &mut ParseSession, slot_label: &'static str) -> Vec<Variable> {
     // read in a comma separated list of variable names
     let mut var_names: Vec<(String, Range<usize>)> = vec![];
-    while lexer.token.is_identifier_like() {
+    while is_name_slot_candidate(lexer) {
         let location = lexer.range();
         let identifier_end = location.end;
-        var_names.push((lexer.slice_and_advance(), location));
+        match expect_name_slot(lexer, slot_label) {
+            Some((name, _)) => var_names.push((name, location)),
+            None => break,
+        }
 
         if lexer.token == KeywordColon || lexer.token == KeywordAt {
             break;
