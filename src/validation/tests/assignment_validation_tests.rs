@@ -1845,15 +1845,15 @@ fn assignment_to_output_parameter_is_rejected() {
                 instance : fb;
                 local    : DINT;
             END_VAR
-            instance(out_val := local); // ❌ E134
+            instance(out_val := local); // ❌ E140
         END_PROGRAM
         "#,
     );
     assert_snapshot!(diagnostics, @r"
-    error[E134]: 'out_val' is an output parameter; use '=>' instead of ':='
+    error[E140]: 'out_val' is an output parameter; use '=>' instead of ':='
        ┌─ <internal>:11:22
        │
-    11 │             instance(out_val := local); // ❌ E134
+    11 │             instance(out_val := local); // ❌ E140
        │                      ^^^^^^^^^^^^^^^^ 'out_val' is an output parameter; use '=>' instead of ':='
     ");
 }
@@ -1932,7 +1932,7 @@ fn assignment_to_method_output_parameter_is_rejected() {
         "#,
     );
     assert_snapshot!(diagnostics, @r"
-    error[E134]: 'out_val' is an output parameter; use '=>' instead of ':='
+    error[E140]: 'out_val' is an output parameter; use '=>' instead of ':='
        ┌─ <internal>:14:26
        │
     14 │             instance.set(out_val := captured);
@@ -1959,7 +1959,7 @@ fn assignment_to_reference_to_output_parameter_is_rejected() {
         "#,
     );
     assert_snapshot!(diagnostics, @r"
-    error[E134]: 'out_ref' is an output parameter; use '=>' instead of ':='
+    error[E140]: 'out_ref' is an output parameter; use '=>' instead of ':='
        ┌─ <internal>:11:22
        │
     11 │             instance(out_ref := target);
@@ -1983,15 +1983,15 @@ fn mixed_named_and_positional_args_do_not_double_report() {
                 instance : fb;
                 local    : DINT;
             END_VAR
-            instance(in_val := 5, out_val := local); // only out_val arg gets E134
+            instance(in_val := 5, out_val := local); // only out_val arg gets E140
         END_PROGRAM
         "#,
     );
     assert_snapshot!(diagnostics, @r"
-    error[E134]: 'out_val' is an output parameter; use '=>' instead of ':='
+    error[E140]: 'out_val' is an output parameter; use '=>' instead of ':='
        ┌─ <internal>:12:35
        │
-    12 │             instance(in_val := 5, out_val := local); // only out_val arg gets E134
+    12 │             instance(in_val := 5, out_val := local); // only out_val arg gets E140
        │                                   ^^^^^^^^^^^^^^^^ 'out_val' is an output parameter; use '=>' instead of ':='
     ");
 }

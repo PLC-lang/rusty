@@ -1915,7 +1915,7 @@ fn validate_call<T: AnnotationMap>(
                                 "'{}' is an output parameter; use '=>' instead of ':='",
                                 left.get_name()
                             ))
-                            .with_error_code("E134")
+                            .with_error_code("E140")
                             .with_location(*argument),
                         );
                     } else if argument.is_output_assignment() && !left.is_output() {

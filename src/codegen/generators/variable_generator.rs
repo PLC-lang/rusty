@@ -89,8 +89,13 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             })?;
             index.associate_global(name, global_variable)?;
 
-            if !self.global_index.is_enum_variant(variable.get_qualified_name()) {
-                // generate debug info for non-enum-variant variables
+            if !self.global_index.is_enum_variant(variable.get_qualified_name())
+                && !linkage.is_external_or_included()
+            {
+                // Generate debug info for non-enum-variant variables defined in this unit.
+                // External/included declarations are owned by another module, and attaching
+                // !dbg metadata here keeps them as unresolved references in the final object
+                // at `-Onone` (default optimisation DCEs them, hiding the issue).
                 self.debug.create_global_variable(
                     variable.get_qualified_name(),
                     &variable.data_type_name,

@@ -148,6 +148,14 @@ pub struct CompileParameters {
     #[clap(long = "fno-pic", global = true, help = "Generate non-PIC code where applicable")]
     pub fno_pic: bool,
 
+    #[clap(
+        long = "fno-ident",
+        global = true,
+        help = "Suppress the compiler-version metadata that is normally embedded \
+                in compiled artifacts. Useful for reproducible builds."
+    )]
+    pub fno_ident: bool,
+
     #[clap(long, name = "target-triple", global = true, help = "A target-triple supported by LLVM")]
     pub target: Option<Target>,
 
@@ -219,12 +227,30 @@ pub struct CompileParameters {
         name = "hardware-conf",
         long,
         global = true,
-        help = "Generate Hardware configuration files to the given location.
-    Format is detected by extenstion.
+        help = "[deprecated, use --hwmap-file] Generate Hardware configuration files to the given location.
+    Format is detected by extension.
     Supported formats : json, toml",
     parse(try_from_str = validate_config)
     ) ]
     pub hardware_config: Option<String>,
+
+    #[clap(
+        name = "hwmap-file",
+        long,
+        global = true,
+        help = "Emit a sidecar file mapping user-facing qualified variable names to the synthetic
+    DWARF symbols that hardware-bound variables (`%IX0.0`, `%QW2.5`, …) and VAR_CONFIG
+    resolutions get rewritten to. Live-monitoring tools parse DWARF and need this mapping
+    to translate IDE subscriptions into symbol lookups.
+    If the flag is given without a value the file is written next to the output binary as
+    <output>.hwmap.json. Format is detected by extension. Supported formats : json, toml.
+    Note: when supplying a path, use `--hwmap-file=PATH` (the `=` is required);
+    `--hwmap-file PATH` is rejected as a parse error.",
+        min_values = 0,
+        max_values = 1,
+        require_equals = true
+    )]
+    pub hwmap_file: Option<Option<String>>,
 
     #[clap(
         name = "got-layout-file",
@@ -699,6 +725,26 @@ impl CompileParameters {
 
     pub fn config_format(&self) -> Option<ConfigFormat> {
         self.hardware_config.as_deref().and_then(get_config_format)
+    }
+
+    /// Resolves `--hwmap-file` into a `(path, format)` pair, or `None` if the flag was
+    /// not given. If the flag was given without a value, derives `<output>.hwmap.json`.
+    /// Returns an error string if the user-supplied path has an unsupported extension.
+    pub fn hwmap_target(&self) -> Result<Option<(String, ConfigFormat)>, String> {
+        let Some(arg) = self.hwmap_file.as_ref() else { return Ok(None) };
+        let path = match arg {
+            Some(p) => {
+                validate_config(p)?;
+                p.clone()
+            }
+            None => {
+                let base = self.output.clone().unwrap_or_else(|| "output".to_string());
+                format!("{base}.hwmap.json")
+            }
+        };
+        let format = get_config_format(&path)
+            .ok_or_else(|| format!("Cannot identify --hwmap-file format from path: {path}"))?;
+        Ok(Some((path, format)))
     }
 
     pub fn got_layout_format(&self) -> ConfigFormat {
