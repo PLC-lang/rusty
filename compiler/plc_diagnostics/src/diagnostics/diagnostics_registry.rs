@@ -238,6 +238,7 @@ lazy_static! {
         E134,   Error,      include_str!("./error_codes/E134.md"),  // Invalid --hwmap-file argument
         E136,   Error,      include_str!("./error_codes/E136.md"),  // Incomplete hardware address in FUNCTION/METHOD
         E137,   Error,      include_str!("./error_codes/E137.md"),  // FB-level VAR_TEMP referenced from a METHOD
+        E138,   Error,      include_str!("./error_codes/E138.md"),  // Reserved keyword used as a name
         E139,   Error,      include_str!("./error_codes/E139.md"),  // Linker invocation failed (spawn / cmdline)
     );
 }

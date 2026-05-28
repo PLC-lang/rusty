@@ -570,29 +570,28 @@ fn reserved_keywords_as_variable_names_are_recognized_as_errors() {
     ";
 
     let (_, diagnostics) = parse_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"
-    error[E007]: Unexpected token: expected KeywordEndVar but found ': DINT;
-                    public : DINT;
-                    property : DINT;
+    insta::assert_snapshot!(diagnostics, @"
+    error[E138]: `RETAIN` is a reserved keyword and cannot be used as a variable name
+      ┌─ <internal>:4:17
+      │
+    4 │                 retain : DINT;
+      │                 ^^^^^^ `RETAIN` is a reserved keyword and cannot be used as a variable name
 
-                    end_property : DINT;
+    error[E138]: `PUBLIC` is a reserved keyword and cannot be used as a variable name
+      ┌─ <internal>:5:17
+      │
+    5 │                 public : DINT;
+      │                 ^^^^^^ `PUBLIC` is a reserved keyword and cannot be used as a variable name
+
+    error[E007]: Unexpected token: expected KeywordEndVar but found 'end_property : DINT;
                     end_get : DINT;
                     end_set : DINT;'
-       ┌─ <internal>:4:24
+       ┌─ <internal>:8:17
        │  
-     4 │                   retain : DINT;
-       │ ╭────────────────────────^
-     5 │ │                 public : DINT;
-     6 │ │                 property : DINT;
-     7 │ │ 
-     8 │ │                 end_property : DINT;
+     8 │ ╭                 end_property : DINT;
      9 │ │                 end_get : DINT;
     10 │ │                 end_set : DINT;
-       │ ╰───────────────────────────────^ Unexpected token: expected KeywordEndVar but found ': DINT;
-                    public : DINT;
-                    property : DINT;
-
-                    end_property : DINT;
+       │ ╰───────────────────────────────^ Unexpected token: expected KeywordEndVar but found 'end_property : DINT;
                     end_get : DINT;
                     end_set : DINT;'
     ");
