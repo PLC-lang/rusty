@@ -472,7 +472,7 @@ fn this_member_access_without_deref_is_an_error() {
     "#,
     );
     assert_snapshot!(diagnostics, @"
-    error[E137]: Cannot access `a` on `POINTER TO fb`; dereference with `^` first
+    error[E141]: Cannot access `a` on `POINTER TO fb`; dereference with `^` first
        ┌─ <internal>:12:22
        │
     12 │                 THIS.a.legs();

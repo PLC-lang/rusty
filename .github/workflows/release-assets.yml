@@ -22,6 +22,19 @@ jobs:
       actions: read
       contents: write
     steps:
+      # `workflow_dispatch` needs `resolve-tag-sha.sh` on disk before the
+      # `Resolve source request` step runs. The later `Checkout release commit`
+      # step depends on the SHA that step produces, so it cannot do the
+      # checkout itself (chicken-and-egg). Do a plain checkout of the default
+      # branch here; `Checkout release commit` then re-checks out at the
+      # source SHA (`actions/checkout` defaults to `clean: true`, so the
+      # workspace is fully replaced).
+      - name: Checkout repository scripts
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
       - name: Resolve source request
         id: source
         env:

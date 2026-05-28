@@ -259,7 +259,7 @@ fn validate_reference_expression<T: AnnotationMap>(
                                 "Cannot access `{m_name}` on `POINTER TO {inner}`; dereference with `^` first"
                             ))
                             .with_location(m.get_location())
-                            .with_error_code("E137"),
+                            .with_error_code("E141"),
                         );
                         return;
                     }

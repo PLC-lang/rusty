@@ -61,8 +61,18 @@ pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Resul
     let context =
         GlobalContext::new().with_source(project.get_sources(), None).map_err(|it| it.to_string())?;
     let diagnostician = Diagnostician::default();
-    let mut args =
-        vec!["plc", "--ir", "--single-module", "-O", "none", "-o", output.path().to_str().unwrap()];
+    // `--fno-ident` keeps test snapshots stable across `plc` upgrades; the
+    // default payload's date and hash track `plc`'s own build.
+    let mut args = vec![
+        "plc",
+        "--ir",
+        "--single-module",
+        "-O",
+        "none",
+        "--fno-ident",
+        "-o",
+        output.path().to_str().unwrap(),
+    ];
     let debug_level = get_debug_param(debug_level);
     if let Some(debug) = &debug_level {
         args.push(debug);

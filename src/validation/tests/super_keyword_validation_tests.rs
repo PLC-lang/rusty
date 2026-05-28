@@ -646,11 +646,11 @@ fn super_in_variable_initialization() {
     15 │                 val1 : INT := SUPER^.value;
        │                                      ^^^^^ Illegal access to private member parent.value
 
-    error[E033]: Unresolved constant `val1` variable: `value` is no const reference
+    error[E033]: Unresolved constant `val1` variable
        ┌─ <internal>:15:31
        │
     15 │                 val1 : INT := SUPER^.value;
-       │                               ^^^^^^^^^^^^ Unresolved constant `val1` variable: `value` is no const reference
+       │                               ^^^^^^^^^^^^ Unresolved constant `val1` variable
 
     error[E033]: Unresolved constant `val2` variable: Cannot resolve constant: CallStatement {
         operator: ReferenceExpr {
@@ -660,7 +660,14 @@ fn super_in_variable_initialization() {
                 },
             ),
             base: Some(
-                Super(derefed),
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__parent",
+                        },
+                    ),
+                    base: None,
+                },
             ),
         },
         parameters: None,
@@ -676,7 +683,14 @@ fn super_in_variable_initialization() {
                 },
             ),
             base: Some(
-                Super(derefed),
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__parent",
+                        },
+                    ),
+                    base: None,
+                },
             ),
         },
         parameters: None,
@@ -702,12 +716,18 @@ fn const_super_variable_in_child_variable_initialization() {
     ",
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     warning[E049]: Illegal access to private member parent.value
        ┌─ <internal>:10:38
        │
     10 │                 val1 : INT := SUPER^.value;
        │                                      ^^^^^ Illegal access to private member parent.value
+
+    error[E033]: Unresolved constant `val1` variable
+       ┌─ <internal>:10:31
+       │
+    10 │                 val1 : INT := SUPER^.value;
+       │                               ^^^^^^^^^^^^ Unresolved constant `val1` variable
     ");
 }
 
@@ -1257,7 +1277,7 @@ fn super_dereferencing_with_method_calls() {
     );
 
     assert_snapshot!(diagnostics, @"
-    error[E137]: Cannot access `get_value` on `POINTER TO parent`; dereference with `^` first
+    error[E141]: Cannot access `get_value` on `POINTER TO parent`; dereference with `^` first
        ┌─ <internal>:19:28
        │
     19 │                 x := SUPER.get_value();    // Trying to call method on pointer
@@ -1296,13 +1316,13 @@ fn super_without_deref_accessing_members() {
     );
 
     assert_snapshot!(diagnostics, @"
-    error[E137]: Cannot access `x` on `POINTER TO parent`; dereference with `^` first
+    error[E141]: Cannot access `x` on `POINTER TO parent`; dereference with `^` first
        ┌─ <internal>:11:19
        │
     11 │             SUPER.x := 20; // Should be SUPER^.x
        │                   ^ Cannot access `x` on `POINTER TO parent`; dereference with `^` first
 
-    error[E137]: Cannot access `ptr` on `POINTER TO parent`; dereference with `^` first
+    error[E141]: Cannot access `ptr` on `POINTER TO parent`; dereference with `^` first
        ┌─ <internal>:14:19
        │
     14 │             SUPER.ptr^ := 30; // Should be SUPER^.ptr^
@@ -1355,13 +1375,13 @@ fn super_with_property_access_errors() {
     );
 
     assert_snapshot!(diagnostics, @"
-    error[E137]: Cannot access `prop` on `POINTER TO parent`; dereference with `^` first
+    error[E141]: Cannot access `prop` on `POINTER TO parent`; dereference with `^` first
        ┌─ <internal>:21:19
        │
     21 │             SUPER.prop := 10;    // Should be SUPER^.prop
        │                   ^^^^ Cannot access `prop` on `POINTER TO parent`; dereference with `^` first
 
-    error[E137]: Cannot access `prop` on `POINTER TO parent`; dereference with `^` first
+    error[E141]: Cannot access `prop` on `POINTER TO parent`; dereference with `^` first
        ┌─ <internal>:22:24
        │
     22 │             x := SUPER.prop;     // Should be SUPER^.prop
