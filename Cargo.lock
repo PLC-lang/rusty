@@ -2452,6 +2452,7 @@ name = "plc_lowering"
 version = "0.5.0"
 dependencies = [
  "insta",
+ "itertools",
  "log",
  "plc-compiler",
  "plc_ast",

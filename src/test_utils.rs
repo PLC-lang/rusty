@@ -17,7 +17,7 @@ pub mod tests {
         diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter,
     };
     use plc_index::GlobalContext;
-    use plc_lowering::reference_to_return::ReferenceToReturnParticipant;
+
     use plc_lowering::{control_statement::ControlStatementLowerer, loops::LoopDesugarer};
     use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
 
@@ -159,14 +159,6 @@ pub mod tests {
         control_statement_lowerer.visit_compilation_unit(&mut unit);
 
         let (mut index, _) = evaluate_constants(index);
-
-        // Add the reference to return participant
-        let mut reference_to_return_participant = ReferenceToReturnParticipant::new(id_provider.clone());
-        let mut units = vec![unit];
-        reference_to_return_participant.lower_reference_to_return(&mut units);
-
-        // Steal the unit back after we're done
-        let mut unit = units.remove(0);
 
         let mut all_annotations = AnnotationMapImpl::default();
 

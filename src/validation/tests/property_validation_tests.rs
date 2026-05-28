@@ -1211,3 +1211,132 @@ fn property_returning_array_of_structs_followed_by_index_and_member_assignment_i
        │                                   ^ Could not resolve reference to x
     ");
 }
+
+#[test]
+fn property_reference_type_match_is_accepted() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK FbA
+            VAR
+                _myDINTProp : DINT;
+            END_VAR
+
+            PROPERTY_GET myDINTProp: REFERENCE TO DINT
+                _myDINTProp := myDINTProp;
+            END_PROPERTY
+
+            PROPERTY_SET myDINTProp: REFERENCE TO DINT
+                myDINTProp REF= _myDINTProp;
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance : FbA;
+                y : DINT;
+                refY : REFERENCE TO DINT;
+            END_VAR
+
+            y := 5;
+            refY REF= y;
+
+            instance.myDINTProp := refY;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn property_reference_alias_type_match_is_accepted() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        TYPE MyDINT:
+            DINT;
+        END_TYPE
+
+        FUNCTION_BLOCK FbA
+            VAR
+                _myDINTProp : DINT;
+            END_VAR
+
+            PROPERTY_GET myDINTProp: REFERENCE TO DINT
+                _myDINTProp := myDINTProp;
+            END_PROPERTY
+
+            PROPERTY_SET myDINTProp: REFERENCE TO MyDINT
+                myDINTProp REF= _myDINTProp;
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance : FbA;
+                y : DINT;
+                refY : REFERENCE TO DINT;
+            END_VAR
+
+            y := 5;
+            refY REF= y;
+
+            instance.myDINTProp := refY;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r"");
+}
+
+#[test]
+fn property_reference_type_mismatch_is_rejected() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK FbA
+            VAR
+                _myINTProp : INT;
+            END_VAR
+
+            PROPERTY_GET myINTProp: REFERENCE TO INT
+                _myINTProp := myINTProp;
+            END_PROPERTY
+
+            PROPERTY_SET myINTProp: REFERENCE TO LINT
+                myINTProp REF= _myINTProp;
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instance : FbA;
+                y : INT;
+                refY : REFERENCE TO INT;
+            END_VAR
+
+            y := 5;
+            refY REF= y;
+
+            instance.myINTProp := refY;
+        END_FUNCTION
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @"
+    error[E112]: Property `myINTProp` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET
+       ┌─ <internal>:7:26
+       │
+     7 │             PROPERTY_GET myINTProp: REFERENCE TO INT
+       │                          ^^^^^^^^^  ---------------- see also
+       │                          │           
+       │                          Property `myINTProp` has conflicting datatypes across PROPERTY_GET / PROPERTY_SET
+       ·
+    11 │             PROPERTY_SET myINTProp: REFERENCE TO LINT
+       │                                     ----------------- see also
+
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'LINT'
+       ┌─ <internal>:12:17
+       │
+    12 │                 myINTProp REF= _myINTProp;
+       │                 ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'LINT'
+    ");
+}
