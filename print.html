@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-f6b96300.js";
+            window.path_to_searchindex_js = "searchindex-21bc599b.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-6977c13b.js"></script>
+        <script src="toc-50537f26.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2295,6 +2295,30 @@ END_FUNCTION
 </code></pre>
 <p>Move the variable into a <code>PROGRAM</code>, <code>FUNCTION_BLOCK</code>, or <code>VAR_GLOBAL</code> block, or supply
 a complete address (e.g. <code>AT %IX1.0</code>) directly.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="reserved-keyword-used-as-a-name"><a class="header" href="#reserved-keyword-used-as-a-name">Reserved keyword used as a name</a></h1>
+<p>A reserved keyword was used in a position that expects a user-defined name
+(variable, parameter, POU, type alias, enum variant, struct field, …).
+Reserved keywords carry syntactic meaning and cannot double as identifiers.</p>
+<p>Erroneous code example:</p>
+<pre><code class="language-iecst">FUNCTION main
+    VAR
+        retain : DINT; // `RETAIN` is reserved
+    END_VAR
+END_FUNCTION
+</code></pre>
+<p>Rename the variable to something that is not a reserved keyword:</p>
+<pre><code class="language-iecst">FUNCTION main
+    VAR
+        is_retained : DINT;
+    END_VAR
+END_FUNCTION
+</code></pre>
+<p>The same restriction applies to POU names, parameter names, type aliases,
+enum variants, struct fields, generic parameters, method names, and property
+names.</p>
+<p>Note that <code>VAR RETAIN ... END_VAR</code> is still valid — there <code>RETAIN</code> is the
+variable-block modifier, not a variable name.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="linker-invocation-failed"><a class="header" href="#linker-invocation-failed">Linker invocation failed</a></h1>
 <p><code>plc</code> could not spawn the linker subprocess, or the OS rejected the assembled

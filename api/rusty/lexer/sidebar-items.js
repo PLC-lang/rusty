@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Token"],"fn":["lex_with_ids"],"struct":["ParseSession"]};
+window.SIDEBAR_ITEMS = {"enum":["Token","TokenClass"],"fn":["lex_with_ids"],"struct":["ParseSession"]};
