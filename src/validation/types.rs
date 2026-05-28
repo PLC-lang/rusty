@@ -333,6 +333,33 @@ pub fn are_equal_types(index: &Index, left: &typesystem::DataType, right: &types
             left == right
         }
 
+        (
+            DataTypeInformation::Pointer {
+                inner_type_name: left_inner_type_name,
+                auto_deref: Some(AutoDerefType::Reference),
+                type_safe: left_type_safe,
+                is_function: left_is_function,
+                ..
+            },
+            DataTypeInformation::Pointer {
+                inner_type_name: right_inner_type_name,
+                auto_deref: Some(AutoDerefType::Reference),
+                type_safe: right_type_safe,
+                is_function: right_is_function,
+                ..
+            },
+        ) => {
+            let left = index.find_effective_type_by_name(left_inner_type_name);
+            let right = index.find_effective_type_by_name(right_inner_type_name);
+
+            let types_are_equal = if let (Some(left), Some(right)) = (left, right) {
+                are_equal_types(index, left, right)
+            } else {
+                left.is_none() && right.is_none()
+            };
+
+            types_are_equal && *left_type_safe == *right_type_safe && *left_is_function == *right_is_function
+        }
         _ => false,
     }
 }

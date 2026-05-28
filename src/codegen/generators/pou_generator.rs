@@ -793,10 +793,21 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .map(|it| it.get_type_information())
                     .is_some_and(|it| it.is_reference_to() || it.is_alias())
                 {
-                    // aliases and reference to variables have special handling for initialization. initialize with a nullpointer
-                    let pointee =
-                        self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).const_null();
-                    self.llvm.builder.build_store(left, pointee)?;
+                    // aliases and reference to variables have special handling for initialization.
+                    // For property getter/setter parameters (by-ref output parameters from lowering),
+                    // do NOT initialize to null. Let the lowered initializer handle the binding via REF=.
+                    // For other reference types, initialize with a nullpointer as before.
+                    let is_property_accessor = variable.get_name().starts_with("__get_")
+                        || variable.get_name().starts_with("__set_");
+
+                    if !is_property_accessor {
+                        let pointee = self
+                            .llvm
+                            .context
+                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                            .const_null();
+                        self.llvm.builder.build_store(left, pointee)?;
+                    }
                     continue;
                 };
                 let right_stmt =

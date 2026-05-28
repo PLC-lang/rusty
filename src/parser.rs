@@ -876,6 +876,7 @@ fn is_property_datatype_start(token: &Token) -> bool {
             | KeywordString
             | KeywordWideString
             | Identifier
+            | KeywordReferenceTo
     )
 }
 
