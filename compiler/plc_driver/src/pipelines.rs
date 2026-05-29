@@ -58,6 +58,9 @@ use serde_json;
 use toml;
 
 pub mod participant;
+pub mod timing;
+
+use timing::PhaseTimer;
 pub mod property;
 
 pub struct BuildPipeline<T: SourceContainer> {
@@ -479,39 +482,65 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {
+        let _t = PhaseTimer::new("parse");
         let project = ParsedProject::parse(&self.context, &self.project, &mut self.diagnostician)?;
         Ok(project)
     }
 
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic> {
-        self.participants.iter_mut().for_each(|p| {
-            p.pre_index(&project);
-        });
-        let project = self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));
+        let _t = PhaseTimer::new("index (driver)");
+        let project = {
+            let _t = PhaseTimer::new("pre_index (participants)");
+            self.participants.iter_mut().for_each(|p| {
+                let _t = PhaseTimer::new_with(|| format!("pre_index/{}", p.name()));
+                p.pre_index(&project);
+            });
+            self.mutable_participants.iter_mut().fold(project, |project, p| {
+                let _t = PhaseTimer::new_with(|| format!("pre_index/{}", p.name()));
+                p.pre_index(project)
+            })
+        };
         let indexed_project = project.index(self.context.provider());
-        self.participants.iter().for_each(|p| {
-            p.post_index(&indexed_project);
-        });
-        let project =
-            self.mutable_participants.iter_mut().fold(indexed_project, |project, p| p.post_index(project));
+        let project = {
+            let _t = PhaseTimer::new("post_index (participants)");
+            self.participants.iter().for_each(|p| {
+                let _t = PhaseTimer::new_with(|| format!("post_index/{}", p.name()));
+                p.post_index(&indexed_project);
+            });
+            self.mutable_participants.iter_mut().fold(indexed_project, |project, p| {
+                let _t = PhaseTimer::new_with(|| format!("post_index/{}", p.name()));
+                p.post_index(project)
+            })
+        };
 
         Ok(project)
     }
 
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic> {
-        self.participants.iter().for_each(|p| {
-            p.pre_annotate(&project);
-        });
-        let project =
-            self.mutable_participants.iter_mut().fold(project, |project, p| p.pre_annotate(project));
+        let _t = PhaseTimer::new("annotate (driver)");
+        let project = {
+            let _t = PhaseTimer::new("pre_annotate (participants)");
+            self.participants.iter().for_each(|p| {
+                let _t = PhaseTimer::new_with(|| format!("pre_annotate/{}", p.name()));
+                p.pre_annotate(&project);
+            });
+            self.mutable_participants.iter_mut().fold(project, |project, p| {
+                let _t = PhaseTimer::new_with(|| format!("pre_annotate/{}", p.name()));
+                p.pre_annotate(project)
+            })
+        };
         let annotated_project = project.annotate(self.context.provider());
-        self.participants.iter().for_each(|p| {
-            p.post_annotate(&annotated_project);
-        });
-        let mut annotated_project = self
-            .mutable_participants
-            .iter_mut()
-            .fold(annotated_project, |project, p| p.post_annotate(project));
+        let mut annotated_project = {
+            let _t = PhaseTimer::new("post_annotate (participants)");
+            self.participants.iter().for_each(|p| {
+                let _t = PhaseTimer::new_with(|| format!("post_annotate/{}", p.name()));
+                p.post_annotate(&annotated_project);
+            });
+            self.mutable_participants.iter_mut().fold(annotated_project, |project, p| {
+                let _t = PhaseTimer::new_with(|| format!("post_annotate/{}", p.name()));
+                p.post_annotate(project)
+            })
+        };
 
         // Collect diagnostics from participants that validated during lowering.
         for p in &mut self.mutable_participants {
@@ -522,6 +551,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
     }
 
     fn generate(&mut self, _context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic> {
+        let _t = PhaseTimer::new("generate (driver)");
         self.participants.iter_mut().try_fold((), |_, participant| participant.pre_generate(&project))?;
         let Some(compile_options) = self.get_compile_options() else {
             log::debug!("No compile options provided");
@@ -717,6 +747,7 @@ impl ParsedProject {
 
     /// Creates an index out of a pased project. The index could then be used to query datatypes
     pub fn index(self, id_provider: IdProvider) -> IndexedProject {
+        let _t = PhaseTimer::new("ParsedProject::index");
         let indexed_units = self
             .units
             .into_par_iter()
@@ -767,6 +798,7 @@ pub struct IndexedProject {
 impl IndexedProject {
     /// Creates annotations on the project in order to facilitate codegen and validation
     pub fn annotate(self, mut id_provider: IdProvider) -> AnnotatedProject {
+        let _t = PhaseTimer::new("IndexedProject::annotate");
         //Create and call the annotator
         let mut annotated_units = Vec::new();
         let mut all_annotations = AnnotationMapImpl::default();
