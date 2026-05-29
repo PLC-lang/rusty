@@ -30,6 +30,8 @@ use crate::index::Index;
 use index::VariableType;
 
 use inkwell::{
+    attributes::{Attribute, AttributeLoc},
+    context::Context,
     module::{Linkage, Module},
     types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum, FunctionType},
     values::{BasicValue, BasicValueEnum, FunctionValue},
@@ -162,6 +164,96 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     Ok(local_llvm_index)
 }
 
+/// True when the target's calling convention uses LLVM `signext`/`zeroext`
+/// parameter and return attributes for sub-32-bit `extern "C"` integers.
+///
+/// Mirrors rustc's per-architecture rule (`rustc_target::callconv::aarch64`,
+/// `::x86_64`): SysV (x86) and Apple's modified AAPCS extend at the IR-attribute
+/// level; plain AAPCS (aarch64-unknown-linux-gnu, aarch64-pc-windows-msvc) and
+/// AAPCS32 perform the extension during instruction selection without emitting
+/// the attribute. Emitting attributes on rusty's side without the Rust callees
+/// in `iec61131std.so` having matching attributes regresses #1146 in the
+/// opposite direction on aarch64 release builds — sub-32-bit return values
+/// arrive with wrong upper bits. We mirror rustc's emission gate to keep the
+/// IR contract consistent with the linked Rust code on every target.
+pub(super) fn target_uses_int_extension_attrs(triple: &str) -> bool {
+    let parts: Vec<&str> = triple.split('-').collect();
+    let arch = parts.first().copied().unwrap_or("");
+    let is_darwin = parts
+        .iter()
+        .any(|part| matches!(*part, "darwin" | "ios" | "macos" | "tvos" | "watchos" | "visionos"));
+    let is_x86 = matches!(arch, "x86_64" | "i686" | "i586" | "i386");
+    is_x86 || is_darwin
+}
+
+/// Returns the LLVM `signext`/`zeroext` parameter attribute for IEC integer types narrower
+/// than 32 bits, or `None` for any wider/non-integer type. Without this attribute on FFI
+/// boundaries, optimized callees compiled with the matching attribute (e.g. the Rust stdlib
+/// in `--release`) read garbage upper register bits instead of the value the caller intended
+/// to pass — see #1146 (`MUL_LTIME(... SINT#-120)`). LLVM accepts these attributes on any
+/// integer width and ignores them on non-integers, so the helper is safe to call broadly.
+pub(super) fn int_extension_attribute(
+    context: &Context,
+    type_info: &DataTypeInformation,
+) -> Option<Attribute> {
+    let kind = match type_info {
+        DataTypeInformation::Integer { size, signed, .. } if *size < 32 => {
+            if *signed {
+                "signext"
+            } else {
+                "zeroext"
+            }
+        }
+        _ => return None,
+    };
+    let kind_id = Attribute::get_named_enum_kind_id(kind);
+    Some(context.create_enum_attribute(kind_id, 0))
+}
+
+/// Walks the declared parameters of a POU and yields each `(AttributeLoc, Attribute)` pair
+/// that needs an integer extension attribute (sub-32-bit IEC integers), then yields the
+/// pair for the return type if applicable. The caller chooses whether to attach the
+/// attributes to a function declaration (`FunctionValue::add_attribute`) or to a call site
+/// (`CallSiteValue::add_attribute`); both APIs accept the same `(AttributeLoc, Attribute)`
+/// shape. Returns early on targets where rustc itself doesn't emit the attributes
+/// (`target_uses_int_extension_attrs`).
+///
+/// `is_method` adds the `+1` parameter offset that methods carry for the implicit
+/// `this` pointer at LLVM index 0. Variadic arguments (which have no formal type) are
+/// not handled here — call-site users that need them should walk
+/// `parameters_list[declared_parameters.len()..]` after invoking this helper.
+pub(super) fn for_each_int_extension_attr_loc(
+    context: &Context,
+    target_triple: &str,
+    index: &Index,
+    pou_name: &str,
+    declared_parameters: &[&VariableIndexEntry],
+    is_method: bool,
+    mut attach: impl FnMut(AttributeLoc, Attribute),
+) {
+    if !target_uses_int_extension_attrs(target_triple) {
+        return;
+    }
+    let param_offset = u32::from(is_method);
+    for (idx, param) in declared_parameters.iter().enumerate() {
+        if param.is_in_parameter_by_ref() {
+            continue;
+        }
+        let info = index.get_type_information_or_void(param.get_type_name());
+        if let Some(attr) = int_extension_attribute(context, info) {
+            attach(AttributeLoc::Param(idx as u32 + param_offset), attr);
+        }
+    }
+    if let Some(return_info) = index
+        .find_return_type(pou_name)
+        .map(|dt| index.get_intrinsic_type_information(dt.get_type_information()))
+    {
+        if let Some(attr) = int_extension_attribute(context, return_info) {
+            attach(AttributeLoc::Return, attr);
+        }
+    }
+}
+
 impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     /// creates a new PouGenerator
     ///
@@ -207,6 +299,32 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         };
 
         Ok(ctx.mangle())
+    }
+
+    /// Applies x86_64 SysV (and equivalent) integer extension attributes to a function
+    /// declaration. See `int_extension_attribute` for the rationale (#1146). Programs,
+    /// function blocks and actions are skipped because they pass parameters via a single
+    /// instance-struct pointer, so there are no narrow integer slots to attribute.
+    fn apply_int_extension_attrs_to_decl(
+        &self,
+        function: FunctionValue<'ink>,
+        implementation: &ImplementationIndexEntry,
+        declared_parameters: &[&VariableIndexEntry],
+    ) {
+        if !implementation.get_implementation_type().is_function_method_or_init() {
+            return;
+        }
+        for_each_int_extension_attr_loc(
+            self.llvm.context,
+            &self.llvm.target_triple,
+            self.index,
+            implementation.get_type_name(),
+            declared_parameters,
+            implementation.is_method(),
+            |loc, attr| {
+                function.add_attribute(loc, attr);
+            },
+        );
     }
 
     /// generates an empty llvm function for the given implementation, including all parameters and the return type
@@ -291,6 +409,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let curr_f: FunctionValue<'_> =
             module.add_function(&implementation.get_call_name_for_ir(), function_declaration, None);
+
+        self.apply_int_extension_attrs_to_decl(curr_f, implementation, &declared_parameters);
 
         let section_name = self.get_section(implementation)?;
         curr_f.set_section(section_name.as_deref());
@@ -793,10 +913,21 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .map(|it| it.get_type_information())
                     .is_some_and(|it| it.is_reference_to() || it.is_alias())
                 {
-                    // aliases and reference to variables have special handling for initialization. initialize with a nullpointer
-                    let pointee =
-                        self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).const_null();
-                    self.llvm.builder.build_store(left, pointee)?;
+                    // aliases and reference to variables have special handling for initialization.
+                    // For property getter/setter parameters (by-ref output parameters from lowering),
+                    // do NOT initialize to null. Let the lowered initializer handle the binding via REF=.
+                    // For other reference types, initialize with a nullpointer as before.
+                    let is_property_accessor = variable.get_name().starts_with("__get_")
+                        || variable.get_name().starts_with("__set_");
+
+                    if !is_property_accessor {
+                        let pointee = self
+                            .llvm
+                            .context
+                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                            .const_null();
+                        self.llvm.builder.build_store(left, pointee)?;
+                    }
                     continue;
                 };
                 let right_stmt =

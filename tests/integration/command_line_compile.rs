@@ -31,7 +31,8 @@ fn ir_generation_full_pass() {
 
     let mut temp_file = tempfile::NamedTempFile::new().unwrap();
     let path = temp_file.path().to_string_lossy();
-    compile(&["plc", file.as_str(), "-o", &path, "--ir"]).unwrap();
+    // `--fno-ident` keeps the IR snapshot stable across `plc` upgrades.
+    compile(&["plc", file.as_str(), "-o", &path, "--ir", "--fno-ident"]).unwrap();
 
     //Verify file content
     let mut content = String::new();
@@ -60,6 +61,57 @@ fn hardware_conf_full_pass_json() {
     assert_snapshot!(content);
     //clean up
     let _foo = fs::remove_file("json");
+}
+
+#[test]
+fn hwmap_unsupported_extension_errors() {
+    // `--hwmap-file=foo.xml` should fail with an extension error before/after
+    // codegen — never silently produce an unreadable file.
+    let file = get_test_file("io.st");
+    let dir = tempfile::tempdir().unwrap();
+    let output_path = dir.path().join("prog.ll");
+    let bad_path = dir.path().join("map.xml");
+    let output_str = output_path.to_string_lossy().to_string();
+    let bad_arg = format!("--hwmap-file={}", bad_path.display());
+
+    let result = compile(&["plc", file.as_str(), "-o", &output_str, "--ir", &bad_arg]);
+    assert!(result.is_err(), "expected compile to error on unsupported hwmap extension");
+    assert!(!bad_path.exists(), "no file should be written for an invalid extension");
+}
+
+#[test]
+fn hwmap_default_filename_derived_from_output() {
+    // Passing `--hwmap-file` without a value should derive `<output>.hwmap.json`.
+    let file = get_test_file("io.st");
+    let dir = tempfile::tempdir().unwrap();
+    let output_path = dir.path().join("prog.ll");
+    let output_str = output_path.to_string_lossy().to_string();
+
+    compile(&["plc", file.as_str(), "-o", &output_str, "--ir", "--hwmap-file"]).unwrap();
+
+    let derived = dir.path().join("prog.ll.hwmap.json");
+    assert!(derived.is_file(), "expected derived hwmap file at {}", derived.display());
+    let content = fs::read_to_string(&derived).unwrap();
+    assert!(content.contains("__PI_7_8"));
+}
+
+#[test]
+fn hwmap_full_pass_json() {
+    let file = get_test_file("io.st");
+    let temp_file = tempfile::NamedTempFile::new().unwrap();
+    let path = temp_file.path().to_string_lossy();
+    let hwmap_dir = tempfile::tempdir().unwrap();
+    let hwmap_path = hwmap_dir.path().join("monitor.hwmap.json");
+    let hwmap_arg = format!("--hwmap-file={}", hwmap_path.display());
+
+    compile(&["plc", file.as_str(), "-o", &path, "--ir", &hwmap_arg]).unwrap();
+
+    assert!(hwmap_path.is_file(), "expected hwmap file at {}", hwmap_path.display());
+    let content = fs::read_to_string(&hwmap_path).unwrap();
+    assert!(content.contains("\"VariableMap\""), "missing VariableMap key in: {content}");
+    assert!(content.contains("__PI_7_8"), "expected __PI_7_8 mangled name in: {content}");
+    assert!(content.contains("\"a.binvar\""), "expected qualified name a.binvar in: {content}");
+    assert!(content.contains("\"%IX7.8\""), "expected reconstructed source address in: {content}");
 }
 
 #[test]
@@ -183,4 +235,76 @@ fn generate_got_file() {
 
     // clean up
     let _foo = fs::remove_file(data_path);
+}
+
+/// Returns insta `Settings` with the given tempdir's path redacted to
+/// `[tmp]` and any path separator backslashes (Windows) normalized to
+/// forward slashes, so snapshots of `compile(...)` errors stay stable
+/// across runs and platforms.
+fn settings_with_tempdir_filter(tempdir: &Path) -> insta::Settings {
+    let mut settings = insta::Settings::clone_current();
+    settings.add_filter(&plc_util::escape_regex_literal(&tempdir.to_string_lossy()), "[tmp]");
+    settings.add_filter(r"\\", "/");
+    settings
+}
+
+#[test]
+fn missing_source_file_errors_with_path_in_message() {
+    let dir = tempfile::tempdir().unwrap();
+    let missing = dir.path().join("missing.st");
+
+    let err = compile(&["plc".to_string(), missing.to_string_lossy().into_owned()]).unwrap_err();
+    settings_with_tempdir_filter(dir.path())
+        .bind(|| insta::assert_snapshot!(err.to_string(), @"path '[tmp]/missing.st' does not exist"));
+}
+
+#[test]
+fn missing_include_path_errors_with_path_in_message() {
+    let dir = tempfile::tempdir().unwrap();
+    let main = dir.path().join("main.st");
+    fs::write(&main, "FUNCTION main : DINT main := 0; END_FUNCTION").unwrap();
+    let bad_include = dir.path().join("no-such/*.st");
+
+    let err = compile(&[
+        "plc".to_string(),
+        main.to_string_lossy().into_owned(),
+        "-i".to_string(),
+        bad_include.to_string_lossy().into_owned(),
+    ])
+    .unwrap_err();
+    settings_with_tempdir_filter(dir.path())
+        .bind(|| insta::assert_snapshot!(err.to_string(), @"path '[tmp]/no-such/*.st' does not exist"));
+}
+
+#[test]
+fn missing_source_and_missing_include_surface_in_one_run() {
+    // Directly demonstrates that path-validation errors are accumulated rather
+    // than surfaced one-per-run (see PR #1713 review feedback).
+    let dir = tempfile::tempdir().unwrap();
+    let bad_source = dir.path().join("missing.st");
+    let bad_include = dir.path().join("no-such/*.st");
+
+    let err = compile(&[
+        "plc".to_string(),
+        bad_source.to_string_lossy().into_owned(),
+        "-i".to_string(),
+        bad_include.to_string_lossy().into_owned(),
+    ])
+    .unwrap_err();
+    settings_with_tempdir_filter(dir.path()).bind(|| {
+        insta::assert_snapshot!(err.to_string(), @r"
+        path '[tmp]/missing.st' does not exist
+        path '[tmp]/no-such/*.st' does not exist
+        ")
+    });
+}
+
+#[test]
+fn glob_with_missing_parent_directory_errors() {
+    let dir = tempfile::tempdir().unwrap();
+    let typo_glob = dir.path().join("typo-dir/*.st");
+
+    let err = compile(&["plc".to_string(), typo_glob.to_string_lossy().into_owned()]).unwrap_err();
+    settings_with_tempdir_filter(dir.path())
+        .bind(|| insta::assert_snapshot!(err.to_string(), @"path '[tmp]/typo-dir/*.st' does not exist"));
 }

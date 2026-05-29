@@ -1,0 +1,19 @@
+// REQUIRES: system-linux
+
+// Verifies that two separately-compiled `.o` files, each carrying their
+// own `plc version` entry, deduplicate to a single entry in `.comment`
+// after link. The `.comment` ELF section is `PROGBITS` with the `MS`
+// (mergeable strings) flag set, which the linker uses to coalesce
+// identical strings across input objects.
+
+// Compile each unit alone to produce two independent `.o` files.
+RUN: %COMPILE -c %S/main.st && mv %T/%basename_t.out %T/main.o
+RUN: %COMPILE -c %S/helper.st && mv %T/%basename_t.out %T/helper.o
+
+// Link the two objects to a single executable, then inspect `.comment`
+// and count the `plc version` lines. After mergeable-strings dedup the
+// linked binary must show exactly one such line.
+RUN: %COMPILE %T/main.o %T/helper.o
+RUN: readelf -p .comment %T/%basename_t.out | grep -c "plc version" | FileCheck-21 --check-prefix=COUNT %s
+
+COUNT: 1

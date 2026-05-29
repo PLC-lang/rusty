@@ -62,6 +62,10 @@ pub struct CompileOptions {
     pub single_module: bool,
     pub online_change: OnlineChange,
     pub constructors_only: bool,
+    /// Producer string embedded in the compiled module's `llvm.ident` named
+    /// metadata. Surfaces in the ELF `.comment` section post-link. `None`
+    /// skips emission entirely.
+    pub build_info: Option<String>,
 }
 
 impl Default for CompileOptions {
@@ -80,6 +84,7 @@ impl Default for CompileOptions {
             single_module: false,
             online_change: OnlineChange::Disabled,
             constructors_only: false,
+            build_info: None,
         }
     }
 }
@@ -328,12 +333,14 @@ pub fn generate_to_string_constructors_only<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let context = GlobalContext::new().with_source(project.get_sources(), None)?;
     let diagnostician = Diagnostician::default();
+    // `--fno-ident` keeps IR snapshots stable across `plc` upgrades.
     let mut params = cli::CompileParameters::parse(&[
         "plc",
         "--ir",
         "--single-module",
         "-O",
         "none",
+        "--fno-ident",
         "--constructors-only",
     ])
     .map_err(|e| Diagnostic::new(e.to_string()))?;
@@ -369,8 +376,10 @@ fn generate_to_string_internal<T: SourceContainer>(
     let project = Project::new(name.to_string()).with_sources(src);
     let context = GlobalContext::new().with_source(project.get_sources(), None)?;
     let diagnostician = Diagnostician::default();
-    let mut params = cli::CompileParameters::parse(&["plc", "--ir", "--single-module", "-O", "none"])
-        .map_err(|e| Diagnostic::new(e.to_string()))?;
+    // `--fno-ident` keeps IR snapshots stable across `plc` upgrades.
+    let mut params =
+        cli::CompileParameters::parse(&["plc", "--ir", "--single-module", "-O", "none", "--fno-ident"])
+            .map_err(|e| Diagnostic::new(e.to_string()))?;
     params.generate_debug = debug;
     let mut pipeline = BuildPipeline {
         context,
@@ -411,15 +420,28 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
                 .and_then(|it| it.file_name())
                 .and_then(|it| it.to_str())
                 .unwrap_or(DEFAULT_OUTPUT_NAME);
-            let project = Project::new(name.to_string())
-                .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
-                .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
+            let file_paths: Vec<PathBuf> = compile_parameters.input.iter().map(PathBuf::from).collect();
+            let include_paths: Vec<PathBuf> = compile_parameters.includes.iter().map(PathBuf::from).collect();
+
+            // Validate file paths and include paths independently so a typo in
+            // one set doesn't mask errors in the other — the user sees every
+            // bad path in a single run.
+            let after_files = Project::new(name.to_string()).with_file_paths(file_paths);
+            let include_check = Project::new(String::new()).with_include_paths(include_paths.clone());
+
+            let project = match (after_files, include_check) {
+                (Ok(p), Ok(_)) => p.with_include_paths(include_paths)?,
+                (Err(file_err), Ok(_)) => return Err(file_err),
+                (Ok(_), Err(inc_err)) => return Err(inc_err),
+                (Err(file_err), Err(inc_err)) => return Err(anyhow!("{file_err}\n{inc_err}")),
+            };
+            let project = project
                 .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
                 .with_libraries(compile_parameters.libraries.clone());
             Ok(project)
         });
     //Override default settings with compile options
-    project
+    let project = project
         .map(|proj| {
             if let Some(format) = compile_parameters.output_format() {
                 proj.with_format(format)
@@ -427,7 +449,15 @@ fn get_project(compile_parameters: &CompileParameters) -> Result<Project<PathBuf
                 proj
             }
         })
-        .map(|proj| proj.with_output_name(compile_parameters.output.clone()))
+        .map(|proj| proj.with_output_name(compile_parameters.output.clone()))?;
+
+    // Object-only inputs (e.g. `plc lib.o -ltest -L<dir>`) are a legitimate
+    // link-only invocation and must not trip the empty-set guard. Reject only
+    // when neither sources nor objects were resolved.
+    if project.get_sources().is_empty() && project.get_objects().is_empty() {
+        anyhow::bail!("no input files");
+    }
+    Ok(project)
 }
 
 fn get_config(root: &Path) -> PathBuf {

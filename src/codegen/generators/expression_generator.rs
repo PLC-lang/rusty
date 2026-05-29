@@ -2,6 +2,7 @@
 
 use crate::codegen::generators::data_type_generator::get_default_for;
 use inkwell::{
+    attributes::AttributeLoc,
     builder::Builder,
     types::{BasicType, BasicTypeEnum},
     values::{
@@ -42,7 +43,14 @@ use crate::{
     },
 };
 
-use super::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC};
+use super::{
+    llvm::Llvm,
+    pou_generator::{
+        for_each_int_extension_attr_loc, int_extension_attribute, target_uses_int_extension_attrs,
+    },
+    statement_generator::FunctionContext,
+    ADDRESS_SPACE_CONST, ADDRESS_SPACE_GENERIC,
+};
 
 /// the generator for expressions
 pub struct ExpressionCodeGenerator<'a, 'b> {
@@ -552,6 +560,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // First get the function type so our function pointer can have the correct type.
         let call = self.llvm.builder.build_call(function, &arguments_list, "call")?;
 
+        self.apply_int_extension_attrs_to_call(call, pou, &parameters_list, &arguments_list);
+
         // if the target is a function, declare the struct locally
         // assign all parameters into the struct values
 
@@ -581,6 +591,73 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         Ok(ExpressionValue::RValue(value))
+    }
+
+    /// Mirrors `pou_generator::PouGenerator::apply_int_extension_attrs_to_decl` at the call
+    /// site: attaches `signext`/`zeroext` to sub-32-bit integer arguments and to the return
+    /// value of FFI-eligible callees. The fixed-parameter walk and the return-attribute
+    /// step are shared with the decl side via `for_each_int_extension_attr_loc`; LLVM
+    /// accepts redundancy but not contradiction, so the two sites must stay in sync.
+    /// See #1146 for the underlying ABI mismatch.
+    fn apply_int_extension_attrs_to_call(
+        &self,
+        call: CallSiteValue<'ink>,
+        pou: &PouIndexEntry,
+        parameters_list: &[&AstNode],
+        arguments_list: &[BasicMetadataValueEnum<'ink>],
+    ) {
+        // Direct PROGRAM/FUNCTION_BLOCK calls (e.g. `myFbInstance()`) pass arguments via
+        // the instance struct (gep + store), not as scalar arguments to the LLVM call —
+        // there are no sub-32-bit integer slots in the call signature to attribute. The
+        // matching decl-side path also skips these POUs.
+        if !(pou.is_function() || pou.is_method()) {
+            return;
+        }
+        if !target_uses_int_extension_attrs(&self.llvm.target_triple) {
+            return;
+        }
+        let context = self.llvm.context;
+        let param_offset = u32::from(pou.is_method());
+        let declared_parameters = self.index.get_available_parameters(pou.get_name());
+        for_each_int_extension_attr_loc(
+            context,
+            &self.llvm.target_triple,
+            self.index,
+            pou.get_name(),
+            &declared_parameters,
+            pou.is_method(),
+            |loc, attr| {
+                call.add_attribute(loc, attr);
+            },
+        );
+        // Variadic args (e.g. rusty's `T...` formals) live past `declared_parameters` and have
+        // no formal type to consult — read the expression's annotated type instead. C-style
+        // default-arg-promotion may have already widened the LLVM value to i32 before the
+        // call (see `typesystem_test::enum_typed_varargs_get_promoted`); in that case the
+        // ABI-level extension attribute is redundant and would only add visual noise to IR
+        // snapshots, so we skip whenever the actual LLVM operand is no longer sub-32-bit.
+        if pou.is_variadic() && parameters_list.len() > declared_parameters.len() {
+            for (idx, arg) in parameters_list.iter().enumerate().skip(declared_parameters.len()) {
+                let llvm_idx = idx + param_offset as usize;
+                let llvm_ty_is_sub_i32 = arguments_list
+                    .get(llvm_idx)
+                    .map(|v| match v {
+                        BasicMetadataValueEnum::IntValue(iv) => iv.get_type().get_bit_width() < 32,
+                        _ => false,
+                    })
+                    .unwrap_or(false);
+                if !llvm_ty_is_sub_i32 {
+                    continue;
+                }
+                let Some(ty) = self.annotations.get_type(arg, self.index) else {
+                    continue;
+                };
+                let info = self.index.get_intrinsic_type_information(ty.get_type_information());
+                if let Some(attr) = int_extension_attribute(context, info) {
+                    call.add_attribute(AttributeLoc::Param(llvm_idx as u32), attr);
+                }
+            }
+        }
     }
 
     fn generate_fnptr_call(

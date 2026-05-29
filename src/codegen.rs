@@ -107,6 +107,7 @@ impl<'ink> CodeGen<'ink> {
         debug_compilation_dir: Option<&Path>,
         online_change: OnlineChange,
         target: &Target,
+        build_info: Option<&str>,
     ) -> CodeGen<'ink> {
         let module_location = file_marker.get_name().unwrap_or_default();
         let module = context.create_module(module_location);
@@ -138,6 +139,16 @@ impl<'ink> CodeGen<'ink> {
         module.set_data_layout(&target_data.get_data_layout());
         module.set_triple(&triple);
 
+        // Emit `!llvm.ident` so the module self-identifies (`.comment` on ELF
+        // after link). Skipped when `None`.
+        if let Some(info) = build_info {
+            let ident_string = context.metadata_string(info);
+            let ident_node = context.metadata_node(&[ident_string.into()]);
+            module
+                .add_global_metadata("llvm.ident", &ident_node)
+                .expect("add_global_metadata on llvm.ident accepts a node value");
+        }
+
         let debug_level = if file_marker.is_internal() { DebugLevel::None } else { debug_level };
         let debug = debug::DebugBuilderEnum::new(
             context,
@@ -162,7 +173,11 @@ impl<'ink> CodeGen<'ink> {
         got_layout: &Mutex<HashMap<String, u64>>,
         constructors_only: bool,
     ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
-        let llvm = Llvm::new(context, context.create_builder());
+        let llvm = Llvm::new(
+            context,
+            context.create_builder(),
+            self.module.get_triple().as_str().to_string_lossy().into_owned(),
+        );
         let mut index = LlvmTypedIndex::default();
         //Generate types index, and any global variables associated with them.
         let llvm_type_index = data_type_generator::generate_data_types(
@@ -272,7 +287,11 @@ impl<'ink> CodeGen<'ink> {
         }
 
         //Generate opaque functions for implementations and associate them with their types
-        let llvm = Llvm::new(context, context.create_builder());
+        let llvm = Llvm::new(
+            context,
+            context.create_builder(),
+            self.module.get_triple().as_str().to_string_lossy().into_owned(),
+        );
         let llvm_impl_index = pou_generator::generate_implementation_stubs(
             &self.module,
             llvm,
@@ -285,7 +304,11 @@ impl<'ink> CodeGen<'ink> {
             &self.module_location,
             constructors_only,
         )?;
-        let llvm = Llvm::new(context, context.create_builder());
+        let llvm = Llvm::new(
+            context,
+            context.create_builder(),
+            self.module.get_triple().as_str().to_string_lossy().into_owned(),
+        );
         index.merge(llvm_impl_index);
         let llvm_values_index = pou_generator::generate_global_constants_for_pou_members(
             &self.module,
@@ -346,7 +369,11 @@ impl<'ink> CodeGen<'ink> {
         constructors_only: bool,
     ) -> Result<GeneratedModule<'ink>, CodegenError> {
         //generate all pous
-        let llvm = Llvm::new(context, context.create_builder());
+        let llvm = Llvm::new(
+            context,
+            context.create_builder(),
+            self.module.get_triple().as_str().to_string_lossy().into_owned(),
+        );
         let pou_generator =
             PouGenerator::new(llvm, global_index, annotations, &llvm_index, &self.online_change);
 

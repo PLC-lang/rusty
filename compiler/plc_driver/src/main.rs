@@ -16,7 +16,12 @@ fn main() {
     builder.init();
 
     if let Err(e) = plc_driver::compile(&args) {
-        eprintln!("{e}");
+        // `anstream::eprintln!` auto-detects whether stderr supports ANSI:
+        // raw escapes on TTYs that handle them, Win32 console API on legacy
+        // `cmd.exe`, plain text when piped. Replaces the manual
+        // `is_terminal()` + raw-escape branch this used to carry.
+        let style = anstyle::Style::new().fg_color(Some(anstyle::AnsiColor::Red.into())).bold();
+        anstream::eprintln!("{style}error{style:#}: {e}");
         std::process::exit(1)
     }
 }

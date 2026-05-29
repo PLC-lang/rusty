@@ -20,8 +20,23 @@ pub fn escape_regex_literal(value: &str) -> String {
 #[macro_export]
 macro_rules! __plc_add_common_snapshot_filters {
     ($settings:ident) => {{
-        $settings.add_filter(r#"target datalayout = ".*""#, r#"target datalayout = "[filtered]""#);
-        $settings.add_filter(r#"target triple = ".*""#, r#"target triple = "[filtered]""#);
+        // Non-greedy character class `[^"]*` instead of `.*`: tests that
+        // join multi-line IR into a single line for snapshotting (see e.g.
+        // `tests/integration/command_line_compile.rs::ir_generation_full_pass`)
+        // would otherwise have the greedy `.*` chew through every quoted
+        // string later on the line (e.g. an `llvm.ident` MDString),
+        // wiping out everything between the two filters.
+        $settings.add_filter(r#"target datalayout = "[^"]*""#, r#"target datalayout = "[filtered]""#);
+        $settings.add_filter(r#"target triple = "[^"]*""#, r#"target triple = "[filtered]""#);
+
+        // Strip the LLVM `signext` / `zeroext` parameter and return attributes
+        // so codegen snapshots stay arch-agnostic. Whether plc emits these
+        // attributes depends on the target's calling convention (x86 SysV /
+        // Win64 / Apple-Darwin emit; AAPCS does not — see #1146); a plain
+        // strip lets the same snapshot match on every CI lane. Tests that
+        // specifically exercise the attribute presence live in
+        // `tests/lit/ir_tests/sub32_int_ffi_extension.st`.
+        $settings.add_filter(r#" (signext|zeroext)"#, "");
 
         // The 8-hex-char suffix in `__unit_<basename>_<hash>__ctor` symbols
         // is derived from the full source path (see

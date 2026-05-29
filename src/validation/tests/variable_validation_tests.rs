@@ -1824,3 +1824,54 @@ fn function_and_method_parameters_do_not_trip_template_address_check() {
 
     assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
 }
+
+#[test]
+fn fb_var_temp_is_not_visible_inside_method() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK Bug
+        VAR_TEMP
+            scratch : BOOL;
+        END_VAR
+        METHOD PUBLIC DoIt
+            scratch := TRUE;
+        END_METHOD
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E137]: `scratch` is a VAR_TEMP of `Bug` and is not visible inside its METHODs
+      ┌─ <internal>:7:13
+      │
+    4 │             scratch : BOOL;
+      │             ------- see also
+      ·
+    7 │             scratch := TRUE;
+      │             ^^^^^^^ `scratch` is a VAR_TEMP of `Bug` and is not visible inside its METHODs
+    ");
+}
+
+#[test]
+fn fb_var_temp_visible_inside_fb_body_and_actions() {
+    // VAR_TEMP on a FUNCTION_BLOCK remains accessible from the FB body itself and
+    // from its ACTIONs (which share the FB's stack frame). Only METHODs are blocked.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK Bug
+        VAR_TEMP
+            scratch : BOOL;
+        END_VAR
+        scratch := TRUE;
+        END_FUNCTION_BLOCK
+
+        ACTIONS Bug
+            ACTION DoIt
+                scratch := FALSE;
+            END_ACTION
+        END_ACTIONS
+        "#,
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}

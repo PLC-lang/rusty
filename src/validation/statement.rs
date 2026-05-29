@@ -601,6 +601,12 @@ fn validate_reference<T: AnnotationMap>(
 
             _ => (),
         };
+
+        if let Some(diagnostic) = fb_temp_referenced_from_method(context, ref_name, location) {
+            validator.push_diagnostic(diagnostic);
+            return;
+        }
+
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         // was this meant as a direct access?
@@ -660,6 +666,35 @@ fn validate_reference<T: AnnotationMap>(
             }
         _ => (),
     }
+}
+
+/// Produces a focused diagnostic when a METHOD references a `VAR_TEMP` declared on its
+/// enclosing POU. Methods have their own stack frame, so the temp is not visible — the
+/// resolver therefore leaves the reference unannotated. Returning a dedicated diagnostic
+/// here yields a clearer message than the generic "unresolved reference".
+fn fb_temp_referenced_from_method<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    ref_name: &str,
+    location: &SourceLocation,
+) -> Option<Diagnostic> {
+    let pou = context.qualifier.and_then(|q| context.index.find_pou(q))?;
+    if !pou.is_method() {
+        return None;
+    }
+    let parent = pou.get_parent_pou_name()?;
+    let temp = context
+        .index
+        .get_pou_members(parent)
+        .iter()
+        .find(|m| m.is_temp() && m.get_name().eq_ignore_ascii_case(ref_name))?;
+    Some(
+        Diagnostic::new(format!(
+            "`{ref_name}` is a VAR_TEMP of `{parent}` and is not visible inside its METHODs"
+        ))
+        .with_error_code("E137")
+        .with_location(location)
+        .with_secondary_location(&temp.source_location),
+    )
 }
 
 fn visit_array_access<T: AnnotationMap>(
@@ -1905,6 +1940,31 @@ fn validate_call<T: AnnotationMap>(
                     // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
                     // save actual location in parent for InOut validation
                     variable_location_in_parent.push(left.get_location_in_parent());
+
+                    // Direction-keyed assignment check (`:=` vs `=>`) at named call args.
+                    // Positional args are neither `is_assignment` nor `is_output_assignment`,
+                    // so they fall through both arms cleanly.
+                    if argument.is_assignment() && left.is_output() {
+                        validator.push_diagnostic(
+                            Diagnostic::new(format!(
+                                "'{}' is an output parameter; use '=>' instead of ':='",
+                                left.get_name()
+                            ))
+                            .with_error_code("E140")
+                            .with_location(*argument),
+                        );
+                    } else if argument.is_output_assignment() && !left.is_output() {
+                        let kind = if left.is_inout() { "in-out" } else { "input" };
+                        validator.push_diagnostic(
+                            Diagnostic::new(format!(
+                                "'{}' is an {} parameter; use ':=' instead of '=>'",
+                                left.get_name(),
+                                kind
+                            ))
+                            .with_error_code("E135")
+                            .with_location(*argument),
+                        );
+                    }
                 }
 
                 // explicit call parameter assignments will be handled by

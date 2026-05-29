@@ -1814,3 +1814,184 @@ fn assigning_void_call_result_to_a_pointer_must_result_in_validation_error() {
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'STRING'
     ");
 }
+
+const CALL_DIRECTION_FIXTURE: &str = r#"
+    FUNCTION_BLOCK fb
+        VAR_INPUT  in_val   : DINT; END_VAR
+        VAR_OUTPUT out_val  : DINT; END_VAR
+        VAR_IN_OUT inout_val: DINT; END_VAR
+    END_FUNCTION_BLOCK
+
+    PROGRAM main
+        VAR
+            instance : fb;
+            local    : DINT;
+            shared   : DINT;
+        END_VAR
+        instance(in_val := 5, out_val => local, inout_val := shared); // all correct
+    END_PROGRAM
+"#;
+
+#[test]
+fn assignment_to_output_parameter_is_rejected() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR_OUTPUT out_val : DINT; END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                instance : fb;
+                local    : DINT;
+            END_VAR
+            instance(out_val := local); // ❌ E140
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E140]: 'out_val' is an output parameter; use '=>' instead of ':='
+       ┌─ <internal>:11:22
+       │
+    11 │             instance(out_val := local); // ❌ E140
+       │                      ^^^^^^^^^^^^^^^^ 'out_val' is an output parameter; use '=>' instead of ':='
+    ");
+}
+
+#[test]
+fn correct_call_directions_are_clean() {
+    let diagnostics = parse_and_validate_buffered(CALL_DIRECTION_FIXTURE);
+    assert_snapshot!(diagnostics, @"");
+}
+
+#[test]
+fn output_assignment_on_input_parameter_warns() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR_INPUT in_val : DINT; END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR instance : fb; source : DINT; END_VAR
+            instance(in_val => source);
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    warning[E135]: 'in_val' is an input parameter; use ':=' instead of '=>'
+      ┌─ <internal>:8:22
+      │
+    8 │             instance(in_val => source);
+      │                      ^^^^^^^^^^^^^^^^ 'in_val' is an input parameter; use ':=' instead of '=>'
+    ");
+}
+
+#[test]
+fn output_assignment_on_inout_parameter_warns() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR_IN_OUT inout_val : DINT; END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR instance : fb; shared : DINT; END_VAR
+            instance(inout_val => shared);
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    warning[E135]: 'inout_val' is an in-out parameter; use ':=' instead of '=>'
+      ┌─ <internal>:8:22
+      │
+    8 │             instance(inout_val => shared);
+      │                      ^^^^^^^^^^^^^^^^^^^ 'inout_val' is an in-out parameter; use ':=' instead of '=>'
+    ");
+}
+
+#[test]
+fn assignment_to_method_output_parameter_is_rejected() {
+    // Qualified call (`instance.method(...)`) should reach the same direction check.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            METHOD set : DINT
+                VAR_OUTPUT out_val : DINT; END_VAR
+                out_val := 1;
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                instance : fb;
+                captured : DINT;
+            END_VAR
+            instance.set(out_val := captured);
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E140]: 'out_val' is an output parameter; use '=>' instead of ':='
+       ┌─ <internal>:14:26
+       │
+    14 │             instance.set(out_val := captured);
+       │                          ^^^^^^^^^^^^^^^^^^^ 'out_val' is an output parameter; use '=>' instead of ':='
+    ");
+}
+
+#[test]
+fn assignment_to_reference_to_output_parameter_is_rejected() {
+    // Direction check is type-agnostic — `REFERENCE TO X` is still VAR_OUTPUT.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR_OUTPUT out_ref : REFERENCE TO DINT; END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                instance : fb;
+                target   : DINT;
+            END_VAR
+            instance(out_ref := target);
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E140]: 'out_ref' is an output parameter; use '=>' instead of ':='
+       ┌─ <internal>:11:22
+       │
+    11 │             instance(out_ref := target);
+       │                      ^^^^^^^^^^^^^^^^^ 'out_ref' is an output parameter; use '=>' instead of ':='
+    ");
+}
+
+#[test]
+fn mixed_named_and_positional_args_do_not_double_report() {
+    // Positional args don't carry a direction operator; the new check must skip them
+    // without interfering with the existing E132 (mixing implicit/explicit) machinery.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            VAR_INPUT  in_val  : DINT; END_VAR
+            VAR_OUTPUT out_val : DINT; END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                instance : fb;
+                local    : DINT;
+            END_VAR
+            instance(in_val := 5, out_val := local); // only out_val arg gets E140
+        END_PROGRAM
+        "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E140]: 'out_val' is an output parameter; use '=>' instead of ':='
+       ┌─ <internal>:12:35
+       │
+    12 │             instance(in_val := 5, out_val := local); // only out_val arg gets E140
+       │                                   ^^^^^^^^^^^^^^^^ 'out_val' is an output parameter; use '=>' instead of ':='
+    ");
+}
