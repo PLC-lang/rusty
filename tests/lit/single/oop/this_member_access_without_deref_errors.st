@@ -7,7 +7,7 @@
 // (where it used to crash with "GEP pointee is not a struct").
 
 // CHECK: {{.*}}this_member_access_without_deref_errors.st:{{[0-9]+}}:{{[0-9]+}}:{{.*}}error[E141]: Cannot access `a` on `POINTER TO fb`; dereference with `^` first
-// CHECK: Compilation aborted due to critical errors
+// CHECK: error: Compilation aborted due to critical errors
 
 INTERFACE IAnimal
     METHOD legs : DINT
