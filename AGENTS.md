@@ -80,3 +80,7 @@ fn get_base(node: &AstNode) -> plc_source::source_location::SourceLocation { ...
 // Good
 fn get_base(node: &AstNode) -> SourceLocation { ... }
 ```
+
+7. No phase references in code. Never write "Phase 1", "for now", "later phase", or similar roadmap labels in source, doc comments, or tests — those belong in PLAN.md, PRs, or issues. If a type or function is intentionally incomplete, describe *what* is incomplete (e.g. "inner content is captured opaquely") rather than tying it to a numbered phase.
+
+8. No assumed reference files in finalized code. Never `include_str!`/`include_bytes!` paths that traverse out of the crate, write doc comments that point at files outside the crate (e.g. "mirrors path/to/schema.xsd"), or read test fixtures from sibling directories — fixtures live in the crate's own `tests/fixtures/`. External specs, vendor schemas, and sample inputs are reference-only and must not be load-bearing for build, test, or docs.
