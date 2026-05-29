@@ -59,6 +59,40 @@ jobs:
             ghcr.io/plc-lang/rust-llvm:latest \
             -c "df -h && ./scripts/build.sh --build --test"
 
+  test-linux-release:
+    name: Test Linux (release)
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - { os: "ubuntu-latest" }
+          - { os: "ubuntu-24.04-arm" }
+    steps:
+      - name: Free up disk space on runner
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+
+      - name: Show disk space after cleanup
+        run: df -h
+
+      - uses: actions/checkout@v6
+
+      - name: Cargo test (release)
+        run: |
+          docker run --rm \
+            --entrypoint /bin/bash \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            ghcr.io/plc-lang/rust-llvm:latest \
+            -c "df -h && ./scripts/build.sh --build --test --release"
+
   package-linux:
     name: Package Linux (${{ matrix.config.arch }})
     runs-on: ${{ matrix.config.os }}

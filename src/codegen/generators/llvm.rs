@@ -26,6 +26,12 @@ use super::ADDRESS_SPACE_GENERIC;
 pub struct Llvm<'a> {
     pub context: &'a Context,
     pub builder: Builder<'a>,
+    /// Target triple of the module being generated. Carried here so target-aware
+    /// codegen choices (e.g. whether to emit LLVM `signext`/`zeroext` attributes
+    /// on sub-32-bit `extern "C"` boundaries — see #1146) can be made by any
+    /// generator that already holds an `Llvm` reference, without threading the
+    /// `Module` through their signatures.
+    pub target_triple: String,
 }
 
 static RETAIN_SECTION_NAME: &str = ".retain";
@@ -74,8 +80,8 @@ impl GlobalValueExt for GlobalValue<'_> {
 type Variable<'a> = (&'a str, &'a str, &'a SourceLocation);
 impl<'a> Llvm<'a> {
     /// constructs a new LLVM struct
-    pub fn new(context: &'a Context, builder: Builder<'a>) -> Llvm<'a> {
-        Llvm { context, builder }
+    pub fn new(context: &'a Context, builder: Builder<'a>, target_triple: String) -> Llvm<'a> {
+        Llvm { context, builder, target_triple }
     }
 
     /// generates a global variable with the given name, datatype and optional initial value
