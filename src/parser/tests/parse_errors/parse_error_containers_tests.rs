@@ -229,11 +229,11 @@ fn super_is_a_reserved_keyword() {
       │ ╰─────────────────^ Unexpected token: expected KeywordSemicolon but found 'VAR
                 super'
 
-    error[E007]: Unexpected token: expected Literal but found END_VAR
+    error[E007]: Unexpected token: expected expression but found END_VAR
       ┌─ <internal>:6:9
       │
     6 │         END_VAR
-      │         ^^^^^^^ Unexpected token: expected Literal but found END_VAR
+      │         ^^^^^^^ Unexpected token: expected expression but found END_VAR
 
     error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
             METHOD super END_METHOD'
@@ -313,11 +313,11 @@ fn this_is_a_reserved_keyword() {
       │ ╰────────────────^ Unexpected token: expected KeywordSemicolon but found 'VAR
                 this'
 
-    error[E007]: Unexpected token: expected Literal but found END_VAR
+    error[E007]: Unexpected token: expected expression but found END_VAR
       ┌─ <internal>:6:9
       │
     6 │         END_VAR
-      │         ^^^^^^^ Unexpected token: expected Literal but found END_VAR
+      │         ^^^^^^^ Unexpected token: expected expression but found END_VAR
 
     error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
             METHOD this END_METHOD'

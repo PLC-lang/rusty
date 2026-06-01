@@ -14,11 +14,11 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found '1'
 4 │         1: x;
   │         ^ Unexpected token: expected KeywordSemicolon but found '1'
 
-error[E007]: Unexpected token: expected Literal but found END_CASE
+error[E007]: Unexpected token: expected expression but found END_CASE
   ┌─ <internal>:5:9
   │
 5 │         END_CASE
-  │         ^^^^^^^^ Unexpected token: expected Literal but found END_CASE
+  │         ^^^^^^^^ Unexpected token: expected expression but found END_CASE
 
 error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_CASE'
   ┌─ <internal>:5:9

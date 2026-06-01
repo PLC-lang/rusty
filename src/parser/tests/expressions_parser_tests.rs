@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::parser::tests::ref_to;
-use crate::test_utils::tests::parse;
+use crate::test_utils::tests::{parse, parse_buffered};
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{Assignment, AstFactory, AstNode, AstStatement, Operator};
 use plc_ast::literals::AstLiteral;
@@ -1014,6 +1014,234 @@ fn amp_as_and_test() {
     assert_debug_snapshot!(statement);
 }
 
+// Recovery for unexpected tokens in expression position.
+// `&` (and other binary-only operators) used as a prefix used to leave the
+// bad token in the stream; binary-AND parsing then re-consumed it and built
+// `EmptyStatement & rhs`, which crashed codegen with E071. The leaf-fallback
+// now advances past the bad token after diagnosing it, so the cascade above
+// cannot misinterpret it.
+
+#[test]
+fn amp_as_address_of_in_call_arg_recovers() {
+    let src = "
+        VAR_GLOBAL g : DINT; END_VAR
+        FUNCTION foo : DINT VAR_INPUT p : DINT; END_VAR foo := p; END_FUNCTION
+        PROGRAM main foo(p := &g); END_PROGRAM
+        ";
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected expression but found &
+      ┌─ <internal>:4:31
+      │
+    4 │         PROGRAM main foo(p := &g); END_PROGRAM
+      │                               ^ Unexpected token: expected expression but found &
+    ");
+    let main = unit.implementations.iter().find(|i| i.name == "main").unwrap();
+    assert_debug_snapshot!(main.statements, @r#"
+    [
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "foo",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "p",
+                            },
+                        ),
+                        base: None,
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "g",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ),
+        },
+    ]
+    "#);
+}
+
+#[test]
+fn amp_as_unary_prefix_in_assignment_recovers() {
+    let src = "
+        PROGRAM prg
+            VAR x : DINT; y : DINT; END_VAR
+            x := &y;
+        END_PROGRAM
+        ";
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected expression but found &
+      ┌─ <internal>:4:18
+      │
+    4 │             x := &y;
+      │                  ^ Unexpected token: expected expression but found &
+    ");
+    assert_debug_snapshot!(unit.implementations[0].statements, @r#"
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "y",
+                    },
+                ),
+                base: None,
+            },
+        },
+    ]
+    "#);
+}
+
+#[test]
+fn consecutive_bad_operators_emit_a_single_diagnostic() {
+    // `& & & g` previously emitted one diagnostic per `&` and recursed N
+    // times. The loop drains the run and retries once, so adversarial input
+    // produces exactly one diagnostic and one recovered identifier.
+    let src = "
+        PROGRAM prg
+            VAR x : DINT; g : DINT; END_VAR
+            x := & & & g;
+        END_PROGRAM
+        ";
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected expression but found &
+      ┌─ <internal>:4:18
+      │
+    4 │             x := & & & g;
+      │                  ^ Unexpected token: expected expression but found &
+    ");
+    assert_debug_snapshot!(unit.implementations[0].statements, @r#"
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "g",
+                    },
+                ),
+                base: None,
+            },
+        },
+    ]
+    "#);
+}
+
+#[test]
+fn empty_parameter_assignment_carve_out_still_fires() {
+    // A named parameter with no RHS — `p := )` or `p := ,` — is explicitly
+    // allowed by the parser: it lands as `Assignment { right: EmptyStatement }`
+    // and emits no diagnostic. This test locks in that the new "advance past
+    // unexpected tokens" recovery in `parse_atomic_leaf_expression` did NOT
+    // regress that carve-out — i.e. it must not consume the trailing `)` or
+    // `,` while looking for an expression. Both call shapes therefore land
+    // cleanly with an empty RHS and no parse diagnostics.
+    let src = "
+        FUNCTION foo : DINT VAR_INPUT p : DINT; q : DINT; END_VAR foo := p; END_FUNCTION
+        PROGRAM main
+            foo(p := );
+            foo(p := , q := 1);
+        END_PROGRAM
+        ";
+    let (unit, diagnostics) = parse_buffered(src);
+    assert!(diagnostics.is_empty(), "expected no parse diagnostics, got:\n{diagnostics}");
+
+    let main = unit.implementations.iter().find(|i| i.name == "main").unwrap();
+    // Both calls should land an Assignment with right == EmptyStatement.
+    for stmt in &main.statements {
+        let AstStatement::CallStatement(call) = &stmt.stmt else {
+            panic!("expected CallStatement, got {:?}", stmt);
+        };
+        let Some(params) = call.parameters.as_deref() else {
+            panic!("expected parameters on call, got {:?}", call);
+        };
+        // walk into the first Assignment we find and check its RHS
+        let first_assignment = match &params.stmt {
+            AstStatement::Assignment(a) => a,
+            AstStatement::ExpressionList(list) => match &list[0].stmt {
+                AstStatement::Assignment(a) => a,
+                other => panic!("expected Assignment in list head, got {:?}", other),
+            },
+            other => panic!("expected Assignment or ExpressionList, got {:?}", other),
+        };
+        assert!(
+            matches!(first_assignment.right.stmt, AstStatement::EmptyStatement(..)),
+            "expected RHS to be EmptyStatement, got {:?}",
+            first_assignment.right.stmt
+        );
+    }
+}
+
+#[test]
+fn binary_only_operator_as_prefix_recovers() {
+    // Generality witness — recovery is not specific to `&`.
+    let src = "
+        PROGRAM prg
+            VAR x : DINT; y : DINT; END_VAR
+            x := MOD y;
+        END_PROGRAM
+        ";
+    let (unit, diagnostics) = parse_buffered(src);
+    assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected expression but found MOD
+      ┌─ <internal>:4:18
+      │
+    4 │             x := MOD y;
+      │                  ^^^ Unexpected token: expected expression but found MOD
+    ");
+    assert_debug_snapshot!(unit.implementations[0].statements, @r#"
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "y",
+                    },
+                ),
+                base: None,
+            },
+        },
+    ]
+    "#);
+}
+
 #[test]
 fn and_then_test() {
     let src = "
@@ -1635,7 +1863,7 @@ fn reference_location_test() {
 
 #[test]
 fn qualified_reference_location_test() {
-    let source = "PROGRAM prg a.b.c;aa.bb.cc[2];aaa.bbb.ccc^;&aaa.bbb.ccc; END_PROGRAM";
+    let source = "PROGRAM prg a.b.c;aa.bb.cc[2];aaa.bbb.ccc^; END_PROGRAM";
     let parse_result = parse(source).0;
 
     let unit = &parse_result.implementations[0];
@@ -1648,9 +1876,6 @@ fn qualified_reference_location_test() {
 
     let location = &unit.statements[2].get_location();
     assert_eq!(source[location.to_range().unwrap()].to_string(), "aaa.bbb.ccc^");
-
-    let location = &unit.statements[3].get_location();
-    assert_eq!(source[location.to_range().unwrap()].to_string(), "&aaa.bbb.ccc");
 }
 
 #[test]

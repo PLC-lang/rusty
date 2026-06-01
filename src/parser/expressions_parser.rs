@@ -327,6 +327,7 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
         _ => {
             if lexer.closing_keywords.contains(&vec![KeywordParensClose])
                 && matches!(lexer.last_token, KeywordOutputAssignment | KeywordAssignment)
+                && matches!(lexer.token, KeywordParensClose | KeywordComma)
             {
                 // due to closing keyword ')' and last_token '=>' / ':='
                 // we are probably in a call statement missing a parameter assignment 'foo(param := );
@@ -334,10 +335,33 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
                 Some(AstFactory::create_empty_statement(lexer.location(), lexer.next_id()))
             } else {
                 lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-                    "Literal",
+                    "expression",
                     lexer.slice(),
                     lexer.location(),
                 ));
+                // If the bad token has any operator interpretation, drain
+                // any consecutive operator tokens and retry the leaf so the
+                // recovered AST captures the operand the user wrote. In
+                // practice this fires for *binary-only* operators misused
+                // as a prefix (e.g. `&y`, `MOD y`); unary-eligible
+                // operators (`-`, `+`, `NOT`) also match `to_operator()`
+                // but normally never reach this fallback because the
+                // prefix-operator parser higher in the cascade handles
+                // them first. Looping (rather than tail-recursing per
+                // token) emits one diagnostic per run instead of N, and
+                // keeps the recovery cost flat on adversarial input like
+                // `& & & g`. For non-operator tokens (e.g. `END_CASE`,
+                // `END_VAR`), leave the token in the stream so outer
+                // parsers can synchronise on it — the `advanced` guard
+                // prevents an infinite retry loop in that case.
+                let mut advanced = false;
+                while to_operator(&lexer.token).is_some() {
+                    lexer.advance();
+                    advanced = true;
+                }
+                if advanced {
+                    return parse_atomic_leaf_expression(lexer);
+                }
                 None
             }
         }

@@ -380,9 +380,9 @@ fn addition_subtraction_expression_with_pointers_resolves_to_pointer_type() {
     let (unit, mut index) = index_with_ids(
         "PROGRAM PRG
             VAR a : REF_TO BYTE; b : BYTE; END_VAR
-            a := &b + 7;
+            a := REF(b) + 7;
             a := a + 7 + 1;
-            a := 7 + &b;
+            a := 7 + REF(b);
         END_PROGRAM",
         id_provider.clone(),
     );
@@ -3506,7 +3506,7 @@ fn pointer_assignment_with_incompatible_types_hints_correctly() {
                     x : INT;
                     pt : POINTER TO BYTE;
                 END_VAR
-                pt := &x;
+                pt := REF(x);
             END_PROGRAM",
         id_provider.clone(),
     );

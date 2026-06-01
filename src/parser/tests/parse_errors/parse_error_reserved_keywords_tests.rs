@@ -194,11 +194,11 @@ fn retain_as_variable_reference_in_expression_is_unexpected_token() {
     ";
     let diagnostics = parse_and_validate_buffered(source);
     assert_snapshot!(diagnostics, @"
-    error[E007]: Unexpected token: expected Literal but found retain
+    error[E007]: Unexpected token: expected expression but found retain
       ┌─ <internal>:4:18
       │
     4 │             x := retain;
-      │                  ^^^^^^ Unexpected token: expected Literal but found retain
+      │                  ^^^^^^ Unexpected token: expected expression but found retain
 
     error[E007]: Unexpected token: expected KeywordSemicolon but found 'retain'
       ┌─ <internal>:4:18
@@ -217,11 +217,11 @@ fn retain_as_call_target_is_unexpected_token() {
     ";
     let diagnostics = parse_and_validate_buffered(source);
     assert_snapshot!(diagnostics, @"
-    error[E007]: Unexpected token: expected Literal but found retain
+    error[E007]: Unexpected token: expected expression but found retain
       ┌─ <internal>:3:13
       │
     3 │             retain();
-      │             ^^^^^^ Unexpected token: expected Literal but found retain
+      │             ^^^^^^ Unexpected token: expected expression but found retain
 
     error[E007]: Unexpected token: expected KeywordSemicolon but found 'retain()'
       ┌─ <internal>:3:13
@@ -242,11 +242,11 @@ fn retain_as_member_access_is_unexpected_token() {
     ";
     let diagnostics = parse_and_validate_buffered(source);
     assert_snapshot!(diagnostics, @"
-    error[E007]: Unexpected token: expected Literal but found retain
+    error[E007]: Unexpected token: expected expression but found retain
       ┌─ <internal>:5:15
       │
     5 │             f.retain;
-      │               ^^^^^^ Unexpected token: expected Literal but found retain
+      │               ^^^^^^ Unexpected token: expected expression but found retain
 
     error[E007]: Unexpected token: expected KeywordSemicolon but found 'retain'
       ┌─ <internal>:5:15
