@@ -218,14 +218,51 @@ fn validate_reference_expression<T: AnnotationMap>(
                             .with_location(m.get_location())
                             .with_error_code("E119"),
                     );
-                } else if (base.is_super() || base.has_super_metadata())
-                    && !(base.is_super_deref() || base.has_super_metadata_deref())
-                {
-                    validator.push_diagnostic(
-                        Diagnostic::new("`SUPER` must be dereferenced to access its members.")
+                    // Only suppress follow-on cascades when the enclosing POU
+                    // actually extends something. Otherwise let
+                    // `validate_member_access` recurse so the SUPER-leaf
+                    // check still emits "Invalid use of `SUPER`. Usage is
+                    // only allowed within a POU that directly extends
+                    // another POU" -- that's orthogonal signal worth
+                    // keeping.
+                    let qualifier_extends = context
+                        .qualifier
+                        .and_then(|q| context.index.find_pou(q))
+                        .and_then(|pou| match pou {
+                            PouIndexEntry::Method { parent_name, .. }
+                            | PouIndexEntry::Action { parent_name, .. } => {
+                                context.index.find_pou(parent_name)
+                            }
+                            other => Some(other),
+                        })
+                        .and_then(|pou| pou.get_super_class())
+                        .is_some();
+                    if qualifier_extends {
+                        return;
+                    }
+                } else if let Some(base_type) = context.annotations.get_type(base, context.index) {
+                    // Member access through a non-auto-deref pointer needs an
+                    // explicit `^`. This subsumes THIS, SUPER, and
+                    // user-declared `POINTER TO ...` bases, which all share
+                    // the same underlying shape (the value of the base is a
+                    // pointer, not the pointee).
+                    let info = base_type.get_type_information();
+                    if info.is_pointer() && !info.is_auto_deref() {
+                        let inner = info.get_inner_name();
+                        // Use the source slice for the member name so the
+                        // diagnostic shows what the user wrote (e.g. `prop`)
+                        // rather than any synthetic name introduced by an
+                        // earlier lowering pass (e.g. `__get_prop`).
+                        let m_name = validator.context.slice(&m.get_location());
+                        validator.push_diagnostic(
+                            Diagnostic::new(format!(
+                                "Cannot access `{m_name}` on `POINTER TO {inner}`; dereference with `^` first"
+                            ))
                             .with_location(m.get_location())
-                            .with_error_code("E119"),
-                    );
+                            .with_error_code("E141"),
+                        );
+                        return;
+                    }
                 }
             }
 
