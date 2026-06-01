@@ -17,7 +17,7 @@ jobs:
   metrics:
     name: Metrics
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:latest
+    container: ghcr.io/plc-lang/rust-llvm:21-1.95
 
     steps:
     - name: Install git

@@ -19,7 +19,7 @@ jobs:
         config:
           - { os: "ubuntu-latest" }
           - { os: "ubuntu-24.04-arm" }
-    container: ghcr.io/plc-lang/rust-llvm:latest
+    container: ghcr.io/plc-lang/rust-llvm:21-1.95
     steps:
       - uses: actions/checkout@v6
 
@@ -36,7 +36,7 @@ jobs:
         config:
           - { os: "ubuntu-latest" }
           - { os: "ubuntu-24.04-arm" }
-    container: ghcr.io/plc-lang/rust-llvm:latest
+    container: ghcr.io/plc-lang/rust-llvm:21-1.95
     steps:
       - uses: actions/checkout@v6
 
