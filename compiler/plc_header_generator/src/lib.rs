@@ -1,9 +1,9 @@
-use clap::ArgEnum;
+use clap::ValueEnum;
 use std::path::PathBuf;
 
 pub mod header_generator;
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, ArgEnum, Default)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, ValueEnum, Default)]
 pub enum GenerateLanguage {
     #[default]
     C,
