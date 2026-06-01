@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>E041 - RuSTy User Documentation</title>
+        <title>E141 - RuSTy User Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -174,17 +174,53 @@
 
                 <div id="mdbook-content" class="content">
                     <main>
-                        <h1 id="invalid-variable-initializer"><a class="header" href="#invalid-variable-initializer">Invalid variable initializer</a></h1>
+                        <h1 id="member-access-on-a-non-auto-deref-pointer-base"><a class="header" href="#member-access-on-a-non-auto-deref-pointer-base">Member access on a non-auto-deref pointer base</a></h1>
+<p>Member access (<code>base.member</code>) requires <code>base</code> to be a struct, function-block, or class instance — not a pointer to one. The compiler will not implicitly dereference pointers when they appear on the left of a <code>.</code> (auto-dereferencing applies only to <code>REFERENCE TO</code> / alias pointers).</p>
+<p>This rule covers three cases that share the same underlying shape — the value of <code>base</code> is a pointer, not the pointee:</p>
+<ol>
+<li><code>THIS</code> is <code>POINTER TO &lt;enclosing FUNCTION_BLOCK&gt;</code>. Use <code>THIS^.member</code>.</li>
+<li><code>SUPER</code> is <code>POINTER TO &lt;parent POU&gt;</code> (before dereferencing). Use <code>SUPER^.member</code>.</li>
+<li>A user-declared <code>POINTER TO ...</code> variable. Use <code>&lt;pointer&gt;^.member</code>.</li>
+</ol>
+<h2 id="example-of-invalid-use"><a class="header" href="#example-of-invalid-use">Example of invalid use</a></h2>
+<pre><code class="language-iecst">FUNCTION_BLOCK fb
+    VAR
+        a : DINT;
+    END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK other
+    VAR
+        p_fb : POINTER TO fb;
+    END_VAR
+    METHOD m : DINT
+        p_fb.a := 1;   // Error: Cannot access `a` on `POINTER TO fb`
+        THIS.b := 2;   // Error: Cannot access `b` on `POINTER TO other` (THIS is a pointer)
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<h2 id="example-of-valid-use"><a class="header" href="#example-of-valid-use">Example of valid use</a></h2>
+<pre><code class="language-iecst">FUNCTION_BLOCK other
+    VAR
+        p_fb : POINTER TO fb;
+        b    : DINT;
+    END_VAR
+    METHOD m : DINT
+        p_fb^.a := 1;   // Dereference the pointer first
+        THIS^.b := 2;   // Dereference THIS first
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../using_rusty/error_configuration.md/E040.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../using_rusty/error_configuration.md/E140.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
-                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E042.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../using_rusty/header_generation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
@@ -194,11 +230,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../using_rusty/error_configuration.md/E040.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../using_rusty/error_configuration.md/E140.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
-                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E042.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../using_rusty/header_generation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>

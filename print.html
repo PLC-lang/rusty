@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c5f6bb8a.js";
+            window.path_to_searchindex_js = "searchindex-75b67a12.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-988686b9.js"></script>
+        <script src="toc-091fdcb9.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2429,6 +2429,44 @@ VAR
 END_VAR
     instance(in_val := 5, out_val =&gt; captured);  // correct
 END_PROGRAM
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="member-access-on-a-non-auto-deref-pointer-base"><a class="header" href="#member-access-on-a-non-auto-deref-pointer-base">Member access on a non-auto-deref pointer base</a></h1>
+<p>Member access (<code>base.member</code>) requires <code>base</code> to be a struct, function-block, or class instance — not a pointer to one. The compiler will not implicitly dereference pointers when they appear on the left of a <code>.</code> (auto-dereferencing applies only to <code>REFERENCE TO</code> / alias pointers).</p>
+<p>This rule covers three cases that share the same underlying shape — the value of <code>base</code> is a pointer, not the pointee:</p>
+<ol>
+<li><code>THIS</code> is <code>POINTER TO &lt;enclosing FUNCTION_BLOCK&gt;</code>. Use <code>THIS^.member</code>.</li>
+<li><code>SUPER</code> is <code>POINTER TO &lt;parent POU&gt;</code> (before dereferencing). Use <code>SUPER^.member</code>.</li>
+<li>A user-declared <code>POINTER TO ...</code> variable. Use <code>&lt;pointer&gt;^.member</code>.</li>
+</ol>
+<h2 id="example-of-invalid-use"><a class="header" href="#example-of-invalid-use">Example of invalid use</a></h2>
+<pre><code class="language-iecst">FUNCTION_BLOCK fb
+    VAR
+        a : DINT;
+    END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK other
+    VAR
+        p_fb : POINTER TO fb;
+    END_VAR
+    METHOD m : DINT
+        p_fb.a := 1;   // Error: Cannot access `a` on `POINTER TO fb`
+        THIS.b := 2;   // Error: Cannot access `b` on `POINTER TO other` (THIS is a pointer)
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<h2 id="example-of-valid-use"><a class="header" href="#example-of-valid-use">Example of valid use</a></h2>
+<pre><code class="language-iecst">FUNCTION_BLOCK other
+    VAR
+        p_fb : POINTER TO fb;
+        b    : DINT;
+    END_VAR
+    METHOD m : DINT
+        p_fb^.a := 1;   // Dereference the pointer first
+        THIS^.b := 2;   // Dereference THIS first
+    END_METHOD
+END_FUNCTION_BLOCK
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
