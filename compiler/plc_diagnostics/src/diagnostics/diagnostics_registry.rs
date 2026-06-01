@@ -242,6 +242,7 @@ lazy_static! {
         E138,   Error,      include_str!("./error_codes/E138.md"),  // Reserved keyword used as a name
         E139,   Error,      include_str!("./error_codes/E139.md"),  // Linker invocation failed (spawn / cmdline)
         E140,   Error,      include_str!("./error_codes/E140.md"),  // ':=' used for an output parameter
+        E141,   Error,      include_str!("./error_codes/E141.md"),  // Member access on a non-auto-deref pointer base
     );
 }
 

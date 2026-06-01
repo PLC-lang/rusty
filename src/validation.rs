@@ -110,7 +110,15 @@ pub struct Validator<'a> {
 
 impl Validators for Validator<'_> {
     fn push_diagnostic(&mut self, diagnostic: Diagnostic) {
-        self.diagnostics.push(diagnostic);
+        // Skip exact duplicates: lowering passes occasionally clone an AST
+        // node into multiple positions in the post-lowered tree (e.g. the
+        // receiver of a method call ends up both in the call's operator
+        // chain and in its synthesised `self` argument), which causes the
+        // same statement-level diagnostic to be raised more than once for
+        // the same source location.
+        if !self.diagnostics.contains(&diagnostic) {
+            self.diagnostics.push(diagnostic);
+        }
     }
     fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
         std::mem::take(&mut self.diagnostics)
