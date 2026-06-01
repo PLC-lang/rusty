@@ -26,7 +26,7 @@ clap = { version = "3.0", features = ["derive"] }
 rayon = "1.6.1"
 tempfile.workspace = true
 indexmap.workspace = true
-env_logger = "0.10"
+env_logger = "0.11"
 anstream.workspace = true
 anstyle.workspace = true
 log.workspace = true
