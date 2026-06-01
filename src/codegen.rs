@@ -646,7 +646,7 @@ impl<'ink> GeneratedModule<'ink> {
         }
     }
 
-    pub fn to_in_memory_bitcode(&self) -> Result<MemoryBuffer, CodegenError> {
+    pub fn to_in_memory_bitcode(&self) -> Result<MemoryBuffer<'static>, CodegenError> {
         Ok(self.module.write_bitcode_to_memory())
     }
 
