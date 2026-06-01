@@ -142,33 +142,30 @@ impl GlobalContext {
             .unwrap_or_default()
             .iter()
             .flat_map(|it| it.get_span().to_range())
-            .map(|it| annotate_snippets::Level::Error.span(it).label("see also"))
+            .map(|it| annotate_snippets::AnnotationKind::Context.span(it).label("see also"))
             .collect::<Vec<_>>();
 
-        let message = annotate_snippets::Level::Error.title(diagnostic.get_message()).snippet(
-            annotate_snippets::Snippet::source(&code.source)
-                .line_start(diagnostic.get_location().get_line())
-                .origin(name)
-                .fold(true)
-                .annotation(
-                    annotate_snippets::Level::Error.span(location.clone()).label(diagnostic.get_message()),
-                )
-                .annotations(secondary_locations),
-        );
+        let snippet = annotate_snippets::Snippet::source(&code.source)
+            .line_start(diagnostic.get_location().get_line())
+            .path(name)
+            .fold(true)
+            .annotation(
+                annotate_snippets::AnnotationKind::Primary
+                    .span(location.clone())
+                    .label(diagnostic.get_message()),
+            )
+            .annotations(secondary_locations);
+
+        let group = annotate_snippets::Group::with_title(
+            annotate_snippets::Level::ERROR.primary_title(diagnostic.get_message()),
+        )
+        .element(snippet);
 
         // XXX: Temporary
         match self.error_fmt {
             ErrorFormat::Clang => self.clang_format(diagnostic),
-            ErrorFormat::Rich => {
-                let renderer = annotate_snippets::Renderer::styled();
-                let res = renderer.render(message);
-                res.to_string()
-            }
-            ErrorFormat::Null => {
-                let renderer = annotate_snippets::Renderer::plain();
-                let res = renderer.render(message);
-                res.to_string()
-            }
+            ErrorFormat::Rich => annotate_snippets::Renderer::styled().render(&[group]),
+            ErrorFormat::Null => annotate_snippets::Renderer::plain().render(&[group]),
         }
     }
 
@@ -235,5 +232,31 @@ mod tests {
 
         assert_eq!(ctxt.slice(&location), "ARRAY[1..5] OF DINT");
         assert_eq!(ctxt.slice_raw(&location), "ARRAY[1..5]   \n\n\n\nOF  \n\n\n    \t                 DINT");
+    }
+
+    /// Locks the annotate-snippets Rich rendering: the primary span is underlined
+    /// with `^^^`, secondary `see also` spans with `---` (AnnotationKind::Context).
+    #[test]
+    fn rich_diagnostic_rendering() {
+        let input = SourceCode::from("FUNCTION foo : DINT\n    bar := 1;\nEND_FUNCTION\n");
+        let mut ctxt = GlobalContext::new();
+        ctxt.insert(&input, None).unwrap();
+
+        let factory = SourceLocationFactory::default();
+        let diagnostic = plc_diagnostics::diagnostics::Diagnostic::new("undefined variable `bar`")
+            .with_error_code("E001")
+            .with_location(factory.create_range(24..27))
+            .with_secondary_location(factory.create_range(9..12));
+
+        ctxt.with_error_fmt(crate::ErrorFormat::Null);
+        insta::assert_snapshot!(ctxt.handle_as_str(&diagnostic), @"
+        error: undefined variable `bar`
+         --> <internal>:1:5
+          |
+        0 | FUNCTION foo : DINT
+          |          --- see also
+        1 |     bar := 1;
+          |     ^^^ undefined variable `bar`
+        ");
     }
 }
