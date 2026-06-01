@@ -22,14 +22,14 @@ fn parse_prefix(input: &str) -> ParseResult<'_, Prefix> {
     let fn_prefix = tag("fn").map(|_| Prefix::Fn);
     let var_prefix = tag("var").map(|_| Prefix::Var);
 
-    let (input, _) = tag(crate::RUSTY_PREFIX)(input)?;
-    let (input, prefix) = alt((fn_prefix, var_prefix))(input)?;
+    let (input, _) = tag(crate::RUSTY_PREFIX).parse(input)?;
+    let (input, prefix) = alt((fn_prefix, var_prefix)).parse(input)?;
 
     Ok((input, prefix))
 }
 
 fn parse_entity_name(input: &str) -> ParseResult<'_, &str> {
-    delimited(char('-'), take_until1(":"), char(':'))(input)
+    delimited(char('-'), take_until1(":"), char(':')).parse(input)
 }
 
 fn type_void(input: &str) -> ParseResult<'_, Type> {
@@ -37,7 +37,7 @@ fn type_void(input: &str) -> ParseResult<'_, Type> {
 }
 
 fn number<T: str::FromStr>(input: &str) -> ParseResult<'_, T> {
-    map_res(digit1, str::parse)(input)
+    map_res(digit1, str::parse).parse(input)
 }
 
 fn type_integer(input: &str) -> ParseResult<'_, Type> {
@@ -45,7 +45,7 @@ fn type_integer(input: &str) -> ParseResult<'_, Type> {
         let signed = char('i').map(|_| true);
         let unsigned = char('u').map(|_| false);
 
-        alt((signed, unsigned))(input)
+        alt((signed, unsigned)).parse(input)
     }
 
     parse_signedness
@@ -80,7 +80,7 @@ fn string_encoding(input: &str) -> ParseResult<'_, StringEncoding> {
     let utf8 = tag("8u").map(|_| StringEncoding::Utf8);
     let utf16 = tag("16u").map(|_| StringEncoding::Utf16);
 
-    alt((utf8, utf16))(input)
+    alt((utf8, utf16)).parse(input)
 }
 
 fn type_string(input: &str) -> ParseResult<'_, Type> {
@@ -96,9 +96,8 @@ fn type_array(input: &str) -> ParseResult<'_, Type> {
 }
 
 fn parse_type(input: &str) -> ParseResult<'_, Type> {
-    alt((type_void, type_integer, type_float, type_pointer, type_struct, type_enum, type_string, type_array))(
-        input,
-    )
+    alt((type_void, type_integer, type_float, type_pointer, type_struct, type_enum, type_string, type_array))
+        .parse(input)
 }
 
 fn parse_var_content<'i>(input: &'i str, name: &str) -> ParseResult<'i, SectionMangler> {
@@ -109,7 +108,7 @@ fn parse_var_content<'i>(input: &'i str, name: &str) -> ParseResult<'i, SectionM
 
 fn parse_fn_content<'i>(input: &'i str, name: &str) -> ParseResult<'i, SectionMangler> {
     let (input, return_type) = parse_type(input)?;
-    let (input, parameters) = delimited(char('['), many0(parse_type), char(']'))(input)?;
+    let (input, parameters) = delimited(char('['), many0(parse_type), char(']')).parse(input)?;
 
     // TODO: Do not always encode parameters as ByValue
     let mangler = parameters
