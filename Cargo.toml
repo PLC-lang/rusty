@@ -25,9 +25,9 @@ plc_diagnostics = { path = "./compiler/plc_diagnostics", version = "0.5.0" }
 plc_index = { path = "./compiler/plc_index", version = "0.5.0" }
 section_mangler = { path = "./compiler/section_mangler", version = "0.5.0" }
 plc_llvm = { path = "./compiler/plc_llvm", version = "0.5.0" }
-logos = "0.12.0"
+logos.workspace = true
 clap = { version = "3.0", features = ["derive"] }
-indexmap = { version = "2.0", features = ["serde"] }
+indexmap = { workspace = true, features = ["serde"] }
 generational-arena = { version = "0.2.8", features = ["serde"] }
 shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive", version = "0.5.0" }
@@ -43,7 +43,7 @@ serde_json.workspace = true
 serde.workspace = true
 toml.workspace = true
 rustc-hash.workspace = true
-tempfile = "3"
+tempfile.workspace = true
 
 [dev-dependencies]
 num = "0.4"
@@ -105,3 +105,8 @@ rustc-hash = "1.1.0"
 tempfile = "3.17.0"
 anstream = "1"
 anstyle = "1"
+logos = "0.12.0"
+indexmap = "2.0"
+regex = "1"
+glob = "0.3"
+cc = "1.0"
