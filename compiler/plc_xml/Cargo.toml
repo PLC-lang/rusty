@@ -6,7 +6,6 @@ license = "LGPL-3.0"
 description = "CFC/FBD XML format support for the PLC Structured Text compiler"
 
 [dependencies]
-logos = "0.12"
 quick-xml = { version = "0.30", features = ["serialize"] }
 insta = "1.20"
 indexmap = "2.0"
