@@ -48,6 +48,12 @@ jobs:
         uses: orhun/git-cliff-action@v4
         with:
           args: --bumped-version
+        env:
+          # Keep the action's output file out of the workspace: anything left
+          # there is committed into the release PR by create-pull-request
+          # (this step's default output is git-cliff/CHANGELOG.md, which
+          # previously rode along in every release PR).
+          OUTPUT: ${{ runner.temp }}/bumped-version.txt
 
       - name: Derive branch names
         id: branches
