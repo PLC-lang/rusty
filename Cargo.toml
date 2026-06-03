@@ -26,7 +26,7 @@ plc_index = { path = "./compiler/plc_index", version = "0.5.0" }
 section_mangler = { path = "./compiler/section_mangler", version = "0.5.0" }
 plc_llvm = { path = "./compiler/plc_llvm", version = "0.5.0" }
 logos.workspace = true
-clap.workspace = true
+clap = { version = "3.0", features = ["derive"] }
 indexmap = { workspace = true, features = ["serde"] }
 generational-arena = { version = "0.2.8", features = ["serde"] }
 shell-words = "1.1.0"
@@ -111,4 +111,3 @@ regex = "1"
 glob = "0.3"
 cc = "1.0"
 which = "8.0"
-clap = { version = "4", features = ["derive"] }
