@@ -8,6 +8,15 @@ on:
     branches:
       - master
       - "release/[0-9]*"
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: >-
+          Preview only: run every release step but skip tagging, publishing,
+          and PR creation. Uncheck to publish a release from the dispatched
+          branch (manual fallback when the automated run failed).
+        type: boolean
+        default: true
 
 jobs:
   release:
@@ -15,9 +24,10 @@ jobs:
     # Release PR head branches are `release/next` (master) or
     # `release/next-<X.Y.x>` (maintenance branches), see release-pr.yml.
     if: >-
-      github.event.pull_request.merged == true
-      && startsWith(github.event.pull_request.head.ref, 'release/next')
-      && contains(github.event.pull_request.labels.*.name, 'release')
+      github.event_name == 'workflow_dispatch'
+      || (github.event.pull_request.merged == true
+          && startsWith(github.event.pull_request.head.ref, 'release/next')
+          && contains(github.event.pull_request.labels.*.name, 'release'))
     # Runs directly on the runner, NOT in the rust-llvm container: git-cliff
     # uses libgit2, which rejects a bind-mounted workspace owned by a
     # different user than the container process and fails with "could not
@@ -42,8 +52,9 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           # Pin to the release PR's merge commit so the version, release
           # notes, and tag all describe exactly what was merged, even if the
-          # base branch has moved on since.
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          # base branch has moved on since. Manual dispatches release the
+          # tip of the dispatched branch.
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.pull_request.merge_commit_sha }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -53,8 +64,16 @@ jobs:
 
       - name: Get version from Cargo.toml
         id: version
+        env:
+          DRY_RUN: ${{ inputs.dry-run }}
         run: |
           VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          # A manual non-dry dispatch publishes for real: refuse dev versions,
+          # they mean the branch tip is not a release commit.
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$DRY_RUN" != "true" ] && [ "${VERSION%-dev}" != "$VERSION" ]; then
+            echo "::error::refusing to publish dev version $VERSION; run as dry-run or dispatch on a release commit"
+            exit 1
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
@@ -91,6 +110,7 @@ jobs:
             "${{ runner.temp }}/release/release-notes.md"
 
       - name: Create tag and GitHub release
+        if: github.event_name != 'workflow_dispatch' || !inputs.dry-run
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -98,7 +118,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           # Without this the tag would be created on the repository default
           # branch — wrong for releases cut from a maintenance branch.
-          target_commitish: ${{ github.event.pull_request.merge_commit_sha }}
+          target_commitish: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.pull_request.merge_commit_sha }}
           name: RuSTy PLC Compiler ${{ steps.version.outputs.version }}
           body_path: ${{ runner.temp }}/release/release-notes.md
           draft: false
@@ -113,7 +133,10 @@ jobs:
           # master can never offer a patch release that would collide with a
           # tag minted from a maintenance branch.
           VERSION="${{ steps.version.outputs.version }}"
+          # Manual dispatches have no pull request; fall back to the
+          # dispatched branch.
           BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          BASE_BRANCH="${BASE_BRANCH:-$GITHUB_REF_NAME}"
           MAJOR=$(echo "$VERSION" | cut -d. -f1)
           MINOR=$(echo "$VERSION" | cut -d. -f2)
           PATCH=$(echo "$VERSION" | cut -d. -f3)
@@ -134,12 +157,13 @@ jobs:
         run: cargo generate-lockfile
 
       - name: Create dev-bump pull request
+        if: github.event_name != 'workflow_dispatch' || !inputs.dry-run
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "chore: bump version to ${{ steps.dev.outputs.version }}"
           branch: ${{ steps.dev.outputs.branch }}
-          base: ${{ github.event.pull_request.base.ref }}
+          base: ${{ github.event.pull_request.base.ref || github.ref_name }}
           delete-branch: true
           title: "chore: bump version to ${{ steps.dev.outputs.version }}"
           body: |
@@ -148,3 +172,18 @@ jobs:
             Sets the workspace version to `${{ steps.dev.outputs.version }}` so that
             development builds on `master` are distinguishable from the
             `${{ steps.version.outputs.tag }}` release.
+
+      - name: Dry-run summary
+        if: github.event_name == 'workflow_dispatch' && inputs.dry-run
+        run: |
+          {
+            echo "## Release dry run"
+            echo
+            echo "- Would tag: \`${{ steps.version.outputs.tag }}\` at \`${{ github.sha }}\`"
+            echo "- Previous tag: \`${{ steps.previous-tag.outputs.tag }}\`"
+            echo "- Post-release dev bump: \`${{ steps.dev.outputs.version }}\` via \`${{ steps.dev.outputs.branch }}\`"
+            echo
+            echo "### Release notes"
+            echo
+            cat "${{ runner.temp }}/release/release-notes.md"
+          } >> "$GITHUB_STEP_SUMMARY"
