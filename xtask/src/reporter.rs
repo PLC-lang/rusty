@@ -82,7 +82,7 @@ impl Host {
 
         let os = System::long_os_version().unwrap_or("n/a".to_string());
         let cpu = sys.cpus().first().map(|cpu| cpu.brand()).unwrap_or("n/a").to_owned();
-        let mem = sys.total_memory() / 1024 / 1024; // bytes -> MiB
+        let mem = sys.total_memory() / 1024;
 
         Self { id: 0, os, cpu, mem }
     }
