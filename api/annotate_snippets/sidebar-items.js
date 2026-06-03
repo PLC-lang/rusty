@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Level"],"mod":["renderer"],"struct":["Annotation","Message","Renderer","Snippet"]};
+window.SIDEBAR_ITEMS = {"enum":["AnnotationKind","Element"],"fn":["normalize_untrusted_str"],"mod":["level","renderer"],"struct":["Annotation","Group","Level","Message","OptionCow","Origin","Padding","Patch","Renderer","Snippet","Title"],"type":["Report"]};

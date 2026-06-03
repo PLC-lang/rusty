@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ERROR","HELP","INFO","NOTE","WARNING"],"struct":["Level"]};
