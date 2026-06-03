@@ -409,6 +409,11 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             return Ok(());
         }
 
+        //If no input files are available in the project, stop the compilation
+        if self.project.get_sources().is_empty() && self.project.get_objects().is_empty() {
+            return Err(Diagnostic::new("no input files"));
+        }
+
         self.initialize_thread_pool();
 
         // 1. Parse
