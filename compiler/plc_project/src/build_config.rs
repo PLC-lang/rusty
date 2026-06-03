@@ -1,5 +1,4 @@
 use anyhow::Result;
-use jsonschema::JSONSchema;
 use plc::Target;
 use plc_diagnostics::diagnostics::Diagnostic;
 use regex::Captures;
@@ -93,24 +92,26 @@ impl ProjectConfig {
     fn validate(&self) -> Result<()> {
         let schema = include_str!("../schema/plc-json.schema");
         let schema_obj = serde_json::from_str(schema).expect("A valid schema");
-        let compiled = JSONSchema::compile(&schema_obj).expect("A valid schema");
+        let compiled = jsonschema::validator_for(&schema_obj).expect("A valid schema");
         let instance = json!(self);
-        compiled.validate(&instance).map_err(|errors| {
-            let mut message = String::from("plc.json could not be validated due to the following errors:\n");
-            for err in errors {
-                let prefix = match err.kind {
-                    jsonschema::error::ValidationErrorKind::MinItems { .. } => {
-                        err.instance_path.to_string().replace('/', "")
-                    }
-                    _ => "".into(),
-                };
-                message.push_str(&format!("{prefix}{err}\n"));
-            }
+        let mut errors = compiled.iter_errors(&instance).peekable();
+        if errors.peek().is_none() {
+            return Ok(());
+        }
 
-            // XXX: jsonschema does not provide error messages with location info
-            Diagnostic::new(message).with_error_code("E088")
-        })?;
-        Ok(())
+        let mut message = String::from("plc.json could not be validated due to the following errors:\n");
+        for err in errors {
+            let prefix = match err.kind() {
+                jsonschema::error::ValidationErrorKind::MinItems { .. } => {
+                    err.instance_path().to_string().replace('/', "")
+                }
+                _ => "".into(),
+            };
+            message.push_str(&format!("{prefix}{err}\n"));
+        }
+
+        // XXX: jsonschema does not provide error messages with location info
+        Err(Diagnostic::new(message).with_error_code("E088").into())
     }
 }
 

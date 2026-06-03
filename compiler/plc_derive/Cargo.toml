@@ -6,8 +6,8 @@ license = "LGPL-3.0"
 description = "Derive macros for the PLC Structured Text compiler"
 
 [dependencies]
-syn = "0.15"
-quote = "0.6"
+syn = "2"
+quote = "1"
 
 [lib]
 proc-macro = true

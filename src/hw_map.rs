@@ -461,49 +461,49 @@ mod tests {
           ]
         }
         "#);
-        insta::assert_snapshot!(serialize_hw_map(&map, ConfigFormat::TOML).unwrap(), @"
+        insta::assert_snapshot!(serialize_hw_map(&map, ConfigFormat::TOML).unwrap(), @r#"
         [[VariableMap]]
-        name = 'inst.a'
-        mangled_name = '__PI_0_0'
-        address = '%IX0.0'
-        direction = 'Input'
-        access_type = 'Bit'
+        name = "inst.a"
+        mangled_name = "__PI_0_0"
+        address = "%IX0.0"
+        direction = "Input"
+        access_type = "Bit"
 
         [[VariableMap]]
-        name = 'inst.b'
-        mangled_name = '__PI_2_5'
-        address = '%QW2.5'
-        direction = 'Output'
-        access_type = 'Word'
+        name = "inst.b"
+        mangled_name = "__PI_2_5"
+        address = "%QW2.5"
+        direction = "Output"
+        access_type = "Word"
 
         [[VariableMap]]
-        name = 'arr[0].a'
-        mangled_name = '__PI_0_0'
-        address = '%IX0.0'
-        direction = 'Input'
-        access_type = 'Bit'
+        name = "arr[0].a"
+        mangled_name = "__PI_0_0"
+        address = "%IX0.0"
+        direction = "Input"
+        access_type = "Bit"
 
         [[VariableMap]]
-        name = 'arr[1].a'
-        mangled_name = '__PI_0_0'
-        address = '%IX0.0'
-        direction = 'Input'
-        access_type = 'Bit'
+        name = "arr[1].a"
+        mangled_name = "__PI_0_0"
+        address = "%IX0.0"
+        direction = "Input"
+        access_type = "Bit"
 
         [[VariableMap]]
-        name = 'arr[0].b'
-        mangled_name = '__PI_2_5'
-        address = '%QW2.5'
-        direction = 'Output'
-        access_type = 'Word'
+        name = "arr[0].b"
+        mangled_name = "__PI_2_5"
+        address = "%QW2.5"
+        direction = "Output"
+        access_type = "Word"
 
         [[VariableMap]]
-        name = 'arr[1].b'
-        mangled_name = '__PI_2_5'
-        address = '%QW2.5'
-        direction = 'Output'
-        access_type = 'Word'
-        ");
+        name = "arr[1].b"
+        mangled_name = "__PI_2_5"
+        address = "%QW2.5"
+        direction = "Output"
+        access_type = "Word"
+        "#);
     }
 
     #[test]
@@ -578,41 +578,41 @@ mod tests {
           ]
         }
         "#);
-        insta::assert_snapshot!(serialize_hw_map(&map, ConfigFormat::TOML).unwrap(), @"
+        insta::assert_snapshot!(serialize_hw_map(&map, ConfigFormat::TOML).unwrap(), @r#"
         [[VariableMap]]
-        name = 'prg.pressure_alarm'
-        mangled_name = '__M_5_0'
-        address = '%MX5.0'
-        direction = 'Memory'
-        access_type = 'Bit'
+        name = "prg.pressure_alarm"
+        mangled_name = "__M_5_0"
+        address = "%MX5.0"
+        direction = "Memory"
+        access_type = "Bit"
 
         [[VariableMap]]
-        name = 'prg.intake.open_sensor'
-        mangled_name = '__PI_0_1'
-        address = '%IX0.1'
-        direction = 'Input'
-        access_type = 'Bit'
+        name = "prg.intake.open_sensor"
+        mangled_name = "__PI_0_1"
+        address = "%IX0.1"
+        direction = "Input"
+        access_type = "Bit"
 
         [[VariableMap]]
-        name = 'prg.intake.position'
-        mangled_name = '__PI_1_0'
-        address = '%QW1.0'
-        direction = 'Output'
-        access_type = 'Word'
+        name = "prg.intake.position"
+        mangled_name = "__PI_1_0"
+        address = "%QW1.0"
+        direction = "Output"
+        access_type = "Word"
 
         [[VariableMap]]
-        name = 'prg.outflow.open_sensor'
-        mangled_name = '__PI_0_2'
-        address = '%IX0.2'
-        direction = 'Input'
-        access_type = 'Bit'
+        name = "prg.outflow.open_sensor"
+        mangled_name = "__PI_0_2"
+        address = "%IX0.2"
+        direction = "Input"
+        access_type = "Bit"
 
         [[VariableMap]]
-        name = 'prg.outflow.position'
-        mangled_name = '__PI_1_1'
-        address = '%QW1.1'
-        direction = 'Output'
-        access_type = 'Word'
-        ");
+        name = "prg.outflow.position"
+        mangled_name = "__PI_1_1"
+        address = "%QW1.1"
+        direction = "Output"
+        access_type = "Word"
+        "#);
     }
 }
