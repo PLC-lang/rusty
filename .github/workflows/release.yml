@@ -7,13 +7,16 @@ on:
       - closed
     branches:
       - master
+      - "release/[0-9]*"
 
 jobs:
   release:
     name: Tag and create GitHub release
+    # Release PR head branches are `release/next` (master) or
+    # `release/next-<X.Y.x>` (maintenance branches), see release-pr.yml.
     if: >-
       github.event.pull_request.merged == true
-      && github.event.pull_request.head.ref == 'release/next'
+      && startsWith(github.event.pull_request.head.ref, 'release/next')
       && contains(github.event.pull_request.labels.*.name, 'release')
     runs-on: ubuntu-latest
     container: ghcr.io/plc-lang/rust-llvm:21-1.95
@@ -33,6 +36,10 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
+          # Pin to the release PR's merge commit so the version, release
+          # notes, and tag all describe exactly what was merged, even if the
+          # base branch has moved on since.
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
 
       # Workaround: the rust-llvm container image is missing `jq`, which
       # `orhun/git-cliff-action`'s install.sh needs to parse the GitHub API
@@ -54,7 +61,10 @@ jobs:
         id: previous-tag
         run: |
           CURRENT_TAG="${{ steps.version.outputs.tag }}"
-          PREVIOUS_TAG=$(git tag --list 'v[0-9]*' --sort=-v:refname | grep -Fxv "$CURRENT_TAG" | head -n1 || true)
+          # Only consider tags reachable from this branch: a maintenance
+          # release (e.g. v1.0.1) must not pick up a newer master tag
+          # (e.g. v1.1.0) as its predecessor.
+          PREVIOUS_TAG=$(git tag --list 'v[0-9]*' --merged HEAD --sort=-v:refname | grep -Fxv "$CURRENT_TAG" | head -n1 || true)
           echo "tag=$PREVIOUS_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Prepare release notes workspace
@@ -82,6 +92,9 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
           tag_name: ${{ steps.version.outputs.tag }}
+          # Without this the tag would be created on the repository default
+          # branch — wrong for releases cut from a maintenance branch.
+          target_commitish: ${{ github.event.pull_request.merge_commit_sha }}
           name: RuSTy PLC Compiler ${{ steps.version.outputs.version }}
           body_path: .github/release/release-notes.md
           draft: false
@@ -90,12 +103,25 @@ jobs:
       - name: Compute dev version
         id: dev
         run: |
+          # Master mints minor (and major) releases; maintenance branches
+          # (release/X.Y.x) mint patch releases. Bumping master to the next
+          # *minor* -dev keeps the two version spaces disjoint: a fixes-only
+          # master can never offer a patch release that would collide with a
+          # tag minted from a maintenance branch.
           VERSION="${{ steps.version.outputs.version }}"
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
           MAJOR=$(echo "$VERSION" | cut -d. -f1)
           MINOR=$(echo "$VERSION" | cut -d. -f2)
           PATCH=$(echo "$VERSION" | cut -d. -f3)
-          DEV_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))-dev"
+          if [ "$BASE_BRANCH" = "master" ]; then
+            DEV_VERSION="${MAJOR}.$((MINOR + 1)).0-dev"
+            DEV_BRANCH="post-release/dev-bump"
+          else
+            DEV_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))-dev"
+            DEV_BRANCH="post-release/dev-bump-${BASE_BRANCH#release/}"
+          fi
           echo "version=$DEV_VERSION" >> "$GITHUB_OUTPUT"
+          echo "branch=$DEV_BRANCH" >> "$GITHUB_OUTPUT"
 
       - name: Bump to dev version
         run: cargo set-version --workspace ${{ steps.dev.outputs.version }}
@@ -108,7 +134,8 @@ jobs:
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "chore: bump version to ${{ steps.dev.outputs.version }}"
-          branch: post-release/dev-bump
+          branch: ${{ steps.dev.outputs.branch }}
+          base: ${{ github.event.pull_request.base.ref }}
           delete-branch: true
           title: "chore: bump version to ${{ steps.dev.outputs.version }}"
           body: |

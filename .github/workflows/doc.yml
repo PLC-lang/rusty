@@ -4,7 +4,9 @@ on:
   push:
     branches: [master]
   pull_request:
-    branches: [master]
+    # Release branches get PR validation only; the gh-pages deploy below is
+    # additionally gated on master, so no deploys happen from release branches.
+    branches: [master, "release/[0-9]*"]
 
 env:
   IMAGE_NAME: rust-llvm

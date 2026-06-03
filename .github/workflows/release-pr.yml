@@ -5,6 +5,10 @@ on:
   push:
     branches:
       - master
+      # Maintenance branches for released versions, e.g. release/1.0.x. The
+      # character class keeps the automation's own `release/next*` head
+      # branches from matching.
+      - "release/[0-9]*"
   workflow_dispatch:
 
 jobs:
@@ -45,6 +49,20 @@ jobs:
         with:
           args: --bumped-version
 
+      - name: Derive branch names
+        id: branches
+        run: |
+          # Each base branch gets its own release-PR head branch so that a
+          # master release PR and a maintenance release PR can coexist.
+          BASE="${GITHUB_REF_NAME}"
+          if [ "$BASE" = "master" ]; then
+            HEAD="release/next"
+          else
+            HEAD="release/next-${BASE#release/}"
+          fi
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          echo "head=$HEAD" >> "$GITHUB_OUTPUT"
+
       - name: Check if bump needed
         id: version
         run: |
@@ -59,6 +77,22 @@ jobs:
           # agrees with the version we'd preemptively bumped to.
           CURRENT=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
           NEXT=$(echo "${{ steps.cliff-version.outputs.content }}" | sed 's/^v//')
+
+          # Maintenance branches (release/X.Y.x) only ever publish patch
+          # releases; minting a minor/major there would collide with the tags
+          # master produces. The PR guard rejects feat/breaking backports up
+          # front — this clamp is the backstop for anything that slips
+          # through (e.g. a non-squash merge).
+          if [ "${GITHUB_REF_NAME}" != "master" ] && [ -n "$NEXT" ]; then
+            BASE_TAG=$(git tag --list 'v[0-9]*' --merged HEAD --sort=-v:refname | head -n1)
+            BASE_VERSION="${BASE_TAG#v}"
+            if [ -n "$BASE_VERSION" ] && [ "${NEXT%.*}" != "${BASE_VERSION%.*}" ]; then
+              CLAMPED="${BASE_VERSION%.*}.$(( ${BASE_VERSION##*.} + 1 ))"
+              echo "::warning::git-cliff computed v$NEXT on ${GITHUB_REF_NAME}; clamping to patch release v$CLAMPED"
+              NEXT="$CLAMPED"
+            fi
+          fi
+
           CURRENT_BASE="${CURRENT%-dev}"
           echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
@@ -101,7 +135,8 @@ jobs:
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "chore(release): prepare v${{ steps.version.outputs.next }}"
-          branch: release/next
+          branch: ${{ steps.branches.outputs.head }}
+          base: ${{ steps.branches.outputs.base }}
           delete-branch: true
           title: "chore(release): v${{ steps.version.outputs.next }}"
           body: |

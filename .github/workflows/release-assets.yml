@@ -78,8 +78,9 @@ jobs:
               SKIP=true
             fi
 
-            if [[ "${{ steps.source.outputs.head_branch }}" != "master" ]]; then
-              echo "Skipping non-master run: ${{ steps.source.outputs.head_branch }}"
+            HEAD_BRANCH="${{ steps.source.outputs.head_branch }}"
+            if [[ "$HEAD_BRANCH" != "master" && "$HEAD_BRANCH" != release/[0-9]* ]]; then
+              echo "Skipping non-release-branch run: $HEAD_BRANCH"
               SKIP=true
             fi
           fi

@@ -2,9 +2,9 @@ name: Build Windows
 
 on:
   push:
-    branches: [master]
+    branches: [master, "release/[0-9]*"]
   pull_request:
-    branches: [master]
+    branches: [master, "release/[0-9]*"]
   merge_group:
 
   # Allows you to run this workflow manually from the Actions tab
