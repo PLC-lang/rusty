@@ -20,7 +20,7 @@
 use std::convert::Infallible;
 use std::str::FromStr;
 
-use clap::clap_derive::ArgEnum;
+use clap::ValueEnum;
 use plc_index::ErrorFormat as IndexErrorFormat;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -131,7 +131,7 @@ impl FromStr for Target {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, ArgEnum)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, ValueEnum)]
 pub enum ConfigFormat {
     JSON,
     TOML,
@@ -149,7 +149,7 @@ impl FromStr for ConfigFormat {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, ArgEnum, Serialize, Deserialize, Default)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum, Serialize, Deserialize, Default)]
 pub enum ErrorFormat {
     #[default]
     Rich,
@@ -175,7 +175,7 @@ pub enum Threads {
     None,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum, Serialize, Deserialize, Default)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Serialize, Deserialize, Default)]
 pub enum OptimizationLevel {
     None,
     Less,

@@ -26,7 +26,7 @@ plc_index = { path = "./compiler/plc_index", version = "0.5.0" }
 section_mangler = { path = "./compiler/section_mangler", version = "0.5.0" }
 plc_llvm = { path = "./compiler/plc_llvm", version = "0.5.0" }
 logos = "0.12.0"
-clap = { version = "3.0", features = ["derive"] }
+clap.workspace = true
 indexmap = { version = "2.0", features = ["serde"] }
 generational-arena = { version = "0.2.8", features = ["serde"] }
 shell-words = "1.1.0"
@@ -105,3 +105,4 @@ rustc-hash = "1.1.0"
 tempfile = "3.17.0"
 anstream = "1"
 anstyle = "1"
+clap = { version = "4", features = ["derive"] }

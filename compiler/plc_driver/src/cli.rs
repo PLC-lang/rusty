@@ -24,7 +24,7 @@ pub struct PrefixMapArg {
     pub new: PathBuf,
 }
 
-#[derive(clap::ArgEnum, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LogLevel {
     Off,
     Error,
@@ -65,7 +65,7 @@ pub struct CompileParameters {
         global = true,
         help = "Set log verbosity (off, error, warn, info, debug, trace)",
         conflicts_with = "verbose",
-        arg_enum
+        value_enum
     )]
     pub log_level: Option<LogLevel>,
 
@@ -145,7 +145,13 @@ pub struct CompileParameters {
     #[clap(long = "fpic", global = true, help = "Generate position-independent code where applicable")]
     pub fpic: bool,
 
-    #[clap(long = "fno-pic", global = true, help = "Generate non-PIC code where applicable")]
+    // explicit id: referenced by the relocation-model group and conflicts_with
+    #[clap(
+        name = "fno-pic",
+        long = "fno-pic",
+        global = true,
+        help = "Generate non-PIC code where applicable"
+    )]
     pub fno_pic: bool,
 
     #[clap(
@@ -164,7 +170,7 @@ pub struct CompileParameters {
         name = "encoding",
         help = "The file encoding used to read the input-files, as defined by the Encoding Standard",
         global = true,
-        parse(try_from_str = parse_encoding),
+        value_parser = parse_encoding,
     )]
     pub encoding: Option<&'static Encoding>,
 
@@ -172,7 +178,7 @@ pub struct CompileParameters {
         name = "input-files",
         help = "Read input from <input-files>, may be a glob expression like 'src/**/*' or a sequence of files",
         // required = true,
-        min_values = 1
+        num_args = 1..
     )]
     // having a vec allows bash to resolve *.st itself
     pub input: Vec<String>,
@@ -230,7 +236,7 @@ pub struct CompileParameters {
         help = "[deprecated, use --hwmap-file] Generate Hardware configuration files to the given location.
     Format is detected by extension.
     Supported formats : json, toml",
-    parse(try_from_str = validate_config)
+    value_parser = validate_config
     ) ]
     pub hardware_config: Option<String>,
 
@@ -246,8 +252,7 @@ pub struct CompileParameters {
     <output>.hwmap.json. Format is detected by extension. Supported formats : json, toml.
     Note: when supplying a path, use `--hwmap-file=PATH` (the `=` is required);
     `--hwmap-file PATH` is rejected as a parse error.",
-        min_values = 0,
-        max_values = 1,
+        num_args = 0..=1,
         require_equals = true
     )]
     pub hwmap_file: Option<Option<String>>,
@@ -261,7 +266,7 @@ pub struct CompileParameters {
     Format is detected by extension.
     Supported formats : json, toml",
         default_value = DEFAULT_GOT_LAYOUT_FILE,
-        parse(try_from_str = validate_config),
+        value_parser = validate_config,
         requires = "online-change"
     ) ]
     pub got_layout_file: String,
@@ -271,7 +276,7 @@ pub struct CompileParameters {
         long,
         short = 'O',
         help = "Optimization level",
-        arg_enum,
+        value_enum,
         default_value = "default",
         global = true
     )]
@@ -281,7 +286,7 @@ pub struct CompileParameters {
         name = "error-format",
         long,
         help = "Set format for error reporting",
-        arg_enum,
+        value_enum,
         default_value = "rich",
         global = true
     )]
@@ -350,8 +355,8 @@ pub struct CompileParameters {
         global = true,
         group = "dbg",
         conflicts_with = "debug",
-        max_values = 1,
-        possible_values = &["2", "3", "4", "5"],
+        num_args = 1,
+        value_parser = clap::builder::RangedU64ValueParser::<usize>::new().range(2..=5),
     )]
     pub gdwarf_version: Option<usize>,
 
@@ -363,8 +368,8 @@ pub struct CompileParameters {
         global = true,
         group = "dbg",
         conflicts_with = "debug-variables",
-        max_values = 1,
-        possible_values = &["2", "3", "4", "5"],
+        num_args = 1,
+        value_parser = clap::builder::RangedU64ValueParser::<usize>::new().range(2..=5),
     )]
     pub gdwarf_varinfo_version: Option<usize>,
 
@@ -376,7 +381,7 @@ pub struct CompileParameters {
         help = "Remap debug/source paths: rewrites paths starting with OLD to start with NEW. \
                 NEW is taken as a literal replacement (no current-directory expansion). \
                 Repeat to add more mappings; later occurrences win on equal-length matches.",
-        parse(try_from_str = parse_prefix_map)
+        value_parser = parse_prefix_map
     )]
     pub prefix_maps: Vec<PrefixMapArg>,
 
@@ -385,7 +390,7 @@ pub struct CompileParameters {
         value_name = "dir",
         global = true,
         help = "Override the DWARF compilation directory",
-        parse(try_from_str = parse_debug_compilation_dir)
+        value_parser = parse_debug_compilation_dir
     )]
     pub debug_compilation_dir: Option<PathBuf>,
 
@@ -395,7 +400,7 @@ pub struct CompileParameters {
         short = 'j',
         help = "Set the number of threads to use for the compilation",
         global = true,
-        parse(try_from_str = get_parallel_threads)
+        value_parser = get_parallel_threads
     )]
     pub threads: Option<Threads>,
 
@@ -414,6 +419,7 @@ pub struct CompileParameters {
     pub check_only: bool,
 
     #[clap(
+        name = "online-change",
         long,
         help = "Emit a binary with specific compilation information, suitable for online changes when ran under a conforming runtime",
         global = true
@@ -456,7 +462,7 @@ pub enum SubCommands {
     ///
     Build {
         #[clap(
-            parse(try_from_str = validate_config)
+            value_parser = validate_config
         )]
         build_config: Option<String>,
 
@@ -471,7 +477,7 @@ pub enum SubCommands {
     /// Used to trigger a check, but not compile action.
     Check {
         #[clap(
-            parse(try_from_str = validate_config)
+            value_parser = validate_config
         )]
         build_config: Option<String>,
     },
@@ -491,7 +497,7 @@ pub enum SubCommands {
         option: ConfigOption,
 
         #[clap(
-            parse(try_from_str = validate_config)
+            value_parser = validate_config
         )]
         build_config: Option<String>,
     },
@@ -508,7 +514,7 @@ pub enum SubCommands {
     ///     Header : Generates the Header files
     Generate {
         #[clap(
-            parse(try_from_str = validate_config)
+            value_parser = validate_config
         )]
         build_config: Option<String>,
 
@@ -519,9 +525,9 @@ pub enum SubCommands {
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
 pub enum ConfigOption {
-    #[clap(help = "Prints the plc.json's schema used for validation")]
+    /// Prints the plc.json's schema used for validation
     Schema,
-    #[clap(help = "Prints the configuration for the project")]
+    /// Prints the configuration for the project
     Diagnostics,
 }
 
@@ -538,7 +544,7 @@ pub enum GenerateOption {
         #[clap(
             name = "header-language",
             long,
-            arg_enum,
+            value_enum,
             help = "The language used to generate the header file. Currently supported language(s) are: C",
             default_value = "c"
         )]
@@ -845,7 +851,7 @@ mod cli_tests {
     use crate::cli::{ConfigOption, GenerateLanguage, GenerateOption};
 
     use super::{CompileParameters, SubCommands};
-    use clap::ErrorKind;
+    use clap::error::ErrorKind;
     use plc::{
         output::{FormatOption, RelocationPreference},
         ConfigFormat, ErrorFormat, OptimizationLevel,
@@ -1486,29 +1492,26 @@ mod cli_tests {
     #[test]
     fn invalid_dwarf_version() {
         let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf", "1")).unwrap_err();
-        assert_eq!(error.kind(), ErrorKind::InvalidValue);
-        let inner = &error.info;
-        assert_eq!(inner[1], "1");
+        assert_eq!(error.kind(), ErrorKind::ValueValidation);
+        assert!(error.to_string().contains('1'));
 
         let error =
             CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf-variables", "99")).unwrap_err();
-        assert_eq!(error.kind(), ErrorKind::InvalidValue);
-        let inner = &error.info;
-        assert_eq!(inner[1], "99");
+        assert_eq!(error.kind(), ErrorKind::ValueValidation);
+        assert!(error.to_string().contains("99"));
 
         let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf", "abc")).unwrap_err();
-        assert_eq!(error.kind(), ErrorKind::InvalidValue);
-        let inner = &error.info;
-        assert_eq!(inner[1], "abc");
+        assert_eq!(error.kind(), ErrorKind::ValueValidation);
+        assert!(error.to_string().contains("abc"));
     }
 
     #[test]
     fn dwarf_version_override_arg_requries_value() {
         let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf")).unwrap_err();
-        assert_eq!(error.kind(), ErrorKind::EmptyValue);
+        assert_eq!(error.kind(), ErrorKind::InvalidValue);
 
         let error = CompileParameters::parse(vec_of_strings!("input.st", "--gdwarf-variables")).unwrap_err();
-        assert_eq!(error.kind(), ErrorKind::EmptyValue);
+        assert_eq!(error.kind(), ErrorKind::InvalidValue);
     }
 
     #[test]
