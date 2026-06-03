@@ -7243,3 +7243,65 @@ fn fb_instance_shares_name_with_function_direct_call() {
         annotations.get(operator)
     );
 }
+
+#[test]
+fn enum_with_names_that_collide_with_pous_resolves_correctly() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+            TYPE
+                MyEnum : (MyFunc, MyFuncBlock, MyMethod, MyAlias);
+            END_TYPE
+
+            PROGRAM mainProg
+                VAR
+                    e : MyEnum;
+                END_VAR
+
+                e := MyFunc;
+                e := MyFuncBlock;
+                e := MyMethod;
+                e := MyAlias;
+
+            END_PROGRAM
+
+            TYPE
+                MyAlias : INT;
+            END_TYPE
+
+            FUNCTION MyFunc
+                // Does nothing
+            END_FUNCTION
+
+            FUNCTION_BLOCK MyFuncBlock
+                METHOD PUBLIC MyMethod
+                    // Does nothing
+                END_METHOD
+            END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    let statements = &unit.implementations[0].statements;
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = &statements[0] {
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), "MyEnum", Some("MyEnum"));
+    } else {
+        unreachable!()
+    }
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = &statements[1] {
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), "MyEnum", Some("MyEnum"));
+    } else {
+        unreachable!()
+    }
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = &statements[2] {
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), "MyEnum", Some("MyEnum"));
+    } else {
+        unreachable!()
+    }
+    if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = &statements[3] {
+        assert_type_and_hint!(&annotations, &index, right.as_ref(), "MyEnum", Some("MyEnum"));
+    } else {
+        unreachable!()
+    }
+}

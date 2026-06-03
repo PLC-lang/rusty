@@ -2538,10 +2538,24 @@ impl<'i> TypeAnnotator<'i> {
         ctx: &VisitorContext<'_>,
     ) -> Option<StatementAnnotation> {
         match reference.get_stmt() {
-            AstStatement::Identifier(name, ..) => ctx
-                .resolve_strategy
-                .iter()
-                .find_map(|scope| scope.resolve_name(name, qualifier, self.index, ctx, &self.scopes)),
+            AstStatement::Identifier(name, ..) => {
+                // Internally generated ADR/REF calls (e.g. vtable wiring) may reference POU names
+                // that can potentially collide with enum variants.
+                let should_use_pou_resolution =
+                    qualifier.is_none() && reference.location.is_internal() && ctx.pou.is_none();
+
+                if should_use_pou_resolution {
+                    if let Some(annotation) =
+                        ResolvingStrategy::POU.resolve_name(name, qualifier, self.index, ctx, &self.scopes)
+                    {
+                        return Some(annotation);
+                    }
+                }
+
+                ctx.resolve_strategy
+                    .iter()
+                    .find_map(|scope| scope.resolve_name(name, qualifier, self.index, ctx, &self.scopes))
+            }
 
             AstStatement::ReferenceExpr(_) => {
                 self.visit_statement(ctx, reference);
@@ -3197,11 +3211,27 @@ impl ResolvingStrategy {
                         .or_else(|| index.find_enum_variant(qualifier, name))
                         .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
                 } else {
+                    // FIXME: String matching here isn't the best, but it will do until we have a set way to determine builtin ADR/REF
+                    let is_addressing_builtin_arg = ctx.lhs.is_some_and(|lhs| {
+                        let lhs = lhs.to_ascii_uppercase();
+                        lhs == "ADR" || lhs == "REF" || lhs.starts_with("ADR__") || lhs.starts_with("REF__")
+                    });
+
                     // look for member variable with name "pou.name"
                     // then try fopr a global variable called "name"
+                    // if that global varible is not shadowed by a
+                    // ADR/REF POU with the same name in the current context
                     ctx.pou
                         .and_then(|pou| scopes.find_member(index, pou, name))
-                        .or_else(|| index.find_global_variable(name))
+                        .or_else(|| {
+                            // In ADR/REF argument context, prefer callable/type symbols over
+                            // enum variants if both share the same unqualified name.
+                            if is_addressing_builtin_arg && index.find_pou(name).is_some() {
+                                None
+                            } else {
+                                index.find_global_variable(name)
+                            }
+                        })
                         .map(|g| to_variable_annotation(g, index, g.is_constant()))
                 }
             }
