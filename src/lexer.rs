@@ -84,7 +84,11 @@ impl<'a> ParseSession<'a> {
     /// current token.
     pub fn peek(&self) -> Token {
         let mut peeked = self.lexer.clone();
-        peeked.next().unwrap_or(Token::End)
+        match peeked.next() {
+            Some(Ok(token)) => token,
+            Some(Err(())) => Token::Error,
+            None => Token::End,
+        }
     }
 
     pub fn try_consume_or_report(&mut self, token: Token) {
@@ -109,7 +113,12 @@ impl<'a> ParseSession<'a> {
 
     pub fn advance(&mut self) {
         self.last_range = self.range();
-        self.last_token = std::mem::replace(&mut self.token, self.lexer.next().unwrap_or(Token::End));
+        let next = match self.lexer.next() {
+            Some(Ok(token)) => token,
+            Some(Err(())) => Token::Error,
+            None => Token::End,
+        };
+        self.last_token = std::mem::replace(&mut self.token, next);
         self.parse_progress += 1;
 
         match self.token {

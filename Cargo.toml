@@ -25,7 +25,7 @@ plc_diagnostics = { path = "./compiler/plc_diagnostics", version = "0.5.0" }
 plc_index = { path = "./compiler/plc_index", version = "0.5.0" }
 section_mangler = { path = "./compiler/section_mangler", version = "0.5.0" }
 plc_llvm = { path = "./compiler/plc_llvm", version = "0.5.0" }
-logos = "0.12.0"
+logos = "0.16"
 clap = { version = "3.0", features = ["derive"] }
 indexmap = { version = "2.0", features = ["serde"] }
 generational-arena = { version = "0.2.8", features = ["serde"] }
