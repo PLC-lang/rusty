@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["BitVec","Blocks","IntoIter","Iter"],"trait":["BitBlock"]};
+window.SIDEBAR_ITEMS = {"struct":["BitVec","Blocks","IntoIter","Iter","IterMut","MutBorrowedBit"],"trait":["BitBlock"]};

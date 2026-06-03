@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Data","Fragment","IData","IFragment","IPath","IQuery","IRegName","IUserinfo","Path","Port","Query","RegName","Userinfo"]};

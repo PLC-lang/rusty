@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`Map`"><title>micromap - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="micromap" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate micromap</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../micromap/index.html">micromap</a><span class="version">0.3.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#map" title="`Map`"><code>Map</code></a></li><li><a href="#set" title="`Set`"><code>Set</code></a></li><li><a href="#no_std-support-and-optional-features" title="`no_std` support and Optional features"><code>no_std</code> support and Optional features</a></li><li><a href="#capacity-and-allocation" title="Capacity and Allocation">Capacity and Allocation</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>micromap</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/micromap/lib.rs.html#4-95">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h3 id="map"><a class="doc-anchor" href="#map">§</a><a href="map/struct.Map.html" title="struct micromap::map::Map"><code>Map</code></a></h3>
+<p>This is a <strong>simpler and faster</strong> alternative implementation of the standard
+<a href="https://doc.rust-lang.org/1.95.0/std/collections/hash/map/struct.HashMap.html" title="struct std::collections::hash::map::HashMap"><code>HashMap</code></a> in <strong>small-scale</strong>. It does <strong>not use
+heap</strong> and <strong>not need the <a href="https://doc.rust-lang.org/1.95.0/core/hash/trait.Hash.html" title="trait core::hash::Hash"><code>Hash</code></a> or <a href="https://doc.rust-lang.org/1.95.0/core/cmp/trait.Ord.html" title="trait core::cmp::Ord"><code>Ord</code></a> trait</strong> at all.</p>
+<p>It simply keeps all key-value pairs in an array and when it’s necessary to
+retrieve by key, it scrolls through the entire array. This implementation
+works much faster for small maps of <strong>less than 50 keys (recommended)</strong>, but
+definitely is not suitable for larger maps.</p>
+<p>Check <a href="https://github.com/yegor256/micromap#benchmark">this page</a>
+for the recent benchmarking results.</p>
+<p>For example, here is how a map with a few keys can be created:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>micromap::Map;
+<span class="kw">let </span><span class="kw-2">mut </span>map : Map&lt;u64, <span class="kw-2">&amp;</span>str, <span class="number">10</span>&gt; = Map::new();
+map.insert(<span class="number">1</span>, <span class="string">"Hello, world!"</span>);
+map.insert(<span class="number">2</span>, <span class="string">"Good bye!"</span>);
+<span class="macro">assert_eq!</span>(map.len(), <span class="number">2</span>);
+<span class="macro">assert_eq!</span>(map.capacity(), <span class="number">10</span>);</code></pre></div>
+<p>Creating a <a href="map/struct.Map.html" title="struct micromap::map::Map"><code>Map</code></a> requires knowing the maximum size of it, upfront. This is
+what the third type argument <code>10</code> is for, in the example above. The array
+will have exactly ten elements. An attempt to <a href="map/struct.Map.html#method.insert" title="method micromap::map::Map::insert"><code>insert</code></a> an 11th
+element will lead to a panic. (Or use <a href="map/struct.Map.html#method.checked_insert" title="method micromap::map::Map::checked_insert"><code>checked_insert</code></a>
+instead to avoid panics by returning an <a href="https://doc.rust-lang.org/1.95.0/core/option/enum.Option.html" title="enum core::option::Option"><code>Option</code></a>.)</p>
+<h3 id="set"><a class="doc-anchor" href="#set">§</a><a href="set/struct.Set.html" title="struct micromap::set::Set"><code>Set</code></a></h3>
+<p>Similarly, you can also create a <strong>small <a href="set/struct.Set.html" title="struct micromap::set::Set"><code>Set</code></a> on stack</strong> directly. It has basic
+but adequate operations as a real set. (As is common practice, <code>Set&lt;T&gt;</code> is actually
+a <code>Map&lt;T, ()&gt;</code>)</p>
+<p>For example, here is how a set with a few items can be created and manipulated:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>micromap::Set;
+<span class="kw">let </span>v = <span class="macro">vec!</span>[<span class="number">5</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">4</span>];
+<span class="kw">let </span>set_a = Set::from([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]); <span class="comment">// Set&lt;i32, 3&gt;
+</span><span class="kw">let </span>set_b: Set&lt;i32, <span class="number">4</span>&gt; = Set::from_iter(v);
+<span class="macro">assert_eq!</span>(set_a.capacity(), <span class="number">3</span>);
+<span class="macro">assert_eq!</span>(set_b.capacity(), set_a.capacity() + <span class="number">1</span>);
+<span class="comment">// 5 or more (e.g. 7), or else panic
+</span><span class="kw">let </span>set_union: Set&lt;<span class="kw">_</span>, <span class="number">7</span>&gt; = set_a.union(<span class="kw-2">&amp;</span>set_b).cloned().collect();
+<span class="kw">let </span>set_diff = <span class="kw-2">&amp;</span>set_a - <span class="kw-2">&amp;</span>set_b;
+<span class="macro">assert_eq!</span>(set_union, Set::from([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]));
+<span class="macro">assert_eq!</span>(set_diff, Set::from([<span class="number">3</span>]));</code></pre></div><h3 id="no_std-support-and-optional-features"><a class="doc-anchor" href="#no_std-support-and-optional-features">§</a><code>no_std</code> support and Optional features</h3>
+<p>The <code>micromap</code> does not depend on <a href="https://doc.rust-lang.org/1.95.0/std/index.html" title="mod std"><code>std</code></a>, so <code>no_std</code> is supported by default.</p>
+<p>And no feature is enabled by default:</p>
+<ul>
+<li><code>serde</code>: When this optional dependency is enabled, micromap implements the
+<code>serde::Serialize</code> and <code>serde::Deserialize</code> traits.</li>
+<li><code>std</code>: Currently no effect, you can just ignore it.</li>
+</ul>
+<h3 id="capacity-and-allocation"><a class="doc-anchor" href="#capacity-and-allocation">§</a>Capacity and Allocation</h3>
+<p>The capacity <strong>cannot be changed after creation</strong> unless a new instance is created
+using a different generic constant. <strong>No heap allocations</strong> are made.</p>
+<p>If the type of the <code>Map</code> key-value pair (or the item type of the <code>Set</code>) is large, a
+stack-overflow error may occur when a large generic constant <code>N</code> is selected.
+Even if we use <code>Box::new(Set&lt;BigT, 4096&gt;)</code>, there is still a risk of stack-overflow
+unless Rust provides a usable Placement-New feature.</p>
+<p>Regarding memory usage, in addition to the inserted key-value pairs (or items),
+each <a href="map/struct.Map.html" title="struct micromap::map::Map"><code>Map</code></a> or <a href="set/struct.Set.html" title="struct micromap::set::Set"><code>Set</code></a> only occupies an additional <code>usize</code> of memory to store
+quantity (len) information, that’s all.</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.Map"><code>pub use map::<a class="struct" href="map/struct.Map.html" title="struct micromap::map::Map">Map</a>;</code></dt><dt id="reexport.Set"><code>pub use set::<a class="struct" href="set/struct.Set.html" title="struct micromap::set::Set">Set</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="map/index.html" title="mod micromap::map">map</a></dt><dd>A small Map based on a fixed length array which stores key-value pairs directly.</dd><dt><a class="mod" href="set/index.html" title="mod micromap::set">set</a></dt><dd>A small Set implemented as a Linear Map where the value is <code>()</code>.</dd></dl></section></div></main></body></html>

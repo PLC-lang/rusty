@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["PathChunk"],"struct":["AbsolutePath","JSONPointer"]};
+window.SIDEBAR_ITEMS = {"enum":["LocationSegment"],"struct":["Location"],"type":["LazyLocation"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["codec","either","future","io","sync"]};

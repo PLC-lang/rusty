@@ -3,7 +3,7 @@
 <a href=#3 id=3 data-nosnippet>3</a>    collections::BTreeMap,
 <a href=#4 id=4 data-nosnippet>4</a>    time::{Duration, SystemTime, UNIX_EPOCH},
 <a href=#5 id=5 data-nosnippet>5</a>};
-<a href=#6 id=6 data-nosnippet>6</a><span class="kw">use </span>sysinfo::{CpuExt, System, SystemExt};
+<a href=#6 id=6 data-nosnippet>6</a><span class="kw">use </span>sysinfo::System;
 <a href=#7 id=7 data-nosnippet>7</a>
 <a href=#8 id=8 data-nosnippet>8</a><span class="kw">use </span>anyhow::Result;
 <a href=#9 id=9 data-nosnippet>9</a><span class="kw">use </span>serde::{Serialize, Serializer};
@@ -80,8 +80,8 @@
 <a href=#80 id=80 data-nosnippet>80</a>    <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
 <a href=#81 id=81 data-nosnippet>81</a>        <span class="kw">let </span>sys = System::new_all();
 <a href=#82 id=82 data-nosnippet>82</a>
-<a href=#83 id=83 data-nosnippet>83</a>        <span class="kw">let </span>os = sys.long_os_version().unwrap_or(<span class="string">"n/a"</span>.to_string());
-<a href=#84 id=84 data-nosnippet>84</a>        <span class="kw">let </span>cpu = sys.global_cpu_info().brand().to_owned();
+<a href=#83 id=83 data-nosnippet>83</a>        <span class="kw">let </span>os = System::long_os_version().unwrap_or(<span class="string">"n/a"</span>.to_string());
+<a href=#84 id=84 data-nosnippet>84</a>        <span class="kw">let </span>cpu = sys.cpus().first().map(|cpu| cpu.brand()).unwrap_or(<span class="string">"n/a"</span>).to_owned();
 <a href=#85 id=85 data-nosnippet>85</a>        <span class="kw">let </span>mem = sys.total_memory() / <span class="number">1024</span>;
 <a href=#86 id=86 data-nosnippet>86</a>
 <a href=#87 id=87 data-nosnippet>87</a>        <span class="self">Self </span>{ id: <span class="number">0</span>, os, cpu, mem }

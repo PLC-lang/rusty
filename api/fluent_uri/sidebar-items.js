@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ConvertError","ParseErrorKind"],"mod":["build","component","normalize","pct_enc","resolve"],"struct":["Iri","IriRef","ParseError","Uri","UriRef"]};

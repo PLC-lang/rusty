@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["TypeKind","ValidationErrorKind"],"struct":["ValidationError"],"type":["ErrorIterator"]};
+window.SIDEBAR_ITEMS = {"enum":["TypeKind","ValidationErrorKind"],"struct":["ErrorIterator","MaskedValidationError","ValidationError","ValidationErrorParts","ValidationErrors"]};

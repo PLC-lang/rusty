@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":["ref_cast_custom"],"derive":["RefCast","RefCastCustom"],"trait":["RefCast"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Host"],"struct":["Authority","Scheme"],"type":["IAuthority","IHost"]};

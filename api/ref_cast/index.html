@@ -1,0 +1,82 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="github crates-io docs-rs"><title>ref_cast - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="ref_cast" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate ref_cast</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../ref_cast/index.html">ref_<wbr>cast</a><span class="version">1.0.25</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#basic-example" title="Basic example">Basic example</a></li><li><a href="#realistic-example" title="Realistic example">Realistic example</a></li></ul><h3><a href="#traits">Crate Items</a></h3><ul class="block"><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#attributes" title="Attribute Macros">Attribute Macros</a></li><li><a href="#derives" title="Derive Macros">Derive Macros</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>ref_<wbr>cast</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/ref_cast/lib.rs.html#1-185">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><a href="https://github.com/dtolnay/ref-cast"><img src="https://img.shields.io/badge/github-8da0cb?style=for-the-badge&amp;labelColor=555555&amp;logo=github" alt="github" /></a> <a href="https://crates.io/crates/ref-cast"><img src="https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&amp;labelColor=555555&amp;logo=rust" alt="crates-io" /></a> <a href="https://docs.rs/ref-cast"><img src="https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&amp;labelColor=555555&amp;logo=docs.rs" alt="docs-rs" /></a></p>
+<br>
+<p>This crate provides a derive macro for generating safe conversions from <code>&amp;T</code>
+to <code>&amp;U</code> where the struct <code>U</code> contains a single field of type <code>T</code>.</p>
+<h2 id="basic-example"><a class="doc-anchor" href="#basic-example">§</a>Basic example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>ref_cast::RefCast;
+
+<span class="attr">#[derive(RefCast)]
+#[repr(transparent)]
+</span><span class="kw">struct </span>U(String);
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>s = String::new();
+
+    <span class="comment">// Safely cast from `&amp;String` to `&amp;U`.
+    </span><span class="kw">let </span>u = U::ref_cast(<span class="kw-2">&amp;</span>s);
+}</code></pre></div>
+<p>Note that <code>#[repr(transparent)]</code> is required in order for the conversion to
+be sound. The derive macro will refuse to compile if that is not present.</p>
+<h2 id="realistic-example"><a class="doc-anchor" href="#realistic-example">§</a>Realistic example</h2>
+<p>Suppose we have a multidimensional array represented in a flat buffer in
+row-major order for performance reasons, but we want to expose an indexing
+operation that works in column-major order because it is more intuitive in
+the context of our application.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">const </span>MAP_WIDTH: usize = <span class="number">4</span>;
+
+<span class="kw">struct </span>Tile(u8);
+
+<span class="kw">struct </span>TileMap {
+    storage: Vec&lt;Tile&gt;,
+}
+
+<span class="comment">// `tilemap[x][y]` should give us `tilemap.storage[y * MAP_WIDTH + x]`.</span></code></pre></div>
+<p>The signature of the <a href="https://doc.rust-lang.org/1.95.0/core/ops/index/trait.Index.html" title="trait core::ops::index::Index"><code>Index</code></a> trait in Rust is such that the output is
+forced to be borrowed from the type being indexed. So something like the
+following is not going to work.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>Column&lt;<span class="lifetime">'a</span>&gt; {
+    tilemap: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>TileMap,
+    x: usize,
+}
+
+<span class="comment">// Does not work! The output of Index must be a reference that is
+// borrowed from self. Here the type Column is not a reference.
+</span><span class="kw">impl </span>Index&lt;usize&gt; <span class="kw">for </span>TileMap {
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, x: usize) -&gt; Column {
+        <span class="macro">assert!</span>(x &lt; MAP_WIDTH);
+        Column { tilemap: <span class="self">self</span>, x }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Index&lt;usize&gt; <span class="kw">for </span>Column&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, y: usize) -&gt; <span class="kw-2">&amp;</span>Tile {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.tilemap.storage[y * MAP_WIDTH + <span class="self">self</span>.x]
+    }
+}</code></pre></div>
+<p>Here is a working approach using <code>RefCast</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(RefCast)]
+#[repr(transparent)]
+</span><span class="kw">struct </span>Strided([Tile]);
+
+<span class="comment">// Implement `tilemap[x][y]` as `tilemap[x..][y * MAP_WIDTH]`.
+</span><span class="kw">impl </span>Index&lt;usize&gt; <span class="kw">for </span>TileMap {
+    <span class="kw">type </span>Output = Strided;
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, x: usize) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+        <span class="macro">assert!</span>(x &lt; MAP_WIDTH);
+        Strided::ref_cast(<span class="kw-2">&amp;</span><span class="self">self</span>.storage[x..])
+    }
+}
+
+<span class="kw">impl </span>Index&lt;usize&gt; <span class="kw">for </span>Strided {
+    <span class="kw">type </span>Output = Tile;
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, y: usize) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[y * MAP_WIDTH]
+    }
+}</code></pre></div></div></details><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.RefCast.html" title="trait ref_cast::RefCast">RefCast</a></dt><dd>Safely cast <code>&amp;T</code> to <code>&amp;U</code> where the struct <code>U</code> contains a single field of
+type <code>T</code>.</dd></dl><h2 id="attributes" class="section-header">Attribute Macros<a href="#attributes" class="anchor">§</a></h2><dl class="item-table"><dt><a class="attr" href="attr.ref_cast_custom.html" title="attr ref_cast::ref_cast_custom">ref_<wbr>cast_<wbr>custom</a></dt><dd>Create a function for a RefCast-style reference cast. Call site gets control
+of the visibility, function name, argument name, <code>const</code>ness, unsafety, and
+documentation.</dd></dl><h2 id="derives" class="section-header">Derive Macros<a href="#derives" class="anchor">§</a></h2><dl class="item-table"><dt><a class="derive" href="derive.RefCast.html" title="derive ref_cast::RefCast">RefCast</a></dt><dd>Derive the <code>RefCast</code> trait.</dd><dt><a class="derive" href="derive.RefCastCustom.html" title="derive ref_cast::RefCastCustom">RefCast<wbr>Custom</a></dt><dd>Derive that makes the <code>ref_cast_custom</code> attribute able to generate
+freestanding reference casting functions for a type.</dd></dl></section></div></main></body></html>

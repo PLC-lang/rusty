@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Fraction is designed to be a precise lossless drop-in replacement for floating types (f32, f64)."><title>fraction - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="fraction" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate fraction</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../fraction/index.html">fraction</a><span class="version">0.13.1</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#library-features" title="Library features">Library features</a></li><li><a href="#disclaimer" title="Disclaimer">Disclaimer</a></li><li><a href="#crate-features" title="Crate features">Crate features</a></li><li><a href="#implementation" title="Implementation">Implementation</a></li><li><a href="#usage" title="Usage">Usage</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#simple-use" title="Simple use:">Simple use:</a></li><li><a href="#construct" title="Construct:">Construct:</a></li><li><a href="#format-convert-to-string" title="Format (convert to string)">Format (convert to string)</a></li></ul></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>fraction</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/fraction/lib.rs.html#1-210">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Fraction is designed to be a precise lossless drop-in replacement for floating types (f32, f64).</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Fraction is designed to be a precise lossless drop-in replacement for floating types (f32, f64)."><title>fraction - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="fraction" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate fraction</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../fraction/index.html">fraction</a><span class="version">0.15.4</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#library-features" title="Library features">Library features</a></li><li><a href="#disclaimer" title="Disclaimer">Disclaimer</a></li><li><a href="#crate-features" title="Crate features">Crate features</a></li><li><a href="#implementation" title="Implementation">Implementation</a></li><li><a href="#usage" title="Usage">Usage</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#simple-use" title="Simple use:">Simple use:</a></li><li><a href="#construct" title="Construct:">Construct:</a></li><li><a href="#format-convert-to-string" title="Format (convert to string)">Format (convert to string)</a></li><li><a href="#convert-intofrom-other-types" title="Convert into/from other types">Convert into/from other types</a></li></ul></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>fraction</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/fraction/lib.rs.html#1-270">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Fraction is designed to be a precise lossless drop-in replacement for floating types (f32, f64).</p>
 <p>It comes with a number of predefined type aliases covering the most common use cases such as
 <a href="prelude/type.Fraction.html" title="type fraction::prelude::Fraction">Fraction</a>, [Decimal], <a href="prelude/type.BigFraction.html" title="type fraction::prelude::BigFraction">BigFraction</a>, [DynaDecimal] and so on (see <a href="prelude/index.html" title="mod fraction::prelude">prelude</a> module for more examples).</p>
 <p>The public API provides you with the generic types that you may use straightforwardly to build your
@@ -26,6 +26,8 @@ Bug reports and contributions are appreciated.</p>
 <li><code>with-bigint</code> (default) integration with <a href="struct.BigInt.html" title="struct fraction::BigInt">num::BigInt</a> and <a href="struct.BigUint.html" title="struct fraction::BigUint">num::BigUint</a> data types</li>
 <li><code>with-decimal</code> (default) [Decimal] type implemented upon <a href="enum.GenericFraction.html" title="enum fraction::GenericFraction">GenericFraction</a></li>
 <li><code>with-dynaint</code> (default) dynamically growing integer avoiding stack overflows</li>
+<li><code>with-unicode</code> Unicode formatting and parsing options</li>
+<li><code>with-approx</code> adds methods for approximate computations (currently <code>sqrt</code>)</li>
 <li><code>with-juniper-support</code> <a href="https://crates.io/crates/juniper">Juniper</a> integration</li>
 <li><code>with-postgres-support</code> <a href="https://crates.io/crates/postgres">PostgreSQL</a> integration; Numeric/Decimal type</li>
 <li><code>with-serde-support</code> <a href="https://crates.io/crates/serde">Serde</a> traits implementation</li>
@@ -62,40 +64,62 @@ for comparison and formatting operations.</p>
 <p>Fraction:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::str::FromStr;
-<span class="kw">use </span>fraction::{Fraction, Sign};  <span class="comment">// choose the type accordingly with your needs (see prelude module docs)
+<span class="kw">use </span>fraction::{Fraction, Sign};
 
-</span><span class="kw">fn </span>main() {
-    <span class="comment">// There are several ways to construct a fraction, depending on your use case
+<span class="comment">// fraction crate also re-exports num::{One, Zero} traits for convenience.
+</span><span class="kw">use </span>fraction::{One, Zero};
 
-    </span><span class="kw">let </span>f = Fraction::new(<span class="number">1u8</span>, <span class="number">2u8</span>);  <span class="comment">// constructs with numerator/denominator and normalizes the fraction (finds least common denominator)
-    </span><span class="macro">assert_eq!</span>(f, Fraction::new_generic(Sign::Plus, <span class="number">1i32</span>, <span class="number">2u8</span>).unwrap());  <span class="comment">// with numerator/denominator of different integer types
-    </span><span class="macro">assert_eq!</span>(f, Fraction::from(<span class="number">0.5</span>));  <span class="comment">// convert from float (f32, f64)
-    </span><span class="macro">assert_eq!</span>(f, Fraction::from_str(<span class="string">"0.5"</span>).unwrap());  <span class="comment">// parse a string
 
-    // Raw construct with no extra calculations.
-    // Most performant, but does not look for common denominator and may lead to unexpected results
-    // in following calculations. Only use if you are sure numerator/denominator are already normalized.
-    </span><span class="macro">assert_eq!</span>(f, Fraction::new_raw(<span class="number">1u64</span>, <span class="number">2u64</span>));
-}</code></pre></div>
+<span class="comment">// There are several ways to construct a fraction, depending on your use case
+
+// `new` - construct with numerator/denominator and normalize the fraction.
+// "Normalization" means it will always find the least common denominator
+// and convert the input accordingly.
+</span><span class="kw">let </span>f = Fraction::new(<span class="number">1u8</span>, <span class="number">2u8</span>);
+
+<span class="comment">// `new_generic` - construct with numerator/denominator of different integer types
+</span><span class="macro">assert_eq!</span>(f, Fraction::new_generic(Sign::Plus, <span class="number">1i32</span>, <span class="number">2u8</span>).unwrap());
+
+<span class="comment">// `from` - converts from primitive types such as i32 and f32.
+</span><span class="macro">assert_eq!</span>(f, Fraction::from(<span class="number">0.5</span>));  <span class="comment">// convert from float (f32, f64)
+
+// `from_str` - tries parse a string fraction. Supports the usual decimal notation.
+</span><span class="macro">assert_eq!</span>(f, Fraction::from_str(<span class="string">"0.5"</span>).unwrap());  <span class="comment">// parse a string
+
+// `from_str` - also supports _fraction_ notation such as "numerator/denominator" delimited by slash (`/`).
+</span><span class="macro">assert_eq!</span>(f, Fraction::from_str(<span class="string">"1/2"</span>).unwrap());  <span class="comment">// parse a string
+
+// `new_raw` - construct with numerator/denominator but do not normalize the fraction.
+// This is the most performant constructor, but does not calculate the common denominator,
+// so may lead to unexpected results in following calculations if the fraction is not normalised.
+// WARNING: Only use if you are sure numerator/denominator are already normalized.
+</span><span class="macro">assert_eq!</span>(f, Fraction::new_raw(<span class="number">1u64</span>, <span class="number">2u64</span>));
+
+<span class="comment">// `one` - implements num::One trait
+</span><span class="macro">assert_eq!</span>(f * <span class="number">2</span>, Fraction::one());
+
+<span class="comment">// `zero` - implements num::Zero trait
+</span><span class="macro">assert_eq!</span>(f - f, Fraction::zero());</code></pre></div>
 <p>Decimal:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::str::FromStr;
-<span class="kw">use </span>fraction::{Decimal, Fraction};  <span class="comment">// choose the type accordingly with your needs (see prelude module docs)
+<span class="kw">use </span>fraction::{Decimal, Fraction};
 
-</span><span class="kw">fn </span>main() {
-    <span class="comment">// There are similar ways to construct Decimal. Underneath it is always represented as Fraction.
-    // When constructed, Decimal preserves its precision (number of digits after floating point).
-    // When two decimals are calculated, the result takes the biggest precision of both.
-    // The precision is used for visual representation (formatting and printing) and for comparison of two decimals.
-    // Precision is NOT used in any calculations. All calculations are lossless and implemented through Fraction.
-    // To override the precision use Decimal::set_precision.
+<span class="comment">// There are similar ways to construct Decimal. Underneath it is always represented as Fraction.
+// When constructed, Decimal preserves its precision (number of digits after floating point).
+// When two decimals are calculated, the result takes the biggest precision of both.
+// The precision is used for visual representation (formatting and printing) and for comparison of two decimals.
+// Precision is NOT used in any calculations. All calculations are lossless and implemented through Fraction.
+// To override the precision use Decimal::set_precision.
 
-    </span><span class="kw">let </span>d = Decimal::from(<span class="number">1</span>);  <span class="comment">// from integer, precision = 0
-    </span><span class="macro">assert_eq!</span>(d, Decimal::from_fraction(Fraction::from(<span class="number">1</span>))); <span class="comment">// from fraction, precision is calculated from fraction
+</span><span class="kw">let </span>d = Decimal::from(<span class="number">1</span>);  <span class="comment">// from integer, precision = 0
+</span><span class="macro">assert_eq!</span>(d, Decimal::from_fraction(Fraction::from(<span class="number">1</span>))); <span class="comment">// from fraction, precision is calculated from fraction
 
-    </span><span class="kw">let </span>d = Decimal::from(<span class="number">1.3</span>);  <span class="comment">// from float (f32, f64)
-    </span><span class="macro">assert_eq!</span>(d, Decimal::from_str(<span class="string">"1.3"</span>).unwrap());
-}</code></pre></div><h3 id="format-convert-to-string"><a class="doc-anchor" href="#format-convert-to-string">§</a>Format (convert to string)</h3>
+</span><span class="kw">let </span>d = Decimal::from(<span class="number">1.3</span>);  <span class="comment">// from float (f32, f64)
+</span><span class="macro">assert_eq!</span>(d, Decimal::from_str(<span class="string">"1.3"</span>).unwrap());
+
+<span class="kw">let </span>d = Decimal::from(<span class="number">0.5</span>);  <span class="comment">// from float (f32, f64)
+</span><span class="macro">assert_eq!</span>(d, Decimal::from_str(<span class="string">"1/2"</span>).unwrap());</code></pre></div><h3 id="format-convert-to-string"><a class="doc-anchor" href="#format-convert-to-string">§</a>Format (convert to string)</h3>
 <p>Formatting works similar for both Decimal and Fraction (Decimal uses Fraction internally).
 The format implementation closely follows the rust Format trait documentation.</p>
 
@@ -104,13 +128,42 @@ The format implementation closely follows the rust Format trait documentation.</
 <span class="kw">let </span>result = F::from(<span class="number">0.7</span>) / F::from(<span class="number">0.4</span>);
 <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{}"</span>, result), <span class="string">"7/4"</span>);  <span class="comment">// Printed as fraction by default
 </span><span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:.2}"</span>, result), <span class="string">"1.75"</span>); <span class="comment">// if precision is defined, printed as decimal
-</span><span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:#.3}"</span>, result), <span class="string">"1.750"</span>); <span class="comment">// to print leading zeroes, pass hash to the format</span></code></pre></div><h4 id="generic-integer-conversion"><a class="doc-anchor" href="#generic-integer-conversion">§</a>Generic integer conversion</h4>
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>fraction::{Sign, GenericFraction};
+</span><span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">"{:#.3}"</span>, result), <span class="string">"1.750"</span>); <span class="comment">// to print leading zeroes, pass hash to the format</span></code></pre></div>
+<p>Additionally, when the <code>with-unicode</code> feature is enabled, there are methods available for various unicode display options:
+See <a href="https://stackoverflow.com/a/77861320/14681457">this SO answer</a> for a discussion.</p>
 
-<span class="kw">type </span>F = GenericFraction&lt;u32&gt;;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">type </span>F = fraction::Fraction;
 
-<span class="kw">let </span>fra = F::new_generic(Sign::Plus, <span class="number">1i8</span>, <span class="number">42usize</span>).unwrap();
-<span class="macro">assert_eq!</span>(fra, F::new(<span class="number">1u32</span>, <span class="number">42u32</span>));</code></pre></div><h4 id="postgres-usage"><a class="doc-anchor" href="#postgres-usage">§</a>Postgres usage</h4>
+<span class="kw">let </span>res = F::from(<span class="number">0.7</span>) / F::from(<span class="number">0.4</span>);
+<span class="macro">assert_eq!</span>(<span class="string">"7⁄4"</span>,<span class="macro">format!</span>(<span class="string">"{}"</span>, res.get_unicode_display())); <span class="comment">// needs font support. Unicode way
+</span><span class="macro">assert_eq!</span>(<span class="string">"1⁤3⁄4"</span>,<span class="macro">format!</span>(<span class="string">"{}"</span>, res.get_unicode_display().mixed())); <span class="comment">// interpreted wrongly without font support
+</span><span class="macro">assert_eq!</span>(<span class="string">"⁷/₄"</span>,<span class="macro">format!</span>(<span class="string">"{}"</span>, res.get_unicode_display().supsub())); <span class="comment">// no need for font support
+</span><span class="macro">assert_eq!</span>(<span class="string">"1³/₄"</span>,<span class="macro">format!</span>(<span class="string">"{}"</span>, res.get_unicode_display().supsub().mixed()));</code></pre></div><h3 id="convert-intofrom-other-types"><a class="doc-anchor" href="#convert-intofrom-other-types">§</a>Convert into/from other types</h3>
+<p>Both <code>fraction</code> and <code>decimal</code> types implement</p>
+<ul>
+<li><code>from</code> and <code>try_into</code> for all built-in primitive types.</li>
+<li><code>from</code> and <code>try_into</code> for <code>BigInt</code> and <code>BigUint</code> when <code>with-bigint</code> feature enabled.</li>
+</ul>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>fraction::{Fraction, One, BigInt, BigUint};
+<span class="kw">use </span>std::convert::TryInto;
+
+<span class="comment">// Convert from examples (from primitives always succeed)
+</span><span class="macro">assert_eq!</span>(Fraction::from(<span class="number">1i8</span>), Fraction::one());
+<span class="macro">assert_eq!</span>(Fraction::from(<span class="number">1u8</span>), Fraction::one());
+<span class="macro">assert_eq!</span>(Fraction::from(BigInt::one()), Fraction::one());
+<span class="macro">assert_eq!</span>(Fraction::from(BigUint::one()), Fraction::one());
+<span class="macro">assert_eq!</span>(Fraction::from(<span class="number">1f32</span>), Fraction::one());
+<span class="macro">assert_eq!</span>(Fraction::from(<span class="number">1f64</span>), Fraction::one());
+
+
+<span class="comment">// Convert into examples (try_into returns Result&lt;T, ()&gt;)
+</span><span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="number">1i8</span>), Fraction::one().try_into());
+<span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="number">1u8</span>), Fraction::one().try_into());
+<span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(BigInt::one()), Fraction::one().try_into());
+<span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(BigUint::one()), Fraction::one().try_into());
+<span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="number">1f32</span>), Fraction::one().try_into());
+<span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="number">1f64</span>), Fraction::one().try_into());</code></pre></div><h4 id="postgres-usage"><a class="doc-anchor" href="#postgres-usage">§</a>Postgres usage</h4>
 <p>Postgres uses i16 for its binary protocol, so you’ll have to use at least u16
 as the base type for fractions/decimals.
 Otherwise you may workaround with DynaInt&lt;u8, <em>something_more_than_u8</em>&gt;.
@@ -126,5 +179,7 @@ in accordance with Postgres crate documentation</p>
 </div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt><code>pub use self::<a class="mod" href="prelude/index.html" title="mod fraction::prelude">prelude</a>::*;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="convert/index.html" title="mod fraction::convert">convert</a></dt><dd>Optimistic type conversion</dd><dt><a class="mod" href="display/index.html" title="mod fraction::display">display</a></dt><dd>Implementation of fmt::Display for <a href="enum.GenericFraction.html" title="enum fraction::GenericFraction">GenericFraction</a> and <a href="enum.Sign.html" title="enum fraction::Sign">Sign</a> structures</dd><dt><a class="mod" href="division/index.html" title="mod fraction::division">division</a></dt><dd>Lossless integer division</dd><dt><a class="mod" href="error/index.html" title="mod fraction::error">error</a></dt><dd>Crate error types</dd><dt><a class="mod" href="generic/index.html" title="mod fraction::generic">generic</a></dt><dd>Integer generic traits and operations</dd><dt><a class="mod" href="prelude/index.html" title="mod fraction::prelude">prelude</a></dt><dd>Predefines some types for the most common use cases</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.BigInt.html" title="struct fraction::BigInt">BigInt</a></dt><dd>A big signed integer type.</dd><dt><a class="struct" href="struct.BigUint.html" title="struct fraction::BigUint">BigUint</a></dt><dd>A big unsigned integer type.</dd><dt><a class="struct" href="struct.ParseRatioError.html" title="struct fraction::ParseRatioError">Parse<wbr>Ratio<wbr>Error</a></dt><dt><a class="struct" href="struct.Ratio.html" title="struct fraction::Ratio">Ratio</a></dt><dd>Represents the ratio between two numbers.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.GenericFraction.html" title="enum fraction::GenericFraction">Generic<wbr>Fraction</a></dt><dd>Generic implementation of the fraction type</dd><dt><a class="enum" href="enum.Sign.html" title="enum fraction::Sign">Sign</a></dt><dd>Sign representation</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Bounded.html" title="trait fraction::Bounded">Bounded</a></dt><dd>Numbers which have upper and lower bounds</dd><dt><a class="trait" href="trait.CheckedAdd.html" title="trait fraction::CheckedAdd">Checked<wbr>Add</a></dt><dd>Performs addition that returns <code>None</code> instead of wrapping around on
 overflow.</dd><dt><a class="trait" href="trait.CheckedDiv.html" title="trait fraction::CheckedDiv">Checked<wbr>Div</a></dt><dd>Performs division that returns <code>None</code> instead of panicking on division by zero and instead of
 wrapping around on underflow and overflow.</dd><dt><a class="trait" href="trait.CheckedMul.html" title="trait fraction::CheckedMul">Checked<wbr>Mul</a></dt><dd>Performs multiplication that returns <code>None</code> instead of wrapping around on underflow or
-overflow.</dd><dt><a class="trait" href="trait.CheckedSub.html" title="trait fraction::CheckedSub">Checked<wbr>Sub</a></dt><dd>Performs subtraction that returns <code>None</code> instead of wrapping around on underflow.</dd><dt><a class="trait" href="trait.FromPrimitive.html" title="trait fraction::FromPrimitive">From<wbr>Primitive</a></dt><dd>A generic trait for converting a number to a value.</dd><dt><a class="trait" href="trait.Integer.html" title="trait fraction::Integer">Integer</a></dt><dt><a class="trait" href="trait.Num.html" title="trait fraction::Num">Num</a></dt><dd>The base trait for numeric types, covering <code>0</code> and <code>1</code> values,
+overflow.</dd><dt><a class="trait" href="trait.CheckedSub.html" title="trait fraction::CheckedSub">Checked<wbr>Sub</a></dt><dd>Performs subtraction that returns <code>None</code> instead of wrapping around on underflow.</dd><dt><a class="trait" href="trait.ConstOne.html" title="trait fraction::ConstOne">Const<wbr>One</a></dt><dd>Defines an associated constant representing the multiplicative identity
+element for <code>Self</code>.</dd><dt><a class="trait" href="trait.ConstZero.html" title="trait fraction::ConstZero">Const<wbr>Zero</a></dt><dd>Defines an associated constant representing the additive identity element
+for <code>Self</code>.</dd><dt><a class="trait" href="trait.FromPrimitive.html" title="trait fraction::FromPrimitive">From<wbr>Primitive</a></dt><dd>A generic trait for converting a number to a value.</dd><dt><a class="trait" href="trait.Integer.html" title="trait fraction::Integer">Integer</a></dt><dt><a class="trait" href="trait.Num.html" title="trait fraction::Num">Num</a></dt><dd>The base trait for numeric types, covering <code>0</code> and <code>1</code> values,
 comparisons, basic numeric operations, and string conversion.</dd><dt><a class="trait" href="trait.One.html" title="trait fraction::One">One</a></dt><dd>Defines a multiplicative identity element for <code>Self</code>.</dd><dt><a class="trait" href="trait.Signed.html" title="trait fraction::Signed">Signed</a></dt><dd>Useful functions for signed numbers (i.e. numbers that can be negative).</dd><dt><a class="trait" href="trait.ToPrimitive.html" title="trait fraction::ToPrimitive">ToPrimitive</a></dt><dd>A generic trait for converting a value to a number.</dd><dt><a class="trait" href="trait.Zero.html" title="trait fraction::Zero">Zero</a></dt><dd>Defines an additive identity element for <code>Self</code>.</dd></dl></section></div></main></body></html>

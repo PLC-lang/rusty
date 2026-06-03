@@ -1,0 +1,208 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A Rust crate providing an implementation of an RFC-compliant `EmailAddress` newtype."><title>email_address - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="email_address" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate email_address</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../email_address/index.html">email_<wbr>address</a><span class="version">0.2.9</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li><li><a href="#specifications" title="Specifications">Specifications</a><ul><li><a href="#unicode" title="Unicode">Unicode</a></li></ul></li></ul><h3><a href="#structs">Crate Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>email_<wbr>address</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/email_address/lib.rs.html#1-1955">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A Rust crate providing an implementation of an RFC-compliant <code>EmailAddress</code> newtype.</p>
+<p>Primarily for validation, the <code>EmailAddress</code> type is constructed with <code>FromStr::from_str</code> which will raise any
+parsing errors. Prior to constructions the functions <code>is_valid</code>, <code>is_valid_local_part</code>, and <code>is_valid_domain</code> may
+also be used to test for validity without constructing an instance. This supports all of the RFC ASCII and UTF-8
+character set rules, quoted and unquoted local parts but does not yet support all of the productions required for SMTP
+headers; folding whitespace, comments, etc.</p>
+<div class="example-wrap"><pre class="language-text"><code>&quot;Simon Johnston &lt;johnstonsk@gmail.com&gt;&quot;
+                 ^------------------^ email()
+                            ^-------^ domain()
+                 ^--------^ local_part()
+ ^------------^ display_part()</code></pre></div><h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<p>The following shoes the basic <code>is_valid</code> and <code>from_str</code> functions.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>email_address::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::str::FromStr;
+
+<span class="macro">assert!</span>(EmailAddress::is_valid(<span class="string">"user.name+tag+sorting@example.com"</span>));
+
+<span class="macro">assert_eq!</span>(
+    EmailAddress::from_str(<span class="string">"Abc.example.com"</span>),
+    Error::MissingSeparator.into()
+);</code></pre></div>
+<p>The following shows the three format functions used to output an email address.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>email_address::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::str::FromStr;
+
+<span class="kw">let </span>email = EmailAddress::from_str(<span class="string">"johnstonsk@gmail.com"</span>).unwrap();
+
+<span class="macro">assert_eq!</span>(
+    email.to_string(),
+    <span class="string">"johnstonsk@gmail.com"</span>.to_string()
+);
+
+<span class="macro">assert_eq!</span>(
+    String::from(email.clone()),
+    <span class="string">"johnstonsk@gmail.com"</span>.to_string()
+);
+
+<span class="macro">assert_eq!</span>(
+    email.as_ref(),
+    <span class="string">"johnstonsk@gmail.com"
+</span>);
+
+<span class="macro">assert_eq!</span>(
+    email.to_uri(),
+    <span class="string">"mailto:johnstonsk@gmail.com"</span>.to_string()
+);
+
+<span class="macro">assert_eq!</span>(
+    email.to_display(<span class="string">"Simon Johnston"</span>),
+    <span class="string">"Simon Johnston &lt;johnstonsk@gmail.com&gt;"</span>.to_string()
+);</code></pre></div><h2 id="specifications"><a class="doc-anchor" href="#specifications">§</a>Specifications</h2>
+<ol>
+<li>RFC 1123: <a href="https://tools.ietf.org/html/rfc1123"><em>Requirements for Internet Hosts – Application and Support</em></a>,
+IETF,Oct 1989.</li>
+<li>RFC 3629: <a href="https://tools.ietf.org/html/rfc3629"><em>UTF-8, a transformation format of ISO 10646</em></a>,
+IETF, Nov 2003.</li>
+<li>RFC 3696: <a href="https://tools.ietf.org/html/rfc3696"><em>Application Techniques for Checking and Transformation of
+Names</em></a>, IETF, Feb 2004.</li>
+<li>RFC 4291 <a href="https://tools.ietf.org/html/rfc4291"><em>IP Version 6 Addressing Architecture</em></a>,
+IETF, Feb 2006.</li>
+<li>RFC 5234: <a href="https://tools.ietf.org/html/rfc5234"><em>Augmented BNF for Syntax Specifications: ABNF</em></a>,
+IETF, Jan 2008.</li>
+<li>RFC 5321: <a href="https://tools.ietf.org/html/rfc5321"><em>Simple Mail Transfer Protocol</em></a>,
+IETF, Oct 2008.</li>
+<li>RFC 5322: <a href="https://tools.ietf.org/html/rfc5322"><em>Internet Message Format</em></a>, I
+ETF, Oct 2008.</li>
+<li>RFC 5890: <a href="https://tools.ietf.org/html/rfc5890"><em>Internationalized Domain Names for Applications (IDNA): Definitions and Document
+Framework</em></a>, IETF, Aug 2010.</li>
+<li>RFC 6531: <a href="https://tools.ietf.org/html/rfc6531"><em>SMTP Extension for Internationalized Email</em></a>,
+IETF, Feb 2012</li>
+<li>RFC 6532: <a href="https://tools.ietf.org/html/rfc6532"><em>Internationalized Email Headers</em></a>,
+IETF, Feb 2012.</li>
+</ol>
+<p>From RFC 5322: §3.2.1. <a href="https://tools.ietf.org/html/rfc5322#section-3.2.1">Quoted characters</a>:</p>
+<div class="example-wrap"><pre class="language-ebnf"><code>quoted-pair     =   (&quot;\&quot; (VCHAR / WSP)) / obs-qp</code></pre></div>
+<p>From RFC 5322: §3.2.2. <a href="https://tools.ietf.org/html/rfc5322#section-3.2.2">Folding White Space and Comments</a>:</p>
+<div class="example-wrap"><pre class="language-ebnf"><code>FWS             =   ([*WSP CRLF] 1*WSP) /  obs-FWS
+                                       ; Folding white space
+
+ctext           =   %d33-39 /          ; Printable US-ASCII
+                    %d42-91 /          ;  characters not including
+                    %d93-126 /         ;  &quot;(&quot;, &quot;)&quot;, or &quot;\&quot;
+                    obs-ctext
+
+ccontent        =   ctext / quoted-pair / comment
+
+comment         =   &quot;(&quot; *([FWS] ccontent) [FWS] &quot;)&quot;
+
+CFWS            =   (1*([FWS] comment) [FWS]) / FWS</code></pre></div>
+<p>From RFC 5322: §3.2.3. <a href="https://tools.ietf.org/html/rfc5322#section-3.2.3">Atom</a>:</p>
+<div class="example-wrap"><pre class="language-ebnf"><code>atext           =   ALPHA / DIGIT /    ; Printable US-ASCII
+                    &quot;!&quot; / &quot;#&quot; /        ;  characters not including
+                    &quot;$&quot; / &quot;%&quot; /        ;  specials.  Used for atoms.
+                    &quot;&amp;&quot; / &quot;&#39;&quot; /
+                    &quot;*&quot; / &quot;+&quot; /
+                    &quot;-&quot; / &quot;/&quot; /
+                    &quot;=&quot; / &quot;?&quot; /
+                    &quot;^&quot; / &quot;_&quot; /
+                    &quot;`&quot; / &quot;{&quot; /
+                    &quot;|&quot; / &quot;}&quot; /
+                    &quot;~&quot;
+
+atom            =   [CFWS] 1*atext [CFWS]
+
+dot-atom-text   =   1*atext *(&quot;.&quot; 1*atext)
+
+dot-atom        =   [CFWS] dot-atom-text [CFWS]
+
+specials        =   &quot;(&quot; / &quot;)&quot; /        ; Special characters that do
+                    &quot;&lt;&quot; / &quot;&gt;&quot; /        ;  not appear in atext
+                    &quot;[&quot; / &quot;]&quot; /
+                    &quot;:&quot; / &quot;;&quot; /
+                    &quot;@&quot; / &quot;\&quot; /
+                    &quot;,&quot; / &quot;.&quot; /
+                    DQUOTE</code></pre></div>
+<p>From RFC 5322: §3.2.4. <a href="https://tools.ietf.org/html/rfc5322#section-3.2.4">Quoted Strings</a>:</p>
+<div class="example-wrap"><pre class="language-ebnf"><code>qtext           =   %d33 /             ; Printable US-ASCII
+                    %d35-91 /          ;  characters not including
+                    %d93-126 /         ;  &quot;\&quot; or the quote character
+                    obs-qtext
+
+qcontent        =   qtext / quoted-pair
+
+quoted-string   =   [CFWS]
+                    DQUOTE *([FWS] qcontent) [FWS] DQUOTE
+                    [CFWS]</code></pre></div>
+<p>From RFC 5322, §3.4.1. <a href="https://tools.ietf.org/html/rfc5322#section-3.4.1">Addr-Spec Specification</a>:</p>
+<div class="example-wrap"><pre class="language-ebnf"><code>addr-spec       =   local-part &quot;@&quot; domain
+
+local-part      =   dot-atom / quoted-string / obs-local-part
+
+domain          =   dot-atom / domain-literal / obs-domain
+
+domain-literal  =   [CFWS] &quot;[&quot; *([FWS] dtext) [FWS] &quot;]&quot; [CFWS]
+
+dtext           =   %d33-90 /          ; Printable US-ASCII
+                    %d94-126 /         ;  characters not including
+                    obs-dtext          ;  &quot;[&quot;, &quot;]&quot;, or &quot;\&quot;</code></pre></div>
+<p>RFC 3696, §3. <a href="https://tools.ietf.org/html/rfc3696#section-3">Restrictions on email addresses</a>
+describes in detail the quoting of characters in an address.</p>
+<h3 id="unicode"><a class="doc-anchor" href="#unicode">§</a>Unicode</h3>
+<p>RFC 6531, §3.3. <a href="https://tools.ietf.org/html/rfc6531#section-3.3">Extended Mailbox Address Syntax</a>
+extends the rules above for non-ASCII character sets.</p>
+<div class="example-wrap"><pre class="language-ebnf"><code>sub-domain   =/  U-label
+    ; extend the definition of sub-domain in RFC 5321, Section 4.1.2
+
+atext   =/  UTF8-non-ascii
+    ; extend the implicit definition of atext in
+    ; RFC 5321, Section 4.1.2, which ultimately points to
+    ; the actual definition in RFC 5322, Section 3.2.3
+
+qtextSMTP  =/ UTF8-non-ascii
+    ; extend the definition of qtextSMTP in RFC 5321, Section 4.1.2
+
+esmtp-value  =/ UTF8-non-ascii
+    ; extend the definition of esmtp-value in RFC 5321, Section 4.1.2</code></pre></div>
+<p>A “U-label” is an IDNA-valid string of Unicode characters, in Normalization Form C (NFC) and
+including at least one non-ASCII character, expressed in a standard Unicode Encoding Form (such as
+UTF-8). It is also subject to the constraints about permitted characters that are specified in
+Section 4.2 of the Protocol document and the rules in the Sections 2 and 3 of the Tables document,
+the Bidi constraints in that document if it contains any character from scripts that are written
+right to left, and the symmetry constraint described immediately below. Conversions between U-labels
+and A-labels are performed according to the “Punycode” specification RFC3492, adding or removing
+the ACE prefix as needed.</p>
+<p>RFC 6532: §3.1 <a href="https://tools.ietf.org/html/rfc6532#section-3.1">UTF-8 Syntax and Normalization</a>,
+and §3.2 <a href="https://tools.ietf.org/html/rfc6532#section-3.2">Syntax Extensions to RFC 5322</a> extend
+the syntax above with:</p>
+<div class="example-wrap"><pre class="language-ebnf"><code>UTF8-non-ascii  =   UTF8-2 / UTF8-3 / UTF8-4
+
+...
+
+VCHAR   =/  UTF8-non-ascii
+
+ctext   =/  UTF8-non-ascii
+
+atext   =/  UTF8-non-ascii
+
+qtext   =/  UTF8-non-ascii
+
+text    =/  UTF8-non-ascii
+              ; note that this upgrades the body to UTF-8
+
+dtext   =/  UTF8-non-ascii</code></pre></div>
+<p>These in turn refer to RFC 6529 §4. <a href="https://tools.ietf.org/html/rfc3629#section-4">Syntax of UTF-8 Byte Sequences</a>:</p>
+<blockquote>
+<p>A UTF-8 string is a sequence of octets representing a sequence of UCS
+characters.  An octet sequence is valid UTF-8 only if it matches the
+following syntax, which is derived from the rules for encoding UTF-8
+and is expressed in the ABNF of [RFC2234].</p>
+</blockquote>
+<div class="example-wrap"><pre class="language-ebnf"><code>   UTF8-octets = *( UTF8-char )
+   UTF8-char   = UTF8-1 / UTF8-2 / UTF8-3 / UTF8-4
+   UTF8-1      = %x00-7F
+   UTF8-2      = %xC2-DF UTF8-tail
+   UTF8-3      = %xE0 %xA0-BF UTF8-tail / %xE1-EC 2( UTF8-tail ) /
+                 %xED %x80-9F UTF8-tail / %xEE-EF 2( UTF8-tail )
+   UTF8-4      = %xF0 %x90-BF 2( UTF8-tail ) / %xF1-F3 3( UTF8-tail ) /
+                 %xF4 %x80-8F 2( UTF8-tail )
+   UTF8-tail   = %x80-BF</code></pre></div>
+<p>Comments in addresses are discussed in RFC 5322 Appendix A.5. <a href="https://tools.ietf.org/html/rfc5322#appendix-A.5">White Space, Comments, and Other
+Oddities</a>.</p>
+<p>An informal description can be found on <a href="https://en.wikipedia.org/wiki/Email_address">Wikipedia</a>.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.EmailAddress.html" title="struct email_address::EmailAddress">Email<wbr>Address</a></dt><dd>Type representing a single email address. This is basically a wrapper around a String, the
+email address is parsed for correctness with <code>FromStr::from_str</code>, which is the only want to
+create an instance. The various components of the email <em>are not</em> parsed out to be accessible
+independently.</dd><dt><a class="struct" href="struct.Options.html" title="struct email_address::Options">Options</a></dt><dd>Struct of options that can be configured when parsing with <code>parse_with_options</code>.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Error.html" title="enum email_address::Error">Error</a></dt><dd>Error type used when parsing an address.</dd></dl></section></div></main></body></html>

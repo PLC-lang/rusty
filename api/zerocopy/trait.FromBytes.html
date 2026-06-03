@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Types for which any bit pattern is valid."><title>FromBytes in zerocopy - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="zerocopy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">FromBytes</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../zerocopy/index.html">zerocopy</a><span class="version">0.8.48</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">From<wbr>Bytes</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#warning-padding-bytes" title="Warning: Padding bytes">Warning: Padding bytes</a></li><li><a href="#implementation" title="Implementation">Implementation</a></li><li><a href="#safety" title="Safety">Safety</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.mut_from_bytes" title="mut_from_bytes">mut_from_bytes</a></li><li><a href="#method.mut_from_bytes_with_elems" title="mut_from_bytes_with_elems">mut_from_bytes_with_elems</a></li><li><a href="#method.mut_from_prefix" title="mut_from_prefix">mut_from_prefix</a></li><li><a href="#method.mut_from_prefix_with_elems" title="mut_from_prefix_with_elems">mut_from_prefix_with_elems</a></li><li><a href="#method.mut_from_suffix" title="mut_from_suffix">mut_from_suffix</a></li><li><a href="#method.mut_from_suffix_with_elems" title="mut_from_suffix_with_elems">mut_from_suffix_with_elems</a></li><li><a href="#method.read_from_bytes" title="read_from_bytes">read_from_bytes</a></li><li><a href="#method.read_from_prefix" title="read_from_prefix">read_from_prefix</a></li><li><a href="#method.read_from_suffix" title="read_from_suffix">read_from_suffix</a></li><li><a href="#method.ref_from_bytes" title="ref_from_bytes">ref_from_bytes</a></li><li><a href="#method.ref_from_bytes_with_elems" title="ref_from_bytes_with_elems">ref_from_bytes_with_elems</a></li><li><a href="#method.ref_from_prefix" title="ref_from_prefix">ref_from_prefix</a></li><li><a href="#method.ref_from_prefix_with_elems" title="ref_from_prefix_with_elems">ref_from_prefix_with_elems</a></li><li><a href="#method.ref_from_suffix" title="ref_from_suffix">ref_from_suffix</a></li><li><a href="#method.ref_from_suffix_with_elems" title="ref_from_suffix_with_elems">ref_from_suffix_with_elems</a></li></ul><h3><a href="#foreign-impls">Implementations on Foreign Types</a></h3><ul class="block"><li><a href="#impl-FromBytes-for-()" title="()">()</a></li><li><a href="#impl-FromBytes-for-(A,+B)" title="(A, B)">(A, B)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C)" title="(A, B, C)">(A, B, C)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D)" title="(A, B, C, D)">(A, B, C, D)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E)" title="(A, B, C, D, E)">(A, B, C, D, E)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F)" title="(A, B, C, D, E, F)">(A, B, C, D, E, F)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G)" title="(A, B, C, D, E, F, G)">(A, B, C, D, E, F, G)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H)" title="(A, B, C, D, E, F, G, H)">(A, B, C, D, E, F, G, H)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I)" title="(A, B, C, D, E, F, G, H, I)">(A, B, C, D, E, F, G, H, I)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J)" title="(A, B, C, D, E, F, G, H, I, J)">(A, B, C, D, E, F, G, H, I, J)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K)" title="(A, B, C, D, E, F, G, H, I, J, K)">(A, B, C, D, E, F, G, H, I, J, K)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L)" title="(A, B, C, D, E, F, G, H, I, J, K, L)">(A, B, C, D, E, F, G, H, I, J, K, L)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M)">(A, B, C, D, E, F, G, H, I, J, K, L, M)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U,+V)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U,+V,+W)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U,+V,+W,+X)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U,+V,+W,+X,+Y)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U,+V,+W,+X,+Y,+Z)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z)</a></li><li><a href="#impl-FromBytes-for-(A,)" title="(A,)">(A,)</a></li><li><a href="#impl-FromBytes-for-AtomicI8" title="AtomicI8">AtomicI8</a></li><li><a href="#impl-FromBytes-for-AtomicI16" title="AtomicI16">AtomicI16</a></li><li><a href="#impl-FromBytes-for-AtomicI32" title="AtomicI32">AtomicI32</a></li><li><a href="#impl-FromBytes-for-AtomicI64" title="AtomicI64">AtomicI64</a></li><li><a href="#impl-FromBytes-for-AtomicIsize" title="AtomicIsize">AtomicIsize</a></li><li><a href="#impl-FromBytes-for-AtomicU8" title="AtomicU8">AtomicU8</a></li><li><a href="#impl-FromBytes-for-AtomicU16" title="AtomicU16">AtomicU16</a></li><li><a href="#impl-FromBytes-for-AtomicU32" title="AtomicU32">AtomicU32</a></li><li><a href="#impl-FromBytes-for-AtomicU64" title="AtomicU64">AtomicU64</a></li><li><a href="#impl-FromBytes-for-AtomicUsize" title="AtomicUsize">AtomicUsize</a></li><li><a href="#impl-FromBytes-for-Cell%3CT%3E" title="Cell&#60;T&#62;">Cell&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-MaybeUninit%3CT%3E" title="CoreMaybeUninit&#60;T&#62;">CoreMaybeUninit&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-ManuallyDrop%3CT%3E" title="ManuallyDrop&#60;T&#62;">ManuallyDrop&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Ci8%3E%3E" title="Option&#60;NonZeroI8&#62;">Option&#60;NonZeroI8&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Ci16%3E%3E" title="Option&#60;NonZeroI16&#62;">Option&#60;NonZeroI16&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Ci32%3E%3E" title="Option&#60;NonZeroI32&#62;">Option&#60;NonZeroI32&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Ci64%3E%3E" title="Option&#60;NonZeroI64&#62;">Option&#60;NonZeroI64&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Ci128%3E%3E" title="Option&#60;NonZeroI128&#62;">Option&#60;NonZeroI128&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cisize%3E%3E" title="Option&#60;NonZeroIsize&#62;">Option&#60;NonZeroIsize&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cu8%3E%3E" title="Option&#60;NonZeroU8&#62;">Option&#60;NonZeroU8&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cu16%3E%3E" title="Option&#60;NonZeroU16&#62;">Option&#60;NonZeroU16&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cu32%3E%3E" title="Option&#60;NonZeroU32&#62;">Option&#60;NonZeroU32&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cu64%3E%3E" title="Option&#60;NonZeroU64&#62;">Option&#60;NonZeroU64&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cu128%3E%3E" title="Option&#60;NonZeroU128&#62;">Option&#60;NonZeroU128&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cusize%3E%3E" title="Option&#60;NonZeroUsize&#62;">Option&#60;NonZeroUsize&#62;</a></li><li><a href="#impl-FromBytes-for-PhantomData%3CT%3E" title="PhantomData&#60;T&#62;">PhantomData&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-UnsafeCell%3CT%3E" title="UnsafeCell&#60;T&#62;">UnsafeCell&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-Wrapping%3CT%3E" title="Wrapping&#60;T&#62;">Wrapping&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-%5BT;+N%5D" title="[T; N]">[T; N]</a></li><li><a href="#impl-FromBytes-for-%5BT%5D" title="[T]">[T]</a></li><li><a href="#impl-FromBytes-for-__m128" title="__m128">__m128</a></li><li><a href="#impl-FromBytes-for-__m256" title="__m256">__m256</a></li><li><a href="#impl-FromBytes-for-__m512" title="__m512">__m512</a></li><li><a href="#impl-FromBytes-for-__m128d" title="__m128d">__m128d</a></li><li><a href="#impl-FromBytes-for-__m128i" title="__m128i">__m128i</a></li><li><a href="#impl-FromBytes-for-__m256d" title="__m256d">__m256d</a></li><li><a href="#impl-FromBytes-for-__m256i" title="__m256i">__m256i</a></li><li><a href="#impl-FromBytes-for-__m512bh" title="__m512bh">__m512bh</a></li><li><a href="#impl-FromBytes-for-__m512d" title="__m512d">__m512d</a></li><li><a href="#impl-FromBytes-for-__m512i" title="__m512i">__m512i</a></li><li><a href="#impl-FromBytes-for-f32" title="f32">f32</a></li><li><a href="#impl-FromBytes-for-f64" title="f64">f64</a></li><li><a href="#impl-FromBytes-for-i8" title="i8">i8</a></li><li><a href="#impl-FromBytes-for-i16" title="i16">i16</a></li><li><a href="#impl-FromBytes-for-i32" title="i32">i32</a></li><li><a href="#impl-FromBytes-for-i64" title="i64">i64</a></li><li><a href="#impl-FromBytes-for-i128" title="i128">i128</a></li><li><a href="#impl-FromBytes-for-isize" title="isize">isize</a></li><li><a href="#impl-FromBytes-for-u8" title="u8">u8</a></li><li><a href="#impl-FromBytes-for-u16" title="u16">u16</a></li><li><a href="#impl-FromBytes-for-u32" title="u32">u32</a></li><li><a href="#impl-FromBytes-for-u64" title="u64">u64</a></li><li><a href="#impl-FromBytes-for-u128" title="u128">u128</a></li><li><a href="#impl-FromBytes-for-usize" title="usize">usize</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate zerocopy</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">zerocopy</a></div><h1>Trait <span class="trait">From<wbr>Bytes</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/zerocopy/lib.rs.html#4003-5415">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe trait FromBytes: <a class="trait" href="trait.FromZeros.html" title="trait zerocopy::FromZeros">FromZeros</a> {
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Types for which any bit pattern is valid."><title>FromBytes in zerocopy - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="zerocopy" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">FromBytes</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../zerocopy/index.html">zerocopy</a><span class="version">0.8.50</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">From<wbr>Bytes</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#warning-padding-bytes" title="Warning: Padding bytes">Warning: Padding bytes</a></li><li><a href="#implementation" title="Implementation">Implementation</a></li><li><a href="#safety" title="Safety">Safety</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.mut_from_bytes" title="mut_from_bytes">mut_from_bytes</a></li><li><a href="#method.mut_from_bytes_with_elems" title="mut_from_bytes_with_elems">mut_from_bytes_with_elems</a></li><li><a href="#method.mut_from_prefix" title="mut_from_prefix">mut_from_prefix</a></li><li><a href="#method.mut_from_prefix_with_elems" title="mut_from_prefix_with_elems">mut_from_prefix_with_elems</a></li><li><a href="#method.mut_from_suffix" title="mut_from_suffix">mut_from_suffix</a></li><li><a href="#method.mut_from_suffix_with_elems" title="mut_from_suffix_with_elems">mut_from_suffix_with_elems</a></li><li><a href="#method.read_from_bytes" title="read_from_bytes">read_from_bytes</a></li><li><a href="#method.read_from_prefix" title="read_from_prefix">read_from_prefix</a></li><li><a href="#method.read_from_suffix" title="read_from_suffix">read_from_suffix</a></li><li><a href="#method.ref_from_bytes" title="ref_from_bytes">ref_from_bytes</a></li><li><a href="#method.ref_from_bytes_with_elems" title="ref_from_bytes_with_elems">ref_from_bytes_with_elems</a></li><li><a href="#method.ref_from_prefix" title="ref_from_prefix">ref_from_prefix</a></li><li><a href="#method.ref_from_prefix_with_elems" title="ref_from_prefix_with_elems">ref_from_prefix_with_elems</a></li><li><a href="#method.ref_from_suffix" title="ref_from_suffix">ref_from_suffix</a></li><li><a href="#method.ref_from_suffix_with_elems" title="ref_from_suffix_with_elems">ref_from_suffix_with_elems</a></li></ul><h3><a href="#foreign-impls">Implementations on Foreign Types</a></h3><ul class="block"><li><a href="#impl-FromBytes-for-()" title="()">()</a></li><li><a href="#impl-FromBytes-for-(A,+B)" title="(A, B)">(A, B)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C)" title="(A, B, C)">(A, B, C)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D)" title="(A, B, C, D)">(A, B, C, D)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E)" title="(A, B, C, D, E)">(A, B, C, D, E)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F)" title="(A, B, C, D, E, F)">(A, B, C, D, E, F)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G)" title="(A, B, C, D, E, F, G)">(A, B, C, D, E, F, G)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H)" title="(A, B, C, D, E, F, G, H)">(A, B, C, D, E, F, G, H)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I)" title="(A, B, C, D, E, F, G, H, I)">(A, B, C, D, E, F, G, H, I)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J)" title="(A, B, C, D, E, F, G, H, I, J)">(A, B, C, D, E, F, G, H, I, J)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K)" title="(A, B, C, D, E, F, G, H, I, J, K)">(A, B, C, D, E, F, G, H, I, J, K)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L)" title="(A, B, C, D, E, F, G, H, I, J, K, L)">(A, B, C, D, E, F, G, H, I, J, K, L)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M)">(A, B, C, D, E, F, G, H, I, J, K, L, M)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U,+V)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U,+V,+W)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U,+V,+W,+X)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U,+V,+W,+X,+Y)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y)</a></li><li><a href="#impl-FromBytes-for-(A,+B,+C,+D,+E,+F,+G,+H,+I,+J,+K,+L,+M,+N,+O,+P,+Q,+R,+S,+T,+U,+V,+W,+X,+Y,+Z)" title="(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z)">(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z)</a></li><li><a href="#impl-FromBytes-for-(A,)" title="(A,)">(A,)</a></li><li><a href="#impl-FromBytes-for-AtomicI8" title="AtomicI8">AtomicI8</a></li><li><a href="#impl-FromBytes-for-AtomicI16" title="AtomicI16">AtomicI16</a></li><li><a href="#impl-FromBytes-for-AtomicI32" title="AtomicI32">AtomicI32</a></li><li><a href="#impl-FromBytes-for-AtomicI64" title="AtomicI64">AtomicI64</a></li><li><a href="#impl-FromBytes-for-AtomicIsize" title="AtomicIsize">AtomicIsize</a></li><li><a href="#impl-FromBytes-for-AtomicU8" title="AtomicU8">AtomicU8</a></li><li><a href="#impl-FromBytes-for-AtomicU16" title="AtomicU16">AtomicU16</a></li><li><a href="#impl-FromBytes-for-AtomicU32" title="AtomicU32">AtomicU32</a></li><li><a href="#impl-FromBytes-for-AtomicU64" title="AtomicU64">AtomicU64</a></li><li><a href="#impl-FromBytes-for-AtomicUsize" title="AtomicUsize">AtomicUsize</a></li><li><a href="#impl-FromBytes-for-Cell%3CT%3E" title="Cell&#60;T&#62;">Cell&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-MaybeUninit%3CT%3E" title="CoreMaybeUninit&#60;T&#62;">CoreMaybeUninit&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-ManuallyDrop%3CT%3E" title="ManuallyDrop&#60;T&#62;">ManuallyDrop&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Ci8%3E%3E" title="Option&#60;NonZeroI8&#62;">Option&#60;NonZeroI8&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Ci16%3E%3E" title="Option&#60;NonZeroI16&#62;">Option&#60;NonZeroI16&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Ci32%3E%3E" title="Option&#60;NonZeroI32&#62;">Option&#60;NonZeroI32&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Ci64%3E%3E" title="Option&#60;NonZeroI64&#62;">Option&#60;NonZeroI64&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Ci128%3E%3E" title="Option&#60;NonZeroI128&#62;">Option&#60;NonZeroI128&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cisize%3E%3E" title="Option&#60;NonZeroIsize&#62;">Option&#60;NonZeroIsize&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cu8%3E%3E" title="Option&#60;NonZeroU8&#62;">Option&#60;NonZeroU8&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cu16%3E%3E" title="Option&#60;NonZeroU16&#62;">Option&#60;NonZeroU16&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cu32%3E%3E" title="Option&#60;NonZeroU32&#62;">Option&#60;NonZeroU32&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cu64%3E%3E" title="Option&#60;NonZeroU64&#62;">Option&#60;NonZeroU64&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cu128%3E%3E" title="Option&#60;NonZeroU128&#62;">Option&#60;NonZeroU128&#62;</a></li><li><a href="#impl-FromBytes-for-Option%3CNonZero%3Cusize%3E%3E" title="Option&#60;NonZeroUsize&#62;">Option&#60;NonZeroUsize&#62;</a></li><li><a href="#impl-FromBytes-for-PhantomData%3CT%3E" title="PhantomData&#60;T&#62;">PhantomData&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-UnsafeCell%3CT%3E" title="UnsafeCell&#60;T&#62;">UnsafeCell&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-Wrapping%3CT%3E" title="Wrapping&#60;T&#62;">Wrapping&#60;T&#62;</a></li><li><a href="#impl-FromBytes-for-%5BT;+N%5D" title="[T; N]">[T; N]</a></li><li><a href="#impl-FromBytes-for-%5BT%5D" title="[T]">[T]</a></li><li><a href="#impl-FromBytes-for-__m128" title="__m128">__m128</a></li><li><a href="#impl-FromBytes-for-__m256" title="__m256">__m256</a></li><li><a href="#impl-FromBytes-for-__m512" title="__m512">__m512</a></li><li><a href="#impl-FromBytes-for-__m128d" title="__m128d">__m128d</a></li><li><a href="#impl-FromBytes-for-__m128i" title="__m128i">__m128i</a></li><li><a href="#impl-FromBytes-for-__m256d" title="__m256d">__m256d</a></li><li><a href="#impl-FromBytes-for-__m256i" title="__m256i">__m256i</a></li><li><a href="#impl-FromBytes-for-__m512bh" title="__m512bh">__m512bh</a></li><li><a href="#impl-FromBytes-for-__m512d" title="__m512d">__m512d</a></li><li><a href="#impl-FromBytes-for-__m512i" title="__m512i">__m512i</a></li><li><a href="#impl-FromBytes-for-f32" title="f32">f32</a></li><li><a href="#impl-FromBytes-for-f64" title="f64">f64</a></li><li><a href="#impl-FromBytes-for-i8" title="i8">i8</a></li><li><a href="#impl-FromBytes-for-i16" title="i16">i16</a></li><li><a href="#impl-FromBytes-for-i32" title="i32">i32</a></li><li><a href="#impl-FromBytes-for-i64" title="i64">i64</a></li><li><a href="#impl-FromBytes-for-i128" title="i128">i128</a></li><li><a href="#impl-FromBytes-for-isize" title="isize">isize</a></li><li><a href="#impl-FromBytes-for-u8" title="u8">u8</a></li><li><a href="#impl-FromBytes-for-u16" title="u16">u16</a></li><li><a href="#impl-FromBytes-for-u32" title="u32">u32</a></li><li><a href="#impl-FromBytes-for-u64" title="u64">u64</a></li><li><a href="#impl-FromBytes-for-u128" title="u128">u128</a></li><li><a href="#impl-FromBytes-for-usize" title="usize">usize</a></li></ul><h3><a href="#dyn-compatibility">Dyn Compatibility</a></h3><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate zerocopy</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">zerocopy</a></div><h1>Trait <span class="trait">From<wbr>Bytes</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/zerocopy/lib.rs.html#4049-5461">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe trait FromBytes: <a class="trait" href="trait.FromZeros.html" title="trait zerocopy::FromZeros">FromZeros</a> {
 <details class="toggle type-contents-toggle"><summary class="hideme"><span>Show 15 methods</span></summary>    // Provided methods
     fn <a href="#method.ref_from_bytes" class="fn">ref_from_bytes</a>(source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>]) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;&amp;Self, <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;
        <span class="where">where Self: <a class="trait" href="trait.KnownLayout.html" title="trait zerocopy::KnownLayout">KnownLayout</a> + <a class="trait" href="trait.Immutable.html" title="trait zerocopy::Immutable">Immutable</a></span> { ... }
@@ -88,7 +88,7 @@ FromZeros::zero(<span class="kw-2">&amp;mut </span>foo);
 // `foo` is moved, so this may expose padding bytes as `u8`s.
 </span><span class="kw">let </span>foo_bytes: [u8; size_of::&lt;Foo&gt;()] = <span class="kw">unsafe </span>{ transmute(foo) };</code></pre></div><h2 id="implementation"><a class="doc-anchor" href="#implementation">§</a>Implementation</h2>
 <p><strong>Do not implement this trait yourself!</strong> Instead, use
-<a href="https://docs.rs/zerocopy/0.8.48/zerocopy/derive.FromBytes.html"><code>#[derive(FromBytes)]</code></a>; e.g.:</p>
+<a href="https://docs.rs/zerocopy/0.8.50/zerocopy/derive.FromBytes.html"><code>#[derive(FromBytes)]</code></a>; e.g.:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(FromBytes)]
 </span><span class="kw">struct </span>MyStruct {
@@ -116,9 +116,9 @@ operates on <code>FromBytes</code> types, then you don’t need to read this sec
 <code>T</code> whose bytes are initialized to any sequence of valid <code>u8</code>s (in other
 words, any byte value which is not uninitialized). If a type is marked as
 <code>FromBytes</code> which violates this contract, it may cause undefined behavior.</p>
-<p><code>#[derive(FromBytes)]</code> only permits <a href="https://docs.rs/zerocopy/0.8.48/zerocopy/derive.FromBytes.html#analysis">types which satisfy these
+<p><code>#[derive(FromBytes)]</code> only permits <a href="https://docs.rs/zerocopy/0.8.50/zerocopy/derive.FromBytes.html#analysis">types which satisfy these
 requirements</a>.</p>
-</div></details><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.ref_from_bytes" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4105-4114">Source</a><h4 class="code-header">fn <a href="#method.ref_from_bytes" class="fn">ref_from_bytes</a>(source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>]) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;&amp;Self, <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
+</div></details><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.ref_from_bytes" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4151-4160">Source</a><h4 class="code-header">fn <a href="#method.ref_from_bytes" class="fn">ref_from_bytes</a>(source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>]) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;&amp;Self, <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
     Self: <a class="trait" href="trait.KnownLayout.html" title="trait zerocopy::KnownLayout">KnownLayout</a> + <a class="trait" href="trait.Immutable.html" title="trait zerocopy::Immutable">Immutable</a>,</div></h4></section></summary><div class="docblock"><p>Interprets the given <code>source</code> as a <code>&amp;Self</code>.</p>
 <p>This method attempts to return a reference to <code>source</code> interpreted as a
 <code>Self</code>. If the length of <code>source</code> is not a <a href="trait.KnownLayout.html#what-is-a-valid-size" title="trait zerocopy::KnownLayout">valid size of
@@ -616,7 +616,7 @@ Resource pressure by instruction:
 </code></pre></div></div>
     </details></div>
 </div>
-    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.ref_from_prefix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4217-4223">Source</a><h4 class="code-header">fn <a href="#method.ref_from_prefix" class="fn">ref_from_prefix</a>(
+    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.ref_from_prefix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4263-4269">Source</a><h4 class="code-header">fn <a href="#method.ref_from_prefix" class="fn">ref_from_prefix</a>(
     source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(&amp;Self, &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>]), <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
     Self: <a class="trait" href="trait.KnownLayout.html" title="trait zerocopy::KnownLayout">KnownLayout</a> + <a class="trait" href="trait.Immutable.html" title="trait zerocopy::Immutable">Immutable</a>,</div></h4></section></summary><div class="docblock"><p>Interprets the prefix of the given <code>source</code> as a <code>&amp;Self</code> without
@@ -1118,7 +1118,7 @@ Resource pressure by instruction:
 </code></pre></div></div>
     </details></div>
 </div>
-    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.ref_from_suffix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4311-4317">Source</a><h4 class="code-header">fn <a href="#method.ref_from_suffix" class="fn">ref_from_suffix</a>(
+    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.ref_from_suffix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4357-4363">Source</a><h4 class="code-header">fn <a href="#method.ref_from_suffix" class="fn">ref_from_suffix</a>(
     source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], &amp;Self), <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
     Self: <a class="trait" href="trait.Immutable.html" title="trait zerocopy::Immutable">Immutable</a> + <a class="trait" href="trait.KnownLayout.html" title="trait zerocopy::KnownLayout">KnownLayout</a>,</div></h4></section></summary><div class="docblock"><p>Interprets the suffix of the given bytes as a <code>&amp;Self</code>.</p>
@@ -1614,7 +1614,7 @@ Resource pressure by instruction:
 </code></pre></div></div>
     </details></div>
 </div>
-    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_bytes" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4395-4404">Source</a><h4 class="code-header">fn <a href="#method.mut_from_bytes" class="fn">mut_from_bytes</a>(
+    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_bytes" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4441-4450">Source</a><h4 class="code-header">fn <a href="#method.mut_from_bytes" class="fn">mut_from_bytes</a>(
     source: &amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;&amp;mut Self, <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
     Self: <a class="trait" href="trait.IntoBytes.html" title="trait zerocopy::IntoBytes">IntoBytes</a> + <a class="trait" href="trait.KnownLayout.html" title="trait zerocopy::KnownLayout">KnownLayout</a>,</div></h4></section></summary><div class="docblock"><p>Interprets the given <code>source</code> as a <code>&amp;mut Self</code>.</p>
@@ -1670,7 +1670,7 @@ header.checksum = [<span class="number">0</span>, <span class="number">0</span>]
     Code Generation
 </h5>
 <p>See <a href="#method.ref_from_bytes.codegen"><code>FromBytes::ref_from_bytes</code></a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_prefix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4486-4494">Source</a><h4 class="code-header">fn <a href="#method.mut_from_prefix" class="fn">mut_from_prefix</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_prefix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4532-4540">Source</a><h4 class="code-header">fn <a href="#method.mut_from_prefix" class="fn">mut_from_prefix</a>(
     source: &amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(&amp;mut Self, &amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>]), <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
     Self: <a class="trait" href="trait.IntoBytes.html" title="trait zerocopy::IntoBytes">IntoBytes</a> + <a class="trait" href="trait.KnownLayout.html" title="trait zerocopy::KnownLayout">KnownLayout</a>,</div></h4></section></summary><div class="docblock"><p>Interprets the prefix of the given <code>source</code> as a <code>&amp;mut Self</code> without
@@ -1729,7 +1729,7 @@ body.fill(<span class="number">1</span>);
     Code Generation
 </h5>
 <p>See <a href="#method.ref_from_prefix.codegen"><code>FromBytes::ref_from_prefix</code></a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_suffix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4567-4575">Source</a><h4 class="code-header">fn <a href="#method.mut_from_suffix" class="fn">mut_from_suffix</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_suffix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4613-4621">Source</a><h4 class="code-header">fn <a href="#method.mut_from_suffix" class="fn">mut_from_suffix</a>(
     source: &amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(&amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], &amp;mut Self), <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
     Self: <a class="trait" href="trait.IntoBytes.html" title="trait zerocopy::IntoBytes">IntoBytes</a> + <a class="trait" href="trait.KnownLayout.html" title="trait zerocopy::KnownLayout">KnownLayout</a>,</div></h4></section></summary><div class="docblock"><p>Interprets the suffix of the given <code>source</code> as a <code>&amp;mut Self</code> without
@@ -1782,7 +1782,7 @@ trailer.frame_check_sequence.fill(<span class="number">1</span>);
     Code Generation
 </h5>
 <p>See <a href="#method.ref_from_suffix.codegen"><code>FromBytes::ref_from_suffix</code></a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.ref_from_bytes_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4659-4672">Source</a><h4 class="code-header">fn <a href="#method.ref_from_bytes_with_elems" class="fn">ref_from_bytes_with_elems</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.ref_from_bytes_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4705-4718">Source</a><h4 class="code-header">fn <a href="#method.ref_from_bytes_with_elems" class="fn">ref_from_bytes_with_elems</a>(
     source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
     count: <a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.usize.html">usize</a>,
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;&amp;Self, <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
@@ -1897,7 +1897,7 @@ increasingly complex types:</p>
         <summary><h6>Assembly</h6></summary>
         <div>
 <div class="example-wrap"><pre class="language-plain"><code>bench_ref_from_bytes_with_elems_dynamic_size:
-   movabs rax, 9223372036854775805
+   movabs rax, 4611686018427387901
    cmp rdx, rax
    seta cl
    mov rax, rdi
@@ -1937,7 +1937,7 @@ Instruction Info:
 [6]: HasSideEffects (U)
 
 [1]    [2]    [3]    [4]    [5]    [6]    Instructions:
-1      1     0.33                        movabs	rax, 9223372036854775805
+1      1     0.33                        movabs	rax, 4611686018427387901
 1      1     0.33                        cmp	rdx, rax
 2      2     1.00                        seta	cl
 1      1     0.33                        mov	rax, rdi
@@ -1969,7 +1969,7 @@ Resource pressure per iteration:
 
 Resource pressure by instruction:
 [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  Instructions:
--      -      -     0.99    -     0.01    -      -     movabs	rax, 9223372036854775805
+-      -      -     0.99    -     0.01    -      -     movabs	rax, 4611686018427387901
 -      -     0.33   0.67    -      -      -      -     cmp	rdx, rax
 -      -     1.98    -      -     0.02    -      -     seta	cl
 -      -     0.01   0.99    -      -      -      -     mov	rax, rdi
@@ -2040,34 +2040,23 @@ Resource pressure by instruction:
         <summary><h6>Assembly</h6></summary>
         <div>
 <div class="example-wrap"><pre class="language-plain"><code>bench_ref_from_bytes_with_elems_dynamic_padding:
-   mov rcx, rdx
-   mov edx, 3
-   mov rax, rcx
-   mul rdx
-   jo .LBB5_5
-   cmp rax, -10
-   ja .LBB5_5
-   mov edx, eax
-   not edx
-   and edx, 3
-   add rdx, rax
-   add rdx, 9
-   cmp rsi, rdx
-   jne .LBB5_5
-   mov r8d, edi
-   and r8d, 3
-   jne .LBB5_5
-   add rax, 9
+   movabs rax, 3074457345618258598
    cmp rdx, rax
-   jb .LBB5_5
+   seta cl
    mov rax, rdi
-   mov rdx, rcx
-   ret
-.LBB5_5:
-   xor edi, edi
-   mov rcx, rsi
-   mov rax, rdi
-   mov rdx, rcx
+   test al, 3
+   setne dil
+   or dil, cl
+   jne .LBB5_2
+   lea rcx, [rdx + 2*rdx]
+   or rcx, 3
+   add rcx, 9
+   cmp rsi, rcx
+   je .LBB5_3
+.LBB5_2:
+   xor eax, eax
+   mov rdx, rsi
+.LBB5_3:
    ret
 </code></pre></div></div>
     </details>
@@ -2075,14 +2064,14 @@ Resource pressure by instruction:
         <summary><h6>Machine Code Analysis</h6></summary>
         <div>
 <div class="example-wrap"><pre class="language-plain"><code>Iterations:        100
-Instructions:      2800
-Total Cycles:      944
-Total uOps:        2900
+Instructions:      1600
+Total Cycles:      539
+Total uOps:        1700
 
 Dispatch Width:    4
-uOps Per Cycle:    3.07
+uOps Per Cycle:    3.15
 IPC:               2.97
-Block RThroughput: 7.3
+Block RThroughput: 4.3
 
 
 Instruction Info:
@@ -2094,33 +2083,21 @@ Instruction Info:
 [6]: HasSideEffects (U)
 
 [1]    [2]    [3]    [4]    [5]    [6]    Instructions:
-1      1     0.33                        mov	rcx, rdx
-1      1     0.33                        mov	edx, 3
-1      1     0.33                        mov	rax, rcx
-2      4     1.00                        mul	rdx
-1      1     1.00                        jo	.LBB5_5
-1      1     0.33                        cmp	rax, -10
-1      1     1.00                        ja	.LBB5_5
-1      1     0.33                        mov	edx, eax
-1      1     0.33                        not	edx
-1      1     0.33                        and	edx, 3
-1      1     0.33                        add	rdx, rax
-1      1     0.33                        add	rdx, 9
-1      1     0.33                        cmp	rsi, rdx
-1      1     1.00                        jne	.LBB5_5
-1      1     0.33                        mov	r8d, edi
-1      1     0.33                        and	r8d, 3
-1      1     1.00                        jne	.LBB5_5
-1      1     0.33                        add	rax, 9
+1      1     0.33                        movabs	rax, 3074457345618258598
 1      1     0.33                        cmp	rdx, rax
-1      1     1.00                        jb	.LBB5_5
+2      2     1.00                        seta	cl
 1      1     0.33                        mov	rax, rdi
-1      1     0.33                        mov	rdx, rcx
-1      1     1.00                  U     ret
-1      0     0.25                        xor	edi, edi
-1      1     0.33                        mov	rcx, rsi
-1      1     0.33                        mov	rax, rdi
-1      1     0.33                        mov	rdx, rcx
+1      1     0.33                        test	al, 3
+1      1     0.50                        setne	dil
+1      1     0.33                        or	dil, cl
+1      1     1.00                        jne	.LBB5_2
+1      1     0.50                        lea	rcx, [rdx + 2*rdx]
+1      1     0.33                        or	rcx, 3
+1      1     0.33                        add	rcx, 9
+1      1     0.33                        cmp	rsi, rcx
+1      1     1.00                        je	.LBB5_3
+1      0     0.25                        xor	eax, eax
+1      1     0.33                        mov	rdx, rsi
 1      1     1.00                  U     ret
 
 
@@ -2137,42 +2114,30 @@ Resources:
 
 Resource pressure per iteration:
 [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  
--      -     9.32   9.32    -     9.36    -      -     
+-      -     5.33   5.32    -     5.35    -      -     
 
 Resource pressure by instruction:
 [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  Instructions:
--      -     0.64   0.18    -     0.18    -      -     mov	rcx, rdx
--      -     0.17   0.83    -      -      -      -     mov	edx, 3
--      -     0.50   0.49    -     0.01    -      -     mov	rax, rcx
--      -     1.00   1.00    -      -      -      -     mul	rdx
--      -      -      -      -     1.00    -      -     jo	.LBB5_5
--      -     0.82   0.18    -      -      -      -     cmp	rax, -10
--      -      -      -      -     1.00    -      -     ja	.LBB5_5
--      -     0.02   0.98    -      -      -      -     mov	edx, eax
--      -     0.82   0.02    -     0.16    -      -     not	edx
--      -     0.82   0.17    -     0.01    -      -     and	edx, 3
--      -     0.99    -      -     0.01    -      -     add	rdx, rax
--      -     0.98   0.01    -     0.01    -      -     add	rdx, 9
--      -     1.00    -      -      -      -      -     cmp	rsi, rdx
--      -      -      -      -     1.00    -      -     jne	.LBB5_5
--      -     0.16   0.83    -     0.01    -      -     mov	r8d, edi
--      -     0.17   0.17    -     0.66    -      -     and	r8d, 3
--      -      -      -      -     1.00    -      -     jne	.LBB5_5
--      -     0.02   0.98    -      -      -      -     add	rax, 9
--      -      -     0.17    -     0.83    -      -     cmp	rdx, rax
--      -      -      -      -     1.00    -      -     jb	.LBB5_5
--      -     0.01   0.67    -     0.32    -      -     mov	rax, rdi
--      -     0.02   0.98    -      -      -      -     mov	rdx, rcx
--      -      -      -      -     1.00    -      -     ret
--      -      -      -      -      -      -      -     xor	edi, edi
--      -     0.34   0.66    -      -      -      -     mov	rcx, rsi
--      -     0.34   0.50    -     0.16    -      -     mov	rax, rdi
--      -     0.50   0.50    -      -      -      -     mov	rdx, rcx
+-      -     0.01   0.98    -     0.01    -      -     movabs	rax, 3074457345618258598
+-      -      -     1.00    -      -      -      -     cmp	rdx, rax
+-      -     1.98    -      -     0.02    -      -     seta	cl
+-      -     0.02   0.98    -      -      -      -     mov	rax, rdi
+-      -      -     0.67    -     0.33    -      -     test	al, 3
+-      -     0.67    -      -     0.33    -      -     setne	dil
+-      -     0.99    -      -     0.01    -      -     or	dil, cl
+-      -      -      -      -     1.00    -      -     jne	.LBB5_2
+-      -     0.01   0.99    -      -      -      -     lea	rcx, [rdx + 2*rdx]
+-      -      -     0.01    -     0.99    -      -     or	rcx, 3
+-      -     0.65   0.02    -     0.33    -      -     add	rcx, 9
+-      -     0.99   0.01    -      -      -      -     cmp	rsi, rcx
+-      -      -      -      -     1.00    -      -     je	.LBB5_3
+-      -      -      -      -      -      -      -     xor	eax, eax
+-      -     0.01   0.66    -     0.33    -      -     mov	rdx, rsi
 -      -      -      -      -     1.00    -      -     ret
 </code></pre></div></div>
     </details></div>
 </div>
-    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.ref_from_prefix_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4758-4766">Source</a><h4 class="code-header">fn <a href="#method.ref_from_prefix_with_elems" class="fn">ref_from_prefix_with_elems</a>(
+    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.ref_from_prefix_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4804-4812">Source</a><h4 class="code-header">fn <a href="#method.ref_from_prefix_with_elems" class="fn">ref_from_prefix_with_elems</a>(
     source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
     count: <a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.usize.html">usize</a>,
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(&amp;Self, &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>]), <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
@@ -2292,7 +2257,7 @@ increasingly complex types:</p>
         <summary><h6>Assembly</h6></summary>
         <div>
 <div class="example-wrap"><pre class="language-plain"><code>bench_ref_from_prefix_with_elems_dynamic_size:
-   movabs rax, 9223372036854775805
+   movabs rax, 4611686018427387901
    cmp rdx, rax
    ja .LBB5_1
    mov rcx, rdx
@@ -2338,7 +2303,7 @@ Instruction Info:
 [6]: HasSideEffects (U)
 
 [1]    [2]    [3]    [4]    [5]    [6]    Instructions:
-1      1     0.33                        movabs	rax, 9223372036854775805
+1      1     0.33                        movabs	rax, 4611686018427387901
 1      1     0.33                        cmp	rdx, rax
 1      1     1.00                        ja	.LBB5_1
 1      1     0.33                        mov	rcx, rdx
@@ -2376,7 +2341,7 @@ Resource pressure per iteration:
 
 Resource pressure by instruction:
 [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  Instructions:
--      -      -     0.99    -     0.01    -      -     movabs	rax, 9223372036854775805
+-      -      -     0.99    -     0.01    -      -     movabs	rax, 4611686018427387901
 -      -     0.37   0.63    -      -      -      -     cmp	rdx, rax
 -      -      -      -      -     1.00    -      -     ja	.LBB5_1
 -      -     0.63   0.37    -      -      -      -     mov	rcx, rdx
@@ -2456,39 +2421,30 @@ Resource pressure by instruction:
         <summary><h6>Assembly</h6></summary>
         <div>
 <div class="example-wrap"><pre class="language-plain"><code>bench_ref_from_prefix_with_elems_dynamic_padding:
-   mov rcx, rdx
-   mov edx, 3
-   mov rax, rcx
-   mul rdx
+   movabs rax, 3074457345618258598
+   cmp rdx, rax
+   ja .LBB5_1
+   xor ecx, ecx
+   mov eax, 0
+   test dil, 3
+   je .LBB5_3
+   mov rdx, rcx
+   ret
+.LBB5_1:
    mov edx, 1
-   jo .LBB5_5
-   cmp rax, -10
-   ja .LBB5_5
-   lea r8, [rax + 9]
-   not eax
-   and eax, 3
-   add rax, r8
-   jae .LBB5_3
-.LBB5_5:
-   xor r8d, r8d
-   mov rax, r8
+   xor eax, eax
    ret
 .LBB5_3:
-   xor edx, edx
-   mov r8d, 0
-   test dil, 3
-   je .LBB5_4
-   mov rax, r8
-   ret
-.LBB5_4:
-   xor edx, edx
+   lea rax, [rdx + 2*rdx]
+   or rax, 3
+   add rax, 9
+   xor r8d, r8d
    cmp rax, rsi
-   mov eax, 1
-   cmova rcx, rax
-   cmova rdi, rdx
+   mov ecx, 1
+   cmovbe rcx, rdx
+   cmova rdi, r8
+   mov rax, rdi
    mov rdx, rcx
-   mov r8, rdi
-   mov rax, r8
    ret
 </code></pre></div></div>
     </details>
@@ -2496,14 +2452,14 @@ Resource pressure by instruction:
         <summary><h6>Machine Code Analysis</h6></summary>
         <div>
 <div class="example-wrap"><pre class="language-plain"><code>Iterations:        100
-Instructions:      3100
-Total Cycles:      1110
-Total uOps:        3600
+Instructions:      2300
+Total Cycles:      807
+Total uOps:        2700
 
 Dispatch Width:    4
-uOps Per Cycle:    3.24
-IPC:               2.79
-Block RThroughput: 9.0
+uOps Per Cycle:    3.35
+IPC:               2.85
+Block RThroughput: 6.8
 
 
 Instruction Info:
@@ -2515,36 +2471,28 @@ Instruction Info:
 [6]: HasSideEffects (U)
 
 [1]    [2]    [3]    [4]    [5]    [6]    Instructions:
-1      1     0.33                        mov	rcx, rdx
-1      1     0.33                        mov	edx, 3
-1      1     0.33                        mov	rax, rcx
-2      4     1.00                        mul	rdx
-1      1     0.33                        mov	edx, 1
-1      1     1.00                        jo	.LBB5_5
-1      1     0.33                        cmp	rax, -10
-1      1     1.00                        ja	.LBB5_5
-1      1     0.50                        lea	r8, [rax + 9]
-1      1     0.33                        not	eax
-1      1     0.33                        and	eax, 3
-1      1     0.33                        add	rax, r8
-1      1     1.00                        jae	.LBB5_3
-1      0     0.25                        xor	r8d, r8d
-1      1     0.33                        mov	rax, r8
-1      1     1.00                  U     ret
-1      0     0.25                        xor	edx, edx
-1      1     0.33                        mov	r8d, 0
+1      1     0.33                        movabs	rax, 3074457345618258598
+1      1     0.33                        cmp	rdx, rax
+1      1     1.00                        ja	.LBB5_1
+1      0     0.25                        xor	ecx, ecx
+1      1     0.33                        mov	eax, 0
 1      1     0.33                        test	dil, 3
-1      1     1.00                        je	.LBB5_4
-1      1     0.33                        mov	rax, r8
-1      1     1.00                  U     ret
-1      0     0.25                        xor	edx, edx
-1      1     0.33                        cmp	rax, rsi
-1      1     0.33                        mov	eax, 1
-3      3     1.00                        cmova	rcx, rax
-3      3     1.00                        cmova	rdi, rdx
+1      1     1.00                        je	.LBB5_3
 1      1     0.33                        mov	rdx, rcx
-1      1     0.33                        mov	r8, rdi
-1      1     0.33                        mov	rax, r8
+1      1     1.00                  U     ret
+1      1     0.33                        mov	edx, 1
+1      0     0.25                        xor	eax, eax
+1      1     1.00                  U     ret
+1      1     0.50                        lea	rax, [rdx + 2*rdx]
+1      1     0.33                        or	rax, 3
+1      1     0.33                        add	rax, 9
+1      0     0.25                        xor	r8d, r8d
+1      1     0.33                        cmp	rax, rsi
+1      1     0.33                        mov	ecx, 1
+3      3     1.00                        cmovbe	rcx, rdx
+3      3     1.00                        cmova	rdi, r8
+1      1     0.33                        mov	rax, rdi
+1      1     0.33                        mov	rdx, rcx
 1      1     1.00                  U     ret
 
 
@@ -2561,45 +2509,37 @@ Resources:
 
 Resource pressure per iteration:
 [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  
--      -     11.01  10.98   -     11.01   -      -     
+-      -     7.99   7.99    -     8.02    -      -     
 
 Resource pressure by instruction:
 [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  Instructions:
--      -     0.48   0.50    -     0.02    -      -     mov	rcx, rdx
--      -     0.02   0.98    -      -      -      -     mov	edx, 3
--      -     0.51   0.48    -     0.01    -      -     mov	rax, rcx
--      -     1.00   1.00    -      -      -      -     mul	rdx
--      -     0.49   0.50    -     0.01    -      -     mov	edx, 1
--      -      -      -      -     1.00    -      -     jo	.LBB5_5
--      -     0.98   0.02    -      -      -      -     cmp	rax, -10
--      -      -      -      -     1.00    -      -     ja	.LBB5_5
--      -     0.02   0.98    -      -      -      -     lea	r8, [rax + 9]
--      -     0.98   0.02    -      -      -      -     not	eax
--      -     0.99   0.01    -      -      -      -     and	eax, 3
--      -     0.98   0.01    -     0.01    -      -     add	rax, r8
--      -      -      -      -     1.00    -      -     jae	.LBB5_3
+-      -     0.47   0.52    -     0.01    -      -     movabs	rax, 3074457345618258598
+-      -     0.94   0.01    -     0.05    -      -     cmp	rdx, rax
+-      -      -      -      -     1.00    -      -     ja	.LBB5_1
+-      -      -      -      -      -      -      -     xor	ecx, ecx
+-      -     0.03   0.97    -      -      -      -     mov	eax, 0
+-      -     0.01   0.52    -     0.47    -      -     test	dil, 3
+-      -      -      -      -     1.00    -      -     je	.LBB5_3
+-      -     0.03   0.51    -     0.46    -      -     mov	rdx, rcx
+-      -      -      -      -     1.00    -      -     ret
+-      -     0.04   0.96    -      -      -      -     mov	edx, 1
+-      -      -      -      -      -      -      -     xor	eax, eax
+-      -      -      -      -     1.00    -      -     ret
+-      -     0.01   0.99    -      -      -      -     lea	rax, [rdx + 2*rdx]
+-      -     0.52   0.48    -      -      -      -     or	rax, 3
+-      -     0.51   0.49    -      -      -      -     add	rax, 9
 -      -      -      -      -      -      -      -     xor	r8d, r8d
--      -     0.01   0.98    -     0.01    -      -     mov	rax, r8
--      -      -      -      -     1.00    -      -     ret
--      -      -      -      -      -      -      -     xor	edx, edx
--      -     0.48   0.52    -      -      -      -     mov	r8d, 0
--      -     0.02   0.97    -     0.01    -      -     test	dil, 3
--      -      -      -      -     1.00    -      -     je	.LBB5_4
--      -     0.49   0.50    -     0.01    -      -     mov	rax, r8
--      -      -      -      -     1.00    -      -     ret
--      -      -      -      -      -      -      -     xor	edx, edx
--      -     0.51   0.49    -      -      -      -     cmp	rax, rsi
--      -      -     1.00    -      -      -      -     mov	eax, 1
--      -     1.04   0.97    -     0.99    -      -     cmova	rcx, rax
--      -     0.98   0.53    -     1.49    -      -     cmova	rdi, rdx
--      -     0.50   0.50    -      -      -      -     mov	rdx, rcx
--      -     0.51   0.01    -     0.48    -      -     mov	r8, rdi
--      -     0.02   0.01    -     0.97    -      -     mov	rax, r8
+-      -     0.97   0.03    -      -      -      -     cmp	rax, rsi
+-      -     0.01   0.99    -      -      -      -     mov	ecx, 1
+-      -     1.04   0.97    -     0.99    -      -     cmovbe	rcx, rdx
+-      -     1.44   0.54    -     1.02    -      -     cmova	rdi, r8
+-      -     0.97   0.01    -     0.02    -      -     mov	rax, rdi
+-      -     1.00    -      -      -      -      -     mov	rdx, rcx
 -      -      -      -      -     1.00    -      -     ret
 </code></pre></div></div>
     </details></div>
 </div>
-    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.ref_from_suffix_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4852-4860">Source</a><h4 class="code-header">fn <a href="#method.ref_from_suffix_with_elems" class="fn">ref_from_suffix_with_elems</a>(
+    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.ref_from_suffix_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4898-4906">Source</a><h4 class="code-header">fn <a href="#method.ref_from_suffix_with_elems" class="fn">ref_from_suffix_with_elems</a>(
     source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
     count: <a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.usize.html">usize</a>,
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], &amp;Self), <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
@@ -2720,7 +2660,7 @@ increasingly complex types:</p>
         <summary><h6>Assembly</h6></summary>
         <div>
 <div class="example-wrap"><pre class="language-plain"><code>bench_ref_from_suffix_with_elems_dynamic_size:
-   movabs rax, 9223372036854775805
+   movabs rax, 4611686018427387901
    cmp rdx, rax
    ja .LBB5_1
    lea r8d, [rsi + rdi]
@@ -2767,7 +2707,7 @@ Instruction Info:
 [6]: HasSideEffects (U)
 
 [1]    [2]    [3]    [4]    [5]    [6]    Instructions:
-1      1     0.33                        movabs	rax, 9223372036854775805
+1      1     0.33                        movabs	rax, 4611686018427387901
 1      1     0.33                        cmp	rdx, rax
 1      1     1.00                        ja	.LBB5_1
 1      1     0.50                        lea	r8d, [rsi + rdi]
@@ -2805,7 +2745,7 @@ Resource pressure per iteration:
 
 Resource pressure by instruction:
 [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  Instructions:
--      -     0.66   0.33    -     0.01    -      -     movabs	rax, 9223372036854775805
+-      -     0.66   0.33    -     0.01    -      -     movabs	rax, 4611686018427387901
 -      -     0.01   0.99    -      -      -      -     cmp	rdx, rax
 -      -      -      -      -     1.00    -      -     ja	.LBB5_1
 -      -     0.99   0.01    -      -      -      -     lea	r8d, [rsi + rdi]
@@ -2885,38 +2825,31 @@ Resource pressure by instruction:
         <summary><h6>Assembly</h6></summary>
         <div>
 <div class="example-wrap"><pre class="language-plain"><code>bench_ref_from_suffix_with_elems_dynamic_padding:
-   mov rcx, rdx
-   mov edx, 3
-   mov rax, rcx
-   mul rdx
-   jo .LBB5_1
-   cmp rax, -10
+   movabs rax, 3074457345618258598
+   cmp rdx, rax
    ja .LBB5_1
-   lea rdx, [rax + 9]
-   not eax
-   and eax, 3
-   add rax, rdx
+   lea r8d, [rsi + rdi]
+   xor ecx, ecx
+   mov eax, 0
+   test r8b, 3
+   je .LBB5_3
+   mov rdx, rcx
+   ret
+.LBB5_3:
+   lea rax, [rdx + 2*rdx]
+   or rax, 3
+   add rax, 9
+   sub rsi, rax
    jae .LBB5_4
 .LBB5_1:
-   xor r8d, r8d
+   xor eax, eax
    mov edx, 1
-   mov rax, r8
    ret
 .LBB5_4:
-   lea r9d, [rsi + rdi]
-   xor edx, edx
-   mov r8d, 0
-   test r9b, 3
-   je .LBB5_5
-   mov rax, r8
-   ret
-.LBB5_5:
-   sub rsi, rax
-   jb .LBB5_1
    add rdi, rsi
+   mov rcx, rdx
+   mov rax, rdi
    mov rdx, rcx
-   mov r8, rdi
-   mov rax, r8
    ret
 </code></pre></div></div>
     </details>
@@ -2924,14 +2857,14 @@ Resource pressure by instruction:
         <summary><h6>Machine Code Analysis</h6></summary>
         <div>
 <div class="example-wrap"><pre class="language-plain"><code>Iterations:        100
-Instructions:      3000
-Total Cycles:      973
-Total uOps:        3100
+Instructions:      2300
+Total Cycles:      706
+Total uOps:        2300
 
 Dispatch Width:    4
-uOps Per Cycle:    3.19
-IPC:               3.08
-Block RThroughput: 8.0
+uOps Per Cycle:    3.26
+IPC:               3.26
+Block RThroughput: 6.0
 
 
 Instruction Info:
@@ -2943,35 +2876,28 @@ Instruction Info:
 [6]: HasSideEffects (U)
 
 [1]    [2]    [3]    [4]    [5]    [6]    Instructions:
-1      1     0.33                        mov	rcx, rdx
-1      1     0.33                        mov	edx, 3
-1      1     0.33                        mov	rax, rcx
-2      4     1.00                        mul	rdx
-1      1     1.00                        jo	.LBB5_1
-1      1     0.33                        cmp	rax, -10
+1      1     0.33                        movabs	rax, 3074457345618258598
+1      1     0.33                        cmp	rdx, rax
 1      1     1.00                        ja	.LBB5_1
-1      1     0.50                        lea	rdx, [rax + 9]
-1      1     0.33                        not	eax
-1      1     0.33                        and	eax, 3
-1      1     0.33                        add	rax, rdx
-1      1     1.00                        jae	.LBB5_4
-1      0     0.25                        xor	r8d, r8d
-1      1     0.33                        mov	edx, 1
-1      1     0.33                        mov	rax, r8
-1      1     1.00                  U     ret
-1      1     0.50                        lea	r9d, [rsi + rdi]
-1      0     0.25                        xor	edx, edx
-1      1     0.33                        mov	r8d, 0
-1      1     0.33                        test	r9b, 3
-1      1     1.00                        je	.LBB5_5
-1      1     0.33                        mov	rax, r8
-1      1     1.00                  U     ret
-1      1     0.33                        sub	rsi, rax
-1      1     1.00                        jb	.LBB5_1
-1      1     0.33                        add	rdi, rsi
+1      1     0.50                        lea	r8d, [rsi + rdi]
+1      0     0.25                        xor	ecx, ecx
+1      1     0.33                        mov	eax, 0
+1      1     0.33                        test	r8b, 3
+1      1     1.00                        je	.LBB5_3
 1      1     0.33                        mov	rdx, rcx
-1      1     0.33                        mov	r8, rdi
-1      1     0.33                        mov	rax, r8
+1      1     1.00                  U     ret
+1      1     0.50                        lea	rax, [rdx + 2*rdx]
+1      1     0.33                        or	rax, 3
+1      1     0.33                        add	rax, 9
+1      1     0.33                        sub	rsi, rax
+1      1     1.00                        jae	.LBB5_4
+1      0     0.25                        xor	eax, eax
+1      1     0.33                        mov	edx, 1
+1      1     1.00                  U     ret
+1      1     0.33                        add	rdi, rsi
+1      1     0.33                        mov	rcx, rdx
+1      1     0.33                        mov	rax, rdi
+1      1     0.33                        mov	rdx, rcx
 1      1     1.00                  U     ret
 
 
@@ -2988,44 +2914,37 @@ Resources:
 
 Resource pressure per iteration:
 [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  
--      -     9.66   9.66    -     9.68    -      -     
+-      -     6.99   7.00    -     7.01    -      -     
 
 Resource pressure by instruction:
 [0]    [1]    [2]    [3]    [4]    [5]    [6.0]  [6.1]  Instructions:
--      -      -     0.99    -     0.01    -      -     mov	rcx, rdx
--      -     0.66   0.34    -      -      -      -     mov	edx, 3
--      -     0.34   0.66    -      -      -      -     mov	rax, rcx
--      -     1.00   1.00    -      -      -      -     mul	rdx
--      -      -      -      -     1.00    -      -     jo	.LBB5_1
--      -     1.00    -      -      -      -      -     cmp	rax, -10
+-      -      -     0.99    -     0.01    -      -     movabs	rax, 3074457345618258598
+-      -     0.01   0.50    -     0.49    -      -     cmp	rdx, rax
 -      -      -      -      -     1.00    -      -     ja	.LBB5_1
--      -      -     1.00    -      -      -      -     lea	rdx, [rax + 9]
--      -     1.00    -      -      -      -      -     not	eax
--      -     1.00    -      -      -      -      -     and	eax, 3
--      -     1.00    -      -      -      -      -     add	rax, rdx
+-      -      -     1.00    -      -      -      -     lea	r8d, [rsi + rdi]
+-      -      -      -      -      -      -      -     xor	ecx, ecx
+-      -     0.50   0.49    -     0.01    -      -     mov	eax, 0
+-      -     0.49   0.51    -      -      -      -     test	r8b, 3
+-      -      -      -      -     1.00    -      -     je	.LBB5_3
+-      -     0.51   0.49    -      -      -      -     mov	rdx, rcx
+-      -      -      -      -     1.00    -      -     ret
+-      -     0.50   0.50    -      -      -      -     lea	rax, [rdx + 2*rdx]
+-      -     1.00    -      -      -      -      -     or	rax, 3
+-      -     1.00    -      -      -      -      -     add	rax, 9
+-      -     0.99   0.01    -      -      -      -     sub	rsi, rax
 -      -      -      -      -     1.00    -      -     jae	.LBB5_4
--      -      -      -      -      -      -      -     xor	r8d, r8d
--      -     0.33   0.33    -     0.34    -      -     mov	edx, 1
--      -     0.33    -      -     0.67    -      -     mov	rax, r8
+-      -      -      -      -      -      -      -     xor	eax, eax
+-      -      -     1.00    -      -      -      -     mov	edx, 1
 -      -      -      -      -     1.00    -      -     ret
--      -     0.33   0.67    -      -      -      -     lea	r9d, [rsi + rdi]
--      -      -      -      -      -      -      -     xor	edx, edx
--      -     0.67   0.33    -      -      -      -     mov	r8d, 0
--      -     0.33   0.34    -     0.33    -      -     test	r9b, 3
--      -      -      -      -     1.00    -      -     je	.LBB5_5
--      -     0.66   0.01    -     0.33    -      -     mov	rax, r8
--      -      -      -      -     1.00    -      -     ret
--      -     0.33   0.67    -      -      -      -     sub	rsi, rax
--      -      -      -      -     1.00    -      -     jb	.LBB5_1
--      -      -     1.00    -      -      -      -     add	rdi, rsi
--      -     0.01   0.99    -      -      -      -     mov	rdx, rcx
--      -      -     1.00    -      -      -      -     mov	r8, rdi
--      -     0.67   0.33    -      -      -      -     mov	rax, r8
+-      -     1.00    -      -      -      -      -     add	rdi, rsi
+-      -      -     1.00    -      -      -      -     mov	rcx, rdx
+-      -     0.99   0.01    -      -      -      -     mov	rax, rdi
+-      -      -     0.50    -     0.50    -      -     mov	rdx, rcx
 -      -      -      -      -     1.00    -      -     ret
 </code></pre></div></div>
     </details></div>
 </div>
-    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_bytes_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4933-4946">Source</a><h4 class="code-header">fn <a href="#method.mut_from_bytes_with_elems" class="fn">mut_from_bytes_with_elems</a>(
+    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_bytes_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#4979-4992">Source</a><h4 class="code-header">fn <a href="#method.mut_from_bytes_with_elems" class="fn">mut_from_bytes_with_elems</a>(
     source: &amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
     count: <a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.usize.html">usize</a>,
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;&amp;mut Self, <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
@@ -3080,7 +2999,7 @@ which do not take an explicit count do not support such types.</p>
     Code Generation
 </h5>
 <p>See <a href="#method.ref_from_bytes_with_elems.codegen"><code>TryFromBytes::ref_from_bytes_with_elems</code></a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_prefix_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#5023-5031">Source</a><h4 class="code-header">fn <a href="#method.mut_from_prefix_with_elems" class="fn">mut_from_prefix_with_elems</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_prefix_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#5069-5077">Source</a><h4 class="code-header">fn <a href="#method.mut_from_prefix_with_elems" class="fn">mut_from_prefix_with_elems</a>(
     source: &amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
     count: <a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.usize.html">usize</a>,
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(&amp;mut Self, &amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>]), <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
@@ -3139,7 +3058,7 @@ which do not take an explicit count do not support such types.</p>
     Code Generation
 </h5>
 <p>See <a href="#method.ref_from_prefix_with_elems.codegen"><code>TryFromBytes::ref_from_prefix_with_elems</code></a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_suffix_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#5108-5116">Source</a><h4 class="code-header">fn <a href="#method.mut_from_suffix_with_elems" class="fn">mut_from_suffix_with_elems</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.mut_from_suffix_with_elems" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#5154-5162">Source</a><h4 class="code-header">fn <a href="#method.mut_from_suffix_with_elems" class="fn">mut_from_suffix_with_elems</a>(
     source: &amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
     count: <a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.usize.html">usize</a>,
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(&amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], &amp;mut Self), <a class="type" href="error/type.CastError.html" title="type zerocopy::error::CastError">CastError</a>&lt;&amp;mut [<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
@@ -3199,7 +3118,7 @@ which do not take an explicit count do not support such types.</p>
     Code Generation
 </h5>
 <p>See <a href="#method.ref_from_suffix_with_elems.codegen"><code>TryFromBytes::ref_from_suffix_with_elems</code></a>.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.read_from_bytes" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#5156-5171">Source</a><h4 class="code-header">fn <a href="#method.read_from_bytes" class="fn">read_from_bytes</a>(source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>]) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self, <a class="struct" href="error/struct.SizeError.html" title="struct zerocopy::error::SizeError">SizeError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
+</div></details><details class="toggle method-toggle" open><summary><section id="method.read_from_bytes" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#5202-5217">Source</a><h4 class="code-header">fn <a href="#method.read_from_bytes" class="fn">read_from_bytes</a>(source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>]) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self, <a class="struct" href="error/struct.SizeError.html" title="struct zerocopy::error::SizeError">SizeError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
     Self: <a class="trait" href="https://doc.rust-lang.org/1.95.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Reads a copy of <code>Self</code> from the given <code>source</code>.</p>
 <p>If <code>source.len() != size_of::&lt;Self&gt;()</code>, <code>read_from_bytes</code> returns <code>Err</code>.</p>
 <h5 id="examples-12"><a class="doc-anchor" href="#examples-12">§</a>Examples</h5>
@@ -3366,7 +3285,7 @@ Resource pressure by instruction:
 -      -     0.98   1.00    -     0.02    -      -     cmove	rax, rcx
 -      -      -      -      -     1.00    -      -     ret
 </code></pre></div></div>
-    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.read_from_prefix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#5214-5229">Source</a><h4 class="code-header">fn <a href="#method.read_from_prefix" class="fn">read_from_prefix</a>(
+    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.read_from_prefix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#5260-5275">Source</a><h4 class="code-header">fn <a href="#method.read_from_prefix" class="fn">read_from_prefix</a>(
     source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(Self, &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>]), <a class="struct" href="error/struct.SizeError.html" title="struct zerocopy::error::SizeError">SizeError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
     Self: <a class="trait" href="https://doc.rust-lang.org/1.95.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Reads a copy of <code>Self</code> from the prefix of the given <code>source</code>.</p>
@@ -3538,7 +3457,7 @@ Resource pressure by instruction:
 -      -     0.91   0.99    -     0.10    -      -     cmovae	rax, rdi
 -      -      -      -      -     1.00    -      -     ret
 </code></pre></div></div>
-    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.read_from_suffix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#5266-5281">Source</a><h4 class="code-header">fn <a href="#method.read_from_suffix" class="fn">read_from_suffix</a>(
+    </details></div></div></details><details class="toggle method-toggle" open><summary><section id="method.read_from_suffix" class="method"><a class="src rightside" href="../src/zerocopy/lib.rs.html#5312-5327">Source</a><h4 class="code-header">fn <a href="#method.read_from_suffix" class="fn">read_from_suffix</a>(
     source: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>],
 ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.95.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self), <a class="struct" href="error/struct.SizeError.html" title="struct zerocopy::error::SizeError">SizeError</a>&lt;&amp;[<a class="primitive" href="https://doc.rust-lang.org/1.95.0/core/primitive.u8.html">u8</a>], Self&gt;&gt;<div class="where">where
     Self: <a class="trait" href="https://doc.rust-lang.org/1.95.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Reads a copy of <code>Self</code> from the suffix of the given <code>source</code>.</p>

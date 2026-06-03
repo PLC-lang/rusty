@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["handshake"],"struct":["Builder","Connection","PushPromise","PushPromises","PushedResponseFuture","ReadySendRequest","ResponseFuture","SendRequest"]};

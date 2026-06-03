@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Authority","Builder","InvalidUri","InvalidUriParts","Parts","PathAndQuery","Port","Scheme","Uri"]};

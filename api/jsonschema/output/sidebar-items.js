@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["BasicOutput"],"struct":["Annotations","ErrorDescription","Output","OutputUnit"]};
+window.SIDEBAR_ITEMS = {"struct":["Annotations","ErrorDescription"]};

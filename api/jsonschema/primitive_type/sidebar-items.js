@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["PrimitiveType"],"struct":["PrimitiveTypesBitMap","PrimitiveTypesBitMapIterator"]};

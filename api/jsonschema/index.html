@@ -1,45 +1,640 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="jsonschema"><title>jsonschema - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate jsonschema</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../jsonschema/index.html">jsonschema</a><span class="version">0.17.1</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#jsonschema" title="jsonschema">jsonschema</a><ul><li><a href="#usage-examples" title="Usage Examples:">Usage Examples:</a></li><li><a href="#example-cli-tool-to-highlight-print-errors" title="Example (CLI tool to highlight print errors)">Example (CLI tool to highlight print errors)</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>jsonschema</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/jsonschema/lib.rs.html#1-266">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="jsonschema"><a class="doc-anchor" href="#jsonschema">§</a>jsonschema</h2>
-<p>A crate for performing fast JSON Schema validation. It is fast due to schema compilation into
-a validation tree, which reduces runtime costs for working with schema parameters.</p>
-<p>Supports:</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A high-performance JSON Schema validator for Rust."><title>jsonschema - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="jsonschema" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate jsonschema</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../jsonschema/index.html">jsonschema</a><span class="version">0.46.5</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#supported-drafts" title="Supported drafts">Supported drafts</a></li><li><a href="#validation" title="Validation">Validation</a><ul><li><a href="#note-on-format-keyword" title="Note on `format` keyword">Note on <code>format</code> keyword</a></li></ul></li><li><a href="#structured-output" title="Structured Output">Structured Output</a><ul><li><a href="#output-formats" title="Output Formats">Output Formats</a></li></ul></li><li><a href="#meta-schema-validation" title="Meta-Schema Validation">Meta-Schema Validation</a></li><li><a href="#configuration" title="Configuration">Configuration</a><ul><li><a href="#draft-specific-modules" title="Draft-specific Modules">Draft-specific Modules</a></li><li><a href="#general-configuration" title="General Configuration">General Configuration</a></li><li><a href="#automatic-draft-detection" title="Automatic Draft Detection">Automatic Draft Detection</a></li></ul></li><li><a href="#external-references" title="External References">External References</a><ul><li><a href="#custom-retrievers" title="Custom retrievers">Custom retrievers</a></li><li><a href="#validating-against-schema-definitions" title="Validating against schema definitions">Validating against schema definitions</a></li></ul></li><li><a href="#regular-expression-configuration" title="Regular Expression Configuration">Regular Expression Configuration</a><ul><li><a href="#example-configure-fancy-regex-with-backtracking-limit" title="Example: Configure `fancy-regex` with Backtracking Limit">Example: Configure <code>fancy-regex</code> with Backtracking Limit</a></li><li><a href="#example-use-the-regex-engine-instead" title="Example: Use the `regex` Engine Instead">Example: Use the <code>regex</code> Engine Instead</a></li><li><a href="#notes" title="Notes">Notes</a></li></ul></li><li><a href="#custom-keywords" title="Custom Keywords">Custom Keywords</a></li><li><a href="#custom-formats" title="Custom Formats">Custom Formats</a><ul><li><a href="#notes-on-custom-format-validators" title="Notes on Custom Format Validators">Notes on Custom Format Validators</a></li></ul></li><li><a href="#arbitrary-precision-numbers" title="Arbitrary Precision Numbers">Arbitrary Precision Numbers</a></li><li><a href="#webassembly-support" title="WebAssembly support">WebAssembly support</a><ul><li><a href="#browserjavascript-wasm32-unknown-unknown" title="Browser/JavaScript (`wasm32-unknown-unknown`)">Browser/JavaScript (<code>wasm32-unknown-unknown</code>)</a></li><li><a href="#wasi-wasm32-wasip1--wasm32-wasip2" title="WASI (`wasm32-wasip1` / `wasm32-wasip2`)">WASI (<code>wasm32-wasip1</code> / <code>wasm32-wasip2</code>)</a></li></ul></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>jsonschema</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/jsonschema/lib.rs.html#1-4453">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A high-performance JSON Schema validator for Rust.</p>
 <ul>
-<li>JSON Schema drafts 4, 6, 7 (except some optional test cases);</li>
-<li>Loading remote documents via HTTP(S);</li>
+<li>📚 Support for popular JSON Schema drafts</li>
+<li>🔧 Custom keywords and format validators</li>
+<li>🌐 Blocking &amp; non-blocking remote reference fetching (network/file)</li>
+<li>🎨 Structured Output v1 reports (flag/list/hierarchical)</li>
+<li>✨ Meta-schema validation for schema documents</li>
+<li>🚀 WebAssembly support</li>
 </ul>
-<p>This library is functional and ready for use, but its API is still evolving to the 1.0 API.</p>
-<h3 id="usage-examples"><a class="doc-anchor" href="#usage-examples">§</a>Usage Examples:</h3>
-<p>A schema can be compiled with two main flavours:</p>
+<h3 id="supported-drafts"><a class="doc-anchor" href="#supported-drafts">§</a>Supported drafts</h3>
+<p>Compliance levels vary across drafts, with newer versions having some unimplemented keywords.</p>
 <ul>
-<li>using default configurations</li>
+<li><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Frust-jsonschema%2Fcompliance%2Fdraft2020-12.json" alt="Draft 2020-12" /></li>
+<li><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Frust-jsonschema%2Fcompliance%2Fdraft2019-09.json" alt="Draft 2019-09" /></li>
+<li><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Frust-jsonschema%2Fcompliance%2Fdraft7.json" alt="Draft 7" /></li>
+<li><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Frust-jsonschema%2Fcompliance%2Fdraft6.json" alt="Draft 6" /></li>
+<li><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Frust-jsonschema%2Fcompliance%2Fdraft4.json" alt="Draft 4" /></li>
 </ul>
+<h2 id="validation"><a class="doc-anchor" href="#validation">§</a>Validation</h2>
+<p>The <code>jsonschema</code> crate offers two main approaches to validation: one-off validation and reusable validators.
+When external references are involved, the validator can be constructed using either blocking or non-blocking I/O.</p>
+<p>For simple use cases where you need to validate an instance against a schema once, use <a href="fn.is_valid.html" title="fn jsonschema::is_valid"><code>is_valid</code></a> or <a href="fn.validate.html" title="fn jsonschema::validate"><code>validate</code></a> functions:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>compiled_schema = JSONSchema::compile(<span class="kw-2">&amp;</span>schema).expect(<span class="string">"A valid schema"</span>);</code></pre></div>
-<ul>
-<li>using custom configurations (such as define a Draft version)</li>
-</ul>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>compiled_schema = JSONSchema::options()
-    .with_draft(Draft::Draft7)
-    .compile(<span class="kw-2">&amp;</span>schema)
-    .expect(<span class="string">"A valid schema"</span>);</code></pre></div><h3 id="example-cli-tool-to-highlight-print-errors"><a class="doc-anchor" href="#example-cli-tool-to-highlight-print-errors">§</a>Example (CLI tool to highlight print errors)</h3>
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>jsonschema::{Draft, JSONSchema};
-<span class="kw">use </span>serde_json::json;
+<span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"type"</span>: <span class="string">"string"</span>});
+<span class="kw">let </span>instance = <span class="macro">json!</span>(<span class="string">"Hello, world!"</span>);
 
-<span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"maxLength"</span>: <span class="number">5</span>});
-<span class="kw">let </span>instance = <span class="macro">json!</span>(<span class="string">"foo"</span>);
-<span class="kw">let </span>compiled = JSONSchema::options()
-    .with_draft(Draft::Draft7)
-    .compile(<span class="kw-2">&amp;</span>schema)
-    .expect(<span class="string">"A valid schema"</span>);
-<span class="kw">let </span>result = compiled.validate(<span class="kw-2">&amp;</span>instance);
-<span class="kw">if let </span><span class="prelude-val">Err</span>(errors) = result {
-    <span class="kw">for </span>error <span class="kw">in </span>errors {
-        <span class="macro">println!</span>(<span class="string">"Validation error: {}"</span>, error);
-        <span class="macro">println!</span>(<span class="string">"Instance path: {}"</span>, error.instance_path);
-    }
+<span class="macro">assert!</span>(jsonschema::is_valid(<span class="kw-2">&amp;</span>schema, <span class="kw-2">&amp;</span>instance));
+<span class="macro">assert!</span>(jsonschema::validate(<span class="kw-2">&amp;</span>schema, <span class="kw-2">&amp;</span>instance).is_ok());</code></pre></div>
+<p>For better performance, especially when validating multiple instances against the same schema, build a validator once and reuse it:
+If your schema contains external references, you can choose between blocking and non-blocking construction:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"type"</span>: <span class="string">"string"</span>});
+<span class="comment">// Blocking construction - will fetch external references synchronously
+</span><span class="kw">let </span>validator = jsonschema::validator_for(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+<span class="comment">// Non-blocking construction - will fetch external references asynchronously
+</span><span class="kw">let </span>validator = jsonschema::async_validator_for(<span class="kw-2">&amp;</span>schema).<span class="kw">await</span><span class="question-mark">?</span>;
+
+ <span class="comment">// Once constructed, validation is always synchronous as it works with in-memory data
+</span><span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"Hello, world!"</span>)));
+<span class="macro">assert!</span>(!validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="number">42</span>)));
+<span class="macro">assert!</span>(validator.validate(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="number">42</span>)).is_err());
+
+<span class="comment">// Iterate over all errors
+</span><span class="kw">let </span>instance = <span class="macro">json!</span>(<span class="number">42</span>);
+<span class="kw">for </span>error <span class="kw">in </span>validator.iter_errors(<span class="kw-2">&amp;</span>instance) {
+    <span class="macro">eprintln!</span>(<span class="string">"Error: {}"</span>, error);
+    <span class="macro">eprintln!</span>(<span class="string">"Location: {}"</span>, error.instance_path());
+}</code></pre></div><h4 id="note-on-format-keyword"><a class="doc-anchor" href="#note-on-format-keyword">§</a>Note on <code>format</code> keyword</h4>
+<p>By default, format validation is draft‑dependent. To opt in for format checks, you can configure your validator like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>validator = jsonschema::draft202012::options()
+    .should_validate_formats(<span class="bool-val">true</span>)
+    .build(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;</code></pre></div>
+<p>Once built, any <code>format</code> keywords in your schema will be actively validated according to the chosen draft.</p>
+<h2 id="structured-output"><a class="doc-anchor" href="#structured-output">§</a>Structured Output</h2>
+<p>The <code>evaluate()</code> method provides access to structured validation output formats defined by
+<a href="https://github.com/json-schema-org/json-schema-spec/blob/main/specs/output/jsonschema-validation-output-machines.md">JSON Schema Output v1</a>.
+This is useful when you need detailed information about the validation process beyond simple pass/fail results.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({
+    <span class="string">"type"</span>: <span class="string">"object"</span>,
+    <span class="string">"properties"</span>: {
+        <span class="string">"name"</span>: {<span class="string">"type"</span>: <span class="string">"string"</span>},
+        <span class="string">"age"</span>: {<span class="string">"type"</span>: <span class="string">"number"</span>, <span class="string">"minimum"</span>: <span class="number">0</span>}
+    },
+    <span class="string">"required"</span>: [<span class="string">"name"</span>]
+});
+
+<span class="kw">let </span>validator = jsonschema::validator_for(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+<span class="kw">let </span>instance = <span class="macro">json!</span>({<span class="string">"name"</span>: <span class="string">"Alice"</span>, <span class="string">"age"</span>: <span class="number">30</span>});
+
+<span class="comment">// Evaluate the instance
+</span><span class="kw">let </span>evaluation = validator.evaluate(<span class="kw-2">&amp;</span>instance);
+
+<span class="comment">// Flag format: Simple boolean validity
+</span><span class="kw">let </span>flag = evaluation.flag();
+<span class="macro">assert!</span>(flag.valid);
+
+<span class="comment">// List format: Flat list of all evaluation steps
+</span><span class="kw">let </span>list_output = serde_json::to_value(evaluation.list())<span class="question-mark">?</span>;
+<span class="macro">println!</span>(<span class="string">"List output: {}"</span>, serde_json::to_string_pretty(<span class="kw-2">&amp;</span>list_output)<span class="question-mark">?</span>);
+
+<span class="comment">// Hierarchical format: Nested tree structure
+</span><span class="kw">let </span>hierarchical_output = serde_json::to_value(evaluation.hierarchical())<span class="question-mark">?</span>;
+<span class="macro">println!</span>(
+    <span class="string">"Hierarchical output: {}"</span>,
+    serde_json::to_string_pretty(<span class="kw-2">&amp;</span>hierarchical_output)<span class="question-mark">?
+</span>);
+
+<span class="comment">// Iterate over annotations collected during validation
+</span><span class="kw">for </span>annotation <span class="kw">in </span>evaluation.iter_annotations() {
+    <span class="macro">println!</span>(<span class="string">"Annotation at {}: {:?}"</span>,
+        annotation.instance_location,
+        annotation.annotations
+    );
+}
+
+<span class="comment">// Iterate over errors (if any)
+</span><span class="kw">for </span>error <span class="kw">in </span>evaluation.iter_errors() {
+    <span class="macro">println!</span>(<span class="string">"Error: {}"</span>, error.error);
 }</code></pre></div>
-<p>Each error has an <code>instance_path</code> attribute that indicates the path to the erroneous part within the validated instance.
-It could be transformed to JSON Pointer via <code>.to_string()</code> or to <code>Vec&lt;String&gt;</code> via <code>.into_vec()</code>.</p>
-</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.ErrorIterator"><code>pub use error::<a class="type" href="error/type.ErrorIterator.html" title="type jsonschema::error::ErrorIterator">ErrorIterator</a>;</code></dt><dt id="reexport.ValidationError"><code>pub use error::<a class="struct" href="error/struct.ValidationError.html" title="struct jsonschema::error::ValidationError">ValidationError</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="error/index.html" title="mod jsonschema::error">error</a></dt><dd>Error types</dd><dt><a class="mod" href="output/index.html" title="mod jsonschema::output">output</a></dt><dd>Implementation of json schema output formats specified in <a href="https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.12.2">https://json-schema.org/draft/2020-12/json-schema-core.html#rfc.section.12.2</a></dd><dt><a class="mod" href="paths/index.html" title="mod jsonschema::paths">paths</a></dt><dd>Facilities for working with paths within schemas or validated instances.</dd><dt><a class="mod" href="primitive_type/index.html" title="mod jsonschema::primitive_type">primitive_<wbr>type</a></dt><dd>Primitive types for property type validators</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.CompilationOptions.html" title="struct jsonschema::CompilationOptions">Compilation<wbr>Options</a></dt><dd>Full configuration to guide the <code>JSONSchema</code> compilation.</dd><dt><a class="struct" href="struct.JSONSchema.html" title="struct jsonschema::JSONSchema">JSON<wbr>Schema</a></dt><dd>The structure that holds a JSON Schema compiled into a validation tree</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Draft.html" title="enum jsonschema::Draft">Draft</a></dt><dd>JSON Schema Draft version</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.SchemaResolver.html" title="trait jsonschema::SchemaResolver">Schema<wbr>Resolver</a></dt><dd>A resolver that resolves external schema references.
-Internal references such as <code>#/definitions</code> and JSON pointers are handled internally.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.is_valid.html" title="fn jsonschema::is_valid">is_<wbr>valid</a></dt><dd>A shortcut for validating <code>instance</code> against <code>schema</code>. Draft version is detected automatically.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.SchemaResolverError.html" title="type jsonschema::SchemaResolverError">Schema<wbr>Resolver<wbr>Error</a></dt><dd>An opaque error type that is returned
-by resolvers on resolution failures.</dd></dl><script type="text/json" id="notable-traits-data">{"&[u8]":"<h3>Notable traits for <code>&amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.95.0/std/primitive.u8.html\">u8</a>]</code></h3><pre><code><div class=\"where\">impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.95.0/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for &amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.95.0/std/primitive.u8.html\">u8</a>]</div>"}</script></section></div></main></body></html>
+<p>The structured output formats are particularly useful for:</p>
+<ul>
+<li><strong>Debugging</strong>: Understanding exactly which schema keywords matched or failed</li>
+<li><strong>User feedback</strong>: Providing detailed, actionable error messages</li>
+<li><strong>Annotations</strong>: Collecting metadata produced by successful validation</li>
+<li><strong>Tooling</strong>: Building development tools that work with JSON Schema</li>
+</ul>
+<p>For example, validating <code>["hello", "oops"]</code> against a schema with both <code>prefixItems</code> and
+<code>items</code> produces list output similar to:</p>
+<div class="example-wrap"><pre class="language-json"><code>{
+  &quot;valid&quot;: false,
+  &quot;details&quot;: [
+    {&quot;valid&quot;: false, &quot;evaluationPath&quot;: &quot;&quot;, &quot;schemaLocation&quot;: &quot;&quot;, &quot;instanceLocation&quot;: &quot;&quot;},
+    {
+      &quot;valid&quot;: false,
+      &quot;evaluationPath&quot;: &quot;/items&quot;,
+      &quot;schemaLocation&quot;: &quot;/items&quot;,
+      &quot;instanceLocation&quot;: &quot;&quot;,
+      &quot;droppedAnnotations&quot;: true
+    },
+    {
+      &quot;valid&quot;: false,
+      &quot;evaluationPath&quot;: &quot;/items&quot;,
+      &quot;schemaLocation&quot;: &quot;/items&quot;,
+      &quot;instanceLocation&quot;: &quot;/1&quot;
+    },
+    {
+      &quot;valid&quot;: false,
+      &quot;evaluationPath&quot;: &quot;/items/type&quot;,
+      &quot;schemaLocation&quot;: &quot;/items/type&quot;,
+      &quot;instanceLocation&quot;: &quot;/1&quot;,
+      &quot;errors&quot;: {&quot;type&quot;: &quot;\&quot;oops\&quot; is not of type \&quot;integer\&quot;&quot;}
+    },
+    {&quot;valid&quot;: true, &quot;evaluationPath&quot;: &quot;/prefixItems&quot;, &quot;schemaLocation&quot;: &quot;/prefixItems&quot;, &quot;instanceLocation&quot;: &quot;&quot;, &quot;annotations&quot;: 0}
+  ]
+}</code></pre></div><h3 id="output-formats"><a class="doc-anchor" href="#output-formats">§</a>Output Formats</h3><h4 id="flag-format"><a class="doc-anchor" href="#flag-format">§</a>Flag Format</h4>
+<p>The simplest format, containing only a boolean validity indicator:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>evaluation = validator.evaluate(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"hello"</span>));
+<span class="kw">let </span>flag = evaluation.flag();
+
+<span class="kw">let </span>output = serde_json::to_value(flag)<span class="question-mark">?</span>;
+<span class="comment">// Output: {"valid": true}</span></code></pre></div><h4 id="list-format"><a class="doc-anchor" href="#list-format">§</a>List Format</h4>
+<p>A flat list of all evaluation units, where each unit describes a validation step:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>schema = <span class="macro">json!</span>({
+    <span class="string">"allOf"</span>: [
+        {<span class="string">"type"</span>: <span class="string">"number"</span>},
+        {<span class="string">"minimum"</span>: <span class="number">0</span>}
+    ]
+});
+<span class="kw">let </span>validator = jsonschema::validator_for(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+<span class="kw">let </span>evaluation = validator.evaluate(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="number">42</span>));
+
+<span class="kw">let </span>list = evaluation.list();
+<span class="kw">let </span>output = serde_json::to_value(list)<span class="question-mark">?</span>;
+<span class="comment">// Output includes all evaluation steps in a flat array</span></code></pre></div><h4 id="hierarchical-format"><a class="doc-anchor" href="#hierarchical-format">§</a>Hierarchical Format</h4>
+<p>A nested tree structure that mirrors the schema’s logical structure:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>schema = <span class="macro">json!</span>({
+    <span class="string">"allOf"</span>: [
+        {<span class="string">"type"</span>: <span class="string">"number"</span>},
+        {<span class="string">"minimum"</span>: <span class="number">0</span>}
+    ]
+});
+<span class="kw">let </span>validator = jsonschema::validator_for(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+<span class="kw">let </span>evaluation = validator.evaluate(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="number">42</span>));
+
+<span class="kw">let </span>hierarchical = evaluation.hierarchical();
+<span class="kw">let </span>output = serde_json::to_value(hierarchical)<span class="question-mark">?</span>;
+<span class="comment">// Output has nested "details" arrays for sub-schema evaluations</span></code></pre></div><h2 id="meta-schema-validation"><a class="doc-anchor" href="#meta-schema-validation">§</a>Meta-Schema Validation</h2>
+<p>The crate provides functionality to validate JSON Schema documents themselves against their meta-schemas.
+This ensures your schema documents are valid according to the JSON Schema specification.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({
+    <span class="string">"type"</span>: <span class="string">"object"</span>,
+    <span class="string">"properties"</span>: {
+        <span class="string">"name"</span>: {<span class="string">"type"</span>: <span class="string">"string"</span>},
+        <span class="string">"age"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"minimum"</span>: <span class="number">0</span>}
+    }
+});
+
+<span class="comment">// Validate schema with automatic draft detection
+</span><span class="macro">assert!</span>(jsonschema::meta::is_valid(<span class="kw-2">&amp;</span>schema));
+<span class="macro">assert!</span>(jsonschema::meta::validate(<span class="kw-2">&amp;</span>schema).is_ok());
+
+<span class="comment">// Invalid schema example
+</span><span class="kw">let </span>invalid_schema = <span class="macro">json!</span>({
+    <span class="string">"type"</span>: <span class="string">"invalid_type"</span>,  <span class="comment">// must be one of the valid JSON Schema types
+    </span><span class="string">"minimum"</span>: <span class="string">"not_a_number"
+</span>});
+<span class="macro">assert!</span>(!jsonschema::meta::is_valid(<span class="kw-2">&amp;</span>invalid_schema));
+<span class="macro">assert!</span>(jsonschema::meta::validate(<span class="kw-2">&amp;</span>invalid_schema).is_err());</code></pre></div><h2 id="configuration"><a class="doc-anchor" href="#configuration">§</a>Configuration</h2>
+<p><code>jsonschema</code> provides several ways to configure and use JSON Schema validation.</p>
+<h3 id="draft-specific-modules"><a class="doc-anchor" href="#draft-specific-modules">§</a>Draft-specific Modules</h3>
+<p>The library offers modules for specific JSON Schema draft versions:</p>
+<ul>
+<li><a href="draft4/index.html" title="mod jsonschema::draft4"><code>draft4</code></a></li>
+<li><a href="draft6/index.html" title="mod jsonschema::draft6"><code>draft6</code></a></li>
+<li><a href="draft7/index.html" title="mod jsonschema::draft7"><code>draft7</code></a></li>
+<li><a href="draft201909/index.html" title="mod jsonschema::draft201909"><code>draft201909</code></a></li>
+<li><a href="draft202012/index.html" title="mod jsonschema::draft202012"><code>draft202012</code></a></li>
+</ul>
+<p>Each module provides:</p>
+<ul>
+<li>A <code>new</code> function to create a validator</li>
+<li>An <code>is_valid</code> function for validation with a boolean result</li>
+<li>An <code>validate</code> function for getting the first validation error</li>
+<li>An <code>options</code> function to create a draft-specific configuration builder</li>
+<li>A <code>meta</code> module for draft-specific meta-schema validation</li>
+</ul>
+<p>Here’s how you can explicitly use a specific draft version:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"type"</span>: <span class="string">"string"</span>});
+
+<span class="comment">// Instance validation
+</span><span class="kw">let </span>validator = jsonschema::draft7::new(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+<span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"Hello"</span>)));
+
+<span class="comment">// Meta-schema validation
+</span><span class="macro">assert!</span>(jsonschema::draft7::meta::is_valid(<span class="kw-2">&amp;</span>schema));</code></pre></div>
+<p>You can also use the convenience <a href="fn.is_valid.html" title="fn jsonschema::is_valid"><code>is_valid</code></a> and <a href="fn.validate.html" title="fn jsonschema::validate"><code>validate</code></a> functions:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"type"</span>: <span class="string">"number"</span>, <span class="string">"minimum"</span>: <span class="number">0</span>});
+<span class="kw">let </span>instance = <span class="macro">json!</span>(<span class="number">42</span>);
+
+<span class="macro">assert!</span>(jsonschema::draft202012::is_valid(<span class="kw-2">&amp;</span>schema, <span class="kw-2">&amp;</span>instance));
+<span class="macro">assert!</span>(jsonschema::draft202012::validate(<span class="kw-2">&amp;</span>schema, <span class="kw-2">&amp;</span>instance).is_ok());</code></pre></div>
+<p>For more advanced configuration, you can use the draft-specific <code>options</code> function:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"type"</span>: <span class="string">"string"</span>, <span class="string">"format"</span>: <span class="string">"ends-with-42"</span>});
+<span class="kw">let </span>validator = jsonschema::draft202012::options()
+    .with_format(<span class="string">"ends-with-42"</span>, |s| s.ends_with(<span class="string">"42"</span>))
+    .should_validate_formats(<span class="bool-val">true</span>)
+    .build(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+
+<span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"Hello 42"</span>)));
+<span class="macro">assert!</span>(!validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"No!"</span>)));</code></pre></div><h3 id="general-configuration"><a class="doc-anchor" href="#general-configuration">§</a>General Configuration</h3>
+<p>For configuration options that are not draft-specific, <code>jsonschema</code> provides a builder via <code>jsonschema::options()</code>.</p>
+<p>Here’s an example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"type"</span>: <span class="string">"string"</span>});
+<span class="kw">let </span>validator = jsonschema::options()
+    <span class="comment">// Add configuration options here
+    </span>.build(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+
+<span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"Hello"</span>)));</code></pre></div>
+<p>For a complete list of configuration options and their usage, please refer to the <a href="struct.ValidationOptions.html" title="struct jsonschema::ValidationOptions"><code>ValidationOptions</code></a> struct.</p>
+<h3 id="automatic-draft-detection"><a class="doc-anchor" href="#automatic-draft-detection">§</a>Automatic Draft Detection</h3>
+<p>If you don’t need to specify a particular draft version, you can use <code>jsonschema::validator_for</code>
+which automatically detects the appropriate draft:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"$schema"</span>: <span class="string">"http://json-schema.org/draft-07/schema#"</span>, <span class="string">"type"</span>: <span class="string">"string"</span>});
+<span class="kw">let </span>validator = jsonschema::validator_for(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+
+<span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"Hello"</span>)));</code></pre></div><h2 id="external-references"><a class="doc-anchor" href="#external-references">§</a>External References</h2>
+<p>By default, <code>jsonschema</code> resolves HTTP references using <code>reqwest</code> and file references from the local file system.
+Both blocking and non-blocking retrieval is supported during validator construction. Note that the validation
+itself is always synchronous as it operates on in-memory data only.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"$schema"</span>: <span class="string">"http://json-schema.org/draft-07/schema#"</span>, <span class="string">"type"</span>: <span class="string">"string"</span>});
+
+<span class="comment">// Building a validator with blocking retrieval (default)
+</span><span class="kw">let </span>validator = jsonschema::validator_for(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+
+<span class="comment">// Building a validator with non-blocking retrieval (requires `resolve-async` feature)
+</span><span class="kw">let </span>validator = jsonschema::async_validator_for(<span class="kw-2">&amp;</span>schema).<span class="kw">await</span><span class="question-mark">?</span>;
+
+<span class="comment">// Validation is always synchronous
+</span><span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"Hello"</span>)));</code></pre></div>
+<p>To enable HTTPS support, add the <code>rustls-tls</code> feature to <code>reqwest</code> in your <code>Cargo.toml</code>:</p>
+<div class="example-wrap"><pre class="language-toml"><code>reqwest = { version = &quot;*&quot;, features = [&quot;rustls-tls&quot;] }</code></pre></div>
+<p>You can disable the default behavior using crate features:</p>
+<ul>
+<li>Disable HTTP resolving: <code>default-features = false, features = ["resolve-file"]</code></li>
+<li>Disable file resolving: <code>default-features = false, features = ["resolve-http", "tls-aws-lc-rs"]</code></li>
+<li>Enable async resolution: <code>features = ["resolve-async"]</code></li>
+<li>Disable all resolving: <code>default-features = false</code></li>
+</ul>
+<h3 id="custom-retrievers"><a class="doc-anchor" href="#custom-retrievers">§</a>Custom retrievers</h3>
+<p>You can implement custom retrievers for both blocking and non-blocking retrieval:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::{collections::HashMap, sync::Arc};
+<span class="kw">use </span>jsonschema::{Retrieve, Uri};
+<span class="kw">use </span>serde_json::{json, Value};
+
+<span class="kw">struct </span>InMemoryRetriever {
+    schemas: HashMap&lt;String, Value&gt;,
+}
+
+<span class="kw">impl </span>Retrieve <span class="kw">for </span>InMemoryRetriever {
+
+   <span class="kw">fn </span>retrieve(
+       <span class="kw-2">&amp;</span><span class="self">self</span>,
+       uri: <span class="kw-2">&amp;</span>Uri&lt;String&gt;,
+   ) -&gt; <span class="prelude-ty">Result</span>&lt;Value, Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync&gt;&gt; {
+        <span class="self">self</span>.schemas
+            .get(uri.as_str())
+            .cloned()
+            .ok_or_else(|| <span class="macro">format!</span>(<span class="string">"Schema not found: {uri}"</span>).into())
+    }
+}
+
+<span class="kw">let </span><span class="kw-2">mut </span>schemas = HashMap::new();
+schemas.insert(
+    <span class="string">"https://example.com/person.json"</span>.to_string(),
+    <span class="macro">json!</span>({
+        <span class="string">"type"</span>: <span class="string">"object"</span>,
+        <span class="string">"properties"</span>: {
+            <span class="string">"name"</span>: { <span class="string">"type"</span>: <span class="string">"string" </span>},
+            <span class="string">"age"</span>: { <span class="string">"type"</span>: <span class="string">"integer" </span>}
+        },
+        <span class="string">"required"</span>: [<span class="string">"name"</span>, <span class="string">"age"</span>]
+    }),
+);
+
+<span class="kw">let </span>retriever = InMemoryRetriever { schemas };
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({
+    <span class="string">"$ref"</span>: <span class="string">"https://example.com/person.json"
+</span>});
+
+<span class="kw">let </span>validator = jsonschema::options()
+    .with_retriever(retriever)
+    .build(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+
+<span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>({
+    <span class="string">"name"</span>: <span class="string">"Alice"</span>,
+    <span class="string">"age"</span>: <span class="number">30
+</span>})));
+
+<span class="macro">assert!</span>(!validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>({
+    <span class="string">"name"</span>: <span class="string">"Bob"
+</span>})));</code></pre></div>
+<p>And non-blocking version with the <code>resolve-async</code> feature enabled:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>jsonschema::{AsyncRetrieve, Registry, Resource, Uri};
+<span class="kw">use </span>serde_json::{Value, json};
+
+<span class="kw">struct </span>HttpRetriever;
+
+<span class="attr">#[cfg_attr(target_family = <span class="string">"wasm"</span>, async_trait::async_trait(<span class="question-mark">?</span>Send))]
+#[cfg_attr(not(target_family = <span class="string">"wasm"</span>), async_trait::async_trait)]
+</span><span class="kw">impl </span>AsyncRetrieve <span class="kw">for </span>HttpRetriever {
+    <span class="kw">async fn </span>retrieve(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        uri: <span class="kw-2">&amp;</span>Uri&lt;String&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Value, Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync&gt;&gt; {
+        reqwest::get(uri.as_str())
+            .<span class="kw">await</span><span class="question-mark">?
+            </span>.json()
+            .<span class="kw">await
+            </span>.map_err(Into::into)
+    }
+}
+
+<span class="comment">// Then use it to build a validator
+</span><span class="kw">let </span>validator = jsonschema::async_options()
+    .with_retriever(HttpRetriever)
+    .build(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"$ref"</span>: <span class="string">"https://example.com/user.json"</span>}))
+    .<span class="kw">await</span><span class="question-mark">?</span>;</code></pre></div>
+<p>On <code>wasm32</code> targets, use <code>async_trait::async_trait(?Send)</code> so your retriever can rely on <code>Rc</code>, <code>JsFuture</code>, or other non-thread-safe types.</p>
+<h3 id="validating-against-schema-definitions"><a class="doc-anchor" href="#validating-against-schema-definitions">§</a>Validating against schema definitions</h3>
+<p>When working with large schemas containing multiple definitions (e.g., Open API schemas, DAP schemas),
+you may want to validate data against a specific definition rather than the entire schema. This can be
+achieved by registering the root schema as a resource and creating a wrapper schema that references
+the target definition:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+<span class="kw">use </span>jsonschema::{Registry, Resource};
+
+<span class="comment">// Root schema with multiple definitions
+</span><span class="kw">let </span>root_schema = <span class="macro">json!</span>({
+    <span class="string">"$id"</span>: <span class="string">"https://example.com/root"</span>,
+    <span class="string">"definitions"</span>: {
+        <span class="string">"User"</span>: {
+            <span class="string">"type"</span>: <span class="string">"object"</span>,
+            <span class="string">"properties"</span>: {
+                <span class="string">"name"</span>: {<span class="string">"type"</span>: <span class="string">"string"</span>},
+                <span class="string">"age"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>, <span class="string">"minimum"</span>: <span class="number">0</span>}
+            },
+            <span class="string">"required"</span>: [<span class="string">"name"</span>]
+        },
+        <span class="string">"Product"</span>: {
+            <span class="string">"type"</span>: <span class="string">"object"</span>,
+            <span class="string">"properties"</span>: {
+                <span class="string">"id"</span>: {<span class="string">"type"</span>: <span class="string">"integer"</span>},
+                <span class="string">"title"</span>: {<span class="string">"type"</span>: <span class="string">"string"</span>}
+            },
+            <span class="string">"required"</span>: [<span class="string">"id"</span>, <span class="string">"title"</span>]
+        }
+    }
+});
+
+<span class="comment">// Create a schema that references the specific definition you want to validate against
+</span><span class="kw">let </span>user_schema = <span class="macro">json!</span>({<span class="string">"$ref"</span>: <span class="string">"https://example.com/root#/definitions/User"</span>});
+
+<span class="kw">let </span>registry = Registry::new()
+    .add(<span class="string">"https://example.com/root"</span>, root_schema)<span class="question-mark">?
+    </span>.prepare()<span class="question-mark">?</span>;
+
+<span class="comment">// Build validator for the specific definition via the shared prepared registry
+</span><span class="kw">let </span>validator = jsonschema::options()
+    .with_registry(<span class="kw-2">&amp;</span>registry)
+    .build(<span class="kw-2">&amp;</span>user_schema)<span class="question-mark">?</span>;
+
+<span class="comment">// Now validate data against just the User definition
+</span><span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"name"</span>: <span class="string">"Alice"</span>, <span class="string">"age"</span>: <span class="number">30</span>})));
+<span class="macro">assert!</span>(!validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>({<span class="string">"age"</span>: <span class="number">25</span>})));  <span class="comment">// Missing required "name"</span></code></pre></div>
+<p>This pattern is particularly useful when:</p>
+<ul>
+<li>Working with API schemas that define multiple request/response types</li>
+<li>Validating configuration snippets against specific sections of a larger schema</li>
+<li>Testing individual schema components in isolation</li>
+</ul>
+<h2 id="regular-expression-configuration"><a class="doc-anchor" href="#regular-expression-configuration">§</a>Regular Expression Configuration</h2>
+<p>The <code>jsonschema</code> crate allows configuring the regular expression engine used for validating
+keywords like <code>pattern</code> or <code>patternProperties</code>.</p>
+<p>By default, the crate uses <a href="https://docs.rs/fancy-regex"><code>fancy-regex</code></a>, which supports advanced
+regular expression features such as lookaround and backreferences.</p>
+<p>The primary motivation for switching to the <code>regex</code> engine is security and performance:
+it guarantees linear-time matching, preventing potential Denial of Service attacks from malicious patterns
+in user-provided schemas while offering better performance with a smaller feature set.</p>
+<p>You can configure the engine at <strong>runtime</strong> using the <a href="struct.PatternOptions.html" title="struct jsonschema::PatternOptions"><code>PatternOptions</code></a> API:</p>
+<h4 id="example-configure-fancy-regex-with-backtracking-limit"><a class="doc-anchor" href="#example-configure-fancy-regex-with-backtracking-limit">§</a>Example: Configure <code>fancy-regex</code> with Backtracking Limit</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+<span class="kw">use </span>jsonschema::PatternOptions;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({
+    <span class="string">"type"</span>: <span class="string">"string"</span>,
+    <span class="string">"pattern"</span>: <span class="string">"^(a+)+$"
+</span>});
+
+<span class="kw">let </span>validator = jsonschema::options()
+    .with_pattern_options(
+        PatternOptions::fancy_regex()
+            .backtrack_limit(<span class="number">10_000</span>)
+    )
+    .build(<span class="kw-2">&amp;</span>schema)
+    .expect(<span class="string">"A valid schema"</span>);</code></pre></div><h4 id="example-use-the-regex-engine-instead"><a class="doc-anchor" href="#example-use-the-regex-engine-instead">§</a>Example: Use the <code>regex</code> Engine Instead</h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+<span class="kw">use </span>jsonschema::PatternOptions;
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({
+    <span class="string">"type"</span>: <span class="string">"string"</span>,
+    <span class="string">"pattern"</span>: <span class="string">"^a+$"
+</span>});
+
+<span class="kw">let </span>validator = jsonschema::options()
+    .with_pattern_options(PatternOptions::regex())
+    .build(<span class="kw-2">&amp;</span>schema)
+    .expect(<span class="string">"A valid schema"</span>);</code></pre></div><h4 id="notes"><a class="doc-anchor" href="#notes">§</a>Notes</h4>
+<ul>
+<li>If neither engine is explicitly set, <code>fancy-regex</code> is used by default.</li>
+<li>Regular expressions that rely on advanced features like <code>(?&lt;=...)</code> (lookbehind) or backreferences (<code>\1</code>) will fail with the <code>regex</code> engine.</li>
+</ul>
+<h2 id="custom-keywords"><a class="doc-anchor" href="#custom-keywords">§</a>Custom Keywords</h2>
+<p><code>jsonschema</code> allows you to extend its functionality by implementing custom validation logic through custom keywords.
+This feature is particularly useful when you need to validate against domain-specific rules that aren’t covered by the standard JSON Schema keywords.</p>
+<p>To implement a custom keyword, you need to:</p>
+<ol>
+<li>Create a struct that implements the <a href="trait.Keyword.html" title="trait jsonschema::Keyword"><code>Keyword</code></a> trait</li>
+<li>Create a factory function or closure that produces instances of your custom keyword</li>
+<li>Register the custom keyword with the <a href="struct.Validator.html" title="struct jsonschema::Validator"><code>Validator</code></a> instance using the <a href="struct.ValidationOptions.html#method.with_keyword" title="method jsonschema::ValidationOptions::with_keyword"><code>ValidationOptions::with_keyword</code></a> method</li>
+</ol>
+<p>Here’s a complete example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>jsonschema::{paths::Location, Keyword, ValidationError};
+<span class="kw">use </span>serde_json::{json, Map, Value};
+
+<span class="kw">struct </span>EvenNumberValidator;
+
+<span class="kw">impl </span>Keyword <span class="kw">for </span>EvenNumberValidator {
+    <span class="kw">fn </span>validate&lt;<span class="lifetime">'i</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), ValidationError&lt;<span class="lifetime">'i</span>&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(n) = instance.as_u64() {
+            <span class="kw">if </span>n % <span class="number">2 </span>== <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+            }
+        }
+        <span class="prelude-val">Err</span>(ValidationError::custom(<span class="string">"value must be an even integer"</span>))
+    }
+
+    <span class="kw">fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>, instance: <span class="kw-2">&amp;</span>Value) -&gt; bool {
+        instance.as_u64().map_or(<span class="bool-val">false</span>, |n| n % <span class="number">2 </span>== <span class="number">0</span>)
+    }
+}
+
+<span class="kw">fn </span>even_number_factory&lt;<span class="lifetime">'a</span>&gt;(
+    _parent: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Map&lt;String, Value&gt;,
+    value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value,
+    _path: Location,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<span class="kw">dyn </span>Keyword&gt;, ValidationError&lt;<span class="lifetime">'a</span>&gt;&gt; {
+    <span class="kw">if </span>value.as_bool() == <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="prelude-val">Ok</span>(Box::new(EvenNumberValidator))
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Err</span>(ValidationError::schema(<span class="string">"The 'even-number' keyword must be set to true"</span>))
+    }
+}
+
+<span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"even-number"</span>: <span class="bool-val">true</span>, <span class="string">"type"</span>: <span class="string">"integer"</span>});
+<span class="kw">let </span>validator = jsonschema::options()
+    .with_keyword(<span class="string">"even-number"</span>, even_number_factory)
+    .build(<span class="kw-2">&amp;</span>schema)
+    .expect(<span class="string">"Invalid schema"</span>);
+
+<span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="number">2</span>)));
+<span class="macro">assert!</span>(!validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="number">3</span>)));
+<span class="macro">assert!</span>(!validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"not a number"</span>)));</code></pre></div>
+<p>In this example, we’ve created a custom <code>even-number</code> keyword that validates whether a number is even.
+The <code>EvenNumberValidator</code> implements the actual validation logic, while the <code>even_number_factory</code>
+creates instances of the validator and allows for additional configuration based on the keyword’s value in the schema.</p>
+<p>You can also use a closure instead of a factory function for simpler cases:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>schema = <span class="macro">json!</span>({<span class="string">"even-number"</span>: <span class="bool-val">true</span>, <span class="string">"type"</span>: <span class="string">"integer"</span>});
+<span class="kw">let </span>validator = jsonschema::options()
+    .with_keyword(<span class="string">"even-number"</span>, |<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>| {
+        <span class="prelude-val">Ok</span>(Box::new(EvenNumberValidator))
+    })
+    .build(<span class="kw-2">&amp;</span>schema)
+    .expect(<span class="string">"Invalid schema"</span>);</code></pre></div><h2 id="custom-formats"><a class="doc-anchor" href="#custom-formats">§</a>Custom Formats</h2>
+<p>JSON Schema allows for format validation through the <code>format</code> keyword. While <code>jsonschema</code>
+provides built-in validators for standard formats, you can also define custom format validators
+for domain-specific string formats.</p>
+<p>To implement a custom format validator:</p>
+<ol>
+<li>Define a function or a closure that takes a <code>&amp;str</code> and returns a <code>bool</code>.</li>
+<li>Register the function with <code>jsonschema::options().with_format()</code>.</li>
+</ol>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>serde_json::json;
+
+<span class="comment">// Step 1: Define the custom format validator function
+</span><span class="kw">fn </span>ends_with_42(s: <span class="kw-2">&amp;</span>str) -&gt; bool {
+    s.ends_with(<span class="string">"42!"</span>)
+}
+
+<span class="comment">// Step 2: Create a schema using the custom format
+</span><span class="kw">let </span>schema = <span class="macro">json!</span>({
+    <span class="string">"type"</span>: <span class="string">"string"</span>,
+    <span class="string">"format"</span>: <span class="string">"ends-with-42"
+</span>});
+
+<span class="comment">// Step 3: Build the validator with the custom format
+</span><span class="kw">let </span>validator = jsonschema::options()
+    .with_format(<span class="string">"ends-with-42"</span>, ends_with_42)
+    .with_format(<span class="string">"ends-with-43"</span>, |s| s.ends_with(<span class="string">"43!"</span>))
+    .should_validate_formats(<span class="bool-val">true</span>)
+    .build(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+
+<span class="comment">// Step 4: Validate instances
+</span><span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"Hello42!"</span>)));
+<span class="macro">assert!</span>(!validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="string">"Hello43!"</span>)));
+<span class="macro">assert!</span>(!validator.is_valid(<span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="number">42</span>))); <span class="comment">// Not a string</span></code></pre></div><h4 id="notes-on-custom-format-validators"><a class="doc-anchor" href="#notes-on-custom-format-validators">§</a>Notes on Custom Format Validators</h4>
+<ul>
+<li>Custom format validators are only called for string instances.</li>
+<li>In newer drafts, <code>format</code> is purely an annotation and won’t do any checking unless you
+opt in by calling <code>.should_validate_formats(true)</code> on your options builder. If you omit
+it, all <code>format</code> keywords are ignored at validation time.</li>
+</ul>
+<h2 id="arbitrary-precision-numbers"><a class="doc-anchor" href="#arbitrary-precision-numbers">§</a>Arbitrary Precision Numbers</h2>
+<p>Enable the <code>arbitrary-precision</code> feature for exact validation of numbers beyond standard numeric ranges:</p>
+<div class="example-wrap"><pre class="language-toml"><code>jsonschema = { version = &quot;x.y.z&quot;, features = [&quot;arbitrary-precision&quot;] }</code></pre></div>
+<p>This provides:</p>
+<ul>
+<li>Arbitrarily large integers (e.g., <code>18446744073709551616</code>)</li>
+<li>Exact decimal precision without <code>f64</code> rounding (e.g., <code>0.1</code>, <code>0.3</code>)</li>
+</ul>
+<p><strong>Important</strong>: Precision is only preserved when parsing JSON from strings. Using Rust literals
+or the <code>json!()</code> macro converts numbers to <code>f64</code>, losing precision.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Precision preserved - parsed from JSON string
+</span><span class="kw">let </span>schema = serde_json::from_str(<span class="string">r#"{"minimum": 0.1}"#</span>)<span class="question-mark">?</span>;
+<span class="kw">let </span>instance = serde_json::from_str(<span class="string">"0.3"</span>)<span class="question-mark">?</span>;
+<span class="kw">let </span>validator = Validator::new(<span class="kw-2">&amp;</span>schema)<span class="question-mark">?</span>;
+<span class="macro">assert!</span>(validator.is_valid(<span class="kw-2">&amp;</span>instance));</code></pre></div><h2 id="webassembly-support"><a class="doc-anchor" href="#webassembly-support">§</a>WebAssembly support</h2>
+<p><code>jsonschema</code> supports WebAssembly with different capabilities based on the target platform:</p>
+<h3 id="browserjavascript-wasm32-unknown-unknown"><a class="doc-anchor" href="#browserjavascript-wasm32-unknown-unknown">§</a>Browser/JavaScript (<code>wasm32-unknown-unknown</code>)</h3>
+<p>When targeting browser or JavaScript environments, external reference resolution is not
+supported by default due to platform limitations:</p>
+<ul>
+<li>No filesystem access (<code>resolve-file</code> feature is not available)</li>
+<li>No synchronous HTTP requests (<code>resolve-http</code> feature is not available)</li>
+</ul>
+<p>To use <code>jsonschema</code> in these environments, disable default features:</p>
+<div class="example-wrap"><pre class="language-toml"><code>jsonschema = { version = &quot;x.y.z&quot;, default-features = false }</code></pre></div>
+<p>Note: Attempting to compile with <code>resolve-http</code> or <code>resolve-file</code> features on
+<code>wasm32-unknown-unknown</code> will result in a compile error.</p>
+<p>For external references in browser environments, implement a custom retriever that uses
+browser APIs (like <code>fetch</code>). See the <a href="#external-references">External References</a> section.</p>
+<h3 id="wasi-wasm32-wasip1--wasm32-wasip2"><a class="doc-anchor" href="#wasi-wasm32-wasip1--wasm32-wasip2">§</a>WASI (<code>wasm32-wasip1</code> / <code>wasm32-wasip2</code>)</h3>
+<p>WASI environments (preview 1 and preview 2) can compile schemas and run validators, but the bundled
+HTTP retriever depends on <code>reqwest</code>’s blocking client, which isn’t available on these targets. Use
+file access and custom retrievers instead.</p>
+<p><strong>Supported:</strong></p>
+<ul>
+<li>Blocking file resolution (<code>resolve-file</code> feature)</li>
+<li>Custom blocking retrievers (including wrapping async operations)</li>
+<li>Custom async retrievers via the <code>resolve-async</code> feature (for example, <code>jsonschema::async_options</code>
+together with your own async runtime)</li>
+</ul>
+<p><strong>Not Supported:</strong></p>
+<ul>
+<li>The bundled HTTP retriever (depends on <code>reqwest</code>’s blocking client)</li>
+</ul>
+<div class="example-wrap"><pre class="language-toml"><code>jsonschema = { version = &quot;x.y.z&quot;, default-features = false, features = [&quot;resolve-file&quot;] }</code></pre></div>
+<p><strong>Workaround for HTTP:</strong> Implement a custom blocking or async <a href="trait.Retrieve.html" title="trait jsonschema::Retrieve"><code>Retrieve</code></a> that uses your preferred
+HTTP client, and enable <code>resolve-async</code> if you want to build validators through <code>async_options()</code>
+on WASI.</p>
+</div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.ErrorIterator"><code>pub use error::<a class="struct" href="error/struct.ErrorIterator.html" title="struct jsonschema::error::ErrorIterator">ErrorIterator</a>;</code></dt><dt id="reexport.MaskedValidationError"><code>pub use error::<a class="struct" href="error/struct.MaskedValidationError.html" title="struct jsonschema::error::MaskedValidationError">MaskedValidationError</a>;</code></dt><dt id="reexport.ValidationError"><code>pub use error::<a class="struct" href="error/struct.ValidationError.html" title="struct jsonschema::error::ValidationError">ValidationError</a>;</code></dt><dt id="reexport.ValidationErrorParts"><code>pub use error::<a class="struct" href="error/struct.ValidationErrorParts.html" title="struct jsonschema::error::ValidationErrorParts">ValidationErrorParts</a>;</code></dt><dt id="reexport.ValidationErrors"><code>pub use error::<a class="struct" href="error/struct.ValidationErrors.html" title="struct jsonschema::error::ValidationErrors">ValidationErrors</a>;</code></dt><dt id="reexport.JsonType"><code>pub use types::<a class="enum" href="types/enum.JsonType.html" title="enum jsonschema::types::JsonType">JsonType</a>;</code></dt><dt id="reexport.JsonTypeSet"><code>pub use types::<a class="struct" href="types/struct.JsonTypeSet.html" title="struct jsonschema::types::JsonTypeSet">JsonTypeSet</a>;</code></dt><dt id="reexport.JsonTypeSetIterator"><code>pub use types::<a class="struct" href="types/struct.JsonTypeSetIterator.html" title="struct jsonschema::types::JsonTypeSetIterator">JsonTypeSetIterator</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="canonical/index.html" title="mod jsonschema::canonical">canonical</a></dt><dt><a class="mod" href="draft4/index.html" title="mod jsonschema::draft4">draft4</a></dt><dd>Functionality specific to JSON Schema Draft 4.</dd><dt><a class="mod" href="draft6/index.html" title="mod jsonschema::draft6">draft6</a></dt><dd>Functionality specific to JSON Schema Draft 6.</dd><dt><a class="mod" href="draft7/index.html" title="mod jsonschema::draft7">draft7</a></dt><dd>Functionality specific to JSON Schema Draft 7.</dd><dt><a class="mod" href="draft201909/index.html" title="mod jsonschema::draft201909">draft201909</a></dt><dd>Functionality specific to JSON Schema Draft 2019-09.</dd><dt><a class="mod" href="draft202012/index.html" title="mod jsonschema::draft202012">draft202012</a></dt><dd>Functionality specific to JSON Schema Draft 2020-12.</dd><dt><a class="mod" href="error/index.html" title="mod jsonschema::error">error</a></dt><dd>Error Handling</dd><dt><a class="mod" href="meta/index.html" title="mod jsonschema::meta">meta</a></dt><dd>Functionality for validating JSON Schema documents against their meta-schemas.</dd><dt><a class="mod" href="output/index.html" title="mod jsonschema::output">output</a></dt><dd>Backwards-compatible re-exports for structured output helpers.</dd><dt><a class="mod" href="paths/index.html" title="mod jsonschema::paths">paths</a></dt><dd>Facilities for working with paths within schemas or validated instances.</dd><dt><a class="mod" href="types/index.html" title="mod jsonschema::types">types</a></dt><dd>JSON type representations for schema validation.</dd><dt><a class="mod" href="uri/index.html" title="mod jsonschema::uri">uri</a></dt><dd>URI handling utilities for JSON Schema references.</dd></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.AnnotationEntry.html" title="struct jsonschema::AnnotationEntry">Annotation<wbr>Entry</a></dt><dd>Entry describing annotations emitted by a keyword during evaluation.</dd><dt><a class="struct" href="struct.EmailOptions.html" title="struct jsonschema::EmailOptions">Email<wbr>Options</a></dt><dd>Configuration for email validation options.</dd><dt><a class="struct" href="struct.ErrorEntry.html" title="struct jsonschema::ErrorEntry">Error<wbr>Entry</a></dt><dd>Entry describing errors emitted by a keyword during evaluation.</dd><dt><a class="struct" href="struct.Evaluation.html" title="struct jsonschema::Evaluation">Evaluation</a></dt><dd>Result of evaluating a JSON instance against a schema.</dd><dt><a class="struct" href="struct.FancyRegex.html" title="struct jsonschema::FancyRegex">Fancy<wbr>Regex</a></dt><dd>Marker for using the <code>fancy-regex</code> engine that includes advanced features like lookarounds.</dd><dt><a class="struct" href="struct.FlagOutput.html" title="struct jsonschema::FlagOutput">Flag<wbr>Output</a></dt><dd>Flag output format containing only a validity indicator.</dd><dt><a class="struct" href="struct.HierarchicalOutput.html" title="struct jsonschema::HierarchicalOutput">Hierarchical<wbr>Output</a></dt><dd>Hierarchical output format providing a tree structure of evaluation results.</dd><dt><a class="struct" href="struct.HttpOptions.html" title="struct jsonschema::HttpOptions">Http<wbr>Options</a></dt><dd>Configuration options for HTTP client used in schema retrieval.</dd><dt><a class="struct" href="struct.ListOutput.html" title="struct jsonschema::ListOutput">List<wbr>Output</a></dt><dd>List output format providing a flat list of evaluation units.</dd><dt><a class="struct" href="struct.PatternOptions.html" title="struct jsonschema::PatternOptions">Pattern<wbr>Options</a></dt><dd>Configuration for how regular expressions are handled in schema keywords like <code>pattern</code> and <code>patternProperties</code>.</dd><dt><a class="struct" href="struct.Regex.html" title="struct jsonschema::Regex">Regex</a></dt><dd>Marker for using the <code>regex</code> engine, that has fewer features than <code>fancy-regex</code> but guarantees
+linear time performance.</dd><dt><a class="struct" href="struct.Registry.html" title="struct jsonschema::Registry">Registry</a></dt><dd>A registry of JSON Schema resources, each identified by their canonical URIs.</dd><dt><a class="struct" href="struct.RegistryBuilder.html" title="struct jsonschema::RegistryBuilder">Registry<wbr>Builder</a></dt><dt><a class="struct" href="struct.Resource.html" title="struct jsonschema::Resource">Resource</a></dt><dd>An owned document with a concrete interpretation under a JSON Schema specification.</dd><dt><a class="struct" href="struct.Uri.html" title="struct jsonschema::Uri">Uri</a></dt><dd>A URI.</dd><dt><a class="struct" href="struct.ValidationContext.html" title="struct jsonschema::ValidationContext">Validation<wbr>Context</a></dt><dd>Validation state for cycle detection and memoization.</dd><dt><a class="struct" href="struct.ValidationOptions.html" title="struct jsonschema::ValidationOptions">Validation<wbr>Options</a></dt><dd>Configuration options for JSON Schema validation.</dd><dt><a class="struct" href="struct.Validator.html" title="struct jsonschema::Validator">Validator</a></dt><dd>A compiled JSON Schema validator.</dd><dt><a class="struct" href="struct.ValidatorMap.html" title="struct jsonschema::ValidatorMap">Validator<wbr>Map</a></dt><dd>A map of compiled JSON Schema validators keyed by URI-fragment JSON pointers.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Draft.html" title="enum jsonschema::Draft">Draft</a></dt><dd>JSON Schema specification versions.</dd><dt><a class="enum" href="enum.ReferencingError.html" title="enum jsonschema::ReferencingError">Referencing<wbr>Error</a></dt><dd>Errors that can occur during reference resolution and resource handling.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Keyword.html" title="trait jsonschema::Keyword">Keyword</a></dt><dd>Trait for implementing custom keyword validators.</dd><dt><a class="trait" href="trait.Retrieve.html" title="trait jsonschema::Retrieve">Retrieve</a></dt><dd>Trait for retrieving resources from external sources.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.bundle.html" title="fn jsonschema::bundle">bundle</a></dt><dd>Embed all external <code>$ref</code> targets into a draft-appropriate container,
+producing a Compound Schema Document that validates identically to the original.
+Draft 4/6/7 use <code>definitions</code>; Draft 2019-09/2020-12 use <code>$defs</code>.
+<code>$ref</code> values are preserved unchanged.
+For mixed-draft bundles, embedded resources may include both <code>id</code> and <code>$id</code>
+to maximize interoperability with downstream validators that differ in draft
+handling.</dd><dt><a class="fn" href="fn.dereference.html" title="fn jsonschema::dereference">dereference</a></dt><dd>Dereference a JSON Schema by recursively replacing all <code>$ref</code> values
+with the schemas they point to.</dd><dt><a class="fn" href="fn.evaluate.html" title="fn jsonschema::evaluate">evaluate</a></dt><dd>Evaluate <code>instance</code> against <code>schema</code> and return structured validation output. Draft is detected automatically.</dd><dt><a class="fn" href="fn.is_valid.html" title="fn jsonschema::is_valid">is_<wbr>valid</a></dt><dd>Validate <code>instance</code> against <code>schema</code> and get a <code>true</code> if the instance is valid and <code>false</code>
+otherwise. Draft is detected automatically.</dd><dt><a class="fn" href="fn.options.html" title="fn jsonschema::options">options</a></dt><dd>Create a builder for configuring JSON Schema validation options.</dd><dt><a class="fn" href="fn.validate.html" title="fn jsonschema::validate">validate</a></dt><dd>Validate <code>instance</code> against <code>schema</code> and return the first error if any. Draft is detected automatically.</dd><dt><a class="fn" href="fn.validator_for.html" title="fn jsonschema::validator_for">validator_<wbr>for</a></dt><dd>Create a validator for the input schema with automatic draft detection and default options.</dd><dt><a class="fn" href="fn.validator_map_for.html" title="fn jsonschema::validator_map_for">validator_<wbr>map_<wbr>for</a></dt><dd>Create a <a href="struct.ValidatorMap.html" title="struct jsonschema::ValidatorMap"><code>ValidatorMap</code></a> from the input schema using automatic draft detection and
+default options.</dd></dl></section></div></main></body></html>

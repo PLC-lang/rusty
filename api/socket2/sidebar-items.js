@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["InterfaceIndexOrAddress"],"struct":["CcidEndpoints","Domain","MaybeUninitSlice","MsgHdr","MsgHdrMut","Protocol","RecvFlags","SockAddr","SockAddrStorage","SockFilter","SockRef","Socket","TcpKeepalive","Type"],"type":["sa_family_t","socklen_t"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["event","features","guide","net","unix"],"struct":["Interest","Poll","Registry","Token","Waker"]};

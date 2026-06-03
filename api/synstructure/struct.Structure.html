@@ -14,9 +14,9 @@ node represents an untagged union.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.ast" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1081-1083">Source</a><h4 class="code-header">pub fn <a href="#method.ast" class="fn">ast</a>(&amp;self) -&gt; &amp;'a <a class="struct" href="https://docs.rs/syn/2.0.117/syn/derive/struct.DeriveInput.html" title="struct syn::derive::DeriveInput">DeriveInput</a></h4></section></summary><div class="docblock"><p>Returns a reference to the underlying <code>syn</code> AST node which this
 <code>Structure</code> was created from.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.omitted_variants" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1086-1088">Source</a><h4 class="code-header">pub fn <a href="#method.omitted_variants" class="fn">omitted_variants</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.95.0/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>True if any variants were omitted due to a <code>filter_variants</code> call.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.each" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1121-1134">Source</a><h4 class="code-header">pub fn <a href="#method.each" class="fn">each</a>&lt;F, R&gt;(&amp;self, f: F) -&gt; <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a><div class="where">where
+</div></details><details class="toggle method-toggle" open><summary><section id="method.each" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1121-1134">Source</a><h4 class="code-header">pub fn <a href="#method.each" class="fn">each</a>&lt;F, R&gt;(&amp;self, f: F) -&gt; <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a><div class="where">where
     F: <a class="trait" href="https://doc.rust-lang.org/1.95.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(&amp;<a class="struct" href="struct.BindingInfo.html" title="struct synstructure::BindingInfo">BindingInfo</a>&lt;'_&gt;) -&gt; R,
-    R: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>,</div></h4></section></summary><div class="docblock"><p>Runs the passed-in function once for each bound field, passing in a <code>BindingInfo</code>.
+    R: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>,</div></h4></section></summary><div class="docblock"><p>Runs the passed-in function once for each bound field, passing in a <code>BindingInfo</code>.
 and generating <code>match</code> arms which evaluate the returned tokens.</p>
 <p>This method will ignore variants or fields which are ignored through the
 <code>filter</code> and <code>filter_variant</code> methods.</p>
@@ -41,10 +41,10 @@ and generating <code>match</code> arms which evaluate the returned tokens.</p>
             { <span class="macro">println!</span>(<span class="string">"{:?}"</span>, __binding_0) }
         }
     }.to_string()
-);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.fold" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1169-1183">Source</a><h4 class="code-header">pub fn <a href="#method.fold" class="fn">fold</a>&lt;F, I, R&gt;(&amp;self, init: I, f: F) -&gt; <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a><div class="where">where
-    F: <a class="trait" href="https://doc.rust-lang.org/1.95.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(<a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a>, &amp;<a class="struct" href="struct.BindingInfo.html" title="struct synstructure::BindingInfo">BindingInfo</a>&lt;'_&gt;) -&gt; R,
-    I: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>,
-    R: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>,</div></h4></section></summary><div class="docblock"><p>Runs the passed-in function once for each bound field, passing in the
+);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.fold" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1169-1183">Source</a><h4 class="code-header">pub fn <a href="#method.fold" class="fn">fold</a>&lt;F, I, R&gt;(&amp;self, init: I, f: F) -&gt; <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a><div class="where">where
+    F: <a class="trait" href="https://doc.rust-lang.org/1.95.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(<a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a>, &amp;<a class="struct" href="struct.BindingInfo.html" title="struct synstructure::BindingInfo">BindingInfo</a>&lt;'_&gt;) -&gt; R,
+    I: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>,
+    R: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>,</div></h4></section></summary><div class="docblock"><p>Runs the passed-in function once for each bound field, passing in the
 result of the previous call, and a <code>BindingInfo</code>. generating <code>match</code>
 arms which evaluate to the resulting tokens.</p>
 <p>This method will ignore variants or fields which are ignored through the
@@ -70,9 +70,9 @@ arms which evaluate to the resulting tokens.</p>
             <span class="number">0 </span>+ __binding_0
         }
     }.to_string()
-);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.each_variant" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1219-1234">Source</a><h4 class="code-header">pub fn <a href="#method.each_variant" class="fn">each_variant</a>&lt;F, R&gt;(&amp;self, f: F) -&gt; <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a><div class="where">where
+);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.each_variant" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1219-1234">Source</a><h4 class="code-header">pub fn <a href="#method.each_variant" class="fn">each_variant</a>&lt;F, R&gt;(&amp;self, f: F) -&gt; <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a><div class="where">where
     F: <a class="trait" href="https://doc.rust-lang.org/1.95.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(&amp;<a class="struct" href="struct.VariantInfo.html" title="struct synstructure::VariantInfo">VariantInfo</a>&lt;'_&gt;) -&gt; R,
-    R: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>,</div></h4></section></summary><div class="docblock"><p>Runs the passed-in function once for each variant, passing in a
+    R: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>,</div></h4></section></summary><div class="docblock"><p>Runs the passed-in function once for each variant, passing in a
 <code>VariantInfo</code>. and generating <code>match</code> arms which evaluate the returned
 tokens.</p>
 <p>This method will ignore variants and not bind fields which are ignored
@@ -346,7 +346,7 @@ s.bind_with(|bi| BindStyle::RefMut);
         }
     }.to_string()
 );</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.binding_name" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1630-1638">Source</a><h4 class="code-header">pub fn <a href="#method.binding_name" class="fn">binding_name</a>&lt;F&gt;(&amp;mut self, f: F) -&gt; &amp;mut Self<div class="where">where
-    F: <a class="trait" href="https://doc.rust-lang.org/1.95.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(&amp;<a class="struct" href="https://docs.rs/syn/2.0.117/syn/data/struct.Field.html" title="struct syn::data::Field">Field</a>, <a class="primitive" href="https://doc.rust-lang.org/1.95.0/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.Ident.html" title="struct proc_macro2::Ident">Ident</a>,</div></h4></section></summary><div class="docblock"><p>Updates the binding name for each fo the passed-in fields by calling the
+    F: <a class="trait" href="https://doc.rust-lang.org/1.95.0/core/ops/function/trait.FnMut.html" title="trait core::ops::function::FnMut">FnMut</a>(&amp;<a class="struct" href="https://docs.rs/syn/2.0.117/syn/data/struct.Field.html" title="struct syn::data::Field">Field</a>, <a class="primitive" href="https://doc.rust-lang.org/1.95.0/std/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="../proc_macro2/struct.Ident.html" title="struct proc_macro2::Ident">Ident</a>,</div></h4></section></summary><div class="docblock"><p>Updates the binding name for each fo the passed-in fields by calling the
 passed-in function for each <code>BindingInfo</code>.</p>
 <p>The function will be called with the <code>BindingInfo</code> and its index in the
 enclosing variant.</p>
@@ -375,7 +375,7 @@ s.binding_name(|bi, i| bi.ident.clone().unwrap());
             { <span class="macro">println!</span>(<span class="string">"{:?}"</span>, a) }
         }
     }.to_string()
-);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.referenced_ty_params" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1667-1675">Source</a><h4 class="code-header">pub fn <a href="#method.referenced_ty_params" class="fn">referenced_ty_params</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.95.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;&amp;'a <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.Ident.html" title="struct proc_macro2::Ident">Ident</a>&gt;</h4></section></summary><div class="docblock"><p>Returns a list of the type parameters which are refrenced in the types
+);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.referenced_ty_params" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1667-1675">Source</a><h4 class="code-header">pub fn <a href="#method.referenced_ty_params" class="fn">referenced_ty_params</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.95.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;&amp;'a <a class="struct" href="../proc_macro2/struct.Ident.html" title="struct proc_macro2::Ident">Ident</a>&gt;</h4></section></summary><div class="docblock"><p>Returns a list of the type parameters which are refrenced in the types
 of non-filtered fields / variants.</p>
 <h5 id="caveat"><a class="doc-anchor" href="#caveat">§</a>Caveat</h5>
 <p>If the struct contains any macros in type position, all parameters will
@@ -438,11 +438,11 @@ referenced in the types of non-filtered fields.</p>
 be considered bound. This is because we cannot determine which type
 parameters are bound by type macros.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.underscore_const" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1794-1796">Source</a><h4 class="code-header">pub fn <a href="#method.underscore_const" class="fn">underscore_const</a>(&amp;mut self, _enabled: <a class="primitive" href="https://doc.rust-lang.org/1.95.0/std/primitive.bool.html">bool</a>) -&gt; &amp;mut Self</h4></section></summary><div class="docblock"><p>This method is a no-op, underscore consts are used by default now.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.bound_impl" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1857-1864">Source</a><h4 class="code-header">pub fn <a href="#method.bound_impl" class="fn">bound_impl</a>&lt;P: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>, B: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>&gt;(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.bound_impl" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1857-1864">Source</a><h4 class="code-header">pub fn <a href="#method.bound_impl" class="fn">bound_impl</a>&lt;P: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>, B: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>&gt;(
     &amp;self,
     path: P,
     body: B,
-) -&gt; <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></h4></section></summary><div class="docblock"><blockquote>
+) -&gt; <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></h4></section></summary><div class="docblock"><blockquote>
 <p>NOTE: This methods’ features are superceded by <code>Structure::gen_impl</code>.</p>
 </blockquote>
 <p>Creates an <code>impl</code> block with the required generic type fields filled in
@@ -489,11 +489,11 @@ s.filter_variants(|v| v.ast().ident != <span class="string">"B"</span>);
             }
         };
     }.to_string()
-);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.unsafe_bound_impl" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1925-1932">Source</a><h4 class="code-header">pub fn <a href="#method.unsafe_bound_impl" class="fn">unsafe_bound_impl</a>&lt;P: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>, B: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>&gt;(
+);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.unsafe_bound_impl" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1925-1932">Source</a><h4 class="code-header">pub fn <a href="#method.unsafe_bound_impl" class="fn">unsafe_bound_impl</a>&lt;P: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>, B: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>&gt;(
     &amp;self,
     path: P,
     body: B,
-) -&gt; <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></h4></section></summary><div class="docblock"><blockquote>
+) -&gt; <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></h4></section></summary><div class="docblock"><blockquote>
 <p>NOTE: This methods’ features are superceded by <code>Structure::gen_impl</code>.</p>
 </blockquote>
 <p>Creates an <code>impl</code> block with the required generic type fields filled in
@@ -540,11 +540,11 @@ s.filter_variants(|v| v.ast().ident != <span class="string">"B"</span>);
             }
         };
     }.to_string()
-);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.unbound_impl" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1983-1990">Source</a><h4 class="code-header">pub fn <a href="#method.unbound_impl" class="fn">unbound_impl</a>&lt;P: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>, B: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>&gt;(
+);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.unbound_impl" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#1983-1990">Source</a><h4 class="code-header">pub fn <a href="#method.unbound_impl" class="fn">unbound_impl</a>&lt;P: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>, B: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>&gt;(
     &amp;self,
     path: P,
     body: B,
-) -&gt; <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></h4></section></summary><div class="docblock"><blockquote>
+) -&gt; <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></h4></section></summary><div class="docblock"><blockquote>
 <p>NOTE: This methods’ features are superceded by <code>Structure::gen_impl</code>.</p>
 </blockquote>
 <p>Creates an <code>impl</code> block with the required generic type fields filled in
@@ -583,11 +583,11 @@ s.filter_variants(|v| v.ast().ident != <span class="string">"B"</span>);
             }
         };
     }.to_string()
-);</code></pre></div></div></details><details class="toggle method-toggle deprecated" open><summary><section id="method.unsafe_unbound_impl" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#2042-2049">Source</a><h4 class="code-header">pub fn <a href="#method.unsafe_unbound_impl" class="fn">unsafe_unbound_impl</a>&lt;P: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>, B: <a class="trait" href="https://docs.rs/quote/1.0.45/quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>&gt;(
+);</code></pre></div></div></details><details class="toggle method-toggle deprecated" open><summary><section id="method.unsafe_unbound_impl" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#2042-2049">Source</a><h4 class="code-header">pub fn <a href="#method.unsafe_unbound_impl" class="fn">unsafe_unbound_impl</a>&lt;P: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>, B: <a class="trait" href="../quote/to_tokens/trait.ToTokens.html" title="trait quote::to_tokens::ToTokens">ToTokens</a>&gt;(
     &amp;self,
     path: P,
     body: B,
-) -&gt; <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></h4></section><span class="item-info"><div class="stab deprecated"><span class="emoji">👎</span><span>Deprecated</span></div></span></summary><div class="docblock"><blockquote>
+) -&gt; <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></h4></section><span class="item-info"><div class="stab deprecated"><span class="emoji">👎</span><span>Deprecated</span></div></span></summary><div class="docblock"><blockquote>
 <p>NOTE: This methods’ features are superceded by <code>Structure::gen_impl</code>.</p>
 </blockquote>
 <p>Creates an <code>impl</code> block with the required generic type fields filled in
@@ -626,7 +626,7 @@ s.filter_variants(|v| v.ast().ident != <span class="string">"B"</span>);
             }
         };
     }.to_string()
-);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.gen_impl" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#2295-2301">Source</a><h4 class="code-header">pub fn <a href="#method.gen_impl" class="fn">gen_impl</a>(&amp;self, cfg: <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a>) -&gt; <a class="struct" href="https://docs.rs/proc-macro2/1.0.106/proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></h4></section></summary><div class="docblock"><p>Generate an impl block for the given struct. This impl block will
+);</code></pre></div></div></details><details class="toggle method-toggle" open><summary><section id="method.gen_impl" class="method"><a class="src rightside" href="../src/synstructure/lib.rs.html#2295-2301">Source</a><h4 class="code-header">pub fn <a href="#method.gen_impl" class="fn">gen_impl</a>(&amp;self, cfg: <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a>) -&gt; <a class="struct" href="../proc_macro2/struct.TokenStream.html" title="struct proc_macro2::TokenStream">TokenStream</a></h4></section></summary><div class="docblock"><p>Generate an impl block for the given struct. This impl block will
 automatically use hygiene tricks to avoid polluting the caller’s
 namespace, and will automatically add trait bounds for generic type
 parameters.</p>

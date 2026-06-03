@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["MonthRepr","Padding","SubsecondDigits","TrailingInput","UnixTimestampPrecision","WeekNumberRepr","WeekdayRepr","YearRange","YearRepr"],"struct":["Day","End","Hour","Ignore","Minute","Month","OffsetHour","OffsetMinute","OffsetSecond","Ordinal","Period","Second","Subsecond","UnixTimestamp","WeekNumber","Weekday","Year"]};

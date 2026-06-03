@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="An implementation of regexes, supporting a relatively rich set of features, including backreferences and lookaround."><title>fancy_regex - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate fancy_regex</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../fancy_regex/index.html">fancy_<wbr>regex</a><span class="version">0.11.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#usage" title="Usage">Usage</a><ul><li><a href="#example-matching-text" title="Example: Matching text">Example: Matching text</a></li><li><a href="#example-finding-the-position-of-matches" title="Example: Finding the position of matches">Example: Finding the position of matches</a></li><li><a href="#example-capturing-groups" title="Example: Capturing groups">Example: Capturing groups</a></li></ul></li><li><a href="#syntax" title="Syntax">Syntax</a></li></ul><h3><a href="#structs">Crate Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>fancy_<wbr>regex</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/fancy_regex/lib.rs.html#21-1617">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>An implementation of regexes, supporting a relatively rich set of features, including backreferences
-and lookaround.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="An implementation of regexes, supporting a relatively rich set of features, including backreferences and lookaround. Aims to be compatible with Oniguruma syntax when the relevant flag is set."><title>fancy_regex - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="fancy_regex" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate fancy_regex</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../fancy_regex/index.html">fancy_<wbr>regex</a><span class="version">0.18.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#usage" title="Usage">Usage</a><ul><li><a href="#example-matching-text" title="Example: Matching text">Example: Matching text</a></li><li><a href="#example-finding-the-position-of-matches" title="Example: Finding the position of matches">Example: Finding the position of matches</a></li><li><a href="#example-capturing-groups" title="Example: Capturing groups">Example: Capturing groups</a></li><li><a href="#example-splitting-text" title="Example: Splitting text">Example: Splitting text</a></li></ul></li><li><a href="#features" title="Features">Features</a></li><li><a href="#syntax" title="Syntax">Syntax</a></li><li><a href="#subroutines-reusable-patterns-with-stable-meaning" title="Subroutines: reusable patterns with stable meaning">Subroutines: reusable patterns with stable meaning</a><ul><li><a href="#what-is-a-subroutine" title="What is a subroutine">What is a subroutine</a></li><li><a href="#side-effects" title="Side effects">Side effects</a></li><li><a href="#example" title="Example">Example</a></li><li><a href="#side-effect-edge-cases" title="Side effect edge cases">Side effect edge cases</a></li><li><a href="#flags-and-the-common-misconception" title="Flags and the common misconception">Flags and the common misconception</a></li><li><a href="#compile-time-rejection-of-left-recursive-patterns" title="Compile-time rejection of left-recursive patterns">Compile-time rejection of left-recursive patterns</a></li><li><a href="#recursion" title="Recursion">Recursion</a></li></ul></li><li><a href="#absent-operators" title="Absent Operators">Absent Operators</a><ul><li><a href="#absent-repeater" title="Absent Repeater">Absent Repeater</a></li></ul></li></ul><h3><a href="#structs">Crate Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>fancy_<wbr>regex</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/fancy_regex/lib.rs.html#21-2671">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>An implementation of regexes, supporting a relatively rich set of features, including backreferences
+and lookaround. Aims to be compatible with Oniguruma syntax when the relevant flag is set.</p>
 <p>It builds on top of the excellent <a href="https://crates.io/crates/regex">regex</a> crate. If you are not
 familiar with it, make sure you read its documentation and maybe you don’t even need fancy-regex.</p>
 <p>If your regex or parts of it does not use any special features, the matching is delegated to the
@@ -45,8 +45,29 @@ entire input text.</p>
 
 <span class="kw">let </span>captures = result.expect(<span class="string">"Error running regex"</span>).expect(<span class="string">"No match found"</span>);
 <span class="kw">let </span>group = captures.get(<span class="number">1</span>).expect(<span class="string">"No group"</span>);
-<span class="macro">assert_eq!</span>(group.as_str(), <span class="string">"20"</span>);</code></pre></div><h2 id="syntax"><a class="doc-anchor" href="#syntax">§</a>Syntax</h2>
-<p>The regex syntax is based on the <a href="https://crates.io/crates/regex">regex</a> crate’s, with some additional supported syntax.</p>
+<span class="macro">assert_eq!</span>(group.as_str(), <span class="string">"20"</span>);</code></pre></div><h3 id="example-splitting-text"><a class="doc-anchor" href="#example-splitting-text">§</a>Example: Splitting text</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>fancy_regex::Regex;
+
+<span class="kw">let </span>re = Regex::new(<span class="string">r"[ \t]+"</span>).unwrap();
+<span class="kw">let </span>target = <span class="string">"a b \t  c\td    e"</span>;
+<span class="kw">let </span>fields: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = re.split(target).map(|x| x.unwrap()).collect();
+<span class="macro">assert_eq!</span>(fields, <span class="macro">vec!</span>[<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c"</span>, <span class="string">"d"</span>, <span class="string">"e"</span>]);
+
+<span class="kw">let </span>fields: Vec&lt;<span class="kw-2">&amp;</span>str&gt; = re.splitn(target, <span class="number">3</span>).map(|x| x.unwrap()).collect();
+<span class="macro">assert_eq!</span>(fields, <span class="macro">vec!</span>[<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c\td    e"</span>]);</code></pre></div><h2 id="features"><a class="doc-anchor" href="#features">§</a>Features</h2>
+<p>This crate supports several optional features that can be enabled or disabled:</p>
+<ul>
+<li><strong><code>std</code></strong> (enabled by default): Enables standard library support. Disable for <code>no_std</code> environments.</li>
+<li><strong><code>unicode</code></strong> (enabled by default): Enables Unicode support for character classes and word boundaries.</li>
+<li><strong><code>perf</code></strong> (enabled by default): Enables performance optimizations in the underlying regex engine.</li>
+<li><strong><code>variable-lookbehinds</code></strong> (enabled by default): Enables support for variable-length lookbehind
+assertions (e.g., <code>(?&lt;=a+)</code>). Without this feature, only constant-length lookbehinds are supported.
+This feature uses reverse DFA matching from the <code>regex-automata</code> crate to efficiently handle
+variable-length patterns that don’t use backreferences or other fancy features.</li>
+</ul>
+<h2 id="syntax"><a class="doc-anchor" href="#syntax">§</a>Syntax</h2>
+<p>The regex syntax is based on the <a href="https://crates.io/crates/regex">regex</a> crate’s and on Oniguruma, with some additional supported syntax.
+Where the two conflict, there is a flag to prefer Oniguruma parsing rules. (By default <code>regex</code> crate compatible parsing is used.)</p>
 <p>Escapes:</p>
 <p><code>\h</code>
 : hex digit (<code>[0-9A-Fa-f]</code>) <br />
@@ -57,21 +78,33 @@ entire input text.</p>
 <code>\K</code>
 : keep text matched so far out of the overall match (<a href="https://www.regular-expressions.info/keep.html">docs</a>)<br />
 <code>\G</code>
-: anchor to where the previous match ended (<a href="https://www.regular-expressions.info/continue.html">docs</a>)</p>
+: anchor to where the previous match ended (<a href="https://www.regular-expressions.info/continue.html">docs</a>)<br />
+<code>\Z</code>
+: anchor to the end of the text before any trailing newlines<br />
+<code>\O</code>
+: any character including newline<br />
+<code>\N</code>
+: any character except newline<br />
+<code>\R</code>
+: general newline - matches all common line break characters: \n, \v, \f, \r, treating \r\n as an atomic unit</p>
 <p>Backreferences:</p>
 <p><code>\1</code>
 : match the exact string that the first capture group matched <br />
 <code>\2</code>
-: backref to the second capture group, etc</p>
+: backref to the second capture group, etc. <br />
+<code>\k&lt;name&gt;</code>
+: match the exact string that the capture group named <em>name</em> matched <br />
+<code>(?P=name)</code>
+: same as <code>\k&lt;name&gt;</code> for compatibility with Python, etc. <br />
+<code>\g&lt;name&gt;</code>
+: call the subroutine defined in capture group named <em>name</em> <br />
+<code>\g&lt;1&gt;</code>
+: call the subroutine defined in capture group 1. Subroutines can be recursive up to 20 levels deep.</p>
 <p>Named capture groups:</p>
 <p><code>(?&lt;name&gt;exp)</code>
 : match <em>exp</em>, creating capture group named <em>name</em> <br />
-<code>\k&lt;name&gt;</code>
-: match the exact string that the capture group named <em>name</em> matched <br />
 <code>(?P&lt;name&gt;exp)</code>
-: same as <code>(?&lt;name&gt;exp)</code> for compatibility with Python, etc. <br />
-<code>(?P=name)</code>
-: same as <code>\k&lt;name&gt;</code> for compatibility with Python, etc.</p>
+: same as <code>(?&lt;name&gt;exp)</code> for compatibility with Python, etc.</p>
 <p>Look-around assertions for matching without changing the current position:</p>
 <p><code>(?=exp)</code>
 : look-ahead, succeeds if <em>exp</em> matches to the right of the current position <br />
@@ -81,6 +114,11 @@ entire input text.</p>
 : look-behind, succeeds if <em>exp</em> matches to the left of the current position <br />
 <code>(?&lt;!exp)</code>
 : negative look-behind, succeeds if <em>exp</em> doesn’t match to the left</p>
+<p><strong>Note</strong>: Look-behind assertions with variable length (e.g., <code>(?&lt;=a+)</code>) are supported with the
+<code>variable-lookbehinds</code> feature (enabled by default). Without this feature, only constant-length
+look-behinds are supported. Variable-length look-behinds can include word boundaries and other
+zero-width assertions (e.g., <code>(?&lt;=\ba+)</code>) as long as the rest of the pattern doesn’t use
+backreferences or other “fancy” features that require backtracking within the lookbehind.</p>
 <p>Atomic groups using <code>(?&gt;exp)</code> to prevent backtracking within <code>exp</code>, e.g.:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>re = Regex::new(<span class="string">r"^a(?&gt;bc|b)c$"</span>).unwrap();
@@ -90,16 +128,348 @@ entire input text.</p>
 <p>Conditionals - if/then/else:</p>
 <p><code>(?(1))</code>
 : continue only if first capture group matched <br />
-<code>(?(&lt;name&gt;))</code>
+<code>(?(&lt;name&gt;))</code> or <code>(?('name'))</code>
 : continue only if capture group named <em>name</em> matched <br />
 <code>(?(1)true_branch|false_branch)</code>
 : if the first capture group matched then execute the true_branch regex expression, else execute false_branch (<a href="https://www.regular-expressions.info/conditional.html">docs</a>) <br />
 <code>(?(condition)true_branch|false_branch)</code>
-: if the condition matches then execute the true_branch regex expression, else execute false_branch from the point just before the condition was evaluated</p>
+: if the condition matches then execute the true_branch regex expression, else execute false_branch from the point just before the condition was evaluated <br />
+<code>(?(DEFINE)(capture group)(?&lt;named_group&gt;another)</code>
+: define capture groups for later use in subroutine calls</p>
+<p>Backtracking control verbs:</p>
+<p><code>(*FAIL)</code>
+: fail the current backtracking branch</p>
+<p>Absent repeater:</p>
+<p><code>(?~abc)</code>
+: match anything until <code>abc</code> would match or until the end of the haystack if no match</p>
+<h2 id="subroutines-reusable-patterns-with-stable-meaning"><a class="doc-anchor" href="#subroutines-reusable-patterns-with-stable-meaning">§</a>Subroutines: reusable patterns with stable meaning</h2><h3 id="what-is-a-subroutine"><a class="doc-anchor" href="#what-is-a-subroutine">§</a>What is a subroutine</h3>
+<p>Subroutines in fancy-regex are <em>compiled pattern definitions</em> that can be invoked safely and predictably.
+Any capture group can become a subroutine - it just needs to be “called”.</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(?&lt;num&gt;\d*\.\d+|\d+) x \g&lt;num&gt;</code></pre></div>
+<p>In the above example, a capture group called <code>num</code> is defined, to match numbers with or without decimal places. <code>\g&lt;num&gt;</code> executes the capture group again, without the author having to re-type the pattern inside it.
+The above pattern would match text like <code>5.2 x 6</code> for instance.</p>
+<p>Think of a subroutine as:</p>
+<ul>
+<li>defined by a capture group</li>
+<li>executed exactly the way the capture group was originally defined</li>
+<li>reusable from multiple places</li>
+</ul>
+<h3 id="side-effects"><a class="doc-anchor" href="#side-effects">§</a>Side effects</h3>
+<p>A subroutine call has one side-effect - it updates the capture group position, which affects backref matching etc.</p>
+<h3 id="example"><a class="doc-anchor" href="#example">§</a>Example</h3>
+<p>Let’s imagine a pattern which will match a digit and capture it into group 1. Then it will call that capture group as a subroutine. Then it will do a backref to group 1.</p>
+<p>This will match three consecutive digits. The 2nd and 3rd digits must be identical.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>fancy_regex::{Error, Regex};
+
+<span class="kw">let </span>re = Regex::new(<span class="string">r"(\d)\g&lt;1&gt;\1"</span>)<span class="question-mark">?</span>;
+<span class="kw">let </span>result = re.captures(<span class="string">"foo 711"</span>)<span class="question-mark">?</span>;
+
+<span class="kw">let </span>captures = result.unwrap();
+
+<span class="kw">let </span>m = captures.get(<span class="number">0</span>).unwrap();
+
+<span class="macro">assert_eq!</span>(m.start(), <span class="number">4</span>);
+<span class="macro">assert_eq!</span>(m.end(), <span class="number">7</span>);
+<span class="macro">assert_eq!</span>(m.as_str(), <span class="string">"711"</span>);
+
+<span class="kw">let </span>group = captures.get(<span class="number">1</span>).unwrap();
+<span class="macro">assert_eq!</span>(group.as_str(), <span class="string">"1"</span>);
+
+<span class="macro">assert!</span>(!re.is_match(<span class="string">"foo 717"</span>)<span class="question-mark">?</span>);
+</code></pre></div>
+<p>In the above example, 7 was stored in capture group 1. Then it was replaced with 1 by the subroutine call. Then the backreference to group 1 can only match the literal <code>1</code>.</p>
+<h3 id="side-effect-edge-cases"><a class="doc-anchor" href="#side-effect-edge-cases">§</a>Side effect edge cases</h3>
+<p>Also, in a lookbehind, a subroutine call would not update the capture group position when the currently stored position for that capture group is further to the right in the haystack. i.e. right-most captures take precedence.</p>
+<h3 id="flags-and-the-common-misconception"><a class="doc-anchor" href="#flags-and-the-common-misconception">§</a>Flags and the common misconception</h3>
+<p>When subroutines are first introduced, a very common assumption is:</p>
+<blockquote>
+<p><em>“If I apply flags at the call site, they should affect the subroutine.”</em></p>
+</blockquote>
+<p>This assumption is reasonable — many regex engines either behave this way or do not specify the behavior clearly.
+<strong>fancy-regex does not do this</strong>, and the reason is central to its design.</p>
+<p>Let’s look at a concrete example.</p>
+<hr />
+<h4 id="the-pattern"><a class="doc-anchor" href="#the-pattern">§</a>The pattern</h4><div class="example-wrap"><pre class="language-regex"><code>\A(?&lt;word&gt;[a-z]+)\s+(?i:\g&lt;word&gt;)</code></pre></div><h4 id="the-input"><a class="doc-anchor" href="#the-input">§</a>The input</h4><div class="example-wrap"><pre class="language-text"><code>hello Mr</code></pre></div>
+<p>At first glance, this pattern appears to say:</p>
+<ol>
+<li>At the beginning of the input string</li>
+<li>Match a word of lowercase letters and capture it as <code>word</code></li>
+<li>Match some whitespace</li>
+<li>Call the subroutine <code>word</code>, but case-insensitively</li>
+</ol>
+<p>Many users therefore expect this pattern to match the input above.</p>
+<p><strong>It does not.</strong></p>
+<hr />
+<h4 id="what-actually-happens"><a class="doc-anchor" href="#what-actually-happens">§</a>What actually happens</h4>
+<p>The key to understanding this behavior is that <strong>flags belong to the subroutine definition, not the call site</strong>.</p>
+<p>Let’s walk through the execution step by step.</p>
+<hr />
+<h4 id="execution-trace"><a class="doc-anchor" href="#execution-trace">§</a>Execution trace</h4><h5 id="step-1-assert-position-at-the-beginning-of-the-input-string"><a class="doc-anchor" href="#step-1-assert-position-at-the-beginning-of-the-input-string">§</a>Step 1: Assert position at the beginning of the input string</h5>
+<ul>
+<li>Pattern: <code>\A</code></li>
+<li>Active flags: none</li>
+<li>Input position: 0 (start of <code>"hello Mr"</code>)</li>
+</ul>
+<h5 id="step-2-enter-subroutine-definition-word"><a class="doc-anchor" href="#step-2-enter-subroutine-definition-word">§</a>Step 2: Enter subroutine definition <code>word</code></h5>
+<ul>
+<li>Pattern: <code>[a-z]+</code></li>
+<li>Active flags: none</li>
+<li>Input position: 0 (start of <code>"hello Mr"</code>)</li>
+</ul>
+<p>The engine greedily matches <code>[a-z]+</code> against <code>"hello"</code>.
+The range 0 - 5 is stored in capture group 1, whose name is <code>word</code>.</p>
+<h5 id="step-3-exit-subroutine-definition-word-and-continue-matching"><a class="doc-anchor" href="#step-3-exit-subroutine-definition-word-and-continue-matching">§</a>Step 3: Exit subroutine definition <code>word</code> and continue matching</h5>
+<ul>
+<li>Pattern: <code>\s+</code></li>
+<li>Active flags: none</li>
+<li>Input position: 5 (at the space after <code>hello</code>)</li>
+</ul>
+<p>The engine matches <code>\s+</code> against <code>" "</code>.</p>
+<h5 id="step-4-call-subroutine-word"><a class="doc-anchor" href="#step-4-call-subroutine-word">§</a>Step 4: Call subroutine <code>word</code></h5>
+<ul>
+<li>Pattern: <code>\g&lt;word&gt;</code> -&gt; <code>(?&lt;word&gt;[a-z]+)</code></li>
+<li>Active flags: none - because the capture group definition had no flags active</li>
+<li>Input position: 6 (after <code>" "</code> at the <code>'M'</code> of <code>"Mr"</code>)</li>
+</ul>
+<p>This fails immediately, because:</p>
+<ul>
+<li>The pattern is case-sensitive</li>
+<li>The first character is <code>'M'</code>, which does not fall in the range a-z.</li>
+</ul>
+<h5 id="step-5-no-alternatives-available"><a class="doc-anchor" href="#step-5-no-alternatives-available">§</a>Step 5: No alternatives available</h5>
+<ul>
+<li>There are no alternations inside <code>word</code></li>
+<li>There are no backtracking points before the failure</li>
+<li>The anchor prevents us from trying other starting positions in the input string</li>
+</ul>
+<p>The match fails.</p>
+<hr />
+<h4 id="why-the-i-flag-did-not-apply"><a class="doc-anchor" href="#why-the-i-flag-did-not-apply">§</a>Why the <code>i</code> flag did not apply</h4>
+<p>The <code>i</code> flag appears <strong>only at the call site</strong>:</p>
+<div class="example-wrap"><pre class="language-regex"><code>(?i:\g&lt;word&gt;)</code></pre></div>
+<p>However, calling a subroutine does <strong>not</strong> re-evaluate or modify its definition.</p>
+<p>The subroutine <code>word</code> was compiled once, with these properties:</p>
+<ul>
+<li>Pattern: <code>[a-z]+</code></li>
+<li>Flags: none</li>
+<li>Capture group number: 1</li>
+</ul>
+<p>When the subroutine is called, the engine:</p>
+<ul>
+<li>Enters the already-compiled definition</li>
+<li>Executes it exactly as defined</li>
+<li>Ignores any flags applied at the call site</li>
+</ul>
+<hr />
+<h4 id="this-is-a-feature-not-a-limitation"><a class="doc-anchor" href="#this-is-a-feature-not-a-limitation">§</a>This is a feature, not a limitation</h4>
+<p>fancy-regex deliberately enforces this rule to guarantee that:</p>
+<ul>
+<li>A subroutine behaves the same everywhere it is used</li>
+<li>Flags cannot silently change the meaning of a reused pattern</li>
+<li>There is no “action at a distance” from call sites</li>
+</ul>
+<p>If call-site flags were allowed to affect subroutines, the same subroutine could behave differently depending on where it was called - making patterns harder to reason about and easier to misuse.</p>
+<hr />
+<h4 id="expressing-the-intended-behavior"><a class="doc-anchor" href="#expressing-the-intended-behavior">§</a>Expressing the intended behavior</h4>
+<p>If the intent is for <code>word</code> to be matched case-insensitively, the flag must be applied <strong>at the definition</strong>:</p>
+<div class="example-wrap"><pre class="language-regex"><code>(?i:(?&lt;word&gt;[a-z]+))\s+\g&lt;word&gt;</code></pre></div>
+<p>or</p>
+<div class="example-wrap"><pre class="language-regex"><code>(?&lt;word&gt;(?i:[a-z]+))\s+\g&lt;word&gt;</code></pre></div>
+<p>Now the subroutine is compiled with the <code>i</code> flag, and every call to it behaves consistently.</p>
+<hr />
+<h4 id="key-takeaway"><a class="doc-anchor" href="#key-takeaway">§</a>Key takeaway</h4>
+<blockquote>
+<p><strong>Subroutines in fancy-regex are compiled once, with fixed flags.</strong>
+<strong>Call sites cannot change their behavior.</strong></p>
+</blockquote>
+<p>This rule enables safe reuse, predictable execution, and clear reasoning - especially in larger and more complex patterns. It also matches Oniguruma behavior, so if you plan to use fancy-regex as a memory-safe alternative, you can!</p>
+<h3 id="compile-time-rejection-of-left-recursive-patterns"><a class="doc-anchor" href="#compile-time-rejection-of-left-recursive-patterns">§</a>Compile-time rejection of left-recursive patterns</h3>
+<p>fancy-regex’s support of subroutines unlocks powerful features such as recursion.
+With that power comes the risk of defining patterns that can recurse forever.</p>
+<p>To guarantee termination and predictable behavior, fancy-regex rejects left-recursive patterns at compile time.</p>
+<p>This check is conservative: if a pattern could recurse without consuming input, it is rejected - even if a particular input would not trigger that behavior.</p>
+<h4 id="what-is-left-recursion"><a class="doc-anchor" href="#what-is-left-recursion">§</a>What is left recursion?</h4>
+<p>A pattern is left-recursive if it can re-enter itself without consuming any input.</p>
+<p>In other words, the engine can make recursive calls while staying at the same input position.</p>
+<p>A simplified example looks like this:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(?&lt;expr&gt;\g&lt;expr&gt;a|a)</code></pre></div>
+<p>Here, the subroutine expr can immediately call itself before matching anything.
+No matter what the input is, this definition allows infinite recursion.</p>
+<h4 id="why-fancy-regex-rejects-these-patterns"><a class="doc-anchor" href="#why-fancy-regex-rejects-these-patterns">§</a>Why fancy-regex rejects these patterns</h4>
+<p>Left recursion is problematic because:</p>
+<ul>
+<li>It can cause infinite recursion or unbounded backtracking</li>
+<li>It cannot be made safe by input inspection alone</li>
+</ul>
+<p>Even if a specific input would not trigger the recursion, the pattern itself is unsafe.</p>
+<p>Rather than attempting to detect or recover from such cases at runtime, fancy-regex enforces a stronger rule:</p>
+<p><strong>Every recursive call must consume input before it can recurse again.</strong></p>
+<p>This guarantees that evaluation always makes progress.</p>
+<h4 id="conservative-by-design"><a class="doc-anchor" href="#conservative-by-design">§</a>Conservative by design</h4>
+<p>The left-recursion check is intentionally conservative.</p>
+<p>Consider the following pattern:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(?&lt;expr&gt;ab|\g&lt;expr&gt;a)</code></pre></div>
+<p>For the input “ab”, this pattern would terminate successfully.
+However, fancy-regex still rejects it.</p>
+<p>Why?</p>
+<p>Because the second alternative allows recursion before any input is consumed.
+The engine cannot rely on runtime input to guarantee termination.</p>
+<p>This is a deliberate design choice:</p>
+<p>fancy-regex validates the structure of the pattern, not the behavior of a particular input.</p>
+<h4 id="what-is-allowed"><a class="doc-anchor" href="#what-is-allowed">§</a>What is allowed</h4>
+<p>Recursive patterns are allowed as long as they consume input before recursing.</p>
+<p>For example:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(?&lt;paren&gt;\((?:[^()]*|\g&lt;paren&gt;)\))</code></pre></div>
+<p>Here:</p>
+<ul>
+<li>Each recursive call to <code>paren</code> is preceded by a literal ‘(’</li>
+<li>Input is always consumed before recursion</li>
+<li>Termination is guaranteed</li>
+</ul>
+<p>This kind of recursion is safe and fully supported.</p>
+<h4 id="how-to-restructure-left-recursive-patterns"><a class="doc-anchor" href="#how-to-restructure-left-recursive-patterns">§</a>How to restructure left-recursive patterns</h4>
+<p>Left-recursive definitions can often be rewritten in a right-recursive or iterative form.</p>
+<p>For example, instead of:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(?&lt;expr&gt;\g&lt;expr&gt;a|a)</code></pre></div>
+<p>You can write:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>a+</code></pre></div>
+<p>Or, when recursion is genuinely required:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(?&lt;expr&gt;a\g&lt;expr&gt;?)</code></pre></div>
+<p>In this version, input is consumed before the recursive call, satisfying fancy-regex’s safety rules.</p>
+<h3 id="recursion"><a class="doc-anchor" href="#recursion">§</a>Recursion</h3>
+<p>Recursion is when a subroutine calls itself, directly or indirectly.</p>
+<h4 id="depth-limit"><a class="doc-anchor" href="#depth-limit">§</a>Depth limit</h4>
+<p>fancy-regex supports recursion up to 20 levels deep.</p>
+<p>Let’s look at a simple example to prove this:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(a\g&lt;1&gt;?)</code></pre></div>
+<p>Here we have a pattern which defines capture group 1 as consuming the literal <code>a</code>, followed by calling itself between 0 and 1 times greedily.</p>
+<p>With 22 <code>a</code> characters as input, only 20 are matched:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>fancy_regex::{Error, Regex};
+
+<span class="kw">let </span>pattern = <span class="string">r"(a\g&lt;1&gt;?)"</span>;
+<span class="kw">let </span>re = Regex::new(pattern)<span class="question-mark">?</span>;
+
+<span class="kw">let </span>haystack = <span class="string">"aaaaaaaaaaaaaaaaaaaaaa"</span>; <span class="comment">// 22 a's
+</span><span class="kw">let </span>result = re.find(haystack)<span class="question-mark">?</span>;
+
+<span class="kw">let </span>found = result.unwrap();
+<span class="comment">// match is limited to 20 characters due to recursion depth limit
+</span><span class="macro">assert_eq!</span>(found.as_str().len(), <span class="number">20</span>);
+</code></pre></div><h4 id="unbounded-recursion"><a class="doc-anchor" href="#unbounded-recursion">§</a>Unbounded recursion</h4>
+<p>fancy-regex will return a compile error for patterns which recurse indefinitely.</p>
+<p>Let’s look at a simple example to prove this:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(a\g&lt;1&gt;)</code></pre></div>
+<p>Here, capture group 1 consumes the literal <code>a</code>, then calls itself unconditionally. After recursion level 20 is reached, there is not a single path which would return a match.</p>
+<h4 id="side-effects-1"><a class="doc-anchor" href="#side-effects-1">§</a>Side effects</h4>
+<p>You may remember that it was stated earlier that the side effect of a subroutine call is that the capture group will be updated. It would be more accurate to say that the capture group is updated for non-recursive subroutine calls only.</p>
+<p>Why?</p>
+<p>Imagine a pattern like:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(?&lt;foo&gt;a|\(\g&lt;foo&gt;\))</code></pre></div>
+<p>It will match the literal <code>a</code>, or any number of balanced parenthesis surrounding <code>a</code>.
+If the recursive subroutine call would update the capture group start position, the opening parenthesis would not be included in the capture group.
+If the recursive subroutine call would update the capture group end position (as well), you’d get the inner most subroutine call’s start position and outer most subroutine call’s end position, which would then be overridden anyway when the capture group at the root level is exited.
+This would produce exceptionally odd and confusing behavior.</p>
+<h4 id="backreferences"><a class="doc-anchor" href="#backreferences">§</a>Backreferences</h4>
+<p>fancy-regex does not yet support relative recursion level backreferences, and attempting to backreference a capture group which is currently being recursed is at present a compile error.</p>
+<p>Example (adapting the previous pattern):</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(?&lt;foo&gt;a|\(\g&lt;foo&gt;\)\k&lt;foo&gt;?)</code></pre></div>
+<p>With an input like:</p>
+<div class="example-wrap"><pre class="language-text"><code>(((a)(a)))</code></pre></div>
+<p>Oniguruma would give you two matches - the two <code>(a)</code>s.
+fancy-regex would give (if the compile error were removed and no other changes made,) a single match of <code>(a)(a</code>, which is clearly not what anyone would expect.
+fancy-regex prefers correctness and rejects such patterns rather than exhibiting undefined behavior.</p>
+<h2 id="absent-operators"><a class="doc-anchor" href="#absent-operators">§</a>Absent Operators</h2>
+<p>The absent operators are worth talking about because they are quite uncommon.</p>
+<h3 id="absent-repeater"><a class="doc-anchor" href="#absent-repeater">§</a>Absent Repeater</h3>
+<p>An absent repeater node is defined by the syntax <code>(?~inner_pattern)</code>, and it will match any text where the inner pattern does not match (i.e. is absent), including across newlines.
+This does not add any new abilities to the engine, it just allows to clarify intent and to be more easily optimized under the hood. fancy-regex mainly implements this for Oniguruma compatibility.</p>
+<p>It works best or is at least easiest to understand when the inner pattern is a literal.</p>
+<h4 id="example-1"><a class="doc-anchor" href="#example-1">§</a>Example</h4>
+<p>Let’s imagine you have some Markdown, containing some code fences.</p>
+<p>It might look something like this:</p>
+<div class="example-wrap"><pre class="language-md"><code># Some Heading
+
+Given a todo list like this:
+
+**Input:**
+```json
+{
+  &quot;todos&quot;: [
+    {
+      &quot;content&quot;: &quot;Create `some_helper_func` helper in some_file.rs that takes a closure to check the error&quot;,
+      &quot;status&quot;: &quot;complete&quot;,
+      &quot;priority&quot;: &quot;high&quot;
+    },
+    {
+      &quot;content&quot;: &quot;Update error-asserting tests in some_file.rs to use `some_helper_func`&quot;,
+      &quot;status&quot;: &quot;complete&quot;,
+      &quot;priority&quot;: &quot;high&quot;
+    },
+    {
+      &quot;content&quot;: &quot;Run `cargo fmt` and `cargo test`&quot;,
+      &quot;status&quot;: &quot;pending&quot;,
+      &quot;priority&quot;: &quot;medium&quot;
+    }
+  ]
+}
+```
+
+You might expect this output:
+
+**Output:**
+```text
+High priority tasks have now been completed.
+```
+
+Some more text.</code></pre></div>
+<p>Let’s say you want to match all input and output codeblocks.</p>
+<p>Typically you <em>could</em> do it like:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>[*]{2}(?:In|Out)put:[*]{2}\n```(?:[^`]+|`(?!``))+```</code></pre></div>
+<p>This would match everything inside the codeblock which is not a backtick, or backticks which are not followed by another 2 backticks, until it reaches the 3 backticks marking the end of the codeblock.
+Generally this type of construct can be quite hard to follow and reason about, to be sure it won’t suffer from catastrophic backtracking.</p>
+<p>With the absent repeater, the intention becomes a lot easier to understand - match anything that isn’t 3 backticks, followed by 3 backticks.</p>
+<div class="example-wrap"><pre class="language-regexp"><code>[*]{2}(?:In|Out)put:[*]{2}\n```(?~```)```</code></pre></div>
+<p>Where it really shines is when you need more complicated expressions, like to match a variable number of backticks from the code fence boundaries, it becomes a lot easier to read than an expanded alternative which would avoid catastrophic backtracking.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>fancy_regex::Regex;
+
+<span class="comment">// Match a code fence: opening backticks (3+), content (absent the same backticks), closing backticks
+</span><span class="kw">let </span>re = Regex::new(<span class="string">r"(?&lt;!`)(`{3,}(?!`))\w*\n(?~\1)\n(\1)"</span>)<span class="question-mark">?</span>;
+
+<span class="comment">// A code fence with 4 backticks, where the inner code contains 3 backticks
+</span><span class="kw">let </span>input = <span class="string">"````text\nsome code with ``` backticks\n````"</span>;
+<span class="kw">let </span>captures = re.captures(input)<span class="question-mark">?</span>.expect(<span class="string">"should match"</span>);
+
+<span class="comment">// The overall match spans the entire input
+</span><span class="kw">let </span>m = captures.get(<span class="number">0</span>).unwrap();
+<span class="macro">assert_eq!</span>(m.start(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(m.end(), input.len());
+<span class="macro">assert_eq!</span>(m.as_str(), input);
+
+<span class="comment">// Group 1: the opening 4 backticks
+</span><span class="kw">let </span>open = captures.get(<span class="number">1</span>).unwrap();
+<span class="macro">assert_eq!</span>(open.as_str(), <span class="string">"````"</span>);
+<span class="macro">assert_eq!</span>(open.start(), <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(open.end(), <span class="number">4</span>);
+
+<span class="comment">// Group 2: the closing 4 backticks
+</span><span class="kw">let </span>close = captures.get(<span class="number">2</span>).unwrap();
+<span class="macro">assert_eq!</span>(close.as_str(), <span class="string">"````"</span>);
+<span class="macro">assert_eq!</span>(close.start(), input.len() - <span class="number">4</span>);
+<span class="macro">assert_eq!</span>(close.end(), input.len());
+</code></pre></div>
+<p>It also allows the engine to optimize it accordingly.</p>
+<h4 id="other-ways-of-looking-at-it"><a class="doc-anchor" href="#other-ways-of-looking-at-it">§</a>Other ways of looking at it</h4>
+<p>The absent repeater can be considered shorthand for this:</p>
+<div class="example-wrap"><pre class="language-regexp"><code>(?((?!absent))\O|)*</code></pre></div>
+<p>Essentially a conditional, which says when the absent expression doesn’t match, match a single character including newlines. When the absent expression does match, match nothing. Repeat greedily.</p>
 </div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.CaptureMatches.html" title="struct fancy_regex::CaptureMatches">Capture<wbr>Matches</a></dt><dd>An iterator that yields all non-overlapping capture groups matching a
 particular regular expression.</dd><dt><a class="struct" href="struct.CaptureNames.html" title="struct fancy_regex::CaptureNames">Capture<wbr>Names</a></dt><dd>An iterator over capture names in a <a href="struct.Regex.html" title="struct fancy_regex::Regex">Regex</a>.  The iterator
 returns the name of each group, or <a href="https://doc.rust-lang.org/1.95.0/core/option/enum.Option.html#variant.None" title="variant core::option::Option::None">None</a> if the group has
 no name.  Because capture group 0 cannot have a name, the
 first item returned is always <a href="https://doc.rust-lang.org/1.95.0/core/option/enum.Option.html#variant.None" title="variant core::option::Option::None">None</a>.</dd><dt><a class="struct" href="struct.Captures.html" title="struct fancy_regex::Captures">Captures</a></dt><dd>A set of capture groups found for a regex.</dd><dt><a class="struct" href="struct.Expander.html" title="struct fancy_regex::Expander">Expander</a></dt><dd>A set of options for expanding a template string using the contents
-of capture groups.</dd><dt><a class="struct" href="struct.Match.html" title="struct fancy_regex::Match">Match</a></dt><dd>A single match of a regex or group in an input text</dd><dt><a class="struct" href="struct.Matches.html" title="struct fancy_regex::Matches">Matches</a></dt><dd>An iterator over all non-overlapping matches for a particular string.</dd><dt><a class="struct" href="struct.NoExpand.html" title="struct fancy_regex::NoExpand">NoExpand</a></dt><dd><code>NoExpand</code> indicates literal string replacement.</dd><dt><a class="struct" href="struct.Regex.html" title="struct fancy_regex::Regex">Regex</a></dt><dd>A compiled regular expression.</dd><dt><a class="struct" href="struct.RegexBuilder.html" title="struct fancy_regex::RegexBuilder">Regex<wbr>Builder</a></dt><dd>A builder for a <code>Regex</code> to allow configuring options.</dd><dt><a class="struct" href="struct.ReplacerRef.html" title="struct fancy_regex::ReplacerRef">Replacer<wbr>Ref</a></dt><dd>By-reference adaptor for a <code>Replacer</code></dd><dt><a class="struct" href="struct.SubCaptureMatches.html" title="struct fancy_regex::SubCaptureMatches">SubCapture<wbr>Matches</a></dt><dd>Iterator for captured groups in order in which they appear in the regex.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.CompileError.html" title="enum fancy_regex::CompileError">Compile<wbr>Error</a></dt><dd>An error as the result of compiling a regex.</dd><dt><a class="enum" href="enum.Error.html" title="enum fancy_regex::Error">Error</a></dt><dd>An error as the result of parsing, compiling or running a regex.</dd><dt><a class="enum" href="enum.Expr.html" title="enum fancy_regex::Expr">Expr</a></dt><dd>Regular expression AST. This is public for now but may change.</dd><dt><a class="enum" href="enum.LookAround.html" title="enum fancy_regex::LookAround">Look<wbr>Around</a></dt><dd>Type of look-around assertion as used for a look-around expression.</dd><dt><a class="enum" href="enum.ParseError.html" title="enum fancy_regex::ParseError">Parse<wbr>Error</a></dt><dd>An error for the result of parsing a regex pattern.</dd><dt><a class="enum" href="enum.RuntimeError.html" title="enum fancy_regex::RuntimeError">Runtime<wbr>Error</a></dt><dd>An error as the result of executing a regex.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Replacer.html" title="trait fancy_regex::Replacer">Replacer</a></dt><dd>Replacer describes types that can be used to replace matches in a string.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.escape.html" title="fn fancy_regex::escape">escape</a></dt><dd>Escapes special characters in <code>text</code> with ‘\’.  Returns a string which, when interpreted
+of capture groups.</dd><dt><a class="struct" href="struct.Match.html" title="struct fancy_regex::Match">Match</a></dt><dd>A single match of a regex or group in an input text</dd><dt><a class="struct" href="struct.Matches.html" title="struct fancy_regex::Matches">Matches</a></dt><dd>An iterator over all non-overlapping matches for a particular string.</dd><dt><a class="struct" href="struct.NoExpand.html" title="struct fancy_regex::NoExpand">NoExpand</a></dt><dd><code>NoExpand</code> indicates literal string replacement.</dd><dt><a class="struct" href="struct.Regex.html" title="struct fancy_regex::Regex">Regex</a></dt><dd>A compiled regular expression.</dd><dt><a class="struct" href="struct.RegexBuilder.html" title="struct fancy_regex::RegexBuilder">Regex<wbr>Builder</a></dt><dd>A builder for a <code>Regex</code> to allow configuring options.</dd><dt><a class="struct" href="struct.RegexOptionsBuilder.html" title="struct fancy_regex::RegexOptionsBuilder">Regex<wbr>Options<wbr>Builder</a></dt><dd>A builder for a <code>Regex</code> to allow configuring options.</dd><dt><a class="struct" href="struct.ReplacerRef.html" title="struct fancy_regex::ReplacerRef">Replacer<wbr>Ref</a></dt><dd>By-reference adaptor for a <code>Replacer</code></dd><dt><a class="struct" href="struct.Split.html" title="struct fancy_regex::Split">Split</a></dt><dd>An iterator over all substrings delimited by a regex.</dd><dt><a class="struct" href="struct.SplitN.html" title="struct fancy_regex::SplitN">SplitN</a></dt><dd>An iterator over at most <code>N</code> substrings delimited by a regex.</dd><dt><a class="struct" href="struct.SubCaptureMatches.html" title="struct fancy_regex::SubCaptureMatches">SubCapture<wbr>Matches</a></dt><dd>Iterator for captured groups in order in which they appear in the regex.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Absent.html" title="enum fancy_regex::Absent">Absent</a></dt><dd>Type of absent operator as used for Oniguruma’s absent functionality.</dd><dt><a class="enum" href="enum.Assertion.html" title="enum fancy_regex::Assertion">Assertion</a></dt><dd>Type of assertions</dd><dt><a class="enum" href="enum.AstNode.html" title="enum fancy_regex::AstNode">AstNode</a></dt><dd>Abstract Syntax Tree node - will be resolved into an Expr before analysis</dd><dt><a class="enum" href="enum.BacktrackingControlVerb.html" title="enum fancy_regex::BacktrackingControlVerb">Backtracking<wbr>Control<wbr>Verb</a></dt><dd>Type of backtracking control verb which affects how backtracking will behave.
+See <a href="https://www.regular-expressions.info/verb.html">https://www.regular-expressions.info/verb.html</a></dd><dt><a class="enum" href="enum.CaptureGroupTarget.html" title="enum fancy_regex::CaptureGroupTarget">Capture<wbr>Group<wbr>Target</a></dt><dd>Target of a backreference or subroutine call</dd><dt><a class="enum" href="enum.CompileError.html" title="enum fancy_regex::CompileError">Compile<wbr>Error</a></dt><dd>An error as the result of compiling a regex.</dd><dt><a class="enum" href="enum.Error.html" title="enum fancy_regex::Error">Error</a></dt><dd>An error as the result of parsing, compiling or running a regex.</dd><dt><a class="enum" href="enum.Expr.html" title="enum fancy_regex::Expr">Expr</a></dt><dd>Regular expression AST. This is public for now but may change.</dd><dt><a class="enum" href="enum.ExprChildrenIter.html" title="enum fancy_regex::ExprChildrenIter">Expr<wbr>Children<wbr>Iter</a></dt><dd>An iterator over the immediate children of an <a href="enum.Expr.html" title="enum fancy_regex::Expr"><code>Expr</code></a>.</dd><dt><a class="enum" href="enum.ExprChildrenIterMut.html" title="enum fancy_regex::ExprChildrenIterMut">Expr<wbr>Children<wbr>Iter<wbr>Mut</a></dt><dd>An iterator over the immediate children of an <a href="enum.Expr.html" title="enum fancy_regex::Expr"><code>Expr</code></a> for mutable access.</dd><dt><a class="enum" href="enum.LookAround.html" title="enum fancy_regex::LookAround">Look<wbr>Around</a></dt><dd>Type of look-around assertion as used for a look-around expression.</dd><dt><a class="enum" href="enum.ParseError.html" title="enum fancy_regex::ParseError">Parse<wbr>Error</a></dt><dd>An error for the result of parsing a regex pattern.</dd><dt><a class="enum" href="enum.RuntimeError.html" title="enum fancy_regex::RuntimeError">Runtime<wbr>Error</a></dt><dd>An error as the result of executing a regex.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Replacer.html" title="trait fancy_regex::Replacer">Replacer</a></dt><dd>Replacer describes types that can be used to replace matches in a string.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.escape.html" title="fn fancy_regex::escape">escape</a></dt><dd>Escapes special characters in <code>text</code> with ‘\’.  Returns a string which, when interpreted
 as a regex, matches exactly <code>text</code>.</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.Result.html" title="type fancy_regex::Result">Result</a></dt><dd>Result type for this crate with specific error enum.</dd></dl></section></div></main></body></html>

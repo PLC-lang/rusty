@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["EMPTY_HEADER"],"enum":["Error","Status"],"fn":["parse_chunk_size","parse_headers"],"struct":["Header","InvalidChunkSize","ParserConfig","Request","Response"],"type":["Result"]};

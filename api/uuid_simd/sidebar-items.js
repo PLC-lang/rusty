@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["AsciiCase"],"fn":["format_hyphenated","format_simple","parse","parse_hyphenated","parse_simple"],"struct":["Error","Out"],"trait":["AsOut"]};
