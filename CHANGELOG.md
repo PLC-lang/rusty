@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0](https://github.com/PLC-lang/rusty/releases/tag/v1.0.0) - 2026-06-03
+
+### Added
+
+- Add hwmap sidecar (#1731)
+- **codegen**: Embed compiler version in compiled artifacts via llvm.ident (#1733)
+
+### Fixed
+
+- **resolver**: Enum names should resolve correctly when they collide with pou names (#1761)
+- Only error out on non existing files (not globs) (#1762)
+- **validation**: Reject THIS.<member> without dereference (#1729)
+- **parser**: Recover from unexpected tokens in expression position (#1709)
+- **codegen**: Emit signext/zeroext on sub-32-bit integer parameters (#1708)
+- **validation**: Flag wrong assignment direction at call sites (#1710)
+- **project**: Validate file/include paths and reject empty input sets (#1713)
+- **preprocessor**: Bind POU-scoped AT addresses to backing __PI_* global (#1737)
+- **validation**: Reject FB-level VAR_TEMP referenced from a METHOD (#1746)
+- **typesystem**: Wrong downcast warning when assigning numeric literal to SINT (#1753)
+- **parser**: Focused diagnostic for reserved keywords in name slots (#1735)
+- Properties now support the REFERENCE TO type (#1701)
+- **linker**: Wrap spawn errors with diagnostic context and route long invocations through a response file (#1722)
+- **codegen**: Drop ptr→aggregate bitcast on by-ref argument pass (#1742)
+- **codegen**: Ptrtoint pointer operands in int binary arithmetic (#1751)
+- **lowering**: Disambiguate per-unit ctor symbols by path hash (#1724)
+
+### Documentation
+
+- Update AGENTS.md (#1754)
 ## [0.5.0](https://github.com/PLC-lang/rusty/releases/tag/v0.5.0) - 2026-05-06
 
 ### Added
