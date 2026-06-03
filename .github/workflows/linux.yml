@@ -17,7 +17,7 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:latest
+    container: ghcr.io/plc-lang/rust-llvm:21-1.95
     steps:
       - uses: actions/checkout@v6
 
@@ -56,7 +56,7 @@ jobs:
             --entrypoint /bin/bash \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            ghcr.io/plc-lang/rust-llvm:latest \
+            ghcr.io/plc-lang/rust-llvm:21-1.95 \
             -c "df -h && ./scripts/build.sh --build --test"
 
   test-linux-release:
@@ -90,7 +90,7 @@ jobs:
             --entrypoint /bin/bash \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            ghcr.io/plc-lang/rust-llvm:latest \
+            ghcr.io/plc-lang/rust-llvm:21-1.95 \
             -c "df -h && ./scripts/build.sh --build --test --release"
 
   package-linux:
@@ -101,7 +101,7 @@ jobs:
         config:
           - { os: "ubuntu-latest", arch: "x86_64" }
           - { os: "ubuntu-24.04-arm", arch: "aarch64" }
-    container: ghcr.io/plc-lang/rust-llvm:latest
+    container: ghcr.io/plc-lang/rust-llvm:21-1.95
     steps:
       - uses: actions/checkout@v6
 
@@ -307,7 +307,7 @@ jobs:
   style:
     name: Check Style
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:latest
+    container: ghcr.io/plc-lang/rust-llvm:21-1.95
     steps:
       - uses: actions/checkout@v6
 
@@ -341,7 +341,7 @@ jobs:
             --entrypoint /bin/bash \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            ghcr.io/plc-lang/rust-llvm:latest \
+            ghcr.io/plc-lang/rust-llvm:21-1.95 \
             -c "df -h && apt-get clean && rm -rf /var/lib/apt/lists/* && ./scripts/build.sh --coverage"
 
       - name: Upload to codecov.io

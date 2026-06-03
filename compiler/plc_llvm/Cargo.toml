@@ -9,5 +9,5 @@ description = "LLVM Wrapper for C++ functions not exposed by inkwell or in the C
 inkwell.workspace = true
 
 [build-dependencies]
-cc = "1.0"
-which = "8.0"
+cc.workspace = true
+which.workspace = true

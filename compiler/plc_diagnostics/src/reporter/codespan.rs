@@ -90,6 +90,8 @@ impl Default for CodeSpanDiagnosticReporter {
                 chars: codespan_reporting::term::Chars::default(),
                 start_context_lines: 5,
                 end_context_lines: 3,
+                before_label_lines: 0,
+                after_label_lines: 0,
             },
             StandardStream::stderr(ColorChoice::Always),
         )

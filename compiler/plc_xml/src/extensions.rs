@@ -19,7 +19,7 @@ pub(crate) trait GetOrErr {
 
 impl TryToString for &[u8] {
     fn try_to_string(self) -> Result<String, Error> {
-        String::from_utf8(self.as_ref().to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
+        String::from_utf8(self.to_vec()).map_err(|err| Error::Encoding(err.utf8_error()))
     }
 }
 

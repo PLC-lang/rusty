@@ -3,7 +3,7 @@ use std::{
     collections::BTreeMap,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use sysinfo::{CpuExt, System, SystemExt};
+use sysinfo::System;
 
 use anyhow::Result;
 use serde::{Serialize, Serializer};
@@ -80,8 +80,8 @@ impl Host {
     fn new() -> Self {
         let sys = System::new_all();
 
-        let os = sys.long_os_version().unwrap_or("n/a".to_string());
-        let cpu = sys.global_cpu_info().brand().to_owned();
+        let os = System::long_os_version().unwrap_or("n/a".to_string());
+        let cpu = sys.cpus().first().map(|cpu| cpu.brand()).unwrap_or("n/a").to_owned();
         let mem = sys.total_memory() / 1024;
 
         Self { id: 0, os, cpu, mem }
