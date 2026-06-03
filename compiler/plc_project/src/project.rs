@@ -361,54 +361,16 @@ fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<V
     Ok(sources)
 }
 
-/// Catches typos in project configurations by rejecting inputs that can never
-/// match anything: literal paths whose target is missing, and globs whose
-/// literal-prefix directory doesn't exist (e.g. `<typo>/include/*.st`).
-/// Globs whose directory exists but match nothing remain accepted (a
-/// templating pattern like `*.dt` is valid even when no .dt files are present),
-/// regardless of whether the wildcard sits in the leaf segment or mid-path.
-///
-/// The wildcard probe is intentionally lax — a stray `[` without a matching
-/// `]` (e.g. `[oddname.st`) classifies as a glob and routes through the
-/// parent-directory check rather than being rejected as a literal miss. The
-/// downstream `glob` crate would refuse the malformed pattern anyway; the
-/// worst case is a slightly fuzzier error message.
-///
-/// Existence is determined via `Path::exists()`, which follows symlinks and
-/// reports based on the target. A broken symlink rejects here; an unreadable
-/// path that the caller lacks permission to traverse is reported as missing
-/// only when the OS surfaces it that way (otherwise the failure resurfaces
-/// at compile / link time with the underlying I/O error).
+/// Validates that input files actually exist before the compilation starts.
+/// Ignores globs since they could point to a non existing (templating) directory.
 fn validate_input_exists(original: &Path, joined: &Path) -> Result<()> {
     let original_str = original.to_string_lossy();
     let has_wildcard = original_str.contains(['*', '?', '[']);
 
-    if has_wildcard {
-        let parent = glob_literal_parent(joined);
-        if !parent.exists() {
-            return Err(anyhow!("path '{original_str}' does not exist"));
-        }
-    } else if !joined.exists() {
+    if !has_wildcard && !joined.exists() {
         return Err(anyhow!("path '{original_str}' does not exist"));
     }
     Ok(())
-}
-
-/// Returns the deepest directory in `pattern` that contains no glob
-/// metacharacter. For `src/foo/*.st` this is `src/foo`; for `*.st` it is `.`.
-fn glob_literal_parent(pattern: &Path) -> PathBuf {
-    let mut parent = PathBuf::new();
-    for component in pattern.components() {
-        let s = component.as_os_str().to_string_lossy();
-        if s.contains(['*', '?', '[']) {
-            break;
-        }
-        parent.push(component);
-    }
-    if parent.as_os_str().is_empty() {
-        parent.push(".");
-    }
-    parent
 }
 
 impl From<LinkageInfo> for Linkage {
@@ -467,27 +429,16 @@ mod tests {
     }
 
     #[test]
-    fn glob_with_missing_parent_directory_errors() {
-        // The user's typical typo: `<typo>/include/*.st` where `<typo>` doesn't exist.
-        // We still want to reject these even though the path contains a wildcard.
+    fn glob_with_missing_parent_directory_resolves_empty() {
+        // Optional directories are routine in shared project templates
+        // (`conf/tasks/*.st` where `tasks/` doesn't exist in every project),
+        // so a glob whose parent directory is missing simply matches nothing.
+        // The driver still errors when the *entire* input set resolves empty.
         let dir = tempdir().unwrap();
 
-        let err =
-            resolve_file_paths(Some(dir.path()), vec![PathBuf::from("missing-subdir/*.st")]).unwrap_err();
-        assert!(err.to_string().contains("does not exist"), "got: {err}");
-        assert!(err.to_string().contains("missing-subdir/*.st"), "got: {err}");
-    }
-
-    #[test]
-    fn glob_literal_parent_strips_wildcard_components() {
-        assert_eq!(glob_literal_parent(Path::new("src/foo/*.st")), PathBuf::from("src/foo"));
-        assert_eq!(glob_literal_parent(Path::new("src/*/foo.st")), PathBuf::from("src"));
-        assert_eq!(glob_literal_parent(Path::new("*.st")), PathBuf::from("."));
-        // Defensive: production callers gate `glob_literal_parent` behind a
-        // wildcard check, so a literal path never reaches here today. The
-        // assertion documents the function's behaviour for that case in case
-        // a future caller drops the gate.
-        assert_eq!(glob_literal_parent(Path::new("src/file.st")), PathBuf::from("src/file.st"));
+        let result =
+            resolve_file_paths(Some(dir.path()), vec![PathBuf::from("missing-subdir/*.st")]).unwrap();
+        assert!(result.is_empty());
     }
 
     #[test]
