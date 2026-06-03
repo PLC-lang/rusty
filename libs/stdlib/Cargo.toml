@@ -1,6 +1,6 @@
 [package]
 name = "iec61131std"
-version = "1.0.0"
+version = "1.1.0-dev"
 edition = "2021"
 license = "LGPL-3.0"
 description = "IEC 61131-3 standard library implementation"
@@ -10,21 +10,21 @@ glob.workspace = true
 
 [build-dependencies.plc_driver]
 path = "../../compiler/plc_driver"
-version = "1.0.0"
+version = "1.1.0-dev"
 
 
 [dev-dependencies.plc_driver]
 path = "../../compiler/plc_driver"
-version = "1.0.0"
+version = "1.1.0-dev"
 
 [dev-dependencies.plc_source]
 path = "../../compiler/plc_source"
-version = "1.0.0"
+version = "1.1.0-dev"
 
 [dev-dependencies.plc]
 package = "plc-compiler"
 path = "../.."
-version = "1.0.0"
+version = "1.1.0-dev"
 
 
 [dependencies]
