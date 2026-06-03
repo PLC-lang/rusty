@@ -9,13 +9,16 @@ on:
       - labeled
     branches:
       - master
+      - "release/[0-9]*"
 
 jobs:
   preview:
     name: Preview release notes
+    # Release PR head branches are `release/next` (master) or
+    # `release/next-<X.Y.x>` (maintenance branches), see release-pr.yml.
     if: >-
       github.event.pull_request.merged == false
-      && github.event.pull_request.head.ref == 'release/next'
+      && startsWith(github.event.pull_request.head.ref, 'release/next')
       && contains(github.event.pull_request.labels.*.name, 'release')
     runs-on: ubuntu-latest
     permissions:
@@ -38,7 +41,8 @@ jobs:
         id: previous-tag
         run: |
           CURRENT_TAG="${{ steps.version.outputs.tag }}"
-          PREVIOUS_TAG=$(git tag --list 'v[0-9]*' --sort=-v:refname | grep -Fxv "$CURRENT_TAG" | head -n1 || true)
+          # Only consider tags reachable from this branch, mirroring release.yml.
+          PREVIOUS_TAG=$(git tag --list 'v[0-9]*' --merged HEAD --sort=-v:refname | grep -Fxv "$CURRENT_TAG" | head -n1 || true)
           echo "tag=$PREVIOUS_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Prepare release notes workspace
@@ -68,6 +72,7 @@ jobs:
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
           PREVIOUS_TAG: ${{ steps.previous-tag.outputs.tag }}
           RELEASE_NOTES_PATH: .github/release/release-notes.md
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
         with:
           script: |
             const fs = require('fs');
@@ -112,7 +117,7 @@ jobs:
               '<details>',
               '<summary>Expected release assets</summary>',
               '',
-              'Assets are uploaded asynchronously from the post-merge `Build Linux` and `Build Windows` runs on `master`.',
+              `Assets are uploaded asynchronously from the post-merge \`Build Linux\` and \`Build Windows\` runs on \`${process.env.BASE_BRANCH}\`.`,
               '',
               ...assetNames.map(name => `- \`${name}\``),
               '',

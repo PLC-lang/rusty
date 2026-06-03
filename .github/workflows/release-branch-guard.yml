@@ -1,0 +1,79 @@
+---
+name: Release Branch Guard
+
+# Maintenance branches (release/X.Y.x) only ever publish patch releases.
+# This guard rejects pull requests whose squash-merge message would make
+# git-cliff compute a minor or major bump (feat commits, `!` markers, or
+# BREAKING CHANGE footers). release-pr.yml additionally clamps the computed
+# version to a patch bump as a backstop for anything that bypasses this
+# check, e.g. a manual non-squash merge.
+
+on:
+  pull_request:
+    # `edited` re-runs the check when the PR title or description is fixed.
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+    branches:
+      - "release/[0-9]*"
+
+jobs:
+  patch-only:
+    name: Patch-only check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      - name: Compute baseline bumped version
+        id: baseline
+        uses: orhun/git-cliff-action@v4
+        with:
+          args: --bumped-version
+
+      - name: Simulate the squash merge
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # The merge queue squash-merges with the PR title as subject and
+          # the PR description as body — that exact message is what
+          # git-cliff will parse on the branch after the merge. git-cliff
+          # only looks at commit messages, never at diffs, so an empty
+          # commit is enough to simulate the merge.
+          git config user.name "release-branch-guard"
+          git config user.email "release-branch-guard@users.noreply.github.com"
+          git commit --allow-empty -m "$PR_TITLE" -m "${PR_BODY:-}"
+
+      - name: Compute bumped version including this PR
+        id: with-pr
+        uses: orhun/git-cliff-action@v4
+        with:
+          args: --bumped-version
+
+      - name: Reject minor/major bumps
+        env:
+          BASELINE: ${{ steps.baseline.outputs.content }}
+          WITH_PR: ${{ steps.with-pr.outputs.content }}
+        run: |
+          BASELINE="${BASELINE#v}"
+          WITH_PR="${WITH_PR#v}"
+
+          # No bump-worthy commits at all: cliff may print nothing. Fall
+          # back to the latest reachable tag so the comparison still works.
+          FALLBACK=$(git tag --list 'v[0-9]*' --merged HEAD --sort=-v:refname | head -n1)
+          BASELINE="${BASELINE:-${FALLBACK#v}}"
+          WITH_PR="${WITH_PR:-${FALLBACK#v}}"
+
+          echo "next version without this PR: v$BASELINE"
+          echo "next version with this PR:    v$WITH_PR"
+
+          if [ "${WITH_PR%.*}" != "${BASELINE%.*}" ]; then
+            echo "::error::This PR's title/description escalates the next release on ${GITHUB_BASE_REF} from v$BASELINE to v$WITH_PR. Maintenance branches only take patch-level changes (no feat, no '!', no BREAKING CHANGE footer). Reword the PR title/description or retarget the PR at master."
+            exit 1
+          fi
