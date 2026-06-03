@@ -527,15 +527,15 @@ fn overriding_property_in_interface_with_different_datatype_is_not_ok() {
     END_INTERFACE
     ";
 
-    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
-    error[E112]: Property `prop` defined in interface `intf1` and `intf2` have different datatypes
+    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @"
+    error[E112]: Property `prop` defined in interface `intf2` and `intf1` have different datatypes
       ┌─ <internal>:7:15
       │
     3 │         PROPERTY_GET prop: DINT END_PROPERTY
       │                            ---- see also
       ·
     7 │     INTERFACE intf2 EXTENDS intf1
-      │               ^^^^^ Property `prop` defined in interface `intf1` and `intf2` have different datatypes
+      │               ^^^^^ Property `prop` defined in interface `intf2` and `intf1` have different datatypes
     8 │         PROPERTY_SET prop: STRING END_PROPERTY
       │                            ------ see also
     ");
@@ -715,7 +715,7 @@ fn extending_interface_with_interfaces_with_conflicting_signatures_is_not_ok() {
     END_INTERFACE
     ";
 
-    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
+    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @"
     error[E112]: Property `prop` defined in interface `A` and `B` have different datatypes
        ┌─ <internal>:10:15
        │
@@ -774,30 +774,7 @@ fn multiple_levels() {
     END_INTERFACE
     ";
 
-    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
-    error[E112]: Property `propA` defined in interface `E` and `A` have different datatypes
-       ┌─ <internal>:19:15
-       │
-     3 │         PROPERTY_GET propA: DINT END_PROPERTY
-       │                             ---- see also
-       ·
-    19 │     INTERFACE E EXTENDS B, C, A
-       │               ^ Property `propA` defined in interface `E` and `A` have different datatypes
-    20 │         PROPERTY_GET propA: REAL END_PROPERTY
-       │                             ---- see also
-
-    error[E112]: Property `propA` defined in interface `A` and `E` have different datatypes
-       ┌─ <internal>:19:15
-       │
-     3 │         PROPERTY_GET propA: DINT END_PROPERTY
-       │                             ---- see also
-       ·
-    19 │     INTERFACE E EXTENDS B, C, A
-       │               ^ Property `propA` defined in interface `A` and `E` have different datatypes
-       ·
-    26 │         PROPERTY_GET propC: INT END_PROPERTY
-       │                             --- see also
-
+    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @"
     error[E112]: Property `propC` defined in interface `E` and `C` have different datatypes
        ┌─ <internal>:19:15
        │
@@ -818,6 +795,28 @@ fn multiple_levels() {
        ·
     19 │     INTERFACE E EXTENDS B, C, A
        │               ^ Property `propC` defined in interface `C` and `E` have different datatypes
+    20 │         PROPERTY_GET propA: REAL END_PROPERTY
+       │                             ---- see also
+
+    error[E112]: Property `propA` defined in interface `E` and `A` have different datatypes
+       ┌─ <internal>:19:15
+       │
+     3 │         PROPERTY_GET propA: DINT END_PROPERTY
+       │                             ---- see also
+       ·
+    19 │     INTERFACE E EXTENDS B, C, A
+       │               ^ Property `propA` defined in interface `E` and `A` have different datatypes
+    20 │         PROPERTY_GET propA: REAL END_PROPERTY
+       │                             ---- see also
+
+    error[E112]: Property `propA` defined in interface `A` and `E` have different datatypes
+       ┌─ <internal>:19:15
+       │
+     3 │         PROPERTY_GET propA: DINT END_PROPERTY
+       │                             ---- see also
+       ·
+    19 │     INTERFACE E EXTENDS B, C, A
+       │               ^ Property `propA` defined in interface `A` and `E` have different datatypes
        ·
     23 │         PROPERTY_GET propB: STRING END_PROPERTY
        │                             ------ see also

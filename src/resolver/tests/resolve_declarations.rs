@@ -224,20 +224,20 @@ fn all_available_methods_of_container_are_annotated() {
     Some(
         MethodDeclarations {
             declarations: {
-                "bar": [
-                    Concrete(
-                        "derived.bar",
-                    ),
-                    Abstract(
-                        "base2.bar",
-                    ),
-                ],
                 "foo": [
                     Concrete(
                         "derived.foo",
                     ),
                     Abstract(
                         "base2.foo",
+                    ),
+                ],
+                "bar": [
+                    Concrete(
+                        "derived.bar",
+                    ),
+                    Abstract(
+                        "base2.bar",
                     ),
                 ],
             },
@@ -294,19 +294,14 @@ fn all_available_methods_of_interface_are_annotated() {
     Some(
         MethodDeclarations {
             declarations: {
-                "fred": [
-                    Abstract(
-                        "quxar.fred",
-                    ),
-                ],
                 "garply": [
                     Abstract(
                         "quuz.garply",
                     ),
                 ],
-                "corge": [
+                "bar": [
                     Abstract(
-                        "quux.corge",
+                        "foo.bar",
                     ),
                 ],
                 "waldo": [
@@ -314,14 +309,19 @@ fn all_available_methods_of_interface_are_annotated() {
                         "quxat.waldo",
                     ),
                 ],
+                "fred": [
+                    Abstract(
+                        "quxar.fred",
+                    ),
+                ],
                 "grault": [
                     Abstract(
                         "quuz.grault",
                     ),
                 ],
-                "bar": [
+                "corge": [
                     Abstract(
-                        "foo.bar",
+                        "quux.corge",
                     ),
                 ],
                 "qux": [
@@ -502,14 +502,6 @@ fn function_block_has_both_abstract_and_concrete_annotation_from_extended_intf()
     Some(
         MethodDeclarations {
             declarations: {
-                "corge": [
-                    Concrete(
-                        "fb.corge",
-                    ),
-                    Abstract(
-                        "quux.corge",
-                    ),
-                ],
                 "garply": [
                     Concrete(
                         "fb.garply",
@@ -534,6 +526,14 @@ fn function_block_has_both_abstract_and_concrete_annotation_from_extended_intf()
                         "quxar.fred",
                     ),
                 ],
+                "qux": [
+                    Concrete(
+                        "fb.qux",
+                    ),
+                    Abstract(
+                        "baz.qux",
+                    ),
+                ],
                 "grault": [
                     Concrete(
                         "fb.grault",
@@ -550,12 +550,12 @@ fn function_block_has_both_abstract_and_concrete_annotation_from_extended_intf()
                         "foo.bar",
                     ),
                 ],
-                "qux": [
+                "corge": [
                     Concrete(
-                        "fb.qux",
+                        "fb.corge",
                     ),
                     Abstract(
-                        "baz.qux",
+                        "quux.corge",
                     ),
                 ],
             },

@@ -758,26 +758,7 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"
-    error[E112]: Derived methods with conflicting signatures, return types do not match:
-      ┌─ <internal>:9:24
-      │
-    9 │         FUNCTION_BLOCK fb IMPLEMENTS foo
-      │                        ^^ Derived methods with conflicting signatures, return types do not match:
-
-    note[E118]: Array declared with `1` dimension but implemented with `2`
-       ┌─ <internal>:3:20
-       │
-     3 │             METHOD bar : ARRAY[1..5, 1..5] OF STRING
-       │                    ---   --------------------------- see also
-       │                    │      
-       │                    see also
-       ·
-    10 │             METHOD bar : ARRAY[1..5] OF STRING
-       │                    ---   --------------------- see also
-       │                    │      
-       │                    see also
-
+    insta::assert_snapshot!(diagnostics, @"
     error[E112]: Derived methods with conflicting signatures, return types do not match:
       ┌─ <internal>:9:24
       │
@@ -794,6 +775,25 @@ fn interface_with_aggregate_return_type_array_dimension_mismatch() {
        ·
     12 │             METHOD baz : ARRAY[1..5, 1..5] OF STRING
        │                    ---   --------------------------- see also
+       │                    │      
+       │                    see also
+
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+      ┌─ <internal>:9:24
+      │
+    9 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+      │                        ^^ Derived methods with conflicting signatures, return types do not match:
+
+    note[E118]: Array declared with `1` dimension but implemented with `2`
+       ┌─ <internal>:3:20
+       │
+     3 │             METHOD bar : ARRAY[1..5, 1..5] OF STRING
+       │                    ---   --------------------------- see also
+       │                    │      
+       │                    see also
+       ·
+    10 │             METHOD bar : ARRAY[1..5] OF STRING
+       │                    ---   --------------------- see also
        │                    │      
        │                    see also
     ");
@@ -1094,37 +1094,7 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"
-    error[E112]: Derived methods with conflicting signatures, return types do not match:
-       ┌─ <internal>:17:24
-       │
-    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
-       │                        ^^ Derived methods with conflicting signatures, return types do not match:
-
-    note[E118]: Type `STRING` declared in `foo.bar` but `fb.bar` declared type `DINT`
-       ┌─ <internal>:3:20
-       │
-     3 │             METHOD bar : STRING
-       │                    --- see also
-       ·
-    18 │             METHOD bar : DINT
-       │                    --- see also
-
-    error[E112]: Derived methods with conflicting signatures, parameters do not match:
-       ┌─ <internal>:17:24
-       │
-    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
-       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
-
-    note[E118]: Parameter `b : DINT` missing in method `bar`
-       ┌─ <internal>:6:17
-       │
-     6 │                 b : DINT;
-       │                 - see also
-       ·
-    18 │             METHOD bar : DINT
-       │                    --- see also
-
+    insta::assert_snapshot!(diagnostics, @"
     error[E112]: Derived methods with conflicting signatures, return types do not match:
        ┌─ <internal>:17:24
        │
@@ -1154,6 +1124,36 @@ fn interface_with_aggregate_return_type_non_aggregate_impl_parameter_count_misma
        ·
     27 │                 b : DINT;
        │                 - see also
+
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, return types do not match:
+
+    note[E118]: Type `STRING` declared in `foo.bar` but `fb.bar` declared type `DINT`
+       ┌─ <internal>:3:20
+       │
+     3 │             METHOD bar : STRING
+       │                    --- see also
+       ·
+    18 │             METHOD bar : DINT
+       │                    --- see also
+
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `b : DINT` missing in method `bar`
+       ┌─ <internal>:6:17
+       │
+     6 │                 b : DINT;
+       │                 - see also
+       ·
+    18 │             METHOD bar : DINT
+       │                    --- see also
     ");
 }
 
@@ -1192,37 +1192,7 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"
-    error[E112]: Derived methods with conflicting signatures, return types do not match:
-       ┌─ <internal>:17:24
-       │
-    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
-       │                        ^^ Derived methods with conflicting signatures, return types do not match:
-
-    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `STRING`
-       ┌─ <internal>:3:20
-       │
-     3 │             METHOD bar : DINT
-       │                    --- see also
-       ·
-    18 │             METHOD bar : STRING
-       │                    --- see also
-
-    error[E112]: Derived methods with conflicting signatures, parameters do not match:
-       ┌─ <internal>:17:24
-       │
-    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
-       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
-
-    note[E118]: Parameter `b : DINT` missing in method `bar`
-       ┌─ <internal>:6:17
-       │
-     6 │                 b : DINT;
-       │                 - see also
-       ·
-    18 │             METHOD bar : STRING
-       │                    --- see also
-
+    insta::assert_snapshot!(diagnostics, @"
     error[E112]: Derived methods with conflicting signatures, return types do not match:
        ┌─ <internal>:17:24
        │
@@ -1252,6 +1222,36 @@ fn interface_with_non_aggregate_return_type_aggregate_impl_parameter_count_misma
        ·
     27 │                 b : DINT;
        │                 - see also
+
+    error[E112]: Derived methods with conflicting signatures, return types do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, return types do not match:
+
+    note[E118]: Type `DINT` declared in `foo.bar` but `fb.bar` declared type `STRING`
+       ┌─ <internal>:3:20
+       │
+     3 │             METHOD bar : DINT
+       │                    --- see also
+       ·
+    18 │             METHOD bar : STRING
+       │                    --- see also
+
+    error[E112]: Derived methods with conflicting signatures, parameters do not match:
+       ┌─ <internal>:17:24
+       │
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS foo
+       │                        ^^ Derived methods with conflicting signatures, parameters do not match:
+
+    note[E118]: Parameter `b : DINT` missing in method `bar`
+       ┌─ <internal>:6:17
+       │
+     6 │                 b : DINT;
+       │                 - see also
+       ·
+    18 │             METHOD bar : STRING
+       │                    --- see also
     ");
 }
 
@@ -1780,16 +1780,7 @@ fn pou_missing_methods_of_extended_interface() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"
-    error[E112]: Method `bar` defined in interface `foo` is missing in POU `fb`
-       ┌─ <internal>:12:24
-       │
-     3 │             METHOD bar
-       │                    --- see also
-       ·
-    12 │         FUNCTION_BLOCK fb IMPLEMENTS baz
-       │                        ^^ Method `bar` defined in interface `foo` is missing in POU `fb`
-
+    insta::assert_snapshot!(diagnostics, @"
     error[E112]: Method `qux` defined in interface `baz` is missing in POU `fb`
        ┌─ <internal>:12:24
        │
@@ -1798,6 +1789,15 @@ fn pou_missing_methods_of_extended_interface() {
        ·
     12 │         FUNCTION_BLOCK fb IMPLEMENTS baz
        │                        ^^ Method `qux` defined in interface `baz` is missing in POU `fb`
+
+    error[E112]: Method `bar` defined in interface `foo` is missing in POU `fb`
+       ┌─ <internal>:12:24
+       │
+     3 │             METHOD bar
+       │                    --- see also
+       ·
+    12 │         FUNCTION_BLOCK fb IMPLEMENTS baz
+       │                        ^^ Method `bar` defined in interface `foo` is missing in POU `fb`
     ");
 }
 
@@ -1824,7 +1824,16 @@ fn pou_missing_methods_of_nested_extended_interface() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"
+    insta::assert_snapshot!(diagnostics, @"
+    error[E112]: Method `qux` defined in interface `baz` is missing in POU `fb`
+       ┌─ <internal>:17:24
+       │
+     8 │             METHOD qux
+       │                    --- see also
+       ·
+    17 │         FUNCTION_BLOCK fb IMPLEMENTS quux
+       │                        ^^ Method `qux` defined in interface `baz` is missing in POU `fb`
+
     error[E112]: Method `corge` defined in interface `quux` is missing in POU `fb`
        ┌─ <internal>:17:24
        │
@@ -1842,15 +1851,6 @@ fn pou_missing_methods_of_nested_extended_interface() {
        ·
     17 │         FUNCTION_BLOCK fb IMPLEMENTS quux
        │                        ^^ Method `bar` defined in interface `foo` is missing in POU `fb`
-
-    error[E112]: Method `qux` defined in interface `baz` is missing in POU `fb`
-       ┌─ <internal>:17:24
-       │
-     8 │             METHOD qux
-       │                    --- see also
-       ·
-    17 │         FUNCTION_BLOCK fb IMPLEMENTS quux
-       │                        ^^ Method `qux` defined in interface `baz` is missing in POU `fb`
     ");
 }
 
@@ -1895,16 +1895,7 @@ fn pou_missing_methods_of_multiple_nested_interfaces() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"
-    error[E112]: Method `fred` defined in interface `quxar` is missing in POU `fb`
-       ┌─ <internal>:35:24
-       │
-    31 │             METHOD fred
-       │                    ---- see also
-       ·
-    35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
-       │                        ^^ Method `fred` defined in interface `quxar` is missing in POU `fb`
-
+    insta::assert_snapshot!(diagnostics, @"
     error[E112]: Method `garply` defined in interface `quuz` is missing in POU `fb`
        ┌─ <internal>:35:24
        │
@@ -1914,14 +1905,14 @@ fn pou_missing_methods_of_multiple_nested_interfaces() {
     35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
        │                        ^^ Method `garply` defined in interface `quuz` is missing in POU `fb`
 
-    error[E112]: Method `corge` defined in interface `quux` is missing in POU `fb`
+    error[E112]: Method `bar` defined in interface `foo` is missing in POU `fb`
        ┌─ <internal>:35:24
        │
-    13 │             METHOD corge
-       │                    ----- see also
+     3 │             METHOD bar
+       │                    --- see also
        ·
     35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
-       │                        ^^ Method `corge` defined in interface `quux` is missing in POU `fb`
+       │                        ^^ Method `bar` defined in interface `foo` is missing in POU `fb`
 
     error[E112]: Method `waldo` defined in interface `quxat` is missing in POU `fb`
        ┌─ <internal>:35:24
@@ -1932,6 +1923,15 @@ fn pou_missing_methods_of_multiple_nested_interfaces() {
     35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
        │                        ^^ Method `waldo` defined in interface `quxat` is missing in POU `fb`
 
+    error[E112]: Method `fred` defined in interface `quxar` is missing in POU `fb`
+       ┌─ <internal>:35:24
+       │
+    31 │             METHOD fred
+       │                    ---- see also
+       ·
+    35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
+       │                        ^^ Method `fred` defined in interface `quxar` is missing in POU `fb`
+
     error[E112]: Method `grault` defined in interface `quuz` is missing in POU `fb`
        ┌─ <internal>:35:24
        │
@@ -1941,14 +1941,14 @@ fn pou_missing_methods_of_multiple_nested_interfaces() {
     35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
        │                        ^^ Method `grault` defined in interface `quuz` is missing in POU `fb`
 
-    error[E112]: Method `bar` defined in interface `foo` is missing in POU `fb`
+    error[E112]: Method `corge` defined in interface `quux` is missing in POU `fb`
        ┌─ <internal>:35:24
        │
-     3 │             METHOD bar
-       │                    --- see also
+    13 │             METHOD corge
+       │                    ----- see also
        ·
     35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
-       │                        ^^ Method `bar` defined in interface `foo` is missing in POU `fb`
+       │                        ^^ Method `corge` defined in interface `quux` is missing in POU `fb`
 
     error[E112]: Method `qux` defined in interface `baz` is missing in POU `fb`
        ┌─ <internal>:35:24
@@ -2273,8 +2273,8 @@ fn property_with_conflicting_signatures() {
     END_INTERFACE
     ";
 
-    insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
-    error[E112]: Property `prop` defined in interface `intf2` and `intf1` have different datatypes
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @"
+    error[E112]: Property `prop` defined in interface `intf1` and `intf2` have different datatypes
        ┌─ <internal>:10:15
        │
      3 │         PROPERTY_GET prop: DINT END_PROPERTY
@@ -2284,7 +2284,7 @@ fn property_with_conflicting_signatures() {
        │                            ------ see also
        ·
     10 │     INTERFACE intf3 EXTENDS intf1, intf2
-       │               ^^^^^ Property `prop` defined in interface `intf2` and `intf1` have different datatypes
+       │               ^^^^^ Property `prop` defined in interface `intf1` and `intf2` have different datatypes
     ");
 }
 

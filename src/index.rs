@@ -672,7 +672,8 @@ impl InterfaceIndexEntry {
     /// Returns a list of ALL interfaces in this interface's hierarchy, **including `self`**,
     /// as well as all interfaces it extends directly or indirectly.
     pub fn get_interface_hierarchy<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
-        let mut seen: FxHashSet<&Identifier> = FxHashSet::default();
+        // Using FxIndexSet to preserve insertion order
+        let mut seen: FxIndexSet<&Identifier> = FxIndexSet::default();
         let mut queue: VecDeque<&InterfaceIndexEntry> = VecDeque::new();
 
         queue.push_back(self);

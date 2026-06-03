@@ -118,7 +118,10 @@ impl GlobalContext {
         let Some(code) = self.sources.get(path) else { return "" };
         let Some(span) = location.get_span().to_range() else { return "" };
 
-        &code.source[span]
+        // A location's span may not belong to the resolved source (e.g. a
+        // builtin type whose `<internal>` location is sliced against a user
+        // source), so index fallibly rather than panicking on out-of-bounds.
+        code.source.get(span).unwrap_or("")
     }
 
     // TODO: This is a proof-of-concept version how we could use the GlobalContext to handle

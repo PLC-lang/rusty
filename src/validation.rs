@@ -140,7 +140,14 @@ impl<'a> Validator<'a> {
             return dt.get_type_information().get_inner_name().to_string();
         }
 
-        self.context.slice(&dt.location)
+        // Fall back to the type name when the location can't be sliced (e.g. a
+        // builtin type whose location doesn't resolve within the user source).
+        let slice = self.context.slice(&dt.location);
+        if slice.is_empty() {
+            return dt.get_name().to_string();
+        }
+
+        slice
     }
 
     pub fn diagnostics(&mut self) -> Vec<Diagnostic> {
