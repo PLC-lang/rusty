@@ -18,8 +18,12 @@ jobs:
       github.event.pull_request.merged == true
       && startsWith(github.event.pull_request.head.ref, 'release/next')
       && contains(github.event.pull_request.labels.*.name, 'release')
+    # Runs directly on the runner, NOT in the rust-llvm container: git-cliff
+    # uses libgit2, which rejects a bind-mounted workspace owned by a
+    # different user than the container process and fails with "could not
+    # find repository". On the plain runner the workspace is owned by the
+    # runner user, so the problem cannot occur.
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:21-1.95
     permissions:
       contents: write
       pull-requests: write
@@ -41,14 +45,11 @@ jobs:
           # base branch has moved on since.
           ref: ${{ github.event.pull_request.merge_commit_sha }}
 
-      # Workaround: the rust-llvm container image is missing `jq`, which
-      # `orhun/git-cliff-action`'s install.sh needs to parse the GitHub API
-      # response. Tracked upstream at PLC-lang/rust-llvm-images#31; remove
-      # this step once a new image is published with jq baked in.
-      - name: Install jq (rust-llvm image workaround)
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends jq
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-edit
+        run: cargo install cargo-edit --locked --version 0.13.9
 
       - name: Get version from Cargo.toml
         id: version
@@ -67,15 +68,18 @@ jobs:
           PREVIOUS_TAG=$(git tag --list 'v[0-9]*' --merged HEAD --sort=-v:refname | grep -Fxv "$CURRENT_TAG" | head -n1 || true)
           echo "tag=$PREVIOUS_TAG" >> "$GITHUB_OUTPUT"
 
+      # Release notes are assembled outside the workspace: the dev-bump
+      # create-pull-request step below commits every workspace change, so
+      # files left here would ride along in the dev-bump PR.
       - name: Prepare release notes workspace
-        run: mkdir -p .github/release
+        run: mkdir -p "${{ runner.temp }}/release"
 
       - name: Generate release notes
         uses: orhun/git-cliff-action@v4
         with:
           args: --unreleased --tag "${{ steps.version.outputs.tag }}" --strip header
         env:
-          OUTPUT: .github/release/raw-notes.md
+          OUTPUT: ${{ runner.temp }}/release/raw-notes.md
 
       - name: Compose release notes
         run: |
@@ -83,8 +87,8 @@ jobs:
             "${{ steps.version.outputs.version }}" \
             "${{ steps.version.outputs.tag }}" \
             "${{ steps.previous-tag.outputs.tag }}" \
-            .github/release/raw-notes.md \
-            .github/release/release-notes.md
+            "${{ runner.temp }}/release/raw-notes.md" \
+            "${{ runner.temp }}/release/release-notes.md"
 
       - name: Create tag and GitHub release
         uses: softprops/action-gh-release@v2
@@ -96,7 +100,7 @@ jobs:
           # branch — wrong for releases cut from a maintenance branch.
           target_commitish: ${{ github.event.pull_request.merge_commit_sha }}
           name: RuSTy PLC Compiler ${{ steps.version.outputs.version }}
-          body_path: .github/release/release-notes.md
+          body_path: ${{ runner.temp }}/release/release-notes.md
           draft: false
           prerelease: ${{ startsWith(steps.version.outputs.version, '0.') }}
 
