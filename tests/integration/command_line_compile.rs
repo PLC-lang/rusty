@@ -263,7 +263,7 @@ fn missing_include_path_errors_with_path_in_message() {
     let dir = tempfile::tempdir().unwrap();
     let main = dir.path().join("main.st");
     fs::write(&main, "FUNCTION main : DINT main := 0; END_FUNCTION").unwrap();
-    let bad_include = dir.path().join("no-such/*.st");
+    let bad_include = dir.path().join("no-such.st");
 
     let err = compile(&[
         "plc".to_string(),
@@ -273,7 +273,26 @@ fn missing_include_path_errors_with_path_in_message() {
     ])
     .unwrap_err();
     settings_with_tempdir_filter(dir.path())
-        .bind(|| insta::assert_snapshot!(err.to_string(), @"path '[tmp]/no-such/*.st' does not exist"));
+        .bind(|| insta::assert_snapshot!(err.to_string(), @"path '[tmp]/no-such.st' does not exist"));
+}
+
+#[test]
+fn glob_include_matching_nothing_is_accepted() {
+    // Globs may resolve to nothing (optional directories in shared project
+    // templates); only literal paths are validated for existence.
+    let dir = tempfile::tempdir().unwrap();
+    let main = dir.path().join("main.st");
+    fs::write(&main, "FUNCTION main : DINT main := 0; END_FUNCTION").unwrap();
+    let include_glob = dir.path().join("no-such/*.st");
+
+    compile(&[
+        "plc".to_string(),
+        main.to_string_lossy().into_owned(),
+        "-i".to_string(),
+        include_glob.to_string_lossy().into_owned(),
+        "--check".to_string(),
+    ])
+    .unwrap();
 }
 
 #[test]
@@ -282,7 +301,7 @@ fn missing_source_and_missing_include_surface_in_one_run() {
     // than surfaced one-per-run (see PR #1713 review feedback).
     let dir = tempfile::tempdir().unwrap();
     let bad_source = dir.path().join("missing.st");
-    let bad_include = dir.path().join("no-such/*.st");
+    let bad_include = dir.path().join("no-such.st");
 
     let err = compile(&[
         "plc".to_string(),
@@ -294,17 +313,57 @@ fn missing_source_and_missing_include_surface_in_one_run() {
     settings_with_tempdir_filter(dir.path()).bind(|| {
         insta::assert_snapshot!(err.to_string(), @r"
         path '[tmp]/missing.st' does not exist
-        path '[tmp]/no-such/*.st' does not exist
+        path '[tmp]/no-such.st' does not exist
         ")
     });
 }
 
-#[test]
-fn glob_with_missing_parent_directory_errors() {
-    let dir = tempfile::tempdir().unwrap();
-    let typo_glob = dir.path().join("typo-dir/*.st");
+// Informational modes must short-circuit before the "no input files" guard:
+// the guard lives in `Pipeline::run` *below* their early-returns, so these
+// invocations succeed without any inputs. Regression tests for the guard
+// previously sitting in `get_project`, which ran during pipeline construction
+// and broke every one of these.
 
-    let err = compile(&["plc".to_string(), typo_glob.to_string_lossy().into_owned()]).unwrap_err();
-    settings_with_tempdir_filter(dir.path())
-        .bind(|| insta::assert_snapshot!(err.to_string(), @"path '[tmp]/typo-dir/*.st' does not exist"));
+#[test]
+fn version_flag_succeeds_without_input_files() {
+    compile(&["plc", "--version"]).unwrap();
+}
+
+#[test]
+fn explain_subcommand_succeeds_without_input_files() {
+    compile(&["plc", "explain", "E001"]).unwrap();
+}
+
+#[test]
+fn config_schema_subcommand_succeeds_without_input_files() {
+    compile(&["plc", "config", "schema"]).unwrap();
+}
+
+#[test]
+fn config_diagnostics_subcommand_succeeds_without_input_files() {
+    compile(&["plc", "config", "diagnostics"]).unwrap();
+}
+
+#[test]
+fn no_input_files_errors() {
+    let err = compile(&["plc"]).unwrap_err();
+    assert!(err.to_string().contains("no input files"), "got: {err}");
+}
+
+#[test]
+fn check_without_input_files_errors() {
+    let err = compile(&["plc", "--check"]).unwrap_err();
+    assert!(err.to_string().contains("no input files"), "got: {err}");
+}
+
+#[test]
+fn globs_resolving_to_nothing_error_as_empty_input_set() {
+    // Globs are allowed to match nothing individually (missing optional
+    // directories are routine in shared project templates); the hard error
+    // only fires when the *entire* input set resolves empty.
+    let dir = tempfile::tempdir().unwrap();
+    let glob = dir.path().join("optional-dir/*.st");
+
+    let err = compile(&["plc".to_string(), glob.to_string_lossy().into_owned()]).unwrap_err();
+    assert!(err.to_string().contains("no input files"), "got: {err}");
 }

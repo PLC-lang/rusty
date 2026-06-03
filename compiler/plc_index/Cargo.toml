@@ -11,7 +11,10 @@ plc_source = { path = "../plc_source", version = "0.5.0" }
 plc_diagnostics = { path = "../plc_diagnostics", version = "0.5.0" }
 #plc_project = { path = "../plc_project" } # TODO: This will create a circular dependency
 rustc-hash.workspace = true
-annotate-snippets = "0.11.5"
 encoding_rs.workspace = true
+annotate-snippets = "0.12"
 serde_json.workspace = true
 serde.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
