@@ -212,3 +212,180 @@ fn filter_on_variables_are_applied() {
         .filter_instances(|it, _| !it.is_constant())
         .collect::<Vec<Instance<'_>>>());
 }
+
+#[test]
+fn aliased_structs_are_retrieved() {
+    let (_, index) = index(
+        "
+    TYPE str : STRUCT
+        a,b : DINT;
+    END_STRUCT
+    END_TYPE
+
+    TYPE strAlias : str;
+    END_TYPE
+
+    VAR_GLOBAL
+        gStr : strAlias;
+    END_VAR
+
+    PROGRAM MainProg
+    VAR
+        pStr : strAlias;
+    END_VAR
+    END_PROGRAM
+    ",
+    );
+    insta::assert_debug_snapshot!(index.find_instances().collect::<Vec<Instance<'_>>>(), @r#"
+    [
+        (
+            ExpressionPath {
+                names: [
+                    Name(
+                        "gStr",
+                    ),
+                ],
+            },
+            VariableIndexEntry {
+                name: "gStr",
+                qualified_name: "gStr",
+                initial_value: None,
+                argument_type: ByVal(
+                    Global,
+                ),
+                is_constant: false,
+                is_var_external: false,
+                is_retain: false,
+                data_type_name: "strAlias",
+                location_in_parent: 0,
+                linkage: Internal,
+                binding: None,
+                source_location: SourceLocation {
+                    span: Range(10:8 - 10:12),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                varargs: None,
+            },
+        ),
+        (
+            ExpressionPath {
+                names: [
+                    Name(
+                        "MainProg",
+                    ),
+                ],
+            },
+            VariableIndexEntry {
+                name: "MainProg_instance",
+                qualified_name: "MainProg",
+                initial_value: None,
+                argument_type: ByVal(
+                    Global,
+                ),
+                is_constant: false,
+                is_var_external: false,
+                is_retain: false,
+                data_type_name: "MainProg",
+                location_in_parent: 0,
+                linkage: Internal,
+                binding: None,
+                source_location: SourceLocation {
+                    span: Range(13:12 - 13:20),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                varargs: None,
+            },
+        ),
+        (
+            ExpressionPath {
+                names: [
+                    Name(
+                        "MainProg",
+                    ),
+                    Name(
+                        "pStr",
+                    ),
+                ],
+            },
+            VariableIndexEntry {
+                name: "pStr",
+                qualified_name: "MainProg.pStr",
+                initial_value: None,
+                argument_type: ByVal(
+                    Local,
+                ),
+                is_constant: false,
+                is_var_external: false,
+                is_retain: false,
+                data_type_name: "strAlias",
+                location_in_parent: 0,
+                linkage: Internal,
+                binding: None,
+                source_location: SourceLocation {
+                    span: Range(15:8 - 15:12),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                varargs: None,
+            },
+        ),
+    ]
+    "#);
+}
+
+#[test]
+fn enum_variables_are_not_recursed() {
+    let (_, index) = index(
+        "
+    TYPE enumType : (
+        element0,
+        element1,
+    );
+    END_TYPE
+    VAR_GLOBAL
+        myEnum : enumType;
+    END_VAR
+    ",
+    );
+
+    insta::assert_debug_snapshot!(index.find_instances().collect::<Vec<Instance<'_>>>(), @r#"
+    [
+        (
+            ExpressionPath {
+                names: [
+                    Name(
+                        "myEnum",
+                    ),
+                ],
+            },
+            VariableIndexEntry {
+                name: "myEnum",
+                qualified_name: "myEnum",
+                initial_value: None,
+                argument_type: ByVal(
+                    Global,
+                ),
+                is_constant: false,
+                is_var_external: false,
+                is_retain: false,
+                data_type_name: "enumType",
+                location_in_parent: 0,
+                linkage: Internal,
+                binding: None,
+                source_location: SourceLocation {
+                    span: Range(7:8 - 7:14),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                varargs: None,
+            },
+        ),
+    ]
+    "#);
+}
