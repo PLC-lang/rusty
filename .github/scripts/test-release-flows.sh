@@ -72,6 +72,7 @@ merge_release_pr() { # arg1 = version
 # ---- release.yml end to end (sets VERSION TAG PREV DEV_VERSION DEV_BRANCH) ----
 release_yml() { # arg1 = base ref (the branch the release PR merged into)
   export PR_BASE_REF=$1 PR_MERGE_SHA=$(git rev-parse HEAD)
+  export RUNNER_TEMP=$(mktemp -d)
   run_step release__get-version-from-cargo-toml.sh
   VERSION=$(out version); TAG=$(out tag)
   export STEPS_VERSION_VERSION=$VERSION STEPS_VERSION_TAG=$TAG
@@ -80,9 +81,10 @@ release_yml() { # arg1 = base ref (the branch the release PR merged into)
   export STEPS_PREVIOUS_TAG_TAG=$PREV
   run_step release__prepare-release-notes-workspace.sh
   # git-cliff-action with args + OUTPUT env:
-  git-cliff --unreleased --tag "$TAG" --strip header -o .github/release/raw-notes.md 2>/dev/null
+  git-cliff --unreleased --tag "$TAG" --strip header -o "$RUNNER_TEMP/release/raw-notes.md" 2>/dev/null
   run_step release__compose-release-notes.sh
   COMPOSE_RC=$STEP_RC
+  NOTES_FILE=$RUNNER_TEMP/release/release-notes.md
   # softprops/action-gh-release with target_commitish: merge_commit_sha
   git tag "$TAG" "$PR_MERGE_SHA"
   run_step release__compute-dev-version.sh
@@ -91,6 +93,10 @@ release_yml() { # arg1 = base ref (the branch the release PR merged into)
   export STEPS_DEV_VERSION=$DEV_VERSION
   run_step release__bump-to-dev-version.sh
   cargo generate-lockfile --offline >/dev/null 2>&1
+  # create-pull-request commits every workspace change, so anything the job
+  # left in the workspace beyond the version bump ends up in the dev-bump
+  # PR. Fail if the workflow polluted the workspace.
+  POLLUTION=$(git status --porcelain | grep -vE 'Cargo\.(toml|lock)$' || true)
   git add -A >/dev/null
   git commit -qm "chore: bump version to $DEV_VERSION"
 }
@@ -136,7 +142,6 @@ edition = "2021"
 EOF
 touch src/lib.rs member/src/lib.rs
 cargo generate-lockfile --offline >/dev/null 2>&1
-echo '.github/release/' > .gitignore
 git add -A; git commit -qm "chore: init"
 git tag v0.5.0
 git commit -q --allow-empty -m "fix: some bugfix on master"
@@ -163,7 +168,8 @@ assert_rc "compose-release-notes" "$COMPOSE_RC" 0
 assert_eq "dev version" "$DEV_VERSION" "1.1.0-dev"
 assert_eq "dev branch"  "$DEV_BRANCH"  "post-release/dev-bump"
 assert_eq "tag points at release commit" "$(git rev-parse v1.0.0)" "$PR_MERGE_SHA"
-grep -q "feature on master" .github/release/release-notes.md \
+assert_eq "no workspace pollution in dev-bump commit" "$POLLUTION" ""
+grep -q "feature on master" "$NOTES_FILE" \
   && { echo "  PASS: release notes contain the feature"; pass=$((pass+1)); } \
   || { echo "  FAIL: release notes missing the feature"; fail=$((fail+1)); }
 
