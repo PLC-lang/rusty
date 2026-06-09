@@ -17,9 +17,9 @@ use plc_ast::ast::AstNode;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use crate::{
-    index::Index, lowering::polymorphism::table::interface::helper as itable_helper, resolver::AnnotationMap,
-};
+use plc::{index::Index, resolver::AnnotationMap};
+
+use crate::polymorphism::table::interface::helper as itable_helper;
 
 /// Validates that a POU implements the target interface. Returns `Some(Diagnostic)` if not.
 ///

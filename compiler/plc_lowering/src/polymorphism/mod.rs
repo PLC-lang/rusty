@@ -15,10 +15,13 @@
 pub mod dispatch;
 pub mod table;
 
+#[cfg(test)]
+pub(crate) mod test_utils;
+
 use plc_ast::{ast::CompilationUnit, provider::IdProvider};
 use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::{index::Index, resolver::AnnotationMapImpl};
+use plc::{index::Index, resolver::AnnotationMapImpl};
 
 use self::{dispatch::DispatchLowerer, table::TableGenerator};
 

@@ -918,9 +918,9 @@ fn is_non_const_array_literal(node: &AstNode, index: &Index, pou_name: Option<&s
 mod tests {
     use std::rc::Rc;
 
-    use plc::lowering::polymorphism::PolymorphismLowerer;
     use plc_ast::{ast::AstNode, visitor::AstVisitor};
     use plc_diagnostics::diagnostician::Diagnostician;
+    use plc_driver::pipelines::participant::PolymorphismLowerer;
     use plc_driver::pipelines::{AnnotatedProject, BuildPipeline};
     use plc_source::SourceCode;
 

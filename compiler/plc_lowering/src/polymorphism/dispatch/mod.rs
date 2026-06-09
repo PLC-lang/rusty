@@ -17,7 +17,7 @@ pub mod validation;
 use plc_ast::{ast::CompilationUnit, provider::IdProvider};
 use plc_diagnostics::diagnostics::Diagnostic;
 
-use crate::{index::Index, resolver::AnnotationMapImpl};
+use plc::{index::Index, resolver::AnnotationMapImpl};
 
 use self::{interface::InterfaceDispatchLowerer, pou::PolymorphicCallLowerer};
 

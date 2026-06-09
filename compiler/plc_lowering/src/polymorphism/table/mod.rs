@@ -6,7 +6,9 @@ use plc_ast::{
     provider::IdProvider,
 };
 
-use crate::{index::Index, lowering::polymorphism::table::interface::InterfaceTableGenerator};
+use plc::index::Index;
+
+use crate::polymorphism::table::interface::InterfaceTableGenerator;
 
 use self::pou::VirtualTableGenerator;
 

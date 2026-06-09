@@ -64,7 +64,7 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-use crate::index::{Index, InterfaceIndexEntry, PouIndexEntry};
+use plc::index::{Index, InterfaceIndexEntry, PouIndexEntry};
 
 /// Generates interface-dispatch tables (itables) for all interfaces and their implementing POUs.
 pub struct InterfaceTableGenerator {
@@ -336,7 +336,7 @@ pub mod helper {
     use plc_source::source_location::SourceLocation;
     use rustc_hash::FxHashSet;
 
-    use crate::{
+    use plc::{
         index::{Index, InterfaceIndexEntry, PouIndexEntry},
         typesystem::VOID_INTERNAL_NAME,
     };
@@ -435,7 +435,7 @@ pub mod helper {
 
 #[cfg(test)]
 mod tests {
-    use crate::lowering::polymorphism::table::interface::tests::helper::lower_and_serialize;
+    use crate::polymorphism::table::interface::tests::helper::lower_and_serialize;
 
     #[test]
     fn pou_without_interfaces_produces_no_itable() {
@@ -1137,7 +1137,7 @@ mod tests {
     }
 
     mod properties {
-        use crate::lowering::polymorphism::table::interface::tests::helper::lower_and_serialize;
+        use crate::polymorphism::table::interface::tests::helper::lower_and_serialize;
 
         #[test]
         fn interface_with_property_generates_itable_entries() {
@@ -1485,15 +1485,17 @@ mod tests {
     mod helper {
         use std::fmt::Write;
 
-        use driver::parse_and_annotate;
         use plc_ast::{
             ast::{CompilationUnit, DataType},
             provider::IdProvider,
             ser::AstSerializer,
         };
+        use plc_driver::parse_and_annotate;
         use plc_source::SourceCode;
 
-        use crate::{index::Index, test_utils::tests::index_unit_with_id, typesystem::DataTypeInformation};
+        use plc::{index::Index, typesystem::DataTypeInformation};
+
+        use crate::polymorphism::test_utils::index_unit_with_id;
 
         pub fn lower_and_serialize(source: impl Into<SourceCode>) -> String {
             pub fn lower_with_index(source: impl Into<SourceCode>) -> (CompilationUnit, Index) {
@@ -1514,13 +1516,13 @@ mod tests {
                 let units: Vec<_> = project.units.into_iter().map(CompilationUnit::from).collect();
                 // Build a combined index over all units so type lookups work across files
                 let mut index = Index::default();
-                let builtins = crate::builtins::parse_built_ins(IdProvider::default());
-                index.import(crate::index::indexer::index(&builtins));
-                for data_type in crate::typesystem::get_builtin_types() {
+                let builtins = plc::builtins::parse_built_ins(IdProvider::default());
+                index.import(plc::index::indexer::index(&builtins));
+                for data_type in plc::typesystem::get_builtin_types() {
                     index.register_type(data_type);
                 }
                 for unit in &units {
-                    index.import(crate::index::indexer::index(unit));
+                    index.import(plc::index::indexer::index(unit));
                 }
                 (units, index)
             }

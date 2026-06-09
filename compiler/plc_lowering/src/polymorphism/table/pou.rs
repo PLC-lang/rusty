@@ -64,7 +64,7 @@
 //! These global variables will later be assigned in the [`plc_lowering::initializer`] module.
 //!
 //! Note that the actual lowering of method calls to make use of these virtual tables will happen in the
-//! [`crate::lowering::polymorphism::dispatch`] module.
+//! [`crate::polymorphism::dispatch`] module.
 
 use plc_ast::{
     ast::{
@@ -75,7 +75,7 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-use crate::{index::Index, typesystem::VOID_INTERNAL_NAME};
+use plc::{index::Index, typesystem::VOID_INTERNAL_NAME};
 
 pub struct VirtualTableGenerator {
     pub ids: IdProvider,
@@ -307,9 +307,7 @@ mod tests {
     use itertools::Itertools;
     use plc_ast::{ast::DataType, provider::IdProvider};
 
-    use crate::{
-        lowering::polymorphism::table::pou::VirtualTableGenerator, test_utils::tests::index_with_ids,
-    };
+    use crate::polymorphism::{table::pou::VirtualTableGenerator, test_utils::index_with_ids};
 
     #[test]
     fn root_pou_has_vtable_member_field() {

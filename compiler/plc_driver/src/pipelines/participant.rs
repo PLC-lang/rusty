@@ -14,10 +14,8 @@ use std::{
 
 use ast::provider::IdProvider;
 use plc::{
-    codegen::GeneratedModule,
-    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
-    output::FormatOption,
-    ConfigFormat, OnlineChange, Target,
+    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption, ConfigFormat,
+    OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::{
@@ -322,6 +320,11 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
         project
     }
 }
+
+/// Re-exported for tests in `plc_lowering`: the `PipelineParticipantMut` impl below only
+/// applies to the externally-built `plc_lowering` this crate links against, so its unit
+/// tests must name the lowerer through this crate rather than via `crate::`.
+pub use plc_lowering::polymorphism::PolymorphismLowerer;
 
 impl PipelineParticipantMut for PolymorphismLowerer {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {

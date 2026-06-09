@@ -1,7 +1,7 @@
 //! Lowering of method calls into indirect calls through virtual tables
 //!
 //! This module is responsible for lowering / transforming method calls into method calls through the
-//! virtual table (for information regarding virtual tables refer to [`crate::lowering::polymorphism::table`]). In a
+//! virtual table (for information regarding virtual tables refer to [`crate::polymorphism::table`]). In a
 //! nutshell it will transform a method call such as `ptr^.foo()` into `__vtable_Fb#(ptr^.__vtable^).foo^(ptr^)`.
 //!
 //! However, not all method calls must be lowered but rather the following cases:
@@ -116,7 +116,7 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-use crate::{
+use plc::{
     index::Index,
     resolver::{AnnotationMap, AnnotationMapImpl, StatementAnnotation},
     typesystem::{DataType, DataTypeInformation},
@@ -456,7 +456,7 @@ impl<'a> PolymorphicCallLowerer<'a> {
 
 #[cfg(test)]
 mod tests {
-    use driver::parse_and_annotate;
+    use plc_driver::parse_and_annotate;
     use plc_source::SourceCode;
 
     fn lower_statements(source: impl Into<SourceCode>, pous: &[&str]) -> Vec<String> {

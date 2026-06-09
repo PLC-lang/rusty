@@ -3,7 +3,7 @@
 //! This module transforms interface-typed variables and method calls into a fat-pointer representation that
 //! enables dynamic dispatch at runtime. While the sibling module [`super::pou`] handles dispatch through
 //! virtual tables (vtables) for inheritance hierarchies, this module handles the distinct case of *interface
-//! dispatch* using interface tables (itables, see [`crate::lowering::polymorphism::table::interface`]).
+//! dispatch* using interface tables (itables, see [`crate::polymorphism::table::interface`]).
 //!
 //! # Fat pointers
 //!
@@ -96,7 +96,7 @@
 //! IA`), the `.data` pointer can be copied directly but the `.table` pointer must change — it points to an
 //! `__itable_IB_*` but needs to point to the corresponding `__itable_IA_*` for the same POU. Since the
 //! concrete POU is only known at runtime, each itable struct embeds `__upcast_<ancestor>` pointer fields
-//! (one per ancestor interface, see [`crate::lowering::polymorphism::table::interface`]) that point directly
+//! (one per ancestor interface, see [`crate::polymorphism::table::interface`]) that point directly
 //! to the correct ancestor itable instance. This gives O(1) upcast resolution via a single field read:
 //!
 //! ```text
@@ -127,7 +127,7 @@ use plc_ast::{
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
-use crate::{
+use plc::{
     index::Index,
     resolver::{AnnotationMap, AnnotationMapImpl},
     typesystem::{DataType, VOID_INTERNAL_NAME},
@@ -541,7 +541,7 @@ impl InterfaceDispatchLowerer<'_> {
 /// Helper functions for AST construction and type checking.
 mod helper {
     use super::*;
-    use crate::lowering::polymorphism::table::interface::helper as itable_helper;
+    use crate::polymorphism::table::interface::helper as itable_helper;
 
     /// A visitor that reassigns all AST node IDs in a subtree with fresh IDs.
     /// Used after cloning AST subtrees to ensure each node in the tree has a unique ID.
@@ -843,7 +843,7 @@ mod helper {
 
 #[cfg(test)]
 mod tests {
-    use driver::{parse_and_annotate, pipelines::AnnotatedProject, pipelines::AnnotatedUnit};
+    use plc_driver::{parse_and_annotate, pipelines::AnnotatedProject, pipelines::AnnotatedUnit};
     use plc_source::SourceCode;
 
     fn lower(source: impl Into<SourceCode>) -> AnnotatedUnit {
@@ -880,7 +880,7 @@ mod tests {
     }
 
     mod fatpointer {
-        use crate::lowering::polymorphism::dispatch::interface::FATPOINTER_TYPE_NAME;
+        use crate::polymorphism::dispatch::interface::FATPOINTER_TYPE_NAME;
 
         #[test]
         fn is_generated_on_demand() {

@@ -2398,6 +2398,7 @@ dependencies = [
  "plc_diagnostics",
  "plc_driver",
  "plc_source",
+ "rustc-hash",
 ]
 
 [[package]]
