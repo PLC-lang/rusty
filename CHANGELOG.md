@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1](https://github.com/PLC-lang/rusty/releases/tag/v1.0.1) - 2026-06-09
+
+### Fixed
+
+- Hwmap no longer infinitely recurses when an enum is in the project (#1769)
 ## [1.0.0](https://github.com/PLC-lang/rusty/releases/tag/v1.0.0) - 2026-06-03
 
 ### Added
