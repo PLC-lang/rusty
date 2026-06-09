@@ -23,7 +23,7 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
+    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
     output::{FormatOption, RelocationPreference},
     parser::parse_file,
     resolver::{
@@ -44,7 +44,7 @@ use plc_header_generator::{
 use plc_index::GlobalContext;
 use plc_lowering::{
     control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, loops::LoopDesugarer,
-    reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
+    property::PropertyLowerer, reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
 };
 use project::{
     object::Object,

@@ -1,6 +1,6 @@
-//! Module implementing the participant methods for the [`plc::lowering::property::PropertyLowerer`]
+//! Module implementing the participant methods for the [`plc_lowering::property::PropertyLowerer`]
 
-use plc::lowering::property::PropertyLowerer;
+use plc_lowering::property::PropertyLowerer;
 use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{

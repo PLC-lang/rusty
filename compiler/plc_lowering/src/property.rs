@@ -68,9 +68,8 @@
 //! 2. A reference, that is not the left hand side of an assignment, in which case the reference itself needs
 //!    to be replaced with a function call as `__get_<property name>()`
 
-use crate::lowering::property::helper::create_internal_assignment;
-use crate::resolver::{AnnotationMap, AstAnnotations};
-use helper::patch_prefix_to_name;
+use helper::{create_internal_assignment, patch_prefix_to_name};
+use plc::resolver::{AnnotationMap, AstAnnotations};
 use plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit,
@@ -394,7 +393,7 @@ mod validation {
     use plc_diagnostics::diagnostics::Diagnostic;
     use plc_source::source_location::SourceLocation;
 
-    use crate::resolver::{AnnotationMap, AstAnnotations};
+    use plc::resolver::{AnnotationMap, AstAnnotations};
 
     pub fn validate_nested_property_set_target(
         annotations: &AstAnnotations,
@@ -454,19 +453,51 @@ mod validation {
 
 #[cfg(test)]
 mod tests {
+    use plc::{
+        builtins,
+        index::{self, Index},
+        lexer::lex_with_ids,
+        parser::parse,
+        resolver::{AnnotationMapImpl, AstAnnotations, TypeAnnotator},
+        typesystem::get_builtin_types,
+    };
     use plc_ast::{
         ast::{CompilationUnit, LinkageType},
         provider::IdProvider,
     };
     use plc_source::source_location::SourceLocationFactory;
 
-    use crate::{
-        lexer::lex_with_ids,
-        lowering::property::PropertyLowerer,
-        parser::parse,
-        resolver::{AnnotationMapImpl, AstAnnotations},
-        test_utils::tests::{annotate_with_ids, index_unit_with_id},
-    };
+    use crate::property::PropertyLowerer;
+
+    /// Indexes the given unit alongside the built-in POUs and types. Mirrors the helper of the same name
+    /// previously provided by `plc`'s (crate-private) `test_utils`.
+    fn index_unit_with_id(unit: &CompilationUnit, id_provider: IdProvider) -> Index {
+        let mut index = Index::default();
+
+        // Import builtins
+        let builtins = builtins::parse_built_ins(id_provider.clone());
+        index.import(index::indexer::index(&builtins));
+
+        // import built-in types like INT, BOOL, etc.
+        for data_type in get_builtin_types() {
+            index.register_type(data_type);
+        }
+
+        index.import(index::indexer::index(unit));
+        index
+    }
+
+    /// Annotates the given unit, importing the resolver's new index entries back into `index`. Mirrors the
+    /// helper of the same name previously provided by `plc`'s (crate-private) `test_utils`.
+    fn annotate_with_ids(
+        parse_result: &CompilationUnit,
+        index: &mut Index,
+        id_provider: IdProvider,
+    ) -> AnnotationMapImpl {
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(index, parse_result, id_provider);
+        index.import(std::mem::take(&mut annotations.new_index));
+        annotations
+    }
 
     fn lower_properties_to_pous(source: &str) -> (CompilationUnit, AnnotationMapImpl) {
         lower_properties_to_pous_with_provider(source, IdProvider::default())
@@ -511,7 +542,7 @@ mod tests {
     }
 
     mod ast {
-        use crate::lowering::property::tests::{lower, lower_properties_to_pous};
+        use crate::property::tests::{lower, lower_properties_to_pous};
 
         #[test]
         fn get_is_lowered_to_method_with_local_variable_and_tail_return_statement() {
@@ -929,7 +960,7 @@ mod tests {
             try_from,
         };
 
-        use crate::resolver::{AnnotationMap, StatementAnnotation};
+        use plc::resolver::{AnnotationMap, StatementAnnotation};
 
         #[test]
         fn properties_in_assignments_are_annotated() {
