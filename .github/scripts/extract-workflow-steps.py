@@ -25,6 +25,7 @@ FIXED = {
     "github.repository": "${REPOSITORY}",
     "github.event_name": "${EVENT_NAME}",
     "inputs.tag": "${INPUT_TAG}",
+    "runner.temp": "${RUNNER_TEMP}",
 }
 
 
