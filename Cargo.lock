@@ -809,7 +809,7 @@ dependencies = [
 
 [[package]]
 name = "errorcode_book_generator"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "clap 4.6.1",
  "mdbook-preprocessor",
@@ -1423,7 +1423,7 @@ dependencies = [
 
 [[package]]
 name = "iec61131std"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "cc",
  "chrono",
@@ -2231,7 +2231,7 @@ checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
 
 [[package]]
 name = "plc-compiler"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2275,7 +2275,7 @@ dependencies = [
 
 [[package]]
 name = "plc_ast"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "chrono",
  "derive_more",
@@ -2288,7 +2288,7 @@ dependencies = [
 
 [[package]]
 name = "plc_derive"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "quote",
  "syn 2.0.117",
@@ -2296,7 +2296,7 @@ dependencies = [
 
 [[package]]
 name = "plc_diagnostics"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "anyhow",
  "codespan-reporting",
@@ -2312,7 +2312,7 @@ dependencies = [
 
 [[package]]
 name = "plc_driver"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2345,7 +2345,7 @@ dependencies = [
 
 [[package]]
 name = "plc_header_generator"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "clap 3.2.25",
  "insta",
@@ -2363,7 +2363,7 @@ dependencies = [
 
 [[package]]
 name = "plc_index"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "annotate-snippets",
  "encoding_rs",
@@ -2378,7 +2378,7 @@ dependencies = [
 
 [[package]]
 name = "plc_llvm"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "cc",
  "inkwell",
@@ -2387,7 +2387,7 @@ dependencies = [
 
 [[package]]
 name = "plc_lowering"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "insta",
  "itertools",
@@ -2401,7 +2401,7 @@ dependencies = [
 
 [[package]]
 name = "plc_project"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "anyhow",
  "encoding_rs",
@@ -2420,7 +2420,7 @@ dependencies = [
 
 [[package]]
 name = "plc_source"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "encoding_rs",
  "encoding_rs_io",
@@ -2431,11 +2431,11 @@ dependencies = [
 
 [[package]]
 name = "plc_util"
-version = "1.0.1"
+version = "1.0.2-dev"
 
 [[package]]
 name = "plc_xml"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "html-escape",
  "indexmap 2.14.0",
@@ -2856,7 +2856,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "section_mangler"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "nom",
 ]
@@ -3439,7 +3439,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "plc-compiler",
  "plc_ast",
@@ -4292,7 +4292,7 @@ checksum = "32ac00cd3f8ec9c1d33fb3e7958a82df6989c42d747bd326c822b1d625283547"
 
 [[package]]
 name = "xtask"
-version = "1.0.1"
+version = "1.0.2-dev"
 dependencies = [
  "anyhow",
  "async-std",
