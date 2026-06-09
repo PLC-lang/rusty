@@ -1,7 +1,7 @@
 //! Module implementing the participant methods for the [`plc_lowering::property::PropertyLowerer`]
 
-use plc_lowering::property::PropertyLowerer;
 use plc_diagnostics::diagnostics::Diagnostic;
+use plc_lowering::property::PropertyLowerer;
 
 use super::{
     participant::PipelineParticipantMut, AnnotatedProject, AnnotatedUnit, IndexedProject, ParsedProject,
