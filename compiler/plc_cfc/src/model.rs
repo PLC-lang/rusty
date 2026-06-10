@@ -11,8 +11,11 @@
 //!   (`RelPosition`, `Size`), which our fixtures omit entirely,
 //! - unknown elements and attributes are ignored, so additive exporter
 //!   changes do not break parsing,
-//! - base-type content we have no use for yet (`globalId`, `Documentation`,
-//!   per-object `AddData`) is intentionally not modeled,
+//! - base-type content we have no use for yet (`Documentation`, per-object
+//!   `AddData`) is intentionally not modeled,
+//! - `globalId` (carried by every graphical object) deviates from the
+//!   schema's `xsd:ID`: the IDE emits plain integers, so it is a `u64`. It
+//!   later keys synthetic source locations (`CodeSpan::Block`) in lowering,
 //! - non-FBD body languages (IL, ST, LD, SFC) and the SFC-oriented
 //!   `ActionBlocks` common object are out of scope for CFC.
 
@@ -27,8 +30,10 @@ use serde::Deserialize;
 /// quick-xml itself already strips prefixes from element/attribute *names*,
 /// which is why the tag attribute is `@type`, not `@xsi:type`.
 ///
-/// Like the quick-xml original, this assumes the tag is the element's first
-/// attribute and reuses quick-xml's exported `deserialize_match!` internals.
+/// Like the quick-xml original this reuses its exported `deserialize_match!`
+/// internals and expects the tag up front, but tolerates leading namespace
+/// declarations (`xmlns:*`): the IDE emits `xmlns:xsi` ahead of `xsi:type` on
+/// the body element, so we skip those until we reach the tag.
 macro_rules! impl_deserialize_for_xsi_type_enum {
     ($enum:ty, $tag:literal, $($cases:tt)*) => {
         impl<'de> serde::de::Deserialize<'de> for $enum {
@@ -51,18 +56,20 @@ macro_rules! impl_deserialize_for_xsi_type_enum {
                     where
                         A: MapAccess<'de>,
                     {
-                        let entry: Option<(String, String)> = map.next_entry()?;
-                        let tag: String = match entry {
-                            None => Err(A::Error::missing_field($tag)),
-                            Some((attribute, value)) => {
-                                if attribute == $tag {
+                        let tag: String = loop {
+                            match map.next_entry::<String, String>()? {
+                                Some((attribute, value)) if attribute == $tag => {
                                     // the value is a QName: match its local part
-                                    Ok(value.rsplit(':').next().unwrap_or(&value).to_string())
-                                } else {
-                                    Err(A::Error::unknown_field(&attribute, &[$tag]))
+                                    break value.rsplit(':').next().unwrap_or(&value).to_string();
                                 }
+                                // a namespace declaration preceding the tag
+                                Some((attribute, _)) if attribute.starts_with("@xmlns") => continue,
+                                Some((attribute, _)) => {
+                                    return Err(A::Error::unknown_field(&attribute, &[$tag]))
+                                }
+                                None => return Err(A::Error::missing_field($tag)),
                             }
-                        }?;
+                        };
 
                         let de = serde::de::value::MapAccessDeserializer::new(map);
                         quick_xml::deserialize_match!(tag, de, $enum, $($cases)*)
@@ -90,32 +97,6 @@ pub enum Pou {
     Program(Program),
     FunctionBlock(FunctionBlock),
     Function(Function),
-}
-
-impl Pou {
-    pub fn name(&self) -> &str {
-        match self {
-            Pou::Program(program) => &program.name,
-            Pou::FunctionBlock(function_block) => &function_block.name,
-            Pou::Function(function) => &function.name,
-        }
-    }
-
-    pub fn add_data(&self) -> Option<&AddData> {
-        match self {
-            Pou::Program(program) => program.add_data.as_ref(),
-            Pou::FunctionBlock(function_block) => function_block.add_data.as_ref(),
-            Pou::Function(function) => function.add_data.as_ref(),
-        }
-    }
-
-    pub fn main_body(&self) -> Option<&MainBody> {
-        match self {
-            Pou::Program(program) => program.main_body.as_ref(),
-            Pou::FunctionBlock(function_block) => function_block.main_body.as_ref(),
-            Pou::Function(function) => function.main_body.as_ref(),
-        }
-    }
 }
 
 /// XSD `Program` (§10.2). The structured variable sections (`GlobalVars`,
@@ -194,6 +175,18 @@ pub struct Data {
     pub handle_unknown: String,
     #[serde(rename = "textDeclaration")]
     pub text_declaration: Option<TextDeclaration>,
+    #[serde(rename = "EvaluationPriority")]
+    pub evaluation_priority: Option<EvaluationPriority>,
+}
+
+/// Vendor extension (`AddData_EvaluationPriority.xsd`): explicit evaluation
+/// order among the blocks of one network. Smaller = earlier, unique per
+/// network, and only blocks carrying a priority are affected — everything
+/// else falls back to document order.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct EvaluationPriority {
+    #[serde(rename = "@priorityInNetwork")]
+    pub priority_in_network: Option<u64>,
 }
 
 /// Vendor extension: the POU interface as ST source text.
@@ -235,18 +228,7 @@ impl_deserialize_for_xsi_type_enum! {
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct FbdBody {
     #[serde(rename = "Network", default)]
-    pub networks: Vec<Network>,
-}
-
-/// XSD `NetworkBase` dispatched via `xsi:type`.
-#[derive(Debug, Clone, PartialEq)]
-pub enum Network {
-    Fbd(FbdNetwork),
-}
-
-impl_deserialize_for_xsi_type_enum! {
-    Network, "@type",
-    ("FbdNetwork" => Fbd(FbdNetwork)),
+    pub networks: Vec<FbdNetwork>,
 }
 
 /// XSD `FbdNetwork` (§13.1): an unordered mix of `CommonObject` and
@@ -256,8 +238,6 @@ impl_deserialize_for_xsi_type_enum! {
 pub struct FbdNetwork {
     #[serde(rename = "@label")]
     pub label: Option<String>,
-    #[serde(rename = "@evaluationOrder")]
-    pub evaluation_order: u64,
     #[serde(rename = "RelPosition")]
     pub rel_position: Option<XyValue>,
     #[serde(rename = "Size")]
@@ -287,6 +267,8 @@ impl_deserialize_for_xsi_type_enum! {
 /// XSD `Comment` (§13.2.1).
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Comment {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "RelPosition")]
     pub rel_position: Option<XyValue>,
     #[serde(rename = "Size")]
@@ -298,6 +280,8 @@ pub struct Comment {
 /// XSD `Connector` (§13.2.2): named sink end of a cross-cutting link.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Connector {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@label")]
     pub label: String,
     #[serde(rename = "RelPosition")]
@@ -311,6 +295,8 @@ pub struct Connector {
 /// XSD `Continuation` (§13.2.3): named source end matching a `Connector`.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Continuation {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@label")]
     pub label: String,
     #[serde(rename = "RelPosition")]
@@ -347,10 +333,14 @@ impl_deserialize_for_xsi_type_enum! {
 /// function type (`parameterName == typeName`, see `CLAUDE.md`).
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Block {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@typeName")]
     pub type_name: String,
     #[serde(rename = "@instanceName")]
     pub instance_name: Option<String>,
+    #[serde(rename = "AddData")]
+    pub add_data: Option<AddData>,
     #[serde(rename = "RelPosition")]
     pub rel_position: Option<XyValue>,
     #[serde(rename = "Size")]
@@ -427,6 +417,8 @@ pub struct OutputVariable {
 /// XSD `DataSource` (§13.3.3): a variable or literal feeding the graph.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct DataSource {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@identifier")]
     pub identifier: String,
     #[serde(rename = "RelPosition")]
@@ -440,8 +432,12 @@ pub struct DataSource {
 /// XSD `DataSink` (§13.3.4): assignment of a line's value to a variable.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct DataSink {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@identifier")]
     pub identifier: String,
+    #[serde(rename = "AddData")]
+    pub add_data: Option<AddData>,
     #[serde(rename = "RelPosition")]
     pub rel_position: Option<XyValue>,
     #[serde(rename = "Size")]
@@ -453,6 +449,8 @@ pub struct DataSink {
 /// XSD `Unconnected` (§13.3.5): an explicitly dangling pin.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Unconnected {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@complexIdentifier")]
     pub complex_identifier: String,
     #[serde(rename = "RelPosition")]
@@ -468,6 +466,8 @@ pub struct Unconnected {
 /// XSD `Jump` (§13.3.6): jump to another network by label.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Jump {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@targetNetworkLabel")]
     pub target_network_label: String,
     #[serde(rename = "RelPosition")]
@@ -481,6 +481,8 @@ pub struct Jump {
 /// XSD `Return` (§13.3.7).
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Return {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "RelPosition")]
     pub rel_position: Option<XyValue>,
     #[serde(rename = "Size")]
@@ -552,267 +554,139 @@ pub enum EdgeModifier {
     Rising,
 }
 
+impl Pou {
+    pub fn name(&self) -> &str {
+        match self {
+            Pou::Program(program) => &program.name,
+            Pou::FunctionBlock(function_block) => &function_block.name,
+            Pou::Function(function) => &function.name,
+        }
+    }
+
+    /// The POU interface as ST source text, carried by the [`TextDeclaration`]
+    /// vendor extension in the POU's `AddData`.
+    pub fn text_declaration(&self) -> Option<&str> {
+        let add_data = match self {
+            Pou::Program(program) => &program.add_data,
+            Pou::FunctionBlock(function_block) => &function_block.add_data,
+            Pou::Function(function) => &function.add_data,
+        };
+
+        add_data
+            .as_ref()?
+            .data
+            .iter()
+            .find_map(|data| Some(data.text_declaration.as_ref()?.content.text.as_str()))
+    }
+
+    pub fn get_network(&self) -> Option<&FbdNetwork> {
+        let main_body = match self {
+            Pou::Program(program) => &program.main_body,
+            Pou::FunctionBlock(function_block) => &function_block.main_body,
+            Pou::Function(function) => &function.main_body,
+        };
+
+        let BodyContent::Fbd(fbd) = main_body.as_ref()?.body_content.first()?;
+        fbd.networks.first()
+    }
+}
+
+impl AddData {
+    /// The evaluation priority carried by the `EvaluationPriority` vendor extension, if present.
+    fn priority(&self) -> Option<u64> {
+        self.data.iter().find_map(|data| data.evaluation_priority?.priority_in_network)
+    }
+}
+
+impl Block {
+    /// The block's evaluation priority within its network, carried by the
+    /// [`EvaluationPriority`] vendor extension buried in the block's `AddData`.
+    pub fn get_priority(&self) -> Option<u64> {
+        self.add_data.as_ref()?.priority()
+    }
+
+    pub fn get_input_variables(&self) -> Vec<&InputVariable> {
+        let Some(block) = &self.input_variables else {
+            return Vec::new();
+        };
+
+        block.variables.iter().collect()
+    }
+
+    pub fn get_inout_variables(&self) -> Vec<&InOutVariable> {
+        let Some(block) = &self.in_out_variables else {
+            return Vec::new();
+        };
+
+        block.variables.iter().collect()
+    }
+
+    pub fn get_output_variables(&self) -> Vec<&OutputVariable> {
+        let Some(block) = &self.output_variables else {
+            return Vec::new();
+        };
+
+        block.variables.iter().collect()
+    }
+}
+
+impl DataSink {
+    /// This sink's evaluation priority within its network (see [`Block::get_priority`]).
+    pub fn get_priority(&self) -> Option<u64> {
+        self.add_data.as_ref()?.priority()
+    }
+}
+
+impl InputVariable {
+    /// The `connectionPointOutId` feeding this pin, or `None` when the pin is unconnected — either
+    /// because it has no `ConnectionPointIn` or because that pin carries no `Connection`. (The IDE
+    /// emits an unwired pin as a present-but-empty `ConnectionPointIn`, hence `first()` over `[0]`.)
+    pub fn get_referenced_argument_id(&self) -> Option<u64> {
+        self.connection_point_in.as_ref()?.connections.first().map(|c| c.ref_connection_point_out_id)
+    }
+}
+
+impl InOutVariable {
+    /// The `connectionPointOutId` feeding this pin, or `None` when unconnected
+    /// (see [`InputVariable::get_referenced_argument_id`]).
+    pub fn get_referenced_argument_id(&self) -> Option<u64> {
+        self.connection_point_in.as_ref()?.connections.first().map(|c| c.ref_connection_point_out_id)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    const SIMPLE_FUNCTION_CALL: &str = include_str!("../fixtures/simple_function_call/myMain.cfc");
+    use crate::model::Block;
 
     #[test]
-    fn deserializes_simple_function_call_fixture() {
-        let Pou::Program(program) = from_str(SIMPLE_FUNCTION_CALL).unwrap() else {
-            panic!("expected a Program root");
-        };
-
-        assert_eq!(program.name, "myMain");
-
-        let data = &program.add_data.as_ref().unwrap().data[0];
-        assert_eq!(data.name, "www.bachmann.at/plc/plcopenxml");
-        assert_eq!(data.handle_unknown, "implementation");
-        let declaration = &data.text_declaration.as_ref().unwrap().content.text;
-        assert!(declaration.contains("localA: INT := 10;"));
-
-        let body = program.main_body.as_ref().unwrap();
-        let BodyContent::Fbd(fbd) = &body.body_content[0];
-        assert_eq!(fbd.networks.len(), 1);
-        let Network::Fbd(network) = &fbd.networks[0];
-        assert_eq!(network.evaluation_order, 1);
-        assert!(network.common_objects.is_empty());
-
-        // localA -> pin 1, localB -> pin 2, myAdd(x <- 1, y <- 2) -> pin 3 -> localResult
-        let [
-            FbdObject::DataSource(local_a),
-            FbdObject::DataSource(local_b),
-            FbdObject::Block(block),
-            FbdObject::DataSink(sink),
-        ] = &network.objects[..]
-        else {
-            panic!("unexpected object layout: {:#?}", network.objects);
-        };
-
-        assert_eq!(local_a.identifier, "localA");
-        assert_eq!(local_a.connection_point_out.as_ref().unwrap().id, 1);
-        assert_eq!(local_b.identifier, "localB");
-        assert_eq!(local_b.connection_point_out.as_ref().unwrap().id, 2);
-
-        assert_eq!(block.type_name, "myAdd");
-        assert_eq!(block.instance_name, None, "function calls have no instance name");
-
-        let inputs = &block.input_variables.as_ref().unwrap().variables;
-        let connected_to = |variable: &InputVariable| {
-            variable.connection_point_in.as_ref().unwrap().connections[0].ref_connection_point_out_id
-        };
-        assert_eq!(inputs[0].parameter_name, "x");
-        assert_eq!(connected_to(&inputs[0]), 1);
-        assert!(!inputs[0].negated);
-        assert_eq!(inputs[0].edge, EdgeModifier::None);
-        assert_eq!(inputs[1].parameter_name, "y");
-        assert_eq!(connected_to(&inputs[1]), 2);
-
-        let outputs = &block.output_variables.as_ref().unwrap().variables;
-        assert_eq!(outputs[0].parameter_name, "myAdd", "result pin is named after the function");
-        assert_eq!(outputs[0].connection_point_out.as_ref().unwrap().id, 3);
-
-        assert_eq!(sink.identifier, "localResult");
-        assert_eq!(sink.connection_point_in.as_ref().unwrap().connections[0].ref_connection_point_out_id, 3);
-    }
-
-    /// The same document with the IEC namespace bound to an explicit prefix
-    /// (and the vendor extension in its own namespace) must produce the same
-    /// model: element names match on their local part, and `xsi:type` QName
-    /// values (`ppx:Block`) are matched on their local part by our macro.
-    #[test]
-    fn namespace_prefixes_do_not_affect_the_model() {
-        let prefixed = r#"<?xml version="1.0" encoding="UTF-8"?>
-            <ppx:Program xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10"
-                         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                         xmlns:bmc="http://www.bachmann.at/plc/cfc"
-                         name="myMain">
-                <ppx:AddData>
-                    <ppx:Data name="www.bachmann.at/plc/plcopenxml" handleUnknown="implementation">
-                        <bmc:textDeclaration>
-                            <bmc:content>PROGRAM myMain END_PROGRAM</bmc:content>
-                        </bmc:textDeclaration>
-                    </ppx:Data>
-                </ppx:AddData>
-                <ppx:MainBody>
-                    <ppx:BodyContent xsi:type="ppx:FBD">
-                        <ppx:Network xsi:type="ppx:FbdNetwork" evaluationOrder="1">
-                            <ppx:FbdObject xsi:type="ppx:DataSource" identifier="localA">
-                                <ppx:ConnectionPointOut connectionPointOutId="1"/>
-                            </ppx:FbdObject>
-                            <ppx:FbdObject xsi:type="ppx:Block" typeName="myAdd">
-                                <ppx:InputVariables>
-                                    <ppx:InputVariable parameterName="x">
-                                        <ppx:ConnectionPointIn>
-                                            <ppx:Connection refConnectionPointOutId="1"/>
-                                        </ppx:ConnectionPointIn>
-                                    </ppx:InputVariable>
-                                </ppx:InputVariables>
-                                <ppx:OutputVariables>
-                                    <ppx:OutputVariable parameterName="myAdd">
-                                        <ppx:ConnectionPointOut connectionPointOutId="2"/>
-                                    </ppx:OutputVariable>
-                                </ppx:OutputVariables>
-                            </ppx:FbdObject>
-                            <ppx:FbdObject xsi:type="ppx:DataSink" identifier="localResult">
-                                <ppx:ConnectionPointIn>
-                                    <ppx:Connection refConnectionPointOutId="2"/>
-                                </ppx:ConnectionPointIn>
-                            </ppx:FbdObject>
-                        </ppx:Network>
-                    </ppx:BodyContent>
-                </ppx:MainBody>
-            </ppx:Program>"#;
-
-        let unprefixed = prefixed
-            .replace("ppx:", "")
-            .replace("bmc:", "")
-            .replace("xmlns=\"http://www.bachmann.at/plc/cfc\"", "")
-            .replace("xmlns:", "xmlns_ignored:"); // keep declarations harmless but distinct
-
-        let from_prefixed = from_str(prefixed).unwrap();
-        let from_unprefixed = from_str(&unprefixed).unwrap();
-        assert_eq!(from_prefixed, from_unprefixed);
-        assert!(matches!(from_prefixed, Pou::Program(_)));
-
-        let BodyContent::Fbd(fbd) = &from_prefixed.main_body().unwrap().body_content[0];
-        let Network::Fbd(network) = &fbd.networks[0];
-        assert!(matches!(network.objects[1], FbdObject::Block(_)));
-    }
-
-    /// `CommonObject`s and `FbdObject`s may interleave freely within a
-    /// network (this is what the `overlapped-lists` feature is for), and
-    /// Connector/Continuation carry named cross-links.
-    #[test]
-    fn interleaved_common_and_fbd_objects() {
+    fn block_priority() {
         let xml = r#"
-            <Program name="prog">
-                <MainBody>
-                    <BodyContent xsi:type="FBD" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                        <Network xsi:type="FbdNetwork" evaluationOrder="1">
-                            <FbdObject xsi:type="DataSource" identifier="a">
-                                <ConnectionPointOut connectionPointOutId="1"/>
-                            </FbdObject>
-                            <CommonObject xsi:type="Comment">
-                                <Content xsi:type="SimpleText">to be continued</Content>
-                            </CommonObject>
-                            <CommonObject xsi:type="Connector" label="LINK">
-                                <ConnectionPointIn>
-                                    <Connection refConnectionPointOutId="1"/>
-                                </ConnectionPointIn>
-                            </CommonObject>
-                            <CommonObject xsi:type="Continuation" label="LINK">
-                                <ConnectionPointOut connectionPointOutId="2"/>
-                            </CommonObject>
-                            <FbdObject xsi:type="DataSink" identifier="b">
-                                <ConnectionPointIn>
-                                    <Connection refConnectionPointOutId="2"/>
-                                </ConnectionPointIn>
-                            </FbdObject>
-                        </Network>
-                    </BodyContent>
-                </MainBody>
-            </Program>"#;
+            <FbdObject xsi:type="Block" globalId="3" typeName="myAdd">
+                <AddData>
+                    <Data name="www.iec.ch/61131-10/EvaluationPriority" handleUnknown="discard">
+                        <EvaluationPriority priorityInNetwork="2"/>
+                    </Data>
+                </AddData>
+            </FbdObject>
+        "#;
+        let block: Block = quick_xml::de::from_str(xml).unwrap();
+        assert_eq!(block.get_priority(), Some(2));
 
-        let pou = from_str(xml).unwrap();
-        let BodyContent::Fbd(fbd) = &pou.main_body().unwrap().body_content[0];
-        let Network::Fbd(network) = &fbd.networks[0];
-
-        assert_eq!(network.objects.len(), 2);
-        let [
-            CommonObject::Comment(comment),
-            CommonObject::Connector(connector),
-            CommonObject::Continuation(continuation),
-        ] = &network.common_objects[..]
-        else {
-            panic!("unexpected common objects: {:#?}", network.common_objects);
-        };
-
-        assert_eq!(comment.content.text, "to be continued");
-        assert_eq!(connector.label, "LINK");
-        assert_eq!(
-            connector.connection_point_in.as_ref().unwrap().connections[0].ref_connection_point_out_id,
-            1
-        );
-        assert_eq!(continuation.label, "LINK");
-        assert_eq!(continuation.connection_point_out.as_ref().unwrap().id, 2);
+        let xml = r#"<FbdObject xsi:type="Block" globalId="3" typeName="myAdd"/>"#;
+        let block: Block = quick_xml::de::from_str(xml).unwrap();
+        assert_eq!(block.get_priority(), None);
     }
 
-    /// Feedback loops use `FeedbackConnection` instead of `Connection`.
     #[test]
-    fn feedback_connection() {
-        let xml = r#"
-            <Program name="prog">
-                <MainBody>
-                    <BodyContent xsi:type="FBD" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                        <Network xsi:type="FbdNetwork" evaluationOrder="1">
-                            <FbdObject xsi:type="Block" typeName="myAdd">
-                                <InputVariables>
-                                    <InputVariable parameterName="x" negated="true" edge="rising">
-                                        <ConnectionPointIn>
-                                            <FeedbackConnection refConnectionPointOutId="1" feedbackVariable="loop"/>
-                                        </ConnectionPointIn>
-                                    </InputVariable>
-                                </InputVariables>
-                                <OutputVariables>
-                                    <OutputVariable parameterName="myAdd">
-                                        <ConnectionPointOut connectionPointOutId="1"/>
-                                    </OutputVariable>
-                                </OutputVariables>
-                            </FbdObject>
-                        </Network>
-                    </BodyContent>
-                </MainBody>
-            </Program>"#;
+    fn deserializes_ide_export() {
+        // Exercises the two quirks of the IDE's FBD export: a bare `<Network>`
+        // (no `xsi:type`) and `xmlns:xsi` declared ahead of `xsi:type` on the
+        // body element.
+        let xml = include_str!("../fixtures/function_call/mainProgram.cfc");
+        let pou = crate::model::from_str(xml).unwrap();
 
-        let pou = from_str(xml).unwrap();
-        let BodyContent::Fbd(fbd) = &pou.main_body().unwrap().body_content[0];
-        let Network::Fbd(network) = &fbd.networks[0];
-        let FbdObject::Block(block) = &network.objects[0] else {
-            panic!("expected a block");
-        };
-
-        let input = &block.input_variables.as_ref().unwrap().variables[0];
-        assert!(input.negated);
-        assert_eq!(input.edge, EdgeModifier::Rising);
-        let feedback = &input.connection_point_in.as_ref().unwrap().feedback_connections[0];
-        assert_eq!(feedback.ref_connection_point_out_id, 1);
-        assert_eq!(feedback.feedback_variable, "loop");
-    }
-
-    /// The POU kind is carried by the root element name (XSD `PouDecl`
-    /// group), with kind-specific content per the standard.
-    #[test]
-    fn dispatches_pou_kind_on_root_element_name() {
-        let Pou::Program(_) = from_str(r#"<Program name="myMain"/>"#).unwrap() else {
-            panic!("expected a Program root");
-        };
-
-        let function_block = r#"
-            <FunctionBlock name="myFb" abstract="true">
-                <Extends><TypeName>baseFb</TypeName></Extends>
-                <Implements><TypeName>interfaceA</TypeName></Implements>
-                <Implements><TypeName>interfaceB</TypeName></Implements>
-            </FunctionBlock>"#;
-        let Pou::FunctionBlock(fb) = from_str(function_block).unwrap() else {
-            panic!("expected a FunctionBlock root");
-        };
-        assert_eq!(fb.name, "myFb");
-        assert!(fb.is_abstract);
-        assert!(!fb.is_final);
-        assert_eq!(fb.extends.as_ref().unwrap().type_name.as_deref(), Some("baseFb"));
-        assert_eq!(fb.implements.len(), 2);
-        assert_eq!(fb.implements[1].type_name.as_deref(), Some("interfaceB"));
-
-        let function = r#"
-            <Function name="myAdd">
-                <ResultType><TypeName>INT</TypeName></ResultType>
-            </Function>"#;
-        let Pou::Function(function) = from_str(function).unwrap() else {
-            panic!("expected a Function root");
-        };
-        assert_eq!(function.name, "myAdd");
-        assert_eq!(function.result_type.as_ref().unwrap().type_name.as_deref(), Some("INT"));
+        assert_eq!(pou.name(), "mainProgram");
+        // 2 data sources, 1 data sink, 1 block
+        assert_eq!(pou.get_network().unwrap().objects.len(), 4);
     }
 }

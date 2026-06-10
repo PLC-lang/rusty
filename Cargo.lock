@@ -2291,6 +2291,11 @@ dependencies = [
 name = "plc_cfc"
 version = "0.1.0"
 dependencies = [
+ "insta",
+ "plc-compiler",
+ "plc_ast",
+ "plc_diagnostics",
+ "plc_source",
  "quick-xml 0.38.4",
  "serde",
 ]
