@@ -37,11 +37,21 @@ pub mod expression_path;
 pub mod hardware_binding;
 pub mod hw_map;
 pub mod index;
-pub mod lexer;
+pub use plc_parser::lexer;
 pub mod linker;
 pub mod lowering;
 pub mod output;
-pub mod parser;
+/// The parser lives in the [`plc_parser`] crate; everything is re-exported here
+/// so existing `rusty::parser::*` paths keep working.
+pub mod parser {
+    pub use plc_parser::parser::*;
+
+    /// Parser tests that exercise the full pipeline (validation etc.) and therefore
+    /// cannot live in the `plc_parser` crate itself. Pure parser tests are unit tests
+    /// of `plc_parser`.
+    #[cfg(test)]
+    pub mod tests;
+}
 pub mod resolver;
 mod test_utils;
 

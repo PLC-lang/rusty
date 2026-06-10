@@ -22,15 +22,15 @@ use plc_source::{
 };
 use plc_util::convention::qualified_name;
 
+use plc_util::hash::FxIndexMap;
+
 use crate::{
     expect_token,
-    index::FxIndexMap,
     lexer::{
         self, ParseSession,
         Token::{self, *},
         TokenClass,
     },
-    typesystem::DINT_TYPE,
 };
 
 use self::{
@@ -43,6 +43,11 @@ pub mod expressions_parser;
 
 #[cfg(test)]
 pub mod tests;
+
+/// The name of the implicit counter type used e.g. for `FOR` loop ranges; mirrors
+/// `typesystem::DINT_TYPE` in the main compiler crate, re-declared here so the parser
+/// does not depend on the type system.
+pub const DINT_TYPE: &str = "DINT";
 pub type ParsedAst = (CompilationUnit, Vec<Diagnostic>);
 
 pub fn parse_file(

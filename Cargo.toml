@@ -22,10 +22,10 @@ plc_source = { path = "./compiler/plc_source", version = "1.1.0-dev" }
 plc_ast = { path = "./compiler/plc_ast", version = "1.1.0-dev" }
 plc_util = { path = "./compiler/plc_util", version = "1.1.0-dev" }
 plc_diagnostics = { path = "./compiler/plc_diagnostics", version = "1.1.0-dev" }
+plc_parser = { path = "./compiler/plc_parser", version = "1.1.0-dev" }
 plc_index = { path = "./compiler/plc_index", version = "1.1.0-dev" }
 section_mangler = { path = "./compiler/section_mangler", version = "1.1.0-dev" }
 plc_llvm = { path = "./compiler/plc_llvm", version = "1.1.0-dev" }
-logos.workspace = true
 clap = { version = "3.0", features = ["derive"] }
 indexmap = { workspace = true, features = ["serde"] }
 generational-arena = { version = "0.2.8", features = ["serde"] }
@@ -74,6 +74,7 @@ members = [
     "compiler/plc_driver",
     "compiler/plc_ast",
     "compiler/plc_diagnostics",
+    "compiler/plc_parser",
     "compiler/plc_project",
     "compiler/plc_source",
     "compiler/plc_util",

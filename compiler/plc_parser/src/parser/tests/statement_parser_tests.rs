@@ -1,7 +1,7 @@
 use crate::{
     parser::tests::{empty_stmt, ref_to},
+    parser::DINT_TYPE,
     test_utils::tests::parse,
-    typesystem::DINT_TYPE,
 };
 use insta::assert_snapshot;
 use plc_ast::ast::{AstFactory, DataType, DataTypeDeclaration, Variable};
