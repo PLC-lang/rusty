@@ -1,0 +1,10 @@
+[package]
+name = "plc_cfc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde.workspace = true
+# `serialize`: serde support; `serde-types`: tagged-enum helpers (xsi:type dispatch);
+# `overlapped-lists`: interleaved <CommonObject>/<FbdObject> siblings within a network
+quick-xml = { version = "0.38", features = ["serialize", "serde-types", "overlapped-lists"] }
