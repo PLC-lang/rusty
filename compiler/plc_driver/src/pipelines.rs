@@ -25,7 +25,6 @@ use plc::{
     linker::LinkerType,
     lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
     output::{FormatOption, RelocationPreference},
-    parser::parse_file,
     resolver::{
         const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
         TypeAnnotator,
@@ -46,6 +45,7 @@ use plc_lowering::{
     control_statement::ControlStatementParticipant, inheritance::InheritanceLowerer, loops::LoopDesugarer,
     reference_to_return::ReferenceToReturnParticipant, retain::RetainParticipant,
 };
+use plc_parser::parser::parse_file;
 use project::{
     object::Object,
     project::{LibraryInformation, Project},

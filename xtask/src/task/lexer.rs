@@ -1,7 +1,7 @@
 use std::time::Instant;
 
-use plc::lexer;
 use plc_ast::provider::IdProvider;
+use plc_parser::lexer;
 use plc_source::source_location::SourceLocationFactory;
 
 use crate::reporter::DurationWrapper;
@@ -25,7 +25,7 @@ impl Task for Lexer {
         }
         let elapsed = now.elapsed();
 
-        debug_assert_eq!(lexer.token, plc::lexer::Token::End);
+        debug_assert_eq!(lexer.token, plc_parser::lexer::Token::End);
         debug_assert!(lexer.last_range.end >= 143100);
         Ok(elapsed)
     }
