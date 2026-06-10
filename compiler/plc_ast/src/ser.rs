@@ -3,7 +3,7 @@ use crate::{
         Allocation, ArgumentProperty, Assignment, AstNode, AstStatement, AutoDerefType, BinaryExpression,
         CallStatement, CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue,
         DirectAccess, EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement,
-        LabelStatement, MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess,
+        LabelStatement, MultipliedStatement, Pou, PouType, PropertyBlock, RangeStatement, ReferenceAccess,
         ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     control_statements::{AstControlStatement, ReturnStatement},
@@ -72,6 +72,65 @@ impl AstSerializer<'_> {
         serializer.result
     }
 
+    /// Serializes the unit's POUs (header, variable blocks, body statements) as ST
+    /// source text. Global variables, user types and interfaces are not yet formatted.
+    pub fn format_unit(unit: &CompilationUnit) -> String {
+        let mut serializer = AstSerializer {
+            result: String::new(),
+            indent: 0,
+            unit: Some(unit),
+            user_type_context: None,
+            is_in_paren: false,
+        };
+
+        for (index, pou) in unit.pous.iter().enumerate() {
+            if index > 0 {
+                serializer.result.push_str("\n\n");
+            }
+            serializer.format_pou(pou, unit);
+        }
+
+        serializer.result
+    }
+
+    fn format_pou(&mut self, pou: &Pou, unit: &CompilationUnit) {
+        let (keyword, end_keyword) = match &pou.kind {
+            PouType::Program => ("PROGRAM", "END_PROGRAM"),
+            PouType::Function => ("FUNCTION", "END_FUNCTION"),
+            PouType::FunctionBlock => ("FUNCTION_BLOCK", "END_FUNCTION_BLOCK"),
+            other => unimplemented!("formatting {other} POUs"),
+        };
+
+        self.result.push_str(keyword);
+        self.result.push(' ');
+        self.result.push_str(&pou.name);
+        if let Some(return_type) = &pou.return_type {
+            self.result.push_str(" : ");
+            self.visit_data_type_declaration(return_type);
+        }
+
+        for variable_block in &pou.variable_blocks {
+            self.result.push('\n');
+            self.visit_variable_block(variable_block);
+        }
+
+        if let Some(implementation) = unit.implementations.iter().find(|it| it.name == pou.name) {
+            self.indent += 1;
+            for statement in implementation.statements.iter().filter(|it| !it.is_empty_statement()) {
+                self.push_indent();
+                self.visit(statement);
+                // Expression lists push their own ';'
+                if !statement.is_expression_list() {
+                    self.result.push(';');
+                }
+            }
+            self.indent -= 1;
+        }
+
+        self.result.push('\n');
+        self.result.push_str(end_keyword);
+    }
+
     /// Serializes a list of statements, each on its own indented line.
     fn serialize_statement_list(&mut self, stmts: &[AstNode]) {
         self.indent += 1;
@@ -130,7 +189,7 @@ impl AstVisitor for AstSerializer<'_> {
         variable_block.variables.iter().for_each(|v| {
             self.push_indent();
             self.result.push_str(&format!("{} : ", v.name));
-            v.walk(self);
+            self.visit_variable(v);
             self.result.push(';');
         });
         self.indent -= 1;
@@ -138,7 +197,13 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_variable(&mut self, variable: &Variable) {
-        variable.data_type_declaration.walk(self);
+        // not `data_type_declaration.walk(self)`: the `Walker` impl only
+        // descends into `Definition`s, dropping `Reference` type names
+        self.visit_data_type_declaration(&variable.data_type_declaration);
+        if let Some(initializer) = &variable.initializer {
+            self.result.push_str(" := ");
+            self.visit(initializer);
+        }
     }
 
     fn visit_config_variable(&mut self, _: &ConfigVariable) {
@@ -491,6 +556,94 @@ mod tests {
     use crate::ast::AstFactory;
     use crate::literals::{AstLiteral, StringValue};
     use plc_source::source_location::SourceLocation;
+
+    #[test]
+    fn unit_with_program() {
+        use crate::ast::LinkageType;
+
+        let variable = Variable {
+            name: "x".to_string(),
+            data_type_declaration: DataTypeDeclaration::Reference {
+                referenced_type: "INT".to_string(),
+                location: SourceLocation::undefined(),
+            },
+            initializer: None,
+            address: None,
+            location: SourceLocation::undefined(),
+        };
+        let pou = Pou {
+            id: 0,
+            name: "main".to_string(),
+            kind: PouType::Program,
+            variable_blocks: vec![VariableBlock { variables: vec![variable], ..Default::default() }],
+            return_type: None,
+            location: SourceLocation::undefined(),
+            name_location: SourceLocation::undefined(),
+            poly_mode: None,
+            generics: vec![],
+            linkage: LinkageType::Internal,
+            super_class: None,
+            is_const: false,
+            interfaces: vec![],
+            properties: vec![],
+        };
+        let assignment = AstFactory::create_assignment(
+            AstFactory::create_member_reference(
+                AstFactory::create_identifier("x", SourceLocation::undefined(), 0),
+                None,
+                1,
+            ),
+            AstFactory::create_literal(AstLiteral::Integer(1), SourceLocation::undefined(), 2),
+            3,
+        );
+        let implementation = Implementation {
+            name: "main".to_string(),
+            type_name: "main".to_string(),
+            linkage: LinkageType::Internal,
+            pou_type: PouType::Program,
+            statements: vec![assignment],
+            location: SourceLocation::undefined(),
+            name_location: SourceLocation::undefined(),
+            end_location: SourceLocation::undefined(),
+            overriding: false,
+            generic: false,
+            access: None,
+        };
+
+        let mut unit = CompilationUnit::new("<test>");
+        unit.pous.push(pou);
+        unit.implementations.push(implementation);
+
+        assert_eq!(
+            AstSerializer::format_unit(&unit),
+            "PROGRAM main\nVAR\n    x : INT;\nEND_VAR\n    x := 1;\nEND_PROGRAM"
+        );
+    }
+
+    #[test]
+    fn variable_block_with_initializer() {
+        let variable = Variable {
+            name: "localA".to_string(),
+            data_type_declaration: DataTypeDeclaration::Reference {
+                referenced_type: "INT".to_string(),
+                location: SourceLocation::undefined(),
+            },
+            initializer: Some(AstFactory::create_literal(
+                AstLiteral::Integer(10),
+                SourceLocation::undefined(),
+                1,
+            )),
+            address: None,
+            location: SourceLocation::undefined(),
+        };
+        let block = VariableBlock { variables: vec![variable], ..Default::default() };
+
+        let unit = CompilationUnit::new("<test>");
+        assert_eq!(
+            AstSerializer::format_variable_block(&block, &unit),
+            "VAR\n    localA : INT := 10;\nEND_VAR"
+        );
+    }
 
     #[test]
     fn expression_list() {

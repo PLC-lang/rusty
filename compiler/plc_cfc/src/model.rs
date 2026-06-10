@@ -11,8 +11,11 @@
 //!   (`RelPosition`, `Size`), which our fixtures omit entirely,
 //! - unknown elements and attributes are ignored, so additive exporter
 //!   changes do not break parsing,
-//! - base-type content we have no use for yet (`globalId`, `Documentation`,
-//!   per-object `AddData`) is intentionally not modeled,
+//! - base-type content we have no use for yet (`Documentation`, per-object
+//!   `AddData`) is intentionally not modeled,
+//! - `globalId` (carried by every graphical object) deviates from the
+//!   schema's `xsd:ID`: the IDE emits plain integers, so it is a `u64`. It
+//!   later keys synthetic source locations (`CodeSpan::Block`) in lowering,
 //! - non-FBD body languages (IL, ST, LD, SFC) and the SFC-oriented
 //!   `ActionBlocks` common object are out of scope for CFC.
 
@@ -93,6 +96,7 @@ pub enum Pou {
 }
 
 impl Pou {
+    #[allow(dead_code)] // no consumer until the root-vs-header name validation lands
     pub fn name(&self) -> &str {
         match self {
             Pou::Program(program) => &program.name,
@@ -115,6 +119,12 @@ impl Pou {
             Pou::FunctionBlock(function_block) => function_block.main_body.as_ref(),
             Pou::Function(function) => function.main_body.as_ref(),
         }
+    }
+
+    /// Returns the content wrapped inside the following nested chain
+    /// <AddData><Data><textDeclaration><content>...</content></textDeclaration></Data>,</AddData>
+    pub fn get_header_content(&self) -> Option<&str> {
+        Some(self.add_data()?.data.first()?.text_declaration.as_ref()?.content.text.as_ref())
     }
 }
 
@@ -194,6 +204,18 @@ pub struct Data {
     pub handle_unknown: String,
     #[serde(rename = "textDeclaration")]
     pub text_declaration: Option<TextDeclaration>,
+    #[serde(rename = "EvaluationPriority")]
+    pub evaluation_priority: Option<EvaluationPriority>,
+}
+
+/// Vendor extension (`AddData_EvaluationPriority.xsd`): explicit evaluation
+/// order among the blocks of one network. Smaller = earlier, unique per
+/// network, and only blocks carrying a priority are affected — everything
+/// else falls back to document order.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct EvaluationPriority {
+    #[serde(rename = "@priorityInNetwork")]
+    pub priority_in_network: Option<u64>,
 }
 
 /// Vendor extension: the POU interface as ST source text.
@@ -287,6 +309,8 @@ impl_deserialize_for_xsi_type_enum! {
 /// XSD `Comment` (§13.2.1).
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Comment {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "RelPosition")]
     pub rel_position: Option<XyValue>,
     #[serde(rename = "Size")]
@@ -298,6 +322,8 @@ pub struct Comment {
 /// XSD `Connector` (§13.2.2): named sink end of a cross-cutting link.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Connector {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@label")]
     pub label: String,
     #[serde(rename = "RelPosition")]
@@ -311,6 +337,8 @@ pub struct Connector {
 /// XSD `Continuation` (§13.2.3): named source end matching a `Connector`.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Continuation {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@label")]
     pub label: String,
     #[serde(rename = "RelPosition")]
@@ -347,10 +375,14 @@ impl_deserialize_for_xsi_type_enum! {
 /// function type (`parameterName == typeName`, see `CLAUDE.md`).
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Block {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@typeName")]
     pub type_name: String,
     #[serde(rename = "@instanceName")]
     pub instance_name: Option<String>,
+    #[serde(rename = "AddData")]
+    pub add_data: Option<AddData>,
     #[serde(rename = "RelPosition")]
     pub rel_position: Option<XyValue>,
     #[serde(rename = "Size")]
@@ -427,6 +459,8 @@ pub struct OutputVariable {
 /// XSD `DataSource` (§13.3.3): a variable or literal feeding the graph.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct DataSource {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@identifier")]
     pub identifier: String,
     #[serde(rename = "RelPosition")]
@@ -440,6 +474,8 @@ pub struct DataSource {
 /// XSD `DataSink` (§13.3.4): assignment of a line's value to a variable.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct DataSink {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@identifier")]
     pub identifier: String,
     #[serde(rename = "RelPosition")]
@@ -453,6 +489,8 @@ pub struct DataSink {
 /// XSD `Unconnected` (§13.3.5): an explicitly dangling pin.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Unconnected {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@complexIdentifier")]
     pub complex_identifier: String,
     #[serde(rename = "RelPosition")]
@@ -468,6 +506,8 @@ pub struct Unconnected {
 /// XSD `Jump` (§13.3.6): jump to another network by label.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Jump {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "@targetNetworkLabel")]
     pub target_network_label: String,
     #[serde(rename = "RelPosition")]
@@ -481,6 +521,8 @@ pub struct Jump {
 /// XSD `Return` (§13.3.7).
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Return {
+    #[serde(rename = "@globalId")]
+    pub global_id: Option<u64>,
     #[serde(rename = "RelPosition")]
     pub rel_position: Option<XyValue>,
     #[serde(rename = "Size")]
@@ -591,11 +633,14 @@ mod tests {
         };
 
         assert_eq!(local_a.identifier, "localA");
+        assert_eq!(local_a.global_id, Some(1));
         assert_eq!(local_a.connection_point_out.as_ref().unwrap().id, 1);
         assert_eq!(local_b.identifier, "localB");
+        assert_eq!(local_b.global_id, Some(2));
         assert_eq!(local_b.connection_point_out.as_ref().unwrap().id, 2);
 
         assert_eq!(block.type_name, "myAdd");
+        assert_eq!(block.global_id, Some(3));
         assert_eq!(block.instance_name, None, "function calls have no instance name");
 
         let inputs = &block.input_variables.as_ref().unwrap().variables;
@@ -614,6 +659,7 @@ mod tests {
         assert_eq!(outputs[0].connection_point_out.as_ref().unwrap().id, 3);
 
         assert_eq!(sink.identifier, "localResult");
+        assert_eq!(sink.global_id, Some(4));
         assert_eq!(sink.connection_point_in.as_ref().unwrap().connections[0].ref_connection_point_out_id, 3);
     }
 
