@@ -460,10 +460,10 @@ mod tests {
     };
     use plc_source::source_location::SourceLocationFactory;
 
+    use plc_parser::{lexer::lex_with_ids, parser::parse};
+
     use crate::{
-        lexer::lex_with_ids,
         lowering::property::PropertyLowerer,
-        parser::parse,
         resolver::{AnnotationMapImpl, AstAnnotations},
         test_utils::tests::{annotate_with_ids, index_unit_with_id},
     };

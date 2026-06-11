@@ -9,7 +9,8 @@ pub mod tests {
     };
 
     use plc_ast::{
-        ast::{pre_process, CompilationUnit, LinkageType},
+        ast::{pre_process, AstFactory, AstNode, CompilationUnit, LinkageType},
+        literals::AstLiteral,
         mut_visitor::AstVisitorMut,
         provider::IdProvider,
     };
@@ -19,15 +20,18 @@ pub mod tests {
     use plc_index::GlobalContext;
 
     use plc_lowering::{control_statement::ControlStatementLowerer, loops::LoopDesugarer};
-    use plc_source::{source_location::SourceLocationFactory, Compilable, SourceCode, SourceContainer};
+    use plc_source::{
+        source_location::{SourceLocation, SourceLocationFactory},
+        Compilable, SourceCode, SourceContainer,
+    };
+
+    use plc_parser::{lexer, parser};
 
     use crate::{
         builtins,
         codegen::{CodegenContext, GeneratedModule},
         index::{self, FxIndexSet, Index},
-        lexer,
         lowering::calls::AggregateTypeLowerer,
-        parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
             StringLiterals, TypeAnnotator,
@@ -35,6 +39,20 @@ pub mod tests {
         typesystem::get_builtin_types,
         DebugLevel, OnlineChange, Target, Validator,
     };
+
+    /// helper function to create references
+    pub fn ref_to(name: &str) -> AstNode {
+        AstFactory::create_member_reference(
+            AstFactory::create_identifier(name, SourceLocation::internal(), 0),
+            None,
+            0,
+        )
+    }
+
+    /// helper function to create literal ints
+    pub fn literal_int(value: i128) -> AstNode {
+        AstNode::new_literal(AstLiteral::new_integer(value), 0, SourceLocation::internal())
+    }
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
         parser::parse(

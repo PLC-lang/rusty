@@ -1,4 +1,5 @@
 pub mod convention;
+pub mod hash;
 pub mod path;
 
 #[doc(hidden)]
