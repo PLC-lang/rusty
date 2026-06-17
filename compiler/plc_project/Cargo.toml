@@ -1,14 +1,14 @@
 [package]
 name = "plc_project"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 license = "LGPL-3.0"
 description = "Project configuration and file resolution for the PLC Structured Text compiler"
 
 [dependencies]
-plc = { path = "../..", package = "plc-compiler", version = "1.0.1" }
-plc_diagnostics = { path = "../plc_diagnostics/", version = "1.0.1" }
-source_code = { path = "../plc_source/", package = "plc_source", version = "1.0.1" }
+plc = { path = "../..", package = "plc-compiler", version = "1.0.2" }
+plc_diagnostics = { path = "../plc_diagnostics/", version = "1.0.2" }
+source_code = { path = "../plc_source/", package = "plc_source", version = "1.0.2" }
 serde.workspace = true
 serde_json.workspace = true
 regex.workspace = true

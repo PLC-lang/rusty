@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.2](https://github.com/PLC-lang/rusty/releases/tag/v1.0.2) - 2026-06-17
+
+### Fixed
+
+- Resolve project paths containing glob metacharacters as literals (#1777) (#1779)
+- Resolve project paths containing glob metacharacters as literals (#1777)
 ## [1.0.1](https://github.com/PLC-lang/rusty/releases/tag/v1.0.1) - 2026-06-09
 
 ### Fixed
