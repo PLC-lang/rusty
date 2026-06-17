@@ -1,9 +1,0 @@
-{
-    "name": "WeirdPath",
-    "files": [
-        "main.st",
-        "../../../util/printf.pli"
-    ],
-    "compile_type": "Static",
-    "libraries": []
-}

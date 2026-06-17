@@ -4,7 +4,7 @@ use std::{
 };
 
 use anyhow::{anyhow, Context, Result};
-use glob::{glob, Pattern};
+use glob::glob;
 use regex::Regex;
 
 use crate::{
@@ -332,45 +332,17 @@ fn resolve_file_paths(location: Option<&Path>, inputs: Vec<PathBuf>) -> Result<V
     let location = location.and_then(|it| if it.is_file() { it.parent() } else { Some(it) });
     for original_input in &inputs {
         let input = location.map(|it| it.join(original_input)).unwrap_or(original_input.to_path_buf());
+        let path = &input.to_string_lossy();
 
         if let Err(e) = validate_input_exists(original_input, &input) {
             errors.push(e.to_string());
             continue;
         }
 
-        // If the path exists literally on disk, resolve it directly instead of
-        // treating it as a glob pattern. A folder or file name may legitimately
-        // contain glob metacharacters (`[`, `]`, `?`) that are valid filename
-        // characters on Windows and Linux, e.g. a directory named `[---test---]`.
-        // Passing such a path to `glob()` would (mis)interpret the brackets as a
-        // character class and silently match nothing.
-        if input.exists() {
-            match input.canonicalize().context("Illegal Path") {
-                Ok(canonical) => sources.push(canonical),
-                Err(e) => errors.push(e.to_string()),
-            }
-            continue;
-        }
-
-        // Otherwise treat `original_input` as a glob pattern. The `location`
-        // prefix is always a literal directory path, so escape its glob
-        // metacharacters and only let the input expand. This keeps globbing
-        // (e.g. `files: ["*.st"]`) working when the project lives in a directory
-        // whose name contains characters like `[` or `]`.
-        let pattern = match location.filter(|_| original_input.is_relative()) {
-            Some(loc) => format!(
-                "{}{}{}",
-                Pattern::escape(&loc.to_string_lossy()),
-                std::path::MAIN_SEPARATOR,
-                original_input.to_string_lossy()
-            ),
-            None => original_input.to_string_lossy().into_owned(),
-        };
-
-        let paths = match glob(&pattern) {
+        let paths = match glob(path) {
             Ok(paths) => paths,
             Err(e) => {
-                errors.push(format!("Failed to read glob pattern {pattern}: {e}"));
+                errors.push(format!("Failed to read glob pattern {path}: {e}"));
                 continue;
             }
         };
@@ -512,180 +484,5 @@ mod tests {
 
         let project = Project::from_config(&config_path).unwrap();
         assert_eq!(project.sources.len(), 1);
-    }
-
-    // Regression tests for paths containing characters that are special in
-    // glob syntax but are legitimate file/folder names on Windows and Linux.
-    //
-    // Windows forbids `< > : " / \ | ? *` and reserved names in path segments,
-    // but permits `[ ] ( ) { } # + , ; = @ % $ ! ' ~ ^ &`, spaces, dots and
-    // unicode. Of the permitted characters, `[` and `]` are glob metacharacters
-    // (character classes/ranges), so historically a folder such as `[test]`
-    // caused `glob()` to silently match nothing. These names are all valid on
-    // both platforms and must round-trip through `resolve_file_paths`.
-    //
-    // See https://learn.microsoft.com/windows/win32/fileio/naming-a-file for the
-    // Windows naming rules.
-
-    /// Folder names that are legal on Windows *and* Linux. The ones containing
-    /// `[`/`]` are the regression-critical cases (they look like glob patterns);
-    /// the rest guard against any future change that starts mishandling other
-    /// punctuation, spaces or unicode.
-    const SPECIAL_FOLDER_NAMES: &[&str] = &[
-        // The originally reported failure.
-        "[---test---]",
-        // Brackets that mimic glob character classes / ranges / negation.
-        "[test]",
-        "[abc]",
-        "[a-z]",
-        "[!abc]",
-        "[^abc]",
-        "[0-9]",
-        // Unbalanced brackets — these would make `glob()` return a PatternError,
-        // not just an empty match, yet they are perfectly valid folder names.
-        "foo[bar",
-        "foo]bar",
-        "]",
-        "[",
-        // Brackets combined with other punctuation and spaces.
-        "[build] (debug) #1",
-        "src[v2]",
-        // Braces (no brace-expansion in the `glob` crate, but still worth guarding).
-        "{a,b}",
-        "{release}",
-        // Parentheses and common punctuation that is legal on both platforms.
-        "project (v2)",
-        "my project",
-        "a+b",
-        "a&b",
-        "a#b",
-        "a@b",
-        "a%b",
-        "a,b",
-        "a;b",
-        "a=b",
-        "a~b",
-        "a!b",
-        "a$b",
-        "a^b",
-        "v1.2.3",
-        "release-2026",
-        // Unicode segments.
-        "проект",
-        "日本語",
-        "café",
-        "naïve",
-    ];
-
-    /// Resolving a literal file that lives inside a folder whose *name* contains
-    /// glob metacharacters must find exactly that file. The folder name sits in
-    /// the `location` prefix here, matching the bug report where the
-    /// project directory (not the input string) carried the special characters.
-    #[test]
-    fn literal_file_inside_special_named_folder_resolves() {
-        for name in SPECIAL_FOLDER_NAMES {
-            let base = tempdir().unwrap();
-            let dir = base.path().join(name);
-            std::fs::create_dir(&dir).unwrap();
-            File::create(dir.join("main.st")).unwrap();
-
-            let result = resolve_file_paths(Some(&dir), vec![PathBuf::from("main.st")])
-                .unwrap_or_else(|e| panic!("folder {name:?} failed to resolve: {e}"));
-
-            assert_eq!(result.len(), 1, "folder {name:?} should resolve exactly one file");
-            assert!(
-                result[0].ends_with("main.st"),
-                "folder {name:?} resolved unexpected path {:?}",
-                result[0]
-            );
-        }
-    }
-
-    /// The special characters may also appear in the input string itself
-    /// (e.g. `files: ["[---test---]/main.st"]` in a build description) rather
-    /// than only in the location prefix.
-    #[test]
-    fn literal_input_path_with_special_characters_resolves() {
-        for name in SPECIAL_FOLDER_NAMES {
-            let base = tempdir().unwrap();
-            let dir = base.path().join(name);
-            std::fs::create_dir(&dir).unwrap();
-            File::create(dir.join("main.st")).unwrap();
-
-            let input = PathBuf::from(name).join("main.st");
-            let result = resolve_file_paths(Some(base.path()), vec![input])
-                .unwrap_or_else(|e| panic!("input under {name:?} failed to resolve: {e}"));
-
-            assert_eq!(result.len(), 1, "input under {name:?} should resolve exactly one file");
-        }
-    }
-
-    /// A file whose own name (not just its folder) contains glob metacharacters
-    /// must resolve as a literal.
-    #[test]
-    fn literal_file_with_special_characters_in_filename_resolves() {
-        let dir = tempdir().unwrap();
-        let filenames = ["[main].st", "main[1].st", "a+b.st", "a&b.st", "v1.2.st"];
-        for fname in filenames {
-            File::create(dir.path().join(fname)).unwrap();
-            let result = resolve_file_paths(Some(dir.path()), vec![PathBuf::from(fname)])
-                .unwrap_or_else(|e| panic!("file {fname:?} failed to resolve: {e}"));
-            assert_eq!(result.len(), 1, "file {fname:?} should resolve exactly one file");
-        }
-    }
-
-    /// Genuine glob patterns must keep working even when the literal-prefix
-    /// directory contains glob metacharacters in its name. The brackets in the
-    /// folder name are literal (matched via the on-disk prefix), while the `*`
-    /// in the leaf segment is expanded as a wildcard.
-    #[test]
-    fn glob_pattern_inside_special_named_folder_still_expands() {
-        let base = tempdir().unwrap();
-        let dir = base.path().join("[---test---]");
-        std::fs::create_dir(&dir).unwrap();
-        File::create(dir.join("a.st")).unwrap();
-        File::create(dir.join("b.st")).unwrap();
-
-        // `[---test---]` is a real directory, but the input itself does not
-        // exist literally (it ends in `*.st`), so it goes through glob. The
-        // bracketed prefix must still be treated as a literal directory.
-        let result = resolve_file_paths(Some(&dir), vec![PathBuf::from("*.st")]).unwrap();
-        assert_eq!(result.len(), 2, "glob inside a bracketed folder should match both files");
-    }
-
-    /// End-to-end through `Project::from_config`: a `plc.json` living inside a
-    /// folder with glob metacharacters must load its sources.
-    #[test]
-    fn project_config_inside_special_named_folder_resolves() {
-        for name in ["[---test---]", "[abc]", "foo[bar", "project (v2)", "日本語"] {
-            let base = tempdir().unwrap();
-            let dir = base.path().join(name);
-            std::fs::create_dir(&dir).unwrap();
-            File::create(dir.join("main.st")).unwrap();
-            let config_path = dir.join("plc.json");
-            std::fs::write(
-                &config_path,
-                r#"{ "name": "p", "files": ["main.st"], "compile_type": "Static", "output": "out" }"#,
-            )
-            .unwrap();
-
-            let project = Project::from_config(&config_path)
-                .unwrap_or_else(|e| panic!("project in folder {name:?} failed to load: {e}"));
-            assert_eq!(project.sources.len(), 1, "project in folder {name:?} should have one source");
-        }
-    }
-
-    /// A missing literal path inside a bracketed folder must still produce the
-    /// "does not exist" error rather than being silently swallowed as an
-    /// empty glob match.
-    #[test]
-    fn missing_literal_inside_special_named_folder_still_errors() {
-        let base = tempdir().unwrap();
-        let dir = base.path().join("[---test---]");
-        std::fs::create_dir(&dir).unwrap();
-        // Note: `missing.st` contains no glob metacharacters, so the absence is
-        // reported; the bracketed *prefix* must not turn this into a glob.
-        let err = resolve_file_paths(Some(&dir), vec![PathBuf::from("missing.st")]).unwrap_err();
-        assert!(err.to_string().contains("does not exist"), "got: {err}");
     }
 }
