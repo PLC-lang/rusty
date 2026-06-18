@@ -1,9 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::{collections::VecDeque, hash::BuildHasherDefault};
+use std::collections::VecDeque;
 
 use itertools::Itertools;
-use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
+use rustc_hash::{FxHashMap, FxHashSet};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding,
@@ -34,11 +34,7 @@ pub mod symbol;
 #[cfg(test)]
 mod tests;
 
-/// Type alias for an IndexMap using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
-pub type FxIndexMap<K, V> = indexmap::IndexMap<K, V, BuildHasherDefault<FxHasher>>;
-
-/// Type alias for a IndexSet using the `fx` hashing algorithm, see https://github.com/rust-lang/rustc-hash
-pub type FxIndexSet<K> = indexmap::IndexSet<K, BuildHasherDefault<FxHasher>>;
+pub use plc_util::hash::{FxIndexMap, FxIndexSet};
 
 /// A label represents a possible jump point in the source.
 /// It can be referenced by jump elements in the same unit

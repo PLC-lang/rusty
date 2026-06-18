@@ -10,7 +10,7 @@ use pretty_assertions::assert_eq;
 use rustc_hash::FxHashMap;
 
 use crate::index::{ArgumentType, PouIndexEntry, VariableIndexEntry};
-use crate::parser::tests::literal_int;
+use crate::test_utils::tests::literal_int;
 use crate::test_utils::tests::{annotate_with_ids, index, index_with_ids, parse_and_preprocess};
 use crate::typesystem::{InternalType, StructSource, TypeSize, INT_TYPE, VOID_TYPE};
 use crate::{index::VariableType, typesystem::DataTypeInformation};
@@ -956,8 +956,8 @@ fn global_initializers_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
+    let (mut ast, ..) = plc_parser::parser::parse(
+        plc_parser::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
         LinkageType::Internal,
         "test.st",
     );
@@ -998,8 +998,8 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
+    let (mut ast, ..) = plc_parser::parser::parse(
+        plc_parser::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
         LinkageType::Internal,
         "test.st",
     );
@@ -1034,8 +1034,8 @@ fn datatype_initializers_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
+    let (mut ast, ..) = plc_parser::parser::parse(
+        plc_parser::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
         LinkageType::Internal,
         "test.st",
     );
@@ -1061,8 +1061,8 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
+    let (mut ast, ..) = plc_parser::parser::parse(
+        plc_parser::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
         LinkageType::Internal,
         "test.st",
     );
@@ -1093,9 +1093,9 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         format!(
             "{:#?}",
             AstFactory::create_binary_expression(
-                crate::parser::tests::ref_to("LEN"),
+                crate::test_utils::tests::ref_to("LEN"),
                 Operator::Minus,
-                crate::parser::tests::literal_int(1),
+                crate::test_utils::tests::literal_int(1),
                 0
             )
         ),
@@ -1118,9 +1118,9 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
         })
         .unwrap();
 
-    assert_eq!(format!("{:#?}", crate::parser::tests::ref_to("MIN")), format!("{start_1:#?}"));
+    assert_eq!(format!("{:#?}", crate::test_utils::tests::ref_to("MIN")), format!("{start_1:#?}"));
 
-    assert_eq!(format!("{:#?}", crate::parser::tests::ref_to("MAX")), format!("{end_1:#?}"));
+    assert_eq!(format!("{:#?}", crate::test_utils::tests::ref_to("MAX")), format!("{end_1:#?}"));
 }
 
 #[test]
@@ -1131,8 +1131,8 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
         ";
     // WHEN the program is indexed
     let ids = IdProvider::default();
-    let (mut ast, ..) = crate::parser::parse(
-        crate::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
+    let (mut ast, ..) = plc_parser::parser::parse(
+        plc_parser::lexer::lex_with_ids(src, ids.clone(), SourceLocationFactory::internal(src)),
         LinkageType::Internal,
         "test.st",
     );

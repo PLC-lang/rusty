@@ -37,11 +37,9 @@ pub mod expression_path;
 pub mod hardware_binding;
 pub mod hw_map;
 pub mod index;
-pub mod lexer;
 pub mod linker;
 pub mod lowering;
 pub mod output;
-pub mod parser;
 pub mod resolver;
 mod test_utils;
 
