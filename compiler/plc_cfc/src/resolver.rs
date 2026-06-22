@@ -56,7 +56,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use crate::model::{Block, DataSource, FbdObject, OutputVariable, Pou};
+use crate::model::{Block, CommonObject, DataSource, FbdObject, OutputVariable, Pou};
 
 #[derive(Debug)]
 pub struct Resolver {
@@ -67,6 +67,11 @@ pub struct Resolver {
     /// pin. A block output whose id is absent here feeds nothing, so it can be lowered as an
     /// empty `param => ` rather than a temp no one reads (see [`Resolver::is_consumed`]).
     consumed: HashSet<u64>,
+
+    /// Maps a continuation's output `connectionPointOutId` to the wire feeding the connector of
+    /// the same label, so a named virtual wire (a connector/continuation pair) resolves to its
+    /// real producer (see [`Resolver::resolve_alias`]).
+    aliases: HashMap<u64, u64>,
 }
 
 #[derive(Debug)]
@@ -79,8 +84,10 @@ impl Resolver {
     pub fn index(pou: &Pou) -> Resolver {
         let mut sources = HashMap::new();
         let mut consumed = HashSet::new();
+        let mut aliases = HashMap::new();
 
-        for object in &pou.get_network().expect("todo error handling").objects {
+        let network = pou.get_network().expect("todo error handling");
+        for object in &network.objects {
             match object {
                 // A "producing" variable, e.g. `foo --> <other element>`
                 FbdObject::DataSource(source) => {
@@ -127,7 +134,32 @@ impl Resolver {
             };
         }
 
-        Resolver { sources, consumed }
+        // Connector/continuation pairs form named virtual wires. A connector names the wire feeding
+        // it; a continuation of the same label re-emits that wire elsewhere. Resolve each pair into
+        // an alias from the continuation's output id to the wire the connector consumes, so a
+        // downstream reader resolves straight through to the real producer.
+        let mut connector_inputs: HashMap<&str, u64> = HashMap::new();
+        for common in &network.common_objects {
+            if let CommonObject::Connector(connector) = common {
+                if let Some(id) = connector.get_referenced_argument_id() {
+                    connector_inputs.insert(&connector.label, id);
+                    consumed.insert(id); // the connector consumes the wire it names
+                }
+            }
+        }
+
+        for common in &network.common_objects {
+            if let CommonObject::Continuation(continuation) = common {
+                if let (Some(&in_id), Some(out_id) ) = (
+                    connector_inputs.get(continuation.label.as_str()),
+                    continuation.get_connection_point_out_id(),
+                ) {
+                    aliases.insert(out_id, in_id);
+                }
+            }
+        }
+
+        Resolver { sources, consumed, aliases }
     }
 
     pub fn get(&self, id: u64) -> Option<&Object> {
@@ -138,6 +170,21 @@ impl Resolver {
     /// block input/in-out pin. A block output that is *not* consumed feeds nothing.
     pub fn is_consumed(&self, id: u64) -> bool {
         self.consumed.contains(&id)
+    }
+
+    /// Follows connector/continuation aliases to the real producing wire, transitively (a
+    /// connector may itself be fed by another continuation). A wire that is not a continuation
+    /// output is returned unchanged.
+    ///
+    /// Panics on a cyclic chain; proper diagnostics are deferred until this crate gains an error
+    /// story.
+    pub fn resolve_alias(&self, mut id: u64) -> u64 {
+        let mut visited = HashSet::new();
+        while let Some(&next) = self.aliases.get(&id) {
+            assert!(visited.insert(id), "cyclic connector/continuation chain at wire {id}");
+            id = next;
+        }
+        id
     }
 }
 
@@ -463,5 +510,54 @@ mod tests {
         let Object::Variable(input) = resolver.get(2).unwrap() else { panic!() };
         assert_eq!(input.identifier, "input");
         assert!(resolver.is_consumed(2)); // input feeds the sink
+    }
+
+    #[test]
+    fn connector_continuation() {
+        let xml = include_str!("../fixtures/connector_continuation/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::index(&deserialized);
+
+        // The block's result is the only real source; the connector/continuation are not.
+        assert_eq!(resolver.sources.len(), 1);
+        let Object::BlockOutput(block, _) = resolver.get(12).unwrap() else { panic!() };
+        assert_eq!(block.type_name, "alwaysFive");
+
+        // The connector consumes the block's result (so it still earns a temp), and the
+        // continuation's output (7) aliases through to it.
+        assert!(resolver.is_consumed(12));
+        assert_eq!(resolver.resolve_alias(7), 12);
+    }
+
+    #[test]
+    fn connector_continuation_chain() {
+        let xml = include_str!("../fixtures/connector_continuation_chain/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::index(&deserialized);
+
+        // Only alwaysFive's result is a real source.
+        assert_eq!(resolver.sources.len(), 1);
+        let Object::BlockOutput(block, _) = resolver.get(10).unwrap() else { panic!() };
+        assert_eq!(block.type_name, "alwaysFive");
+        assert!(resolver.is_consumed(10));
+
+        // Every hop resolves transitively back to the producer (wire 10).
+        assert_eq!(resolver.resolve_alias(11), 10); // continuation a
+        assert_eq!(resolver.resolve_alias(12), 10); // continuation b
+        assert_eq!(resolver.resolve_alias(13), 10); // continuation c
+        assert_eq!(resolver.resolve_alias(14), 10); // continuation d (the sink's wire)
+    }
+
+    // TODO: a cyclic chain currently panics; once this crate has an error story it should yield a
+    // proper diagnostic instead (cf. plc_xml's E085). The test pins the present behaviour.
+    #[test]
+    #[should_panic(expected = "cyclic connector/continuation chain")]
+    fn connector_continuation_cycle() {
+        let xml = include_str!("../fixtures/connector_continuation_cycle/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::index(&deserialized);
+
+        // x → y → x → ... never terminates.
+        resolver.resolve_alias(10);
     }
 }

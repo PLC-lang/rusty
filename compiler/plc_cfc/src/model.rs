@@ -672,6 +672,21 @@ impl Return {
     }
 }
 
+impl Connector {
+    /// The `connectionPointOutId` feeding this connector — the wire it names — or `None` when it
+    /// is unconnected (see [`InputVariable::get_referenced_argument_id`]).
+    pub fn get_referenced_argument_id(&self) -> Option<u64> {
+        self.connection_point_in.as_ref()?.connections.first().map(|c| c.ref_connection_point_out_id)
+    }
+}
+
+impl Continuation {
+    /// The `connectionPointOutId` this continuation re-emits, or `None` when it has no output pin.
+    pub fn get_connection_point_out_id(&self) -> Option<u64> {
+        Some(self.connection_point_out.as_ref()?.id)
+    }
+}
+
 impl InputVariable {
     /// The `connectionPointOutId` feeding this pin, or `None` when the pin is unconnected — either
     /// because it has no `ConnectionPointIn` or because that pin carries no `Connection`. (The IDE

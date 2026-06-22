@@ -235,6 +235,9 @@ impl Transpiler {
 
     /// Resolves the value on a wire (its `connectionPointOutId`) to an AST expression.
     fn resolve(&mut self, id: u64, location: &SourceLocation) -> AstNode {
+        // Follow connector/continuation aliases so a named virtual wire resolves to its producer.
+        let id = self.resolver.resolve_alias(id);
+
         // A block output already evaluated into a temp: reference that temp.
         if let Some(temp) = self.temps.get(&id).cloned() {
             return self.reference(&temp, location);
@@ -898,6 +901,58 @@ mod tests {
             RETURN;
         END_PROGRAM
         ");
+    }
+
+    #[test]
+    fn connector_continuation() {
+        //    +-- alwaysFive --+ (0)
+        //    |      alwaysFive|--(12)-->[ Connector "five" ]
+        //    +----------------+
+        //                       [ Continuation "five" ]--(7)-->  result  (1)
+        //
+        //    "five"    the label matching the connector to the continuation
+        //    (0),(1)   evaluation-priority badges shown by the IDE
+        //
+        // The connector/continuation pair is a named virtual wire that resolves away: `result`
+        // reads it straight through to alwaysFive's result, exactly as a direct wire would.
+        let xml = include_str!("../fixtures/connector_continuation/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @r"
+        PROGRAM mainProgram
+        VAR
+            result : DINT;
+        END_VAR
+            temp_0 := alwaysFive();
+            result := temp_0;
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn connector_continuation_chain() {
+        // alwaysFive --(10)--> [Conn a]~[Cont a] --(11)--> [Conn b]~[Cont b] --(12)-->
+        //   [Conn c]~[Cont c] --(13)--> [Conn d]~[Cont d] --(14)--> result
+        //
+        // Four named virtual wires linked end to end. The chain resolves transitively to the one
+        // real producer, collapsing to a direct wire.
+        let xml = include_str!("../fixtures/connector_continuation_chain/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @r"
+        PROGRAM mainProgram
+        VAR
+            result : DINT;
+        END_VAR
+            temp_0 := alwaysFive();
+            result := temp_0;
+        END_PROGRAM
+        ");
+    }
+
+    // TODO: a cyclic connector/continuation chain currently panics; once this crate has an error
+    // story it should yield a proper diagnostic instead (cf. plc_xml's E085). Pins the behaviour.
+    #[test]
+    #[should_panic(expected = "cyclic connector/continuation chain")]
+    fn connector_continuation_cycle() {
+        let xml = include_str!("../fixtures/connector_continuation_cycle/mainProgram.cfc");
+        transpile(xml);
     }
 
     // A CFC block can target an ACTION, which is called in ST as `instance.action()`. The
