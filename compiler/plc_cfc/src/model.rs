@@ -177,6 +177,8 @@ pub struct Data {
     pub text_declaration: Option<TextDeclaration>,
     #[serde(rename = "EvaluationPriority")]
     pub evaluation_priority: Option<EvaluationPriority>,
+    #[serde(rename = "negated")]
+    pub negated: Option<Negated>,
 }
 
 /// Vendor extension (`AddData_EvaluationPriority.xsd`): explicit evaluation
@@ -187,6 +189,14 @@ pub struct Data {
 pub struct EvaluationPriority {
     #[serde(rename = "@priorityInNetwork")]
     pub priority_in_network: Option<u64>,
+}
+
+/// Vendor extension: whether a control object's condition wire is negated. A negated `Return`
+/// triggers when its wired condition is *false* (the condition is wrapped in `NOT`).
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct Negated {
+    #[serde(rename = "@value")]
+    pub value: bool,
 }
 
 /// Vendor extension: the POU interface as ST source text.
@@ -483,6 +493,8 @@ pub struct Jump {
 pub struct Return {
     #[serde(rename = "@globalId")]
     pub global_id: Option<u64>,
+    #[serde(rename = "AddData")]
+    pub add_data: Option<AddData>,
     #[serde(rename = "RelPosition")]
     pub rel_position: Option<XyValue>,
     #[serde(rename = "Size")]
@@ -596,6 +608,11 @@ impl AddData {
     fn priority(&self) -> Option<u64> {
         self.data.iter().find_map(|data| data.evaluation_priority?.priority_in_network)
     }
+
+    /// Whether the `negated` vendor extension is present and set.
+    fn negated(&self) -> Option<bool> {
+        self.data.iter().find_map(|data| Some(data.negated?.value))
+    }
 }
 
 impl Block {
@@ -634,6 +651,24 @@ impl DataSink {
     /// This sink's evaluation priority within its network (see [`Block::get_priority`]).
     pub fn get_priority(&self) -> Option<u64> {
         self.add_data.as_ref()?.priority()
+    }
+}
+
+impl Return {
+    /// This return's evaluation priority within its network (see [`Block::get_priority`]).
+    pub fn get_priority(&self) -> Option<u64> {
+        self.add_data.as_ref()?.priority()
+    }
+
+    /// Whether the return's condition is negated (see [`Negated`]); defaults to `false`.
+    pub fn is_negated(&self) -> bool {
+        self.add_data.as_ref().and_then(AddData::negated).unwrap_or(false)
+    }
+
+    /// The `connectionPointOutId` of the return's condition wire, or `None` when it is
+    /// unconnected — an unconditional return (see [`InputVariable::get_referenced_argument_id`]).
+    pub fn get_condition_id(&self) -> Option<u64> {
+        self.connection_point_in.as_ref()?.connections.first().map(|c| c.ref_connection_point_out_id)
     }
 }
 

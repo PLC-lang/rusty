@@ -115,6 +115,13 @@ impl Resolver {
                     }
                 }
 
+                // A return consumes its condition wire, like a sink consumes its value.
+                FbdObject::Return(ret) => {
+                    if let Some(pin) = &ret.connection_point_in {
+                        consumed.extend(pin.connections.iter().map(|c| c.ref_connection_point_out_id));
+                    }
+                }
+
                 // TODO: Support once needed
                 _ => (),
             };
@@ -424,5 +431,37 @@ mod tests {
         assert!(!resolver.is_consumed(8));
         assert!(resolver.is_consumed(9));
         assert!(!resolver.is_consumed(10));
+    }
+
+    #[test]
+    fn conditional_return() {
+        // The two data sources are indexed; the return consumes its condition wire just like the
+        // sink consumes its value.
+        let xml = include_str!("../fixtures/conditional_return/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::index(&deserialized);
+
+        assert_eq!(resolver.sources.len(), 2);
+        let Object::Variable(enable) = resolver.get(2).unwrap() else { panic!() };
+        assert_eq!(enable.identifier, "enable");
+        let Object::Variable(input) = resolver.get(5).unwrap() else { panic!() };
+        assert_eq!(input.identifier, "input");
+
+        assert!(resolver.is_consumed(2)); // enable feeds the return condition
+        assert!(resolver.is_consumed(5)); // input feeds the sink
+    }
+
+    #[test]
+    fn unconditional_return() {
+        // The unconditional return has no condition wire, so it contributes nothing to the index;
+        // only `input` (feeding the sink) is a source.
+        let xml = include_str!("../fixtures/unconditional_return/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::index(&deserialized);
+
+        assert_eq!(resolver.sources.len(), 1);
+        let Object::Variable(input) = resolver.get(2).unwrap() else { panic!() };
+        assert_eq!(input.identifier, "input");
+        assert!(resolver.is_consumed(2)); // input feeds the sink
     }
 }

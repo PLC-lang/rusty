@@ -7,7 +7,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 use crate::{
-    model::{Block, DataSink, FbdObject, Pou},
+    model::{Block, DataSink, FbdObject, Pou, Return},
     resolver::{Object, Resolver},
 };
 
@@ -46,6 +46,7 @@ pub struct Transpiler {
 enum Operation {
     Call(Block),
     Sink(DataSink),
+    Return(Return),
 }
 
 impl Transpiler {
@@ -82,6 +83,7 @@ impl Transpiler {
             match object {
                 FbdObject::Block(block) => operations.push(Operation::Call(block.clone())),
                 FbdObject::DataSink(sink) => operations.push(Operation::Sink(sink.clone())),
+                FbdObject::Return(ret) => operations.push(Operation::Return(ret.clone())),
                 _ => (),
             }
         }
@@ -93,6 +95,7 @@ impl Transpiler {
             match operation {
                 Operation::Call(block) => self.transpile_call(block),
                 Operation::Sink(sink) => self.transpile_sink(sink),
+                Operation::Return(ret) => self.transpile_return(ret),
             }
         }
     }
@@ -179,6 +182,29 @@ impl Transpiler {
 
         let target = self.reference(&sink.identifier, &location);
         self.statements.push(AstFactory::create_assignment(target, value, self.id_provider.next_id()));
+    }
+
+    /// Transpiles a return into a `RETURN` statement. Its optional input wire carries a boolean
+    /// condition: wired means a conditional return (return when the condition holds), unwired means
+    /// unconditional. A negated return inverts the condition, so it returns when the wire is false.
+    fn transpile_return(&mut self, ret: &Return) {
+        let location = self.object_location(ret.global_id, ret.get_priority());
+
+        let condition = match ret.get_condition_id() {
+            Some(id) => {
+                let mut value = self.resolve(id, &location);
+                if ret.is_negated() {
+                    value = value.negate(self.id_provider.clone());
+                }
+
+                Some(value)
+            }
+
+            None => None,
+        };
+
+        let statement = AstFactory::create_return_statement(condition, location, self.id_provider.next_id());
+        self.statements.push(statement);
     }
 }
 
@@ -333,6 +359,7 @@ impl Operation {
         match self {
             Operation::Call(block) => block.get_priority(),
             Operation::Sink(sink) => sink.get_priority(),
+            Operation::Return(ret) => ret.get_priority(),
         }
     }
 }
@@ -820,6 +847,55 @@ mod tests {
             localB := temp_1;
             myFunction(a => temp_2, b => );
             localA := temp_2;
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn conditional_return() {
+        //    enable  --o--->| RETURN |  (0)
+        //
+        //    input   ------>  result    (1)
+        //
+        //    --o-->   a negated condition wire (returns when enable is FALSE)
+        //    (0),(1)  evaluation-priority badges shown by the IDE
+        //
+        // The negated return is emitted first (lower priority); its condition is wrapped in NOT,
+        // and the assignment that follows runs only when the early return did not fire.
+        let xml = include_str!("../fixtures/conditional_return/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @r"
+        PROGRAM mainProgram
+        VAR
+            enable : BOOL;
+            input : DINT;
+            result : DINT;
+        END_VAR
+            IF NOT enable THEN RETURN; END_IF;
+            result := input;
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn unconditional_return() {
+        //    input  ------>  result    (0)
+        //
+        //                   | RETURN |  (1)
+        //
+        //    (no wire into RETURN -> unconditional)
+        //    (0),(1)  evaluation-priority badges shown by the IDE
+        //
+        // A return with no condition wire lowers to a bare `RETURN;`, emitted after the assignment
+        // (its higher priority orders it last).
+        let xml = include_str!("../fixtures/unconditional_return/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @r"
+        PROGRAM mainProgram
+        VAR
+            input : DINT;
+            result : DINT;
+        END_VAR
+            result := input;
+            RETURN;
         END_PROGRAM
         ");
     }

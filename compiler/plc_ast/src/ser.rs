@@ -526,9 +526,17 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_return_statement(&mut self, stmt: &ReturnStatement, _node: &AstNode) {
-        self.result.push_str("RETURN");
-        stmt.walk(self);
-        self.result.push(';');
+        // A bare `RETURN`, or — when the node carries a condition (e.g. a CFC conditional return)
+        // — the equivalent guarded return. No trailing `;`; like the other control-flow
+        // statements, the statement-list formatter appends it.
+        match &stmt.condition {
+            Some(condition) => {
+                self.result.push_str("IF ");
+                condition.walk(self);
+                self.result.push_str(" THEN RETURN; END_IF");
+            }
+            None => self.result.push_str("RETURN"),
+        }
     }
 
     fn visit_jump_statement(&mut self, stmt: &JumpStatement, _node: &AstNode) {
