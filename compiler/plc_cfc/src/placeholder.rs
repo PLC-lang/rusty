@@ -1,4 +1,4 @@
-//! Typing of the synthetic `temp_N` variables the transpiler introduces for block outputs.
+//! Typing of the synthetic `__temp_N` variables the transpiler introduces for block outputs.
 //!
 //! A temp's type is the return type of a called function or the type of a called POU's output pin —
 //! both live in *another* POU's signature, unknown while a `.cfc` is parsed on its own. The
@@ -113,13 +113,13 @@ mod tests {
         index
     }
 
-    /// A scaffold POU hosting a single `VAR_TEMP temp_0` of the given placeholder type — the shape the
+    /// A scaffold POU hosting a single `VAR_TEMP __temp_0` of the given placeholder type — the shape the
     /// transpiler emits. The placeholder can't be written in ST text (the `@` isn't a valid type name),
     /// so it is injected directly.
     fn unit_with_temp(placeholder: String) -> CompilationUnit {
         let mut unit = parse_st("PROGRAM main\nEND_PROGRAM");
         unit.pous[0].variable_blocks.push(VariableBlock::temp(vec![Variable {
-            name: "temp_0".into(),
+            name: "__temp_0".into(),
             data_type_declaration: DataTypeDeclaration::Reference {
                 referenced_type: placeholder,
                 location: SourceLocation::undefined(),
@@ -131,7 +131,7 @@ mod tests {
         unit
     }
 
-    /// The resolved type name of the injected `temp_0`.
+    /// The resolved type name of the injected `__temp_0`.
     fn temp_type(unit: &CompilationUnit) -> Option<&str> {
         unit.pous[0].variable_blocks.last()?.variables[0].data_type_declaration.get_referenced_type()
     }

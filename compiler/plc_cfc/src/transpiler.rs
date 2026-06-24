@@ -26,9 +26,9 @@ pub struct Transpiler {
     /// consumers we evaluate it once into a temp and let the consumers reference
     /// that temp, i.e.
     /// ```text
-    /// temp_0 := producer(...);
-    /// consumer_a(in := temp_0, ...);
-    /// consumer_b(in := temp_0, ...);
+    /// __temp_0 := producer(...);
+    /// consumer_a(in := __temp_0, ...);
+    /// consumer_b(in := __temp_0, ...);
     /// ```
     /// rather than inlining `producer(...)` into each consumer (which would call
     /// it once per consumer). The values here are exactly the temps that need a
@@ -277,11 +277,11 @@ impl Transpiler {
         ))
     }
 
-    /// A fresh `temp_N`, recorded under `id` so consumers of that wire resolve to it, and declared
+    /// A fresh `__temp_N`, recorded under `id` so consumers of that wire resolve to it, and declared
     /// (in `temp_variables`) with the given `placeholder` type that a post-index pass later resolves.
     fn create_temp(&mut self, id: u64, placeholder: String) -> String {
         // The index is the count of temps created so far — named before the push below.
-        let temp = format!("temp_{}", self.temp_variables.len());
+        let temp = format!("__temp_{}", self.temp_variables.len());
         self.temps.insert(id, temp.clone());
         self.temp_variables.push(create_internal_variable(&temp, placeholder));
         temp
@@ -424,7 +424,7 @@ mod tests {
         //
         //    (1),(2)  evaluation-priority badges shown by the IDE
         //
-        // The block is evaluated once into `temp_0`; the sink then assigns it.
+        // The block is evaluated once into `__temp_0`; the sink then assigns it.
         let xml = include_str!("../fixtures/function_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -434,10 +434,10 @@ mod tests {
             localResult : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@myAdd;
+            __temp_0 : __return@myAdd;
         END_VAR
-            temp_0 := myAdd(in1 := localA, in2 := localB);
-            localResult := temp_0;
+            __temp_0 := myAdd(in1 := localA, in2 := localB);
+            localResult := __temp_0;
         END_PROGRAM
         ");
     }
@@ -451,7 +451,7 @@ mod tests {
         //
         //    (1),(2),(3)  evaluation-priority badges shown by the IDE
         //
-        // The shared result is evaluated once into `temp_0`; both sinks then read it.
+        // The shared result is evaluated once into `__temp_0`; both sinks then read it.
         let xml = include_str!("../fixtures/shared_result/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -462,11 +462,11 @@ mod tests {
             localResultB : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@myAdd;
+            __temp_0 : __return@myAdd;
         END_VAR
-            temp_0 := myAdd(in1 := localA, in2 := localB);
-            localResultA := temp_0;
-            localResultB := temp_0;
+            __temp_0 := myAdd(in1 := localA, in2 := localB);
+            localResultA := __temp_0;
+            localResultB := __temp_0;
         END_PROGRAM
         ");
     }
@@ -481,7 +481,7 @@ mod tests {
         //
         //    (2),(3),(4)  evaluation-priority badges shown by the IDE
         //
-        // myAdd's result feeds myMul, so it goes through `temp_0` (a block output consumed
+        // myAdd's result feeds myMul, so it goes through `__temp_0` (a block output consumed
         // by another block always needs a temp); `localB` feeds both blocks.
         let xml = include_str!("../fixtures/chained_calls/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
@@ -492,12 +492,12 @@ mod tests {
             localResultA : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@myAdd;
-            temp_1 : __return@myMul;
+            __temp_0 : __return@myAdd;
+            __temp_1 : __return@myMul;
         END_VAR
-            temp_0 := myAdd(in1 := localA, in2 := localB);
-            temp_1 := myMul(IN1 := temp_0, IN2 := localB);
-            localResultA := temp_1;
+            __temp_0 := myAdd(in1 := localA, in2 := localB);
+            __temp_1 := myMul(IN1 := __temp_0, IN2 := localB);
+            localResultA := __temp_1;
         END_PROGRAM
         ");
     }
@@ -518,10 +518,10 @@ mod tests {
             localResult : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@getOffset;
+            __temp_0 : __return@getOffset;
         END_VAR
-            temp_0 := getOffset();
-            localResult := temp_0;
+            __temp_0 := getOffset();
+            localResult := __temp_0;
         END_PROGRAM
         ");
     }
@@ -553,13 +553,13 @@ mod tests {
             resultAdd : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@myMul;
-            temp_1 : __return@myAdd;
+            __temp_0 : __return@myMul;
+            __temp_1 : __return@myAdd;
         END_VAR
-            temp_0 := myMul(in1 := localA, in2 := localB);
-            resultMul := temp_0;
-            temp_1 := myAdd(in1 := localC, in2 := localD);
-            resultAdd := temp_1;
+            __temp_0 := myMul(in1 := localA, in2 := localB);
+            resultMul := __temp_0;
+            __temp_1 := myAdd(in1 := localC, in2 := localD);
+            resultAdd := __temp_1;
         END_PROGRAM
         ");
     }
@@ -582,10 +582,10 @@ mod tests {
             localResult : BOOL;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@myGate;
+            __temp_0 : __return@myGate;
         END_VAR
-            temp_0 := myGate(a := NOT localA, b := localB);
-            localResult := temp_0;
+            __temp_0 := myGate(a := NOT localA, b := localB);
+            localResult := __temp_0;
         END_PROGRAM
         ");
     }
@@ -609,10 +609,10 @@ mod tests {
             localResult : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@accumulate;
+            __temp_0 : __return@accumulate;
         END_VAR
-            temp_0 := accumulate(value := localValue, sum := localSum);
-            localResult := temp_0;
+            __temp_0 := accumulate(value := localValue, sum := localSum);
+            localResult := __temp_0;
         END_PROGRAM
         ");
     }
@@ -636,10 +636,10 @@ mod tests {
             localResult : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@myAdd;
+            __temp_0 : __return@myAdd;
         END_VAR
-            temp_0 := myAdd(in1 := localA, in2 := 100);
-            localResult := temp_0;
+            __temp_0 := myAdd(in1 := localA, in2 := 100);
+            localResult := __temp_0;
         END_PROGRAM
         ");
     }
@@ -652,7 +652,7 @@ mod tests {
         //               +-----------------+
         //
         // The transpiled POU is a FUNCTION; its result is a sink named after the function,
-        // so it lowers to `myFunc := temp_0` inside `FUNCTION myFunc ... END_FUNCTION`.
+        // so it lowers to `myFunc := __temp_0` inside `FUNCTION myFunc ... END_FUNCTION`.
         let xml = include_str!("../fixtures/function_pou/myFunc.cfc");
         assert_snapshot!(transpile(xml), @r"
         FUNCTION myFunc : DINT
@@ -661,10 +661,10 @@ mod tests {
             b : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@myAdd;
+            __temp_0 : __return@myAdd;
         END_VAR
-            temp_0 := myAdd(in1 := a, in2 := b);
-            myFunc := temp_0;
+            __temp_0 := myAdd(in1 := a, in2 := b);
+            myFunc := __temp_0;
         END_FUNCTION
         ");
     }
@@ -677,7 +677,7 @@ mod tests {
         //               +-----------------+
         //
         // The transpiled POU is a FUNCTION_BLOCK; its VAR_OUTPUT is a sink named after the
-        // output, so it lowers to `sum := temp_0` inside `FUNCTION_BLOCK myFb ... END_FUNCTION_BLOCK`.
+        // output, so it lowers to `sum := __temp_0` inside `FUNCTION_BLOCK myFb ... END_FUNCTION_BLOCK`.
         let xml = include_str!("../fixtures/function_block_pou/myFb.cfc");
         assert_snapshot!(transpile(xml), @r"
         FUNCTION_BLOCK myFb
@@ -689,10 +689,10 @@ mod tests {
             sum : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@myAdd;
+            __temp_0 : __return@myAdd;
         END_VAR
-            temp_0 := myAdd(in1 := a, in2 := b);
-            sum := temp_0;
+            __temp_0 := myAdd(in1 := a, in2 := b);
+            sum := __temp_0;
         END_FUNCTION_BLOCK
         ");
     }
@@ -716,10 +716,10 @@ mod tests {
             localCount : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __output@Counter@count;
+            __temp_0 : __output@Counter@count;
         END_VAR
-            myInstance(step := localStep, count => temp_0);
-            localCount := temp_0;
+            myInstance(step := localStep, count => __temp_0);
+            localCount := __temp_0;
         END_PROGRAM
         ");
     }
@@ -742,10 +742,10 @@ mod tests {
             localTotal : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __output@auxProgram@total;
+            __temp_0 : __output@auxProgram@total;
         END_VAR
-            auxProgram(increment := localIncrement, total => temp_0);
-            localTotal := temp_0;
+            auxProgram(increment := localIncrement, total => __temp_0);
+            localTotal := __temp_0;
         END_PROGRAM
         ");
     }
@@ -771,10 +771,10 @@ mod tests {
             localResult : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@myFunc;
+            __temp_0 : __return@myFunc;
         END_VAR
-            temp_0 := myFunc(a := localA, b := , io := );
-            localResult := temp_0;
+            __temp_0 := myFunc(a := localA, b := , io := );
+            localResult := __temp_0;
         END_PROGRAM
         ");
     }
@@ -843,10 +843,10 @@ mod tests {
             localResult : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@myFunc;
+            __temp_0 : __return@myFunc;
         END_VAR
-            temp_0 := myFunc(a := localA, extra => );
-            localResult := temp_0;
+            __temp_0 := myFunc(a := localA, extra => );
+            localResult := __temp_0;
         END_PROGRAM
         ");
     }
@@ -919,15 +919,15 @@ mod tests {
             localB : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __output@myFunctionBlock@a;
-            temp_1 : __output@myFunctionBlock@c;
-            temp_2 : __output@myFunction@a;
+            __temp_0 : __output@myFunctionBlock@a;
+            __temp_1 : __output@myFunctionBlock@c;
+            __temp_2 : __output@myFunction@a;
         END_VAR
-            myInstance(a => temp_0, b => , c => temp_1);
-            localA := temp_0;
-            localB := temp_1;
-            myFunction(a => temp_2, b => );
-            localA := temp_2;
+            myInstance(a => __temp_0, b => , c => __temp_1);
+            localA := __temp_0;
+            localB := __temp_1;
+            myFunction(a => __temp_2, b => );
+            localA := __temp_2;
         END_PROGRAM
         ");
     }
@@ -1000,10 +1000,10 @@ mod tests {
             result : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@alwaysFive;
+            __temp_0 : __return@alwaysFive;
         END_VAR
-            temp_0 := alwaysFive();
-            result := temp_0;
+            __temp_0 := alwaysFive();
+            result := __temp_0;
         END_PROGRAM
         ");
     }
@@ -1022,10 +1022,10 @@ mod tests {
             result : DINT;
         END_VAR
         VAR_TEMP
-            temp_0 : __return@alwaysFive;
+            __temp_0 : __return@alwaysFive;
         END_VAR
-            temp_0 := alwaysFive();
-            result := temp_0;
+            __temp_0 := alwaysFive();
+            result := __temp_0;
         END_PROGRAM
         ");
     }
