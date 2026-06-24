@@ -3,8 +3,11 @@
 //! this crate follows and how it deviates from the strict standard.
 
 mod model;
+mod placeholder;
 mod resolver;
 mod transpiler;
+
+pub use placeholder::resolve_temp_types;
 
 use ast::ast::{CompilationUnit, LinkageType};
 use ast::provider::IdProvider;

@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use ast::ast::{AstFactory, AstNode, CompilationUnit, LinkageType};
+use ast::ast::{
+    AstFactory, AstNode, CompilationUnit, DataTypeDeclaration, LinkageType, Variable, VariableBlock,
+};
 use ast::provider::IdProvider;
 use plc::{lexer, parser};
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -8,6 +10,7 @@ use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 use crate::{
     model::{Block, DataSink, FbdObject, Pou, Return},
+    placeholder,
     resolver::{Object, Resolver},
 };
 
@@ -38,8 +41,9 @@ pub struct Transpiler {
     id_provider: IdProvider,
     range_factory: SourceLocationFactory,
 
-    /// Running index for the `temp_N` variables introduced for block outputs.
-    temp_counter: usize,
+    /// `VAR_TEMP` declarations for the introduced temps, each carrying a placeholder type that a
+    /// post-index pass rewrites to the real type (see [`crate::placeholder`]).
+    temp_variables: Vec<Variable>,
 }
 
 /// A statement-producing network element, ordered by evaluation priority.
@@ -59,7 +63,7 @@ impl Transpiler {
             temps: HashMap::new(),
             id_provider,
             range_factory,
-            temp_counter: 0,
+            temp_variables: Vec::new(),
         }
     }
 
@@ -67,6 +71,12 @@ impl Transpiler {
         let mut unit = self.parse_declaration();
         self.transpile_network();
         unit.implementations[0].statements = self.statements;
+
+        // Declare the introduced temps in a VAR_TEMP block; their placeholder types are resolved to
+        // real types after indexing (see `placeholder`).
+        if !self.temp_variables.is_empty() {
+            unit.pous[0].variable_blocks.push(VariableBlock::temp(self.temp_variables));
+        }
 
         Ok(unit)
     }
@@ -137,7 +147,8 @@ impl Transpiler {
             // call stands alone (a function may be called purely for its VAR_OUTPUT pins).
             if output.parameter_name == block.type_name {
                 if self.resolver.is_consumed(id) {
-                    return_value = Some(self.create_temp(id));
+                    return_value =
+                        Some(self.create_temp(id, placeholder::return_placeholder(&block.type_name)));
                 }
                 continue;
             }
@@ -148,7 +159,8 @@ impl Transpiler {
             // feeds nothing, it is emitted with an empty value (`param => `) instead — mirroring an
             // unconnected input, with no temp left for no one to read.
             arguments.push(if self.resolver.is_consumed(id) {
-                let temp = self.create_temp(id);
+                let temp = self
+                    .create_temp(id, placeholder::output_placeholder(&block.type_name, &output.parameter_name));
                 self.output_argument(&output.parameter_name, &temp, &location)
             } else {
                 self.empty_output_argument(&output.parameter_name, &location)
@@ -265,11 +277,13 @@ impl Transpiler {
         ))
     }
 
-    /// A fresh `temp_N`, recorded under `id` so consumers of that wire resolve to it.
-    fn create_temp(&mut self, id: u64) -> String {
-        let temp = format!("temp_{}", self.temp_counter);
-        self.temp_counter += 1;
+    /// A fresh `temp_N`, recorded under `id` so consumers of that wire resolve to it, and declared
+    /// (in `temp_variables`) with the given `placeholder` type that a post-index pass later resolves.
+    fn create_temp(&mut self, id: u64, placeholder: String) -> String {
+        // The index is the count of temps created so far — named before the push below.
+        let temp = format!("temp_{}", self.temp_variables.len());
         self.temps.insert(id, temp.clone());
+        self.temp_variables.push(create_internal_variable(&temp, placeholder));
         temp
     }
 
@@ -357,6 +371,21 @@ impl Transpiler {
     }
 }
 
+/// A `VAR_TEMP` variable named `name` with the given placeholder type and no initializer; the
+/// placeholder is resolved to a real type after indexing (see [`crate::placeholder`]).
+fn create_internal_variable(name: &str, placeholder: String) -> Variable {
+    Variable {
+        name: name.to_string(),
+        data_type_declaration: DataTypeDeclaration::Reference {
+            referenced_type: placeholder,
+            location: SourceLocation::undefined(),
+        },
+        initializer: None,
+        address: None,
+        location: SourceLocation::undefined(),
+    }
+}
+
 impl Operation {
     fn priority(&self) -> Option<u64> {
         match self {
@@ -404,6 +433,9 @@ mod tests {
             localB : DINT;
             localResult : DINT;
         END_VAR
+        VAR_TEMP
+            temp_0 : __return@myAdd;
+        END_VAR
             temp_0 := myAdd(in1 := localA, in2 := localB);
             localResult := temp_0;
         END_PROGRAM
@@ -428,6 +460,9 @@ mod tests {
             localB : DINT;
             localResultA : DINT;
             localResultB : DINT;
+        END_VAR
+        VAR_TEMP
+            temp_0 : __return@myAdd;
         END_VAR
             temp_0 := myAdd(in1 := localA, in2 := localB);
             localResultA := temp_0;
@@ -456,6 +491,10 @@ mod tests {
             localB : DINT;
             localResultA : DINT;
         END_VAR
+        VAR_TEMP
+            temp_0 : __return@myAdd;
+            temp_1 : __return@myMul;
+        END_VAR
             temp_0 := myAdd(in1 := localA, in2 := localB);
             temp_1 := myMul(IN1 := temp_0, IN2 := localB);
             localResultA := temp_1;
@@ -477,6 +516,9 @@ mod tests {
         PROGRAM mainProgram
         VAR
             localResult : DINT;
+        END_VAR
+        VAR_TEMP
+            temp_0 : __return@getOffset;
         END_VAR
             temp_0 := getOffset();
             localResult := temp_0;
@@ -510,6 +552,10 @@ mod tests {
             resultMul : DINT;
             resultAdd : DINT;
         END_VAR
+        VAR_TEMP
+            temp_0 : __return@myMul;
+            temp_1 : __return@myAdd;
+        END_VAR
             temp_0 := myMul(in1 := localA, in2 := localB);
             resultMul := temp_0;
             temp_1 := myAdd(in1 := localC, in2 := localD);
@@ -535,6 +581,9 @@ mod tests {
             localB : BOOL;
             localResult : BOOL;
         END_VAR
+        VAR_TEMP
+            temp_0 : __return@myGate;
+        END_VAR
             temp_0 := myGate(a := NOT localA, b := localB);
             localResult := temp_0;
         END_PROGRAM
@@ -558,6 +607,9 @@ mod tests {
             localValue : DINT;
             localSum : DINT;
             localResult : DINT;
+        END_VAR
+        VAR_TEMP
+            temp_0 : __return@accumulate;
         END_VAR
             temp_0 := accumulate(value := localValue, sum := localSum);
             localResult := temp_0;
@@ -583,6 +635,9 @@ mod tests {
             localA : DINT;
             localResult : DINT;
         END_VAR
+        VAR_TEMP
+            temp_0 : __return@myAdd;
+        END_VAR
             temp_0 := myAdd(in1 := localA, in2 := 100);
             localResult := temp_0;
         END_PROGRAM
@@ -604,6 +659,9 @@ mod tests {
         VAR_INPUT
             a : DINT;
             b : DINT;
+        END_VAR
+        VAR_TEMP
+            temp_0 : __return@myAdd;
         END_VAR
             temp_0 := myAdd(in1 := a, in2 := b);
             myFunc := temp_0;
@@ -630,6 +688,9 @@ mod tests {
         VAR_OUTPUT
             sum : DINT;
         END_VAR
+        VAR_TEMP
+            temp_0 : __return@myAdd;
+        END_VAR
             temp_0 := myAdd(in1 := a, in2 := b);
             sum := temp_0;
         END_FUNCTION_BLOCK
@@ -654,6 +715,9 @@ mod tests {
             localStep : DINT;
             localCount : DINT;
         END_VAR
+        VAR_TEMP
+            temp_0 : __output@Counter@count;
+        END_VAR
             myInstance(step := localStep, count => temp_0);
             localCount := temp_0;
         END_PROGRAM
@@ -676,6 +740,9 @@ mod tests {
         VAR
             localIncrement : DINT;
             localTotal : DINT;
+        END_VAR
+        VAR_TEMP
+            temp_0 : __output@auxProgram@total;
         END_VAR
             auxProgram(increment := localIncrement, total => temp_0);
             localTotal := temp_0;
@@ -702,6 +769,9 @@ mod tests {
         VAR
             localA : DINT;
             localResult : DINT;
+        END_VAR
+        VAR_TEMP
+            temp_0 : __return@myFunc;
         END_VAR
             temp_0 := myFunc(a := localA, b := , io := );
             localResult := temp_0;
@@ -771,6 +841,9 @@ mod tests {
         VAR
             localA : DINT;
             localResult : DINT;
+        END_VAR
+        VAR_TEMP
+            temp_0 : __return@myFunc;
         END_VAR
             temp_0 := myFunc(a := localA, extra => );
             localResult := temp_0;
@@ -844,6 +917,11 @@ mod tests {
             myInstance : myFunctionBlock;
             localA : DINT;
             localB : DINT;
+        END_VAR
+        VAR_TEMP
+            temp_0 : __output@myFunctionBlock@a;
+            temp_1 : __output@myFunctionBlock@c;
+            temp_2 : __output@myFunction@a;
         END_VAR
             myInstance(a => temp_0, b => , c => temp_1);
             localA := temp_0;
@@ -921,6 +999,9 @@ mod tests {
         VAR
             result : DINT;
         END_VAR
+        VAR_TEMP
+            temp_0 : __return@alwaysFive;
+        END_VAR
             temp_0 := alwaysFive();
             result := temp_0;
         END_PROGRAM
@@ -939,6 +1020,9 @@ mod tests {
         PROGRAM mainProgram
         VAR
             result : DINT;
+        END_VAR
+        VAR_TEMP
+            temp_0 : __return@alwaysFive;
         END_VAR
             temp_0 := alwaysFive();
             result := temp_0;
