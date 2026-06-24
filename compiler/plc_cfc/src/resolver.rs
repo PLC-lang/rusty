@@ -371,6 +371,18 @@ mod tests {
     }
 
     #[test]
+    fn action_call() {
+        // An action block has no pins, and the network has no data sources or sinks, so there is
+        // nothing to index: no wire produces a value and none is consumed. The action nature (its
+        // qualified type name) only matters during lowering, where it becomes `instance.action()`.
+        let xml = include_str!("../fixtures/action_call/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::index(&deserialized);
+
+        assert_eq!(resolver.sources.len(), 0);
+    }
+
+    #[test]
     fn program_call() {
         // A program block carries no `instanceName`; the resolver indexes its output like any block.
         let xml = include_str!("../fixtures/program_call/mainProgram.cfc");

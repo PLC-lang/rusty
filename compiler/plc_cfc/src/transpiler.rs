@@ -167,9 +167,7 @@ impl Transpiler {
             });
         }
 
-        // An FB block is called on its instance; a function or program is called by its name (the
-        // type name). Only FB blocks carry an `instanceName`.
-        let operator = block.instance_name.as_deref().unwrap_or(block.type_name.as_str());
+        let operator = self.call_operator(block, &location);
         let call = self.call_statement(operator, arguments, &location);
 
         // A return value turns the call into `temp := fn(...)`; otherwise it stands alone.
@@ -294,6 +292,30 @@ impl Transpiler {
         AstFactory::create_member_reference(identifier, None, self.id_provider.next_id())
     }
 
+    /// The call operator for a block: a function or program is called by its type name, an FB by its
+    /// instance name, and — when the type name is qualified (`function_block_0.myAction`) — an action
+    /// is called as a member of its instance (`myInstance.myAction`).
+    fn call_operator(&mut self, block: &Block, location: &SourceLocation) -> AstNode {
+        match &block.instance_name {
+            // A call on an instance. A qualified type name names a member (an action); its trailing
+            // segment is the action, called on the instance. An unqualified one is the FB itself.
+            Some(instance) => match block.type_name.rsplit_once('.') {
+                Some((_, action)) => self.qualified_reference(instance, action, location),
+                None => self.reference(instance, location),
+            },
+            // A function or program: called by its type name.
+            None => self.reference(&block.type_name, location),
+        }
+    }
+
+    /// A qualified `base.member` reference, e.g. `myInstance.myAction`.
+    fn qualified_reference(&mut self, base: &str, member: &str, location: &SourceLocation) -> AstNode {
+        let base = self.reference(base, location);
+        let identifier = AstFactory::create_identifier(member, location.clone(), self.id_provider.next_id());
+
+        AstFactory::create_member_reference(identifier, Some(base), self.id_provider.next_id())
+    }
+
     // TODO: Remove the priority from the location altogether once plc_cfc is on par with
     // plc_xml; only the global id is actually used for diagnostics today.
     /// A source location tied back to the originating graphical object (keyed by its
@@ -352,11 +374,10 @@ impl Transpiler {
         AstFactory::create_output_assignment(parameter, empty, self.id_provider.next_id())
     }
 
-    /// Builds a `name(<arguments>)` call statement, wrapping the arguments into a
+    /// Builds an `<operator>(<arguments>)` call statement, wrapping the arguments into a
     /// parameter list the way the parser would: `None` for none, a bare node for a
     /// single argument, an expression list for several.
-    fn call_statement(&mut self, name: &str, arguments: Vec<AstNode>, location: &SourceLocation) -> AstNode {
-        let operator = self.reference(name, location);
+    fn call_statement(&mut self, operator: AstNode, arguments: Vec<AstNode>, location: &SourceLocation) -> AstNode {
         let arguments = match arguments.len() {
             0 => None,
             1 => arguments.into_iter().next(),
@@ -725,6 +746,27 @@ mod tests {
     }
 
     #[test]
+    fn action_call() {
+        //                   +-- function_block_0.myAction --+ (0)
+        //    myInstance --->|                               |
+        //                   +-------------------------------+
+        //
+        //    (0)  evaluation-priority badge shown by the IDE
+        //
+        // The block targets an action: its qualified type name makes it a member call on the
+        // instance (`myInstance.myAction`), with no pins and so no arguments and no temp.
+        let xml = include_str!("../fixtures/action_call/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @r"
+        PROGRAM mainProgram
+        VAR
+            myInstance : function_block_0;
+        END_VAR
+            myInstance.myAction();
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
     fn program_call() {
         //                        +----- auxProgram -----+ (1)
         //    localIncrement ---->| increment      total |---->  localTotal  (2)
@@ -1037,14 +1079,5 @@ mod tests {
     fn connector_continuation_cycle() {
         let xml = include_str!("../fixtures/connector_continuation_cycle/mainProgram.cfc");
         transpile(xml);
-    }
-
-    // A CFC block can target an ACTION, which is called in ST as `instance.action()`. The
-    // `<Block>` model has no field for the action name and the IDE's encoding is unknown, so
-    // this is out of scope until that shape is settled.
-    #[test]
-    #[ignore = "TODO: actions"]
-    fn action_call() {
-        todo!("blocks targeting actions are not yet modeled")
     }
 }
