@@ -30,9 +30,6 @@ use crate::transpiler::Transpiler;
 ///     source_code::SourceType::Unknown => unreachable!(),
 /// };
 /// ```
-///
-/// (That dispatch currently points at the legacy `plc_xml` crate; swapping
-/// it to this function is the only driver change needed.)
 pub fn parse_file(
     source: &SourceCode,
     _: LinkageType,

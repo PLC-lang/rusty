@@ -316,8 +316,8 @@ impl Transpiler {
         AstFactory::create_member_reference(identifier, Some(base), self.id_provider.next_id())
     }
 
-    // TODO: Remove the priority from the location altogether once plc_cfc is on par with
-    // plc_xml; only the global id is actually used for diagnostics today.
+    // TODO: Remove the priority from the location altogether; only the global id is actually
+    // used for diagnostics today.
     /// A source location tied back to the originating graphical object (keyed by its
     /// `globalId` and evaluation priority) so later diagnostics can point at the diagram.
     fn object_location(&self, global_id: Option<u64>, priority: Option<u64>) -> SourceLocation {
@@ -1073,7 +1073,7 @@ mod tests {
     }
 
     // TODO: a cyclic connector/continuation chain currently panics; once this crate has an error
-    // story it should yield a proper diagnostic instead (cf. plc_xml's E085). Pins the behaviour.
+    // story it should yield a proper diagnostic instead (cf. E085). Pins the behaviour.
     #[test]
     #[should_panic(expected = "cyclic connector/continuation chain")]
     fn connector_continuation_cycle() {

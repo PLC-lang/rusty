@@ -6,6 +6,6 @@
 
 **How it fits in**: The entry point is `parse_file`, signature-compatible with the ST parser's `plc::parser::parse_file`, so the driver only needs to dispatch on the source type. Everything downstream of parsing (indexing, validation, codegen) is shared with ST and lives outside this crate.
 
-**The predecessor**: An older CFC implementation exists in `compiler/plc_xml`, built on a custom PLCopen-XML-based format. This crate replaces it. The old code may be consulted for *logic* (what a construct should lower to), but with caution — it was more of a proof of concept with lots of open issues — and no code is derived from it.
+**The predecessor**: An older CFC implementation (`compiler/plc_xml`), built on a custom PLCopen-XML-based format, was removed in favor of this crate. No code is derived from it.
 
 **Where to look**: This README is intentionally rough — the code is the source of truth. Start at `src/lib.rs` and follow the pipeline from there.

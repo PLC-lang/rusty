@@ -561,7 +561,7 @@ mod tests {
     }
 
     // TODO: a cyclic chain currently panics; once this crate has an error story it should yield a
-    // proper diagnostic instead (cf. plc_xml's E085). The test pins the present behaviour.
+    // proper diagnostic instead (cf. E085). The test pins the present behaviour.
     #[test]
     #[should_panic(expected = "cyclic connector/continuation chain")]
     fn connector_continuation_cycle() {

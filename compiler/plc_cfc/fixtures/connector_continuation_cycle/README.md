@@ -19,5 +19,5 @@ which forces the resolver to walk the chain.
 
 **TODO:** resolving such a cycle currently *panics* (`Resolver::resolve_alias`). Once this
 crate has an error-reporting story, this should instead surface a proper diagnostic
-(cf. `plc_xml`'s `E085`, "Sink is connected to itself"). The test below pins the panic so
+(cf. `E085`, "Sink is connected to itself"). The test below pins the panic so
 the behaviour is visible and the upgrade path is obvious.
