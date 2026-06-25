@@ -2359,8 +2359,15 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             AstStatement::AllocationStatement(Allocation { name, reference_type }) => {
-                let qualified_name =
-                    if let Some(pou) = ctx.pou { format!("{}.{}", pou, name) } else { name.to_string() };
+                let container = ctx.pou.map(|pou| {
+                    self.index.find_implementation_by_name(pou).map(|it| it.get_type_name()).unwrap_or(pou)
+                });
+
+                let qualified_name = match container {
+                    Some(container) => format!("{container}.{name}"),
+                    None => name.to_string(),
+                };
+
                 self.scopes.enter(Scope::Local(Box::new(VariableIndexEntry::new(
                     name,
                     &qualified_name,
