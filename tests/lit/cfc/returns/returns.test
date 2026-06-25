@@ -1,0 +1,6 @@
+// CFC conditional and unconditional returns. The conditional return skips a later
+// assignment only when its wired condition holds; the unconditional one always does.
+RUN: %COMPILE %S/guard.cfc %S/always.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: guard_true = 1
+CHECK: guard_false = 2
+CHECK: always = 1

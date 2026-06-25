@@ -1,0 +1,7 @@
+// Every CFC POU kind — FUNCTION, FUNCTION_BLOCK, PROGRAM — defined in CFC and called
+// from ST. Proves all three kinds lower, compile, link, and run, and that CFC POUs are
+// callable from ST (the reverse direction of st_called_from_cfc).
+RUN: %COMPILE %S/builtins.st %S/cfc_sum.cfc %S/cfc_adder.cfc %S/cfc_counter.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: func = 5
+CHECK: fb = 9
+CHECK: prog = 13

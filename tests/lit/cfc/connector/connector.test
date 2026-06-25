@@ -1,0 +1,4 @@
+// A value routed through a connector/continuation pair (a named virtual wire) reaches
+// the sink unchanged. Proves the connector alias resolves to the real producer at runtime.
+RUN: %COMPILE %S/wire.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: out = 42

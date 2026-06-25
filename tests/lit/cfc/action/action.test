@@ -1,0 +1,4 @@
+// A CFC block targeting an action (`inst.fire()`), which mutates the FB's internal
+// state; the program then routes that state out. Proves action calls resolve and run.
+RUN: %COMPILE %S/latch.st %S/runner.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: state = 5
