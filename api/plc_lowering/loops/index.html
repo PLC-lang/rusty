@@ -30,15 +30,15 @@ END_REPEAT</code></pre></div>
 END_WHILE</code></pre></div>
 <p>is incorrect in the presence of <code>CONTINUE</code>, because a <code>CONTINUE</code> inside <code>&lt;body&gt;</code> would skip the condition
 check entirely. To preserve post-test semantics, this module introduces a synthetic boolean temporary:</p>
-<div class="example-wrap"><pre class="language-st"><code>alloca ran_once_N : BOOL;
+<div class="example-wrap"><pre class="language-st"><code>alloca __ran_once_N : BOOL;
 WHILE TRUE DO
-    IF ran_once_N THEN
+    IF __ran_once_N THEN
         IF &lt;cond&gt; THEN
             EXIT;
         END_IF
     END_IF
 
-    ran_once_N := TRUE;
+    __ran_once_N := TRUE;
     &lt;body&gt;
 END_WHILE</code></pre></div>
 <p>The first iteration always executes the body. From the second iteration on, the original <code>UNTIL</code> condition
@@ -50,22 +50,22 @@ is checked before re-entering the body.</p>
 END_FOR</code></pre></div>
 <p>is lowered to a canonical <code>WHILE TRUE</code> loop with two synthetic temporaries:</p>
 <ul>
-<li><code>ran_once_N</code> tracks whether the first iteration has already happened</li>
-<li><code>is_incrementing_N</code> remembers whether the step is positive</li>
+<li><code>__ran_once_N</code> tracks whether the first iteration has already happened</li>
+<li><code>__is_incrementing_N</code> remembers whether the step is positive</li>
 </ul>
-<div class="example-wrap"><pre class="language-st"><code>alloca ran_once_N : BOOL;
-alloca is_incrementing_N : BOOL;
+<div class="example-wrap"><pre class="language-st"><code>alloca __ran_once_N : BOOL;
+alloca __is_incrementing_N : BOOL;
 
 &lt;ctrl&gt; := &lt;init&gt;;
-is_incrementing_N := &lt;step&gt; &gt; 0;
+__is_incrementing_N := &lt;step&gt; &gt; 0;
 
 WHILE TRUE DO
-    IF ran_once_N THEN
+    IF __ran_once_N THEN
         &lt;ctrl&gt; := &lt;ctrl&gt; + &lt;step&gt;;
     END_IF
-    ran_once_N := TRUE;
+    __ran_once_N := TRUE;
 
-    IF is_incrementing_N THEN
+    IF __is_incrementing_N THEN
         IF &lt;ctrl&gt; &gt; &lt;final&gt; THEN
             EXIT;
         END_IF
@@ -80,6 +80,6 @@ END_WHILE</code></pre></div>
 <p>If <code>BY</code> is omitted, the step defaults to <code>1</code>. The step and end expressions remain part of the lowered tree
 and are therefore evaluated where needed by later passes, matching the compiler’s current semantics.</p>
 <h3 id="generated-temporaries"><a class="doc-anchor" href="#generated-temporaries">§</a>Generated temporaries</h3>
-<p>Compiler-generated names such as <code>ran_once_N</code> and <code>is_incrementing_N</code> are unique per desugared loop.
+<p>Compiler-generated names such as <code>__ran_once_N</code> and <code>__is_incrementing_N</code> are unique per desugared loop.
 They are ordinary AST allocations used only to encode loop semantics explicitly for later stages.</p>
 </div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.LoopDesugarer.html" title="struct plc_lowering::loops::LoopDesugarer">Loop<wbr>Desugarer</a></dt></dl></section></div></main></body></html>

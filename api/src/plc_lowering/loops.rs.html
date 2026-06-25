@@ -53,15 +53,15 @@
 <a href=#53 id=53 data-nosnippet>53</a>//! check entirely. To preserve post-test semantics, this module introduces a synthetic boolean temporary:
 <a href=#54 id=54 data-nosnippet>54</a>//!
 <a href=#55 id=55 data-nosnippet>55</a>//! ```st
-<a href=#56 id=56 data-nosnippet>56</a>//! alloca ran_once_N : BOOL;
+<a href=#56 id=56 data-nosnippet>56</a>//! alloca __ran_once_N : BOOL;
 <a href=#57 id=57 data-nosnippet>57</a>//! WHILE TRUE DO
-<a href=#58 id=58 data-nosnippet>58</a>//!     IF ran_once_N THEN
+<a href=#58 id=58 data-nosnippet>58</a>//!     IF __ran_once_N THEN
 <a href=#59 id=59 data-nosnippet>59</a>//!         IF &lt;cond&gt; THEN
 <a href=#60 id=60 data-nosnippet>60</a>//!             EXIT;
 <a href=#61 id=61 data-nosnippet>61</a>//!         END_IF
 <a href=#62 id=62 data-nosnippet>62</a>//!     END_IF
 <a href=#63 id=63 data-nosnippet>63</a>//!
-<a href=#64 id=64 data-nosnippet>64</a>//!     ran_once_N := TRUE;
+<a href=#64 id=64 data-nosnippet>64</a>//!     __ran_once_N := TRUE;
 <a href=#65 id=65 data-nosnippet>65</a>//!     &lt;body&gt;
 <a href=#66 id=66 data-nosnippet>66</a>//! END_WHILE
 <a href=#67 id=67 data-nosnippet>67</a>//! ```
@@ -81,23 +81,23 @@
 <a href=#81 id=81 data-nosnippet>81</a>//!
 <a href=#82 id=82 data-nosnippet>82</a>//! is lowered to a canonical `WHILE TRUE` loop with two synthetic temporaries:
 <a href=#83 id=83 data-nosnippet>83</a>//!
-<a href=#84 id=84 data-nosnippet>84</a>//! - `ran_once_N` tracks whether the first iteration has already happened
-<a href=#85 id=85 data-nosnippet>85</a>//! - `is_incrementing_N` remembers whether the step is positive
+<a href=#84 id=84 data-nosnippet>84</a>//! - `__ran_once_N` tracks whether the first iteration has already happened
+<a href=#85 id=85 data-nosnippet>85</a>//! - `__is_incrementing_N` remembers whether the step is positive
 <a href=#86 id=86 data-nosnippet>86</a>//!
 <a href=#87 id=87 data-nosnippet>87</a>//! ```st
-<a href=#88 id=88 data-nosnippet>88</a>//! alloca ran_once_N : BOOL;
-<a href=#89 id=89 data-nosnippet>89</a>//! alloca is_incrementing_N : BOOL;
+<a href=#88 id=88 data-nosnippet>88</a>//! alloca __ran_once_N : BOOL;
+<a href=#89 id=89 data-nosnippet>89</a>//! alloca __is_incrementing_N : BOOL;
 <a href=#90 id=90 data-nosnippet>90</a>//!
 <a href=#91 id=91 data-nosnippet>91</a>//! &lt;ctrl&gt; := &lt;init&gt;;
-<a href=#92 id=92 data-nosnippet>92</a>//! is_incrementing_N := &lt;step&gt; &gt; 0;
+<a href=#92 id=92 data-nosnippet>92</a>//! __is_incrementing_N := &lt;step&gt; &gt; 0;
 <a href=#93 id=93 data-nosnippet>93</a>//!
 <a href=#94 id=94 data-nosnippet>94</a>//! WHILE TRUE DO
-<a href=#95 id=95 data-nosnippet>95</a>//!     IF ran_once_N THEN
+<a href=#95 id=95 data-nosnippet>95</a>//!     IF __ran_once_N THEN
 <a href=#96 id=96 data-nosnippet>96</a>//!         &lt;ctrl&gt; := &lt;ctrl&gt; + &lt;step&gt;;
 <a href=#97 id=97 data-nosnippet>97</a>//!     END_IF
-<a href=#98 id=98 data-nosnippet>98</a>//!     ran_once_N := TRUE;
+<a href=#98 id=98 data-nosnippet>98</a>//!     __ran_once_N := TRUE;
 <a href=#99 id=99 data-nosnippet>99</a>//!
-<a href=#100 id=100 data-nosnippet>100</a>//!     IF is_incrementing_N THEN
+<a href=#100 id=100 data-nosnippet>100</a>//!     IF __is_incrementing_N THEN
 <a href=#101 id=101 data-nosnippet>101</a>//!         IF &lt;ctrl&gt; &gt; &lt;final&gt; THEN
 <a href=#102 id=102 data-nosnippet>102</a>//!             EXIT;
 <a href=#103 id=103 data-nosnippet>103</a>//!         END_IF
@@ -116,7 +116,7 @@
 <a href=#116 id=116 data-nosnippet>116</a>//!
 <a href=#117 id=117 data-nosnippet>117</a>//! ## Generated temporaries
 <a href=#118 id=118 data-nosnippet>118</a>//!
-<a href=#119 id=119 data-nosnippet>119</a>//! Compiler-generated names such as `ran_once_N` and `is_incrementing_N` are unique per desugared loop.
+<a href=#119 id=119 data-nosnippet>119</a>//! Compiler-generated names such as `__ran_once_N` and `__is_incrementing_N` are unique per desugared loop.
 <a href=#120 id=120 data-nosnippet>120</a>//! They are ordinary AST allocations used only to encode loop semantics explicitly for later stages.
 <a href=#121 id=121 data-nosnippet>121</a>
 <a href=#122 id=122 data-nosnippet>122</a></span><span class="kw">use </span>std::{
@@ -240,10 +240,10 @@
 <a href=#240 id=240 data-nosnippet>240</a>        <span class="comment">// Create a temporary variable to track first iteration.
 <a href=#241 id=241 data-nosnippet>241</a>        </span><span class="kw">let </span>counter = <span class="self">self</span>.counter.fetch_add(<span class="number">1</span>, Ordering::SeqCst);
 <a href=#242 id=242 data-nosnippet>242</a>        <span class="kw">let </span>(alloca, ran_once_ref) =
-<a href=#243 id=243 data-nosnippet>243</a>            helper::create_alloca(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ids, <span class="string">"BOOL"</span>, <span class="macro">format!</span>(<span class="string">"ran_once_{counter}"</span>));
+<a href=#243 id=243 data-nosnippet>243</a>            helper::create_alloca(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ids, <span class="string">"BOOL"</span>, <span class="macro">format!</span>(<span class="string">"__ran_once_{counter}"</span>));
 <a href=#244 id=244 data-nosnippet>244</a>
 <a href=#245 id=245 data-nosnippet>245</a>        <span class="comment">// Only the user-authored `UNTIL &lt;cond&gt;` check should stay visible in debug info. The
-<a href=#246 id=246 data-nosnippet>246</a>        // surrounding gating `IF ran_once_N THEN ...` is synthetic and therefore internal.
+<a href=#246 id=246 data-nosnippet>246</a>        // surrounding gating `IF __ran_once_N THEN ...` is synthetic and therefore internal.
 <a href=#247 id=247 data-nosnippet>247</a>        </span><span class="kw">let </span>if_guard = helper::create_if_then(
 <a href=#248 id=248 data-nosnippet>248</a>            <span class="self">self</span>.ids.clone(),
 <a href=#249 id=249 data-nosnippet>249</a>            ran_once_ref.clone(),
@@ -251,14 +251,14 @@
 <a href=#251 id=251 data-nosnippet>251</a>            SourceLocation::internal(),
 <a href=#252 id=252 data-nosnippet>252</a>        );
 <a href=#253 id=253 data-nosnippet>253</a>
-<a href=#254 id=254 data-nosnippet>254</a>        <span class="comment">// Synthetic `ran_once_N := TRUE` should not inherit any user source location.
+<a href=#254 id=254 data-nosnippet>254</a>        <span class="comment">// Synthetic `__ran_once_N := TRUE` should not inherit any user source location.
 <a href=#255 id=255 data-nosnippet>255</a>        </span><span class="kw">let </span>ran_once_assignment = helper::create_internal_assignment(
 <a href=#256 id=256 data-nosnippet>256</a>            ran_once_ref,
 <a href=#257 id=257 data-nosnippet>257</a>            helper::create_internal_literal_true(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ids),
 <a href=#258 id=258 data-nosnippet>258</a>            <span class="kw-2">&amp;mut </span><span class="self">self</span>.ids,
 <a href=#259 id=259 data-nosnippet>259</a>        );
 <a href=#260 id=260 data-nosnippet>260</a>
-<a href=#261 id=261 data-nosnippet>261</a>        <span class="comment">// Prepend the if guard and `ran_once_N := TRUE` assignment before the actual body.
+<a href=#261 id=261 data-nosnippet>261</a>        <span class="comment">// Prepend the if guard and `__ran_once_N := TRUE` assignment before the actual body.
 <a href=#262 id=262 data-nosnippet>262</a>        </span>body.insert(<span class="number">0</span>, if_guard);
 <a href=#263 id=263 data-nosnippet>263</a>        body.insert(<span class="number">1</span>, ran_once_assignment);
 <a href=#264 id=264 data-nosnippet>264</a>
@@ -303,9 +303,9 @@
 <a href=#303 id=303 data-nosnippet>303</a>        <span class="comment">// Create temporaries tracking whether the loop already ran and which comparison branch to use.
 <a href=#304 id=304 data-nosnippet>304</a>        </span><span class="kw">let </span>num = <span class="self">self</span>.counter.fetch_add(<span class="number">1</span>, Ordering::SeqCst);
 <a href=#305 id=305 data-nosnippet>305</a>        <span class="kw">let </span>(ran_once_alloca, ran_once_ref) =
-<a href=#306 id=306 data-nosnippet>306</a>            helper::create_alloca(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ids, <span class="string">"BOOL"</span>, <span class="macro">format!</span>(<span class="string">"ran_once_{num}"</span>));
+<a href=#306 id=306 data-nosnippet>306</a>            helper::create_alloca(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ids, <span class="string">"BOOL"</span>, <span class="macro">format!</span>(<span class="string">"__ran_once_{num}"</span>));
 <a href=#307 id=307 data-nosnippet>307</a>        <span class="kw">let </span>(is_incrementing_alloca, is_incrementing_ref) =
-<a href=#308 id=308 data-nosnippet>308</a>            helper::create_alloca(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ids, <span class="string">"BOOL"</span>, <span class="macro">format!</span>(<span class="string">"is_incrementing_{num}"</span>));
+<a href=#308 id=308 data-nosnippet>308</a>            helper::create_alloca(<span class="kw-2">&amp;mut </span><span class="self">self</span>.ids, <span class="string">"BOOL"</span>, <span class="macro">format!</span>(<span class="string">"__is_incrementing_{num}"</span>));
 <a href=#309 id=309 data-nosnippet>309</a>
 <a href=#310 id=310 data-nosnippet>310</a>        <span class="comment">// Normalize the step expression so omitted `BY` becomes a literal `1`.
 <a href=#311 id=311 data-nosnippet>311</a>        </span><span class="kw">let </span>has_explicit_step = by_step.is_some();
@@ -685,15 +685,15 @@
 <a href=#685 id=685 data-nosnippet>685</a>                END_FUNCTION
 <a href=#686 id=686 data-nosnippet>686</a>            "#</span>;
 <a href=#687 id=687 data-nosnippet>687</a>
-<a href=#688 id=688 data-nosnippet>688</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#689 id=689 data-nosnippet>689</a>            alloca ran_once_0: BOOL
+<a href=#688 id=688 data-nosnippet>688</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#689 id=689 data-nosnippet>689</a>            alloca __ran_once_0: BOOL
 <a href=#690 id=690 data-nosnippet>690</a>            WHILE TRUE DO
-<a href=#691 id=691 data-nosnippet>691</a>                IF ran_once_0 THEN
+<a href=#691 id=691 data-nosnippet>691</a>                IF __ran_once_0 THEN
 <a href=#692 id=692 data-nosnippet>692</a>                    IF 1 &gt; 2 THEN
 <a href=#693 id=693 data-nosnippet>693</a>                        EXIT;
 <a href=#694 id=694 data-nosnippet>694</a>                    END_IF
 <a href=#695 id=695 data-nosnippet>695</a>                END_IF
-<a href=#696 id=696 data-nosnippet>696</a>                ran_once_0 := TRUE
+<a href=#696 id=696 data-nosnippet>696</a>                __ran_once_0 := TRUE
 <a href=#697 id=697 data-nosnippet>697</a>                a := b
 <a href=#698 id=698 data-nosnippet>698</a>                b := c
 <a href=#699 id=699 data-nosnippet>699</a>                c := a
@@ -716,15 +716,15 @@
 <a href=#716 id=716 data-nosnippet>716</a>                END_FUNCTION
 <a href=#717 id=717 data-nosnippet>717</a>            "#</span>;
 <a href=#718 id=718 data-nosnippet>718</a>
-<a href=#719 id=719 data-nosnippet>719</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#720 id=720 data-nosnippet>720</a>            alloca ran_once_0: BOOL
+<a href=#719 id=719 data-nosnippet>719</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#720 id=720 data-nosnippet>720</a>            alloca __ran_once_0: BOOL
 <a href=#721 id=721 data-nosnippet>721</a>            WHILE TRUE DO
-<a href=#722 id=722 data-nosnippet>722</a>                IF ran_once_0 THEN
+<a href=#722 id=722 data-nosnippet>722</a>                IF __ran_once_0 THEN
 <a href=#723 id=723 data-nosnippet>723</a>                    IF x THEN
 <a href=#724 id=724 data-nosnippet>724</a>                        EXIT;
 <a href=#725 id=725 data-nosnippet>725</a>                    END_IF
 <a href=#726 id=726 data-nosnippet>726</a>                END_IF
-<a href=#727 id=727 data-nosnippet>727</a>                ran_once_0 := TRUE
+<a href=#727 id=727 data-nosnippet>727</a>                __ran_once_0 := TRUE
 <a href=#728 id=728 data-nosnippet>728</a>                x
 <a href=#729 id=729 data-nosnippet>729</a>            END_WHILE
 <a href=#730 id=730 data-nosnippet>730</a>            "</span>);
@@ -747,15 +747,15 @@
 <a href=#747 id=747 data-nosnippet>747</a>                END_FUNCTION
 <a href=#748 id=748 data-nosnippet>748</a>            "#</span>;
 <a href=#749 id=749 data-nosnippet>749</a>
-<a href=#750 id=750 data-nosnippet>750</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#751 id=751 data-nosnippet>751</a>            alloca ran_once_0: BOOL
+<a href=#750 id=750 data-nosnippet>750</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#751 id=751 data-nosnippet>751</a>            alloca __ran_once_0: BOOL
 <a href=#752 id=752 data-nosnippet>752</a>            WHILE TRUE DO
-<a href=#753 id=753 data-nosnippet>753</a>                IF ran_once_0 THEN
+<a href=#753 id=753 data-nosnippet>753</a>                IF __ran_once_0 THEN
 <a href=#754 id=754 data-nosnippet>754</a>                    IF 1 &gt; 2 AND 2 &lt; 3 THEN
 <a href=#755 id=755 data-nosnippet>755</a>                        EXIT;
 <a href=#756 id=756 data-nosnippet>756</a>                    END_IF
 <a href=#757 id=757 data-nosnippet>757</a>                END_IF
-<a href=#758 id=758 data-nosnippet>758</a>                ran_once_0 := TRUE
+<a href=#758 id=758 data-nosnippet>758</a>                __ran_once_0 := TRUE
 <a href=#759 id=759 data-nosnippet>759</a>                a := b
 <a href=#760 id=760 data-nosnippet>760</a>                b := c
 <a href=#761 id=761 data-nosnippet>761</a>                c := a
@@ -780,15 +780,15 @@
 <a href=#780 id=780 data-nosnippet>780</a>                END_FUNCTION
 <a href=#781 id=781 data-nosnippet>781</a>            "#</span>;
 <a href=#782 id=782 data-nosnippet>782</a>
-<a href=#783 id=783 data-nosnippet>783</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#784 id=784 data-nosnippet>784</a>            alloca ran_once_0: BOOL
+<a href=#783 id=783 data-nosnippet>783</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#784 id=784 data-nosnippet>784</a>            alloca __ran_once_0: BOOL
 <a href=#785 id=785 data-nosnippet>785</a>            WHILE TRUE DO
-<a href=#786 id=786 data-nosnippet>786</a>                IF ran_once_0 THEN
+<a href=#786 id=786 data-nosnippet>786</a>                IF __ran_once_0 THEN
 <a href=#787 id=787 data-nosnippet>787</a>                    IF (1 &gt; 2 AND 2 &lt; 3) OR 3 = 4 THEN
 <a href=#788 id=788 data-nosnippet>788</a>                        EXIT;
 <a href=#789 id=789 data-nosnippet>789</a>                    END_IF
 <a href=#790 id=790 data-nosnippet>790</a>                END_IF
-<a href=#791 id=791 data-nosnippet>791</a>                ran_once_0 := TRUE
+<a href=#791 id=791 data-nosnippet>791</a>                __ran_once_0 := TRUE
 <a href=#792 id=792 data-nosnippet>792</a>                a := b
 <a href=#793 id=793 data-nosnippet>793</a>                b := c
 <a href=#794 id=794 data-nosnippet>794</a>                c := a
@@ -816,24 +816,24 @@
 <a href=#816 id=816 data-nosnippet>816</a>                END_FUNCTION
 <a href=#817 id=817 data-nosnippet>817</a>            "#</span>;
 <a href=#818 id=818 data-nosnippet>818</a>
-<a href=#819 id=819 data-nosnippet>819</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#820 id=820 data-nosnippet>820</a>            alloca ran_once_1: BOOL
+<a href=#819 id=819 data-nosnippet>819</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#820 id=820 data-nosnippet>820</a>            alloca __ran_once_1: BOOL
 <a href=#821 id=821 data-nosnippet>821</a>            WHILE TRUE DO
-<a href=#822 id=822 data-nosnippet>822</a>                IF ran_once_1 THEN
+<a href=#822 id=822 data-nosnippet>822</a>                IF __ran_once_1 THEN
 <a href=#823 id=823 data-nosnippet>823</a>                    IF 1 &gt; 2 THEN
 <a href=#824 id=824 data-nosnippet>824</a>                        EXIT;
 <a href=#825 id=825 data-nosnippet>825</a>                    END_IF
 <a href=#826 id=826 data-nosnippet>826</a>                END_IF
-<a href=#827 id=827 data-nosnippet>827</a>                ran_once_1 := TRUE
+<a href=#827 id=827 data-nosnippet>827</a>                __ran_once_1 := TRUE
 <a href=#828 id=828 data-nosnippet>828</a>                a := b
-<a href=#829 id=829 data-nosnippet>829</a>                alloca ran_once_0: BOOL
+<a href=#829 id=829 data-nosnippet>829</a>                alloca __ran_once_0: BOOL
 <a href=#830 id=830 data-nosnippet>830</a>                WHILE TRUE DO
-<a href=#831 id=831 data-nosnippet>831</a>                    IF ran_once_0 THEN
+<a href=#831 id=831 data-nosnippet>831</a>                    IF __ran_once_0 THEN
 <a href=#832 id=832 data-nosnippet>832</a>                        IF 3 &lt; 4 THEN
 <a href=#833 id=833 data-nosnippet>833</a>                            EXIT;
 <a href=#834 id=834 data-nosnippet>834</a>                        END_IF
 <a href=#835 id=835 data-nosnippet>835</a>                    END_IF
-<a href=#836 id=836 data-nosnippet>836</a>                    ran_once_0 := TRUE
+<a href=#836 id=836 data-nosnippet>836</a>                    __ran_once_0 := TRUE
 <a href=#837 id=837 data-nosnippet>837</a>                    b := c
 <a href=#838 id=838 data-nosnippet>838</a>                END_WHILE
 <a href=#839 id=839 data-nosnippet>839</a>                c := a
@@ -858,17 +858,17 @@
 <a href=#858 id=858 data-nosnippet>858</a>                END_FUNCTION
 <a href=#859 id=859 data-nosnippet>859</a>            "#</span>;
 <a href=#860 id=860 data-nosnippet>860</a>
-<a href=#861 id=861 data-nosnippet>861</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#862 id=862 data-nosnippet>862</a>            alloca ran_once_0: BOOL
-<a href=#863 id=863 data-nosnippet>863</a>            alloca is_incrementing_0: BOOL
+<a href=#861 id=861 data-nosnippet>861</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#862 id=862 data-nosnippet>862</a>            alloca __ran_once_0: BOOL
+<a href=#863 id=863 data-nosnippet>863</a>            alloca __is_incrementing_0: BOOL
 <a href=#864 id=864 data-nosnippet>864</a>            i := 0
-<a href=#865 id=865 data-nosnippet>865</a>            is_incrementing_0 := TRUE
+<a href=#865 id=865 data-nosnippet>865</a>            __is_incrementing_0 := TRUE
 <a href=#866 id=866 data-nosnippet>866</a>            WHILE TRUE DO
-<a href=#867 id=867 data-nosnippet>867</a>                IF ran_once_0 THEN
+<a href=#867 id=867 data-nosnippet>867</a>                IF __ran_once_0 THEN
 <a href=#868 id=868 data-nosnippet>868</a>                    i := i + 1
 <a href=#869 id=869 data-nosnippet>869</a>                END_IF
-<a href=#870 id=870 data-nosnippet>870</a>                ran_once_0 := TRUE
-<a href=#871 id=871 data-nosnippet>871</a>                IF is_incrementing_0 THEN
+<a href=#870 id=870 data-nosnippet>870</a>                __ran_once_0 := TRUE
+<a href=#871 id=871 data-nosnippet>871</a>                IF __is_incrementing_0 THEN
 <a href=#872 id=872 data-nosnippet>872</a>                    IF i &gt; 10 THEN
 <a href=#873 id=873 data-nosnippet>873</a>                        EXIT;
 <a href=#874 id=874 data-nosnippet>874</a>                    END_IF
@@ -898,16 +898,16 @@
 <a href=#898 id=898 data-nosnippet>898</a>            "#</span>;
 <a href=#899 id=899 data-nosnippet>899</a>
 <a href=#900 id=900 data-nosnippet>900</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
-<a href=#901 id=901 data-nosnippet>901</a>            alloca ran_once_0: BOOL
-<a href=#902 id=902 data-nosnippet>902</a>            alloca is_incrementing_0: BOOL
+<a href=#901 id=901 data-nosnippet>901</a>            alloca __ran_once_0: BOOL
+<a href=#902 id=902 data-nosnippet>902</a>            alloca __is_incrementing_0: BOOL
 <a href=#903 id=903 data-nosnippet>903</a>            i := a
-<a href=#904 id=904 data-nosnippet>904</a>            is_incrementing_0 := step &gt; 0
+<a href=#904 id=904 data-nosnippet>904</a>            __is_incrementing_0 := step &gt; 0
 <a href=#905 id=905 data-nosnippet>905</a>            WHILE TRUE DO
-<a href=#906 id=906 data-nosnippet>906</a>                IF ran_once_0 THEN
+<a href=#906 id=906 data-nosnippet>906</a>                IF __ran_once_0 THEN
 <a href=#907 id=907 data-nosnippet>907</a>                    i := i + step
 <a href=#908 id=908 data-nosnippet>908</a>                END_IF
-<a href=#909 id=909 data-nosnippet>909</a>                ran_once_0 := TRUE
-<a href=#910 id=910 data-nosnippet>910</a>                IF is_incrementing_0 THEN
+<a href=#909 id=909 data-nosnippet>909</a>                __ran_once_0 := TRUE
+<a href=#910 id=910 data-nosnippet>910</a>                IF __is_incrementing_0 THEN
 <a href=#911 id=911 data-nosnippet>911</a>                    IF i &gt; max THEN
 <a href=#912 id=912 data-nosnippet>912</a>                        EXIT;
 <a href=#913 id=913 data-nosnippet>913</a>                    END_IF
@@ -938,16 +938,16 @@
 <a href=#938 id=938 data-nosnippet>938</a>            "#</span>;
 <a href=#939 id=939 data-nosnippet>939</a>
 <a href=#940 id=940 data-nosnippet>940</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
-<a href=#941 id=941 data-nosnippet>941</a>            alloca ran_once_0: BOOL
-<a href=#942 id=942 data-nosnippet>942</a>            alloca is_incrementing_0: BOOL
+<a href=#941 id=941 data-nosnippet>941</a>            alloca __ran_once_0: BOOL
+<a href=#942 id=942 data-nosnippet>942</a>            alloca __is_incrementing_0: BOOL
 <a href=#943 id=943 data-nosnippet>943</a>            i := 1
-<a href=#944 id=944 data-nosnippet>944</a>            is_incrementing_0 := 0 &gt; 0
+<a href=#944 id=944 data-nosnippet>944</a>            __is_incrementing_0 := 0 &gt; 0
 <a href=#945 id=945 data-nosnippet>945</a>            WHILE TRUE DO
-<a href=#946 id=946 data-nosnippet>946</a>                IF ran_once_0 THEN
+<a href=#946 id=946 data-nosnippet>946</a>                IF __ran_once_0 THEN
 <a href=#947 id=947 data-nosnippet>947</a>                    i := i + 0
 <a href=#948 id=948 data-nosnippet>948</a>                END_IF
-<a href=#949 id=949 data-nosnippet>949</a>                ran_once_0 := TRUE
-<a href=#950 id=950 data-nosnippet>950</a>                IF is_incrementing_0 THEN
+<a href=#949 id=949 data-nosnippet>949</a>                __ran_once_0 := TRUE
+<a href=#950 id=950 data-nosnippet>950</a>                IF __is_incrementing_0 THEN
 <a href=#951 id=951 data-nosnippet>951</a>                    IF i &gt; 3 THEN
 <a href=#952 id=952 data-nosnippet>952</a>                        EXIT;
 <a href=#953 id=953 data-nosnippet>953</a>                    END_IF
@@ -977,16 +977,16 @@
 <a href=#977 id=977 data-nosnippet>977</a>            "#</span>;
 <a href=#978 id=978 data-nosnippet>978</a>
 <a href=#979 id=979 data-nosnippet>979</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
-<a href=#980 id=980 data-nosnippet>980</a>            alloca ran_once_0: BOOL
-<a href=#981 id=981 data-nosnippet>981</a>            alloca is_incrementing_0: BOOL
+<a href=#980 id=980 data-nosnippet>980</a>            alloca __ran_once_0: BOOL
+<a href=#981 id=981 data-nosnippet>981</a>            alloca __is_incrementing_0: BOOL
 <a href=#982 id=982 data-nosnippet>982</a>            i := 5
-<a href=#983 id=983 data-nosnippet>983</a>            is_incrementing_0 := 2 &gt; 0
+<a href=#983 id=983 data-nosnippet>983</a>            __is_incrementing_0 := 2 &gt; 0
 <a href=#984 id=984 data-nosnippet>984</a>            WHILE TRUE DO
-<a href=#985 id=985 data-nosnippet>985</a>                IF ran_once_0 THEN
+<a href=#985 id=985 data-nosnippet>985</a>                IF __ran_once_0 THEN
 <a href=#986 id=986 data-nosnippet>986</a>                    i := i + 2
 <a href=#987 id=987 data-nosnippet>987</a>                END_IF
-<a href=#988 id=988 data-nosnippet>988</a>                ran_once_0 := TRUE
-<a href=#989 id=989 data-nosnippet>989</a>                IF is_incrementing_0 THEN
+<a href=#988 id=988 data-nosnippet>988</a>                __ran_once_0 := TRUE
+<a href=#989 id=989 data-nosnippet>989</a>                IF __is_incrementing_0 THEN
 <a href=#990 id=990 data-nosnippet>990</a>                    IF i &gt; 1 THEN
 <a href=#991 id=991 data-nosnippet>991</a>                        EXIT;
 <a href=#992 id=992 data-nosnippet>992</a>                    END_IF
@@ -1016,16 +1016,16 @@
 <a href=#1016 id=1016 data-nosnippet>1016</a>            "#</span>;
 <a href=#1017 id=1017 data-nosnippet>1017</a>
 <a href=#1018 id=1018 data-nosnippet>1018</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
-<a href=#1019 id=1019 data-nosnippet>1019</a>            alloca ran_once_0: BOOL
-<a href=#1020 id=1020 data-nosnippet>1020</a>            alloca is_incrementing_0: BOOL
+<a href=#1019 id=1019 data-nosnippet>1019</a>            alloca __ran_once_0: BOOL
+<a href=#1020 id=1020 data-nosnippet>1020</a>            alloca __is_incrementing_0: BOOL
 <a href=#1021 id=1021 data-nosnippet>1021</a>            i := 1
-<a href=#1022 id=1022 data-nosnippet>1022</a>            is_incrementing_0 := -1 &gt; 0
+<a href=#1022 id=1022 data-nosnippet>1022</a>            __is_incrementing_0 := -1 &gt; 0
 <a href=#1023 id=1023 data-nosnippet>1023</a>            WHILE TRUE DO
-<a href=#1024 id=1024 data-nosnippet>1024</a>                IF ran_once_0 THEN
+<a href=#1024 id=1024 data-nosnippet>1024</a>                IF __ran_once_0 THEN
 <a href=#1025 id=1025 data-nosnippet>1025</a>                    i := i + -1
 <a href=#1026 id=1026 data-nosnippet>1026</a>                END_IF
-<a href=#1027 id=1027 data-nosnippet>1027</a>                ran_once_0 := TRUE
-<a href=#1028 id=1028 data-nosnippet>1028</a>                IF is_incrementing_0 THEN
+<a href=#1027 id=1027 data-nosnippet>1027</a>                __ran_once_0 := TRUE
+<a href=#1028 id=1028 data-nosnippet>1028</a>                IF __is_incrementing_0 THEN
 <a href=#1029 id=1029 data-nosnippet>1029</a>                    IF i &gt; 5 THEN
 <a href=#1030 id=1030 data-nosnippet>1030</a>                        EXIT;
 <a href=#1031 id=1031 data-nosnippet>1031</a>                    END_IF
@@ -1054,17 +1054,17 @@
 <a href=#1054 id=1054 data-nosnippet>1054</a>                END_FUNCTION
 <a href=#1055 id=1055 data-nosnippet>1055</a>            "#</span>;
 <a href=#1056 id=1056 data-nosnippet>1056</a>
-<a href=#1057 id=1057 data-nosnippet>1057</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#1058 id=1058 data-nosnippet>1058</a>            alloca ran_once_0: BOOL
-<a href=#1059 id=1059 data-nosnippet>1059</a>            alloca is_incrementing_0: BOOL
+<a href=#1057 id=1057 data-nosnippet>1057</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#1058 id=1058 data-nosnippet>1058</a>            alloca __ran_once_0: BOOL
+<a href=#1059 id=1059 data-nosnippet>1059</a>            alloca __is_incrementing_0: BOOL
 <a href=#1060 id=1060 data-nosnippet>1060</a>            i := 4
-<a href=#1061 id=1061 data-nosnippet>1061</a>            is_incrementing_0 := TRUE
+<a href=#1061 id=1061 data-nosnippet>1061</a>            __is_incrementing_0 := TRUE
 <a href=#1062 id=1062 data-nosnippet>1062</a>            WHILE TRUE DO
-<a href=#1063 id=1063 data-nosnippet>1063</a>                IF ran_once_0 THEN
+<a href=#1063 id=1063 data-nosnippet>1063</a>                IF __ran_once_0 THEN
 <a href=#1064 id=1064 data-nosnippet>1064</a>                    i := i + 1
 <a href=#1065 id=1065 data-nosnippet>1065</a>                END_IF
-<a href=#1066 id=1066 data-nosnippet>1066</a>                ran_once_0 := TRUE
-<a href=#1067 id=1067 data-nosnippet>1067</a>                IF is_incrementing_0 THEN
+<a href=#1066 id=1066 data-nosnippet>1066</a>                __ran_once_0 := TRUE
+<a href=#1067 id=1067 data-nosnippet>1067</a>                IF __is_incrementing_0 THEN
 <a href=#1068 id=1068 data-nosnippet>1068</a>                    IF i &gt; 4 THEN
 <a href=#1069 id=1069 data-nosnippet>1069</a>                        EXIT;
 <a href=#1070 id=1070 data-nosnippet>1070</a>                    END_IF
@@ -1092,17 +1092,17 @@
 <a href=#1092 id=1092 data-nosnippet>1092</a>                END_FUNCTION
 <a href=#1093 id=1093 data-nosnippet>1093</a>            "#</span>;
 <a href=#1094 id=1094 data-nosnippet>1094</a>
-<a href=#1095 id=1095 data-nosnippet>1095</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#1096 id=1096 data-nosnippet>1096</a>            alloca ran_once_0: BOOL
-<a href=#1097 id=1097 data-nosnippet>1097</a>            alloca is_incrementing_0: BOOL
+<a href=#1095 id=1095 data-nosnippet>1095</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#1096 id=1096 data-nosnippet>1096</a>            alloca __ran_once_0: BOOL
+<a href=#1097 id=1097 data-nosnippet>1097</a>            alloca __is_incrementing_0: BOOL
 <a href=#1098 id=1098 data-nosnippet>1098</a>            i := 0
-<a href=#1099 id=1099 data-nosnippet>1099</a>            is_incrementing_0 := TRUE
+<a href=#1099 id=1099 data-nosnippet>1099</a>            __is_incrementing_0 := TRUE
 <a href=#1100 id=1100 data-nosnippet>1100</a>            WHILE TRUE DO
-<a href=#1101 id=1101 data-nosnippet>1101</a>                IF ran_once_0 THEN
+<a href=#1101 id=1101 data-nosnippet>1101</a>                IF __ran_once_0 THEN
 <a href=#1102 id=1102 data-nosnippet>1102</a>                    i := i + 1
 <a href=#1103 id=1103 data-nosnippet>1103</a>                END_IF
-<a href=#1104 id=1104 data-nosnippet>1104</a>                ran_once_0 := TRUE
-<a href=#1105 id=1105 data-nosnippet>1105</a>                IF is_incrementing_0 THEN
+<a href=#1104 id=1104 data-nosnippet>1104</a>                __ran_once_0 := TRUE
+<a href=#1105 id=1105 data-nosnippet>1105</a>                IF __is_incrementing_0 THEN
 <a href=#1106 id=1106 data-nosnippet>1106</a>                    IF i &gt; max THEN
 <a href=#1107 id=1107 data-nosnippet>1107</a>                        EXIT;
 <a href=#1108 id=1108 data-nosnippet>1108</a>                    END_IF
@@ -1130,17 +1130,17 @@
 <a href=#1130 id=1130 data-nosnippet>1130</a>                END_FUNCTION
 <a href=#1131 id=1131 data-nosnippet>1131</a>            "#</span>;
 <a href=#1132 id=1132 data-nosnippet>1132</a>
-<a href=#1133 id=1133 data-nosnippet>1133</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#1134 id=1134 data-nosnippet>1134</a>            alloca ran_once_0: BOOL
-<a href=#1135 id=1135 data-nosnippet>1135</a>            alloca is_incrementing_0: BOOL
+<a href=#1133 id=1133 data-nosnippet>1133</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#1134 id=1134 data-nosnippet>1134</a>            alloca __ran_once_0: BOOL
+<a href=#1135 id=1135 data-nosnippet>1135</a>            alloca __is_incrementing_0: BOOL
 <a href=#1136 id=1136 data-nosnippet>1136</a>            i := 0
-<a href=#1137 id=1137 data-nosnippet>1137</a>            is_incrementing_0 := step &gt; 0
+<a href=#1137 id=1137 data-nosnippet>1137</a>            __is_incrementing_0 := step &gt; 0
 <a href=#1138 id=1138 data-nosnippet>1138</a>            WHILE TRUE DO
-<a href=#1139 id=1139 data-nosnippet>1139</a>                IF ran_once_0 THEN
+<a href=#1139 id=1139 data-nosnippet>1139</a>                IF __ran_once_0 THEN
 <a href=#1140 id=1140 data-nosnippet>1140</a>                    i := i + step
 <a href=#1141 id=1141 data-nosnippet>1141</a>                END_IF
-<a href=#1142 id=1142 data-nosnippet>1142</a>                ran_once_0 := TRUE
-<a href=#1143 id=1143 data-nosnippet>1143</a>                IF is_incrementing_0 THEN
+<a href=#1142 id=1142 data-nosnippet>1142</a>                __ran_once_0 := TRUE
+<a href=#1143 id=1143 data-nosnippet>1143</a>                IF __is_incrementing_0 THEN
 <a href=#1144 id=1144 data-nosnippet>1144</a>                    IF i &gt; 10 THEN
 <a href=#1145 id=1145 data-nosnippet>1145</a>                        EXIT;
 <a href=#1146 id=1146 data-nosnippet>1146</a>                    END_IF
@@ -1172,16 +1172,16 @@
 <a href=#1172 id=1172 data-nosnippet>1172</a>            "#</span>;
 <a href=#1173 id=1173 data-nosnippet>1173</a>
 <a href=#1174 id=1174 data-nosnippet>1174</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
-<a href=#1175 id=1175 data-nosnippet>1175</a>            alloca ran_once_0: BOOL
-<a href=#1176 id=1176 data-nosnippet>1176</a>            alloca is_incrementing_0: BOOL
+<a href=#1175 id=1175 data-nosnippet>1175</a>            alloca __ran_once_0: BOOL
+<a href=#1176 id=1176 data-nosnippet>1176</a>            alloca __is_incrementing_0: BOOL
 <a href=#1177 id=1177 data-nosnippet>1177</a>            i := a
-<a href=#1178 id=1178 data-nosnippet>1178</a>            is_incrementing_0 := TRUE
+<a href=#1178 id=1178 data-nosnippet>1178</a>            __is_incrementing_0 := TRUE
 <a href=#1179 id=1179 data-nosnippet>1179</a>            WHILE TRUE DO
-<a href=#1180 id=1180 data-nosnippet>1180</a>                IF ran_once_0 THEN
+<a href=#1180 id=1180 data-nosnippet>1180</a>                IF __ran_once_0 THEN
 <a href=#1181 id=1181 data-nosnippet>1181</a>                    i := i + 1
 <a href=#1182 id=1182 data-nosnippet>1182</a>                END_IF
-<a href=#1183 id=1183 data-nosnippet>1183</a>                ran_once_0 := TRUE
-<a href=#1184 id=1184 data-nosnippet>1184</a>                IF is_incrementing_0 THEN
+<a href=#1183 id=1183 data-nosnippet>1183</a>                __ran_once_0 := TRUE
+<a href=#1184 id=1184 data-nosnippet>1184</a>                IF __is_incrementing_0 THEN
 <a href=#1185 id=1185 data-nosnippet>1185</a>                    IF i &gt; b THEN
 <a href=#1186 id=1186 data-nosnippet>1186</a>                        EXIT;
 <a href=#1187 id=1187 data-nosnippet>1187</a>                    END_IF
@@ -1214,16 +1214,16 @@
 <a href=#1214 id=1214 data-nosnippet>1214</a>            "#</span>;
 <a href=#1215 id=1215 data-nosnippet>1215</a>
 <a href=#1216 id=1216 data-nosnippet>1216</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
-<a href=#1217 id=1217 data-nosnippet>1217</a>            alloca ran_once_0: BOOL
-<a href=#1218 id=1218 data-nosnippet>1218</a>            alloca is_incrementing_0: BOOL
+<a href=#1217 id=1217 data-nosnippet>1217</a>            alloca __ran_once_0: BOOL
+<a href=#1218 id=1218 data-nosnippet>1218</a>            alloca __is_incrementing_0: BOOL
 <a href=#1219 id=1219 data-nosnippet>1219</a>            i := a
-<a href=#1220 id=1220 data-nosnippet>1220</a>            is_incrementing_0 := TRUE
+<a href=#1220 id=1220 data-nosnippet>1220</a>            __is_incrementing_0 := TRUE
 <a href=#1221 id=1221 data-nosnippet>1221</a>            WHILE TRUE DO
-<a href=#1222 id=1222 data-nosnippet>1222</a>                IF ran_once_0 THEN
+<a href=#1222 id=1222 data-nosnippet>1222</a>                IF __ran_once_0 THEN
 <a href=#1223 id=1223 data-nosnippet>1223</a>                    i := i + 1
 <a href=#1224 id=1224 data-nosnippet>1224</a>                END_IF
-<a href=#1225 id=1225 data-nosnippet>1225</a>                ran_once_0 := TRUE
-<a href=#1226 id=1226 data-nosnippet>1226</a>                IF is_incrementing_0 THEN
+<a href=#1225 id=1225 data-nosnippet>1225</a>                __ran_once_0 := TRUE
+<a href=#1226 id=1226 data-nosnippet>1226</a>                IF __is_incrementing_0 THEN
 <a href=#1227 id=1227 data-nosnippet>1227</a>                    IF i &gt; b THEN
 <a href=#1228 id=1228 data-nosnippet>1228</a>                        EXIT;
 <a href=#1229 id=1229 data-nosnippet>1229</a>                    END_IF
@@ -1254,17 +1254,17 @@
 <a href=#1254 id=1254 data-nosnippet>1254</a>                END_FUNCTION
 <a href=#1255 id=1255 data-nosnippet>1255</a>            "#</span>;
 <a href=#1256 id=1256 data-nosnippet>1256</a>
-<a href=#1257 id=1257 data-nosnippet>1257</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#1258 id=1258 data-nosnippet>1258</a>            alloca ran_once_1: BOOL
-<a href=#1259 id=1259 data-nosnippet>1259</a>            alloca is_incrementing_1: BOOL
+<a href=#1257 id=1257 data-nosnippet>1257</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#1258 id=1258 data-nosnippet>1258</a>            alloca __ran_once_1: BOOL
+<a href=#1259 id=1259 data-nosnippet>1259</a>            alloca __is_incrementing_1: BOOL
 <a href=#1260 id=1260 data-nosnippet>1260</a>            i := start
-<a href=#1261 id=1261 data-nosnippet>1261</a>            is_incrementing_1 := outer_step &gt; 0
+<a href=#1261 id=1261 data-nosnippet>1261</a>            __is_incrementing_1 := outer_step &gt; 0
 <a href=#1262 id=1262 data-nosnippet>1262</a>            WHILE TRUE DO
-<a href=#1263 id=1263 data-nosnippet>1263</a>                IF ran_once_1 THEN
+<a href=#1263 id=1263 data-nosnippet>1263</a>                IF __ran_once_1 THEN
 <a href=#1264 id=1264 data-nosnippet>1264</a>                    i := i + outer_step
 <a href=#1265 id=1265 data-nosnippet>1265</a>                END_IF
-<a href=#1266 id=1266 data-nosnippet>1266</a>                ran_once_1 := TRUE
-<a href=#1267 id=1267 data-nosnippet>1267</a>                IF is_incrementing_1 THEN
+<a href=#1266 id=1266 data-nosnippet>1266</a>                __ran_once_1 := TRUE
+<a href=#1267 id=1267 data-nosnippet>1267</a>                IF __is_incrementing_1 THEN
 <a href=#1268 id=1268 data-nosnippet>1268</a>                    IF i &gt; finish THEN
 <a href=#1269 id=1269 data-nosnippet>1269</a>                        EXIT;
 <a href=#1270 id=1270 data-nosnippet>1270</a>                    END_IF
@@ -1273,16 +1273,16 @@
 <a href=#1273 id=1273 data-nosnippet>1273</a>                        EXIT;
 <a href=#1274 id=1274 data-nosnippet>1274</a>                    END_IF
 <a href=#1275 id=1275 data-nosnippet>1275</a>                END_IF
-<a href=#1276 id=1276 data-nosnippet>1276</a>                alloca ran_once_0: BOOL
-<a href=#1277 id=1277 data-nosnippet>1277</a>                alloca is_incrementing_0: BOOL
+<a href=#1276 id=1276 data-nosnippet>1276</a>                alloca __ran_once_0: BOOL
+<a href=#1277 id=1277 data-nosnippet>1277</a>                alloca __is_incrementing_0: BOOL
 <a href=#1278 id=1278 data-nosnippet>1278</a>                j := 10
-<a href=#1279 id=1279 data-nosnippet>1279</a>                is_incrementing_0 := inner_step &gt; 0
+<a href=#1279 id=1279 data-nosnippet>1279</a>                __is_incrementing_0 := inner_step &gt; 0
 <a href=#1280 id=1280 data-nosnippet>1280</a>                WHILE TRUE DO
-<a href=#1281 id=1281 data-nosnippet>1281</a>                    IF ran_once_0 THEN
+<a href=#1281 id=1281 data-nosnippet>1281</a>                    IF __ran_once_0 THEN
 <a href=#1282 id=1282 data-nosnippet>1282</a>                        j := j + inner_step
 <a href=#1283 id=1283 data-nosnippet>1283</a>                    END_IF
-<a href=#1284 id=1284 data-nosnippet>1284</a>                    ran_once_0 := TRUE
-<a href=#1285 id=1285 data-nosnippet>1285</a>                    IF is_incrementing_0 THEN
+<a href=#1284 id=1284 data-nosnippet>1284</a>                    __ran_once_0 := TRUE
+<a href=#1285 id=1285 data-nosnippet>1285</a>                    IF __is_incrementing_0 THEN
 <a href=#1286 id=1286 data-nosnippet>1286</a>                        IF j &gt; 0 THEN
 <a href=#1287 id=1287 data-nosnippet>1287</a>                            EXIT;
 <a href=#1288 id=1288 data-nosnippet>1288</a>                        END_IF
@@ -1314,17 +1314,17 @@
 <a href=#1314 id=1314 data-nosnippet>1314</a>                END_FUNCTION
 <a href=#1315 id=1315 data-nosnippet>1315</a>            "#</span>;
 <a href=#1316 id=1316 data-nosnippet>1316</a>
-<a href=#1317 id=1317 data-nosnippet>1317</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">"
-<a href=#1318 id=1318 data-nosnippet>1318</a>            alloca ran_once_1: BOOL
-<a href=#1319 id=1319 data-nosnippet>1319</a>            alloca is_incrementing_1: BOOL
+<a href=#1317 id=1317 data-nosnippet>1317</a>            <span class="macro">insta::assert_snapshot!</span>(<span class="kw">super</span>::serialize(source), @<span class="string">r"
+<a href=#1318 id=1318 data-nosnippet>1318</a>            alloca __ran_once_1: BOOL
+<a href=#1319 id=1319 data-nosnippet>1319</a>            alloca __is_incrementing_1: BOOL
 <a href=#1320 id=1320 data-nosnippet>1320</a>            i := a
-<a href=#1321 id=1321 data-nosnippet>1321</a>            is_incrementing_1 := c &gt; 0
+<a href=#1321 id=1321 data-nosnippet>1321</a>            __is_incrementing_1 := c &gt; 0
 <a href=#1322 id=1322 data-nosnippet>1322</a>            WHILE TRUE DO
-<a href=#1323 id=1323 data-nosnippet>1323</a>                IF ran_once_1 THEN
+<a href=#1323 id=1323 data-nosnippet>1323</a>                IF __ran_once_1 THEN
 <a href=#1324 id=1324 data-nosnippet>1324</a>                    i := i + c
 <a href=#1325 id=1325 data-nosnippet>1325</a>                END_IF
-<a href=#1326 id=1326 data-nosnippet>1326</a>                ran_once_1 := TRUE
-<a href=#1327 id=1327 data-nosnippet>1327</a>                IF is_incrementing_1 THEN
+<a href=#1326 id=1326 data-nosnippet>1326</a>                __ran_once_1 := TRUE
+<a href=#1327 id=1327 data-nosnippet>1327</a>                IF __is_incrementing_1 THEN
 <a href=#1328 id=1328 data-nosnippet>1328</a>                    IF i &gt; b THEN
 <a href=#1329 id=1329 data-nosnippet>1329</a>                        EXIT;
 <a href=#1330 id=1330 data-nosnippet>1330</a>                    END_IF
@@ -1333,16 +1333,16 @@
 <a href=#1333 id=1333 data-nosnippet>1333</a>                        EXIT;
 <a href=#1334 id=1334 data-nosnippet>1334</a>                    END_IF
 <a href=#1335 id=1335 data-nosnippet>1335</a>                END_IF
-<a href=#1336 id=1336 data-nosnippet>1336</a>                alloca ran_once_0: BOOL
-<a href=#1337 id=1337 data-nosnippet>1337</a>                alloca is_incrementing_0: BOOL
+<a href=#1336 id=1336 data-nosnippet>1336</a>                alloca __ran_once_0: BOOL
+<a href=#1337 id=1337 data-nosnippet>1337</a>                alloca __is_incrementing_0: BOOL
 <a href=#1338 id=1338 data-nosnippet>1338</a>                j := 0
-<a href=#1339 id=1339 data-nosnippet>1339</a>                is_incrementing_0 := TRUE
+<a href=#1339 id=1339 data-nosnippet>1339</a>                __is_incrementing_0 := TRUE
 <a href=#1340 id=1340 data-nosnippet>1340</a>                WHILE TRUE DO
-<a href=#1341 id=1341 data-nosnippet>1341</a>                    IF ran_once_0 THEN
+<a href=#1341 id=1341 data-nosnippet>1341</a>                    IF __ran_once_0 THEN
 <a href=#1342 id=1342 data-nosnippet>1342</a>                        j := j + 1
 <a href=#1343 id=1343 data-nosnippet>1343</a>                    END_IF
-<a href=#1344 id=1344 data-nosnippet>1344</a>                    ran_once_0 := TRUE
-<a href=#1345 id=1345 data-nosnippet>1345</a>                    IF is_incrementing_0 THEN
+<a href=#1344 id=1344 data-nosnippet>1344</a>                    __ran_once_0 := TRUE
+<a href=#1345 id=1345 data-nosnippet>1345</a>                    IF __is_incrementing_0 THEN
 <a href=#1346 id=1346 data-nosnippet>1346</a>                        IF j &gt; 2 THEN
 <a href=#1347 id=1347 data-nosnippet>1347</a>                            EXIT;
 <a href=#1348 id=1348 data-nosnippet>1348</a>                        END_IF

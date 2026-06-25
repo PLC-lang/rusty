@@ -1214,21 +1214,21 @@
 <a href=#1214 id=1214 data-nosnippet>1214</a>            implementations.iter().find(|i| i.name == <span class="string">"main"</span>).expect(<span class="string">"main implementation should exist"</span>);
 <a href=#1215 id=1215 data-nosnippet>1215</a>
 <a href=#1216 id=1216 data-nosnippet>1216</a>        <span class="kw">let </span>ref_eq_call_func_statement = <span class="kw-2">&amp;</span>main_implementation.statements;
-<a href=#1217 id=1217 data-nosnippet>1217</a>        <span class="macro">assert_snapshot!</span>(AstSerializer::format_nodes(ref_eq_call_func_statement), @<span class="string">"
+<a href=#1217 id=1217 data-nosnippet>1217</a>        <span class="macro">assert_snapshot!</span>(AstSerializer::format_nodes(ref_eq_call_func_statement), @<span class="string">r"
 <a href=#1218 id=1218 data-nosnippet>1218</a>        __main_refVal__ctor(refVal);
 <a href=#1219 id=1219 data-nosnippet>1219</a>        __main__referenceFunc_return_val_1__ctor(__referenceFunc_return_val_1);
 <a href=#1220 id=1220 data-nosnippet>1220</a>        tmpVal := 0;
 <a href=#1221 id=1221 data-nosnippet>1221</a>        refVal REF= tmpVal;
-<a href=#1222 id=1222 data-nosnippet>1222</a>        alloca ran_once_0: BOOL;
-<a href=#1223 id=1223 data-nosnippet>1223</a>        alloca is_incrementing_0: BOOL;
+<a href=#1222 id=1222 data-nosnippet>1222</a>        alloca __ran_once_0: BOOL;
+<a href=#1223 id=1223 data-nosnippet>1223</a>        alloca __is_incrementing_0: BOOL;
 <a href=#1224 id=1224 data-nosnippet>1224</a>        i := 1;
-<a href=#1225 id=1225 data-nosnippet>1225</a>        is_incrementing_0 := TRUE;
+<a href=#1225 id=1225 data-nosnippet>1225</a>        __is_incrementing_0 := TRUE;
 <a href=#1226 id=1226 data-nosnippet>1226</a>        WHILE TRUE DO
-<a href=#1227 id=1227 data-nosnippet>1227</a>            IF ran_once_0 THEN
+<a href=#1227 id=1227 data-nosnippet>1227</a>            IF __ran_once_0 THEN
 <a href=#1228 id=1228 data-nosnippet>1228</a>                i := i + 1
 <a href=#1229 id=1229 data-nosnippet>1229</a>            END_IF
-<a href=#1230 id=1230 data-nosnippet>1230</a>            ran_once_0 := TRUE
-<a href=#1231 id=1231 data-nosnippet>1231</a>            IF is_incrementing_0 THEN
+<a href=#1230 id=1230 data-nosnippet>1230</a>            __ran_once_0 := TRUE
+<a href=#1231 id=1231 data-nosnippet>1231</a>            IF __is_incrementing_0 THEN
 <a href=#1232 id=1232 data-nosnippet>1232</a>                IF i &gt; 5 THEN
 <a href=#1233 id=1233 data-nosnippet>1233</a>                    EXIT;
 <a href=#1234 id=1234 data-nosnippet>1234</a>                END_IF
