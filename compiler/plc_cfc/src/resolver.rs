@@ -329,22 +329,25 @@ mod tests {
     }
 
     #[test]
-    fn function_pou() {
-        // The container POU is a FUNCTION; the resolver is POU-kind-agnostic and indexes the
-        // network as usual — the function result is just a sink named after the function.
-        let xml = include_str!("../fixtures/function_pou/myFunc.cfc");
+    fn expression_source() {
+        let xml = include_str!("../fixtures/expression_source/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        assert_eq!(resolver.sources.len(), 3);
-        let Object::BlockOutput(block, _) = resolver.get(6).unwrap() else { panic!() };
-        assert_eq!(block.type_name, "myAdd");
+        // A data source's identifier may be a whole ST expression; the resolver stores it verbatim
+        // (it is the transpiler that parses it). Only the source is indexed — the sink consumes it.
+        assert_eq!(resolver.sources.len(), 1);
+        let Object::Variable(expr) = resolver.get(2).unwrap() else { panic!() };
+        assert_eq!(expr.identifier, "localA + 5");
     }
 
     #[test]
-    fn function_block_pou() {
-        // The container POU is a FUNCTION_BLOCK; its VAR_OUTPUT is just a sink named after it.
-        let xml = include_str!("../fixtures/function_block_pou/myFb.cfc");
+    fn function_pou() {
+        // The container POU is a FUNCTION; the resolver is POU-kind-agnostic and indexes the
+        // network as usual — the function result is just a sink named after the function. (A
+        // FUNCTION_BLOCK container indexes identically; only the lowering differs — see the
+        // transpiler tests `function_pou` / `function_block_pou`.)
+        let xml = include_str!("../fixtures/function_pou/myFunc.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
@@ -415,20 +418,10 @@ mod tests {
 
     #[test]
     fn unconnected_arguments_program() {
-        // A standalone program block has no output; only the wired `localA` is a source.
+        // A standalone block with no consumed output contributes no source; only the wired `localA`
+        // is indexed. (A standalone FB-instance block indexes identically — the resolver ignores the
+        // `instanceName`; the per-POU-kind lowering difference is covered by the transpiler tests.)
         let xml = include_str!("../fixtures/unconnected_arguments_program/mainProgram.cfc");
-        let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
-
-        assert_eq!(resolver.sources.len(), 1);
-        let Object::Variable(a) = resolver.get(2).unwrap() else { panic!() };
-        assert_eq!(a.identifier, "localA");
-    }
-
-    #[test]
-    fn unconnected_arguments_function_block() {
-        // A standalone FB-instance block has no output; only the wired `localA` is a source.
-        let xml = include_str!("../fixtures/unconnected_arguments_function_block/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
@@ -452,18 +445,9 @@ mod tests {
 
     #[test]
     fn unconnected_output_program() {
-        // The lone `result` output (id 4) is consumed by nothing.
+        // The lone `result` output (id 4) is consumed by nothing. (An FB-instance block tracks
+        // consumed/unconsumed identically — the resolver ignores the `instanceName`.)
         let xml = include_str!("../fixtures/unconnected_output_program/mainProgram.cfc");
-        let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
-
-        assert!(resolver.is_consumed(2)); // localA feeds the block input
-        assert!(!resolver.is_consumed(4)); // `result` feeds nothing
-    }
-
-    #[test]
-    fn unconnected_output_function_block() {
-        let xml = include_str!("../fixtures/unconnected_output_function_block/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 

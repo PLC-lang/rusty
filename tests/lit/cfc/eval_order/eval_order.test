@@ -1,0 +1,6 @@
+// Independent call blocks run in EvaluationPriority order, not document order. DoubleIt
+// appears first in the XML but has priority 1; AddOne appears second with priority 0.
+// Starting from acc=5, priority order (AddOne then DoubleIt) yields (5+1)*2 = 12; document
+// order would yield (5*2)+1 = 11. Checking 12 proves the priority sort runs at runtime.
+RUN: %COMPILE %S/ops.st %S/order.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: acc = 12

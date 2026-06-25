@@ -666,6 +666,28 @@ mod tests {
     }
 
     #[test]
+    fn expression_source() {
+        //    localA + 5  ----------->  result  (0)
+        //
+        //    (0)  evaluation-priority badge shown by the IDE
+        //
+        // A data source identifier is parsed as a full ST expression, so `localA + 5` lowers to
+        // the expression itself. This snapshot pins the lowered form; that the expression is
+        // genuinely parsed (not stored as a one-token name) is enforced at runtime by the
+        // `expression_source` lit test, where a bare name would fail to resolve and not compile.
+        let xml = include_str!("../fixtures/expression_source/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @r"
+        PROGRAM mainProgram
+        VAR
+            localA : DINT;
+            result : DINT;
+        END_VAR
+            result := localA + 5;
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
     fn function_pou() {
         //               +----- myAdd -----+ (1)
         //    a  ------->| in1       myAdd |--->  myFunc  (2)

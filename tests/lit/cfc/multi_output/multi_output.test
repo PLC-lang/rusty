@@ -1,0 +1,6 @@
+// A CFC block with two distinct named outputs, each wired to its own sink. Proves the
+// multi-output `=>` lowering and per-pin temp creation run correctly (lo=7, hi=107).
+// Every other lit block wires only a single output.
+RUN: %COMPILE %S/splitter.st %S/split.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: lo = 7
+CHECK: hi = 107

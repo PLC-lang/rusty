@@ -1,6 +1,9 @@
-// CFC conditional and unconditional returns. The conditional return skips a later
-// assignment only when its wired condition holds; the unconditional one always does.
-RUN: %COMPILE %S/guard.cfc %S/always.cfc %S/main.st && %RUN | %CHECK %s
+// CFC conditional, unconditional, and negated returns. The conditional return skips a
+// later assignment only when its wired condition holds; the unconditional one always does;
+// the negated one (GuardNot) fires when its condition is FALSE (IF NOT keep THEN RETURN).
+RUN: %COMPILE %S/guard.cfc %S/always.cfc %S/guard_not.cfc %S/main.st && %RUN | %CHECK %s
 CHECK: guard_true = 1
 CHECK: guard_false = 2
 CHECK: always = 1
+CHECK: guard_not_keep = 2
+CHECK: guard_not_drop = 1
