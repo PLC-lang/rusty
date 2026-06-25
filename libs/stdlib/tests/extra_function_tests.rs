@@ -1700,6 +1700,42 @@ fn test_time() {
 }
 
 #[test]
+fn test_ltime() {
+    #[derive(Default)]
+    struct MainType;
+
+    let src = r#"
+    FUNCTION main : LTIME
+        main := LTIME();
+    END_FUNCTION
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let context = CodegenContext::create();
+    let module = compile_and_load(&context, vec![src.into()], includes);
+
+    assert!(module.mock_time_set_u32(23 * 3600 + 59 * 60 + 30));
+    let now = module.run::<_, i64>("main", &mut MainType);
+    let expected = (23 * 3600 + 59 * 60 + 30) * 1e9 as i64 + 100;
+    assert_eq!(expected, now);
+
+    assert!(module.mock_time_advance_u32(29));
+    let later = module.run::<_, i64>("main", &mut MainType);
+    let expected = (23 * 3600 + 59 * 60 + 59) * 1e9 as i64 + 100;
+    assert_eq!(expected, later);
+
+    assert!(module.mock_time_advance_u32(2));
+    let new_day = module.run::<_, i64>("main", &mut MainType);
+    let expected = 1e9 as i64 + 100;
+    assert_eq!(expected, new_day);
+}
+
+#[test]
 fn dt_to_string_conversion() {
     let mut maintype = MainType { s: [0_u8; STR_SIZE] };
     let src = r#"

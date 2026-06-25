@@ -165,6 +165,14 @@ pub extern "C" fn TIME() -> i64 {
     dt.num_seconds_from_midnight() as i64 * 1e9 as i64 + dt.nanosecond() as i64
 }
 
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C" fn LTIME() -> i64 {
+    // LTIME is the same as TIME in RuSTy which we treat as an alias for compatibility with IEC 61131-3
+    // See: https://plc-lang.github.io/rusty/datatypes.html#overview-2
+    TIME()
+}
+
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]

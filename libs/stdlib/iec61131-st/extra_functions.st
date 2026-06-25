@@ -1049,6 +1049,9 @@ END_FUNCTION
 {external}
 FUNCTION TIME : TIME END_FUNCTION
 
+{external}
+FUNCTION LTIME : LTIME END_FUNCTION
+
 (******************************************************************************
 *
 * Converts USINT to STRING.
