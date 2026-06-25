@@ -3409,20 +3409,20 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @"
+            insta::assert_snapshot!(super::lower_and_serialize_statements(source, &["main"]).join("\n"), @r"
             // Statements in main
             __main_instances__ctor(instances)
             __main_references__ctor(references)
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := 0
-            is_incrementing_0 := TRUE
+            __is_incrementing_0 := TRUE
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + 1
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > 2 THEN
                         EXIT;
                     END_IF

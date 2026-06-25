@@ -2243,18 +2243,18 @@ fn super_in_loop_constructs() {
       store i16 0, ptr %i, align [filtered]
       store i16 0, ptr %sum, align [filtered]
       store i16 0, ptr %sum, align [filtered]
-      %ran_once_1 = alloca i8, align [filtered]
-      store i8 0, ptr %ran_once_1, align [filtered]
-      %is_incrementing_1 = alloca i8, align [filtered]
-      store i8 0, ptr %is_incrementing_1, align [filtered]
+      %__ran_once_1 = alloca i8, align [filtered]
+      store i8 0, ptr %__ran_once_1, align [filtered]
+      %__is_incrementing_1 = alloca i8, align [filtered]
+      store i8 0, ptr %__is_incrementing_1, align [filtered]
       store i16 0, ptr %i, align [filtered]
-      store i8 1, ptr %is_incrementing_1, align [filtered]
-      %ran_once_0 = alloca i8, align [filtered]
+      store i8 1, ptr %__is_incrementing_1, align [filtered]
+      %__ran_once_0 = alloca i8, align [filtered]
       br label %while_body
 
     while_body:                                       ; preds = %continue2, %entry
-      %load_ran_once_1 = load i8, ptr %ran_once_1, align [filtered]
-      %1 = icmp ne i8 %load_ran_once_1, 0
+      %load___ran_once_1 = load i8, ptr %__ran_once_1, align [filtered]
+      %1 = icmp ne i8 %load___ran_once_1, 0
       br i1 %1, label %condition_body, label %continue1
 
     continue:                                         ; preds = %condition_body11, %condition_body7
@@ -2269,9 +2269,9 @@ fn super_in_loop_constructs() {
       br label %continue1
 
     continue1:                                        ; preds = %condition_body, %while_body
-      store i8 1, ptr %ran_once_1, align [filtered]
-      %load_is_incrementing_1 = load i8, ptr %is_incrementing_1, align [filtered]
-      %4 = icmp ne i8 %load_is_incrementing_1, 0
+      store i8 1, ptr %__ran_once_1, align [filtered]
+      %load___is_incrementing_1 = load i8, ptr %__is_incrementing_1, align [filtered]
+      %4 = icmp ne i8 %load___is_incrementing_1, 0
       br i1 %4, label %condition_body3, label %else
 
     condition_body3:                                  ; preds = %continue1
@@ -2336,7 +2336,7 @@ fn super_in_loop_constructs() {
       br i1 %tmpVar22, label %condition_body23, label %continue20
 
     continue19:                                       ; preds = %condition_body23
-      store i8 0, ptr %ran_once_0, align [filtered]
+      store i8 0, ptr %__ran_once_0, align [filtered]
       br label %while_body25
 
     condition_body23:                                 ; preds = %while_body18
@@ -2350,8 +2350,8 @@ fn super_in_loop_constructs() {
       br label %while_body18
 
     while_body25:                                     ; preds = %continue27, %continue19
-      %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
-      %18 = icmp ne i8 %load_ran_once_0, 0
+      %load___ran_once_0 = load i8, ptr %__ran_once_0, align [filtered]
+      %18 = icmp ne i8 %load___ran_once_0, 0
       br i1 %18, label %condition_body28, label %continue27
 
     continue26:                                       ; preds = %condition_body33
@@ -2367,7 +2367,7 @@ fn super_in_loop_constructs() {
       br i1 %21, label %condition_body33, label %continue29
 
     continue27:                                       ; preds = %continue29, %while_body25
-      store i8 1, ptr %ran_once_0, align [filtered]
+      store i8 1, ptr %__ran_once_0, align [filtered]
       %counter35 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
       %counter36 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1
       %load_counter37 = load i16, ptr %counter36, align [filtered]
