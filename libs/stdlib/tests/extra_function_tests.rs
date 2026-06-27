@@ -1278,6 +1278,103 @@ fn string_to_lreal_conversion() {
     assert_almost_eq!(1.24e13, maintype.f4, 0.1);
 }
 
+// Malformed strings must not crash the application; the longest valid prefix is parsed instead
+#[test]
+fn string_to_real_with_invalid_input_does_not_crash() {
+    #[derive(Default)]
+    struct MainType {
+        f_empty: f32,
+        f_letters: f32,
+        f_trailing_letter: f32,
+        f_int_part: f32,
+        f_escapes: f32,
+    }
+    let mut maintype = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        f_empty: REAL;
+        f_letters: REAL;
+        f_trailing_letter: REAL;
+        f_int_part: REAL;
+        f_escapes: REAL;
+    END_VAR
+    VAR_TEMP
+        s_empty: STRING := '';
+        s_letters: STRING := 'asdf';
+        s_trailing_letter: STRING := '1.2j3';
+        s_int_part: STRING := '12j3';
+        s_escapes: STRING := '123.456$R$N';
+    END_VAR
+        f_empty := STRING_TO_REAL(s_empty);
+        f_letters := STRING_TO_REAL(s_letters);
+        f_trailing_letter := STRING_TO_REAL(s_trailing_letter);
+        f_int_part := STRING_TO_REAL(s_int_part);
+        f_escapes := STRING_TO_REAL(s_escapes);
+    END_PROGRAM
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+
+    assert_eq!(0.0, maintype.f_empty);
+    assert_eq!(0.0, maintype.f_letters);
+    assert_almost_eq!(1.2, maintype.f_trailing_letter, 0.0001);
+    assert_almost_eq!(12.0, maintype.f_int_part, 0.0001);
+    assert_almost_eq!(123.456, maintype.f_escapes, 0.0001);
+}
+
+// '123.456' must yield 123 for an integer target instead of crashing the application.
+#[test]
+fn string_to_dint_with_invalid_input_does_not_crash() {
+    #[derive(Default)]
+    struct MainType {
+        i_empty: i32,
+        i_letters: i32,
+        i_trailing_letter: i32,
+        i_decimal: i32,
+    }
+    let mut maintype = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        i_empty: DINT;
+        i_letters: DINT;
+        i_trailing_letter: DINT;
+        i_decimal: DINT;
+    END_VAR
+    VAR_TEMP
+        s_empty: STRING := '';
+        s_letters: STRING := 'asdf';
+        s_trailing_letter: STRING := '12j3';
+        s_decimal: STRING := '123.456';
+    END_VAR
+        i_empty := STRING_TO_DINT(s_empty);
+        i_letters := STRING_TO_DINT(s_letters);
+        i_trailing_letter := STRING_TO_DINT(s_trailing_letter);
+        i_decimal := STRING_TO_DINT(s_decimal);
+    END_PROGRAM
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+
+    assert_eq!(0, maintype.i_empty);
+    assert_eq!(0, maintype.i_letters);
+    assert_eq!(12, maintype.i_trailing_letter);
+    assert_eq!(123, maintype.i_decimal);
+}
+
 #[test]
 fn wstring_to_lreal_conversion() {
     #[derive(Default)]
@@ -1411,6 +1508,105 @@ fn wstring_to_real_conversion() {
     assert_almost_eq!(1312433.1, maintype.f2, 0.1);
     assert_almost_eq!(1.3E-8, maintype.f3, 0.1);
     assert_almost_eq!(1.24e13, maintype.f4, 0.1);
+}
+
+// WSTRING_TO_REAL delegates to STRING_TO_REAL after a WSTRING->STRING conversion, so malformed
+// input must parse the longest valid prefix instead of crashing the application.
+#[test]
+fn wstring_to_real_with_invalid_input_does_not_crash() {
+    #[derive(Default)]
+    struct MainType {
+        f_empty: f32,
+        f_letters: f32,
+        f_trailing_letter: f32,
+        f_int_part: f32,
+        f_escapes: f32,
+    }
+    let mut maintype = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        f_empty: REAL;
+        f_letters: REAL;
+        f_trailing_letter: REAL;
+        f_int_part: REAL;
+        f_escapes: REAL;
+    END_VAR
+    VAR_TEMP
+        s_empty: WSTRING := "";
+        s_letters: WSTRING := "asdf";
+        s_trailing_letter: WSTRING := "1.2j3";
+        s_int_part: WSTRING := "12j3";
+        s_escapes: WSTRING := "123.456$R$N";
+    END_VAR
+        f_empty := WSTRING_TO_REAL(s_empty);
+        f_letters := WSTRING_TO_REAL(s_letters);
+        f_trailing_letter := WSTRING_TO_REAL(s_trailing_letter);
+        f_int_part := WSTRING_TO_REAL(s_int_part);
+        f_escapes := WSTRING_TO_REAL(s_escapes);
+    END_PROGRAM
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+
+    assert_eq!(0.0, maintype.f_empty);
+    assert_eq!(0.0, maintype.f_letters);
+    assert_almost_eq!(1.2, maintype.f_trailing_letter, 0.0001);
+    assert_almost_eq!(12.0, maintype.f_int_part, 0.0001);
+    assert_almost_eq!(123.456, maintype.f_escapes, 0.0001);
+}
+
+// WSTRING_TO_DINT delegates to STRING_TO_LINT after a WSTRING->STRING conversion; '123.456'
+// must yield 123 instead of crashing the application.
+#[test]
+fn wstring_to_dint_with_invalid_input_does_not_crash() {
+    #[derive(Default)]
+    struct MainType {
+        i_empty: i32,
+        i_letters: i32,
+        i_trailing_letter: i32,
+        i_decimal: i32,
+    }
+    let mut maintype = MainType::default();
+    let src = r#"
+    PROGRAM main
+    VAR
+        i_empty: DINT;
+        i_letters: DINT;
+        i_trailing_letter: DINT;
+        i_decimal: DINT;
+    END_VAR
+    VAR_TEMP
+        s_empty: WSTRING := "";
+        s_letters: WSTRING := "asdf";
+        s_trailing_letter: WSTRING := "12j3";
+        s_decimal: WSTRING := "123.456";
+    END_VAR
+        i_empty := WSTRING_TO_DINT(s_empty);
+        i_letters := WSTRING_TO_DINT(s_letters);
+        i_trailing_letter := WSTRING_TO_DINT(s_trailing_letter);
+        i_decimal := WSTRING_TO_DINT(s_decimal);
+    END_PROGRAM
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+
+    assert_eq!(0, maintype.i_empty);
+    assert_eq!(0, maintype.i_letters);
+    assert_eq!(12, maintype.i_trailing_letter);
+    assert_eq!(123, maintype.i_decimal);
 }
 
 #[test]
