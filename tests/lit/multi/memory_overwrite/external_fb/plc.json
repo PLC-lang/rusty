@@ -1,12 +1,32 @@
 {
 	"name" : "MemoryOverwriteExternalFB",
 	"files" : [
-		"prog.st"
+		"prog.st",
+        "../../../util/*.pli"
 	],
-	"compile_type" : "Shared",
-	"output" : "prog.so",
+	"compile_type" : "Static",
+	"output" : "/tmp/MemoryOverwriteExternalFB.test.out",
 	"libraries" : [
-		"../lib/lib.so"
+        {
+            "name": "iec61131std",
+            "path": "../../../../../target/release/stdlib/lib",
+            "package": "Copy",
+            "include_path": [
+                "../include/*.st",
+                "../include/*.pli"
+            ]
+        },
+        {
+            "name": "TEM_PLC",
+            "path": "../lib",
+            "package": "Copy",
+            "include_path": [
+                "../lib/**/*.st",
+                "../lib/**/*.pli",
+                "../lib/**/*.gvl",
+                "../lib/**/*.dt"
+            ]
+        }
 	]
 }
 

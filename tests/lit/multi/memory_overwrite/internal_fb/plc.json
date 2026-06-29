@@ -2,11 +2,21 @@
 	"name" : "MemoryOverwriteInternalFB",
 	"files" : [
 		"prog.st",
-		"TEM_MovingAverage_DINT.st"
+		"TEM_MovingAverage_DINT.st",
+        "../../../util/*.pli"
 	],
-	"compile_type" : "Shared",
-	"output" : "prog.so",
+	"compile_type" : "Static",
+	"output" : "/tmp/MemoryOverwriteInternalFB.test.out",
 	"libraries" : [
+        {
+            "name": "iec61131std",
+            "path": "../../../../../target/release/stdlib/lib",
+            "package": "Copy",
+            "include_path": [
+                "../include/*.st",
+                "../include/*.pli"
+            ]
+        }
 	]
 }
 

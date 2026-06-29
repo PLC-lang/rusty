@@ -1,0 +1,21 @@
+FUNCTION_BLOCK TEM_MovingAverage_DINT
+VAR_INPUT
+	diInputValue : DINT;
+	udiCycles	 : UDINT;
+END_VAR
+
+VAR_OUTPUT
+	diAverageValue	: DINT;
+END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK TEM_MovingAverage_UDINT
+VAR_INPUT
+	diInputValue : UDINT;
+	udiCycles	 : UDINT;
+END_VAR
+
+VAR_OUTPUT
+	diAverageValue	: UDINT;
+END_VAR
+END_FUNCTION_BLOCK

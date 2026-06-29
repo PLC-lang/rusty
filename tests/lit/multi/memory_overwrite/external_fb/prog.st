@@ -4,14 +4,14 @@ PROGRAM mainProg
 
         FB_MA_dint : TEM_MovingAverage_UDINT;
         bytes : ARRAY[0..20] OF BYTE;
-        
+
         AvgCount : UDINT;
         start : BOOL;
         clear : BOOL;
     END_VAR
 
-    // CHECK: 0
-    PRINTF('Counter: %d', bytes[0]);
+    // CHECK: Counter: 0
+    printf('Counter: %d', bytes[0]);
 
     IF start THEN
         counter := counter +1;
@@ -28,6 +28,6 @@ PROGRAM mainProg
     );
 END_PROGRAM
 
-FUNCTION main
+FUNCTION main : DINT
     mainProg();
 END_FUNCTION
