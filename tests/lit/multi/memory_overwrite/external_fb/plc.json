@@ -1,0 +1,12 @@
+{
+	"name" : "MemoryOverwriteExternalFB",
+	"files" : [
+		"prog.st"
+	],
+	"compile_type" : "Shared",
+	"output" : "prog.so",
+	"libraries" : [
+		"../lib/lib.so"
+	]
+}
+

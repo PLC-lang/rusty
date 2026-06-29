@@ -1,0 +1,12 @@
+{
+	"name" : "MemoryOverwriteInternalFB",
+	"files" : [
+		"prog.st",
+		"TEM_MovingAverage_DINT.st"
+	],
+	"compile_type" : "Shared",
+	"output" : "prog.so",
+	"libraries" : [
+	]
+}
+
