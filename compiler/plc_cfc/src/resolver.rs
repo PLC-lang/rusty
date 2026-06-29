@@ -1,76 +1,23 @@
-//! Resolver tracking the ownership of elements.
-//!
-//! In CFC elements are referenced by their ID, that is elements yield an ID with a `connectionPointOutId`
-//! field and other elements make use of it referencing said ID. For example
-//! ```xml
-//! <!-- Source variables with `localA` mapping to ID 1 and `localB` to ID 2 -->
-//! <FbdObject xsi:type="DataSource" identifier="localA">
-//!     <ConnectionPointOut connectionPointOutId="1"/>
-//! </FbdObject>
-//! <FbdObject xsi:type="DataSource" identifier="localB">
-//!     <ConnectionPointOut connectionPointOutId="2"/>
-//! </FbdObject>
-//!
-//! <!-- Sink variables (received their value from another element) with `localResult` mapping to ID 3 -->
-//! <FbdObject xsi:type="DataSink" identifier="localResult">
-//!     <ConnectionPointIn>
-//!         <Connection refConnectionPointOutId="3"/>
-//!     </ConnectionPointIn>
-//! </FbdObject>
-//!
-//! <!-- A "block" (function call in this case) with node 1 and 2 (localA, localB) as its arguments
-//!      and 3 (localResult) as its output result value -->
-//! <FbdObject xsi:type="Block" typeName="myAdd">
-//!     <InputVariables>
-//!         <InputVariable parameterName="in1">
-//!             <ConnectionPointIn>
-//!                 <Connection refConnectionPointOutId="1"/>
-//!             </ConnectionPointIn>
-//!         </InputVariable>
-//!         <InputVariable parameterName="in2">
-//!             <ConnectionPointIn>
-//!                 <Connection refConnectionPointOutId="2"/>
-//!             </ConnectionPointIn>
-//!         </InputVariable>
-//!     </InputVariables>
-//!     <OutputVariables>
-//!         <OutputVariable parameterName="myAdd">
-//!             <ConnectionPointOut connectionPointOutId="3"/>
-//!         </OutputVariable>
-//!     </OutputVariables>
-//! </FbdObject>
-//! ```
-//!
-//! Visualized it looks like this in the IDE
-//! ```text
-//!                      +-------- myAdd --------+  (2)
-//!    localA  --------->| in1              myAdd|--------->  localResult  (1)
-//!    localB  --------->| in2                   |
-//!                      +-----------------------+
-//!
-//!    (2),(1)  evaluation-priority badges shown by the IDE
-//! ```
-//!
-//! The resolver indexes each wire by the object that *produces* the value behind its ID
-//! ([`Resolver::get`]); consumers resolve that value forward on demand.
-
 use std::collections::{HashMap, HashSet};
 
 use crate::model::{Block, CommonObject, DataSource, FbdObject, OutputVariable, Pou};
 
+    // TODO: Documentation
 #[derive(Debug)]
 pub struct Resolver {
-    /// Maps a `connectionPointOutId` to the object producing the value on that wire.
+    /// A map of IDs and their object representing a data source, i.e. a free-standing variable or an output
+    /// variable of a block.
     sources: HashMap<u64, Object>,
 
-    /// Every `connectionPointOutId` that some element reads — a sink, or a block input/in-out
-    /// pin. A block output whose id is absent here feeds nothing, so it can be lowered as an
-    /// empty `param => ` rather than a temp no one reads (see [`Resolver::is_consumed`]).
+    /// A set of IDs that have been consumed, e.g. a variable fed into a block as an input variable
     consumed: HashSet<u64>,
 
-    /// Maps a continuation's output `connectionPointOutId` to the wire feeding the connector of
-    /// the same label, so a named virtual wire (a connector/continuation pair) resolves to its
-    /// real producer (see [`Resolver::resolve_alias`]).
+    /// A map of resolved connector/continuation objects, where the key is the out and the value is the
+    /// input ID. For example the key-value pair in the map would yield `(2, 1)` for the given example
+    /// ```norun
+    /// a(1) ---> jmp (connector)
+    /// jmp (continuation) ---> b(2)
+    /// ``` 
     aliases: HashMap<u64, u64>,
 }
 
@@ -86,33 +33,29 @@ impl Resolver {
         let mut consumed = HashSet::new();
         let mut aliases = HashMap::new();
 
-        let network = pou.get_network().expect("todo error handling");
+        // Nothing to do if the network is empty
+        let Some(network) = pou.get_network() else {
+            return Resolver { sources, consumed, aliases };
+        };
+
         for object in &network.objects {
             match object {
-                // A "producing" variable, e.g. `foo --> <other element>`
+                // A variable representing the left side of a connection, e.g. `foo (source) ---> bar (sink)`
                 FbdObject::DataSource(source) => {
-                    sources.insert(
-                        source.connection_point_out.as_ref().expect("todo error handling").id,
-                        Object::Variable(source.clone()),
-                    );
+                    if let Some(out) = &source.connection_point_out {
+                        sources.insert(out.id, Object::Variable(source.clone()));
+                    }
                 }
 
-                // A "consuming" variable, e.g. `<other element> --> foo`
+                // A variable representing the right side of a connection, e.g. `foo (source) ---> bar (sink)`
                 FbdObject::DataSink(sink) => {
                     if let Some(pin) = &sink.connection_point_in {
                         consumed.extend(pin.connections.iter().map(|c| c.ref_connection_point_out_id));
                     }
                 }
 
-                // A block: its output pins produce values, its input/in-out pins consume them.
+                // A block, representing a POU call
                 FbdObject::Block(block) => {
-                    for variable in block.output_variables.iter().flat_map(|opt| &opt.variables) {
-                        sources.insert(
-                            variable.connection_point_out.as_ref().expect("todo error handling").id,
-                            Object::BlockOutput(block.clone(), variable.clone()),
-                        );
-                    }
-
                     for variable in block.get_input_variables() {
                         consumed.extend(variable.get_referenced_argument_id());
                     }
@@ -120,37 +63,42 @@ impl Resolver {
                     for variable in block.get_inout_variables() {
                         consumed.extend(variable.get_referenced_argument_id());
                     }
-                }
 
-                // A return consumes its condition wire, like a sink consumes its value.
-                FbdObject::Return(ret) => {
-                    if let Some(pin) = &ret.connection_point_in {
-                        consumed.extend(pin.connections.iter().map(|c| c.ref_connection_point_out_id));
+                    for variable in block.output_variables.iter().flat_map(|opt| &opt.variables) {
+                        if let Some(out) = &variable.connection_point_out {
+                            sources.insert(out.id, Object::BlockOutput(block.clone(), variable.clone()));
+                        }
                     }
                 }
 
-                // TODO: Support once needed
+                // A conditional return, e.g. `foo (source) ---> RETURN`
+                FbdObject::Return(ret) => {
+                    if let Some(pin) = &ret.connection_point_in {
+                        if let Some(connection) = pin.connections.first() {
+                            consumed.insert(connection.ref_connection_point_out_id);
+                        }
+                    }
+                }
+
                 _ => (),
             };
         }
 
-        // Connector/continuation pairs form named virtual wires. A connector names the wire feeding
-        // it; a continuation of the same label re-emits that wire elsewhere. Resolve each pair into
-        // an alias from the continuation's output id to the wire the connector consumes, so a
-        // downstream reader resolves straight through to the real producer.
+        // An "invisible" jump from one element to another, e.g. `foo (Connector) ---> foo (Continuation)`
         let mut connector_inputs: HashMap<&str, u64> = HashMap::new();
         for common in &network.common_objects {
             if let CommonObject::Connector(connector) = common {
                 if let Some(id) = connector.get_referenced_argument_id() {
                     connector_inputs.insert(&connector.label, id);
-                    consumed.insert(id); // the connector consumes the wire it names
+                    consumed.insert(id);
                 }
             }
         }
 
+        // An "invisible" jump from one element to another, e.g. `foo (Connector) ---> foo (Continuation)`
         for common in &network.common_objects {
             if let CommonObject::Continuation(continuation) = common {
-                if let (Some(&in_id), Some(out_id) ) = (
+                if let (Some(&in_id), Some(out_id)) = (
                     connector_inputs.get(continuation.label.as_str()),
                     continuation.get_connection_point_out_id(),
                 ) {
@@ -162,26 +110,30 @@ impl Resolver {
         Resolver { sources, consumed, aliases }
     }
 
+    /// Returns a source object with the given id, if any
     pub fn get(&self, id: u64) -> Option<&Object> {
         self.sources.get(&id)
     }
 
-    /// Whether the value on the given `connectionPointOutId` is read anywhere — by a sink or a
-    /// block input/in-out pin. A block output that is *not* consumed feeds nothing.
+    /// Returns true if the given id has been consumed by another object. For example the id of a variable
+    /// (data source) consumed by another variable (data sink).
     pub fn is_consumed(&self, id: u64) -> bool {
         self.consumed.contains(&id)
     }
 
-    /// Follows connector/continuation aliases to the real producing wire, transitively (a
-    /// connector may itself be fed by another continuation). A wire that is not a continuation
-    /// output is returned unchanged.
-    ///
-    /// Panics on a cyclic chain; proper diagnostics are deferred until this crate gains an error
-    /// story.
+    /// Returns the direct connection to another object, eliminating any "noise" in between. For example
+    /// ```norun
+    /// x (source) ---> jmp (connector)
+    /// jmp (continuation) ---> y (sink)
+    /// ```
+    /// which would yield `y := x`.
     pub fn resolve_alias(&self, mut id: u64) -> u64 {
         let mut visited = HashSet::new();
         while let Some(&next) = self.aliases.get(&id) {
-            assert!(visited.insert(id), "cyclic connector/continuation chain at wire {id}");
+            if !visited.insert(id) {
+                break;
+            }
+
             id = next;
         }
         id
@@ -242,7 +194,6 @@ mod tests {
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        // Two data sources and two block outputs.
         assert_eq!(resolver.sources.len(), 4);
 
         let Object::Variable(a) = resolver.get(2).unwrap() else { panic!() };
@@ -262,7 +213,6 @@ mod tests {
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        // A function with no inputs: the only source is the block's return value.
         assert_eq!(resolver.sources.len(), 1);
         let Object::BlockOutput(block, _) = resolver.get(2).unwrap() else { panic!() };
         assert_eq!(block.type_name, "getOffset");
@@ -274,7 +224,6 @@ mod tests {
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        // Four data sources and two independent block outputs.
         assert_eq!(resolver.sources.len(), 6);
 
         let Object::BlockOutput(mul, _) = resolver.get(6).unwrap() else { panic!() };
@@ -285,7 +234,6 @@ mod tests {
 
     #[test]
     fn negated_input() {
-        // Negation is a transpiler concern; the resolver indexes the wiring as usual.
         let xml = include_str!("../fixtures/negated_input/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
@@ -303,8 +251,6 @@ mod tests {
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        // The in-out's bound variable is an ordinary data source; the resolver only indexes
-        // block output variables as sources, so the in-out pin itself isn't indexed.
         assert_eq!(resolver.sources.len(), 3);
         let Object::Variable(value) = resolver.get(2).unwrap() else { panic!() };
         assert_eq!(value.identifier, "localValue");
@@ -320,7 +266,6 @@ mod tests {
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        // A literal is modelled as a data source whose identifier is the literal text.
         assert_eq!(resolver.sources.len(), 3);
         let Object::Variable(literal) = resolver.get(4).unwrap() else { panic!() };
         assert_eq!(literal.identifier, "100");
@@ -334,8 +279,6 @@ mod tests {
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        // A data source's identifier may be a whole ST expression; the resolver stores it verbatim
-        // (it is the transpiler that parses it). Only the source is indexed — the sink consumes it.
         assert_eq!(resolver.sources.len(), 1);
         let Object::Variable(expr) = resolver.get(2).unwrap() else { panic!() };
         assert_eq!(expr.identifier, "localA + 5");
@@ -343,10 +286,6 @@ mod tests {
 
     #[test]
     fn function_pou() {
-        // The container POU is a FUNCTION; the resolver is POU-kind-agnostic and indexes the
-        // network as usual — the function result is just a sink named after the function. (A
-        // FUNCTION_BLOCK container indexes identically; only the lowering differs — see the
-        // transpiler tests `function_pou` / `function_block_pou`.)
         let xml = include_str!("../fixtures/function_pou/myFunc.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
@@ -358,8 +297,6 @@ mod tests {
 
     #[test]
     fn function_block_call() {
-        // An FB-instance block: the resolver indexes its output like any block; the FB nature
-        // (its `instanceName`) only matters during lowering.
         let xml = include_str!("../fixtures/function_block_call/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
@@ -375,9 +312,6 @@ mod tests {
 
     #[test]
     fn action_call() {
-        // An action block has no pins, and the network has no data sources or sinks, so there is
-        // nothing to index: no wire produces a value and none is consumed. The action nature (its
-        // qualified type name) only matters during lowering, where it becomes `instance.action()`.
         let xml = include_str!("../fixtures/action_call/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
@@ -387,7 +321,6 @@ mod tests {
 
     #[test]
     fn program_call() {
-        // A program block carries no `instanceName`; the resolver indexes its output like any block.
         let xml = include_str!("../fixtures/program_call/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
@@ -403,8 +336,6 @@ mod tests {
 
     #[test]
     fn unconnected_arguments_function() {
-        // An unconnected pin still indexes normally; only the wired `localA` and the block's
-        // return output are sources (the unconnected in-out's ConnectionPointOut is not indexed).
         let xml = include_str!("../fixtures/unconnected_arguments_function/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
@@ -418,9 +349,6 @@ mod tests {
 
     #[test]
     fn unconnected_arguments_program() {
-        // A standalone block with no consumed output contributes no source; only the wired `localA`
-        // is indexed. (A standalone FB-instance block indexes identically — the resolver ignores the
-        // `instanceName`; the per-POU-kind lowering difference is covered by the transpiler tests.)
         let xml = include_str!("../fixtures/unconnected_arguments_program/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
@@ -432,27 +360,23 @@ mod tests {
 
     #[test]
     fn unconnected_output_function() {
-        // The wired result pin (id 4) is consumed by the sink; the unconnected `extra` pin (id 5)
-        // is not, so the transpiler can lower it as an empty `extra => `.
         let xml = include_str!("../fixtures/unconnected_output_function/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        assert!(resolver.is_consumed(2)); // localA feeds the block input
-        assert!(resolver.is_consumed(4)); // the result pin feeds the sink
-        assert!(!resolver.is_consumed(5)); // `extra` feeds nothing
+        assert!(resolver.is_consumed(2));
+        assert!(resolver.is_consumed(4));
+        assert!(!resolver.is_consumed(5));
     }
 
     #[test]
     fn unconnected_output_program() {
-        // The lone `result` output (id 4) is consumed by nothing. (An FB-instance block tracks
-        // consumed/unconsumed identically — the resolver ignores the `instanceName`.)
         let xml = include_str!("../fixtures/unconnected_output_program/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        assert!(resolver.is_consumed(2)); // localA feeds the block input
-        assert!(!resolver.is_consumed(4)); // `result` feeds nothing
+        assert!(resolver.is_consumed(2));
+        assert!(!resolver.is_consumed(4));
     }
 
     #[test]
@@ -461,16 +385,13 @@ mod tests {
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        // Every block output is indexed as a source (two blocks, six outputs).
         let Object::BlockOutput(block, _) = resolver.get(2).unwrap() else { panic!() };
         assert_eq!(block.type_name, "myFunctionBlock");
         assert_eq!(block.instance_name.as_deref(), Some("myInstance"));
 
-        // myInstance: a (2) and c (4) feed sinks; b (3) is unconnected.
         assert!(resolver.is_consumed(2));
         assert!(!resolver.is_consumed(3));
         assert!(resolver.is_consumed(4));
-        // myFunction: the return (8) and b (10) feed nothing; a (9) feeds a sink.
         assert!(!resolver.is_consumed(8));
         assert!(resolver.is_consumed(9));
         assert!(!resolver.is_consumed(10));
@@ -478,8 +399,6 @@ mod tests {
 
     #[test]
     fn conditional_return() {
-        // The two data sources are indexed; the return consumes its condition wire just like the
-        // sink consumes its value.
         let xml = include_str!("../fixtures/conditional_return/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
@@ -490,14 +409,12 @@ mod tests {
         let Object::Variable(input) = resolver.get(5).unwrap() else { panic!() };
         assert_eq!(input.identifier, "input");
 
-        assert!(resolver.is_consumed(2)); // enable feeds the return condition
-        assert!(resolver.is_consumed(5)); // input feeds the sink
+        assert!(resolver.is_consumed(2));
+        assert!(resolver.is_consumed(5));
     }
 
     #[test]
     fn unconditional_return() {
-        // The unconditional return has no condition wire, so it contributes nothing to the index;
-        // only `input` (feeding the sink) is a source.
         let xml = include_str!("../fixtures/unconditional_return/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
@@ -505,7 +422,7 @@ mod tests {
         assert_eq!(resolver.sources.len(), 1);
         let Object::Variable(input) = resolver.get(2).unwrap() else { panic!() };
         assert_eq!(input.identifier, "input");
-        assert!(resolver.is_consumed(2)); // input feeds the sink
+        assert!(resolver.is_consumed(2));
     }
 
     #[test]
@@ -514,13 +431,10 @@ mod tests {
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        // The block's result is the only real source; the connector/continuation are not.
         assert_eq!(resolver.sources.len(), 1);
         let Object::BlockOutput(block, _) = resolver.get(12).unwrap() else { panic!() };
         assert_eq!(block.type_name, "alwaysFive");
 
-        // The connector consumes the block's result (so it still earns a temp), and the
-        // continuation's output (7) aliases through to it.
         assert!(resolver.is_consumed(12));
         assert_eq!(resolver.resolve_alias(7), 12);
     }
@@ -531,29 +445,24 @@ mod tests {
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        // Only alwaysFive's result is a real source.
         assert_eq!(resolver.sources.len(), 1);
         let Object::BlockOutput(block, _) = resolver.get(10).unwrap() else { panic!() };
         assert_eq!(block.type_name, "alwaysFive");
         assert!(resolver.is_consumed(10));
 
-        // Every hop resolves transitively back to the producer (wire 10).
-        assert_eq!(resolver.resolve_alias(11), 10); // continuation a
-        assert_eq!(resolver.resolve_alias(12), 10); // continuation b
-        assert_eq!(resolver.resolve_alias(13), 10); // continuation c
-        assert_eq!(resolver.resolve_alias(14), 10); // continuation d (the sink's wire)
+        assert_eq!(resolver.resolve_alias(11), 10);
+        assert_eq!(resolver.resolve_alias(12), 10);
+        assert_eq!(resolver.resolve_alias(13), 10);
+        assert_eq!(resolver.resolve_alias(14), 10);
     }
 
-    // TODO: a cyclic chain currently panics; once this crate has an error story it should yield a
-    // proper diagnostic instead (cf. E085). The test pins the present behaviour.
     #[test]
-    #[should_panic(expected = "cyclic connector/continuation chain")]
     fn connector_continuation_cycle() {
         let xml = include_str!("../fixtures/connector_continuation_cycle/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::index(&deserialized);
 
-        // x → y → x → ... never terminates.
-        resolver.resolve_alias(10);
+        // A cyclic alias chain terminates at its entry instead of looping or panicking.
+        assert_eq!(resolver.resolve_alias(10), 10);
     }
 }

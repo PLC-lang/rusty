@@ -1,53 +1,44 @@
-//! CFC (Continuous Function Chart) frontend, loosely based on the
-//! IEC 61131-10 XML exchange format. See `CLAUDE.md` for the conventions
-//! this crate follows and how it deviates from the strict standard.
-
 mod model;
 mod placeholder;
 mod resolver;
 mod transpiler;
+mod validator;
 
 pub use placeholder::resolve_temp_types;
 
 use ast::ast::{CompilationUnit, LinkageType};
 use ast::provider::IdProvider;
 use plc_diagnostics::diagnostician::Diagnostician;
-use plc_diagnostics::diagnostics::Diagnostic;
+use plc_diagnostics::diagnostics::{Diagnostic, Severity};
 use plc_source::source_location::SourceLocationFactory;
 use plc_source::{SourceCode, SourceContainer};
 
+use crate::resolver::Resolver;
 use crate::transpiler::Transpiler;
 
-/// Parses a `.cfc` source into a [`CompilationUnit`].
-///
-/// Signature-compatible with `plc::parser::parse_file` so the driver can
-/// dispatch on the source type (`plc_driver::pipelines`):
-///
-/// ```ignore
-/// let parse_func = match source.get_type() {
-///     source_code::SourceType::Text => parse_file,
-///     source_code::SourceType::Xml => plc_cfc::parse_file,
-///     source_code::SourceType::Unknown => unreachable!(),
-/// };
-/// ```
 pub fn parse_file(
     source: &SourceCode,
     _: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
 ) -> Result<CompilationUnit, Diagnostic> {
-    // XXX: The API is a bit fucked here, no? Why do I as a parse_file method have to register the
-    // source location? That should be the job of the caller? Maybe fix this later?
-    diagnostician.register_file(source.get_location_str().to_string(), source.source.clone());
-
     let factory = SourceLocationFactory::for_source(source);
 
-    // First deserialize the CFC (XML) content
-    let deserialized = model::from_str(&source.source).map_err(|err| {
-        Diagnostic::new(format!("Invalid CFC format: {err}"))
-            .with_location(factory.create_file_only_location())
+    // TODO: Shouldn't the caller be responsible for registering files for the diagnostician?
+    diagnostician.register_file(source.get_location_str().to_string(), source.source.clone());
+
+    let deserialized = model::from_str(&source.source).map_err(|error| {
+        let message = format!("Invalid CFC format: {error}");
+        Diagnostic::new(message).with_location(factory.create_file_only_location())
     })?;
 
-    // Then transpile it into an AST
+    let resolver = Resolver::index(&deserialized);
+    let diagnostics = validator::validate(&deserialized, &resolver, &factory);
+
+    if diagnostician.handle(&diagnostics) == Severity::Error {
+        return Err(Diagnostic::new("Compilation aborted due to invalid CFC content")
+            .with_sub_diagnostics(diagnostics));
+    }
+
     Transpiler::new(deserialized, id_provider, factory).transpile()
 }

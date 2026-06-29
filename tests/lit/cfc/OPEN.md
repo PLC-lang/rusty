@@ -38,21 +38,23 @@ real operator blocks and add integration tests covering the common operators.
 
 ## Validations
 
-`plc_cfc` has **no validations** yet. The frontend lowers a `.cfc` to AST and relies
-entirely on the shared downstream ST validation; it does not yet surface CFC-specific
-diagnostics. Known gaps where the old `plc_xml` crate had proper error codes (now lost):
+`plc_cfc` validates an FBD network's structure before lowering (`plc_cfc::validation`),
+reporting these reclaimed `plc_xml` error codes and aborting the unit on any of them:
 
-- cyclic connector/continuation chains — currently *panic* (`Resolver::resolve_alias`)
-    instead of a diagnostic (cf. `E085`).
-- unconnected / dangling pins, missing required connections.
-- unnamed or malformed control objects.
-- (later) jumps targeting a non-existent label, duplicate labels.
+- `E082` — a wire referencing a node nothing produces.
+- `E084` — an unconnected data sink.
+- `E085` — a cyclic connector/continuation chain (previously a panic).
+- `E086` — a continuation with no matching connector.
+- `E087` — an unnamed connector/continuation.
 
-→ TODO: define a CFC validation/error-reporting story and the diagnostics it emits.
+Everything else still relies on the shared downstream ST validation (e.g. unknown POU,
+type mismatches, unconnected in-out → `E031`), which already points back at the diagram.
+Remaining gaps:
 
-**Open question:** should validation behaviour be tested via lit at all? Validations
-produce *diagnostics*, not runtime output — they're a poor fit for the
-`%COMPILE && %RUN | %CHECK` (compile-and-run) shape these CFC integration tests use.
-They likely belong in Rust-level diagnostic/snapshot tests (as `plc_xml`'s
-`validation_tests` were) rather than here. Recorded in this file regardless, so all
-open CFC topics live in one place — but the test *home* for validations is TBD.
+- jumps & labels — `E081`/`E083` are parked with the jump feature itself (see above).
+- multiple networks in one body — not yet rejected (CFC assumes exactly one).
+
+**Test home (resolved):** these validations are tested as Rust unit tests in
+`plc_cfc/src/validation.rs`, not via lit — they produce *diagnostics*, not runtime
+output, so they don't fit the `%COMPILE && %RUN | %CHECK` shape used here. Recorded in
+this file regardless, so all open CFC topics stay in one place.
