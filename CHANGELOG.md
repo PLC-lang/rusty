@@ -2,11 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.1](https://github.com/PLC-lang/rusty/releases/tag/v1.0.1) - 2026-06-09
+## [1.1.0](https://github.com/PLC-lang/rusty/releases/tag/v1.1.0) - 2026-06-29
+
+### Added
+
+- **stdlib**: Added LTIME to extra functions (#1781)
 
 ### Fixed
 
-- Hwmap no longer infinitely recurses when an enum is in the project (#1769)
+- Invalid numeric literal strings no longer crash the application … (#1787)
+- Annotate allocas inside actions correctly (#1784)
+- Stdlib now accepts the correct data type for LDT_TO_** functions (#1780)
+- Resolve project paths containing glob metacharacters as literals (#1777)
+- Hwmap no longer infinitely recurses when an enum is in the project (#1769) (#1776)
 ## [1.0.0](https://github.com/PLC-lang/rusty/releases/tag/v1.0.0) - 2026-06-03
 
 ### Added
