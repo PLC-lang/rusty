@@ -10,7 +10,7 @@ pub mod test_time_helpers;
 use crate::string_functions::ptr_to_slice;
 use chrono::{TimeZone, Timelike};
 use num::{Float, PrimInt};
-use std::{fmt::Display, io::Write, str::FromStr};
+use std::{io::Write, str::FromStr};
 
 // can't determine string buffer length of an empty string, therefore
 // _TO_STRING functions use the default string length.
@@ -89,7 +89,6 @@ pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
 unsafe fn string_to_int<T>(src: *const u8) -> T
 where
     T: PrimInt,
-    <T as num::Num>::FromStrRadixErr: std::fmt::Display,
 {
     let slice = ptr_to_slice(src);
     let (string, radix) = match slice {
@@ -100,13 +99,27 @@ where
         _ => (std::str::from_utf8(slice), 10),
     };
 
+    // Parse the longest valid prefix instead of panicking on malformed input.
+    // For example "12j3" yields 12 and "123.456" yields 123, while a string with no valid prefix yields 0.
     match string {
-        Ok(s) => match T::from_str_radix(s, radix) {
-            Ok(number) => number,
-            Err(e) => panic!("Could not parse number from '{s}': {e}"),
-        },
-        Err(e) => panic!("Encoding error: {e}"),
+        Ok(s) => parse_longest_prefix(s, |candidate| T::from_str_radix(candidate, radix).ok()),
+        Err(_) => T::zero(),
     }
+}
+
+/// Returns the value parsed from the longest prefix of `s` accepted by `parse`, or the type's
+/// default (`0`) when no non-empty prefix is valid.
+fn parse_longest_prefix<T: num::Zero>(s: &str, parse: impl Fn(&str) -> Option<T>) -> T {
+    let mut end = s.len();
+    while end > 0 {
+        if s.is_char_boundary(end) {
+            if let Some(number) = parse(&s[..end]) {
+                return number;
+            }
+        }
+        end -= 1;
+    }
+    T::zero()
 }
 
 /// # Safety
@@ -128,17 +141,14 @@ pub unsafe extern "C" fn STRING_TO_DINT(src: *const u8) -> i32 {
 unsafe fn string_to_float<T>(src: *const u8) -> T
 where
     T: Float + FromStr,
-    <T as FromStr>::Err: Display,
 {
     let slice = ptr_to_slice(src);
-    let string = std::str::from_utf8(slice);
 
-    match string {
-        Ok(s) => match s.parse() {
-            Ok(number) => number,
-            Err(e) => panic!("Could not parse number from '{s}': {e}"),
-        },
-        Err(e) => panic!("Encoding error: {e}"),
+    // Parse the longest valid prefix instead of panicking on malformed input.
+    // For example "1.2j3" yields 1.2, while "asdf" or an empty string yield 0.0.
+    match std::str::from_utf8(slice) {
+        Ok(s) => parse_longest_prefix(s, |candidate| candidate.parse::<T>().ok()),
+        Err(_) => T::zero(),
     }
 }
 
@@ -362,10 +372,48 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn string_to_lint_conversion_panics_if_given_invalid_string() {
+    fn string_to_lint_parses_longest_valid_prefix() {
+        // a string with no valid prefix yields 0 instead of panicking
         let string = "ab456\0";
-        let _ = unsafe { STRING_TO_LINT(string.as_ptr()) };
+        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
+        assert_eq!(0_i64, result);
+
+        // parsing stops at the first invalid character
+        let string = "12j3\0";
+        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
+        assert_eq!(12_i64, result);
+
+        // the integer part of a decimal number is parsed (the '.' ends the prefix)
+        let string = "123.456\0";
+        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
+        assert_eq!(123_i64, result);
+
+        // empty string yields 0
+        let string = "\0";
+        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
+        assert_eq!(0_i64, result);
+
+        // radix prefixes are still honoured, and trailing garbage is trimmed off the digits.
+        // Note 'E'/'F' are valid hex digits here, not an exponent: "16#FFE0" parses fully.
+        let string = "16#FFxy\0";
+        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
+        assert_eq!(255_i64, result);
+
+        let string = "16#FFE0\0";
+        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
+        assert_eq!(65504_i64, result);
+
+        let string = "8#1239\0"; // 9 is not a valid octal digit, so the prefix is "123"
+        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
+        assert_eq!(0o123_i64, result);
+
+        let string = "2#10102\0"; // 2 is not a valid binary digit, so the prefix is "1010"
+        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
+        assert_eq!(0b1010_i64, result);
+
+        let string = "0xdeadZZ\0";
+        let result = unsafe { STRING_TO_LINT(string.as_ptr()) };
+        assert_eq!(0xdead_i64, result);
     }
 
     #[test]
@@ -383,10 +431,30 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn string_to_lreal_conversion_panics_if_given_invalid_string() {
+    fn string_to_lreal_parses_longest_valid_prefix() {
+        // parsing stops at the first invalid character instead of panicking
         let string = "1,25f\0";
-        let _ = unsafe { STRING_TO_LREAL(string.as_ptr()) };
+        let result = unsafe { STRING_TO_LREAL(string.as_ptr()) };
+        assert_eq!(1.0, result);
+
+        let string = "1.2j3\0";
+        let result = unsafe { STRING_TO_LREAL(string.as_ptr()) };
+        assert_eq!(1.2, result);
+
+        // ST escape sequences (here $R$N -> CR LF) trailing the number are ignored
+        let string = "123.456\r\n\0";
+        let result = unsafe { STRING_TO_LREAL(string.as_ptr()) };
+        assert_eq!(123.456, result);
+
+        // a string with no valid prefix yields 0.0
+        let string = "asdf\0";
+        let result = unsafe { STRING_TO_LREAL(string.as_ptr()) };
+        assert_eq!(0.0, result);
+
+        // empty string yields 0.0
+        let string = "\0";
+        let result = unsafe { STRING_TO_LREAL(string.as_ptr()) };
+        assert_eq!(0.0, result);
     }
 
     #[test]
