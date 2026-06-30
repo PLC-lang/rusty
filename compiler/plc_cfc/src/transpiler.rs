@@ -344,7 +344,7 @@ impl Transpiler {
         // temporary variables.
         let mut return_value = None;
         for output in block.get_output_variables() {
-            let id = output.connection_point_out.as_ref().expect("todo: error handling").id;
+            let id = output.get_connection_point_out_id().expect("todo: error handling");
 
             // We're dealing with a function if both the output variable and block name are identical in which
             // case we want to persist the return value into a temporary variable.

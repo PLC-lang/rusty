@@ -57,16 +57,14 @@ impl Resolver {
             match object {
                 // A variable representing the left side of a connection, e.g. `foo (source) ---> bar (sink)`
                 FbdObject::DataSource(source) => {
-                    if let Some(out) = &source.connection_point_out {
-                        sources.insert(out.id, Object::Variable(source.clone()));
+                    if let Some(id) = source.get_connection_point_out_id() {
+                        sources.insert(id, Object::Variable(source.clone()));
                     }
                 }
 
                 // A variable representing the right side of a connection, e.g. `foo (source) ---> bar (sink)`
                 FbdObject::DataSink(sink) => {
-                    if let Some(pin) = &sink.connection_point_in {
-                        consumed.extend(pin.connections.iter().map(|c| c.ref_connection_point_out_id));
-                    }
+                    consumed.extend(sink.get_referenced_argument_id());
                 }
 
                 // A block, representing a POU call
@@ -79,20 +77,16 @@ impl Resolver {
                         consumed.extend(variable.get_referenced_argument_id());
                     }
 
-                    for variable in block.output_variables.iter().flat_map(|opt| &opt.variables) {
-                        if let Some(out) = &variable.connection_point_out {
-                            sources.insert(out.id, Object::BlockOutput(block.clone(), variable.clone()));
+                    for variable in block.get_output_variables() {
+                        if let Some(id) = variable.get_connection_point_out_id() {
+                            sources.insert(id, Object::BlockOutput(block.clone(), variable.clone()));
                         }
                     }
                 }
 
                 // A conditional return, e.g. `foo (source) ---> RETURN`
                 FbdObject::Return(ret) => {
-                    if let Some(pin) = &ret.connection_point_in
-                        && let Some(connection) = pin.connections.first()
-                    {
-                        consumed.insert(connection.ref_connection_point_out_id);
-                    }
+                    consumed.extend(ret.get_condition_id());
                 }
 
                 _ => (),

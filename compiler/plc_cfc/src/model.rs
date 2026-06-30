@@ -417,6 +417,13 @@ pub struct ConnectionPointIn {
     pub feedback_connections: Vec<FeedbackConnection>,
 }
 
+impl ConnectionPointIn {
+    /// The id of the value wired into this pin, taken from its first incoming connection (if any).
+    pub fn referenced_id(&self) -> Option<u64> {
+        Some(self.connections.first()?.ref_connection_point_out_id)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Connection {
     #[serde(rename = "@refConnectionPointOutId")]
@@ -541,7 +548,7 @@ impl DataSink {
     }
 
     pub fn get_referenced_argument_id(&self) -> Option<u64> {
-        Some(self.connection_point_in.as_ref()?.connections.first()?.ref_connection_point_out_id)
+        self.connection_point_in.as_ref()?.referenced_id()
     }
 }
 
@@ -555,13 +562,13 @@ impl Return {
     }
 
     pub fn get_condition_id(&self) -> Option<u64> {
-        Some(self.connection_point_in.as_ref()?.connections.first()?.ref_connection_point_out_id)
+        self.connection_point_in.as_ref()?.referenced_id()
     }
 }
 
 impl Connector {
     pub fn get_referenced_argument_id(&self) -> Option<u64> {
-        Some(self.connection_point_in.as_ref()?.connections.first()?.ref_connection_point_out_id)
+        self.connection_point_in.as_ref()?.referenced_id()
     }
 }
 
@@ -573,13 +580,25 @@ impl Continuation {
 
 impl InputVariable {
     pub fn get_referenced_argument_id(&self) -> Option<u64> {
-        Some(self.connection_point_in.as_ref()?.connections.first()?.ref_connection_point_out_id)
+        self.connection_point_in.as_ref()?.referenced_id()
     }
 }
 
 impl InOutVariable {
     pub fn get_referenced_argument_id(&self) -> Option<u64> {
-        Some(self.connection_point_in.as_ref()?.connections.first()?.ref_connection_point_out_id)
+        self.connection_point_in.as_ref()?.referenced_id()
+    }
+}
+
+impl DataSource {
+    pub fn get_connection_point_out_id(&self) -> Option<u64> {
+        Some(self.connection_point_out.as_ref()?.id)
+    }
+}
+
+impl OutputVariable {
+    pub fn get_connection_point_out_id(&self) -> Option<u64> {
+        Some(self.connection_point_out.as_ref()?.id)
     }
 }
 
