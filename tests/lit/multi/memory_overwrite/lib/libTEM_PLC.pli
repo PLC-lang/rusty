@@ -7,6 +7,13 @@ END_VAR
 VAR_OUTPUT
 	diAverageValue	: DINT;
 END_VAR
+
+VAR
+		diDividend 	: DINT;
+		diDivisor	: DINT;
+		diQuotient	: DINT;
+		diDivRest	: DINT;
+END_VAR
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK TEM_MovingAverage_UDINT
@@ -17,5 +24,12 @@ END_VAR
 
 VAR_OUTPUT
 	diAverageValue	: UDINT;
+END_VAR
+
+VAR
+		diDividend 	: DINT;
+		diDivisor	: DINT;
+		diQuotient	: DINT;
+		diDivRest	: DINT;
 END_VAR
 END_FUNCTION_BLOCK
