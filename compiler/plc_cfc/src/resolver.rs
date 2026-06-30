@@ -1,8 +1,23 @@
+//! Indexes a CFC network's wiring ahead of transpilation.
+//!
+//! The transpiler walks the network one object at a time, but lowering a single object constantly requires
+//! knowledge about the rest of the graph: what produced the value on a given wire, whether anyone consumes a
+//! block's output, and where a connector/continuation pair really leads. Answering those from scratch every
+//! time would mean rescanning the whole network over and over.
+//!
+//! The [`Resolver`] does that scan once, up front, and records the answers by ID:
+//!
+//! - `sources` maps a producing ID to the [`Object`] behind it: a free-standing variable, or a block output.
+//! - `consumed` is the set of IDs that something reads, which lets the transpiler tell whether a block output
+//!   is used (and so needs a temporary) or can be dropped.
+//! - `aliases` collapses connector/continuation pairs, mapping a continuation's output ID back to the
+//!   connector's input ID so the rest of the code can look straight through them.
+
 use std::collections::{HashMap, HashSet};
 
 use crate::model::{Block, CommonObject, DataSource, FbdObject, OutputVariable, Pou};
 
-    // TODO: Documentation
+/// A one-time index of a network's wiring. See the module documentation for an overview.
 #[derive(Debug)]
 pub struct Resolver {
     /// A map of IDs and their object representing a data source, i.e. a free-standing variable or an output
@@ -14,10 +29,10 @@ pub struct Resolver {
 
     /// A map of resolved connector/continuation objects, where the key is the out and the value is the
     /// input ID. For example the key-value pair in the map would yield `(2, 1)` for the given example
-    /// ```norun
+    /// ```text
     /// a(1) ---> jmp (connector)
     /// jmp (continuation) ---> b(2)
-    /// ``` 
+    /// ```
     aliases: HashMap<u64, u64>,
 }
 
@@ -28,7 +43,7 @@ pub enum Object {
 }
 
 impl Resolver {
-    pub fn index(pou: &Pou) -> Resolver {
+    pub fn resolve(pou: &Pou) -> Resolver {
         let mut sources = HashMap::new();
         let mut consumed = HashSet::new();
         let mut aliases = HashMap::new();
@@ -73,10 +88,10 @@ impl Resolver {
 
                 // A conditional return, e.g. `foo (source) ---> RETURN`
                 FbdObject::Return(ret) => {
-                    if let Some(pin) = &ret.connection_point_in {
-                        if let Some(connection) = pin.connections.first() {
-                            consumed.insert(connection.ref_connection_point_out_id);
-                        }
+                    if let Some(pin) = &ret.connection_point_in
+                        && let Some(connection) = pin.connections.first()
+                    {
+                        consumed.insert(connection.ref_connection_point_out_id);
                     }
                 }
 
@@ -87,23 +102,23 @@ impl Resolver {
         // An "invisible" jump from one element to another, e.g. `foo (Connector) ---> foo (Continuation)`
         let mut connector_inputs: HashMap<&str, u64> = HashMap::new();
         for common in &network.common_objects {
-            if let CommonObject::Connector(connector) = common {
-                if let Some(id) = connector.get_referenced_argument_id() {
-                    connector_inputs.insert(&connector.label, id);
-                    consumed.insert(id);
-                }
+            if let CommonObject::Connector(connector) = common
+                && let Some(id) = connector.get_referenced_argument_id()
+            {
+                connector_inputs.insert(&connector.label, id);
+                consumed.insert(id);
             }
         }
 
         // An "invisible" jump from one element to another, e.g. `foo (Connector) ---> foo (Continuation)`
         for common in &network.common_objects {
-            if let CommonObject::Continuation(continuation) = common {
-                if let (Some(&in_id), Some(out_id)) = (
+            if let CommonObject::Continuation(continuation) = common
+                && let (Some(&in_id), Some(out_id)) = (
                     connector_inputs.get(continuation.label.as_str()),
                     continuation.get_connection_point_out_id(),
-                ) {
-                    aliases.insert(out_id, in_id);
-                }
+                )
+            {
+                aliases.insert(out_id, in_id);
             }
         }
 
@@ -122,7 +137,7 @@ impl Resolver {
     }
 
     /// Returns the direct connection to another object, eliminating any "noise" in between. For example
-    /// ```norun
+    /// ```text
     /// x (source) ---> jmp (connector)
     /// jmp (continuation) ---> y (sink)
     /// ```
@@ -151,7 +166,7 @@ mod tests {
     fn function_call() {
         let xml = include_str!("../fixtures/function_call/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 3);
 
@@ -173,7 +188,7 @@ mod tests {
     fn shared_result() {
         let xml = include_str!("../fixtures/shared_result/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 3);
 
@@ -192,7 +207,7 @@ mod tests {
     fn chained_calls() {
         let xml = include_str!("../fixtures/chained_calls/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 4);
 
@@ -211,7 +226,7 @@ mod tests {
     fn nullary_call() {
         let xml = include_str!("../fixtures/nullary_call/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 1);
         let Object::BlockOutput(block, _) = resolver.get(2).unwrap() else { panic!() };
@@ -222,7 +237,7 @@ mod tests {
     fn evaluation_order() {
         let xml = include_str!("../fixtures/evaluation_order/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 6);
 
@@ -236,7 +251,7 @@ mod tests {
     fn negated_input() {
         let xml = include_str!("../fixtures/negated_input/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 3);
         let Object::Variable(a) = resolver.get(2).unwrap() else { panic!() };
@@ -249,7 +264,7 @@ mod tests {
     fn inout_variable() {
         let xml = include_str!("../fixtures/inout_variable/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 3);
         let Object::Variable(value) = resolver.get(2).unwrap() else { panic!() };
@@ -264,7 +279,7 @@ mod tests {
     fn literal_input() {
         let xml = include_str!("../fixtures/literal_input/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 3);
         let Object::Variable(literal) = resolver.get(4).unwrap() else { panic!() };
@@ -277,7 +292,7 @@ mod tests {
     fn expression_source() {
         let xml = include_str!("../fixtures/expression_source/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 1);
         let Object::Variable(expr) = resolver.get(2).unwrap() else { panic!() };
@@ -288,7 +303,7 @@ mod tests {
     fn function_pou() {
         let xml = include_str!("../fixtures/function_pou/myFunc.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 3);
         let Object::BlockOutput(block, _) = resolver.get(6).unwrap() else { panic!() };
@@ -299,7 +314,7 @@ mod tests {
     fn function_block_call() {
         let xml = include_str!("../fixtures/function_block_call/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 2);
         let Object::Variable(step) = resolver.get(2).unwrap() else { panic!() };
@@ -314,7 +329,7 @@ mod tests {
     fn action_call() {
         let xml = include_str!("../fixtures/action_call/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 0);
     }
@@ -323,7 +338,7 @@ mod tests {
     fn program_call() {
         let xml = include_str!("../fixtures/program_call/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 2);
         let Object::Variable(increment) = resolver.get(2).unwrap() else { panic!() };
@@ -338,7 +353,7 @@ mod tests {
     fn unconnected_arguments_function() {
         let xml = include_str!("../fixtures/unconnected_arguments_function/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 2);
         let Object::Variable(a) = resolver.get(2).unwrap() else { panic!() };
@@ -351,7 +366,7 @@ mod tests {
     fn unconnected_arguments_program() {
         let xml = include_str!("../fixtures/unconnected_arguments_program/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 1);
         let Object::Variable(a) = resolver.get(2).unwrap() else { panic!() };
@@ -362,7 +377,7 @@ mod tests {
     fn unconnected_output_function() {
         let xml = include_str!("../fixtures/unconnected_output_function/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert!(resolver.is_consumed(2));
         assert!(resolver.is_consumed(4));
@@ -373,7 +388,7 @@ mod tests {
     fn unconnected_output_program() {
         let xml = include_str!("../fixtures/unconnected_output_program/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert!(resolver.is_consumed(2));
         assert!(!resolver.is_consumed(4));
@@ -383,7 +398,7 @@ mod tests {
     fn multiple_outputs() {
         let xml = include_str!("../fixtures/multiple_outputs/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         let Object::BlockOutput(block, _) = resolver.get(2).unwrap() else { panic!() };
         assert_eq!(block.type_name, "myFunctionBlock");
@@ -401,7 +416,7 @@ mod tests {
     fn conditional_return() {
         let xml = include_str!("../fixtures/conditional_return/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 2);
         let Object::Variable(enable) = resolver.get(2).unwrap() else { panic!() };
@@ -417,7 +432,7 @@ mod tests {
     fn unconditional_return() {
         let xml = include_str!("../fixtures/unconditional_return/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 1);
         let Object::Variable(input) = resolver.get(2).unwrap() else { panic!() };
@@ -429,7 +444,7 @@ mod tests {
     fn connector_continuation() {
         let xml = include_str!("../fixtures/connector_continuation/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 1);
         let Object::BlockOutput(block, _) = resolver.get(12).unwrap() else { panic!() };
@@ -443,7 +458,7 @@ mod tests {
     fn connector_continuation_chain() {
         let xml = include_str!("../fixtures/connector_continuation_chain/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         assert_eq!(resolver.sources.len(), 1);
         let Object::BlockOutput(block, _) = resolver.get(10).unwrap() else { panic!() };
@@ -460,7 +475,7 @@ mod tests {
     fn connector_continuation_cycle() {
         let xml = include_str!("../fixtures/connector_continuation_cycle/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
-        let resolver = Resolver::index(&deserialized);
+        let resolver = Resolver::resolve(&deserialized);
 
         // A cyclic alias chain terminates at its entry instead of looping or panicking.
         assert_eq!(resolver.resolve_alias(10), 10);

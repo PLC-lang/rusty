@@ -1,3 +1,31 @@
+#![allow(rustdoc::private_intra_doc_links)]
+//! Frontend for CFC, the graphical dialect of IEC 61131-3.
+//!
+//! CFC (Continuous Function Chart) programs are not written as text but drawn as a network of boxes and
+//! wires. This crate turns such a network into the same AST the textual Structured Text frontend produces, so
+//! the rest of the compiler can treat a graphical POU like any other.
+//!
+//! ## Inside the crate
+//!
+//! A CFC file is processed in five steps. [`parse_file`] runs the first four end to end; the fifth is
+//! deferred:
+//!
+//! 1. [Deserialize](crate::model): parse the `.cfc` XML into a typed object graph.
+//! 2. [Resolve](crate::resolver): scan that graph once and index how its objects are wired together.
+//! 3. [Validate](crate::validator): report any problems as diagnostics, aborting on an error.
+//! 4. [Transpile](crate::transpiler): lower the graph into an AST. This is where the real work happens; see
+//!    that module's documentation for how each kind of object is translated.
+//! 5. [Type temporaries](crate::placeholder): the temporaries the transpiler emits for block results carry
+//!    placeholder type names, since their real types are not known during parsing; [`resolve_temp_types`]
+//!    fills them in afterwards, at `post_index`.
+//!
+//! ## In the compiler pipeline
+//!
+//! The driver selects a frontend per source file by type: XML (`.cfc`) sources are routed to [`parse_file`],
+//! which yields a `CompilationUnit` indistinguishable from one parsed from Structured Text. Step 5 above is
+//! wired in separately as a `post_index` participant (the driver's `CfcTempLowerer`), which rewrites the
+//! placeholder types and re-indexes once the global index is available.
+
 mod model;
 mod placeholder;
 mod resolver;
@@ -32,7 +60,7 @@ pub fn parse_file(
         Diagnostic::new(message).with_location(factory.create_file_only_location())
     })?;
 
-    let resolver = Resolver::index(&deserialized);
+    let resolver = Resolver::resolve(&deserialized);
     let diagnostics = validator::validate(&deserialized, &resolver, &factory);
 
     if diagnostician.handle(&diagnostics) == Severity::Error {

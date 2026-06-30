@@ -1,3 +1,19 @@
+//! Type resolution of temporary variables
+//!
+//! The transpiler introduces temporary variables for results that are evaluated once but may be consumed many
+//! times (e.g. a function's result feeding several sinks). Declaring such a temporary requires a type, but CFC
+//! transpilation runs before the main compiler pipeline has built its index, so there is no way yet to tell
+//! what type a function's return value or a block's output has, which is exactly the type the temporary needs.
+//!
+//! To get around this, the transpiler declares each temporary with a placeholder type name that encodes where
+//! its real type will be found:
+//!
+//! - `__return@<pou>` is the return type of function `<pou>`.
+//! - `__output@<pou>@<pin>` is the type of the output member `<pin>` on `<pou>`.
+//!
+//! Once the index exists, [`resolve_temp_types`] runs at `post_index`, decodes each placeholder and rewrites it
+//! with the real type looked up from the index. Placeholders it cannot resolve are left untouched.
+
 use ast::ast::{CompilationUnit, DataTypeDeclaration};
 use plc::index::Index;
 
@@ -123,8 +139,7 @@ mod tests {
     #[test]
     fn output_pin_temp_is_typed() {
         let mut unit = unit_with_temp(output_placeholder("Counter", "count"));
-        let index =
-            index_of(&["FUNCTION_BLOCK Counter VAR_OUTPUT count : DINT; END_VAR END_FUNCTION_BLOCK"]);
+        let index = index_of(&["FUNCTION_BLOCK Counter VAR_OUTPUT count : DINT; END_VAR END_FUNCTION_BLOCK"]);
 
         assert!(resolve_temp_types(&mut unit, &index));
         assert_eq!(temp_type(&unit), Some("DINT"));

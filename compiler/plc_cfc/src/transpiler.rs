@@ -1,3 +1,223 @@
+//! CFC (XML) to AST transpiler
+//!
+//! Converts a CFC file into an ST equivalent AST, which the compiler pipeline can then use like any other
+//! compilation unit. In total there are five core concepts the transpiler needs to handle to create a
+//! correct AST. Each one of them is described in the following sections.
+//!
+//! ## Global IDs
+//!
+//! Every element in a CFC network carries a unique numeric ID, and most of what the transpiler does comes
+//! down to looking values up by those IDs. Two kinds are worth keeping apart.
+//!
+//! The first is the `globalId` on each object (a source, sink, block, and so on). It identifies the object
+//! itself, and the transpiler uses it to give every generated statement a source location, so that a later
+//! diagnostic can point back at the right element in the graphical editor.
+//!
+//! The second lives on connection points. An output point exposes a value under a `connectionPointOutId`, and
+//! whatever consumes that value references the same ID through a `refConnectionPointOutId`. This is how the
+//! graph is wired: there is no textual nesting as in ST, so a connection is simply one element naming another
+//! by ID. Every section below leans on this; whenever an element needs a value another produced, it finds it
+//! by following the connection back to the matching ID.
+//!
+//! ## Evaluation Priority
+//!
+//! A CFC network is a graph, not a sequence. Its objects have positions and wires but no inherent order to
+//! run in, whereas Structured Text is a list of statements that execute top to bottom. So before emitting
+//! anything, the transpiler has to settle on an order.
+//!
+//! CFC supplies one directly: every object carries an evaluation priority, assigned in the editor and shown
+//! as the `(n)` badge beside each object in the diagrams that follow. The transpiler gathers all of a
+//! network's objects, sorts them by that priority and only then walks them to produce statements, lowest
+//! first.
+//!
+//! The priority is stored in an `<EvaluationPriority priorityInNetwork="...">` entry on the object. Objects
+//! without one sort ahead of the rest.
+//!
+//! ## Source & Sink
+//!
+//! The simplest thing to do in CFC is to assign the value of one data element to another. Sources and sinks
+//! represent just that, where a source produces a value and a sink consumes one. For example, a very simple
+//! assignment between a source and sink element might have the following form
+//!
+//! ```xml
+//! <!-- Source -->
+//! <ppx:FbdObject xsi:type="ppx:DataSource" identifier="x + 5" globalId="1">
+//!     <ppx:ConnectionPointOut connectionPointOutId="2"> <!-- The produced value has an ID of 2 -->
+//!         <!-- ... -->
+//!     </ppx:ConnectionPointOut>
+//! </ppx:FbdObject>
+//!
+//! <!-- Sink -->
+//! <ppx:FbdObject xsi:type="ppx:DataSink" identifier="y" globalId="3">
+//!     <ppx:AddData>
+//!         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
+//!             <EvaluationPriority priorityInNetwork="0"/>
+//!         </ppx:Data>
+//!     </ppx:AddData>
+//!     <ppx:ConnectionPointIn>
+//!         <ppx:Connection refConnectionPointOutId="2"/> <!-- The referenced value has an ID of 2 -->
+//!     </ppx:ConnectionPointIn>
+//! </ppx:FbdObject>
+//! ```
+//!
+//! which is the graphical way of writing `x + 5 (source) --> y (sink)`. To turn that into an ST assignment we
+//! follow the connection backwards. A sink references the value it wants to consume by ID, through its
+//! `refConnectionPointOutId` field; a source, on the other hand, exposes its value under the matching
+//! `connectionPointOutId`. So the transpiler starts at the sink, follows that ID to the source it points at
+//! and builds the assignment from the two. This results in `y := x + 5`.
+//!
+//! Worth noting: producing and referencing values by ID is universal, the same idea shows up in one form or
+//! another in every section that follows.
+//!
+//!
+//! ## Block
+//!
+//! Blocks represent call statements in CFC. Wires coming in on the left are the call's arguments, wires
+//! leaving on the right are its results. Take a function `increment` with an input `step`, an inout
+//! `counter`, an output `overflow` and (because it's a function) a return value `increment`
+//!
+//! ```xml
+//! <ppx:FbdObject xsi:type="ppx:Block" typeName="increment" globalId="1">
+//!     <ppx:InputVariables>
+//!         <ppx:InputVariable parameterName="step">
+//!             <ppx:ConnectionPointIn>
+//!                 <ppx:Connection refConnectionPointOutId="2"/> <!-- source: delta -->
+//!             </ppx:ConnectionPointIn>
+//!         </ppx:InputVariable>
+//!     </ppx:InputVariables>
+//!     <ppx:InOutVariables>
+//!         <ppx:InOutVariable parameterName="counter">
+//!             <ppx:ConnectionPointIn>
+//!                 <ppx:Connection refConnectionPointOutId="3"/> <!-- source: ticks -->
+//!             </ppx:ConnectionPointIn>
+//!         </ppx:InOutVariable>
+//!     </ppx:InOutVariables>
+//!     <ppx:OutputVariables>
+//!         <ppx:OutputVariable parameterName="increment"> <!-- same name as the block => the return value -->
+//!             <ppx:ConnectionPointOut connectionPointOutId="4"/> <!-- sink: nextValue -->
+//!         </ppx:OutputVariable>
+//!         <ppx:OutputVariable parameterName="overflow">
+//!             <ppx:ConnectionPointOut connectionPointOutId="5"/> <!-- sink: wrapped -->
+//!         </ppx:OutputVariable>
+//!     </ppx:OutputVariables>
+//! </ppx:FbdObject>
+//! ```
+//!
+//! which graphically looks like
+//! ```text
+//!                     +-------- increment ----------+  (0)
+//!    delta  --------->| step              increment |--------->  nextValue  (1)
+//!    ticks  <-------->| counter            overflow |--------->  wrapped    (2)
+//!                     +-----------------------------+
+//!
+//!    <-->   an in-out pin, bound by reference (read and written in place)
+//!    (n)    evaluation-priority badge shown by the IDE
+//! ```
+//!
+//! Transpiling this is the same idea as the previous section, only now there are several wires to follow
+//! instead of one. We start with the input and inout pins: each becomes a named argument of the form
+//! `<parameter> := <value>`, and we find `<value>` exactly like a sink does; take the pin's
+//! `refConnectionPointOutId` and follow it back to whoever produced it. For our example that gives the
+//! argument list so far:
+//!
+//! ```text
+//! increment(step := delta, counter := ticks, /* ... */)
+//! ```
+//!
+//! Output pins go the other way. An output produces a value, but a block is only evaluated once per cycle, so
+//! we cannot re-run the call for every consumer that reads it. Instead each output is routed into a temporary
+//! variable: the call gets `<output> => __temp_N`, the temporary is added to a `VAR_TEMP` block on demand, and
+//! every consumer reads `__temp_N`. We could also read an output back as `instance.output` after the call, but
+//! that only works for stateful blocks and not for functions, so temporaries are used throughout.
+//!
+//! The return value follows the same principle, only the form differs. A function's result is the value of the
+//! call itself rather than a named pin, so instead of `=> __temp` we assign the whole call to a temporary:
+//! `__temp_0 := increment(...)`. The motivation is again the once-per-cycle rule. If two sinks read the result
+//! and we did not capture it, inlining the call would invoke `increment` twice and run its side effects twice,
+//! so we call it once into a temporary and let both read it.
+//!
+//! Put together, the block lowers to (statement order follows evaluation priority):
+//!
+//! ```text
+//! VAR_TEMP
+//!     __temp_0 : __return@increment;
+//!     __temp_1 : __output@increment@overflow;
+//! END_VAR
+//!
+//! __temp_0 := increment(step := delta, counter := ticks, overflow => __temp_1);
+//! nextValue := __temp_0;
+//! wrapped := __temp_1;
+//! ```
+//!
+//! Those temp types are placeholders; a later pass resolves `__return@increment` and
+//! `__output@increment@overflow` to their real types, see [`crate::placeholder`].
+//!
+//! Our example was a function, but function blocks, programs, actions and methods all transpile the same way;
+//! only the call operator changes. Function blocks are called through their instance (`myInstance(...)`),
+//! actions and methods through a qualified `myInstance.myAction(...)` (where the block's `typeName` is
+//! `<fb>.<member>`), and programs, like functions, by their type name. Only functions have a return value;
+//! arguments and output temporaries are identical for all of them.
+//!
+//! ## Jump
+//!
+//! TODO: Hasn't been implemented yet.
+//!
+//! ## Return
+//!
+//! A return ends the POU early. It has a single optional input wire carrying a boolean condition: with the
+//! wire, the POU returns when the condition holds; without it, the return is unconditional.
+//!
+//! ```text
+//!    enable  --o--->| RETURN |  (0)
+//!
+//!    input   ------>  result    (1)
+//!
+//!    --o-->   a negated condition wire (returns when enable is FALSE)
+//!    (n)      evaluation-priority badge shown by the IDE
+//! ```
+//!
+//! We resolve the condition by ID, exactly like any other consumed value, and emit it as a guarded
+//! `IF ... THEN RETURN; END_IF;`. A return can also be negated (the `negated` flag in its `AddData`), in which
+//! case the condition is wrapped in `NOT` first. The network above lowers to:
+//!
+//! ```text
+//! IF NOT enable THEN RETURN; END_IF;
+//! result := input;
+//! ```
+//!
+//! With no condition wired in there is nothing to guard on, and the return lowers to a bare `RETURN;`.
+//!
+//! ## Connector & Continuation
+//!
+//! Sometimes a value has to travel across the diagram to a far-away consumer. Instead of drawing one long
+//! wire, CFC lets you drop two labeled stubs: a connector at the producing end and a continuation with the
+//! same label at the consuming end. Matched by their label, the pair behaves exactly like a direct wire.
+//!
+//! ```text
+//!    +-- alwaysFive --+ (0)
+//!    |      alwaysFive|--(12)-->[ Connector "five" ]
+//!    +----------------+
+//!
+//!    [ Continuation "five" ]--(7)-->  result  (1)
+//!
+//!    "five"   the label matching connector to continuation
+//!    (n)      evaluation-priority badge shown by the IDE
+//! ```
+//!
+//! The pair carries no behavior of its own; the transpiler resolves it away. While scanning the network it
+//! records each continuation's output ID as an alias for the connector's input ID, and whenever it resolves a
+//! consumed value it first follows any such aliases back to the real producer. So the network above is
+//! transpiled as if `result` were wired straight to the block:
+//!
+//! ```text
+//! __temp_0 := alwaysFive();
+//! result := __temp_0;
+//! ```
+//!
+//! Chains (a continuation feeding another connector) are followed transitively, and a cycle terminates instead
+//! of looping forever.
+//!
+
 use indexmap::IndexMap;
 
 use ast::ast::{
@@ -34,7 +254,7 @@ enum Operation {
 
 impl Transpiler {
     pub fn new(pou: Pou, id_provider: IdProvider, range_factory: SourceLocationFactory) -> Transpiler {
-        let resolver = Resolver::index(&pou);
+        let resolver = Resolver::resolve(&pou);
 
         Transpiler { pou, resolver, temps: IndexMap::new(), id_provider, range_factory }
     }
