@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.2](https://github.com/PLC-lang/rusty/releases/tag/v1.0.2) - 2026-06-17
+## [1.0.3](https://github.com/PLC-lang/rusty/releases/tag/v1.0.3) - 2026-07-01
+
+### Fixed
+
+- Annotate allocas inside actions correctly (#1788)
+- Stdlib now accepts the correct data type for LDT_TO_** functions (#1780) (#1782)
+## [1.0.2](https://github.com/PLC-lang/rusty/releases/tag/v1.0.2) - 2026-06-22
 
 ### Fixed
 
