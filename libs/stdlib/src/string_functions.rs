@@ -6,7 +6,7 @@ use std::{
 use num::PrimInt;
 
 /// Capacity (in code units, excluding the null terminator) of the result buffer that the
-/// user-facing string builtins write into. 
+/// user-facing string builtins write into.
 /// Excess input is truncated on a character boundary instead.
 /// Keep this in sync with the `.st` declarations.
 const STRING_RESULT_LEN: usize = 2048;
