@@ -1,6 +1,6 @@
 [package]
 name = "errorcode_book_generator"
-version = "1.0.3"
+version = "1.0.4-dev"
 edition = "2021"
 publish = false
 
