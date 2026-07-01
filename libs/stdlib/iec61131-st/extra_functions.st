@@ -112,7 +112,7 @@ END_FUNCTION
 
 FUNCTION LDT_TO_STRING : STRING[__STRING_LENGTH]
 VAR_INPUT
-    IN : DT;
+    IN : LDT;
 END_VAR
     DT_TO_STRING_EXT(IN, LDT_TO_STRING);
 END_FUNCTION
@@ -141,9 +141,9 @@ END_FUNCTION
 
 FUNCTION LDT_TO_WSTRING : WSTRING[__STRING_LENGTH]
 VAR_INPUT
-    IN : DT;
+    IN : LDT;
 END_VAR
-    STRING_TO_WSTRING_EXT(DT_TO_STRING(IN), LDT_TO_WSTRING);
+    STRING_TO_WSTRING_EXT(LDT_TO_STRING(IN), LDT_TO_WSTRING);
 END_FUNCTION
 
 (******************************************************************************
@@ -431,7 +431,7 @@ END_FUNCTION
 
 FUNCTION LDT_TO_LWORD : LWORD
 VAR_INPUT
-    IN : DT;
+    IN : LDT;
 END_VAR
     LDT_TO_LWORD := IN;
 END_FUNCTION
@@ -554,7 +554,7 @@ END_FUNCTION
 
 FUNCTION LDT_TO_LINT : LINT
 VAR_INPUT
-    IN : DT;
+    IN : LDT;
 END_VAR
     LDT_TO_LINT := IN;
 END_FUNCTION
@@ -592,7 +592,7 @@ END_FUNCTION
 
 FUNCTION LDT_TO_ULINT : ULINT
 VAR_INPUT
-    IN : DT;
+    IN : LDT;
 END_VAR
     LDT_TO_ULINT := IN;
 END_FUNCTION
@@ -1048,6 +1048,9 @@ END_FUNCTION
 ******************************************************************************)
 {external}
 FUNCTION TIME : TIME END_FUNCTION
+
+{external}
+FUNCTION LTIME : LTIME END_FUNCTION
 
 (******************************************************************************
 *

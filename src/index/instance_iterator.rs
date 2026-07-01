@@ -72,14 +72,22 @@ impl<'idx> InstanceIterator<'idx> {
         current_prefix: &ExpressionPath<'idx>,
         filter: fn(&VariableIndexEntry, &'idx Index) -> bool,
     ) -> Option<InstanceIterator<'idx>> {
-        //If the container is an array, build a new iterator for that datatype with the iterations of that array as variables
-        let inner_type = index.find_effective_type_info(container);
-        let (container, prefix) =
-            if let Some(DataTypeInformation::Array { inner_type_name, dimensions, .. }) = inner_type {
+        // We exclude enums from the instance iterator as they do not have any members that we can iterate into,
+        // but would cause infinite recursion as the iterator would keep re-entering the same enum type.
+        let inner_type = index.find_effective_type_info(container)?;
+        if matches!(inner_type, DataTypeInformation::Enum { .. }) {
+            return None;
+        }
+
+        // If the container is an array, build a new iterator for that datatype with the
+        // iterations of that array as variables.
+        let (container, prefix) = match inner_type {
+            DataTypeInformation::Array { inner_type_name, dimensions, .. } => {
                 (inner_type_name.as_str(), current_prefix.append(dimensions.as_slice().into()))
-            } else {
-                (container, current_prefix.clone())
-            };
+            }
+            _ => (container, current_prefix.clone()),
+        };
+
         let result = index.get_container_members(container).iter().map(|it| {
             (it.get_qualified_name().split('.').next_back().expect("Variable needs a name").into(), it)
         });

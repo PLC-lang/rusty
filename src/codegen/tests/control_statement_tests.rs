@@ -306,17 +306,17 @@ fn elseif_is_lowered_to_else_with_nested_if_inside_for_loop() {
       %cVar = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 2
       store i16 5, ptr %val, align [filtered]
       store i8 110, ptr %cVar, align [filtered]
-      %ran_once_0 = alloca i8, align [filtered]
-      store i8 0, ptr %ran_once_0, align [filtered]
-      %is_incrementing_0 = alloca i8, align [filtered]
-      store i8 0, ptr %is_incrementing_0, align [filtered]
+      %__ran_once_0 = alloca i8, align [filtered]
+      store i8 0, ptr %__ran_once_0, align [filtered]
+      %__is_incrementing_0 = alloca i8, align [filtered]
+      store i8 0, ptr %__is_incrementing_0, align [filtered]
       store i16 0, ptr %i, align [filtered]
-      store i8 1, ptr %is_incrementing_0, align [filtered]
+      store i8 1, ptr %__is_incrementing_0, align [filtered]
       br label %while_body
 
     while_body:                                       ; preds = %continue14, %entry
-      %load_ran_once_0 = load i8, ptr %ran_once_0, align [filtered]
-      %1 = icmp ne i8 %load_ran_once_0, 0
+      %load___ran_once_0 = load i8, ptr %__ran_once_0, align [filtered]
+      %1 = icmp ne i8 %load___ran_once_0, 0
       br i1 %1, label %condition_body, label %continue1
 
     continue:                                         ; preds = %condition_body11, %condition_body7
@@ -331,9 +331,9 @@ fn elseif_is_lowered_to_else_with_nested_if_inside_for_loop() {
       br label %continue1
 
     continue1:                                        ; preds = %condition_body, %while_body
-      store i8 1, ptr %ran_once_0, align [filtered]
-      %load_is_incrementing_0 = load i8, ptr %is_incrementing_0, align [filtered]
-      %4 = icmp ne i8 %load_is_incrementing_0, 0
+      store i8 1, ptr %__ran_once_0, align [filtered]
+      %load___is_incrementing_0 = load i8, ptr %__is_incrementing_0, align [filtered]
+      %4 = icmp ne i8 %load___is_incrementing_0, 0
       br i1 %4, label %condition_body3, label %else
 
     condition_body3:                                  ; preds = %continue1
