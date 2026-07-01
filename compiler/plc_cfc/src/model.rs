@@ -468,6 +468,7 @@ pub enum EdgeModifier {
 }
 
 impl Pou {
+    #[allow(dead_code)]
     pub fn name(&self) -> &str {
         match self {
             Pou::Program(program) => &program.name,

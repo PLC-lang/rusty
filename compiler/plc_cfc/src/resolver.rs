@@ -39,6 +39,7 @@ pub struct Resolver {
 #[derive(Debug)]
 pub enum Object {
     Variable(DataSource),
+    #[allow(dead_code)]
     BlockOutput(Block, OutputVariable),
 }
 
