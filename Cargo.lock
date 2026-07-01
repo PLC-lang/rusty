@@ -841,7 +841,7 @@ dependencies = [
 
 [[package]]
 name = "errorcode_book_generator"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "clap 4.6.1",
  "mdbook-preprocessor",
@@ -1447,7 +1447,7 @@ dependencies = [
 
 [[package]]
 name = "iec61131std"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "cc",
  "chrono",
@@ -1617,9 +1617,9 @@ dependencies = [
 
 [[package]]
 name = "jsonschema"
-version = "0.46.7"
+version = "0.46.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "185abd1edcef44ac028ec6588ad1360155fbd0a8baa20243a28f5b2a05537a48"
+checksum = "24fc8535da347b994f6d2fab0a84b74e3b31ad08ebe4204d95f3e755db7af49b"
 dependencies = [
  "ahash",
  "bytecount",
@@ -2251,7 +2251,7 @@ checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
 
 [[package]]
 name = "plc-compiler"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2295,7 +2295,7 @@ dependencies = [
 
 [[package]]
 name = "plc_ast"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "chrono",
  "derive_more",
@@ -2308,7 +2308,7 @@ dependencies = [
 
 [[package]]
 name = "plc_derive"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "quote",
  "syn 2.0.118",
@@ -2316,7 +2316,7 @@ dependencies = [
 
 [[package]]
 name = "plc_diagnostics"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "anyhow",
  "codespan-reporting",
@@ -2332,7 +2332,7 @@ dependencies = [
 
 [[package]]
 name = "plc_driver"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2365,7 +2365,7 @@ dependencies = [
 
 [[package]]
 name = "plc_header_generator"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "clap 3.2.25",
  "insta",
@@ -2383,7 +2383,7 @@ dependencies = [
 
 [[package]]
 name = "plc_index"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "annotate-snippets",
  "encoding_rs",
@@ -2398,7 +2398,7 @@ dependencies = [
 
 [[package]]
 name = "plc_llvm"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "cc",
  "inkwell",
@@ -2407,7 +2407,7 @@ dependencies = [
 
 [[package]]
 name = "plc_lowering"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "insta",
  "itertools",
@@ -2421,7 +2421,7 @@ dependencies = [
 
 [[package]]
 name = "plc_project"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "anyhow",
  "encoding_rs",
@@ -2440,7 +2440,7 @@ dependencies = [
 
 [[package]]
 name = "plc_source"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "encoding_rs",
  "encoding_rs_io",
@@ -2451,11 +2451,11 @@ dependencies = [
 
 [[package]]
 name = "plc_util"
-version = "1.0.3"
+version = "1.0.4"
 
 [[package]]
 name = "plc_xml"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "html-escape",
  "indexmap 2.14.0",
@@ -2719,9 +2719,9 @@ dependencies = [
 
 [[package]]
 name = "referencing"
-version = "0.46.7"
+version = "0.46.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c335a4796e6081e384712c269f29ed8d2f6613e7afdd54a8467bb7d48f99859f"
+checksum = "1c8dceb372b46fecd006be48ca335468b49ad887a7f0150cabd6098fa4fc500f"
 dependencies = [
  "ahash",
  "fluent-uri",
@@ -2866,7 +2866,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "section_mangler"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "nom",
 ]
@@ -3458,7 +3458,7 @@ dependencies = [
 
 [[package]]
 name = "test_utils"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "plc-compiler",
  "plc_ast",
@@ -4183,7 +4183,7 @@ checksum = "32ac00cd3f8ec9c1d33fb3e7958a82df6989c42d747bd326c822b1d625283547"
 
 [[package]]
 name = "xtask"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "anyhow",
  "async-std",
