@@ -78,9 +78,8 @@ impl Resolver {
                     }
 
                     for variable in block.get_output_variables() {
-                        if let Some(id) = variable.get_connection_point_out_id() {
-                            sources.insert(id, Object::BlockOutput(block.clone(), variable.clone()));
-                        }
+                        let id = variable.get_connection_point_out_id();
+                        sources.insert(id, Object::BlockOutput(block.clone(), variable.clone()));
                     }
                 }
 
@@ -175,7 +174,7 @@ mod tests {
         let Object::BlockOutput(block, variable) = resolver.get(8).unwrap() else { panic!() };
         assert_eq!(block.type_name, "myAdd");
         assert_eq!(variable.parameter_name, "myAdd");
-        assert_eq!(variable.connection_point_out.as_ref().unwrap().id, 8);
+        assert_eq!(variable.connection_point_out.id, 8);
     }
 
     #[test]

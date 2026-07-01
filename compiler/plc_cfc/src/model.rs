@@ -330,7 +330,7 @@ pub struct OutputVariable {
     #[serde(rename = "@suppressName", default)]
     pub suppress_name: bool,
     #[serde(rename = "ConnectionPointOut")]
-    pub connection_point_out: Option<ConnectionPointOut>,
+    pub connection_point_out: ConnectionPointOut,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -597,8 +597,8 @@ impl DataSource {
 }
 
 impl OutputVariable {
-    pub fn get_connection_point_out_id(&self) -> Option<u64> {
-        Some(self.connection_point_out.as_ref()?.id)
+    pub fn get_connection_point_out_id(&self) -> u64 {
+        self.connection_point_out.id
     }
 }
 

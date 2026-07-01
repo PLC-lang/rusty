@@ -237,11 +237,7 @@ use crate::{
 pub struct Transpiler {
     pou: Pou,
     resolver: Resolver,
-
-    /// Temporary variables introduced for block outputs, keyed by the wire id that produces them.
-    /// Keyed for lookup during resolution; insertion order is preserved for the emitted `VAR_TEMP`.
-    temps: IndexMap<u64, Variable>,
-
+    temporaries: IndexMap<u64, Variable>,
     id_provider: IdProvider,
     range_factory: SourceLocationFactory,
 }
@@ -256,7 +252,7 @@ impl Transpiler {
     pub fn new(pou: Pou, id_provider: IdProvider, range_factory: SourceLocationFactory) -> Transpiler {
         let resolver = Resolver::resolve(&pou);
 
-        Transpiler { pou, resolver, temps: IndexMap::new(), id_provider, range_factory }
+        Transpiler { pou, resolver, temporaries: IndexMap::new(), id_provider, range_factory }
     }
 
     pub fn transpile(mut self) -> Result<CompilationUnit, Diagnostic> {
@@ -264,7 +260,12 @@ impl Transpiler {
         // TODO: Use the diagnostics
         let (mut unit, _diagnostics) = {
             let declaration = {
-                let content = self.pou.text_declaration().expect("todo error handling");
+                let Some(content) = self.pou.text_declaration() else {
+                    // We gracefully return an empty unit here; an empty text declaration is covered by
+                    // validations however.
+                    return Ok(CompilationUnit::new(self.range_factory.get_file_name().unwrap_or_default()));
+                };
+
                 let content_end_kw = match &self.pou {
                     Pou::Program(_) => "END_PROGRAM",
                     Pou::FunctionBlock(_) => "END_FUNCTION_BLOCK",
@@ -285,18 +286,21 @@ impl Transpiler {
         unit.implementations[0].statements = self.transpile_network();
 
         // Inject the generated temporary variables, if any
-        if !self.temps.is_empty() {
-            unit.pous[0].variable_blocks.push(VariableBlock::temp(self.temps.into_values().collect()));
+        if !self.temporaries.is_empty() {
+            unit.pous[0].variable_blocks.push(VariableBlock::temp(self.temporaries.into_values().collect()));
         }
 
         Ok(unit)
     }
 
     fn transpile_network(&mut self) -> Vec<AstNode> {
-        let mut operations = Vec::new();
+        let Some(network) = self.pou.get_network() else {
+            return Vec::new();
+        };
 
         // Aggregate all objects
-        for object in self.pou.get_network().expect("todo: error handling").objects.iter() {
+        let mut operations = Vec::new();
+        for object in network.objects.iter() {
             match object {
                 FbdObject::Block(block) => operations.push(Operation::Call(block.clone())),
                 FbdObject::DataSink(sink) => operations.push(Operation::Sink(sink.clone())),
@@ -312,12 +316,12 @@ impl Transpiler {
         let mut statements = Vec::new();
         for operation in &operations {
             let statement = match operation {
-                Operation::Call(block) => self.transpile_call(block),
+                Operation::Call(block) => Some(self.transpile_call(block)),
                 Operation::Sink(sink) => self.transpile_sink(sink),
-                Operation::Return(ret) => self.transpile_return(ret),
+                Operation::Return(ret) => Some(self.transpile_return(ret)),
             };
 
-            statements.push(statement);
+            statements.extend(statement);
         }
 
         statements
@@ -344,7 +348,7 @@ impl Transpiler {
         // temporary variables.
         let mut return_value = None;
         for output in block.get_output_variables() {
-            let id = output.get_connection_point_out_id().expect("todo: error handling");
+            let id = output.get_connection_point_out_id();
 
             // We're dealing with a function if both the output variable and block name are identical in which
             // case we want to persist the return value into a temporary variable.
@@ -384,13 +388,14 @@ impl Transpiler {
         }
     }
 
-    /// Transpile a (connected) data sink into an assignment
-    fn transpile_sink(&mut self, sink: &DataSink) -> AstNode {
+    /// Transpile a data sink into an assignment, or nothing when the sink has no incoming connection
+    /// (the validator reports that case as a warning).
+    fn transpile_sink(&mut self, sink: &DataSink) -> Option<AstNode> {
         let location = self.create_object_location(sink.global_id, sink.get_priority());
-        let value = self.resolve(sink.get_referenced_argument_id().unwrap(), &location);
+        let value = self.resolve(sink.get_referenced_argument_id()?, &location);
         let target = self.create_member_reference(&sink.identifier, &location);
 
-        AstFactory::create_assignment(target, value, self.next_id())
+        Some(AstFactory::create_assignment(target, value, self.next_id()))
     }
 
     /// Transpiles a conditional return so a return (duh)
@@ -417,7 +422,7 @@ impl Transpiler {
     fn resolve(&mut self, id: u64, location: &SourceLocation) -> AstNode {
         let id = self.resolver.resolve_alias(id);
 
-        if let Some(temp) = self.temps.get(&id) {
+        if let Some(temp) = self.temporaries.get(&id) {
             let name = temp.name.clone();
             return self.create_member_reference(&name, location);
         }
@@ -447,8 +452,8 @@ impl Transpiler {
     }
 
     fn create_temp(&mut self, id: u64, placeholder: String) -> String {
-        let name = format!("__temp_{}", self.temps.len());
-        self.temps.insert(id, create_internal_variable(&name, placeholder));
+        let name = format!("__temp_{}", self.temporaries.len());
+        self.temporaries.insert(id, create_internal_variable(&name, placeholder));
 
         name
     }

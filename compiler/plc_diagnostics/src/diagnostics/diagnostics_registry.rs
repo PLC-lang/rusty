@@ -185,7 +185,7 @@ lazy_static! {
         E081,   Error,      include_str!("./error_codes/E081.md"),
         E082,   Error,      include_str!("./error_codes/E082.md"),
         E083,   Error,      include_str!("./error_codes/E083.md"),
-        E084,   Error,      include_str!("./error_codes/E084.md"),
+        E084,   Warning,    include_str!("./error_codes/E084.md"),  // Unconnected CFC source or sink
         E085,   Error,      include_str!("./error_codes/E085.md"),
         E086,   Error,      include_str!("./error_codes/E086.md"),
         E087,   Error,      include_str!("./error_codes/E087.md"),
@@ -243,6 +243,7 @@ lazy_static! {
         E139,   Error,      include_str!("./error_codes/E139.md"),  // Linker invocation failed (spawn / cmdline)
         E140,   Error,      include_str!("./error_codes/E140.md"),  // ':=' used for an output parameter
         E141,   Error,      include_str!("./error_codes/E141.md"),  // Member access on a non-auto-deref pointer base
+        E142,   Error,      include_str!("./error_codes/E142.md"),  // Missing text declaration in a CFC POU
     );
 }
 
