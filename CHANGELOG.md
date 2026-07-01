@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.4](https://github.com/PLC-lang/rusty/releases/tag/v1.0.4) - 2026-07-01
+
+### Fixed
+
+- Invalid numeric literal strings no longer crash the application … (#1789)
 ## [1.0.3](https://github.com/PLC-lang/rusty/releases/tag/v1.0.3) - 2026-07-01
 
 ### Fixed
