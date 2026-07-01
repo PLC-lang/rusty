@@ -53,15 +53,15 @@
 //! check entirely. To preserve post-test semantics, this module introduces a synthetic boolean temporary:
 //!
 //! ```st
-//! alloca ran_once_N : BOOL;
+//! alloca __ran_once_N : BOOL;
 //! WHILE TRUE DO
-//!     IF ran_once_N THEN
+//!     IF __ran_once_N THEN
 //!         IF <cond> THEN
 //!             EXIT;
 //!         END_IF
 //!     END_IF
 //!
-//!     ran_once_N := TRUE;
+//!     __ran_once_N := TRUE;
 //!     <body>
 //! END_WHILE
 //! ```
@@ -81,23 +81,23 @@
 //!
 //! is lowered to a canonical `WHILE TRUE` loop with two synthetic temporaries:
 //!
-//! - `ran_once_N` tracks whether the first iteration has already happened
-//! - `is_incrementing_N` remembers whether the step is positive
+//! - `__ran_once_N` tracks whether the first iteration has already happened
+//! - `__is_incrementing_N` remembers whether the step is positive
 //!
 //! ```st
-//! alloca ran_once_N : BOOL;
-//! alloca is_incrementing_N : BOOL;
+//! alloca __ran_once_N : BOOL;
+//! alloca __is_incrementing_N : BOOL;
 //!
 //! <ctrl> := <init>;
-//! is_incrementing_N := <step> > 0;
+//! __is_incrementing_N := <step> > 0;
 //!
 //! WHILE TRUE DO
-//!     IF ran_once_N THEN
+//!     IF __ran_once_N THEN
 //!         <ctrl> := <ctrl> + <step>;
 //!     END_IF
-//!     ran_once_N := TRUE;
+//!     __ran_once_N := TRUE;
 //!
-//!     IF is_incrementing_N THEN
+//!     IF __is_incrementing_N THEN
 //!         IF <ctrl> > <final> THEN
 //!             EXIT;
 //!         END_IF
@@ -116,7 +116,7 @@
 //!
 //! ## Generated temporaries
 //!
-//! Compiler-generated names such as `ran_once_N` and `is_incrementing_N` are unique per desugared loop.
+//! Compiler-generated names such as `__ran_once_N` and `__is_incrementing_N` are unique per desugared loop.
 //! They are ordinary AST allocations used only to encode loop semantics explicitly for later stages.
 
 use std::{
@@ -240,10 +240,10 @@ impl AstVisitorMut for RepeatDesugarer {
         // Create a temporary variable to track first iteration.
         let counter = self.counter.fetch_add(1, Ordering::SeqCst);
         let (alloca, ran_once_ref) =
-            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{counter}"));
+            helper::create_alloca(&mut self.ids, "BOOL", format!("__ran_once_{counter}"));
 
         // Only the user-authored `UNTIL <cond>` check should stay visible in debug info. The
-        // surrounding gating `IF ran_once_N THEN ...` is synthetic and therefore internal.
+        // surrounding gating `IF __ran_once_N THEN ...` is synthetic and therefore internal.
         let if_guard = helper::create_if_then(
             self.ids.clone(),
             ran_once_ref.clone(),
@@ -251,14 +251,14 @@ impl AstVisitorMut for RepeatDesugarer {
             SourceLocation::internal(),
         );
 
-        // Synthetic `ran_once_N := TRUE` should not inherit any user source location.
+        // Synthetic `__ran_once_N := TRUE` should not inherit any user source location.
         let ran_once_assignment = helper::create_internal_assignment(
             ran_once_ref,
             helper::create_internal_literal_true(&mut self.ids),
             &mut self.ids,
         );
 
-        // Prepend the if guard and `ran_once_N := TRUE` assignment before the actual body.
+        // Prepend the if guard and `__ran_once_N := TRUE` assignment before the actual body.
         body.insert(0, if_guard);
         body.insert(1, ran_once_assignment);
 
@@ -303,9 +303,9 @@ impl AstVisitorMut for ForDesugarer {
         // Create temporaries tracking whether the loop already ran and which comparison branch to use.
         let num = self.counter.fetch_add(1, Ordering::SeqCst);
         let (ran_once_alloca, ran_once_ref) =
-            helper::create_alloca(&mut self.ids, "BOOL", format!("ran_once_{num}"));
+            helper::create_alloca(&mut self.ids, "BOOL", format!("__ran_once_{num}"));
         let (is_incrementing_alloca, is_incrementing_ref) =
-            helper::create_alloca(&mut self.ids, "BOOL", format!("is_incrementing_{num}"));
+            helper::create_alloca(&mut self.ids, "BOOL", format!("__is_incrementing_{num}"));
 
         // Normalize the step expression so omitted `BY` becomes a literal `1`.
         let has_explicit_step = by_step.is_some();
@@ -685,15 +685,15 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_0: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_0: BOOL
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     IF 1 > 2 THEN
                         EXIT;
                     END_IF
                 END_IF
-                ran_once_0 := TRUE
+                __ran_once_0 := TRUE
                 a := b
                 b := c
                 c := a
@@ -716,15 +716,15 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_0: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_0: BOOL
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     IF x THEN
                         EXIT;
                     END_IF
                 END_IF
-                ran_once_0 := TRUE
+                __ran_once_0 := TRUE
                 x
             END_WHILE
             ");
@@ -747,15 +747,15 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_0: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_0: BOOL
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     IF 1 > 2 AND 2 < 3 THEN
                         EXIT;
                     END_IF
                 END_IF
-                ran_once_0 := TRUE
+                __ran_once_0 := TRUE
                 a := b
                 b := c
                 c := a
@@ -780,15 +780,15 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_0: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_0: BOOL
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     IF (1 > 2 AND 2 < 3) OR 3 = 4 THEN
                         EXIT;
                     END_IF
                 END_IF
-                ran_once_0 := TRUE
+                __ran_once_0 := TRUE
                 a := b
                 b := c
                 c := a
@@ -816,24 +816,24 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_1: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_1: BOOL
             WHILE TRUE DO
-                IF ran_once_1 THEN
+                IF __ran_once_1 THEN
                     IF 1 > 2 THEN
                         EXIT;
                     END_IF
                 END_IF
-                ran_once_1 := TRUE
+                __ran_once_1 := TRUE
                 a := b
-                alloca ran_once_0: BOOL
+                alloca __ran_once_0: BOOL
                 WHILE TRUE DO
-                    IF ran_once_0 THEN
+                    IF __ran_once_0 THEN
                         IF 3 < 4 THEN
                             EXIT;
                         END_IF
                     END_IF
-                    ran_once_0 := TRUE
+                    __ran_once_0 := TRUE
                     b := c
                 END_WHILE
                 c := a
@@ -858,17 +858,17 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := 0
-            is_incrementing_0 := TRUE
+            __is_incrementing_0 := TRUE
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + 1
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > 10 THEN
                         EXIT;
                     END_IF
@@ -898,16 +898,16 @@ mod tests {
             "#;
 
             insta::assert_snapshot!(super::serialize(source), @r"
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := a
-            is_incrementing_0 := step > 0
+            __is_incrementing_0 := step > 0
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + step
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > max THEN
                         EXIT;
                     END_IF
@@ -938,16 +938,16 @@ mod tests {
             "#;
 
             insta::assert_snapshot!(super::serialize(source), @r"
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := 1
-            is_incrementing_0 := 0 > 0
+            __is_incrementing_0 := 0 > 0
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + 0
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > 3 THEN
                         EXIT;
                     END_IF
@@ -977,16 +977,16 @@ mod tests {
             "#;
 
             insta::assert_snapshot!(super::serialize(source), @r"
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := 5
-            is_incrementing_0 := 2 > 0
+            __is_incrementing_0 := 2 > 0
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + 2
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > 1 THEN
                         EXIT;
                     END_IF
@@ -1016,16 +1016,16 @@ mod tests {
             "#;
 
             insta::assert_snapshot!(super::serialize(source), @r"
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := 1
-            is_incrementing_0 := -1 > 0
+            __is_incrementing_0 := -1 > 0
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + -1
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > 5 THEN
                         EXIT;
                     END_IF
@@ -1054,17 +1054,17 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := 4
-            is_incrementing_0 := TRUE
+            __is_incrementing_0 := TRUE
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + 1
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > 4 THEN
                         EXIT;
                     END_IF
@@ -1092,17 +1092,17 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := 0
-            is_incrementing_0 := TRUE
+            __is_incrementing_0 := TRUE
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + 1
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > max THEN
                         EXIT;
                     END_IF
@@ -1130,17 +1130,17 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := 0
-            is_incrementing_0 := step > 0
+            __is_incrementing_0 := step > 0
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + step
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > 10 THEN
                         EXIT;
                     END_IF
@@ -1172,16 +1172,16 @@ mod tests {
             "#;
 
             insta::assert_snapshot!(super::serialize(source), @r"
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := a
-            is_incrementing_0 := TRUE
+            __is_incrementing_0 := TRUE
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + 1
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > b THEN
                         EXIT;
                     END_IF
@@ -1214,16 +1214,16 @@ mod tests {
             "#;
 
             insta::assert_snapshot!(super::serialize(source), @r"
-            alloca ran_once_0: BOOL
-            alloca is_incrementing_0: BOOL
+            alloca __ran_once_0: BOOL
+            alloca __is_incrementing_0: BOOL
             i := a
-            is_incrementing_0 := TRUE
+            __is_incrementing_0 := TRUE
             WHILE TRUE DO
-                IF ran_once_0 THEN
+                IF __ran_once_0 THEN
                     i := i + 1
                 END_IF
-                ran_once_0 := TRUE
-                IF is_incrementing_0 THEN
+                __ran_once_0 := TRUE
+                IF __is_incrementing_0 THEN
                     IF i > b THEN
                         EXIT;
                     END_IF
@@ -1254,17 +1254,17 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_1: BOOL
-            alloca is_incrementing_1: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_1: BOOL
+            alloca __is_incrementing_1: BOOL
             i := start
-            is_incrementing_1 := outer_step > 0
+            __is_incrementing_1 := outer_step > 0
             WHILE TRUE DO
-                IF ran_once_1 THEN
+                IF __ran_once_1 THEN
                     i := i + outer_step
                 END_IF
-                ran_once_1 := TRUE
-                IF is_incrementing_1 THEN
+                __ran_once_1 := TRUE
+                IF __is_incrementing_1 THEN
                     IF i > finish THEN
                         EXIT;
                     END_IF
@@ -1273,16 +1273,16 @@ mod tests {
                         EXIT;
                     END_IF
                 END_IF
-                alloca ran_once_0: BOOL
-                alloca is_incrementing_0: BOOL
+                alloca __ran_once_0: BOOL
+                alloca __is_incrementing_0: BOOL
                 j := 10
-                is_incrementing_0 := inner_step > 0
+                __is_incrementing_0 := inner_step > 0
                 WHILE TRUE DO
-                    IF ran_once_0 THEN
+                    IF __ran_once_0 THEN
                         j := j + inner_step
                     END_IF
-                    ran_once_0 := TRUE
-                    IF is_incrementing_0 THEN
+                    __ran_once_0 := TRUE
+                    IF __is_incrementing_0 THEN
                         IF j > 0 THEN
                             EXIT;
                         END_IF
@@ -1314,17 +1314,17 @@ mod tests {
                 END_FUNCTION
             "#;
 
-            insta::assert_snapshot!(super::serialize(source), @"
-            alloca ran_once_1: BOOL
-            alloca is_incrementing_1: BOOL
+            insta::assert_snapshot!(super::serialize(source), @r"
+            alloca __ran_once_1: BOOL
+            alloca __is_incrementing_1: BOOL
             i := a
-            is_incrementing_1 := c > 0
+            __is_incrementing_1 := c > 0
             WHILE TRUE DO
-                IF ran_once_1 THEN
+                IF __ran_once_1 THEN
                     i := i + c
                 END_IF
-                ran_once_1 := TRUE
-                IF is_incrementing_1 THEN
+                __ran_once_1 := TRUE
+                IF __is_incrementing_1 THEN
                     IF i > b THEN
                         EXIT;
                     END_IF
@@ -1333,16 +1333,16 @@ mod tests {
                         EXIT;
                     END_IF
                 END_IF
-                alloca ran_once_0: BOOL
-                alloca is_incrementing_0: BOOL
+                alloca __ran_once_0: BOOL
+                alloca __is_incrementing_0: BOOL
                 j := 0
-                is_incrementing_0 := TRUE
+                __is_incrementing_0 := TRUE
                 WHILE TRUE DO
-                    IF ran_once_0 THEN
+                    IF __ran_once_0 THEN
                         j := j + 1
                     END_IF
-                    ran_once_0 := TRUE
-                    IF is_incrementing_0 THEN
+                    __ran_once_0 := TRUE
+                    IF __is_incrementing_0 THEN
                         IF j > 2 THEN
                             EXIT;
                         END_IF
