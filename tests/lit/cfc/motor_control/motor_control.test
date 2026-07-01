@@ -1,0 +1,11 @@
+// Real-world capstone: a motor start/stop controller with a seal-in latch and an
+// e-stop interlock, built from multiple mixed CFC + ST files driven by one ST `main`.
+// Exercises, in one project: a CFC FUNCTION (StartCmd) and FUNCTION_BLOCK (Motor),
+// ST functions called from CFC (MyAnd, MyOr), an ST FB called from CFC (SrLatch),
+// a CFC function called from CFC (Motor -> StartCmd), a negated input (NOT estop),
+// a connector/continuation routing e-stop to two consumers, and temp-type inference.
+RUN: %COMPILE %S/logic.st %S/start_cmd.cfc %S/motor.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: after_start = 1
+CHECK: still_running = 1
+CHECK: after_stop = 0
+CHECK: after_estop = 0

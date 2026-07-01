@@ -1,0 +1,6 @@
+// A CFC program calls an ST function with a VAR_IN_OUT (by-reference) parameter. The
+// callee mutates `sum` in place, so the caller's variable reflects the change after the
+// call (sum: 5 -> 15) -- proving by-reference semantics run, not just the return value.
+RUN: %COMPILE %S/accumulate.st %S/accumulator.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: sum = 15
+CHECK: result = 15

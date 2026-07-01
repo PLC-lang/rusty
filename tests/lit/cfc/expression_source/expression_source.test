@@ -1,0 +1,6 @@
+// A data source whose identifier is a compound ST expression (`localA + 5`), feeding a
+// sink. The transpiler resolves it through the full ST expression parser, so it must
+// compute localA + 5 at runtime. A regression treating it as a bare one-token reference
+// would not resolve to a variable -> compile error -> no output -> this CHECK fails.
+RUN: %COMPILE %S/expr.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: result = 42

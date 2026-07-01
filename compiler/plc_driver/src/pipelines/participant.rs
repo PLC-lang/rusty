@@ -399,3 +399,35 @@ impl PipelineParticipantMut for ReferenceToReturnParticipant {
         project.index(self.ids.clone()).annotate(self.ids.clone())
     }
 }
+
+/// Types the synthetic `temp_N` variables the CFC frontend emits with placeholder types. Their real
+/// type (a callee's return type or output-pin type) only becomes known once the global index is
+/// built, so this runs at `post_index`, rewriting each placeholder and re-indexing if anything changed
+/// (a no-op for non-CFC projects). The resolution itself lives in `plc_cfc::resolve_temp_types`.
+pub struct CfcTempLowerer {
+    ids: IdProvider,
+}
+
+impl CfcTempLowerer {
+    pub fn new(ids: IdProvider) -> Self {
+        Self { ids }
+    }
+}
+
+impl PipelineParticipantMut for CfcTempLowerer {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { mut project, index, _unresolvables } = indexed_project;
+
+        let mut changed = false;
+        for unit in &mut project.units {
+            changed |= plc_cfc::resolve_temp_types(unit, &index);
+        }
+
+        // Re-index only when temps were actually typed, so the new members land in the index.
+        if changed {
+            return project.index(self.ids.clone());
+        }
+
+        IndexedProject { project, index, _unresolvables }
+    }
+}

@@ -1,0 +1,5 @@
+// A CFC block calling a no-input ST function whose return is captured into a temp and
+// read by a sink. Exercises the nullary call form `getOffset()` and the result-pin temp
+// at runtime (the action test has an empty-input block, but actions have no return/temp).
+RUN: %COMPILE %S/get_offset.st %S/offset.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: offset = 100

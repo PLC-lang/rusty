@@ -1,0 +1,7 @@
+FUNCTION myMul : DINT
+VAR_INPUT
+	in1, in2: DINT;
+END_VAR
+
+myMul := in1 * in2;
+END_FUNCTION

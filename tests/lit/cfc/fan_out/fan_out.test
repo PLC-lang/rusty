@@ -1,0 +1,7 @@
+// A block output that fans out to two sinks is evaluated once into a temp, then read by
+// both. `calls == 1` (a global the producer bumps) proves single evaluation; both sinks
+// see the same value.
+RUN: %COMPILE %S/tick.st %S/fanout.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: outA = 7
+CHECK: outB = 7
+CHECK: calls = 1

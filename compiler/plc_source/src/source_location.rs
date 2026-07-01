@@ -51,6 +51,11 @@ impl SourceLocationFactory {
         let end = TextLocation::new(line, self.newlines.get_end_of_line(line), 0);
         SourceLocation { span: CodeSpan::Range(start..end), file: self.file.into() }
     }
+
+    /// Returns the file all created locations point into, or `None` for internal factories
+    pub fn get_file_name(&self) -> Option<&'static str> {
+        self.file
+    }
 }
 
 /// The location of a certain element in a text file

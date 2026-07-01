@@ -1,0 +1,6 @@
+// A value routed through a TWO-HOP connector/continuation chain (src -> x -> y -> sink).
+// The sink must resolve transitively back to the original producer, so out == src (99).
+// The connector lit test is a single hop; motor_control fans one connector to two
+// consumers; neither chains hops, which is what resolve_alias's transitive loop handles.
+RUN: %COMPILE %S/chain.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: out = 99

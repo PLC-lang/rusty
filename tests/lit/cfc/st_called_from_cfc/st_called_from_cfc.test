@@ -1,0 +1,5 @@
+// A CFC function block (computer.cfc) that calls an ST function (MyAdd, builtins.st),
+// driven from an ST main. Proves a CFC->ST call compiles, links, and runs correctly —
+// and incidentally that the `__return@MyAdd` temp placeholder resolves to DINT.
+RUN: %COMPILE %S/builtins.st %S/computer.cfc %S/main.st && %RUN | %CHECK %s
+CHECK: result = 42
