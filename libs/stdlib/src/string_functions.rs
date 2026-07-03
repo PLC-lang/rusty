@@ -5,6 +5,12 @@ use std::{
 
 use num::PrimInt;
 
+/// Capacity (in code units, excluding the null terminator) of the result buffer that the
+/// user-facing string builtins write into.
+/// Excess input is truncated on a character boundary instead.
+/// Keep this in sync with the `.st` declarations.
+const STRING_RESULT_LEN: usize = 2048;
+
 /// # Helper function
 ///
 /// Gets the amount of continuous characters before
@@ -61,6 +67,18 @@ pub trait CharsEncoder<T: PrimInt>: Iterator {
     /// given address large enough. It will continue to write unchecked until all characters
     /// have been processed and can therefore result in UB.
     unsafe fn encode(self, dest: &mut *mut T);
+
+    /// Like [`CharsEncoder::encode`], but writes at most `max_elements` code units of
+    /// content (bytes for UTF-8, `u16` code units for UTF-16), always followed by a
+    /// null terminator. Truncation happens on a character boundary, so the written
+    /// string stays valid. Returns the number of content code units written (excluding
+    /// the terminator), allowing callers to keep a running budget across several inputs.
+    ///
+    /// # Safety
+    ///
+    /// Works on raw pointers, inherently unsafe. The destination buffer must have room
+    /// for `max_elements + 1` code units.
+    unsafe fn encode_bounded(self, dest: &mut *mut T, max_elements: usize) -> usize;
 }
 
 #[derive(Debug)]
@@ -86,31 +104,60 @@ impl<'a> CharsDecoder<u8> for EncodedCharsIter<Utf8Iterator<'a>> {
 
 impl<I: Iterator<Item = char>> CharsEncoder<u8> for I {
     unsafe fn encode(self, dest: &mut *mut u8) {
+        self.encode_bounded(dest, usize::MAX);
+    }
+
+    unsafe fn encode_bounded(self, dest: &mut *mut u8, max_elements: usize) -> usize {
+        let mut remaining = max_elements;
+        let mut written = 0;
         for char in self {
+            let len = char.len_utf8();
+            // Stop before we would exceed the budget; never truncate mid-character.
+            if len > remaining {
+                break;
+            }
             let mut temp = [0; 4];
             let slice = char.encode_utf8(&mut temp);
             for byte in slice.as_bytes() {
                 **dest = *byte;
                 *dest = dest.add(1);
             }
+            remaining -= len;
+            written += len;
         }
 
         **dest = 0;
+        written
     }
 }
 
 impl<I: Iterator<Item = Result<char, DecodeUtf16Error>>> CharsEncoder<u16> for I {
     unsafe fn encode(self, dest: &mut *mut u16) {
+        self.encode_bounded(dest, usize::MAX);
+    }
+
+    unsafe fn encode_bounded(self, dest: &mut *mut u16, max_elements: usize) -> usize {
+        let mut remaining = max_elements;
+        let mut written = 0;
         for c in self {
+            let c = c.unwrap();
+            let len = c.len_utf16();
+            // Stop before we would exceed the budget; never truncate mid-character.
+            if len > remaining {
+                break;
+            }
             let mut temp = [0_u16; 2];
-            let slice = c.unwrap().encode_utf16(&mut temp);
+            let slice = c.encode_utf16(&mut temp);
             for word in slice {
                 **dest = *word;
                 *dest = dest.add(1);
             }
+            remaining -= len;
+            written += len;
         }
 
         **dest = 0;
+        written
     }
 }
 
@@ -417,11 +464,13 @@ pub unsafe extern "C-unwind" fn INSERT_EXT__STRING(
         panic! {"Positional parameter is out of bounds."}
     }
     let pos = pos as usize;
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
     EncodedCharsIter::decode(src_base)
         .take(pos)
         .chain(EncodedCharsIter::decode(src_to_insert))
         .chain(EncodedCharsIter::decode(src_base).skip(pos))
-        .encode(&mut dest);
+        .encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -450,11 +499,13 @@ pub unsafe extern "C-unwind" fn INSERT_EXT__WSTRING(
         panic! {"Positional parameter is out of bounds."}
     }
     let pos = pos as usize;
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
     EncodedCharsIter::decode(src_base)
         .take(pos)
         .chain(EncodedCharsIter::decode(src_to_insert))
         .chain(EncodedCharsIter::decode(src_base).skip(pos))
-        .encode(&mut dest);
+        .encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -583,13 +634,15 @@ pub unsafe extern "C-unwind" fn REPLACE_EXT__STRING(
             pos + 1
         )
     }
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
     EncodedCharsIter::decode(src_base)
         .take(pos)
         .chain(
             EncodedCharsIter::decode(src_replacement)
                 .chain(EncodedCharsIter::decode(src_base).skip(pos + nreplace)),
         )
-        .encode(&mut dest);
+        .encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -630,13 +683,15 @@ pub unsafe extern "C-unwind" fn REPLACE_EXT__WSTRING(
             pos + 1
         )
     }
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
     EncodedCharsIter::decode(src_base)
         .take(pos)
         .chain(
             EncodedCharsIter::decode(src_replacement)
                 .chain(EncodedCharsIter::decode(src_base).skip(pos + nreplace)),
         )
-        .encode(&mut dest);
+        .encode_bounded(&mut dest, STRING_RESULT_LEN);
 
     0
 }
@@ -677,8 +732,12 @@ pub unsafe extern "C-unwind" fn CONCAT_EXT__STRING(dest: *mut u8, argc: i32, arg
     }
     let mut dest = dest;
     let mut argv = argv;
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `STRING[2048]` destination (see `STRING_RESULT_LEN`).
+    let mut remaining = STRING_RESULT_LEN;
     for _ in 0..argc {
-        EncodedCharsIter::decode(*argv).encode(&mut dest);
+        let written = EncodedCharsIter::decode(*argv).encode_bounded(&mut dest, remaining);
+        remaining -= written;
         argv = argv.add(1);
     }
 
@@ -725,8 +784,12 @@ pub unsafe extern "C-unwind" fn CONCAT_EXT__WSTRING(
     }
     let mut dest = dest;
     let mut argv = argv;
+    // Truncate at the result-buffer capacity so we never overflow the caller's
+    // `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
+    let mut remaining = STRING_RESULT_LEN;
     for _ in 0..argc {
-        EncodedCharsIter::decode(*argv).encode(&mut dest);
+        let written = EncodedCharsIter::decode(*argv).encode_bounded(&mut dest, remaining);
+        remaining -= written;
         argv = argv.add(1);
     }
 
