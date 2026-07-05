@@ -1,121 +1,258 @@
+// TODO: Some invalid graphs are currently caught by the IDE rather than us, e.g. incomplete
+//       connector/continuation pairs. Eventually we want to validate these here as well, so we do not solely
+//       rely on the IDE.
+
+use ast::provider::IdProvider;
+use plc::{lexer, parser::expressions_parser::parse_expression};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocationFactory;
 
-use crate::model::{FbdNetwork, FbdObject, Pou};
-use crate::resolver::Resolver;
+use crate::{
+    model::{FbdObject, Pou},
+    resolver::{Object, Resolver},
+};
 
-pub fn validate(pou: &Pou, _: &Resolver, factory: &SourceLocationFactory) -> Vec<Diagnostic> {
+struct Context<'a> {
+    pou: &'a Pou,
+    factory: &'a SourceLocationFactory,
+    resolver: &'a Resolver,
+}
+
+pub fn validate(pou: &Pou, factory: &SourceLocationFactory, resolver: &Resolver) -> Vec<Diagnostic> {
     let mut diagnostics = Vec::new();
-    validate_text_declaration(pou, factory, &mut diagnostics);
+    let context = Context { pou, factory, resolver };
 
-    if let Some(network) = pou.get_network() {
-        validate_unconnected_sink(network, factory, &mut diagnostics);
+    diagnostics.extend(validate_evaluation_order(&context));
+    diagnostics.extend(validate_variable_object(&context));
+
+    diagnostics
+}
+
+/// Validates the evaluation order such that a consumer must first produce a value before it can be consumed
+/// by a consumer. Specifically a block must have an evaluation order less than its consumer. For example
+/// ```text
+/// +--- myFunc ---+  (1)
+/// |        myFunc|----------->  result  (0)
+/// +--------------+
+///
+/// (n) = evaluation priority; result runs first, no temp exists yet
+/// ```
+fn validate_evaluation_order(ctx: &Context) -> Vec<Diagnostic> {
+    let mut diagnostics = Vec::new();
+
+    for op in ctx.pou.network().get_ordered_operations() {
+        for id in op.get_connections_in() {
+            let id = ctx.resolver.resolve_alias(id);
+            let Some(Object::BlockOutput(block, _)) = ctx.resolver.get(id) else {
+                continue;
+            };
+
+            // Check if the consumer has a priority which would evaluate before the block can produce a value
+            if op.get_priority().is_none_or(|opt| opt <= block.add_data.priority.unwrap()) {
+                let message = format!(
+                    "Invalid evaluation order, result of `{producer}` is consumed by `{consumer}` before it is being evaluated",
+                    producer = block.instance_name.as_deref().unwrap_or(&block.type_name),
+                    consumer = op.get_name(),
+                );
+
+                let diagnostic = Diagnostic::new(message)
+                    .with_error_code("E143")
+                    .with_location(helper::create_location(
+                        ctx.factory,
+                        op.get_global_id(),
+                        op.get_priority(),
+                    ))
+                    .with_secondary_location(helper::create_location(
+                        ctx.factory,
+                        block.global_id,
+                        block.add_data.priority,
+                    ));
+
+                diagnostics.push(diagnostic);
+            }
+        }
     }
 
     diagnostics
 }
 
-fn validate_text_declaration(pou: &Pou, factory: &SourceLocationFactory, diagnostics: &mut Vec<Diagnostic>) {
-    if pou.text_declaration().is_none_or(|declaration| declaration.trim().is_empty()) {
-        diagnostics.push(
-            Diagnostic::new("CFC POU is missing its text declaration")
-                .with_error_code("E142")
-                .with_location(factory.create_file_only_location()),
-        );
-    }
-}
+/// Validates that variable objects (sources and sinks) only contain a literals, reference expressions or any
+/// combination of these two (unary, binary). That is `foo`, `foo + 1`, `!foo` and so on are valid. That
+/// allows for graphs like
+/// ```text
+///    localA + 5  ----------->+---- clamp ----+  (0)
+///                            | value    clamp|----------->  result  (1)
+///    NOT enable  ----------->| bypass        |
+///                            +---------------+
+/// ```
+/// where the addition and negation would otherwise each need a dedicated block (and priority) of
+/// their own.
+///
+/// Note: Technically not something we must support (i.e. we could just throw an error if not a reference) its
+/// a huge improvement in DX hence we are a bit "laxer" here.
+fn validate_variable_object(ctx: &Context) -> Vec<Diagnostic> {
+    let ids = IdProvider::default();
+    let mut diagnostics = Vec::new();
 
-fn validate_unconnected_sink(
-    network: &FbdNetwork,
-    factory: &SourceLocationFactory,
-    diagnostics: &mut Vec<Diagnostic>,
-) {
-    for object in &network.objects {
-        let FbdObject::DataSink(sink) = object else {
-            continue;
+    for object in &ctx.pou.network().objects {
+        let (identifier, global_id, priority) = match object {
+            FbdObject::DataSource(source) => (&source.identifier, source.global_id, None),
+            FbdObject::DataSink(sink) => (&sink.identifier, sink.global_id, sink.add_data.priority),
+            _ => continue,
         };
 
-        if sink.get_referenced_argument_id().is_some() {
-            continue;
+        let expr = parse_expression(&mut lexer::lex_with_ids(identifier, ids.clone(), ctx.factory.clone()));
+
+        // Note: whether a sink is a valid assignment target (`foo := ...` rather than `foo + 1 := ...`)
+        // needs no validation here; the transpiled assignment goes through the regular pipeline
+        // validation, which reports non-assignable targets as E050.
+        if !helper::is_value_expression(&expr) {
+            let message = format!(
+                "Invalid expression `{identifier}` in variable, only literals, variable references and compositions of them are allowed"
+            );
+
+            diagnostics.push(
+                Diagnostic::new(message).with_error_code("E144").with_location(helper::create_location(
+                    ctx.factory,
+                    global_id,
+                    priority,
+                )),
+            );
+        }
+    }
+
+    diagnostics
+}
+
+mod helper {
+    use ast::ast::{AstNode, AstStatement};
+    use ast::visitor::{AstVisitor, Walker};
+    use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+
+    /// Returns true if the given expression is a value, i.e. built only from literals, variable references
+    /// and compositions of them such as `foo + 1` or `-bar[i].baz`. Everything else — calls, assignments,
+    /// expression lists, ranges and so on — is not a value and must not appear in a variable.
+    pub(super) fn is_value_expression(expression: &AstNode) -> bool {
+        struct Validator {
+            valid: bool,
         }
 
-        let location = factory.create_block_location(
-            sink.global_id.unwrap_or_default() as usize,
-            sink.get_priority().map(|priority| priority as usize),
-        );
+        impl AstVisitor for Validator {
+            fn visit(&mut self, node: &AstNode) {
+                // The visitor does not descend into the elements of an array literal, so a call hiding in
+                // one (e.g. `[foo()]`) would go unnoticed; array literals are rejected outright instead.
+                self.valid &= !node.is_literal_array()
+                    && matches!(
+                        node.get_stmt(),
+                        AstStatement::Literal(_)
+                            | AstStatement::Identifier(_)
+                            | AstStatement::HardwareAccess(_)
+                            | AstStatement::DirectAccess(_)
+                            | AstStatement::ReferenceExpr(_)
+                            | AstStatement::BinaryExpression(_)
+                            | AstStatement::UnaryExpression(_)
+                            | AstStatement::ParenExpression(_)
+                    );
 
-        diagnostics.push(
-            Diagnostic::new(format!("Data sink '{}' is not connected to a source", sink.identifier))
-                .with_error_code("E084")
-                .with_location(location),
-        );
+                node.walk(self);
+            }
+        }
+
+        let mut validator = Validator { valid: true };
+        validator.visit(expression);
+        validator.valid
+    }
+
+    pub(super) fn create_location(
+        factory: &SourceLocationFactory,
+        global_id: u64,
+        priority: Option<u64>,
+    ) -> SourceLocation {
+        factory.create_block_location(global_id as usize, priority.map(|priority| priority as usize))
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use insta::assert_snapshot;
+    use plc_diagnostics::diagnostician::Diagnostician;
+    use plc_diagnostics::reporter::DiagnosticReporter;
     use plc_source::source_location::SourceLocationFactory;
 
-    use crate::model;
-    use crate::resolver::Resolver;
-    use crate::validator::validate;
+    use crate::{model, resolver::Resolver};
 
-    fn diagnose(xml: &str) -> Vec<&'static str> {
+    fn validate(xml: &str) -> String {
         let pou = model::from_str(xml).unwrap();
         let resolver = Resolver::resolve(&pou);
-        let factory = SourceLocationFactory::internal(xml);
-        validate(&pou, &resolver, &factory).iter().map(|diagnostic| diagnostic.get_error_code()).collect()
+        let diagnostics = super::validate(&pou, &SourceLocationFactory::internal(xml), &resolver);
+
+        let mut reporter = Diagnostician::buffered();
+        reporter.register_file("<internal>".to_string(), xml.to_string());
+        reporter.handle(&diagnostics);
+        reporter.buffer().expect("internal error with the buffered codespan reporter")
     }
 
     #[test]
-    fn missing_text_declaration() {
-        let xml = r#"
-            <ppx:Program xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" name="mainProgram">
-                <ppx:MainBody>
-                    <ppx:BodyContent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ppx:FBD">
-                        <ppx:Network/>
-                    </ppx:BodyContent>
-                </ppx:MainBody>
-            </ppx:Program>
-        "#;
-
-        assert_eq!(diagnose(xml), ["E142"]);
+    fn sink_consumes_result_too_early() {
+        let xml = include_str!("../fixtures/invalid/evaluation_order/sink.cfc");
+        assert_snapshot!(validate(xml), @r"
+        error[E143]: Invalid evaluation order, result of `alwaysFive` is consumed by `result` before it is being evaluated
+         = at <internal>:block 3
+         = see also <internal>:block 1
+        ");
     }
 
     #[test]
-    fn unconnected_sink() {
-        let xml = r#"
-            <ppx:Program xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" name="mainProgram">
-                <ppx:AddData>
-                    <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                        <textDeclaration>
-                            <content>PROGRAM mainProgram
-VAR
-    result : DINT;
-END_VAR</content>
-                        </textDeclaration>
-                    </ppx:Data>
-                </ppx:AddData>
-                <ppx:MainBody>
-                    <ppx:BodyContent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ppx:FBD">
-                        <ppx:Network>
-                            <ppx:FbdObject xsi:type="ppx:DataSink" identifier="result" globalId="3">
-                                <ppx:ConnectionPointIn>
-                                    <ppx:RelPosition x="0" y="10"/>
-                                </ppx:ConnectionPointIn>
-                            </ppx:FbdObject>
-                        </ppx:Network>
-                    </ppx:BodyContent>
-                </ppx:MainBody>
-            </ppx:Program>
-        "#;
-
-        assert_eq!(diagnose(xml), ["E084"]);
+    fn conditional_return_consumes_result_too_early() {
+        let xml = include_str!("../fixtures/invalid/evaluation_order/conditional_return.cfc");
+        assert_snapshot!(validate(xml), @r"
+        error[E143]: Invalid evaluation order, result of `isReady` is consumed by `conditional return` before it is being evaluated
+         = at <internal>:block 3
+         = see also <internal>:block 1
+        ");
     }
 
     #[test]
-    fn connected_sink_is_valid() {
-        let xml = include_str!("../fixtures/expression_source/mainProgram.cfc");
-        assert!(diagnose(xml).is_empty());
+    fn block_argument_consumes_result_too_early() {
+        let xml = include_str!("../fixtures/invalid/evaluation_order/block_argument.cfc");
+        assert_snapshot!(validate(xml), @r"
+        error[E143]: Invalid evaluation order, result of `alwaysFive` is consumed by `square` before it is being evaluated
+         = at <internal>:block 3
+         = see also <internal>:block 1
+        ");
+    }
+
+    #[test]
+    fn aliased_sink_consumes_result_too_early() {
+        let xml = include_str!("../fixtures/invalid/evaluation_order/alias.cfc");
+        assert_snapshot!(validate(xml), @r"
+        error[E143]: Invalid evaluation order, result of `alwaysFive` is consumed by `result` before it is being evaluated
+         = at <internal>:block 6
+         = see also <internal>:block 1
+        ");
+    }
+
+    #[test]
+    fn call_in_source_variable() {
+        let xml = include_str!("../fixtures/invalid/call_in_variable/source.cfc");
+        assert_snapshot!(validate(xml), @r"
+        error[E144]: Invalid expression `conjure() + 5` in variable, only literals, variable references and compositions of them are allowed
+         = at <internal>:block 1
+        ");
+    }
+
+    #[test]
+    fn call_in_sink_variable() {
+        let xml = include_str!("../fixtures/invalid/call_in_variable/sink.cfc");
+        assert_snapshot!(validate(xml), @r"
+        error[E144]: Invalid expression `drain()` in variable, only literals, variable references and compositions of them are allowed
+         = at <internal>:block 3
+        ");
+    }
+
+    #[test]
+    fn value_expressions_in_variables_are_valid() {
+        let xml = include_str!("../fixtures/valid/expression_source/mainProgram.cfc");
+        assert_snapshot!(validate(xml), @"");
     }
 }

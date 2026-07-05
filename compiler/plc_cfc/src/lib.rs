@@ -61,12 +61,18 @@ pub fn parse_file(
     })?;
 
     let resolver = Resolver::resolve(&deserialized);
-    let diagnostics = validator::validate(&deserialized, &resolver, &factory);
+    let diagnostics = validator::validate(&deserialized, &factory, &resolver);
 
     if diagnostician.handle(&diagnostics) == Severity::Error {
         return Err(Diagnostic::new("Compilation aborted due to invalid CFC content")
             .with_sub_diagnostics(diagnostics));
     }
 
-    Transpiler::new(deserialized, id_provider, factory).transpile()
+    let result = Transpiler::new(deserialized, id_provider, factory).transpile();
+
+    if let Ok(ref result) = result {
+        println!("{}", ast::ser::AstSerializer::format_unit(result));
+    }
+
+    result
 }

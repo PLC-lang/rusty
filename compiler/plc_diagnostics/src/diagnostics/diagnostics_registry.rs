@@ -244,6 +244,8 @@ lazy_static! {
         E140,   Error,      include_str!("./error_codes/E140.md"),  // ':=' used for an output parameter
         E141,   Error,      include_str!("./error_codes/E141.md"),  // Member access on a non-auto-deref pointer base
         E142,   Error,      include_str!("./error_codes/E142.md"),  // Missing text declaration in a CFC POU
+        E143,   Error,      include_str!("./error_codes/E143.md"),  // Invalid evaluation order in a CFC network
+        E144,   Error,      include_str!("./error_codes/E144.md"),  // Invalid expression in a CFC variable
     );
 }
 

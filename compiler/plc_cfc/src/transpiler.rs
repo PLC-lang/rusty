@@ -229,7 +229,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 
 use crate::{
-    model::{Block, DataSink, FbdObject, Pou, Return},
+    model::{Block, DataSink, Operation, Pou, Return},
     placeholder,
     resolver::{Object, Resolver},
 };
@@ -242,12 +242,6 @@ pub struct Transpiler {
     range_factory: SourceLocationFactory,
 }
 
-enum Operation {
-    Call(Block),
-    Sink(DataSink),
-    Return(Return),
-}
-
 impl Transpiler {
     pub fn new(pou: Pou, id_provider: IdProvider, range_factory: SourceLocationFactory) -> Transpiler {
         let resolver = Resolver::resolve(&pou);
@@ -256,16 +250,14 @@ impl Transpiler {
     }
 
     pub fn transpile(mut self) -> Result<CompilationUnit, Diagnostic> {
-        // Parse the declaration first
-        // TODO: Use the diagnostics
-        let (mut unit, _diagnostics) = {
-            let declaration = {
-                let Some(content) = self.pou.text_declaration() else {
-                    // We gracefully return an empty unit here; an empty text declaration is covered by
-                    // validations however.
-                    return Ok(CompilationUnit::new(self.range_factory.get_file_name().unwrap_or_default()));
-                };
+        if self.pou.declaration().trim().is_empty() {
+            return Ok(CompilationUnit::new(self.range_factory.get_file_name().unwrap_or_default()));
+        }
 
+        // Parse the declaration first
+        let (mut unit, diagnostics) = {
+            let declaration = {
+                let content = self.pou.declaration();
                 let content_end_kw = match &self.pou {
                     Pou::Program(_) => "END_PROGRAM",
                     Pou::FunctionBlock(_) => "END_FUNCTION_BLOCK",
@@ -282,6 +274,10 @@ impl Transpiler {
             )
         };
 
+        if !diagnostics.is_empty() {
+            return Err(Diagnostic::new("Invalid ST declaration").with_sub_diagnostics(diagnostics));
+        }
+
         // Then the actual graphical units
         unit.implementations[0].statements = self.transpile_network();
 
@@ -294,23 +290,9 @@ impl Transpiler {
     }
 
     fn transpile_network(&mut self) -> Vec<AstNode> {
-        let Some(network) = self.pou.get_network() else {
-            return Vec::new();
-        };
-
-        // Aggregate all objects
-        let mut operations = Vec::new();
-        for object in network.objects.iter() {
-            match object {
-                FbdObject::Block(block) => operations.push(Operation::Call(block.clone())),
-                FbdObject::DataSink(sink) => operations.push(Operation::Sink(sink.clone())),
-                FbdObject::Return(ret) => operations.push(Operation::Return(ret.clone())),
-                _ => (),
-            }
-        }
-
-        // Sort objects by their evaluation priorty such that we can transpile correct ST code
-        operations.sort_by_key(Operation::priority);
+        // Aggregate all objects, sorted by their evaluation priority such that we can transpile
+        // correct ST code
+        let operations = self.pou.network().get_ordered_operations();
 
         // Then do actual transpiling
         let mut statements = Vec::new();
@@ -329,26 +311,21 @@ impl Transpiler {
 
     /// Transpiles a block into a function call
     fn transpile_call(&mut self, block: &Block) -> AstNode {
-        let location = self.create_object_location(block.global_id, block.get_priority());
+        let location = self.create_object_location(block.global_id, block.add_data.priority);
 
         let mut arguments = Vec::new();
 
         // Input and InOut variables; `<parameter> := <argument>` (or `<parameter> := ` when unconnected)
-        for parameter in block.get_input_variables() {
-            let id = parameter.get_referenced_argument_id();
-            arguments.push(self.create_argument(&parameter.parameter_name, id, parameter.negated, &location));
-        }
-
-        for parameter in block.get_inout_variables() {
-            let id = parameter.get_referenced_argument_id();
+        for parameter in block.inputs.iter().chain(&block.inouts) {
+            let id = parameter.connection_in;
             arguments.push(self.create_argument(&parameter.parameter_name, id, parameter.negated, &location));
         }
 
         // Output variables; similar to input and inout variables with the exception of also introducing
         // temporary variables.
         let mut return_value = None;
-        for output in block.get_output_variables() {
-            let id = output.get_connection_point_out_id();
+        for output in &block.outputs {
+            let id = output.connection_out;
 
             // We're dealing with a function if both the output variable and block name are identical in which
             // case we want to persist the return value into a temporary variable.
@@ -391,8 +368,8 @@ impl Transpiler {
     /// Transpile a data sink into an assignment, or nothing when the sink has no incoming connection
     /// (the validator reports that case as a warning).
     fn transpile_sink(&mut self, sink: &DataSink) -> Option<AstNode> {
-        let location = self.create_object_location(sink.global_id, sink.get_priority());
-        let value = self.resolve(sink.get_referenced_argument_id()?, &location);
+        let location = self.create_object_location(sink.global_id, sink.add_data.priority);
+        let value = self.resolve(sink.connection_in?, &location);
         let target = self.create_member_reference(&sink.identifier, &location);
 
         Some(AstFactory::create_assignment(target, value, self.next_id()))
@@ -400,12 +377,12 @@ impl Transpiler {
 
     /// Transpiles a conditional return so a return (duh)
     fn transpile_return(&mut self, ret: &Return) -> AstNode {
-        let location = self.create_object_location(ret.global_id, ret.get_priority());
+        let location = self.create_object_location(ret.global_id, ret.add_data.priority);
 
-        let condition = match ret.get_condition_id() {
+        let condition = match ret.connection_in {
             Some(id) => {
                 let mut node = self.resolve(id, &location);
-                if ret.is_negated() {
+                if ret.add_data.negated {
                     node = node.negate(self.id_provider.clone());
                 }
 
@@ -430,9 +407,9 @@ impl Transpiler {
         match self.resolver.get(id) {
             Some(Object::Variable(source)) => self.parse_expression(&source.identifier),
             Some(Object::BlockOutput(..)) => {
-                unreachable!("a block output must be evaluated into a temp before it is consumed")
+                unreachable!("block result must have been evaluated into a temporary (corrupted file?)")
             }
-            None => panic!("queried a reference that does not exist"),
+            None => unreachable!("connection ID must have been generated by IDE (corrupted file?)"),
         }
     }
 }
@@ -488,9 +465,8 @@ impl Transpiler {
         }
     }
 
-    fn create_object_location(&self, global_id: Option<u64>, priority: Option<u64>) -> SourceLocation {
-        self.range_factory
-            .create_block_location(global_id.unwrap_or_default() as usize, priority.map(|p| p as usize))
+    fn create_object_location(&self, global_id: u64, priority: Option<u64>) -> SourceLocation {
+        self.range_factory.create_block_location(global_id as usize, priority.map(|p| p as usize))
     }
 
     /// `<parameter> := <argument>`, or `<parameter> :=` when the parameter is unconnected.
@@ -558,16 +534,6 @@ fn create_internal_variable(name: &str, placeholder: String) -> Variable {
     }
 }
 
-impl Operation {
-    fn priority(&self) -> Option<u64> {
-        match self {
-            Operation::Call(block) => block.get_priority(),
-            Operation::Sink(sink) => sink.get_priority(),
-            Operation::Return(ret) => ret.get_priority(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::Transpiler;
@@ -581,14 +547,14 @@ mod tests {
         let pou = model::from_str(xml).unwrap();
         let unit = Transpiler::new(pou, IdProvider::default(), SourceLocationFactory::internal(xml))
             .transpile()
-            .expect("todo error handling");
+            .unwrap();
 
         AstSerializer::format_unit(&unit)
     }
 
     #[test]
     fn function_call() {
-        let xml = include_str!("../fixtures/function_call/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/function_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -607,7 +573,7 @@ mod tests {
 
     #[test]
     fn shared_result() {
-        let xml = include_str!("../fixtures/shared_result/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/shared_result/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -628,7 +594,7 @@ mod tests {
 
     #[test]
     fn chained_calls() {
-        let xml = include_str!("../fixtures/chained_calls/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/chained_calls/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -649,7 +615,7 @@ mod tests {
 
     #[test]
     fn nullary_call() {
-        let xml = include_str!("../fixtures/nullary_call/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/nullary_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -666,7 +632,7 @@ mod tests {
 
     #[test]
     fn evaluation_order() {
-        let xml = include_str!("../fixtures/evaluation_order/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/evaluation_order/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -691,7 +657,7 @@ mod tests {
 
     #[test]
     fn negated_input() {
-        let xml = include_str!("../fixtures/negated_input/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/negated_input/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -710,7 +676,7 @@ mod tests {
 
     #[test]
     fn inout_variable() {
-        let xml = include_str!("../fixtures/inout_variable/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/inout_variable/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -729,7 +695,7 @@ mod tests {
 
     #[test]
     fn literal_input() {
-        let xml = include_str!("../fixtures/literal_input/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/literal_input/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -747,7 +713,7 @@ mod tests {
 
     #[test]
     fn expression_source() {
-        let xml = include_str!("../fixtures/expression_source/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/expression_source/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -761,7 +727,7 @@ mod tests {
 
     #[test]
     fn function_pou() {
-        let xml = include_str!("../fixtures/function_pou/myFunc.cfc");
+        let xml = include_str!("../fixtures/valid/function_pou/myFunc.cfc");
         assert_snapshot!(transpile(xml), @r"
         FUNCTION myFunc : DINT
         VAR_INPUT
@@ -779,7 +745,7 @@ mod tests {
 
     #[test]
     fn function_block_pou() {
-        let xml = include_str!("../fixtures/function_block_pou/myFb.cfc");
+        let xml = include_str!("../fixtures/valid/function_block_pou/myFb.cfc");
         assert_snapshot!(transpile(xml), @r"
         FUNCTION_BLOCK myFb
         VAR_INPUT
@@ -800,7 +766,7 @@ mod tests {
 
     #[test]
     fn function_block_call() {
-        let xml = include_str!("../fixtures/function_block_call/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/function_block_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -819,7 +785,7 @@ mod tests {
 
     #[test]
     fn action_call() {
-        let xml = include_str!("../fixtures/action_call/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/action_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -832,7 +798,7 @@ mod tests {
 
     #[test]
     fn program_call() {
-        let xml = include_str!("../fixtures/program_call/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/program_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -850,7 +816,7 @@ mod tests {
 
     #[test]
     fn unconnected_arguments_function() {
-        let xml = include_str!("../fixtures/unconnected_arguments_function/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/unconnected_arguments_function/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -868,7 +834,7 @@ mod tests {
 
     #[test]
     fn unconnected_arguments_program() {
-        let xml = include_str!("../fixtures/unconnected_arguments_program/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/unconnected_arguments_program/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -881,7 +847,7 @@ mod tests {
 
     #[test]
     fn unconnected_arguments_function_block() {
-        let xml = include_str!("../fixtures/unconnected_arguments_function_block/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/unconnected_arguments_function_block/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -895,7 +861,7 @@ mod tests {
 
     #[test]
     fn unconnected_output_function() {
-        let xml = include_str!("../fixtures/unconnected_output_function/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/unconnected_output_function/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -913,7 +879,7 @@ mod tests {
 
     #[test]
     fn unconnected_output_program() {
-        let xml = include_str!("../fixtures/unconnected_output_program/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/unconnected_output_program/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -926,7 +892,7 @@ mod tests {
 
     #[test]
     fn unconnected_output_function_block() {
-        let xml = include_str!("../fixtures/unconnected_output_function_block/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/unconnected_output_function_block/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -940,7 +906,7 @@ mod tests {
 
     #[test]
     fn multiple_outputs() {
-        let xml = include_str!("../fixtures/multiple_outputs/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/multiple_outputs/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -964,7 +930,7 @@ mod tests {
 
     #[test]
     fn conditional_return() {
-        let xml = include_str!("../fixtures/conditional_return/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/conditional_return/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -980,7 +946,7 @@ mod tests {
 
     #[test]
     fn unconditional_return() {
-        let xml = include_str!("../fixtures/unconditional_return/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/unconditional_return/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -995,7 +961,7 @@ mod tests {
 
     #[test]
     fn connector_continuation() {
-        let xml = include_str!("../fixtures/connector_continuation/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/connector_continuation/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR
@@ -1012,7 +978,7 @@ mod tests {
 
     #[test]
     fn connector_continuation_chain() {
-        let xml = include_str!("../fixtures/connector_continuation_chain/mainProgram.cfc");
+        let xml = include_str!("../fixtures/valid/connector_continuation_chain/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
         VAR

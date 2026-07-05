@@ -1,0 +1,3 @@
+FUNCTION isReady : BOOL
+	isReady := TRUE;
+END_FUNCTION

@@ -7,7 +7,7 @@ use plc_source::source_location::CodeSpan;
 
 use crate::diagnostics::Severity;
 
-use super::{DiagnosticReporter, ResolvedDiagnostics};
+use super::{DiagnosticReporter, ResolvedDiagnostics, ResolvedLocation};
 
 enum Writer {
     /// Indicates that the writer will store its output into a buffer
@@ -112,32 +112,40 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
             };
 
             let mut labels = vec![];
+            let mut notes = vec![];
 
-            if !matches!(d.main_location.span, CodeSpan::None) {
-                labels.push(
-                    Label::primary(
-                        d.main_location.file_handle,
-                        d.main_location.span.to_range().unwrap_or(0..0),
-                    )
-                    .with_message(d.message.as_str()),
-                );
-            }
-
-            if let Some(additional_locations) = &d.additional_locations {
-                labels.extend(additional_locations.iter().filter_map(|it| {
-                    if !matches!(it.span, CodeSpan::None) {
-                        Some(
-                            Label::secondary(it.file_handle, it.span.to_range().unwrap_or(0..0))
-                                .with_message("see also"),
+            match block_location(&self.files, &d.main_location) {
+                Some(block) => notes.push(format!("at {block}")),
+                None if !matches!(d.main_location.span, CodeSpan::None) => {
+                    labels.push(
+                        Label::primary(
+                            d.main_location.file_handle,
+                            d.main_location.span.to_range().unwrap_or(0..0),
                         )
-                    } else {
-                        None
-                    }
-                }));
+                        .with_message(d.message.as_str()),
+                    );
+                }
+                None => (),
             }
 
-            let diag =
-                diagnostic_factory.with_labels(labels).with_message(d.message.as_str()).with_code(&d.code);
+            for location in d.additional_locations.iter().flatten() {
+                match block_location(&self.files, location) {
+                    Some(block) => notes.push(format!("see also {block}")),
+                    None if !matches!(location.span, CodeSpan::None) => {
+                        labels.push(
+                            Label::secondary(location.file_handle, location.span.to_range().unwrap_or(0..0))
+                                .with_message("see also"),
+                        );
+                    }
+                    None => (),
+                }
+            }
+
+            let diag = diagnostic_factory
+                .with_labels(labels)
+                .with_message(d.message.as_str())
+                .with_code(&d.code)
+                .with_notes(notes);
 
             let result = self.emit(diag);
             if result.is_err() && d.main_location.is_internal() {
@@ -156,4 +164,16 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
             Writer::Stream(_) => None,
         }
     }
+}
+
+/// A [`CodeSpan::Block`] location (e.g. an element of a graphical POU) points at no text unless it
+/// carries an inner range, so it cannot be underlined like a codespan label. Such locations are
+/// rendered as a `<file>:block <id>` note instead.
+fn block_location(files: &SimpleFiles<String, String>, location: &ResolvedLocation) -> Option<String> {
+    let CodeSpan::Block { local_id, inner_range: None, .. } = &location.span else {
+        return None;
+    };
+
+    let file = files.get(location.file_handle).map(|file| file.name().as_str()).unwrap_or_default();
+    Some(format!("{file}:block {local_id}"))
 }

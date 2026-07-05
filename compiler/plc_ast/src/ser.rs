@@ -98,7 +98,8 @@ impl AstSerializer<'_> {
             PouType::Program => ("PROGRAM", "END_PROGRAM"),
             PouType::Function => ("FUNCTION", "END_FUNCTION"),
             PouType::FunctionBlock => ("FUNCTION_BLOCK", "END_FUNCTION_BLOCK"),
-            other => unimplemented!("formatting {other} POUs"),
+            // other => unimplemented!("formatting {other} POUs"),
+            other => ("", ""),
         };
 
         self.result.push_str(keyword);
