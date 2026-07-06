@@ -2911,6 +2911,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
             information: crate::typesystem::DataTypeInformation::String {
                 encoding: if is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 },
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
+                declared_with_length: false,
             },
             location: SourceLocation::internal(),
             linkage: plc_ast::ast::LinkageType::Internal,

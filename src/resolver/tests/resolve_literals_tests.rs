@@ -60,7 +60,8 @@ fn string_literals_are_annotated() {
             nature: TypeNature::String,
             information: DataTypeInformation::String {
                 encoding: crate::typesystem::StringEncoding::Utf8,
-                size: crate::typesystem::TypeSize::LiteralInteger(4)
+                size: crate::typesystem::TypeSize::LiteralInteger(4),
+                declared_with_length: true,
             },
             location: SourceLocation::internal(),
             linkage: plc_ast::ast::LinkageType::Internal,
@@ -74,7 +75,8 @@ fn string_literals_are_annotated() {
             nature: TypeNature::String,
             information: DataTypeInformation::String {
                 encoding: crate::typesystem::StringEncoding::Utf16,
-                size: crate::typesystem::TypeSize::LiteralInteger(7)
+                size: crate::typesystem::TypeSize::LiteralInteger(7),
+                declared_with_length: true,
             },
             location: SourceLocation::internal(),
             linkage: plc_ast::ast::LinkageType::Internal,
@@ -513,6 +515,7 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
                 &DataTypeInformation::String {
                     encoding: StringEncoding::Utf8,
                     size: TypeSize::from_literal(4),
+                    declared_with_length: true,
                 }
             )
         }
