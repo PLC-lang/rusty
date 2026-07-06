@@ -58,6 +58,7 @@ use plc_ast::{
     provider::IdProvider,
     try_from_mut,
 };
+use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
@@ -78,6 +79,11 @@ pub struct AggregateTypeLowerer {
     /// New statements to be added during visit, that should happen after the call. This should always be drained when read
     post_stmts: Vec<Vec<AstNode>>,
     counter: AtomicI32,
+    /// Diagnostics collected while visiting. Reported by the pipeline after lowering (see the
+    /// `PipelineParticipantMut::diagnostics` impl). We must emit generic type-nature errors here,
+    /// before lowering rewrites a generic call (e.g. `CONCAT`) into its concrete instantiation and
+    /// the subsequent re-annotation erases the generic nature the check relies on.
+    pub diagnostics: Vec<Diagnostic>,
 }
 
 impl AggregateTypeLowerer {
@@ -91,6 +97,75 @@ impl AggregateTypeLowerer {
 
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
+    }
+
+    /// Collects `E062` diagnostics for call arguments whose actual type does not satisfy the nature
+    /// of the generic parameter they are bound to (e.g. a `DINT` passed to a `T: ANY_STRING`
+    /// variadic). Uses the pre-lowering annotation, where the generic nature is still attached to
+    /// each argument node. Kept in sync with `validation::statement::validate_type_nature`.
+    fn collect_generic_nature_violations(&self, stmt: &CallStatement) -> Vec<Diagnostic> {
+        let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
+            return Vec::new();
+        };
+
+        // Only report here when this generic call is about to be rewritten to its concrete
+        // instantiation (e.g. `CONCAT` -> `CONCAT__STRING`). That rewrite, followed by re-annotation,
+        // erases the generic nature, so the normal `validate_type_nature` pass can no longer see it.
+        // Generic calls that are *not* rewritten keep their nature and are still reported by that
+        // pass; skipping them here avoids emitting the diagnostic twice.
+        let (qualified_name, generic_name) =
+            match annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator)) {
+                Some(StatementAnnotation::Function { qualified_name, generic_name, .. }) => {
+                    (qualified_name.clone(), generic_name.clone())
+                }
+                _ => return Vec::new(),
+            };
+        // Emit only when a generic call has been resolved to a *concrete* instantiation
+        // (e.g. `CONCAT` -> `CONCAT__STRING`). That is exactly the case the lowering rewrites and
+        // the re-annotation then strips of its generic nature, blinding `validate_type_nature`.
+        // Calls whose operator is still generic keep their nature and are reported by that pass, so
+        // reporting them here too would duplicate the diagnostic.
+        let resolved_to_concrete =
+            generic_name.is_some() && index.find_pou(&qualified_name).is_some_and(|it| !it.is_generic());
+        if !resolved_to_concrete {
+            return Vec::new();
+        }
+
+        let Some(parameters) = stmt.parameters.as_deref() else {
+            return Vec::new();
+        };
+
+        let mut diagnostics = Vec::new();
+        for argument in flatten_expression_list(parameters) {
+            // The nature is attached to the passed value; for `x := val` that is the right-hand side.
+            let value = match argument.get_stmt() {
+                AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => &data.right,
+                _ => argument,
+            };
+
+            let (Some(actual_type), Some(nature)) =
+                (annotation.get_type(value, index), annotation.get_generic_nature(value))
+            else {
+                continue;
+            };
+
+            // Same allowance as `validate_type_nature`: an INT argument for a REAL generic is fine.
+            let type_hint = annotation.get_type_hint(value, index).unwrap_or(actual_type);
+            if actual_type.has_nature(*nature, index) || (type_hint.is_real() && actual_type.is_numerical()) {
+                continue;
+            }
+
+            diagnostics.push(
+                Diagnostic::new(format!(
+                    "Invalid type nature for generic argument. {} is no {}",
+                    actual_type.get_name(),
+                    nature
+                ))
+                .with_error_code("E062")
+                .with_location(value),
+            );
+        }
+        diagnostics
     }
 
     fn steal_and_walk_list(&mut self, list: &mut Vec<AstNode>) {
@@ -240,6 +315,14 @@ impl AstVisitorMut for AggregateTypeLowerer {
         let original_location = node.get_location();
         let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
         stmt.walk(self);
+
+        // Report generic type-nature violations (e.g. `CONCAT(aDint, aReal)`) now, while the call is
+        // still generic. The normal validator can only catch these before lowering; once we rewrite
+        // the call to its concrete instantiation the re-annotation drops the generic nature. Mirrors
+        // the diagnostics-during-lowering approach used by the property lowerer.
+        let nature_diagnostics = self.collect_generic_nature_violations(stmt);
+        self.diagnostics.extend(nature_diagnostics);
+
         let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
             //Early exit if not annotated or indexed
             return;
