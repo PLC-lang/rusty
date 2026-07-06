@@ -372,16 +372,6 @@ impl Diagnostic {
     }
 }
 
-// CFC related diagnostics
-impl Diagnostic {
-    pub fn unnamed_control<T>(location: T) -> Diagnostic
-    where
-        T: Into<SourceLocation>,
-    {
-        Diagnostic::new("Unnamed control").with_error_code("E087").with_location(location)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use codespan_reporting::files::{Location, SimpleFile};

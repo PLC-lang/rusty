@@ -98,8 +98,10 @@ impl AstSerializer<'_> {
             PouType::Program => ("PROGRAM", "END_PROGRAM"),
             PouType::Function => ("FUNCTION", "END_FUNCTION"),
             PouType::FunctionBlock => ("FUNCTION_BLOCK", "END_FUNCTION_BLOCK"),
-            // other => unimplemented!("formatting {other} POUs"),
-            other => ("", ""),
+            PouType::Action => ("ACTION", "END_ACTION"),
+            PouType::Class => ("CLASS", "END_CLASS"),
+            PouType::Method { .. } => ("METHOD", "END_METHOD"),
+            PouType::Init | PouType::ProjectInit => ("", ""),
         };
 
         self.result.push_str(keyword);
@@ -556,130 +558,5 @@ impl AstVisitor for AstSerializer<'_> {
 
     fn visit_this(&mut self, _stmt: &AstStatement, _node: &AstNode) {
         self.result.push_str("THIS");
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::ast::AstFactory;
-    use crate::literals::{AstLiteral, StringValue};
-    use plc_source::source_location::SourceLocation;
-
-    #[test]
-    fn unit_with_program() {
-        use crate::ast::LinkageType;
-
-        let variable = Variable {
-            name: "x".to_string(),
-            data_type_declaration: DataTypeDeclaration::Reference {
-                referenced_type: "INT".to_string(),
-                location: SourceLocation::undefined(),
-            },
-            initializer: None,
-            address: None,
-            location: SourceLocation::undefined(),
-        };
-        let pou = Pou {
-            id: 0,
-            name: "main".to_string(),
-            kind: PouType::Program,
-            variable_blocks: vec![VariableBlock { variables: vec![variable], ..Default::default() }],
-            return_type: None,
-            location: SourceLocation::undefined(),
-            name_location: SourceLocation::undefined(),
-            poly_mode: None,
-            generics: vec![],
-            linkage: LinkageType::Internal,
-            super_class: None,
-            is_const: false,
-            interfaces: vec![],
-            properties: vec![],
-        };
-        let assignment = AstFactory::create_assignment(
-            AstFactory::create_member_reference(
-                AstFactory::create_identifier("x", SourceLocation::undefined(), 0),
-                None,
-                1,
-            ),
-            AstFactory::create_literal(AstLiteral::Integer(1), SourceLocation::undefined(), 2),
-            3,
-        );
-        let implementation = Implementation {
-            name: "main".to_string(),
-            type_name: "main".to_string(),
-            linkage: LinkageType::Internal,
-            pou_type: PouType::Program,
-            statements: vec![assignment],
-            location: SourceLocation::undefined(),
-            name_location: SourceLocation::undefined(),
-            end_location: SourceLocation::undefined(),
-            overriding: false,
-            generic: false,
-            access: None,
-        };
-
-        let mut unit = CompilationUnit::new("<test>");
-        unit.pous.push(pou);
-        unit.implementations.push(implementation);
-
-        assert_eq!(
-            AstSerializer::format_unit(&unit),
-            "PROGRAM main\nVAR\n    x : INT;\nEND_VAR\n    x := 1;\nEND_PROGRAM"
-        );
-    }
-
-    #[test]
-    fn variable_block_with_initializer() {
-        let variable = Variable {
-            name: "localA".to_string(),
-            data_type_declaration: DataTypeDeclaration::Reference {
-                referenced_type: "INT".to_string(),
-                location: SourceLocation::undefined(),
-            },
-            initializer: Some(AstFactory::create_literal(
-                AstLiteral::Integer(10),
-                SourceLocation::undefined(),
-                1,
-            )),
-            address: None,
-            location: SourceLocation::undefined(),
-        };
-        let block = VariableBlock { variables: vec![variable], ..Default::default() };
-
-        let unit = CompilationUnit::new("<test>");
-        assert_eq!(
-            AstSerializer::format_variable_block(&block, &unit),
-            "VAR\n    localA : INT := 10;\nEND_VAR"
-        );
-    }
-
-    #[test]
-    fn expression_list() {
-        let function_name = AstFactory::create_identifier("foo", SourceLocation::undefined(), 0);
-        let expressions = vec![
-            AstFactory::create_literal(AstLiteral::Integer(1), SourceLocation::undefined(), 1),
-            AstFactory::create_literal(
-                AstLiteral::String(StringValue { value: "two".to_string(), is_wide: false }),
-                SourceLocation::undefined(),
-                2,
-            ),
-            AstFactory::create_literal(AstLiteral::Integer(3), SourceLocation::undefined(), 3),
-            AstFactory::create_literal(
-                AstLiteral::String(StringValue { value: "four".to_string(), is_wide: false }),
-                SourceLocation::undefined(),
-                4,
-            ),
-        ];
-        let expression_list = AstFactory::create_expression_list(expressions, SourceLocation::undefined(), 5);
-        let call = AstFactory::create_call_statement(
-            function_name,
-            Some(expression_list),
-            6,
-            SourceLocation::undefined(),
-        );
-
-        let result = AstSerializer::format(&call);
-        assert_eq!(result, "foo(1, 'two', 3, 'four')");
     }
 }

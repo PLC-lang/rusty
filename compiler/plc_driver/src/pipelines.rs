@@ -348,7 +348,6 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
-            // Type CFC temp variables before any annotation-dependent pass.
             Box::new(CfcTempLowerer::new(self.context.provider())),
             Box::new(LoopDesugarer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),

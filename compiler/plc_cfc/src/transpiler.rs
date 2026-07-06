@@ -554,6 +554,12 @@ mod tests {
 
     #[test]
     fn function_call() {
+        //                      +-------- myAdd --------+  (1)
+        //    localA  --------->| in1              myAdd|--------->  localResult  (2)
+        //    localB  --------->| in2                   |
+        //                      +-----------------------+
+        //
+        //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/function_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -573,6 +579,12 @@ mod tests {
 
     #[test]
     fn shared_result() {
+        //                      +-------- myAdd --------+  (1)
+        //    localA  --------->| in1              myAdd|-------+-------->  localResultA  (2)
+        //    localB  --------->| in2                   |       |
+        //                      +-----------------------+       +-------->  localResultB  (3)
+        //
+        //    (1),(2),(3)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/shared_result/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -594,6 +606,13 @@ mod tests {
 
     #[test]
     fn chained_calls() {
+        //                      +----- myAdd -----+ (2)       +----- myMul -----+ (3)
+        //    localA  --------->| in1       myAdd |---------->| IN1       myMul |------->  localResultA  (4)
+        //    localB  --+------>| in2             |       +-->| IN2             |
+        //              |       +-----------------+       |   +-----------------+
+        //              +-------------------------------- +
+        //
+        //    (2),(3),(4)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/chained_calls/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -615,6 +634,11 @@ mod tests {
 
     #[test]
     fn nullary_call() {
+        //                     +--- getOffset ---+ (1)
+        //                     |       getOffset |--->  localResult  (2)
+        //                     +-----------------+
+        //
+        //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/nullary_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -632,6 +656,16 @@ mod tests {
 
     #[test]
     fn evaluation_order() {
+        //                      +----- myMul -----+ (1)
+        //    localA  -------->| in1       myMul |--->  resultMul  (2)
+        //    localB  -------->| in2             |
+        //                      +-----------------+
+        //                      +----- myAdd -----+ (3)
+        //    localC  -------->| in1       myAdd |--->  resultAdd  (4)
+        //    localD  -------->| in2             |
+        //                      +-----------------+
+        //
+        //    (1)-(4)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/evaluation_order/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -657,6 +691,13 @@ mod tests {
 
     #[test]
     fn negated_input() {
+        //                      +----- myGate -----+ (1)
+        //    localA  --o------>| a         myGate |--->  localResult  (2)
+        //    localB  --------->| b                |
+        //                      +------------------+
+        //
+        //    o        a negated input pin (wraps its value in NOT)
+        //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/negated_input/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -676,6 +717,14 @@ mod tests {
 
     #[test]
     fn inout_variable() {
+        //                       +---- accumulate ----+ (1)
+        //    localValue  ------>| value              |
+        //                       |          accumulate|--->  localResult  (2)
+        //    localSum  <------->| sum                |
+        //                       +--------------------+
+        //
+        //    <-->     an in-out pin (passed by reference)
+        //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/inout_variable/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -695,6 +744,12 @@ mod tests {
 
     #[test]
     fn literal_input() {
+        //                      +----- myAdd -----+ (1)
+        //    localA  --------->| in1       myAdd |--->  localResult  (2)
+        //    100     --------->| in2             |
+        //                      +-----------------+
+        //
+        //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/literal_input/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -713,6 +768,9 @@ mod tests {
 
     #[test]
     fn expression_source() {
+        //    localA + 5  ----------->  result   (0)
+        //
+        //    (0)  evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/valid/expression_source/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -727,6 +785,13 @@ mod tests {
 
     #[test]
     fn function_pou() {
+        //               +----- myAdd -----+ (1)
+        //    a  ------->| in1       myAdd |--->  myFunc  (2)
+        //    b  ------->| in2             |
+        //               +-----------------+
+        //
+        //    myFunc   the FUNCTION's return value (a sink named after the function)
+        //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/function_pou/myFunc.cfc");
         assert_snapshot!(transpile(xml), @r"
         FUNCTION myFunc : DINT
@@ -745,6 +810,13 @@ mod tests {
 
     #[test]
     fn function_block_pou() {
+        //               +----- myAdd -----+ (1)
+        //    a  ------->| in1       myAdd |--->  sum  (2)
+        //    b  ------->| in2             |
+        //               +-----------------+
+        //
+        //    sum      a VAR_OUTPUT of the function block (a sink named after the output)
+        //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/function_block_pou/myFb.cfc");
         assert_snapshot!(transpile(xml), @r"
         FUNCTION_BLOCK myFb
@@ -766,6 +838,12 @@ mod tests {
 
     #[test]
     fn function_block_call() {
+        //                   +------ Counter ------+ (1)
+        //    localStep ---->| step          count |---->  localCount  (2)
+        //                   +---------------------+
+        //
+        //    Counter   called on instance myInstance (the block's instanceName)
+        //    (1),(2)   evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/function_block_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -785,6 +863,12 @@ mod tests {
 
     #[test]
     fn action_call() {
+        //                   +-- function_block_0.myAction --+ (0)
+        //    myInstance --->|                               |
+        //                   +-------------------------------+
+        //
+        //    function_block_0.myAction   the action, called on instance myInstance
+        //    (0)                         evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/valid/action_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -798,6 +882,11 @@ mod tests {
 
     #[test]
     fn program_call() {
+        //                        +----- auxProgram -----+ (1)
+        //    localIncrement ---->| increment      total |---->  localTotal  (2)
+        //                        +----------------------+
+        //
+        //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/program_call/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -816,6 +905,14 @@ mod tests {
 
     #[test]
     fn unconnected_arguments_function() {
+        //                   +------ myFunc ------+ (1)
+        //    localA ------->| a           myFunc |------->  localResult  (2)
+        //                   | b  (unconnected)   |
+        //                   | io (unconnected)   |
+        //                   +--------------------+
+        //
+        //    (unconnected)  a pin with no incoming wire
+        //    (1),(2)        evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/unconnected_arguments_function/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -834,6 +931,14 @@ mod tests {
 
     #[test]
     fn unconnected_arguments_program() {
+        //                       +---- auxProgram ----+ (1)
+        //    localA ----------->| a                  |
+        //                       | b  (unconnected)   |
+        //                       | io (unconnected)   |
+        //                       +--------------------+
+        //
+        //    (unconnected)  a pin with no incoming wire
+        //    (1)            evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/valid/unconnected_arguments_program/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -847,6 +952,15 @@ mod tests {
 
     #[test]
     fn unconnected_arguments_function_block() {
+        //                   +------- myFb -------+ (1)
+        //    localA ------->| a                  |
+        //                   | b  (unconnected)   |
+        //                   | io (unconnected)   |
+        //                   +--------------------+
+        //
+        //    myFb           called on instance myInstance (the block's instanceName)
+        //    (unconnected)  a pin with no incoming wire
+        //    (1)            evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/valid/unconnected_arguments_function_block/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -861,6 +975,13 @@ mod tests {
 
     #[test]
     fn unconnected_output_function() {
+        //                   +------ myFunc ------+ (1)
+        //    localA ------->| a           myFunc |------>  localResult  (2)
+        //                   |              extra |   (unconnected)
+        //                   +--------------------+
+        //
+        //    extra    an output pin with no outgoing wire
+        //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/unconnected_output_function/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -879,6 +1000,12 @@ mod tests {
 
     #[test]
     fn unconnected_output_program() {
+        //                       +---- auxProgram ----+ (1)
+        //    localA ----------->| a           result |   (result unconnected)
+        //                       +--------------------+
+        //
+        //    result  an output pin with no outgoing wire
+        //    (1)     evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/valid/unconnected_output_program/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -892,6 +1019,13 @@ mod tests {
 
     #[test]
     fn unconnected_output_function_block() {
+        //                   +------- myFb -------+ (1)
+        //    localA ------->| a           result |   (result unconnected)
+        //                   +--------------------+
+        //
+        //    myFb     called on instance myInstance (the block's instanceName)
+        //    result   an output pin with no outgoing wire
+        //    (1)      evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/valid/unconnected_output_function_block/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -906,6 +1040,20 @@ mod tests {
 
     #[test]
     fn multiple_outputs() {
+        //    +---- myFunctionBlock (myInstance) ----+ (0)
+        //    |                                    a |--->  localA  (1)
+        //    |                                    b |        (unconnected)
+        //    |                                    c |--->  localB  (2)
+        //    +--------------------------------------+
+        //
+        //    +-------------- myFunction ------------+ (3)
+        //    |                           myFunction |        (return, unconnected)
+        //    |                                    a |--->  localA  (4)
+        //    |                                    b |        (unconnected)
+        //    +--------------------------------------+
+        //
+        //    (unconnected)  an output pin with no outgoing wire
+        //    (0)..(4)       evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/multiple_outputs/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -930,6 +1078,12 @@ mod tests {
 
     #[test]
     fn conditional_return() {
+        //    enable  --o--->| RETURN |  (0)
+        //
+        //    input   ------>  result    (1)
+        //
+        //    --o-->   a negated condition wire (returns when enable is FALSE)
+        //    (0),(1)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/conditional_return/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -946,6 +1100,12 @@ mod tests {
 
     #[test]
     fn unconditional_return() {
+        //    input  ------>  result    (0)
+        //
+        //                   | RETURN |  (1)
+        //
+        //    (no wire into RETURN -> unconditional)
+        //    (0),(1)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/unconditional_return/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -961,6 +1121,14 @@ mod tests {
 
     #[test]
     fn connector_continuation() {
+        //    +-- alwaysFive --+ (0)
+        //    |      alwaysFive|--(12)-->[ Connector "five" ]
+        //    +----------------+
+        //
+        //                       [ Continuation "five" ]--(7)-->  result  (1)
+        //
+        //    "five"    the label matching the connector to the continuation
+        //    (0),(1)   evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/connector_continuation/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram
@@ -978,6 +1146,13 @@ mod tests {
 
     #[test]
     fn connector_continuation_chain() {
+        //    +-- alwaysFive --+ (0)
+        //    |      alwaysFive|--(10)-->[Conn a]   [Cont a]--(11)-->[Conn b]   [Cont b]--(12)-->[Conn c]
+        //    +----------------+                                                            |
+        //         [Cont c]--(13)-->[Conn d]   [Cont d]--(14)-->  result  (1)  <------------+
+        //
+        //    a,b,c,d   labels matching each connector to its continuation
+        //    (0),(1)   evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/connector_continuation_chain/mainProgram.cfc");
         assert_snapshot!(transpile(xml), @r"
         PROGRAM mainProgram

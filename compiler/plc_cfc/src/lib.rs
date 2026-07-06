@@ -46,6 +46,7 @@ use crate::transpiler::Transpiler;
 
 pub fn parse_file(
     source: &SourceCode,
+    // CFC files are always [`LinkageType::Internal`], hence the linkage is ignored here
     _: LinkageType,
     id_provider: IdProvider,
     diagnostician: &mut Diagnostician,
@@ -68,11 +69,5 @@ pub fn parse_file(
             .with_sub_diagnostics(diagnostics));
     }
 
-    let result = Transpiler::new(deserialized, id_provider, factory).transpile();
-
-    if let Ok(ref result) = result {
-        println!("{}", ast::ser::AstSerializer::format_unit(result));
-    }
-
-    result
+    Transpiler::new(deserialized, id_provider, factory).transpile()
 }

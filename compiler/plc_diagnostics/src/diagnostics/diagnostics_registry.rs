@@ -182,13 +182,13 @@ lazy_static! {
         E078,   Error,      include_str!("./error_codes/E078.md"),
         E079,   Error,      include_str!("./error_codes/E079.md"),
         E080,   Error,      include_str!("./error_codes/E080.md"),
-        E081,   Error,      include_str!("./error_codes/E081.md"),
-        E082,   Error,      include_str!("./error_codes/E082.md"),
-        E083,   Error,      include_str!("./error_codes/E083.md"),
+        E081,   Error,      include_str!("./error_codes/E081.md"),  // TODO: Unclaimed, use me
+        E082,   Error,      include_str!("./error_codes/E082.md"),  // TODO: Unclaimed, use me
+        E083,   Error,      include_str!("./error_codes/E083.md"),  // TODO: Unclaimed, use me
         E084,   Warning,    include_str!("./error_codes/E084.md"),  // Unconnected CFC source or sink
-        E085,   Error,      include_str!("./error_codes/E085.md"),
-        E086,   Error,      include_str!("./error_codes/E086.md"),
-        E087,   Error,      include_str!("./error_codes/E087.md"),
+        E085,   Error,      include_str!("./error_codes/E085.md"),  // TODO: Unclaimed, use me
+        E086,   Error,      include_str!("./error_codes/E086.md"),  // TODO: Unclaimed, use me
+        E087,   Error,      include_str!("./error_codes/E087.md"),  // TODO: Unclaimed, use me
         E088,   Error,      include_str!("./error_codes/E088.md"),
         E089,   Error,      include_str!("./error_codes/E089.md"),
         E090,   Warning,    include_str!("./error_codes/E090.md"),  // Incompatible reference Assignment
@@ -243,9 +243,8 @@ lazy_static! {
         E139,   Error,      include_str!("./error_codes/E139.md"),  // Linker invocation failed (spawn / cmdline)
         E140,   Error,      include_str!("./error_codes/E140.md"),  // ':=' used for an output parameter
         E141,   Error,      include_str!("./error_codes/E141.md"),  // Member access on a non-auto-deref pointer base
-        E142,   Error,      include_str!("./error_codes/E142.md"),  // Missing text declaration in a CFC POU
-        E143,   Error,      include_str!("./error_codes/E143.md"),  // Invalid evaluation order in a CFC network
-        E144,   Error,      include_str!("./error_codes/E144.md"),  // Invalid expression in a CFC variable
+        E142,   Error,      include_str!("./error_codes/E142.md"),  // Invalid evaluation order in a CFC network
+        E143,   Error,      include_str!("./error_codes/E143.md"),  // Invalid expression in a CFC variable
     );
 }
 

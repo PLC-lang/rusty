@@ -56,7 +56,7 @@ fn validate_evaluation_order(ctx: &Context) -> Vec<Diagnostic> {
                 );
 
                 let diagnostic = Diagnostic::new(message)
-                    .with_error_code("E143")
+                    .with_error_code("E142")
                     .with_location(helper::create_location(
                         ctx.factory,
                         op.get_global_id(),
@@ -80,16 +80,17 @@ fn validate_evaluation_order(ctx: &Context) -> Vec<Diagnostic> {
 /// combination of these two (unary, binary). That is `foo`, `foo + 1`, `!foo` and so on are valid. That
 /// allows for graphs like
 /// ```text
-///    localA + 5  ----------->+---- clamp ----+  (0)
-///                            | value    clamp|----------->  result  (1)
+///                            +---- clamp ----+  (0)
+///    localA + 5  ----------->| value    clamp|----------->  result  (1)
 ///    NOT enable  ----------->| bypass        |
 ///                            +---------------+
 /// ```
 /// where the addition and negation would otherwise each need a dedicated block (and priority) of
 /// their own.
 ///
-/// Note: Technically not something we must support (i.e. we could just throw an error if not a reference) its
-/// a huge improvement in DX hence we are a bit "laxer" here.
+/// Note: Technically not something we must support (i.e. we could just throw an error if not a reference),
+/// however it's a huge improvement for the user to just declare `5` or `foo + 5` for assignments, hence we
+/// are a bit "laxer" here.
 fn validate_variable_object(ctx: &Context) -> Vec<Diagnostic> {
     let ids = IdProvider::default();
     let mut diagnostics = Vec::new();
@@ -112,7 +113,7 @@ fn validate_variable_object(ctx: &Context) -> Vec<Diagnostic> {
             );
 
             diagnostics.push(
-                Diagnostic::new(message).with_error_code("E144").with_location(helper::create_location(
+                Diagnostic::new(message).with_error_code("E143").with_location(helper::create_location(
                     ctx.factory,
                     global_id,
                     priority,
@@ -194,9 +195,14 @@ mod tests {
 
     #[test]
     fn sink_consumes_result_too_early() {
+        //    +-- alwaysFive --+ (1)
+        //    |      alwaysFive|--(2)-->  result  (0)
+        //    +----------------+
+        //
+        //    (n)   evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/invalid/evaluation_order/sink.cfc");
         assert_snapshot!(validate(xml), @r"
-        error[E143]: Invalid evaluation order, result of `alwaysFive` is consumed by `result` before it is being evaluated
+        error[E142]: Invalid evaluation order, result of `alwaysFive` is consumed by `result` before it is being evaluated
          = at <internal>:block 3
          = see also <internal>:block 1
         ");
@@ -204,9 +210,12 @@ mod tests {
 
     #[test]
     fn conditional_return_consumes_result_too_early() {
+        //    +--- isReady ----+ (1)
+        //    |         isReady|--(2)-->| RETURN |  (0)
+        //    +----------------+
         let xml = include_str!("../fixtures/invalid/evaluation_order/conditional_return.cfc");
         assert_snapshot!(validate(xml), @r"
-        error[E143]: Invalid evaluation order, result of `isReady` is consumed by `conditional return` before it is being evaluated
+        error[E142]: Invalid evaluation order, result of `isReady` is consumed by `conditional return` before it is being evaluated
          = at <internal>:block 3
          = see also <internal>:block 1
         ");
@@ -214,9 +223,12 @@ mod tests {
 
     #[test]
     fn block_argument_consumes_result_too_early() {
+        //    +-- alwaysFive --+ (1)      +---- square ----+ (0)
+        //    |      alwaysFive|--(2)---->| x        square|--(4)-->  result  (2)
+        //    +----------------+          +----------------+
         let xml = include_str!("../fixtures/invalid/evaluation_order/block_argument.cfc");
         assert_snapshot!(validate(xml), @r"
-        error[E143]: Invalid evaluation order, result of `alwaysFive` is consumed by `square` before it is being evaluated
+        error[E142]: Invalid evaluation order, result of `alwaysFive` is consumed by `square` before it is being evaluated
          = at <internal>:block 3
          = see also <internal>:block 1
         ");
@@ -224,9 +236,14 @@ mod tests {
 
     #[test]
     fn aliased_sink_consumes_result_too_early() {
+        //    +-- alwaysFive --+ (1)
+        //    |      alwaysFive|--(2)-->[ Connector "relay" ]
+        //    +----------------+
+        //
+        //                       [ Continuation "relay" ]--(5)-->  result  (0)
         let xml = include_str!("../fixtures/invalid/evaluation_order/alias.cfc");
         assert_snapshot!(validate(xml), @r"
-        error[E143]: Invalid evaluation order, result of `alwaysFive` is consumed by `result` before it is being evaluated
+        error[E142]: Invalid evaluation order, result of `alwaysFive` is consumed by `result` before it is being evaluated
          = at <internal>:block 6
          = see also <internal>:block 1
         ");
@@ -234,24 +251,31 @@ mod tests {
 
     #[test]
     fn call_in_source_variable() {
+        //    conjure() + 5  --(2)-->  result  (0)
+        //
+        //    (n)   evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/invalid/call_in_variable/source.cfc");
         assert_snapshot!(validate(xml), @r"
-        error[E144]: Invalid expression `conjure() + 5` in variable, only literals, variable references and compositions of them are allowed
+        error[E143]: Invalid expression `conjure() + 5` in variable, only literals, variable references and compositions of them are allowed
          = at <internal>:block 1
         ");
     }
 
     #[test]
     fn call_in_sink_variable() {
+        //    localA  --(2)-->  drain()  (0)
         let xml = include_str!("../fixtures/invalid/call_in_variable/sink.cfc");
         assert_snapshot!(validate(xml), @r"
-        error[E144]: Invalid expression `drain()` in variable, only literals, variable references and compositions of them are allowed
+        error[E143]: Invalid expression `drain()` in variable, only literals, variable references and compositions of them are allowed
          = at <internal>:block 3
         ");
     }
 
     #[test]
     fn value_expressions_in_variables_are_valid() {
+        //    localA + 5  ----------->  result   (0)
+        //
+        //    (0)  evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/valid/expression_source/mainProgram.cfc");
         assert_snapshot!(validate(xml), @"");
     }

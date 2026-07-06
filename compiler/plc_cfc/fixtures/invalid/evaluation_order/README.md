@@ -3,7 +3,7 @@
 Networks where a **block's result is consumed before the block is evaluated**. A block's
 results only exist once the block itself has run, so every wire leaving a block must lead
 to a consumer with a *strictly higher* evaluation priority. Each `.cfc` file here breaks
-that rule with a different kind of consumer and must be rejected with **E143** — without
+that rule with a different kind of consumer and must be rejected with **E142** — without
 the validation, the transpiler would panic on all of them.
 
 - `alwaysFive.st`, `isReady.st`, `square.st` — the functions being called; their content
