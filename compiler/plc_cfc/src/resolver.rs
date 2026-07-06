@@ -39,6 +39,8 @@ pub struct Resolver {
 #[derive(Debug)]
 pub enum Object {
     Variable(DataSource),
+    // The `OutputVariable` field is only read in tests, hence the allow
+    #[allow(dead_code)]
     BlockOutput(Block, OutputVariable),
 }
 
