@@ -144,6 +144,18 @@ END_FUNCTION
 
 (********************
 *
+* Converts DT to LDATE
+*
+*********************)
+{external}
+FUNCTION DT_TO_LDATE : LDATE
+VAR_INPUT
+    in : DT;
+END_VAR
+END_FUNCTION
+
+(********************
+*
 * Converts DT to LTOD
 *
 *********************)

@@ -146,6 +146,15 @@ pub extern "C" fn DT_TO_DATE(input: u32) -> u32 {
 }
 
 /// .
+/// Converts DT to LDATE
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C" fn DT_TO_LDATE(input: u32) -> i64 {
+    (DT_TO_DATE(input) as i64) * NANOS_PER_SECOND
+}
+
+/// .
 /// Converts DT to LTOD
 ///
 #[allow(non_snake_case)]

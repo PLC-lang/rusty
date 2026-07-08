@@ -109,6 +109,17 @@ fn test_max_date() {
 }
 
 #[test]
+fn test_max_ltime() {
+    let src = r"FUNCTION main : LTIME
+    main := MAX(LT#35ns, LT#40ns, LT#1ns, LT#30ns);
+    END_FUNCTION";
+
+    let includes = get_includes(&["selectors.st"]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
+    assert_eq!(res, 40);
+}
+
+#[test]
 fn test_max_real() {
     let src = r"FUNCTION main : REAL
     main := MAX(0.5, 0.1,1.5,1.2);
@@ -178,6 +189,17 @@ fn test_min_char() {
 fn test_min_date() {
     let src = r"FUNCTION main : TIME
     main := MIN(T#40ms,T#1d,T#30ms,T#5m);
+    END_FUNCTION";
+
+    let includes = get_includes(&["selectors.st"]);
+    let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
+    assert_eq!(res, 30);
+}
+
+#[test]
+fn test_min_ltime() {
+    let src = r"FUNCTION main : LTIME
+    main := MIN(LT#40ns, LT#1d, LT#30ns, LT#5m);
     END_FUNCTION";
 
     let includes = get_includes(&["selectors.st"]);
@@ -373,4 +395,32 @@ fn test_limit_lreal() {
     //above range, max returned
     let res: f64 = module.run("main", &mut 60f64);
     assert!((res - 50f64).abs() <= f64::EPSILON);
+}
+
+#[test]
+fn test_limit_ltime() {
+    let src = r#"
+        FUNCTION main : LTIME
+        VAR_INPUT {ref}
+            in : LTIME;
+        END_VAR
+        main := LIMIT(LT#10ns, in, LT#50ns);
+        END_FUNCTION
+    "#;
+
+    let includes = get_includes(&["selectors.st"]);
+    let context = CodegenContext::create();
+    let module = compile(&context, vec![src.into()], includes);
+
+    // In range, pass value through.
+    let res: i64 = module.run("main", &mut 30i64);
+    assert_eq!(30, res);
+
+    // Below range, min is returned.
+    let res: i64 = module.run("main", &mut 1i64);
+    assert_eq!(10, res);
+
+    // Above range, max is returned.
+    let res: i64 = module.run("main", &mut 60i64);
+    assert_eq!(50, res);
 }

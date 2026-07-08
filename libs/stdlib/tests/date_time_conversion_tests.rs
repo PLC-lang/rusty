@@ -170,6 +170,28 @@ fn dt_to_date_conversion() {
 }
 
 #[test]
+fn dt_to_ldate_conversion() {
+    let src = "
+    FUNCTION main : LDATE
+        main := DT_TO_LDATE(DT#2000-01-01-20:15:11);
+    END_FUNCTION";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["date_time_conversion.st"]);
+    let mut maintype = MainType::default();
+    let res: i64 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(
+        res,
+        chrono::NaiveDate::from_ymd_opt(2000, 1, 1)
+            .unwrap()
+            .and_hms_opt(0, 0, 0)
+            .unwrap()
+            .and_utc()
+            .timestamp_nanos_opt()
+            .unwrap()
+    );
+}
+
+#[test]
 fn dt_to_ltod_conversion() {
     let src = "
     FUNCTION main : LTOD

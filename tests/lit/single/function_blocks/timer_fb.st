@@ -210,4 +210,22 @@ FUNCTION main
     myTOF_LTIME(IN := TRUE XOR FALSE, PT:=LT#10s + LT#1s);
     PRINTF('TOF_LTIME function block formal call with IN=TRUE XOR FALSE and PT=10s + 1s. Output Q = %d and ET = %lld$N', myTOF_LTIME.Q, myTOF_LTIME.PT);
     // CHECK-NEXT: TOF_LTIME function block formal call with IN=TRUE XOR FALSE and PT=10s + 1s. Output Q = 1 and ET = 11000000000
+
+    // Added LTIME coverage: preserve sub-millisecond preset values.
+    myTON_LTIME(IN := FALSE, PT := LT#1500ns, Q => outVal, ET => outLTime);
+    PRINTF('TON_LTIME nanosecond preset. Output Q = %d and ET = %lld$N', outVal, myTON_LTIME.PT);
+    // CHECK-NEXT: TON_LTIME nanosecond preset. Output Q = 0 and ET = 1500
+
+    // Added LTIME coverage: deterministic TON_LTIME state sequence without relying on elapsed wall time.
+    myTON_LTIME2(IN := FALSE, PT := LT#2s, Q => outVal, ET => outLTime);
+    PRINTF('TON_LTIME state step 1 (IN=FALSE). Output Q = %d and ET = %lld$N', outVal, outLTime);
+    // CHECK-NEXT: TON_LTIME state step 1 (IN=FALSE). Output Q = 0 and ET = 0
+
+    myTON_LTIME2(IN := TRUE, PT := LT#2s, Q => outVal, ET => outLTime);
+    PRINTF('TON_LTIME state step 2 (IN=TRUE). Output Q = %d and ET = %lld$N', outVal, outLTime);
+    // CHECK-NEXT: TON_LTIME state step 2 (IN=TRUE). Output Q = 0 and ET = 0
+
+    myTON_LTIME2(IN := FALSE, PT := LT#2s, Q => outVal, ET => outLTime);
+    PRINTF('TON_LTIME state step 3 (IN=FALSE reset). Output Q = %d and ET = %lld$N', outVal, outLTime);
+    // CHECK-NEXT: TON_LTIME state step 3 (IN=FALSE reset). Output Q = 0 and ET = 0
 END_FUNCTION
