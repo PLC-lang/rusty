@@ -28,15 +28,7 @@ fn split_ltod_fields(nanos: i64) -> (u32, u32, u32, u32) {
 fn split_ldt_fields(nanos: i64) -> (i32, u32, u32, u32, u32, u32, u32) {
     let dt = chrono::Utc.timestamp_nanos(nanos);
 
-    (
-        dt.year(),
-        dt.month(),
-        dt.day(),
-        dt.hour(),
-        dt.minute(),
-        dt.second(),
-        dt.timestamp_subsec_millis(),
-    )
+    (dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second(), dt.timestamp_subsec_millis())
 }
 
 /// .
@@ -273,7 +265,15 @@ pub extern "C" fn CONCAT_LTOD__ULINT(in1: u64, in2: u64, in3: u64, in4: u64) -> 
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn CONCAT_LDT__INT(in1: i16, in2: i16, in3: i16, in4: i16, in5: i16, in6: i16, in7: i16) -> i64 {
+pub extern "C" fn CONCAT_LDT__INT(
+    in1: i16,
+    in2: i16,
+    in3: i16,
+    in4: i16,
+    in5: i16,
+    in6: i16,
+    in7: i16,
+) -> i64 {
     concat_ldt(in1.into(), in2 as u32, in3 as u32, in4 as u32, in5 as u32, in6 as u32, in7 as u32)
 }
 
@@ -282,7 +282,15 @@ pub extern "C" fn CONCAT_LDT__INT(in1: i16, in2: i16, in3: i16, in4: i16, in5: i
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn CONCAT_LDT__UINT(in1: u16, in2: u16, in3: u16, in4: u16, in5: u16, in6: u16, in7: u16) -> i64 {
+pub extern "C" fn CONCAT_LDT__UINT(
+    in1: u16,
+    in2: u16,
+    in3: u16,
+    in4: u16,
+    in5: u16,
+    in6: u16,
+    in7: u16,
+) -> i64 {
     concat_ldt(in1.into(), in2.into(), in3.into(), in4.into(), in5.into(), in6.into(), in7.into())
 }
 
@@ -291,7 +299,15 @@ pub extern "C" fn CONCAT_LDT__UINT(in1: u16, in2: u16, in3: u16, in4: u16, in5: 
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn CONCAT_LDT__DINT(in1: i32, in2: i32, in3: i32, in4: i32, in5: i32, in6: i32, in7: i32) -> i64 {
+pub extern "C" fn CONCAT_LDT__DINT(
+    in1: i32,
+    in2: i32,
+    in3: i32,
+    in4: i32,
+    in5: i32,
+    in6: i32,
+    in7: i32,
+) -> i64 {
     concat_ldt(in1, in2 as u32, in3 as u32, in4 as u32, in5 as u32, in6 as u32, in7 as u32)
 }
 
@@ -300,7 +316,15 @@ pub extern "C" fn CONCAT_LDT__DINT(in1: i32, in2: i32, in3: i32, in4: i32, in5: 
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn CONCAT_LDT__UDINT(in1: u32, in2: u32, in3: u32, in4: u32, in5: u32, in6: u32, in7: u32) -> i64 {
+pub extern "C" fn CONCAT_LDT__UDINT(
+    in1: u32,
+    in2: u32,
+    in3: u32,
+    in4: u32,
+    in5: u32,
+    in6: u32,
+    in7: u32,
+) -> i64 {
     concat_ldt(in1 as i32, in2, in3, in4, in5, in6, in7)
 }
 
@@ -309,7 +333,15 @@ pub extern "C" fn CONCAT_LDT__UDINT(in1: u32, in2: u32, in3: u32, in4: u32, in5:
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn CONCAT_LDT__LINT(in1: i64, in2: i64, in3: i64, in4: i64, in5: i64, in6: i64, in7: i64) -> i64 {
+pub extern "C" fn CONCAT_LDT__LINT(
+    in1: i64,
+    in2: i64,
+    in3: i64,
+    in4: i64,
+    in5: i64,
+    in6: i64,
+    in7: i64,
+) -> i64 {
     concat_ldt(in1 as i32, in2 as u32, in3 as u32, in4 as u32, in5 as u32, in6 as u32, in7 as u32)
 }
 
@@ -318,7 +350,15 @@ pub extern "C" fn CONCAT_LDT__LINT(in1: i64, in2: i64, in3: i64, in4: i64, in5: 
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn CONCAT_LDT__ULINT(in1: u64, in2: u64, in3: u64, in4: u64, in5: u64, in6: u64, in7: u64) -> i64 {
+pub extern "C" fn CONCAT_LDT__ULINT(
+    in1: u64,
+    in2: u64,
+    in3: u64,
+    in4: u64,
+    in5: u64,
+    in6: u64,
+    in7: u64,
+) -> i64 {
     concat_ldt(in1 as i32, in2 as u32, in3 as u32, in4 as u32, in5 as u32, in6 as u32, in7 as u32)
 }
 
