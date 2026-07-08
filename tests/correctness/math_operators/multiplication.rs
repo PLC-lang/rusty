@@ -150,8 +150,8 @@ fn multiplication_time_basic() {
 
     let mut main = MainType::default();
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 10000000000);
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 10000);
 }
 
 #[test]
@@ -160,7 +160,7 @@ fn multiplication_date_basic() {
     FUNCTION main : DATE
     VAR
         date_var : DATE := D#2021-01-01;
-        date_10_days : DATE := 777600000000000;
+        date_10_days : DATE := 777600;
         result,mul_result : DATE;
     END_VAR
         mul_result := date_10_days * 2;
@@ -171,11 +171,9 @@ fn multiplication_date_basic() {
 
     let mut main = MainType::default();
 
-    let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    let date_var =
-        chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
-    let date_10_days =
-        chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp() as u32;
+    let date_10_days = chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp() as u32;
     assert_eq!(res, date_var + date_10_days * 2);
 }
 
@@ -192,8 +190,8 @@ fn multiplication_dt_type_basic() {
 
     let mut main = MainType::default();
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 50000000000);
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 50000);
 }
 
 #[test]
@@ -202,6 +200,81 @@ fn multiplication_tod_type_basic() {
     FUNCTION main : TOD
     VAR
         i3 : TIME := T#25s;
+    END_VAR
+        main := i3 * 2;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 50000);
+}
+
+#[test]
+fn multiplication_ltime_basic() {
+    let prog = "
+    FUNCTION main : LTIME
+    VAR
+        time_var : LTIME := LT#5s;
+    END_VAR
+        main := time_var * 2;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 10000000000);
+}
+
+#[test]
+fn multiplication_ldate_basic() {
+    let prog = "
+    FUNCTION main : LDATE
+    VAR
+        date_var : LDATE := LD#2021-01-01;
+        date_10_days : LDATE := 777600000000000;
+        result,mul_result : LDATE;
+    END_VAR
+        mul_result := date_10_days * 2;
+        result := date_var + mul_result;
+        main := result;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
+    let date_10_days =
+        chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
+    assert_eq!(res, date_var + date_10_days * 2);
+}
+
+#[test]
+fn multiplication_ldt_type_basic() {
+    let prog = "
+    FUNCTION main : LDT
+    VAR
+        i3 : LTIME := LT#25s;
+    END_VAR
+        main := i3 * 2;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 50000000000);
+}
+
+#[test]
+fn multiplication_ltod_type_basic() {
+    let prog = "
+    FUNCTION main : LTOD
+    VAR
+        i3 : LTIME := LT#25s;
     END_VAR
         main := i3 * 2;
     END_FUNCTION

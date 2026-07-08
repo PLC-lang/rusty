@@ -50,7 +50,8 @@ pub const DINT_SIZE: u32 = NativeDintType::BITS;
 pub const LINT_SIZE: u32 = NativeLintType::BITS;
 pub const REAL_SIZE: u32 = (size_of::<NativeRealType>() * 8) as u32;
 pub const LREAL_SIZE: u32 = (size_of::<NativeLrealType>() * 8) as u32;
-pub const DATE_TIME_SIZE: u32 = 64;
+pub const SHORT_DATE_TIME_SIZE: u32 = DINT_SIZE;
+pub const LONG_DATE_TIME_SIZE: u32 = LINT_SIZE;
 pub const POINTER_SIZE: u32 = NativePointerType::BITS;
 
 pub const U1_TYPE: &str = "__U1";
@@ -700,7 +701,17 @@ impl DataTypeInformation {
     }
 
     pub fn is_date_or_time_type(&self) -> bool {
-        matches!(self.get_name(), DATE_TYPE | DATE_AND_TIME_TYPE | TIME_OF_DAY_TYPE | TIME_TYPE)
+        matches!(
+            self.get_name(),
+            DATE_TYPE
+                | DATE_AND_TIME_TYPE
+                | TIME_OF_DAY_TYPE
+                | TIME_TYPE
+                | LONG_DATE_TYPE
+                | LONG_DATE_AND_TIME_TYPE
+                | LONG_TIME_OF_DAY_TYPE
+                | LONG_TIME_TYPE
+        )
     }
 
     pub fn is_function_pointer(&self) -> bool {
@@ -1181,8 +1192,8 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Integer {
                 name: DATE_TYPE.into(),
-                signed: true,
-                size: DATE_TIME_SIZE,
+                signed: false,
+                size: SHORT_DATE_TIME_SIZE,
                 semantic_size: None,
             },
             nature: TypeNature::Date,
@@ -1194,8 +1205,8 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Integer {
                 name: TIME_TYPE.into(),
-                signed: true,
-                size: DATE_TIME_SIZE,
+                signed: false,
+                size: SHORT_DATE_TIME_SIZE,
                 semantic_size: None,
             },
             nature: TypeNature::Duration,
@@ -1207,8 +1218,8 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Integer {
                 name: DATE_AND_TIME_TYPE.into(),
-                signed: true,
-                size: DATE_TIME_SIZE,
+                signed: false,
+                size: SHORT_DATE_TIME_SIZE,
                 semantic_size: None,
             },
             nature: TypeNature::Date,
@@ -1220,8 +1231,8 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Integer {
                 name: TIME_OF_DAY_TYPE.into(),
-                signed: true,
-                size: DATE_TIME_SIZE,
+                signed: false,
+                size: SHORT_DATE_TIME_SIZE,
                 semantic_size: None,
             },
             nature: TypeNature::Date,
@@ -1295,7 +1306,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Alias {
                 name: LONG_DATE_AND_TIME_TYPE_SHORTENED.into(),
-                referenced_type: DATE_AND_TIME_TYPE.into(),
+                referenced_type: LONG_DATE_AND_TIME_TYPE.into(),
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
@@ -1304,9 +1315,11 @@ pub fn get_builtin_types() -> Vec<DataType> {
         DataType {
             name: LONG_DATE_AND_TIME_TYPE.into(),
             initial_value: None,
-            information: DataTypeInformation::Alias {
+            information: DataTypeInformation::Integer {
                 name: LONG_DATE_AND_TIME_TYPE.into(),
-                referenced_type: DATE_AND_TIME_TYPE.into(),
+                signed: true,
+                size: LONG_DATE_TIME_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
@@ -1326,9 +1339,11 @@ pub fn get_builtin_types() -> Vec<DataType> {
         DataType {
             name: LONG_DATE_TYPE.into(),
             initial_value: None,
-            information: DataTypeInformation::Alias {
+            information: DataTypeInformation::Integer {
                 name: LONG_DATE_TYPE.into(),
-                referenced_type: DATE_TYPE.into(),
+                signed: true,
+                size: LONG_DATE_TIME_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
@@ -1339,7 +1354,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Alias {
                 name: LONG_DATE_TYPE_SHORTENED.into(),
-                referenced_type: DATE_TYPE.into(),
+                referenced_type: LONG_DATE_TYPE.into(),
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
@@ -1359,9 +1374,11 @@ pub fn get_builtin_types() -> Vec<DataType> {
         DataType {
             name: LONG_TIME_OF_DAY_TYPE.into(),
             initial_value: None,
-            information: DataTypeInformation::Alias {
+            information: DataTypeInformation::Integer {
                 name: LONG_TIME_OF_DAY_TYPE.into(),
-                referenced_type: TIME_OF_DAY_TYPE.into(),
+                signed: true,
+                size: LONG_DATE_TIME_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
@@ -1372,7 +1389,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Alias {
                 name: LONG_TIME_OF_DAY_TYPE_SHORTENED.into(),
-                referenced_type: TIME_OF_DAY_TYPE.into(),
+                referenced_type: LONG_TIME_OF_DAY_TYPE.into(),
             },
             nature: TypeNature::Date,
             location: SourceLocation::internal(),
@@ -1392,9 +1409,11 @@ pub fn get_builtin_types() -> Vec<DataType> {
         DataType {
             name: LONG_TIME_TYPE.into(),
             initial_value: None,
-            information: DataTypeInformation::Alias {
+            information: DataTypeInformation::Integer {
                 name: LONG_TIME_TYPE.into(),
-                referenced_type: TIME_TYPE.into(),
+                signed: true,
+                size: LONG_DATE_TIME_SIZE,
+                semantic_size: None,
             },
             nature: TypeNature::Duration,
             location: SourceLocation::internal(),
@@ -1405,7 +1424,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Alias {
                 name: LONG_TIME_TYPE_SHORTENED.into(),
-                referenced_type: TIME_TYPE.into(),
+                referenced_type: LONG_TIME_TYPE.into(),
             },
             nature: TypeNature::Duration,
             location: SourceLocation::internal(),
@@ -1615,10 +1634,14 @@ pub fn get_literal_actual_signed_type_name(lit: &AstLiteral, signed: bool) -> Op
         AstLiteral::String(StringValue { is_wide: true, .. }) => Some(WSTRING_TYPE),
         AstLiteral::String(StringValue { is_wide: false, .. }) => Some(STRING_TYPE),
         AstLiteral::Real { .. } => Some(LREAL_TYPE),
-        AstLiteral::Date { .. } => Some(DATE_TYPE),
-        AstLiteral::DateAndTime { .. } => Some(DATE_AND_TIME_TYPE),
-        AstLiteral::Time { .. } => Some(TIME_TYPE),
-        AstLiteral::TimeOfDay { .. } => Some(TIME_OF_DAY_TYPE),
+        AstLiteral::Date(date) => Some(if date.is_long() { LONG_DATE_TYPE } else { DATE_TYPE }),
+        AstLiteral::DateAndTime(date_time) => {
+            Some(if date_time.is_long() { LONG_DATE_AND_TIME_TYPE } else { DATE_AND_TIME_TYPE })
+        }
+        AstLiteral::Time(time) => Some(if time.is_long() { LONG_TIME_TYPE } else { TIME_TYPE }),
+        AstLiteral::TimeOfDay(time_of_day) => {
+            Some(if time_of_day.is_long() { LONG_TIME_OF_DAY_TYPE } else { TIME_OF_DAY_TYPE })
+        }
         _ => None,
     }
 }

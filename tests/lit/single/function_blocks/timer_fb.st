@@ -166,7 +166,8 @@ FUNCTION main
 
     myTOF2 (PT:=myTOF2.PT, IN:=funcInvert(FALSE));
     PRINTF('TOF function block formal call with PT as previous ET and IN=TRUE. Output Q = %d and ET = %lld$N', myTOF2.Q, myTOF2.PT);
-    // CHECK-NEXT: TOF function block formal call with PT as previous ET and IN=TRUE. Output Q = 1 and ET = 5000000000
+    // Updated for short TIME millisecond semantics (was nanoseconds before the migration).
+    // CHECK-NEXT: TOF function block formal call with PT as previous ET and IN=TRUE. Output Q = 1 and ET = 5000
 
     myTOF_TIME2 (ET=>myTOF_TIME2.PT,PT:=structVar.timeField,IN:=myFB.outVal,Q=>myArray[1]);
     PRINTF('TOF_TIME function block formal call with IN as fb output and PT as struct field. Output Q = %d and ET = %d$N', myArray[1], myTOF_TIME2.PT);
@@ -178,7 +179,8 @@ FUNCTION main
 
     myTOF_TIME2 (PT:=myTOF_TIME2.PT, IN:=funcInvert(FALSE));
     PRINTF('TOF_TIME function block formal call with PT as previous ET and IN=TRUE. Output Q = %d and ET = %lld$N', myTOF_TIME2.Q, myTOF_TIME2.PT);
-    // CHECK-NEXT: TOF_TIME function block formal call with PT as previous ET and IN=TRUE. Output Q = 1 and ET = 5000000000
+    // Updated for short TIME millisecond semantics (was nanoseconds before the migration).
+    // CHECK-NEXT: TOF_TIME function block formal call with PT as previous ET and IN=TRUE. Output Q = 1 and ET = 5000
 
     myTOF_LTIME2 (ET=>myTOF_LTIME2.PT,PT:=structVar.ltimeField,IN:=myFB.outVal,Q=>myArray[1]);
     PRINTF('TOF_LTIME function block formal call with IN as fb output and PT as struct field. Output Q = %d and ET = %lld$N', myArray[1], myTOF_LTIME2.PT);

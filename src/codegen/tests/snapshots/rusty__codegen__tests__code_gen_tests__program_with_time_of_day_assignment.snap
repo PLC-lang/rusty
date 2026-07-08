@@ -7,20 +7,20 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%prg = type { i64 }
+%prg = type { i32 }
 
 @prg_instance = global %prg zeroinitializer
 
 define void @prg(ptr %0) {
 entry:
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-  store i64 0, ptr %y, align [filtered]
-  store i64 3600000000000, ptr %y, align [filtered]
-  store i64 3600001000000, ptr %y, align [filtered]
-  store i64 3661000000000, ptr %y, align [filtered]
-  store i64 72900000000000, ptr %y, align [filtered]
-  store i64 72900000000000, ptr %y, align [filtered]
-  store i64 40260000000000, ptr %y, align [filtered]
-  store i64 40260000000000, ptr %y, align [filtered]
+  store i32 0, ptr %y, align [filtered]
+  store i32 3600000, ptr %y, align [filtered]
+  store i32 3600001, ptr %y, align [filtered]
+  store i32 3661000, ptr %y, align [filtered]
+  store i32 72900000, ptr %y, align [filtered]
+  store i32 72900000, ptr %y, align [filtered]
+  store i32 40260000, ptr %y, align [filtered]
+  store i32 40260000, ptr %y, align [filtered]
   ret void
 }

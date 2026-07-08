@@ -81,17 +81,17 @@ fn tp_true_for_time() {
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 5_000_000);
+    assert_eq!(main_inst.tp_et, 5);
     //At 10ms, out is true, et is 10ms
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 10_000_000);
+    assert_eq!(main_inst.tp_et, 10);
     //After 15ms, out is false, et is 10/
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 10_000_000);
+    assert_eq!(main_inst.tp_et, 10);
     //After 20ms, input is off, out remains off, et set to 0
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     main_inst.value = false;
@@ -131,17 +131,17 @@ fn tp_does_not_retrigger_on_consecutive_input() {
     assert!(module.mock_time_advance_ns(Duration::from_millis(10).as_nanos() as u64));
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 10_000_000);
+    assert_eq!(main_inst.tp_et, 10);
     //After 15ms, out is false, et is 10/
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 10_000_000);
+    assert_eq!(main_inst.tp_et, 10);
     //After 20ms, out is false, et is 10/
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 10_000_000);
+    assert_eq!(main_inst.tp_et, 10);
 }
 
 #[test]
@@ -178,7 +178,7 @@ fn tp_not_interrupted_by_signal_change() {
     module.run::<_, ()>("main", &mut main_inst);
     //Verify that the timer is still running
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 1_000_000);
+    assert_eq!(main_inst.tp_et, 1);
     // advance by 1 ms
     assert!(module.mock_time_advance_ns(Duration::from_millis(1).as_nanos() as u64));
     //call timer with true
@@ -186,7 +186,7 @@ fn tp_not_interrupted_by_signal_change() {
     module.run::<_, ()>("main", &mut main_inst);
     //assert that the signal was not interrupted
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 2_000_000);
+    assert_eq!(main_inst.tp_et, 2);
 }
 
 #[test]
@@ -219,19 +219,19 @@ fn ton_returns_true_after_time_preset() {
     main_inst.value = true;
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 5_000_000);
+    assert_eq!(main_inst.tp_et, 5);
     // Value true After 10ms -> false
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     main_inst.value = true;
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 10_000_000);
+    assert_eq!(main_inst.tp_et, 10);
     // Value true After 15ms -> true
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     main_inst.value = true;
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 10_000_000);
+    assert_eq!(main_inst.tp_et, 10);
     // Value false after 20ms -> false
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     main_inst.value = false;
@@ -298,7 +298,7 @@ fn ton_counts_elapsed_time_while_waiting() {
     main_inst.value = true;
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 5_000_000);
+    assert_eq!(main_inst.tp_et, 5);
     // Value false after 6ms counter at 0ms (stopped)
     assert!(module.mock_time_advance_ns(Duration::from_millis(1).as_nanos() as u64));
     main_inst.value = false;
@@ -337,13 +337,13 @@ fn ton_waits_again_after_turining_off() {
     main_inst.value = true;
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 5_000_000);
+    assert_eq!(main_inst.tp_et, 5);
     // Value true After 10ms -> true
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     main_inst.value = true;
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 9_000_000);
+    assert_eq!(main_inst.tp_et, 9);
     // Value false After 15ms -> false
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     main_inst.value = false;
@@ -361,7 +361,7 @@ fn ton_waits_again_after_turining_off() {
     main_inst.value = true;
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 9_000_000);
+    assert_eq!(main_inst.tp_et, 9);
 }
 
 #[test]
@@ -399,7 +399,7 @@ fn toff_starts_timer_after_input_is_off() {
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 5_000_000);
+    assert_eq!(main_inst.tp_et, 5);
 }
 
 #[test]
@@ -437,7 +437,7 @@ fn toff_runs_for_preset_time() {
     assert!(module.mock_time_advance_ns(Duration::from_millis(10).as_nanos() as u64));
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 9_000_000);
+    assert_eq!(main_inst.tp_et, 9);
 
     //On the next true signal, the timer's elapsed time is set to 0 again
     // Value true First call -> true
@@ -483,7 +483,7 @@ fn toff_keeps_returning_true_if_input_returns_to_true() {
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 5_000_000);
+    assert_eq!(main_inst.tp_et, 5);
     //After 16ms, the input becomes true again, the timer stops, et is set to 0 but the signal remains true
     assert!(module.mock_time_advance_ns(Duration::from_millis(1).as_nanos() as u64));
     main_inst.value = true;
@@ -500,7 +500,7 @@ fn toff_keeps_returning_true_if_input_returns_to_true() {
     assert!(module.mock_time_advance_ns(Duration::from_millis(5).as_nanos() as u64));
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.tp_out);
-    assert_eq!(main_inst.tp_et, 5_000_000);
+    assert_eq!(main_inst.tp_et, 5);
 }
 
 #[test]

@@ -105,7 +105,7 @@ fn test_max_date() {
 
     let includes = get_includes(&["selectors.st"]);
     let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
-    assert_eq!(res, 40_000_000);
+    assert_eq!(res, 40);
 }
 
 #[test]
@@ -182,7 +182,7 @@ fn test_min_date() {
 
     let includes = get_includes(&["selectors.st"]);
     let res: i64 = compile_and_run_no_params(vec![src.into()], includes);
-    assert_eq!(res, 30_000_000);
+    assert_eq!(res, 30);
 }
 
 #[test]

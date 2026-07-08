@@ -14,11 +14,13 @@ FUNCTION main : DINT
     // Drive one of the array elements to confirm the initializer was applied.
     timers[1](IN := FALSE, Q => outVal, ET => outTime);
     PRINTF('PT_first=%lld$N', timers[1].PT);
-    // CHECK: PT_first=100000000
+    // Updated for short TIME millisecond semantics (was nanoseconds before the migration).
+    // CHECK: PT_first=100
 
     // Anchor that the repeat-initializer reached the *last* element too — a
     // regression that initialized only the first slot would still pass the
     // first PRINTF alone.
     PRINTF('PT_last=%lld$N', timers[50].PT);
-    // CHECK: PT_last=100000000
+    // Updated for short TIME millisecond semantics (was nanoseconds before the migration).
+    // CHECK: PT_last=100
 END_FUNCTION

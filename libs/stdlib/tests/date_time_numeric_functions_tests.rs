@@ -28,13 +28,13 @@ fn add_time() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
         c : LTIME;
         d : LTIME;
     END_VAR
-        a := ADD(TIME#5h,TIME#30s);
-        b := ADD_TIME(TIME#10s,TIME#-5s);
+        a := ADD(LTIME#5h,LTIME#30s);
+        b := ADD_LTIME(LTIME#10s,LTIME#-5s);
 
         c := ADD(LTIME#-10s,LTIME#-10s);
         d := ADD_LTIME(LTIME#10s,LTIME#10s);
@@ -55,13 +55,13 @@ fn add_tod_time() {
     let src = "
     PROGRAM main
     VAR
-        a : TOD;
-        b : TOD;
+        a : LTOD;
+        b : LTOD;
         c : LTOD;
         d : LTOD;
     END_VAR
-        a := ADD_TOD_TIME(TOD#20:00:00, TIME#1s);
-        b := ADD(TOD#20:00:02, TIME#-1s);
+        a := ADD_LTOD_LTIME(LTOD#20:00:00, LTIME#1s);
+        b := ADD(LTOD#20:00:02, LTIME#-1s);
         c := ADD_LTOD_LTIME(LTOD#12:00:00, LTIME#12m12s);
         d := ADD(LTOD#12:00:00, LTIME#12m12s);
     END_PROGRAM";
@@ -82,13 +82,13 @@ fn add_dt_time() {
     let src = "
     PROGRAM main
     VAR
-        a : DT;
-        b : DT;
+        a : LDT;
+        b : LDT;
         c : LDT;
         d : LDT;
     END_VAR
-        a := ADD_DT_TIME(DT#2000-01-01-12:00:00, TIME#1d12m12s123ms);
-        b := ADD(DT#2000-01-01-12:00:00, TIME#1d12m12s123ms);
+        a := ADD_LDT_LTIME(LDT#2000-01-01-12:00:00, LTIME#1d12m12s123ms);
+        b := ADD(LDT#2000-01-01-12:00:00, LTIME#1d12m12s123ms);
         c := ADD_LDT_LTIME(LDT#2000-01-01-12:00:00, LTIME#1d12m12s123ms);
         d := ADD(LDT#2000-01-01-12:00:00, LTIME#1d12m12s123ms);
     END_PROGRAM";
@@ -116,13 +116,13 @@ fn sub_time() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
         c : LTIME;
         d : LTIME;
     END_VAR
-        a := SUB(TIME#10h50m, TIME#-10m);
-        b := SUB_TIME(TIME#5h35m20s, TIME#1h5m20s);
+        a := SUB(LTIME#10h50m, LTIME#-10m);
+        b := SUB_LTIME(LTIME#5h35m20s, LTIME#1h5m20s);
 
         c := SUB(LTIME#10h50m, LTIME#6h20m);
         d := SUB_LTIME(LTIME#5h35m20s, LTIME#1h5m20s);
@@ -143,13 +143,13 @@ fn sub_date() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
         c : LTIME;
         d : LTIME;
     END_VAR
-        a := SUB(DATE#2000-12-31, DATE#2000-01-01);
-        b := SUB_DATE_DATE(DATE#2000-05-21, DATE#2000-05-01);
+        a := SUB(LDATE#2000-12-31, LDATE#2000-01-01);
+        b := SUB_LDATE_LDATE(LDATE#2000-05-21, LDATE#2000-05-01);
 
         c := SUB(LDATE#2000-12-31, LDATE#2000-01-01);
         d := SUB_LDATE_LDATE(LDATE#2000-05-21, LDATE#2000-05-01);
@@ -171,13 +171,13 @@ fn sub_tod_time() {
     let src = "
     PROGRAM main
     VAR
-        a : TOD;
-        b : TOD;
+        a : LTOD;
+        b : LTOD;
         c : LTOD;
         d : LTOD;
     END_VAR
-        a := SUB_TOD_TIME(TOD#23:10:05.123, TIME#3h10m5s123ms);
-        b := SUB(TOD#23:10:05.123, TIME#3h10m5s123ms);
+        a := SUB_LTOD_LTIME(LTOD#23:10:05.123, LTIME#3h10m5s123ms);
+        b := SUB(LTOD#23:10:05.123, LTIME#3h10m5s123ms);
         c := SUB_LTOD_LTIME(LTOD#23:10:05.123, LTIME#3h10m5s123ms);
         d := SUB(LTOD#23:10:05.123, LTIME#3h10m5s123ms);
     END_PROGRAM";
@@ -197,13 +197,13 @@ fn sub_tod() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
         c : LTIME;
         d : LTIME;
     END_VAR
-        a := SUB(TOD#23:10:05.123, TOD#3:10:05.123);
-        b := SUB_TOD_TOD(TOD#23:10:05.123, TOD#3:10:05.123);
+        a := SUB(LTOD#23:10:05.123, LTOD#3:10:05.123);
+        b := SUB_LTOD_LTOD(LTOD#23:10:05.123, LTOD#3:10:05.123);
         c := SUB(LTOD#23:10:05.123, LTOD#3:10:05.123);
         d := SUB_LTOD_LTOD(LTOD#23:10:05.123, LTOD#3:10:05.123);
     END_PROGRAM";
@@ -223,13 +223,13 @@ fn sub_dt_time() {
     let src = "
     PROGRAM main
     VAR
-        a : DT;
-        b : DT;
+        a : LDT;
+        b : LDT;
         c : LDT;
         d : LDT;
     END_VAR
-        a := SUB(DT#2000-01-02-21:15:12.345, TIME#1d1h15m12s345ms);
-        b := SUB_DT_TIME(DT#2000-01-02-21:15:12.345, TIME#1d1h15m12s345ms);
+        a := SUB(LDT#2000-01-02-21:15:12.345, LTIME#1d1h15m12s345ms);
+        b := SUB_LDT_LTIME(LDT#2000-01-02-21:15:12.345, LTIME#1d1h15m12s345ms);
         c := SUB(LDT#2000-01-02-21:15:12.345, LTIME#1d1h15m12s345ms);
         d := SUB_LDT_LTIME(LDT#2000-01-02-21:15:12.345, LTIME#1d1h15m12s345ms);
     END_PROGRAM";
@@ -255,13 +255,13 @@ fn sub_dt() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
         c : LTIME;
         d : LTIME;
     END_VAR
-        a := SUB(DT#2000-01-02-21:22:33.444, DT#2000-01-01-10:00:00.000);
-        b := SUB_DT_DT(DT#2000-01-02-21:22:33.444, DT#2000-01-01-10:00:00.000);
+        a := SUB(LDT#2000-01-02-21:22:33.444, LDT#2000-01-01-10:00:00.000);
+        b := SUB_LDT_LDT(LDT#2000-01-02-21:22:33.444, LDT#2000-01-01-10:00:00.000);
         c := SUB(LDT#2000-01-02-21:22:33.444, LDT#2000-01-01-10:00:00.000);
         d := SUB_LDT_LDT(LDT#2000-01-02-21:22:33.444, LDT#2000-01-01-10:00:00.000);
     END_PROGRAM";
@@ -289,13 +289,13 @@ fn mul_signed() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
         c : LTIME;
         d : LTIME;
     END_VAR
-        a := MUL(TIME#1d, SINT#-120);
-        b := MUL(TIME#1s, INT#3600);
+        a := MUL(LTIME#1d, SINT#-120);
+        b := MUL(LTIME#1s, INT#3600);
         c := MUL(LTIME#1000ms, DINT#86400);
         d := MUL(LTIME#1000ms, LINT#864000000);
     END_PROGRAM";
@@ -320,13 +320,13 @@ fn mul_unsigned() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
         c : LTIME;
         d : LTIME;
     END_VAR
-        a := MUL(TIME#-1d, USINT#120);
-        b := MUL(TIME#1s, UINT#3600);
+        a := MUL(LTIME#-1d, USINT#120);
+        b := MUL(LTIME#1s, UINT#3600);
         c := MUL(LTIME#1000ms, UDINT#86400);
         d := MUL(LTIME#1000ms, ULINT#864000000);
     END_PROGRAM";
@@ -350,15 +350,15 @@ fn mul_time_signed() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
-        c : TIME;
-        d : TIME;
+        a : LTIME;
+        b : LTIME;
+        c : LTIME;
+        d : LTIME;
     END_VAR
-        a := MUL_TIME(TIME#1d, SINT#-120);
-        b := MUL_TIME(TIME#1s, INT#3600);
-        c := MUL_TIME(TIME#1000ms, DINT#86400);
-        d := MUL_TIME(TIME#1000ms, LINT#864000000);
+        a := MUL_LTIME(LTIME#1d, SINT#-120);
+        b := MUL_LTIME(LTIME#1s, INT#3600);
+        c := MUL_LTIME(LTIME#1000ms, DINT#86400);
+        d := MUL_LTIME(LTIME#1000ms, LINT#864000000);
     END_PROGRAM";
     let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
     let sources = vec![src.into()];
@@ -378,15 +378,15 @@ fn mul_time_unsigned() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
-        c : TIME;
-        d : TIME;
+        a : LTIME;
+        b : LTIME;
+        c : LTIME;
+        d : LTIME;
     END_VAR
-        a := MUL_TIME(TIME#-1d, USINT#120);
-        b := MUL_TIME(TIME#1s, UINT#3600);
-        c := MUL_TIME(TIME#1000ms, UDINT#86400);
-        d := MUL_TIME(TIME#1000ms, ULINT#864000000);
+        a := MUL_LTIME(LTIME#-1d, USINT#120);
+        b := MUL_LTIME(LTIME#1s, UINT#3600);
+        c := MUL_LTIME(LTIME#1000ms, UDINT#86400);
+        d := MUL_LTIME(LTIME#1000ms, ULINT#864000000);
     END_PROGRAM";
     let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
     let sources = vec![src.into()];
@@ -462,13 +462,13 @@ fn div_signed() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
         c : LTIME;
         d : LTIME;
     END_VAR
-        a := DIV(TIME#1m, SINT#60);
-        b := DIV(TIME#1h, INT#-3600);
+        a := DIV(LTIME#1m, SINT#60);
+        b := DIV(LTIME#1h, INT#-3600);
         c := DIV(LTIME#1d, DINT#86400);
         d := DIV(LTIME#10000d, DINT#864000000);
     END_PROGRAM";
@@ -488,13 +488,13 @@ fn div_unsigned() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
         c : LTIME;
         d : LTIME;
     END_VAR
-        a := DIV(TIME#1m, USINT#60);
-        b := DIV(TIME#-1h, UINT#3600);
+        a := DIV(LTIME#1m, USINT#60);
+        b := DIV(LTIME#-1h, UINT#3600);
         c := DIV(LTIME#1d, UDINT#86400);
         d := DIV(LTIME#10000d, UDINT#864000000);
     END_PROGRAM";
@@ -516,15 +516,15 @@ fn div_time_signed() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
-        c : TIME;
-        d : TIME;
+        a : LTIME;
+        b : LTIME;
+        c : LTIME;
+        d : LTIME;
     END_VAR
-        a := DIV_TIME(TIME#1m, SINT#60);
-        b := DIV_TIME(TIME#1h, INT#-3600);
-        c := DIV_TIME(TIME#1d, DINT#86400);
-        d := DIV_TIME(TIME#10000d, DINT#864000000);
+        a := DIV_LTIME(LTIME#1m, SINT#60);
+        b := DIV_LTIME(LTIME#1h, INT#-3600);
+        c := DIV_LTIME(LTIME#1d, DINT#86400);
+        d := DIV_LTIME(LTIME#10000d, DINT#864000000);
     END_PROGRAM";
     let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
     let sources = vec![src.into()];
@@ -542,15 +542,15 @@ fn div_time_unsigned() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
-        c : TIME;
-        d : TIME;
+        a : LTIME;
+        b : LTIME;
+        c : LTIME;
+        d : LTIME;
     END_VAR
-        a := DIV_TIME(TIME#1m, USINT#60);
-        b := DIV_TIME(TIME#-1h, UINT#3600);
-        c := DIV_TIME(TIME#1d, UDINT#86400);
-        d := DIV_TIME(TIME#10000d, UDINT#864000000);
+        a := DIV_LTIME(LTIME#1m, USINT#60);
+        b := DIV_LTIME(LTIME#-1h, UINT#3600);
+        c := DIV_LTIME(LTIME#1d, UDINT#86400);
+        d := DIV_LTIME(LTIME#10000d, UDINT#864000000);
     END_PROGRAM";
     let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
     let sources = vec![src.into()];
@@ -621,13 +621,13 @@ fn mul_real() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
+        a : LTIME;
         b : LTIME;
-        c : TIME;
+        c : LTIME;
     END_VAR
-        a := MUL(TIME#-2s700ms, REAL#3.14);
+        a := MUL(LTIME#-2s700ms, REAL#3.14);
         b := MUL(LTIME#2s700ms, REAL#3.14e5);
-        c := MUL(TIME#2s700ms, REAL#-3.14);
+        c := MUL(LTIME#2s700ms, REAL#-3.14);
     END_PROGRAM";
     let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
     let sources = vec![src.into()];
@@ -656,13 +656,13 @@ fn mul_lreal() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
+        a : LTIME;
         b : LTIME;
-        c : TIME;
+        c : LTIME;
     END_VAR
-        a := MUL(TIME#-2s700ms, LREAL#3.14);
+        a := MUL(LTIME#-2s700ms, LREAL#3.14);
         b := MUL(LTIME#2s700ms, LREAL#3.14e5);
-        c := MUL(TIME#-2s700ms, LREAL#-3.14);
+        c := MUL(LTIME#-2s700ms, LREAL#-3.14);
     END_PROGRAM";
     let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
     let sources = vec![src.into()];
@@ -698,11 +698,11 @@ fn mul_time() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
     END_VAR
-        a := MUL_TIME(TIME#2s700ms, REAL#3.14);
-        b := MUL_TIME(TIME#2s700ms, LREAL#3.14e5);
+        a := MUL_LTIME(LTIME#2s700ms, REAL#3.14);
+        b := MUL_LTIME(LTIME#2s700ms, LREAL#3.14e5);
     END_PROGRAM";
     let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
     let sources = vec![src.into()];
@@ -753,10 +753,10 @@ fn div_real() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
+        a : LTIME;
         b : LTIME;
     END_VAR
-        a := DIV(TIME#-8s478ms, REAL#3.14);
+        a := DIV(LTIME#-8s478ms, REAL#3.14);
         b := DIV(LTIME#847800s, REAL#3.14e5);
     END_PROGRAM";
     let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
@@ -780,10 +780,10 @@ fn div_lreal() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
+        a : LTIME;
         b : LTIME;
     END_VAR
-        a := DIV(TIME#-8s478ms, LREAL#3.14);
+        a := DIV(LTIME#-8s478ms, LREAL#3.14);
         b := DIV(LTIME#847800s, LREAL#3.14e5);
     END_PROGRAM";
     let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
@@ -807,11 +807,11 @@ fn div_time() {
     let src = "
     PROGRAM main
     VAR
-        a : TIME;
-        b : TIME;
+        a : LTIME;
+        b : LTIME;
     END_VAR
-        a := DIV_TIME(TIME#8s478ms, REAL#3.14);
-        b := DIV_TIME(TIME#847800s, LREAL#3.14e5);
+        a := DIV_LTIME(LTIME#8s478ms, REAL#3.14);
+        b := DIV_LTIME(LTIME#847800s, LREAL#3.14e5);
     END_PROGRAM";
     let includes = get_includes(&["date_time_numeric_functions.st", "arithmetic_functions.st"]);
     let sources = vec![src.into()];
@@ -858,14 +858,14 @@ fn date_time_overloaded_add_function_called_with_too_many_params() {
     let src = "
         FUNCTION main : LINT
             // This test should panic because the argument count is incorrect, i.e. `ADD_TIME` is defined as
-            // FUNCTION ADD_TIME : TIME
+            // FUNCTION ADD_TIME : LTIME
             //   VAR_INPUT
-            //     IN1: TIME;
-            //     IN2: TIME;
+            //     IN1: LTIME;
+            //     IN2: LTIME;
             //   END_VAR
             // END_FUNCTION`
 
-            ADD(TIME#3h, TIME#2h, TIME#2h, TIME#3h, TIME#30s);
+            ADD(LTIME#3h, LTIME#2h, LTIME#2h, LTIME#3h, LTIME#30s);
         END_FUNCTION
     ";
 
@@ -885,8 +885,8 @@ fn date_time_overloaded_add_and_numerical_add_compile_correctly() {
             b: REAL;
         END_VAR
         VAR_TEMP
-            var_tod : TOD := TOD#23:00:01;
-            var_time : TIME := TIME#55m59s;
+            var_tod : LTOD := LTOD#23:00:01;
+            var_time : LTIME := LTIME#55m59s;
             var_real : REAL := 1.0;
             var_dint : DINT := 10;
         END_VAR

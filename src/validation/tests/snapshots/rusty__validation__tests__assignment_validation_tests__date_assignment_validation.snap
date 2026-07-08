@@ -8,6 +8,12 @@ warning[E067]: Implicit downcast from 'LREAL' to 'DATE'.
 29 │     v_date := v_lreal; // valid
    │               ^^^^^^^ Implicit downcast from 'LREAL' to 'DATE'.
 
+warning[E067]: Implicit downcast from 'REAL' to 'DATE'.
+   ┌─ <internal>:30:15
+   │
+30 │     v_date := REAL#2.0; // valid
+   │               ^^^^^^^^ Implicit downcast from 'REAL' to 'DATE'.
+
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:39:5
    │

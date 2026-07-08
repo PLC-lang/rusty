@@ -15,6 +15,8 @@ use std::{io::Write, str::FromStr};
 // can't determine string buffer length of an empty string, therefore
 // _TO_STRING functions use the default string length.
 const DEFAULT_STRING_LEN: usize = 81;
+const NANOS_PER_MILLISECOND: i64 = 1_000 * 1_000;
+const NANOS_PER_SECOND: i64 = 1_000 * NANOS_PER_MILLISECOND;
 // --------- x_TO_STRING
 
 /// # Safety
@@ -172,32 +174,41 @@ pub unsafe extern "C-unwind" fn STRING_TO_REAL(src: *const u8) -> f32 {
 #[no_mangle]
 pub extern "C" fn TIME() -> i64 {
     let dt = Local::now();
-    dt.num_seconds_from_midnight() as i64 * 1e9 as i64 + dt.nanosecond() as i64
+    dt.num_seconds_from_midnight() as i64 * 1_000 + (dt.nanosecond() as i64 / NANOS_PER_MILLISECOND)
 }
 
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn LTIME() -> i64 {
-    // LTIME is the same as TIME in RuSTy which we treat as an alias for compatibility with IEC 61131-3
-    // See: https://plc-lang.github.io/rusty/datatypes.html#overview-2
-    TIME()
+    let dt = Local::now();
+    dt.num_seconds_from_midnight() as i64 * NANOS_PER_SECOND + dt.nanosecond() as i64
 }
 
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn TIME_TO_STRING_EXT(input: i64, dest: *mut u8) -> i32 {
+pub unsafe extern "C" fn TIME_TO_STRING(dest: *mut u8, input: i32) {
+    write_time_to_string((input as u32 as i64) * NANOS_PER_MILLISECOND, dest);
+}
+
+/// # Safety
+/// Uses raw pointers, inherently unsafe.
+#[allow(non_snake_case)]
+#[no_mangle]
+pub unsafe extern "C" fn LTIME_TO_STRING(dest: *mut u8, input: i64) {
+    write_time_to_string(input, dest);
+}
+
+unsafe fn write_time_to_string(input_nanos: i64, dest: *mut u8) {
     let mut dest = dest;
-    let literals = parse_timestamp(input);
+    let literals = parse_timestamp(input_nanos);
     literals.iter().filter(|&it| it.0 != 0).for_each(|it| {
         let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
         write!(&mut *buf, "{}{}", it.0, it.1).unwrap();
         let idx = buf.iter().position(|&c| c == 0).unwrap();
         dest = dest.add(idx);
     });
-
-    0
 }
 
 fn parse_timestamp<'a>(timestamp_nanos: i64) -> [(u32, &'a str); 7] {
@@ -220,43 +231,73 @@ fn parse_timestamp<'a>(timestamp_nanos: i64) -> [(u32, &'a str); 7] {
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn DT_TO_STRING_EXT(input: i64, dest: *mut u8) -> i32 {
-    let datetime = chrono::Utc.timestamp_nanos(input);
+pub unsafe extern "C" fn DT_TO_STRING(dest: *mut u8, input: i32) {
+    write_dt_to_string((input as u32 as i64) * NANOS_PER_SECOND, dest);
+}
+
+/// # Safety
+/// Uses raw pointers, inherently unsafe.
+#[allow(non_snake_case)]
+#[no_mangle]
+pub unsafe extern "C" fn LDT_TO_STRING(dest: *mut u8, input: i64) {
+    write_dt_to_string(input, dest);
+}
+
+unsafe fn write_dt_to_string(input_nanos: i64, dest: *mut u8) {
+    let datetime = chrono::Utc.timestamp_nanos(input_nanos);
     let date = datetime.date_naive().to_string();
     let time = datetime.time().to_string();
     let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
 
     write!(&mut *buf, "{date}-{time}").unwrap();
-
-    0
 }
 
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn DATE_TO_STRING_EXT(input: i64, dest: *mut u8) -> i32 {
-    let datetime = chrono::Utc.timestamp_nanos(input).date_naive();
+pub unsafe extern "C" fn DATE_TO_STRING(dest: *mut u8, input: i32) {
+    write_date_to_string((input as u32 as i64) * NANOS_PER_SECOND, dest);
+}
+
+/// # Safety
+/// Uses raw pointers, inherently unsafe.
+#[allow(non_snake_case)]
+#[no_mangle]
+pub unsafe extern "C" fn LDATE_TO_STRING(dest: *mut u8, input: i64) {
+    write_date_to_string(input, dest);
+}
+
+unsafe fn write_date_to_string(input_nanos: i64, dest: *mut u8) {
+    let datetime = chrono::Utc.timestamp_nanos(input_nanos).date_naive();
     let date = datetime.to_string();
     let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
 
     write!(&mut *buf, "{date}").unwrap();
-
-    0
 }
 
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
-pub unsafe extern "C" fn TOD_TO_STRING_EXT(input: i64, dest: *mut u8) -> i32 {
-    let datetime = chrono::Utc.timestamp_nanos(input);
+pub unsafe extern "C" fn TOD_TO_STRING(dest: *mut u8, input: i32) {
+    write_tod_to_string((input as u32 as i64) * NANOS_PER_MILLISECOND, dest);
+}
+
+/// # Safety
+/// Uses raw pointers, inherently unsafe.
+#[allow(non_snake_case)]
+#[no_mangle]
+pub unsafe extern "C" fn LTOD_TO_STRING(dest: *mut u8, input: i64) {
+    write_tod_to_string(input, dest);
+}
+
+unsafe fn write_tod_to_string(input_nanos: i64, dest: *mut u8) {
+    let datetime = chrono::Utc.timestamp_nanos(input_nanos);
     let time = datetime.time().to_string();
     let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
 
     write!(&mut *buf, "{time}").unwrap();
-
-    0
 }
 
 #[cfg(test)]
@@ -466,7 +507,7 @@ mod test {
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
-        let _ = unsafe { DATE_TO_STRING_EXT(timestamp, dest_ptr) };
+        unsafe { LDATE_TO_STRING(dest_ptr, timestamp) };
 
         let expected = "1982-12-15";
         let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
@@ -483,7 +524,7 @@ mod test {
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
-        let _ = unsafe { DT_TO_STRING_EXT(timestamp, dest_ptr) };
+        unsafe { LDT_TO_STRING(dest_ptr, timestamp) };
 
         let expected = "1982-12-15-10:10:02.123456789";
         let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
@@ -500,7 +541,7 @@ mod test {
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
-        let _ = unsafe { TOD_TO_STRING_EXT(timestamp, dest_ptr) };
+        unsafe { LTOD_TO_STRING(dest_ptr, timestamp) };
 
         let expected = "10:10:02.123456789";
         let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
@@ -517,7 +558,7 @@ mod test {
 
         let mut dest = [0_u8; 81];
         let dest_ptr = dest.as_mut_ptr();
-        let _ = unsafe { TIME_TO_STRING_EXT(timestamp, dest_ptr) };
+        unsafe { LTIME_TO_STRING(dest_ptr, timestamp) };
 
         let expected = "19380d10h10m123ms456us789ns";
         let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
