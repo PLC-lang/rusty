@@ -172,9 +172,9 @@ pub unsafe extern "C-unwind" fn STRING_TO_REAL(src: *const u8) -> f32 {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn TIME() -> i64 {
+pub extern "C" fn TIME() -> u32 {
     let dt = Local::now();
-    dt.num_seconds_from_midnight() as i64 * 1_000 + (dt.nanosecond() as i64 / NANOS_PER_MILLISECOND)
+    dt.num_seconds_from_midnight() * 1_000 + (dt.nanosecond() / NANOS_PER_MILLISECOND as u32)
 }
 
 #[allow(non_snake_case)]

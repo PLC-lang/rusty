@@ -25,8 +25,8 @@ fn checked_seconds_to_millis(input: u32) -> u32 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn ADD_TIME(in1: i64, in2: i64) -> i64 {
-    short_time_millis(in1).wrapping_add(short_time_millis(in2)) as i64
+pub extern "C-unwind" fn ADD_TIME(in1: i64, in2: i64) -> u32 {
+    short_time_millis(in1).wrapping_add(short_time_millis(in2))
 }
 
 /// .
@@ -35,8 +35,8 @@ pub extern "C-unwind" fn ADD_TIME(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn ADD_TOD_TIME(in1: i64, in2: i64) -> i64 {
-    (short_time_millis(in1).wrapping_add(short_time_millis(in2)) % MILLIS_PER_DAY) as i64
+pub extern "C-unwind" fn ADD_TOD_TIME(in1: i64, in2: i64) -> u32 {
+    short_time_millis(in1).wrapping_add(short_time_millis(in2)) % MILLIS_PER_DAY
 }
 
 /// .
@@ -45,10 +45,10 @@ pub extern "C-unwind" fn ADD_TOD_TIME(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn ADD_DT_TIME(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn ADD_DT_TIME(in1: i64, in2: i64) -> u32 {
     let dt_seconds = short_date_time_seconds(in1);
     let time_seconds = checked_millis_to_seconds(short_time_millis(in2));
-    dt_seconds.wrapping_add(time_seconds) as i64
+    dt_seconds.wrapping_add(time_seconds)
 }
 
 fn add_datetime_time(in1: i64, in2: i64) -> i64 {
@@ -66,8 +66,8 @@ fn add_datetime_time(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_TIME(in1: i64, in2: i64) -> i64 {
-    short_time_millis(in1).wrapping_sub(short_time_millis(in2)) as i64
+pub extern "C-unwind" fn SUB_TIME(in1: i64, in2: i64) -> u32 {
+    short_time_millis(in1).wrapping_sub(short_time_millis(in2))
 }
 
 /// .
@@ -76,10 +76,10 @@ pub extern "C-unwind" fn SUB_TIME(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_DATE_DATE(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn SUB_DATE_DATE(in1: i64, in2: i64) -> u32 {
     let lhs = short_date_time_seconds(in1);
     let rhs = short_date_time_seconds(in2);
-    checked_seconds_to_millis(lhs.wrapping_sub(rhs)) as i64
+    checked_seconds_to_millis(lhs.wrapping_sub(rhs))
 }
 
 /// .
@@ -88,8 +88,8 @@ pub extern "C-unwind" fn SUB_DATE_DATE(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_TOD_TIME(in1: i64, in2: i64) -> i64 {
-    (short_time_millis(in1).wrapping_sub(short_time_millis(in2)) % MILLIS_PER_DAY) as i64
+pub extern "C-unwind" fn SUB_TOD_TIME(in1: i64, in2: i64) -> u32 {
+    short_time_millis(in1).wrapping_sub(short_time_millis(in2)) % MILLIS_PER_DAY
 }
 
 /// .
@@ -98,8 +98,8 @@ pub extern "C-unwind" fn SUB_TOD_TIME(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_TOD_TOD(in1: i64, in2: i64) -> i64 {
-    short_time_millis(in1).wrapping_sub(short_time_millis(in2)) as i64
+pub extern "C-unwind" fn SUB_TOD_TOD(in1: i64, in2: i64) -> u32 {
+    short_time_millis(in1).wrapping_sub(short_time_millis(in2))
 }
 
 fn sub_datetimes(in1: i64, in2: i64) -> i64 {
@@ -116,10 +116,10 @@ fn sub_datetimes(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_DT_TIME(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn SUB_DT_TIME(in1: i64, in2: i64) -> u32 {
     let dt_seconds = short_date_time_seconds(in1);
     let time_seconds = checked_millis_to_seconds(short_time_millis(in2));
-    dt_seconds.wrapping_sub(time_seconds) as i64
+    dt_seconds.wrapping_sub(time_seconds)
 }
 
 fn sub_datetime_duration(in1: i64, in2: i64) -> i64 {
@@ -137,10 +137,10 @@ fn sub_datetime_duration(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_DT_DT(in1: i64, in2: i64) -> i64 {
+pub extern "C-unwind" fn SUB_DT_DT(in1: i64, in2: i64) -> u32 {
     let lhs = short_date_time_seconds(in1);
     let rhs = short_date_time_seconds(in2);
-    checked_seconds_to_millis(lhs.wrapping_sub(rhs)) as i64
+    checked_seconds_to_millis(lhs.wrapping_sub(rhs))
 }
 
 /// .
