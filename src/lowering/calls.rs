@@ -528,10 +528,30 @@ fn type_cast_needed(type_lhs: &DataType, type_rhs: &DataType, index: &Index) -> 
         return false;
     };
 
-    size_lhs != size_rhs
-        || (size_lhs == size_rhs
-            && ((type_info_lhs.is_signed_int() && type_info_rhs.is_unsigned_int())
-                || (type_info_lhs.is_int() && type_info_rhs.is_float())))
+    let types_are_the_same_size = size_lhs == size_rhs;
+
+    !types_are_the_same_size
+        || type_info_lhs.is_signed_int() && type_info_rhs.is_unsigned_int()
+        || type_info_lhs.is_int() && type_info_rhs.is_float()
+}
+
+fn string_type_alloc_needed(type_lhs: &DataType, type_rhs: &DataType, index: &Index) -> bool {
+    // If either type is void then this is an empty assignment and casting is not necessary
+    if type_lhs.is_void() || type_rhs.is_void() {
+        return false;
+    }
+
+    let type_info_lhs = type_lhs.get_type_information();
+    let type_info_rhs = type_rhs.get_type_information();
+
+    let Ok(size_lhs) = type_info_lhs.get_size(index) else {
+        return false;
+    };
+    let Ok(size_rhs) = type_info_rhs.get_size(index) else {
+        return false;
+    };
+
+    size_lhs > size_rhs
 }
 
 fn is_output_assignment_and_has_direct_access(
@@ -605,9 +625,15 @@ fn is_output_assignment_of_sized_string(
             is_output_assignment_of_sized_string(node, annotations, index, pou_name, param_index, is_method)
         }),
         AstStatement::OutputAssignment(assignment) => {
-            let node_type = annotations.get_type_or_void(assignment.left.as_ref(), index);
+            let left_node_type = annotations.get_type_or_void(assignment.left.as_ref(), index);
+            let right_node_type = annotations.get_type_or_void(assignment.right.as_ref(), index);
 
-            node_type.is_sized_string()
+            // Empty assignments don't need to be lowered
+            if left_node_type.is_void() || right_node_type.is_void() {
+                return false;
+            }
+
+            left_node_type.is_sized_string()
         }
         _ => {
             // The first parameter of a method is always "this"
@@ -646,7 +672,9 @@ fn is_output_assignment_of_sized_string(
                 _ => type_lhs_pointer,
             };
 
-            type_lhs.is_sized_string()
+            let type_rhs = annotations.get_type_or_void(node, index);
+
+            string_type_alloc_needed(type_lhs, type_rhs, index) && type_lhs.is_sized_string()
         }
     }
 }
@@ -1928,5 +1956,199 @@ mod tests {
         assert_eq!(implementation.name, "mainProg");
 
         assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"retValue := Config_GetString('/some/config/value', MyString);");
+    }
+
+    #[test]
+    fn calls_to_functions_with_no_output_assigned_should_not_be_lowered() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : DINT
+            VAR_INPUT
+                Key : STRING;
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            retValue := Config_GetString(Key := '/some/config/value', Value =>);
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"retValue := Config_GetString(Key := '/some/config/value', Value => );");
+    }
+
+    #[test]
+    fn calls_to_functions_where_callee_has_a_large_enough_buffer_should_result_in_no_lowering() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : DINT
+            VAR_INPUT
+                Key : STRING[1023];
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING[1023];
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                MyString : STRING[1024];
+                MyInt: INT := 1234; // will be overwritten
+                retValue : DINT;
+            END_VAR
+
+            retValue := Config_GetString('/some/config/value', MyString);
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"retValue := Config_GetString('/some/config/value', MyString);");
+    }
+
+    #[test]
+    fn calls_to_functions_where_callee_has_a_same_size_buffer_should_result_in_no_lowering() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : DINT
+            VAR_INPUT
+                Key : STRING[1023];
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING[1023];
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                MyString : STRING[1023];
+                MyInt: INT := 1234; // will be overwritten
+                retValue : DINT;
+            END_VAR
+
+            retValue := Config_GetString('/some/config/value', MyString);
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"retValue := Config_GetString('/some/config/value', MyString);");
+    }
+
+    #[test]
+    fn calls_to_functions_with_aggregate_return_type_should_still_be_lowered() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : STRING
+            VAR_INPUT
+                Key : STRING[30];
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING[30];
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                MyString : STRING[10];
+                MyInt: INT := 1234; // will be overwritten
+                retValue : DINT;
+            END_VAR
+
+            retValue := Config_GetString('/some/config/value', MyString);
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"
+        alloca __Config_GetString0: STRING;
+        Config_GetString(__Config_GetString0, '/some/config/value', MyString);
+        retValue := __Config_GetString0;
+        ");
     }
 }
