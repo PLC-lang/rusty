@@ -2,8 +2,8 @@
 
 A **cyclic** connector/continuation chain — a malformed diagram with no real producer:
 connector `x` is fed by continuation `y`, and connector `y` is fed by continuation `x`, so
-following the labels loops forever (`x → y → x → …`). The `result` sink reads one end,
-which forces the resolver to walk the chain.
+following the labels loops forever (`x → y → x → …`) and never reaches a value. The `result`
+sink reads one end of the loop, so it consumes a wire that nothing ultimately produces.
 
 ```text
    [Cont y]--(11)-->[Conn x]   [Cont x]--(10)-->[Conn y]   [Cont x]--(10)-->  result  (0)
@@ -17,7 +17,8 @@ which forces the resolver to walk the chain.
 - `mainProgram.cfc` — the program under test. The two pairs reference each other, and the
   sink consumes continuation `x`'s output (wire 10) to trigger resolution.
 
-**TODO:** resolving such a cycle currently *panics* (`Resolver::resolve_alias`). Once this
-crate has an error-reporting story, this should instead surface a proper diagnostic
-(cf. `E085`, "Sink is connected to itself"). The test below pins the panic so
-the behaviour is visible and the upgrade path is obvious.
+Because the sink's wire resolves to no producer, this is reported as `E081` (a connection that
+references no producer) and compilation aborts before transpilation — see the
+`connector_continuation_cycle_is_reported` test in `validator.rs`. Note the resolver's
+`resolve_alias` still terminates safely on the cycle rather than looping (it does not panic);
+the `connector_continuation_cycle` test in `resolver.rs` pins that behaviour.

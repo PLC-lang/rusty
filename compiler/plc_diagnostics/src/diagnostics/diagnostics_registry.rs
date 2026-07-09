@@ -182,7 +182,7 @@ lazy_static! {
         E078,   Error,      include_str!("./error_codes/E078.md"),
         E079,   Error,      include_str!("./error_codes/E079.md"),
         E080,   Error,      include_str!("./error_codes/E080.md"),
-        E081,   Error,      include_str!("./error_codes/E081.md"),  // TODO: Unclaimed, use me
+        E081,   Error,      include_str!("./error_codes/E081.md"),  // CFC connection references no producer
         E082,   Error,      include_str!("./error_codes/E082.md"),  // TODO: Unclaimed, use me
         E083,   Error,      include_str!("./error_codes/E083.md"),  // TODO: Unclaimed, use me
         E084,   Warning,    include_str!("./error_codes/E084.md"),  // Unconnected CFC source or sink

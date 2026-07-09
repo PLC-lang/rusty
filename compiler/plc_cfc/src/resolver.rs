@@ -82,7 +82,11 @@ impl Resolver {
                     consumed.extend(ret.connection_in);
                 }
 
-                _ => (),
+                // A conditional jump, e.g. `foo (source) ---> JMP skip` (essentially a GOTO)
+                FbdObject::Jump(_) => unimplemented!("CFC jumps are not yet supported"),
+
+                // Nothing to do
+                FbdObject::Unconnected(_) => (),
             };
         }
 
@@ -136,6 +140,11 @@ impl Resolver {
             id = next;
         }
         id
+    }
+
+    /// Returns true if the given id, after resolving any aliases, points to a source object in the network.
+    pub fn is_resolvable(&self, id: u64) -> bool {
+        self.get(self.resolve_alias(id)).is_some()
     }
 }
 
@@ -615,11 +624,38 @@ mod tests {
         //
         //    x,y   labels; the two pairs reference each other's output
         //    (0)   evaluation-priority badge shown by the IDE
-        let xml = include_str!("../fixtures/valid/connector_continuation_cycle/mainProgram.cfc");
+        let xml = include_str!("../fixtures/invalid/connector_continuation_cycle/mainProgram.cfc");
         let deserialized = model::from_str(xml).unwrap();
         let resolver = Resolver::resolve(&deserialized);
 
         // A cyclic alias chain terminates at its entry instead of looping or panicking.
         assert_eq!(resolver.resolve_alias(10), 10);
+    }
+
+    #[test]
+    #[should_panic(expected = "CFC jumps are not yet supported")]
+    fn jump_is_unsupported() {
+        //    enable  ------>| JMP skip |  (0)
+        //
+        //    input   ------>  result      (1)
+        //
+        //    JMP skip   an (unsupported) conditional jump; resolving the network panics
+        let xml = include_str!("../fixtures/unsupported/jump/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let _ = Resolver::resolve(&deserialized);
+    }
+
+    #[test]
+    fn dangling_connection_is_not_resolvable() {
+        //    localA  --(2)      result  --(999?)-->  (nothing produces 999)
+        //
+        //    the sink's wire references id 999, but the only producer is localA at id 2
+        let xml = include_str!("../fixtures/invalid/dangling_connection/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::resolve(&deserialized);
+
+        // A real producer id resolves; the sink's dangling reference does not.
+        assert!(resolver.is_resolvable(2));
+        assert!(!resolver.is_resolvable(999));
     }
 }

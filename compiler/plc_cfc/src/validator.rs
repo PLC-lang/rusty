@@ -22,8 +22,49 @@ pub fn validate(pou: &Pou, factory: &SourceLocationFactory, resolver: &Resolver)
     let mut diagnostics = Vec::new();
     let context = Context { pou, factory, resolver };
 
+    diagnostics.extend(validate_connections(&context));
     diagnostics.extend(validate_evaluation_order(&context));
     diagnostics.extend(validate_variable_object(&context));
+
+    diagnostics
+}
+
+/// Validates that every consumed connection points at a value some object actually produces, i.e. that a
+/// consumer (a block input, a sink, a return condition) references a real producer rather than a dangling
+/// wire. For example
+/// ```text
+///    localA  --(2)                 (nothing produces 999)
+///                     result  --(999?)-->  (0)
+/// ```
+/// where the sink reads connection `999`, which no object produces — a stale `refConnectionPointOutId`, a
+/// connector with no source feeding a continuation, or a connector/continuation cycle that leads back to
+/// nothing.
+///
+/// Note: without this the dangling wire slips past the other checks and later panics the transpiler, whose
+/// `resolve` treats an unknown connection as unreachable; reporting it here aborts compilation first.
+fn validate_connections(ctx: &Context) -> Vec<Diagnostic> {
+    let mut diagnostics = Vec::new();
+
+    for op in ctx.pou.network().get_ordered_operations() {
+        for id in op.get_connections_in() {
+            if ctx.resolver.is_resolvable(id) {
+                continue;
+            }
+
+            let message = format!(
+                "Invalid connection, `{consumer}` references a value that no object in the network produces",
+                consumer = op.get_name(),
+            );
+
+            diagnostics.push(
+                Diagnostic::new(message).with_error_code("E081").with_location(helper::create_location(
+                    ctx.factory,
+                    op.get_global_id(),
+                    op.get_priority(),
+                )),
+            );
+        }
+    }
 
     diagnostics
 }
@@ -278,5 +319,43 @@ mod tests {
         //    (0)  evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/valid/expression_source/mainProgram.cfc");
         assert_snapshot!(validate(xml), @"");
+    }
+
+    #[test]
+    fn dangling_connection_is_reported() {
+        //    localA  --(2)      result  --(999?)-->  (nothing produces 999)
+        //
+        //    the sink references id 999, which no object produces
+        let xml = include_str!("../fixtures/invalid/dangling_connection/mainProgram.cfc");
+        assert_snapshot!(validate(xml), @r"
+        error[E081]: Invalid connection, `result` references a value that no object in the network produces
+         = at <internal>:block 3
+        ");
+    }
+
+    #[test]
+    fn connector_continuation_cycle_is_reported() {
+        //    [Cont y]-->[Conn x]   [Cont x]-->[Conn y]   [Cont x]--(10)-->  result  (0)
+        //
+        //    the connector/continuation pairs feed each other, so the sink's wire (10) resolves to no producer
+        let xml = include_str!("../fixtures/invalid/connector_continuation_cycle/mainProgram.cfc");
+        assert_snapshot!(validate(xml), @r"
+        error[E081]: Invalid connection, `result` references a value that no object in the network produces
+         = at <internal>:block 5
+        ");
+    }
+
+    #[test]
+    fn connector_without_source_is_reported() {
+        //    (no source)-->[ Connector "relay" ]
+        //
+        //    [ Continuation "relay" ]--(10)-->  result  (0)
+        //
+        //    the connector carries no incoming wire, so the continuation feeding the sink resolves to nothing
+        let xml = include_str!("../fixtures/invalid/connector_without_source/mainProgram.cfc");
+        assert_snapshot!(validate(xml), @r"
+        error[E081]: Invalid connection, `result` references a value that no object in the network produces
+         = at <internal>:block 3
+        ");
     }
 }
