@@ -9,7 +9,7 @@ use plc_source::source_location::SourceLocationFactory;
 
 use crate::{
     model::{FbdObject, Pou},
-    resolver::{Object, Resolver},
+    resolver::Resolver,
 };
 
 struct Context<'a> {
@@ -23,7 +23,6 @@ pub fn validate(pou: &Pou, factory: &SourceLocationFactory, resolver: &Resolver)
     let context = Context { pou, factory, resolver };
 
     diagnostics.extend(validate_connections(&context));
-    diagnostics.extend(validate_evaluation_order(&context));
     diagnostics.extend(validate_variable_object(&context));
 
     diagnostics
@@ -63,54 +62,6 @@ fn validate_connections(ctx: &Context) -> Vec<Diagnostic> {
                     op.get_priority(),
                 )),
             );
-        }
-    }
-
-    diagnostics
-}
-
-/// Validates the evaluation order such that a consumer must first produce a value before it can be consumed
-/// by a consumer. Specifically a block must have an evaluation order less than its consumer. For example
-/// ```text
-/// +--- myFunc ---+  (1)
-/// |        myFunc|----------->  result  (0)
-/// +--------------+
-///
-/// (n) = evaluation priority; result runs first, no temp exists yet
-/// ```
-fn validate_evaluation_order(ctx: &Context) -> Vec<Diagnostic> {
-    let mut diagnostics = Vec::new();
-
-    for op in ctx.pou.network().get_ordered_operations() {
-        for id in op.get_connections_in() {
-            let id = ctx.resolver.resolve_alias(id);
-            let Some(Object::BlockOutput(block, _)) = ctx.resolver.get(id) else {
-                continue;
-            };
-
-            // Check if the consumer has a priority which would evaluate before the block can produce a value
-            if op.get_priority().is_none_or(|opt| opt <= block.add_data.priority.unwrap()) {
-                let message = format!(
-                    "Invalid evaluation order, result of `{producer}` is consumed by `{consumer}` before it is being evaluated",
-                    producer = block.instance_name.as_deref().unwrap_or(&block.type_name),
-                    consumer = op.get_name(),
-                );
-
-                let diagnostic = Diagnostic::new(message)
-                    .with_error_code("E142")
-                    .with_location(helper::create_location(
-                        ctx.factory,
-                        op.get_global_id(),
-                        op.get_priority(),
-                    ))
-                    .with_secondary_location(helper::create_location(
-                        ctx.factory,
-                        block.global_id,
-                        block.add_data.priority,
-                    ));
-
-                diagnostics.push(diagnostic);
-            }
         }
     }
 
@@ -232,62 +183,6 @@ mod tests {
         reporter.register_file("<internal>".to_string(), xml.to_string());
         reporter.handle(&diagnostics);
         reporter.buffer().expect("internal error with the buffered codespan reporter")
-    }
-
-    #[test]
-    fn sink_consumes_result_too_early() {
-        //    +-- alwaysFive --+ (1)
-        //    |      alwaysFive|------->  result  (0)
-        //    +----------------+
-        //
-        //    (n)   evaluation-priority badges shown by the IDE
-        let xml = include_str!("../fixtures/invalid/evaluation_order/sink.cfc");
-        assert_snapshot!(validate(xml), @r"
-        error[E142]: Invalid evaluation order, result of `alwaysFive` is consumed by `result` before it is being evaluated
-         = at <internal>:block 3
-         = see also <internal>:block 1
-        ");
-    }
-
-    #[test]
-    fn conditional_return_consumes_result_too_early() {
-        //    +--- isReady ----+ (1)
-        //    |         isReady|------->| RETURN |  (0)
-        //    +----------------+
-        let xml = include_str!("../fixtures/invalid/evaluation_order/conditional_return.cfc");
-        assert_snapshot!(validate(xml), @r"
-        error[E142]: Invalid evaluation order, result of `isReady` is consumed by `conditional return` before it is being evaluated
-         = at <internal>:block 3
-         = see also <internal>:block 1
-        ");
-    }
-
-    #[test]
-    fn block_argument_consumes_result_too_early() {
-        //    +-- alwaysFive --+ (1)      +---- square ----+ (0)
-        //    |      alwaysFive|--------->| x        square|------->  result  (2)
-        //    +----------------+          +----------------+
-        let xml = include_str!("../fixtures/invalid/evaluation_order/block_argument.cfc");
-        assert_snapshot!(validate(xml), @r"
-        error[E142]: Invalid evaluation order, result of `alwaysFive` is consumed by `square` before it is being evaluated
-         = at <internal>:block 3
-         = see also <internal>:block 1
-        ");
-    }
-
-    #[test]
-    fn aliased_sink_consumes_result_too_early() {
-        //    +-- alwaysFive --+ (1)
-        //    |      alwaysFive|------->[ Connector "relay" ]
-        //    +----------------+
-        //
-        //                       [ Continuation "relay" ]------->  result  (0)
-        let xml = include_str!("../fixtures/invalid/evaluation_order/alias.cfc");
-        assert_snapshot!(validate(xml), @r"
-        error[E142]: Invalid evaluation order, result of `alwaysFive` is consumed by `result` before it is being evaluated
-         = at <internal>:block 6
-         = see also <internal>:block 1
-        ");
     }
 
     #[test]

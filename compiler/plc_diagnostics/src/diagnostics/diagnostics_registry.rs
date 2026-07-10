@@ -243,7 +243,7 @@ lazy_static! {
         E139,   Error,      include_str!("./error_codes/E139.md"),  // Linker invocation failed (spawn / cmdline)
         E140,   Error,      include_str!("./error_codes/E140.md"),  // ':=' used for an output parameter
         E141,   Error,      include_str!("./error_codes/E141.md"),  // Member access on a non-auto-deref pointer base
-        E142,   Error,      include_str!("./error_codes/E142.md"),  // Invalid evaluation order in a CFC network
+        E142,   Error,      include_str!("./error_codes/E142.md"),  // TODO: Unclaimed, use me
         E143,   Error,      include_str!("./error_codes/E143.md"),  // Invalid expression in a CFC variable
     );
 }

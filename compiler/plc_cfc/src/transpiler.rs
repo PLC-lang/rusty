@@ -125,38 +125,46 @@
 //! ```
 //!
 //! Output pins go the other way. An output produces a value, but a block is only evaluated once per cycle, so
-//! we cannot re-run the call for every consumer that reads it. Instead each output is routed into a temporary
-//! variable: the call gets `<output> => __temp_N`, the temporary is added to a `VAR_TEMP` block on demand, and
-//! every consumer reads `__temp_N`. We could also read an output back as `instance.output` after the call, but
-//! that only works for stateful blocks and not for functions, so temporaries are used throughout.
+//! we cannot re-run the call for every consumer that reads it. Instead every consumed output is routed into a
+//! generated result variable: the call gets `<output> => __<type>_res_<n>` and every consumer reads that
+//! variable at its own evaluation slot. These variables are created before any statement is emitted — a
+//! consumer may be emitted before its producer — and live in a plain `VAR` block so they persist across
+//! cycles (unlike `VAR_TEMP`). Because CFC executes cyclically, this gives consumers scheduled *before* the
+//! producer well-defined semantics: they read the value the producer wrote in the *previous* cycle — the
+//! idiomatic way to draw feedback loops.
+//!
+//! The treatment is uniform across all block kinds. Technically the internal state of stateful POUs could be
+//! read directly (`<instance>.<pin>` for a function block, `<program>.<pin>` for a program's singleton), but
+//! the XML gives us no way to tell the POU type behind a block element, and a result variable per output pin
+//! is correct for every kind — it even snapshots per block, so two blocks calling the same instance keep
+//! their consumers independent.
 //!
 //! The return value follows the same principle, only the form differs. A function's result is the value of the
-//! call itself rather than a named pin, so instead of `=> __temp` we assign the whole call to a temporary:
-//! `__temp_0 := increment(...)`. The motivation is again the once-per-cycle rule. If two sinks read the result
-//! and we did not capture it, inlining the call would invoke `increment` twice and run its side effects twice,
-//! so we call it once into a temporary and let both read it.
+//! call itself rather than a named pin, so instead of `=> __..._res_...` we assign the whole call to the
+//! variable: `__increment_res_0 := increment(...)`. The motivation is again the once-per-cycle rule: if two
+//! sinks read an uncaptured result, inlining the call would invoke `increment` twice and run its side effects
+//! twice, so we call it once and let both read the variable.
 //!
 //! Put together, the block lowers to (statement order follows evaluation priority):
 //!
 //! ```text
-//! VAR_TEMP
-//!     __temp_0 : __return@increment;
-//!     __temp_1 : __output@increment@overflow;
+//! VAR
+//!     __increment_res_0 : __return@increment;
+//!     __increment_res_1 : __output@increment@overflow;
 //! END_VAR
 //!
-//! __temp_0 := increment(step := delta, counter := ticks, overflow => __temp_1);
-//! nextValue := __temp_0;
-//! wrapped := __temp_1;
+//! __increment_res_0 := increment(step := delta, counter := ticks, overflow => __increment_res_1);
+//! nextValue := __increment_res_0;
+//! wrapped := __increment_res_1;
 //! ```
 //!
 //! Those temp types are placeholders; a later pass resolves `__return@increment` and
 //! `__output@increment@overflow` to their real types, see [`crate::placeholder`].
 //!
-//! Our example was a function, but function blocks, programs, actions and methods all transpile the same way;
-//! only the call operator changes. Function blocks are called through their instance (`myInstance(...)`),
-//! actions and methods through a qualified `myInstance.myAction(...)` (where the block's `typeName` is
-//! `<fb>.<member>`), and programs, like functions, by their type name. Only functions have a return value;
-//! arguments and output temporaries are identical for all of them.
+//! Our example was a function, but every block kind transpiles the same way; only the call operator changes.
+//! Programs are, like functions, called by their type name, function blocks through their instance
+//! (`myInstance(...)`), and actions and methods through a qualified `myInstance.myAction(...)` (where the
+//! block's `typeName` is `<fb>.<member>`). Only functions have a return value.
 //!
 //! ## Jump
 //!
@@ -210,8 +218,8 @@
 //! transpiled as if `result` were wired straight to the block:
 //!
 //! ```text
-//! __temp_0 := alwaysFive();
-//! result := __temp_0;
+//! __alwaysFive_res_0 := alwaysFive();
+//! result := __alwaysFive_res_0;
 //! ```
 //!
 //! Chains (a continuation feeding another connector) are followed transitively, and a cycle terminates instead
@@ -245,8 +253,9 @@ pub struct Transpiler {
 impl Transpiler {
     pub fn new(pou: Pou, id_provider: IdProvider, range_factory: SourceLocationFactory) -> Transpiler {
         let resolver = Resolver::resolve(&pou);
+        let temporaries = create_temporaries(&pou, &resolver);
 
-        Transpiler { pou, resolver, temporaries: IndexMap::new(), id_provider, range_factory }
+        Transpiler { pou, resolver, temporaries, id_provider, range_factory }
     }
 
     pub fn transpile(mut self) -> Result<CompilationUnit, Diagnostic> {
@@ -281,9 +290,11 @@ impl Transpiler {
         // Then the actual graphical units
         unit.implementations[0].statements = self.transpile_network();
 
-        // Inject the generated temporary variables, if any
+        // Inject the generated temporary variables, if any. They live in a plain VAR block so they
+        // persist across cycles in a program or function block body (previous-cycle reads, feedback
+        // loops); only inside a function body do they remain per-invocation storage.
         if !self.temporaries.is_empty() {
-            unit.pous[0].variable_blocks.push(VariableBlock::temp(self.temporaries.into_values().collect()));
+            unit.pous[0].variable_blocks.push(VariableBlock::local(self.temporaries.into_values().collect()));
         }
 
         Ok(unit)
@@ -321,31 +332,24 @@ impl Transpiler {
             arguments.push(self.create_argument(&parameter.parameter_name, id, parameter.negated, &location));
         }
 
-        // Output variables; similar to input and inout variables with the exception of also introducing
-        // temporary variables.
+        // Output variables; similar to input and inout variables with the exception of also routing the
+        // values into result variables. Technically we could directly access the internal state of stateful
+        // POUs (`<instance>.<pin>` for function blocks, `<program>.<pin>` for programs) but the XML provides
+        // no way to identify a POU type by its block element, hence the unified approach for all of them.
         let mut return_value = None;
         for output in &block.outputs {
-            let id = output.connection_out;
+            // Pre-created by [`create_temporaries`]; `None` means the pin is unconsumed
+            let temp = self.temporaries.get(&output.connection_out).map(|var| var.name.clone());
 
-            // We're dealing with a function if both the output variable and block name are identical in which
-            // case we want to persist the return value into a temporary variable.
+            // We're dealing with a function if both the output variable and block name are identical
+            // in which case the whole call is assigned to the temporary rather than routing the value
+            // through an output argument.
             if output.parameter_name == block.type_name {
-                if self.resolver.is_consumed(id) {
-                    let temp = self.create_temp(id, placeholder::return_placeholder(&block.type_name));
-                    return_value = Some(temp);
-                }
-
+                return_value = temp;
                 continue;
             }
 
-            // Ordinary output variable, either `<parameter> => __temp...` or `<parameter> =>` if empty
-            let temp = if self.resolver.is_consumed(id) {
-                let name = placeholder::output_placeholder(&block.type_name, &output.parameter_name);
-                Some(self.create_temp(id, name))
-            } else {
-                None
-            };
-
+            // Ordinary output variable, either `<parameter> => __..._res_...` or `<parameter> =>` if empty
             arguments.push(self.create_output_argument(&output.parameter_name, temp.as_deref(), &location));
         }
 
@@ -407,7 +411,7 @@ impl Transpiler {
         match self.resolver.get(id) {
             Some(Object::Variable(source)) => self.parse_expression(&source.identifier),
             Some(Object::BlockOutput(..)) => {
-                unreachable!("block result must have been evaluated into a temporary (corrupted file?)")
+                unreachable!("consumed block outputs are pre-created as temporaries")
             }
             None => panic!("should have been caught by validation (E081)"),
         }
@@ -426,13 +430,6 @@ impl Transpiler {
             self.id_provider.clone(),
             self.range_factory.clone(),
         ))
-    }
-
-    fn create_temp(&mut self, id: u64, placeholder: String) -> String {
-        let name = format!("__temp_{}", self.temporaries.len());
-        self.temporaries.insert(id, create_internal_variable(&name, placeholder));
-
-        name
     }
 
     /// An empty statement, used as the value of an unconnected parameter (`<parameter> :=`/`=>`).
@@ -521,6 +518,36 @@ impl Transpiler {
     }
 }
 
+/// Creates a `__<type>_res_<n>` variable for every consumed block output pin, keyed by the pin's
+/// `connectionPointOutId`. Creating them before the network walk lets consumers be emitted before
+/// their producers (previous-cycle reads, feedback loops); walking in evaluation order keeps the
+/// numbering aligned with the emission order.
+fn create_temporaries(pou: &Pou, resolver: &Resolver) -> IndexMap<u64, Variable> {
+    let mut temporaries = IndexMap::new();
+
+    for operation in pou.network().get_ordered_operations() {
+        let Operation::Call(block) = operation else { continue };
+
+        for output in &block.outputs {
+            let id = output.connection_out;
+            if !resolver.is_consumed(id) {
+                continue;
+            }
+
+            let placeholder = if output.parameter_name == block.type_name {
+                placeholder::return_placeholder(&block.type_name)
+            } else {
+                placeholder::output_placeholder(&block.type_name, &output.parameter_name)
+            };
+
+            let name = format!("__{}_res_{}", block.type_name, temporaries.len());
+            temporaries.insert(id, create_internal_variable(&name, placeholder));
+        }
+    }
+
+    temporaries
+}
+
 fn create_internal_variable(name: &str, placeholder: String) -> Variable {
     Variable {
         name: name.to_string(),
@@ -561,18 +588,18 @@ mod tests {
         //
         //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/function_call/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localA : DINT;
             localB : DINT;
             localResult : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@myAdd;
+        VAR
+            __myAdd_res_0 : __return@myAdd;
         END_VAR
-            __temp_0 := myAdd(in1 := localA, in2 := localB);
-            localResult := __temp_0;
+            __myAdd_res_0 := myAdd(in1 := localA, in2 := localB);
+            localResult := __myAdd_res_0;
         END_PROGRAM
         ");
     }
@@ -586,7 +613,7 @@ mod tests {
         //
         //    (1),(2),(3)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/shared_result/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localA : DINT;
@@ -594,12 +621,12 @@ mod tests {
             localResultA : DINT;
             localResultB : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@myAdd;
+        VAR
+            __myAdd_res_0 : __return@myAdd;
         END_VAR
-            __temp_0 := myAdd(in1 := localA, in2 := localB);
-            localResultA := __temp_0;
-            localResultB := __temp_0;
+            __myAdd_res_0 := myAdd(in1 := localA, in2 := localB);
+            localResultA := __myAdd_res_0;
+            localResultB := __myAdd_res_0;
         END_PROGRAM
         ");
     }
@@ -614,20 +641,20 @@ mod tests {
         //
         //    (2),(3),(4)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/chained_calls/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localA : DINT;
             localB : DINT;
             localResultA : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@myAdd;
-            __temp_1 : __return@myMul;
+        VAR
+            __myAdd_res_0 : __return@myAdd;
+            __myMul_res_1 : __return@myMul;
         END_VAR
-            __temp_0 := myAdd(in1 := localA, in2 := localB);
-            __temp_1 := myMul(IN1 := __temp_0, IN2 := localB);
-            localResultA := __temp_1;
+            __myAdd_res_0 := myAdd(in1 := localA, in2 := localB);
+            __myMul_res_1 := myMul(IN1 := __myAdd_res_0, IN2 := localB);
+            localResultA := __myMul_res_1;
         END_PROGRAM
         ");
     }
@@ -640,16 +667,16 @@ mod tests {
         //
         //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/nullary_call/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localResult : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@getOffset;
+        VAR
+            __getOffset_res_0 : __return@getOffset;
         END_VAR
-            __temp_0 := getOffset();
-            localResult := __temp_0;
+            __getOffset_res_0 := getOffset();
+            localResult := __getOffset_res_0;
         END_PROGRAM
         ");
     }
@@ -667,7 +694,7 @@ mod tests {
         //
         //    (1)-(4)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/evaluation_order/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localA : DINT;
@@ -677,14 +704,14 @@ mod tests {
             resultMul : DINT;
             resultAdd : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@myMul;
-            __temp_1 : __return@myAdd;
+        VAR
+            __myMul_res_0 : __return@myMul;
+            __myAdd_res_1 : __return@myAdd;
         END_VAR
-            __temp_0 := myMul(in1 := localA, in2 := localB);
-            resultMul := __temp_0;
-            __temp_1 := myAdd(in1 := localC, in2 := localD);
-            resultAdd := __temp_1;
+            __myMul_res_0 := myMul(in1 := localA, in2 := localB);
+            resultMul := __myMul_res_0;
+            __myAdd_res_1 := myAdd(in1 := localC, in2 := localD);
+            resultAdd := __myAdd_res_1;
         END_PROGRAM
         ");
     }
@@ -699,18 +726,18 @@ mod tests {
         //    o        a negated input pin (wraps its value in NOT)
         //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/negated_input/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localA : BOOL;
             localB : BOOL;
             localResult : BOOL;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@myGate;
+        VAR
+            __myGate_res_0 : __return@myGate;
         END_VAR
-            __temp_0 := myGate(a := NOT localA, b := localB);
-            localResult := __temp_0;
+            __myGate_res_0 := myGate(a := NOT localA, b := localB);
+            localResult := __myGate_res_0;
         END_PROGRAM
         ");
     }
@@ -726,18 +753,18 @@ mod tests {
         //    <-->     an in-out pin (passed by reference)
         //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/inout_variable/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localValue : DINT;
             localSum : DINT;
             localResult : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@accumulate;
+        VAR
+            __accumulate_res_0 : __return@accumulate;
         END_VAR
-            __temp_0 := accumulate(value := localValue, sum := localSum);
-            localResult := __temp_0;
+            __accumulate_res_0 := accumulate(value := localValue, sum := localSum);
+            localResult := __accumulate_res_0;
         END_PROGRAM
         ");
     }
@@ -751,17 +778,17 @@ mod tests {
         //
         //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/literal_input/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localA : DINT;
             localResult : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@myAdd;
+        VAR
+            __myAdd_res_0 : __return@myAdd;
         END_VAR
-            __temp_0 := myAdd(in1 := localA, in2 := 100);
-            localResult := __temp_0;
+            __myAdd_res_0 := myAdd(in1 := localA, in2 := 100);
+            localResult := __myAdd_res_0;
         END_PROGRAM
         ");
     }
@@ -793,17 +820,17 @@ mod tests {
         //    myFunc   the FUNCTION's return value (a sink named after the function)
         //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/function_pou/myFunc.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         FUNCTION myFunc : DINT
         VAR_INPUT
             a : DINT;
             b : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@myAdd;
+        VAR
+            __myAdd_res_0 : __return@myAdd;
         END_VAR
-            __temp_0 := myAdd(in1 := a, in2 := b);
-            myFunc := __temp_0;
+            __myAdd_res_0 := myAdd(in1 := a, in2 := b);
+            myFunc := __myAdd_res_0;
         END_FUNCTION
         ");
     }
@@ -818,7 +845,7 @@ mod tests {
         //    sum      a VAR_OUTPUT of the function block (a sink named after the output)
         //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/function_block_pou/myFb.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         FUNCTION_BLOCK myFb
         VAR_INPUT
             a : DINT;
@@ -827,11 +854,11 @@ mod tests {
         VAR_OUTPUT
             sum : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@myAdd;
+        VAR
+            __myAdd_res_0 : __return@myAdd;
         END_VAR
-            __temp_0 := myAdd(in1 := a, in2 := b);
-            sum := __temp_0;
+            __myAdd_res_0 := myAdd(in1 := a, in2 := b);
+            sum := __myAdd_res_0;
         END_FUNCTION_BLOCK
         ");
     }
@@ -845,18 +872,18 @@ mod tests {
         //    Counter   called on instance myInstance (the block's instanceName)
         //    (1),(2)   evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/function_block_call/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             myInstance : Counter;
             localStep : DINT;
             localCount : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __output@Counter@count;
+        VAR
+            __Counter_res_0 : __output@Counter@count;
         END_VAR
-            myInstance(step := localStep, count => __temp_0);
-            localCount := __temp_0;
+            myInstance(step := localStep, count => __Counter_res_0);
+            localCount := __Counter_res_0;
         END_PROGRAM
         ");
     }
@@ -888,17 +915,17 @@ mod tests {
         //
         //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/program_call/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localIncrement : DINT;
             localTotal : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __output@auxProgram@total;
+        VAR
+            __auxProgram_res_0 : __output@auxProgram@total;
         END_VAR
-            auxProgram(increment := localIncrement, total => __temp_0);
-            localTotal := __temp_0;
+            auxProgram(increment := localIncrement, total => __auxProgram_res_0);
+            localTotal := __auxProgram_res_0;
         END_PROGRAM
         ");
     }
@@ -916,17 +943,17 @@ mod tests {
         //    (unconnected)  a pin with no incoming wire
         //    (1),(2)        evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/unconnected_arguments_function/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localA : DINT;
             localResult : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@myFunc;
+        VAR
+            __myFunc_res_0 : __return@myFunc;
         END_VAR
-            __temp_0 := myFunc(a := localA, b := , io := );
-            localResult := __temp_0;
+            __myFunc_res_0 := myFunc(a := localA, b := , io := );
+            localResult := __myFunc_res_0;
         END_PROGRAM
         ");
     }
@@ -989,17 +1016,17 @@ mod tests {
         //    extra    an output pin with no outgoing wire
         //    (1),(2)  evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/unconnected_output_function/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             localA : DINT;
             localResult : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@myFunc;
+        VAR
+            __myFunc_res_0 : __return@myFunc;
         END_VAR
-            __temp_0 := myFunc(a := localA, extra => );
-            localResult := __temp_0;
+            __myFunc_res_0 := myFunc(a := localA, extra => );
+            localResult := __myFunc_res_0;
         END_PROGRAM
         ");
     }
@@ -1033,7 +1060,7 @@ mod tests {
         //    result   an output pin with no outgoing wire
         //    (1)      evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/valid/unconnected_output_function_block/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             myInstance : myFb;
@@ -1061,23 +1088,23 @@ mod tests {
         //    (unconnected)  an output pin with no outgoing wire
         //    (0)..(4)       evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/multiple_outputs/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             myInstance : myFunctionBlock;
             localA : DINT;
             localB : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __output@myFunctionBlock@a;
-            __temp_1 : __output@myFunctionBlock@c;
-            __temp_2 : __output@myFunction@a;
+        VAR
+            __myFunctionBlock_res_0 : __output@myFunctionBlock@a;
+            __myFunctionBlock_res_1 : __output@myFunctionBlock@c;
+            __myFunction_res_2 : __output@myFunction@a;
         END_VAR
-            myInstance(a => __temp_0, b => , c => __temp_1);
-            localA := __temp_0;
-            localB := __temp_1;
-            myFunction(a => __temp_2, b => );
-            localA := __temp_2;
+            myInstance(a => __myFunctionBlock_res_0, b => , c => __myFunctionBlock_res_1);
+            localA := __myFunctionBlock_res_0;
+            localB := __myFunctionBlock_res_1;
+            myFunction(a => __myFunction_res_2, b => );
+            localA := __myFunction_res_2;
         END_PROGRAM
         ");
     }
@@ -1136,16 +1163,16 @@ mod tests {
         //    "five"    the label matching the connector to the continuation
         //    (0),(1)   evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/connector_continuation/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             result : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@alwaysFive;
+        VAR
+            __alwaysFive_res_0 : __return@alwaysFive;
         END_VAR
-            __temp_0 := alwaysFive();
-            result := __temp_0;
+            __alwaysFive_res_0 := alwaysFive();
+            result := __alwaysFive_res_0;
         END_PROGRAM
         ");
     }
@@ -1160,16 +1187,104 @@ mod tests {
         //    a,b,c,d   labels matching each connector to its continuation
         //    (0),(1)   evaluation-priority badges shown by the IDE
         let xml = include_str!("../fixtures/valid/connector_continuation_chain/mainProgram.cfc");
-        assert_snapshot!(transpile(xml), @r"
+        assert_snapshot!(transpile(xml), @"
         PROGRAM mainProgram
         VAR
             result : DINT;
         END_VAR
-        VAR_TEMP
-            __temp_0 : __return@alwaysFive;
+        VAR
+            __alwaysFive_res_0 : __return@alwaysFive;
         END_VAR
-            __temp_0 := alwaysFive();
-            result := __temp_0;
+            __alwaysFive_res_0 := alwaysFive();
+            result := __alwaysFive_res_0;
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn previous_cycle_sink() {
+        //    +-- alwaysFive --+ (1)
+        //    |      alwaysFive|------->  result  (0)
+        //    +----------------+
+        //
+        //    (n)   evaluation-priority badges shown by the IDE; the sink runs BEFORE the block,
+        //          so it reads the temporary's previous-cycle value (type default on cycle 1)
+        let xml = include_str!("../fixtures/valid/previous_cycle_read/sink.cfc");
+        assert_snapshot!(transpile(xml), @"
+        PROGRAM sink
+        VAR
+            result : DINT;
+        END_VAR
+        VAR
+            __alwaysFive_res_0 : __return@alwaysFive;
+        END_VAR
+            result := __alwaysFive_res_0;
+            __alwaysFive_res_0 := alwaysFive();
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn previous_cycle_block_argument() {
+        //    +-- alwaysFive --+ (1)      +---- square ----+ (0)
+        //    |      alwaysFive|--------->| x        square|------->  result  (2)
+        //    +----------------+          +----------------+
+        //
+        //    square runs first, computing on alwaysFive's previous-cycle result
+        let xml = include_str!("../fixtures/valid/previous_cycle_read/block_argument.cfc");
+        assert_snapshot!(transpile(xml), @"
+        PROGRAM block_argument
+        VAR
+            result : DINT;
+        END_VAR
+        VAR
+            __square_res_0 : __return@square;
+            __alwaysFive_res_1 : __return@alwaysFive;
+        END_VAR
+            __square_res_0 := square(x := __alwaysFive_res_1);
+            __alwaysFive_res_1 := alwaysFive();
+            result := __square_res_0;
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn previous_cycle_conditional_return() {
+        //    +--- isReady ----+ (1)
+        //    |         isReady|------->| RETURN |  (0)
+        //    +----------------+
+        //
+        //    the return guards on isReady's previous-cycle result
+        let xml = include_str!("../fixtures/valid/previous_cycle_read/conditional_return.cfc");
+        assert_snapshot!(transpile(xml), @"
+        PROGRAM conditional_return
+        VAR
+            __isReady_res_0 : __return@isReady;
+        END_VAR
+            IF __isReady_res_0 THEN RETURN; END_IF;
+            __isReady_res_0 := isReady();
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn previous_cycle_aliased_sink() {
+        //    +-- alwaysFive --+ (1)
+        //    |      alwaysFive|------->[ Connector "relay" ]
+        //    +----------------+
+        //
+        //                       [ Continuation "relay" ]------->  result  (0)
+        let xml = include_str!("../fixtures/valid/previous_cycle_read/alias.cfc");
+        assert_snapshot!(transpile(xml), @"
+        PROGRAM alias
+        VAR
+            result : DINT;
+        END_VAR
+        VAR
+            __alwaysFive_res_0 : __return@alwaysFive;
+        END_VAR
+            result := __alwaysFive_res_0;
+            __alwaysFive_res_0 := alwaysFive();
         END_PROGRAM
         ");
     }

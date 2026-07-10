@@ -599,6 +599,10 @@ impl VariableBlock {
         VariableBlock::default().with_block_type(VariableBlockType::Temp).with_variables(variables)
     }
 
+    pub fn local(variables: Vec<Variable>) -> Self {
+        VariableBlock::default().with_block_type(VariableBlockType::Local).with_variables(variables)
+    }
+
     pub fn with_linkage(mut self, linkage: LinkageType) -> Self {
         self.linkage = linkage;
         self

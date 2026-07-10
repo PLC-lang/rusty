@@ -33,7 +33,7 @@ pub fn resolve_temp_types(unit: &mut CompilationUnit, index: &Index) -> bool {
     let mut changed = false;
 
     for pou in &mut unit.pous {
-        for block in pou.variable_blocks.iter_mut().filter(|block| block.kind.is_temp()) {
+        for block in pou.variable_blocks.iter_mut().filter(|block| block.kind.is_local()) {
             for variable in &mut block.variables {
                 let DataTypeDeclaration::Reference { referenced_type, .. } =
                     &mut variable.data_type_declaration
@@ -64,7 +64,15 @@ fn resolve(referenced_type: &str, index: &Index) -> Option<String> {
         }
 
         CfcTempType::Output { type_name, pin } => {
-            index.find_member(&type_name, &pin).map(|member| member.get_type_name().to_string())
+            let member_type = index.find_member(&type_name, &pin)?.get_type_name();
+
+            // A function models its VAR_OUTPUT members as auto-deref pointers (`__auto_pointer_to_X`),
+            // unlike function blocks and programs whose output members are plain values. The variable
+            // holding the pin's value must be declared with the inner value type instead.
+            match index.find_effective_type_info(member_type) {
+                Some(info) if info.is_auto_deref() => info.get_inner_pointer_type_name().map(str::to_string),
+                _ => Some(member_type.to_string()),
+            }
         }
     }
 }
@@ -109,7 +117,7 @@ mod tests {
 
     fn unit_with_temp(placeholder: String) -> CompilationUnit {
         let mut unit = parse_st("PROGRAM main\nEND_PROGRAM");
-        unit.pous[0].variable_blocks.push(VariableBlock::temp(vec![Variable {
+        unit.pous[0].variable_blocks.push(VariableBlock::local(vec![Variable {
             name: "__temp_0".into(),
             data_type_declaration: DataTypeDeclaration::Reference {
                 referenced_type: placeholder,
@@ -140,6 +148,19 @@ mod tests {
     fn output_pin_temp_is_typed() {
         let mut unit = unit_with_temp(output_placeholder("Counter", "count"));
         let index = index_of(&["FUNCTION_BLOCK Counter VAR_OUTPUT count : DINT; END_VAR END_FUNCTION_BLOCK"]);
+
+        assert!(resolve_temp_types(&mut unit, &index));
+        assert_eq!(temp_type(&unit), Some("DINT"));
+    }
+
+    #[test]
+    fn output_pin_of_function_is_typed_by_value() {
+        // A function's VAR_OUTPUT member is indexed as an auto-deref pointer (`__auto_pointer_to_DINT`);
+        // the resolved type must be the inner value type, not the pointer wrapper
+        let mut unit = unit_with_temp(output_placeholder("myFunc", "out"));
+        let index = index_of(&[
+            "FUNCTION myFunc : DINT VAR_INPUT a : DINT; END_VAR VAR_OUTPUT out : DINT; END_VAR myFunc := a; END_FUNCTION",
+        ]);
 
         assert!(resolve_temp_types(&mut unit, &index));
         assert_eq!(temp_type(&unit), Some("DINT"));
