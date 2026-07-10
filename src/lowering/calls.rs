@@ -66,6 +66,7 @@ use crate::{
     lowering::helper::create_member_reference_with_location,
     resolver::{AnnotationMap, StatementAnnotation},
     typesystem::{DataType, DataTypeInformation},
+    validation::statement::evaluate_generic_nature_violation,
 };
 
 // Performs lowering for aggregate types defined in functions
@@ -101,33 +102,29 @@ impl AggregateTypeLowerer {
 
     /// Collects `E062` diagnostics for call arguments whose actual type does not satisfy the nature
     /// of the generic parameter they are bound to (e.g. a `DINT` passed to a `T: ANY_STRING`
-    /// variadic). Uses the pre-lowering annotation, where the generic nature is still attached to
-    /// each argument node. Kept in sync with `validation::statement::validate_type_nature`.
+    /// variadic).
+    ///
+    /// This only fires for generic calls that this lowerer rewrites to their concrete instantiation
+    /// (e.g. `CONCAT` -> `CONCAT__STRING`): that rewrite plus the subsequent re-annotation erases
+    /// the generic nature, so the regular `validate_type_nature` pass can no longer see it. Every
+    /// other generic call keeps its nature and is reported by that pass, so we must skip them here
+    /// to avoid duplicate diagnostics. The rewrite happens iff the resolved function is a concrete
+    /// (non-generic) instantiation returning an aggregate type (see `visit_call_statement`).
     fn collect_generic_nature_violations(&self, stmt: &CallStatement) -> Vec<Diagnostic> {
         let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
             return Vec::new();
         };
 
-        // Only report here when this generic call is about to be rewritten to its concrete
-        // instantiation (e.g. `CONCAT` -> `CONCAT__STRING`). That rewrite, followed by re-annotation,
-        // erases the generic nature, so the normal `validate_type_nature` pass can no longer see it.
-        // Generic calls that are *not* rewritten keep their nature and are still reported by that
-        // pass; skipping them here avoids emitting the diagnostic twice.
-        let (qualified_name, generic_name) =
-            match annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator)) {
-                Some(StatementAnnotation::Function { qualified_name, generic_name, .. }) => {
-                    (qualified_name.clone(), generic_name.clone())
-                }
-                _ => return Vec::new(),
-            };
-        // Emit only when a generic call has been resolved to a *concrete* instantiation
-        // (e.g. `CONCAT` -> `CONCAT__STRING`). That is exactly the case the lowering rewrites and
-        // the re-annotation then strips of its generic nature, blinding `validate_type_nature`.
-        // Calls whose operator is still generic keep their nature and are reported by that pass, so
-        // reporting them here too would duplicate the diagnostic.
-        let resolved_to_concrete =
-            generic_name.is_some() && index.find_pou(&qualified_name).is_some_and(|it| !it.is_generic());
-        if !resolved_to_concrete {
+        let Some(StatementAnnotation::Function { qualified_name, generic_name, return_type, .. }) =
+            annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
+        else {
+            return Vec::new();
+        };
+
+        let is_rewritten_generic = generic_name.is_some()
+            && index.find_pou(qualified_name).is_some_and(|it| !it.is_generic() && !it.is_builtin())
+            && index.get_effective_type_or_void_by_name(return_type).is_aggregate_type();
+        if !is_rewritten_generic {
             return Vec::new();
         }
 
@@ -148,22 +145,13 @@ impl AggregateTypeLowerer {
             else {
                 continue;
             };
-
-            // Same allowance as `validate_type_nature`: an INT argument for a REAL generic is fine.
             let type_hint = annotation.get_type_hint(value, index).unwrap_or(actual_type);
-            if actual_type.has_nature(*nature, index) || (type_hint.is_real() && actual_type.is_numerical()) {
-                continue;
-            }
 
-            diagnostics.push(
-                Diagnostic::new(format!(
-                    "Invalid type nature for generic argument. {} is no {}",
-                    actual_type.get_name(),
-                    nature
-                ))
-                .with_error_code("E062")
-                .with_location(value),
-            );
+            if let Some(diagnostic) =
+                evaluate_generic_nature_violation(actual_type, type_hint, *nature, index, value)
+            {
+                diagnostics.push(diagnostic);
+            }
         }
         diagnostics
     }
