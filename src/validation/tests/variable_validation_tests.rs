@@ -1875,3 +1875,215 @@ fn fb_var_temp_visible_inside_fb_body_and_actions() {
 
     assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
 }
+
+#[test]
+fn program_as_variable_type_in_function_is_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM myProg
+        VAR_INPUT
+            in1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            out1 : DINT;
+        END_VAR
+            out1 := in1 + 1;
+        END_PROGRAM
+
+        FUNCTION main : DINT
+        VAR
+            myInstance : myProg;
+        END_VAR
+            myInstance(in1 := 5);
+            main := myInstance.out1;
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E142]: Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+       ┌─ <internal>:14:13
+       │
+    14 │             myInstance : myProg;
+       │             ^^^^^^^^^^ Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+    ");
+}
+
+#[test]
+fn program_as_variable_type_in_program_is_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM myProg
+        VAR_INPUT
+            in1 : DINT;
+        END_VAR
+        END_PROGRAM
+
+        PROGRAM other
+        VAR
+            instance : myProg;
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E142]: Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+       ┌─ <internal>:10:13
+       │
+    10 │             instance : myProg;
+       │             ^^^^^^^^ Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+    ");
+}
+
+#[test]
+fn program_as_variable_type_in_function_block_is_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM myProg
+        VAR_INPUT
+            in1 : DINT;
+        END_VAR
+        END_PROGRAM
+
+        FUNCTION_BLOCK fb
+        VAR_OUTPUT
+            instance : myProg;
+        END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E142]: Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+       ┌─ <internal>:10:13
+       │
+    10 │             instance : myProg;
+       │             ^^^^^^^^ Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+    ");
+}
+
+#[test]
+fn program_as_variable_type_in_various_blocks_is_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM myProg
+        VAR_INPUT
+            in1 : DINT;
+        END_VAR
+        END_PROGRAM
+
+        VAR_GLOBAL
+            gInstance : myProg;
+        END_VAR
+
+        FUNCTION_BLOCK fb
+        VAR_INPUT
+            a : myProg;
+        END_VAR
+        VAR_IN_OUT
+            b : myProg;
+        END_VAR
+        VAR_TEMP
+            c : myProg;
+        END_VAR
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E142]: Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+       ┌─ <internal>:14:13
+       │
+    14 │             a : myProg;
+       │             ^ Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+
+    error[E142]: Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+       ┌─ <internal>:17:13
+       │
+    17 │             b : myProg;
+       │             ^ Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+
+    error[E142]: Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+       ┌─ <internal>:20:13
+       │
+    20 │             c : myProg;
+       │             ^ Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+
+    error[E142]: Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+      ┌─ <internal>:9:13
+      │
+    9 │             gInstance : myProg;
+      │             ^^^^^^^^^ Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+    ");
+}
+
+#[test]
+fn array_of_program_type_is_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM myProg
+        VAR_INPUT
+            in1 : DINT;
+        END_VAR
+        END_PROGRAM
+
+        FUNCTION main : DINT
+        VAR
+            instances : ARRAY[1..3] OF myProg;
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E142]: Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+       ┌─ <internal>:10:13
+       │
+    10 │             instances : ARRAY[1..3] OF myProg;
+       │             ^^^^^^^^^ Program `myProg` cannot be used as a variable type; programs are singletons — call `myProg` directly instead
+    ");
+}
+
+#[test]
+fn direct_program_call_by_name_is_not_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM myProg
+        VAR_INPUT
+            in1 : DINT;
+        END_VAR
+        VAR_OUTPUT
+            out1 : DINT;
+        END_VAR
+            out1 := in1 + 1;
+        END_PROGRAM
+
+        FUNCTION main : DINT
+            myProg(in1 := 5);
+        END_FUNCTION
+        ",
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn direct_member_access_on_program_name_is_not_reported() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM myProg
+        VAR_OUTPUT
+            out1 : DINT;
+        END_VAR
+            out1 := 1;
+        END_PROGRAM
+
+        FUNCTION main : DINT
+            main := myProg.out1;
+        END_FUNCTION
+        ",
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
