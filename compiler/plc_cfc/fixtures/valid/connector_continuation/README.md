@@ -12,10 +12,10 @@ continuation; it carries no semantics of its own and resolves away during loweri
 
 ```text
    +-- alwaysFive --+ (0)
-   |      alwaysFive|--(12)-->[ Connector "five" ]
+   |      alwaysFive|--id 12-->[ Connector "five" ]
    +----------------+
 
-                      [ Continuation "five" ]--(7)-->  result  (1)
+                      [ Continuation "five" ]--id 7-->  result  (1)
 
    "five"    the label matching the connector to the continuation
    (0),(1)   evaluation-priority badges shown by the IDE

@@ -33,8 +33,8 @@ pub fn validate(pou: &Pou, factory: &SourceLocationFactory, resolver: &Resolver)
 /// consumer (a block input, a sink, a return condition) references a real producer rather than a dangling
 /// wire. For example
 /// ```text
-///    localA  --(2)                 (nothing produces 999)
-///                     result  --(999?)-->  (0)
+///    localA  -->
+///    ??? --id 999-->  result  (0)
 /// ```
 /// where the sink reads connection `999`, which no object produces — a stale `refConnectionPointOutId`, a
 /// connector with no source feeding a continuation, or a connector/continuation cycle that leads back to
@@ -237,7 +237,7 @@ mod tests {
     #[test]
     fn sink_consumes_result_too_early() {
         //    +-- alwaysFive --+ (1)
-        //    |      alwaysFive|--(2)-->  result  (0)
+        //    |      alwaysFive|------->  result  (0)
         //    +----------------+
         //
         //    (n)   evaluation-priority badges shown by the IDE
@@ -252,7 +252,7 @@ mod tests {
     #[test]
     fn conditional_return_consumes_result_too_early() {
         //    +--- isReady ----+ (1)
-        //    |         isReady|--(2)-->| RETURN |  (0)
+        //    |         isReady|------->| RETURN |  (0)
         //    +----------------+
         let xml = include_str!("../fixtures/invalid/evaluation_order/conditional_return.cfc");
         assert_snapshot!(validate(xml), @r"
@@ -265,7 +265,7 @@ mod tests {
     #[test]
     fn block_argument_consumes_result_too_early() {
         //    +-- alwaysFive --+ (1)      +---- square ----+ (0)
-        //    |      alwaysFive|--(2)---->| x        square|--(4)-->  result  (2)
+        //    |      alwaysFive|--------->| x        square|------->  result  (2)
         //    +----------------+          +----------------+
         let xml = include_str!("../fixtures/invalid/evaluation_order/block_argument.cfc");
         assert_snapshot!(validate(xml), @r"
@@ -278,10 +278,10 @@ mod tests {
     #[test]
     fn aliased_sink_consumes_result_too_early() {
         //    +-- alwaysFive --+ (1)
-        //    |      alwaysFive|--(2)-->[ Connector "relay" ]
+        //    |      alwaysFive|------->[ Connector "relay" ]
         //    +----------------+
         //
-        //                       [ Continuation "relay" ]--(5)-->  result  (0)
+        //                       [ Continuation "relay" ]------->  result  (0)
         let xml = include_str!("../fixtures/invalid/evaluation_order/alias.cfc");
         assert_snapshot!(validate(xml), @r"
         error[E142]: Invalid evaluation order, result of `alwaysFive` is consumed by `result` before it is being evaluated
@@ -292,7 +292,7 @@ mod tests {
 
     #[test]
     fn call_in_source_variable() {
-        //    conjure() + 5  --(2)-->  result  (0)
+        //    conjure() + 5  ------->  result  (0)
         //
         //    (n)   evaluation-priority badge shown by the IDE
         let xml = include_str!("../fixtures/invalid/call_in_variable/source.cfc");
@@ -304,7 +304,7 @@ mod tests {
 
     #[test]
     fn call_in_sink_variable() {
-        //    localA  --(2)-->  drain()  (0)
+        //    localA  ------->  drain()  (0)
         let xml = include_str!("../fixtures/invalid/call_in_variable/sink.cfc");
         assert_snapshot!(validate(xml), @r"
         error[E143]: Invalid expression `drain()` in variable, only literals, variable references and compositions of them are allowed
@@ -323,7 +323,7 @@ mod tests {
 
     #[test]
     fn dangling_connection_is_reported() {
-        //    localA  --(2)      result  --(999?)-->  (nothing produces 999)
+        //    localA  -->      ??? --id 999-->  result  (0)
         //
         //    the sink references id 999, which no object produces
         let xml = include_str!("../fixtures/invalid/dangling_connection/mainProgram.cfc");
@@ -335,9 +335,9 @@ mod tests {
 
     #[test]
     fn connector_continuation_cycle_is_reported() {
-        //    [Cont y]-->[Conn x]   [Cont x]-->[Conn y]   [Cont x]--(10)-->  result  (0)
+        //    [Cont y]-->[Conn x]   [Cont x]-->[Conn y]   [Cont x]--id 10-->  result  (0)
         //
-        //    the connector/continuation pairs feed each other, so the sink's wire (10) resolves to no producer
+        //    the connector/continuation pairs feed each other, so the sink's wire (id 10) resolves to no producer
         let xml = include_str!("../fixtures/invalid/connector_continuation_cycle/mainProgram.cfc");
         assert_snapshot!(validate(xml), @r"
         error[E081]: Invalid connection, `result` references a value that no object in the network produces
@@ -349,7 +349,7 @@ mod tests {
     fn connector_without_source_is_reported() {
         //    (no source)-->[ Connector "relay" ]
         //
-        //    [ Continuation "relay" ]--(10)-->  result  (0)
+        //    [ Continuation "relay" ]--id 10-->  result  (0)
         //
         //    the connector carries no incoming wire, so the continuation feeding the sink resolves to nothing
         let xml = include_str!("../fixtures/invalid/connector_without_source/mainProgram.cfc");

@@ -195,10 +195,10 @@
 //!
 //! ```text
 //!    +-- alwaysFive --+ (0)
-//!    |      alwaysFive|--(12)-->[ Connector "five" ]
+//!    |      alwaysFive|--id 12-->[ Connector "five" ]
 //!    +----------------+
 //!
-//!    [ Continuation "five" ]--(7)-->  result  (1)
+//!    [ Continuation "five" ]--id 7-->  result  (1)
 //!
 //!    "five"   the label matching connector to continuation
 //!    (n)      evaluation-priority badge shown by the IDE
@@ -903,6 +903,8 @@ mod tests {
         ");
     }
 
+    // Note: the unconnected inout (`io := `) transpiles but is invalid; the pipeline's ST validation
+    // rejects it later with E031.
     #[test]
     fn unconnected_arguments_function() {
         //                   +------ myFunc ------+ (1)
@@ -929,6 +931,8 @@ mod tests {
         ");
     }
 
+    // Note: the unconnected inout (`io := `) transpiles but is invalid; the pipeline's ST validation
+    // rejects it later with E031.
     #[test]
     fn unconnected_arguments_program() {
         //                       +---- auxProgram ----+ (1)
@@ -950,6 +954,8 @@ mod tests {
         ");
     }
 
+    // Note: the unconnected inout (`io := `) transpiles but is invalid; the pipeline's ST validation
+    // rejects it later with E031.
     #[test]
     fn unconnected_arguments_function_block() {
         //                   +------- myFb -------+ (1)
@@ -1122,10 +1128,10 @@ mod tests {
     #[test]
     fn connector_continuation() {
         //    +-- alwaysFive --+ (0)
-        //    |      alwaysFive|--(12)-->[ Connector "five" ]
+        //    |      alwaysFive|--id 12-->[ Connector "five" ]
         //    +----------------+
         //
-        //                       [ Continuation "five" ]--(7)-->  result  (1)
+        //                       [ Continuation "five" ]--id 7-->  result  (1)
         //
         //    "five"    the label matching the connector to the continuation
         //    (0),(1)   evaluation-priority badges shown by the IDE
@@ -1147,9 +1153,9 @@ mod tests {
     #[test]
     fn connector_continuation_chain() {
         //    +-- alwaysFive --+ (0)
-        //    |      alwaysFive|--(10)-->[Conn a]   [Cont a]--(11)-->[Conn b]   [Cont b]--(12)-->[Conn c]
-        //    +----------------+                                                            |
-        //         [Cont c]--(13)-->[Conn d]   [Cont d]--(14)-->  result  (1)  <------------+
+        //    |      alwaysFive|--id 10-->[Conn a]   [Cont a]--id 11-->[Conn b]   [Cont b]--id 12-->[Conn c]
+        //    +----------------+                                                              |
+        //         [Cont c]--id 13-->[Conn d]   [Cont d]--id 14-->  result  (1)  <------------+
         //
         //    a,b,c,d   labels matching each connector to its continuation
         //    (0),(1)   evaluation-priority badges shown by the IDE

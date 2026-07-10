@@ -6,9 +6,9 @@ following the labels loops forever (`x → y → x → …`) and never reaches a
 sink reads one end of the loop, so it consumes a wire that nothing ultimately produces.
 
 ```text
-   [Cont y]--(11)-->[Conn x]   [Cont x]--(10)-->[Conn y]   [Cont x]--(10)-->  result  (0)
-        ^                                            |
-        +--------------------------------------------+   (y feeds x feeds y ...)
+   [Cont y]--id 11-->[Conn x]   [Cont x]--id 10-->[Conn y]   [Cont x]--id 10-->  result  (0)
+        ^                                              |
+        +----------------------------------------------+   (y feeds x feeds y ...)
 
    x,y   labels; the two pairs reference each other's output
    (0)   evaluation-priority badge shown by the IDE

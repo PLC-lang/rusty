@@ -7,7 +7,7 @@ A connector/continuation pair whose **connector has no incoming wire**. The cont
 ```text
    (no source)-->[ Connector "relay" ]
 
-   [ Continuation "relay" ]--(10)-->  result  (0)
+   [ Continuation "relay" ]--id 10-->  result  (0)
 
    "relay"  the label matching the connector to the continuation
    (0)      evaluation-priority badge shown by the IDE

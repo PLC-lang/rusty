@@ -6,8 +6,9 @@ references `refConnectionPointOutId="999"`, but the only producer in the network
 `localA` at id `2`. Nothing produces `999`, so the wire is dangling.
 
 ```text
-   localA  --(2)                 (no object produces 999)
-                    result  --(999?)-->
+   localA  -->
+   ??? --id 999-->  result  (0)
+
    (0)  evaluation-priority badge shown by the IDE
 ```
 

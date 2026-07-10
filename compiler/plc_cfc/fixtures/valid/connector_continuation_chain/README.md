@@ -6,9 +6,9 @@ chain **transitively** back to the one real producer.
 
 ```text
    +-- alwaysFive --+ (0)
-   |      alwaysFive|--(10)-->[Conn a]   [Cont a]--(11)-->[Conn b]   [Cont b]--(12)-->[Conn c]
-   +----------------+                                                            |
-        [Cont c]--(13)-->[Conn d]   [Cont d]--(14)-->  result  (1)  <------------+
+   |      alwaysFive|--id 10-->[Conn a]   [Cont a]--id 11-->[Conn b]   [Cont b]--id 12-->[Conn c]
+   +----------------+                                                              |
+        [Cont c]--id 13-->[Conn d]   [Cont d]--id 14-->  result  (1)  <------------+
 
    a,b,c,d   labels matching each connector to its continuation
    (0),(1)   evaluation-priority badges shown by the IDE

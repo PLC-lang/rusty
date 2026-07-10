@@ -573,10 +573,10 @@ mod tests {
     #[test]
     fn connector_continuation() {
         //    +-- alwaysFive --+ (0)
-        //    |      alwaysFive|--(12)-->[ Connector "five" ]
+        //    |      alwaysFive|--id 12-->[ Connector "five" ]
         //    +----------------+
         //
-        //                       [ Continuation "five" ]--(7)-->  result  (1)
+        //                       [ Continuation "five" ]--id 7-->  result  (1)
         //
         //    "five"    the label matching the connector to the continuation
         //    (0),(1)   evaluation-priority badges shown by the IDE
@@ -595,9 +595,9 @@ mod tests {
     #[test]
     fn connector_continuation_chain() {
         //    +-- alwaysFive --+ (0)
-        //    |      alwaysFive|--(10)-->[Conn a]   [Cont a]--(11)-->[Conn b]   [Cont b]--(12)-->[Conn c]
-        //    +----------------+                                                            |
-        //         [Cont c]--(13)-->[Conn d]   [Cont d]--(14)-->  result  (1)  <------------+
+        //    |      alwaysFive|--id 10-->[Conn a]   [Cont a]--id 11-->[Conn b]   [Cont b]--id 12-->[Conn c]
+        //    +----------------+                                                              |
+        //         [Cont c]--id 13-->[Conn d]   [Cont d]--id 14-->  result  (1)  <------------+
         //
         //    a,b,c,d   labels matching each connector to its continuation
         //    (0),(1)   evaluation-priority badges shown by the IDE
@@ -618,9 +618,9 @@ mod tests {
 
     #[test]
     fn connector_continuation_cycle() {
-        //    [Cont y]--(11)-->[Conn x]   [Cont x]--(10)-->[Conn y]   [Cont x]--(10)-->  result  (0)
-        //         ^                                            |
-        //         +--------------------------------------------+   (y feeds x feeds y ...)
+        //    [Cont y]--id 11-->[Conn x]   [Cont x]--id 10-->[Conn y]   [Cont x]--id 10-->  result  (0)
+        //         ^                                              |
+        //         +----------------------------------------------+   (y feeds x feeds y ...)
         //
         //    x,y   labels; the two pairs reference each other's output
         //    (0)   evaluation-priority badge shown by the IDE
@@ -647,7 +647,7 @@ mod tests {
 
     #[test]
     fn dangling_connection_is_not_resolvable() {
-        //    localA  --(2)      result  --(999?)-->  (nothing produces 999)
+        //    localA  -->      ??? --id 999-->  result  (0)
         //
         //    the sink's wire references id 999, but the only producer is localA at id 2
         let xml = include_str!("../fixtures/invalid/dangling_connection/mainProgram.cfc");

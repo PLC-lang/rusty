@@ -12,7 +12,7 @@ no `.st` counterparts are needed.
 ## `source.cfc` — call in a data source
 
 ```text
-   conjure() + 5  --(2)-->  result  (0)
+   conjure() + 5  ------->  result  (0)
 
    (n)   evaluation-priority badge shown by the IDE
 ```
@@ -20,5 +20,5 @@ no `.st` counterparts are needed.
 ## `sink.cfc` — call in a data sink
 
 ```text
-   localA  --(2)-->  drain()  (0)
+   localA  ------->  drain()  (0)
 ```

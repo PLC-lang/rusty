@@ -15,7 +15,7 @@ The sink runs at priority `(0)`, before the block producing its value at `(1)`:
 
 ```text
    +-- alwaysFive --+ (1)
-   |      alwaysFive|--(2)-->  result  (0)
+   |      alwaysFive|------->  result  (0)
    +----------------+
 
    (n)   evaluation-priority badges shown by the IDE
@@ -27,7 +27,7 @@ The conditional return at `(0)` guards on a condition that is only produced at `
 
 ```text
    +--- isReady ----+ (1)
-   |         isReady|--(2)-->| RETURN |  (0)
+   |         isReady|------->| RETURN |  (0)
    +----------------+
 ```
 
@@ -38,7 +38,7 @@ at `(2)` is correctly ordered and must *not* be reported:
 
 ```text
    +-- alwaysFive --+ (1)      +---- square ----+ (0)
-   |      alwaysFive|--(2)---->| x        square|--(4)-->  result  (2)
+   |      alwaysFive|--------->| x        square|------->  result  (2)
    +----------------+          +----------------+
 ```
 
@@ -49,8 +49,8 @@ pair; the validation must resolve the alias back to the real producer:
 
 ```text
    +-- alwaysFive --+ (1)
-   |      alwaysFive|--(2)-->[ Connector "relay" ]
+   |      alwaysFive|------->[ Connector "relay" ]
    +----------------+
 
-                      [ Continuation "relay" ]--(5)-->  result  (0)
+                      [ Continuation "relay" ]------->  result  (0)
 ```
