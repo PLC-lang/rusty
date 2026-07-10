@@ -238,154 +238,223 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
     fn visit_call_statement(&mut self, node: &mut AstNode) {
         let original_location = node.get_location();
-        let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
-        stmt.walk(self);
-        let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
-            //Early exit if not annotated or indexed
-            return;
-        };
-        //Get the function being called
-        let (qualified_name, return_type_name, generic_name) =
-            match annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator)).cloned() {
-                Some(StatementAnnotation::Function { return_type, qualified_name, generic_name, .. }) => {
-                    (qualified_name, return_type, generic_name)
-                }
-                Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
-                    (qualified_name, return_type, None)
-                }
-                _ => return,
-            };
-        //If there's a call name in the function, it is a generic and needs to be replaced.
-        //HACK: this is because we don't lower generics
-        let function_entry = index.find_pou(&qualified_name).expect("Function not found");
-        let return_name = Pou::calc_return_name(function_entry.get_name()).to_string();
-        let return_type = index.get_effective_type_or_void_by_name(&return_type_name);
+        let mut deferred_reference = None;
 
-        let generic_function: Option<&crate::index::PouIndexEntry> =
-            generic_name.as_deref().and_then(|it| index.find_pou(it));
-        let is_generic_function = generic_function.is_some_and(|it| it.is_generic());
+        {
+            let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
+            stmt.walk(self);
+            let (
+                qualified_name,
+                return_type_name,
+                return_name,
+                is_builtin_function,
+                is_method,
+                can_have_output_assignment_lowering,
+                is_generic_function,
+                is_fnptr_call,
+                has_aggregate_return,
+            ) = {
+                let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
+                    //Early exit if not annotated or indexed
+                    return;
+                };
+                //Get the function being called
+                let (qualified_name, return_type_name, generic_name) = match annotation
+                    .get(&stmt.operator)
+                    .or_else(|| annotation.get_hint(&stmt.operator))
+                    .cloned()
+                {
+                    Some(StatementAnnotation::Function {
+                        return_type, qualified_name, generic_name, ..
+                    }) => (qualified_name, return_type, generic_name),
+                    Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
+                        (qualified_name, return_type, None)
+                    }
+                    _ => return,
+                };
+                //If there's a call name in the function, it is a generic and needs to be replaced.
+                //HACK: this is because we don't lower generics
+                let function_entry = index.find_pou(&qualified_name).expect("Function not found");
+                let return_name = Pou::calc_return_name(function_entry.get_name()).to_string();
+                let has_aggregate_return =
+                    index.get_effective_type_or_void_by_name(&return_type_name).is_aggregate_type();
 
-        //TODO: needs to be on the function
-        if return_type.is_aggregate_type() && !function_entry.is_builtin() {
-            //TODO: use qualified name
-            let name = format!(
-                "__{}{}",
-                stmt.operator.get_flat_reference_name().unwrap_or_default(),
-                self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
-            );
-            //Create an allocation of the new type
-            let alloca = AstNode {
-                stmt: AstStatement::AllocationStatement(Allocation {
-                    name: name.clone(),
-                    reference_type: return_type_name.to_string(),
-                }),
-                id: self.id_provider.next_id(),
-                location: original_location.clone(),
-                metadata: None,
-            };
-            self.push_pre_statement(alloca);
-            let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
-            let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
-            let reference = create_member_reference_with_location(
-                &name,
-                self.id_provider.clone(),
-                None,
-                original_location.clone(),
-            );
-            //If the function has an formal arguments (foo(x := 1)), we need to add an assignment to the reference
-            let reference = if stmt
-                .parameters
-                .as_ref()
-                .map(|it| flatten_expression_list(it))
-                .is_some_and(|it| it.iter().any(|it| it.is_assignment()))
-            {
-                let left = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(
-                        &return_name,
-                        original_location.clone(),
-                        self.id_provider.next_id(),
-                    ),
-                    None,
-                    self.id_provider.next_id(),
-                );
-                AstFactory::create_assignment(left, reference, self.id_provider.next_id())
-            } else {
-                reference
-            };
-            //TODO : we are creating th expression list twice in case of no params
-            let mut parameters =
-                stmt.parameters.as_mut().map(|it| steal_expression_list(it.borrow_mut())).unwrap_or_default();
+                let generic_function: Option<&crate::index::PouIndexEntry> =
+                    generic_name.as_deref().and_then(|it| index.find_pou(it));
+                let is_generic_function = generic_function.is_some_and(|it| it.is_generic());
+                let is_fnptr_call = annotation.get(&stmt.operator).is_some_and(|opt| opt.is_fnptr());
+                let is_method = function_entry.is_method();
 
-            // Place the alloca aggregate variable at index 1 when dealing with function pointers because 0
-            // is reserved for the instance variable.
-            if self.annotation.as_ref().unwrap().get(&stmt.operator).is_some_and(|opt| opt.is_fnptr()) {
-                parameters.insert(1, reference);
-            } else {
-                parameters.insert(0, reference);
-            }
-
-            if is_generic_function {
-                //For generic functions, we need to replace the generic name with the function name
-                *stmt.operator = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(
-                        &qualified_name,
-                        stmt.operator.get_location(),
-                        self.id_provider.next_id(),
-                    ),
-                    None,
-                    self.id_provider.next_id(),
+                (
+                    qualified_name,
+                    return_type_name,
+                    return_name,
+                    function_entry.is_builtin(),
+                    is_method,
+                    function_entry.is_function() || function_entry.is_method(),
+                    is_generic_function,
+                    is_fnptr_call,
+                    has_aggregate_return,
                 )
             };
-            stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
-            //steal parameters, add one to the start, return parameters
-            let mut reference = create_member_reference_with_location(
-                &name,
-                self.id_provider.clone(),
-                None,
-                original_location,
-            );
-            std::mem::swap(node.get_stmt_mut(), reference.get_stmt_mut());
-            self.push_pre_statement(reference);
-        }
-        // Is this a function with any output assignments?
-        // Do any of the output assignments have types that need casting?
-        // Do any of the output assignments have direct access?
-        else if stmt
-            .parameters
-            .as_ref()
-            .iter()
-            .enumerate()
-            .any(|(param_index, param)|
-                is_output_assignment_and_type_cast_needed(param, annotation.as_ref(), index, &qualified_name, param_index, function_entry.is_method())
-                || is_output_assignment_and_has_direct_access(param, annotation.as_ref(), index, &qualified_name, param_index, function_entry.is_method())
-                || is_output_assignment_of_sized_string(param, annotation.as_ref(), index, &qualified_name, param_index, function_entry.is_method()))
-            // Stateful structs (such as function blocks) have their own output assignment mechanism in codegen,
-            // and are not handled by this lowerer
-            && (function_entry.is_function() || function_entry.is_method())
-        {
-            let mut pre_statements: Vec<AstNode> = Vec::new();
-            let mut post_statements: Vec<AstNode> = Vec::new();
-            let mut expressions: Vec<AstNode> = Vec::new();
 
-            let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
-            let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
-
-            for (param_index, param) in stmt.parameters.as_ref().iter().enumerate() {
-                lower_output_assignments(
-                    (&self.counter, self.id_provider.clone()),
-                    param,
-                    (&qualified_name, &return_name, function_entry.is_method()),
-                    annotation.as_ref(),
-                    index,
-                    param_index,
-                    (&mut pre_statements, &mut expressions, &mut post_statements),
+            //TODO: needs to be on the function
+            if has_aggregate_return && !is_builtin_function {
+                //TODO: use qualified name
+                let name = format!(
+                    "__{}{}",
+                    stmt.operator.get_flat_reference_name().unwrap_or_default(),
+                    self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
                 );
+                //Create an allocation of the new type
+                let alloca = AstNode {
+                    stmt: AstStatement::AllocationStatement(Allocation {
+                        name: name.clone(),
+                        reference_type: return_type_name.to_string(),
+                    }),
+                    id: self.id_provider.next_id(),
+                    location: original_location.clone(),
+                    metadata: None,
+                };
+                self.push_pre_statement(alloca);
+                let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
+                let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
+                let reference = create_member_reference_with_location(
+                    &name,
+                    self.id_provider.clone(),
+                    None,
+                    original_location.clone(),
+                );
+                //If the function has an formal arguments (foo(x := 1)), we need to add an assignment to the reference
+                let reference = if stmt
+                    .parameters
+                    .as_ref()
+                    .map(|it| flatten_expression_list(it))
+                    .is_some_and(|it| it.iter().any(|it| it.is_assignment()))
+                {
+                    let left = AstFactory::create_member_reference(
+                        AstFactory::create_identifier(
+                            &return_name,
+                            original_location.clone(),
+                            self.id_provider.next_id(),
+                        ),
+                        None,
+                        self.id_provider.next_id(),
+                    );
+                    AstFactory::create_assignment(left, reference, self.id_provider.next_id())
+                } else {
+                    reference
+                };
+                //TODO : we are creating th expression list twice in case of no params
+                let mut parameters = stmt
+                    .parameters
+                    .as_mut()
+                    .map(|it| steal_expression_list(it.borrow_mut()))
+                    .unwrap_or_default();
+
+                // Place the alloca aggregate variable at index 1 when dealing with function pointers because 0
+                // is reserved for the instance variable.
+                if is_fnptr_call {
+                    parameters.insert(1, reference);
+                } else {
+                    parameters.insert(0, reference);
+                }
+
+                if is_generic_function {
+                    //For generic functions, we need to replace the generic name with the function name
+                    *stmt.operator = AstFactory::create_member_reference(
+                        AstFactory::create_identifier(
+                            &qualified_name,
+                            stmt.operator.get_location(),
+                            self.id_provider.next_id(),
+                        ),
+                        None,
+                        self.id_provider.next_id(),
+                    )
+                };
+                stmt.parameters
+                    .replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
+                deferred_reference = Some(create_member_reference_with_location(
+                    &name,
+                    self.id_provider.clone(),
+                    None,
+                    original_location.clone(),
+                ));
             }
 
-            stmt.parameters.replace(Box::new(AstFactory::create_expression_list(expressions, location, id)));
+            // We actually need to do this as well not instead of
+            // Is this a function with any output assignments?
+            // Do any of the output assignments have types that need casting?
+            // Do any of the output assignments have direct access?
+            let needs_output_assignment_lowering = {
+                let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
+                    return;
+                };
 
-            self.push_pre_statements(&pre_statements);
-            self.push_post_statements(&post_statements);
+                stmt.parameters.as_ref().iter().enumerate().any(|(param_index, param)| {
+                    is_output_assignment_and_type_cast_needed(
+                        param,
+                        annotation.as_ref(),
+                        index,
+                        &qualified_name,
+                        param_index,
+                        is_method,
+                    ) || is_output_assignment_and_has_direct_access(
+                        param,
+                        annotation.as_ref(),
+                        index,
+                        &qualified_name,
+                        param_index,
+                        is_method,
+                    ) || is_output_assignment_of_sized_string(
+                        param,
+                        annotation.as_ref(),
+                        index,
+                        &qualified_name,
+                        param_index,
+                        is_method,
+                    )
+                })
+                    // Stateful structs (such as function blocks) have their own output assignment mechanism in codegen,
+                    // and are not handled by this lowerer
+                    && can_have_output_assignment_lowering
+            };
+
+            if needs_output_assignment_lowering {
+                let mut pre_statements: Vec<AstNode> = Vec::new();
+                let mut post_statements: Vec<AstNode> = Vec::new();
+                let mut expressions: Vec<AstNode> = Vec::new();
+
+                let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
+                let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
+
+                for (param_index, param) in stmt.parameters.as_ref().iter().enumerate() {
+                    lower_output_assignments(
+                        (&self.counter, self.id_provider.clone()),
+                        param,
+                        (&qualified_name, &return_name, is_method),
+                        self.annotation.as_deref().expect("annotation exists when lowering calls"),
+                        self.index.as_ref().expect("index exists when lowering calls"),
+                        param_index,
+                        (&mut pre_statements, &mut expressions, &mut post_statements),
+                    );
+                }
+
+                stmt.parameters.replace(Box::new(AstFactory::create_expression_list(
+                    expressions,
+                    location,
+                    id,
+                )));
+
+                self.push_pre_statements(&pre_statements);
+                self.push_post_statements(&post_statements);
+            }
+        }
+
+        if let Some(mut reference) = deferred_reference {
+            let previous_stmt = std::mem::replace(node.get_stmt_mut(), reference.stmt);
+            reference.stmt = previous_stmt;
+            self.push_pre_statement(reference);
         }
     }
 
@@ -469,16 +538,16 @@ fn is_output_assignment_and_type_cast_needed(
                 return false;
             }
 
-            let param_index = if is_method { (param_index as u32) - 1 } else { param_index as u32 };
-
             // We don't want to accidentally assign a pointer back to a literal that is passed
             if node.is_literal() {
                 return false;
             }
 
-            if !is_implicit_output_assignment(index, pou_name, param_index) {
+            let Some(param_index) =
+                find_implicit_output_parameter_index(index, pou_name, param_index, is_method)
+            else {
                 return false;
-            }
+            };
 
             let Some(param_index_entry) = index.get_declared_parameter(pou_name, param_index) else {
                 return false;
@@ -541,6 +610,27 @@ fn string_type_alloc_needed(type_lhs: &DataType, type_rhs: &DataType, index: &In
         return false;
     }
 
+    // Work with effective types because many call parameters are represented as
+    // alias wrapper types (e.g. __Foo_Bar).
+    let type_lhs = index.find_effective_type_by_name(type_lhs.get_name()).unwrap_or(type_lhs);
+    let type_rhs = index.find_effective_type_by_name(type_rhs.get_name()).unwrap_or(type_rhs);
+
+    // This helper is only relevant for string-like outputs.
+    if !type_lhs.is_string() || !type_rhs.is_string() {
+        return false;
+    }
+
+    // If both sides are unsized strings we keep the existing direct path.
+    if !type_lhs.is_sized_string() && !type_rhs.is_sized_string() {
+        return false;
+    }
+
+    // If only one side is explicitly sized, lower conservatively to avoid writing
+    // directly into a potentially smaller implicit buffer.
+    if type_lhs.is_sized_string() != type_rhs.is_sized_string() {
+        return true;
+    }
+
     let type_info_lhs = type_lhs.get_type_information();
     let type_info_rhs = type_rhs.get_type_information();
 
@@ -589,16 +679,15 @@ fn is_output_assignment_and_has_direct_access(
                 return false;
             }
 
-            let param_index = if is_method { (param_index as u32) - 1 } else { param_index as u32 };
-
             // We don't want to accidentally assign a pointer back to a literal that is passed
             if node.is_literal() {
                 return false;
             }
 
-            if !is_implicit_output_assignment(index, pou_name, param_index) {
+            let Some(_) = find_implicit_output_parameter_index(index, pou_name, param_index, is_method)
+            else {
                 return false;
-            }
+            };
 
             let node_type = annotations.get_type_or_void(node, index);
 
@@ -633,7 +722,7 @@ fn is_output_assignment_of_sized_string(
                 return false;
             }
 
-            left_node_type.is_sized_string()
+            string_type_alloc_needed(left_node_type, right_node_type, index)
         }
         _ => {
             // The first parameter of a method is always "this"
@@ -641,16 +730,16 @@ fn is_output_assignment_of_sized_string(
                 return false;
             }
 
-            let param_index = if is_method { (param_index as u32) - 1 } else { param_index as u32 };
-
             // We don't want to accidentally assign a pointer back to a literal that is passed
             if node.is_literal() {
                 return false;
             }
 
-            if !is_implicit_output_assignment(index, pou_name, param_index) {
+            let Some(param_index) =
+                find_implicit_output_parameter_index(index, pou_name, param_index, is_method)
+            else {
                 return false;
-            }
+            };
 
             let Some(param_index_entry) = index.get_declared_parameter(pou_name, param_index) else {
                 return false;
@@ -674,7 +763,7 @@ fn is_output_assignment_of_sized_string(
 
             let type_rhs = annotations.get_type_or_void(node, index);
 
-            string_type_alloc_needed(type_lhs, type_rhs, index) && type_lhs.is_sized_string()
+            string_type_alloc_needed(type_lhs, type_rhs, index)
         }
     }
 }
@@ -685,6 +774,41 @@ fn is_implicit_output_assignment(index: &Index, pou_name: &str, param_index: u32
     };
 
     param_index_entry.is_output()
+}
+
+fn find_implicit_output_parameter_index(
+    index: &Index,
+    pou_name: &str,
+    param_index: usize,
+    is_method: bool,
+) -> Option<u32> {
+    if is_method {
+        if param_index == 0 {
+            return None;
+        }
+
+        let declared_index = (param_index as u32) - 1;
+        return is_implicit_output_assignment(index, pou_name, declared_index).then_some(declared_index);
+    }
+
+    let declared_index = param_index as u32;
+    if is_implicit_output_assignment(index, pou_name, declared_index) {
+        return Some(declared_index);
+    }
+
+    // Some lowered call signatures shift implicit output positions by one in either
+    // direction depending on whether a synthetic return slot is materialized in the
+    // indexed signature.
+    if declared_index > 0 {
+        let declared_index_without_return_slot = declared_index - 1;
+        if is_implicit_output_assignment(index, pou_name, declared_index_without_return_slot) {
+            return Some(declared_index_without_return_slot);
+        }
+    }
+
+    let declared_index_with_return_slot = declared_index + 1;
+    is_implicit_output_assignment(index, pou_name, declared_index_with_return_slot)
+        .then_some(declared_index_with_return_slot)
 }
 
 fn lower_output_assignments(
@@ -766,7 +890,13 @@ fn lower_output_assignments(
                 return;
             }
             // The first parameter of a method is always "this", this is validated before hand
-            let param_index = if is_method { (param_index as u32) - 1 } else { param_index as u32 };
+            let Some(param_index) =
+                find_implicit_output_parameter_index(index, qualified_pou_name, param_index, is_method)
+            else {
+                // If this fails, simply return the expression
+                expressions.push(param.clone());
+                return;
+            };
 
             let Some(param_index_entry) = index.get_declared_parameter(qualified_pou_name, param_index)
             else {
@@ -1873,7 +2003,7 @@ mod tests {
         PROGRAM mainProg
             VAR
                 MyString : STRING;
-                MyInt: INT := 1234; // will be overwritten
+                MyInt: INT := 1234;
                 retValue : DINT;
             END_VAR
 
@@ -1926,7 +2056,7 @@ mod tests {
         PROGRAM mainProg
             VAR
                 MyString : STRING;
-                MyInt: INT := 1234; // will be overwritten
+                MyInt: INT := 1234;
                 retValue : DINT;
             END_VAR
 
@@ -2018,7 +2148,7 @@ mod tests {
         PROGRAM mainProg
             VAR
                 MyString : STRING[1024];
-                MyInt: INT := 1234; // will be overwritten
+                MyInt: INT := 1234;
                 retValue : DINT;
             END_VAR
 
@@ -2067,7 +2197,7 @@ mod tests {
         PROGRAM mainProg
             VAR
                 MyString : STRING[1023];
-                MyInt: INT := 1234; // will be overwritten
+                MyInt: INT := 1234;
                 retValue : DINT;
             END_VAR
 
@@ -2116,7 +2246,7 @@ mod tests {
         PROGRAM mainProg
             VAR
                 MyString : STRING[10];
-                MyInt: INT := 1234; // will be overwritten
+                MyInt: INT := 1234;
                 retValue : DINT;
             END_VAR
 
@@ -2147,8 +2277,10 @@ mod tests {
 
         assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"
         alloca __Config_GetString0: STRING;
-        Config_GetString(__Config_GetString0, '/some/config/value', MyString);
+        alloca __Config_GetString_Value1: __Config_GetString_Value;
+        Config_GetString(__Config_GetString0, '/some/config/value', __Config_GetString_Value1);
         retValue := __Config_GetString0;
+        MyString := __Config_GetString_Value1;
         ");
     }
 }

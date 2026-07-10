@@ -460,9 +460,14 @@ fn calling_a_function() {
     entry:
       %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
       %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      %__main_fun_o0 = alloca i64, align [filtered]
+      store i64 0, ptr %__main_fun_o0, align [filtered]
       %load_x = load i16, ptr %x, align [filtered]
       %1 = alloca i64, align [filtered]
-      %call = call i32 @main_fun(i16 %load_x, ptr %z, ptr %1)
+      %call = call i32 @main_fun(i16 %load_x, ptr %__main_fun_o0, ptr %1)
+      %load___main_fun_o0 = load i64, ptr %__main_fun_o0, align [filtered]
+      %2 = trunc i64 %load___main_fun_o0 to i8
+      store i8 %2, ptr %z, align [filtered]
       ret void
     }
 

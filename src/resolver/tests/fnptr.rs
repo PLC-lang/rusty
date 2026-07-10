@@ -530,7 +530,7 @@ fn function_pointer_arguments_have_correct_type_hint() {
                         8,
                     ),
                     encoding: Utf8,
-                    declared_with_length: false,
+                    declared_with_length: true,
                 },
                 nature: String,
                 location: SourceLocation {
@@ -602,7 +602,7 @@ fn function_pointer_arguments_have_correct_type_hint() {
                         8,
                     ),
                     encoding: Utf8,
-                    declared_with_length: false,
+                    declared_with_length: true,
                 },
                 nature: String,
                 location: SourceLocation {
