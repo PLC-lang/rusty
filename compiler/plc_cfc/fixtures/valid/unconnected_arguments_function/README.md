@@ -22,8 +22,8 @@ list. This is exactly the AST the ST parser builds for `myFunc(a := localA, b :=
 Only `a` is wired. The transpiler still emits `b` and `io`, so the network means:
 
 ```text
-temp_0 := myFunc(a := localA, b := , io := );
-localResult := temp_0;
+__myFunc_res_0 := myFunc(a := localA, b := , io := );
+localResult := __myFunc_res_0;
 ```
 
 Downstream the empty `b` falls back to its declared default (`99`), while the empty

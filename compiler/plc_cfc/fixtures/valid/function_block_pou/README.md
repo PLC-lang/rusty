@@ -28,7 +28,7 @@ END_VAR
 VAR_OUTPUT
     sum : DINT;
 END_VAR
-    temp_0 := myAdd(in1 := a, in2 := b);
-    sum := temp_0;
+    __myAdd_res_0 := myAdd(in1 := a, in2 := b);
+    sum := __myAdd_res_0;
 END_FUNCTION_BLOCK
 ```

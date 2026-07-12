@@ -24,8 +24,8 @@ Every block and sink is emitted in `priorityInNetwork` order, so even though
 `myAdd` is listed first, the network means:
 
 ```text
-temp_0 := myMul(in1 := localA, in2 := localB);
-resultMul := temp_0;
-temp_1 := myAdd(in1 := localC, in2 := localD);
-resultAdd := temp_1;
+__myMul_res_0 := myMul(in1 := localA, in2 := localB);
+resultMul := __myMul_res_0;
+__myAdd_res_1 := myAdd(in1 := localC, in2 := localD);
+resultAdd := __myAdd_res_1;
 ```

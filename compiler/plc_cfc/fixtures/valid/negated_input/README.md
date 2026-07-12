@@ -20,6 +20,6 @@ incoming value in `NOT` before passing it.
 means:
 
 ```text
-temp_0 := myGate(a := NOT localA, b := localB);
-localResult := temp_0;
+__myGate_res_0 := myGate(a := NOT localA, b := localB);
+localResult := __myGate_res_0;
 ```

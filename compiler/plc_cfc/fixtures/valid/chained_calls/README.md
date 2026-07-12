@@ -21,7 +21,7 @@ once, it is captured in a temporary that the next call reads.
 `myMul`'s result is written to `localResultA`, so the network means:
 
 ```text
-temp_0 := myAdd(in1 := localA, in2 := localB);
-temp_1 := myMul(IN1 := temp_0, IN2 := localB);
-localResultA := temp_1;
+__myAdd_res_0 := myAdd(in1 := localA, in2 := localB);
+__myMul_res_1 := myMul(IN1 := __myAdd_res_0, IN2 := localB);
+localResultA := __myMul_res_1;
 ```

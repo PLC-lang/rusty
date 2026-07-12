@@ -27,7 +27,7 @@ VAR_INPUT
     a : DINT;
     b : DINT;
 END_VAR
-    temp_0 := myAdd(in1 := a, in2 := b);
-    myFunc := temp_0;
+    __myAdd_res_0 := myAdd(in1 := a, in2 := b);
+    myFunc := __myAdd_res_0;
 END_FUNCTION
 ```

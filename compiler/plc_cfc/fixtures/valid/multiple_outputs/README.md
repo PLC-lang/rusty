@@ -33,11 +33,11 @@ alone (no `temp := …`), because the function is invoked only for its output pi
 network means:
 
 ```text
-myInstance(a => temp_0, b => , c => temp_1);
-localA := temp_0;
-localB := temp_1;
-myFunction(a => temp_2, b => );
-localA := temp_2;
+myInstance(a => __myFunctionBlock_res_0, b => , c => __myFunctionBlock_res_1);
+localA := __myFunctionBlock_res_0;
+localB := __myFunctionBlock_res_1;
+myFunction(a => __myFunction_res_2, b => );
+localA := __myFunction_res_2;
 ```
 
 Note the two `localA` sinks (priorities 1 and 4) write the same variable twice — the diagram

@@ -20,6 +20,6 @@ pin, so it is called by name and its `total` output is routed through a temporar
 that the `localTotal` sink then reads:
 
 ```text
-auxProgram(increment := localIncrement, total => temp_0);
-localTotal := temp_0;
+auxProgram(increment := localIncrement, total => __auxProgram_res_0);
+localTotal := __auxProgram_res_0;
 ```

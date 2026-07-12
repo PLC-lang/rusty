@@ -22,6 +22,6 @@ on `myInstance` and its `count` output is routed through a temporary that the
 `localCount` sink then reads:
 
 ```text
-myInstance(step := localStep, count => temp_0);
-localCount := temp_0;
+myInstance(step := localStep, count => __Counter_res_0);
+localCount := __Counter_res_0;
 ```

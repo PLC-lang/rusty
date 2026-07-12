@@ -1,0 +1,5 @@
+// The same direct feedback wire inside a FUNCTION-bodied POU. A function's VAR is
+// per-invocation storage, so the feedback wire deterministically reads the type
+// default (0) on every call instead of the previous result -- myFunc() returns 1
+// every time, it does not integrate across calls.
+RUN: %COMPILE %S/inc.st %S/myFunc.cfc %S/main.st && %RUN | %CHECK %S/main.st

@@ -22,6 +22,6 @@ Resolving wire 14 walks every hop (`14 → 13 → 12 → 11 → 10`) to `alwaysF
 the whole chain collapses to a direct wire:
 
 ```text
-temp_0 := alwaysFive();
-result := temp_0;
+__alwaysFive_res_0 := alwaysFive();
+result := __alwaysFive_res_0;
 ```

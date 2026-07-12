@@ -19,6 +19,6 @@ into the call.
 `localA` feeds `in1` and the literal `100` feeds `in2`, so the network means:
 
 ```text
-temp_0 := myAdd(in1 := localA, in2 := 100);
-localResult := temp_0;
+__myAdd_res_0 := myAdd(in1 := localA, in2 := 100);
+localResult := __myAdd_res_0;
 ```

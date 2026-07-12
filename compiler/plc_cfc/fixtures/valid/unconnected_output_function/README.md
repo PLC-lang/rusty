@@ -22,8 +22,8 @@ The result pin (`myFunc`) is wired to `localResult` and goes through a temp as u
 the unconnected `extra` output is emitted empty, so the network means:
 
 ```text
-temp_0 := myFunc(a := localA, extra => );
-localResult := temp_0;
+__myFunc_res_0 := myFunc(a := localA, extra => );
+localResult := __myFunc_res_0;
 ```
 
 The empty `extra => ` simply discards that output downstream. The transpiler lowers it

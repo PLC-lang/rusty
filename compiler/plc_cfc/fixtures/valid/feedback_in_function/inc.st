@@ -1,0 +1,7 @@
+FUNCTION inc : DINT
+	VAR_INPUT
+		x: DINT;
+	END_VAR
+
+	inc := x + 1;
+END_FUNCTION

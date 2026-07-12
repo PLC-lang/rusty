@@ -18,6 +18,6 @@ that the sink reads — exercising the no-argument call form `getOffset()`.
 network means:
 
 ```text
-temp_0 := getOffset();
-localResult := temp_0;
+__getOffset_res_0 := getOffset();
+localResult := __getOffset_res_0;
 ```

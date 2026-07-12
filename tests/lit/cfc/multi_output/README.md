@@ -21,9 +21,9 @@ creation run correctly — every other lit block wires only a single output.
 Lowers to:
 
 ```text
-inst(n := n, lo => __temp_0, hi => __temp_1);
-outLo := __temp_0;
-outHi := __temp_1;
+inst(n := n, lo => __Splitter_res_0, hi => __Splitter_res_1);
+outLo := __Splitter_res_0;
+outHi := __Splitter_res_1;
 ```
 
 Both outputs land correct values (`lo = 7`, `hi = 107`), each through its own temp.

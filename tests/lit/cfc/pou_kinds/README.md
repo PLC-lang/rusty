@@ -2,7 +2,7 @@
 
 Integration test: **every CFC POU kind** — a `FUNCTION`, a `FUNCTION_BLOCK`, and a
 `PROGRAM` — each defined in CFC and called from ST. All three share the same trivial
-graph (add two inputs via the `MyAdd` wrapper, see `../OPEN.md`); only the POU kind and
+graph (add two inputs via the `MyAdd` wrapper); only the POU kind and
 the output sink differ. This also covers the "CFC called from ST" direction (the reverse
 of `st_called_from_cfc`).
 

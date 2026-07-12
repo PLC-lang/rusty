@@ -20,7 +20,7 @@ read — rather than calling `myAdd` twice.
 and `localResultB`, so the network means:
 
 ```text
-temp_0 := myAdd(in1 := localA, in2 := localB);
-localResultA := temp_0;
-localResultB := temp_0;
+__myAdd_res_0 := myAdd(in1 := localA, in2 := localB);
+localResultA := __myAdd_res_0;
+localResultB := __myAdd_res_0;
 ```

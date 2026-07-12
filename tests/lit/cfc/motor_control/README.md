@@ -5,7 +5,7 @@ emergency-stop interlock, built from multiple **mixed CFC + ST files** and drive
 single ST `main`. It exercises, in one project, most of the supported CFC feature set:
 
 - a CFC **FUNCTION** (`StartCmd`) and a CFC **FUNCTION_BLOCK** (`Motor`);
-- **ST functions called from CFC** (`MyAnd`, `MyOr` — operator-block stand-ins, see `../OPEN.md`);
+- **ST functions called from CFC** (`MyAnd`, `MyOr` — operator-block stand-ins);
 - an **ST function block called from CFC** (`SrLatch`, stateful);
 - a **CFC function called from CFC** (`Motor` → `StartCmd`);
 - a **negated input** (`NOT estop` inside `StartCmd`);
@@ -51,10 +51,10 @@ that wire to **both** `StartCmd.estop` and `MyOr.b`. `StartCmd` produces the lat
 Lowers (in evaluation-priority order) to:
 
 ```text
-__temp_0 := StartCmd(start := start, estop := estop);   (* set  = start AND NOT estop *)
-__temp_1 := MyOr(a := stop, b := estop);                (* reset = stop OR estop      *)
-latch(set := __temp_0, reset := __temp_1, q => __temp_2);
-running := __temp_2;
+__StartCmd_res_0 := StartCmd(start := start, estop := estop);   (* set  = start AND NOT estop *)
+__MyOr_res_1 := MyOr(a := stop, b := estop);                (* reset = stop OR estop      *)
+latch(set := __StartCmd_res_0, reset := __MyOr_res_1, q => __SrLatch_res_2);
+running := __SrLatch_res_2;
 ```
 
 ## The scan sequence (`main`)

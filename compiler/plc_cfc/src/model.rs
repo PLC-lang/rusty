@@ -473,7 +473,8 @@ impl Operation {
         match self {
             Operation::Call(value) => &value.type_name,
             Operation::Sink(value) => &value.identifier,
-            Operation::Return(_) => "conditional return",
+            Operation::Return(ret) if ret.connection_in.is_some() => "conditional return",
+            Operation::Return(_) => "return",
         }
     }
 

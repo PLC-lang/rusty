@@ -2,8 +2,8 @@
 
 Integration test: a **CFC function block calls an ST function**. `Computer` (a CFC FB)
 wires its two inputs into a `MyAdd` block, whose output becomes the FB's `result`
-output. `MyAdd` is an ordinary ST function (a stand-in for an `ADD` operator block —
-see `../OPEN.md`). An ST `main` drives it and prints the result.
+output. `MyAdd` is an ordinary ST function (a stand-in for an `ADD` operator block,
+which plc_cfc does not model yet). An ST `main` drives it and prints the result.
 
 ```text
                     +------ MyAdd ------+  (1)
@@ -23,8 +23,8 @@ see `../OPEN.md`). An ST `main` drives it and prints the result.
 then assigned — the FB body lowers to:
 
 ```text
-__temp_0 := MyAdd(in1 := a, in2 := b);
-result := __temp_0;
+__MyAdd_res_0 := MyAdd(in1 := a, in2 := b);
+result := __MyAdd_res_0;
 ```
 
 This proves a CFC→ST call compiles, links, and runs (`result = 42`), and incidentally

@@ -1,4 +1,4 @@
-// Stand-in for an ADD operator block until plc_cfc models those (see ../OPEN.md).
+// Stand-in for an ADD operator block until plc_cfc models those.
 FUNCTION MyAdd : DINT
 VAR_INPUT
     in1 : DINT;

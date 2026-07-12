@@ -1,4 +1,4 @@
-// Boolean operator wrappers — stand-ins for AND/OR operator blocks (see ../OPEN.md).
+// Boolean operator wrappers — stand-ins for AND/OR operator blocks.
 FUNCTION MyAnd : BOOL
 VAR_INPUT
     a, b : BOOL;

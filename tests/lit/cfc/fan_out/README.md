@@ -22,9 +22,9 @@ the producer must be evaluated into one temporary that both sinks then read — 
 Lowers to a single evaluation reused by both sinks:
 
 ```text
-__temp_0 := Tick(seed := seed);
-outA := __temp_0;
-outB := __temp_0;
+__Tick_res_0 := Tick(seed := seed);
+outA := __Tick_res_0;
+outB := __Tick_res_0;
 ```
 
 Both sinks read `7`, and `calls = 1` (not `2`) proves `Tick` ran exactly once.

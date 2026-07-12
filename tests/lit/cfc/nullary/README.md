@@ -20,8 +20,8 @@ Exercises the nullary call form `getOffset()` and the result-pin temp at runtime
 Lowers to:
 
 ```text
-__temp_0 := getOffset();
-result := __temp_0;
+__getOffset_res_0 := getOffset();
+result := __getOffset_res_0;
 ```
 
 Observing `100` proves the no-argument call runs and its result flows through the temp.

@@ -30,6 +30,6 @@ Resolving through the pair (`result` reads wire 7 → continuation `five` → co
 to the block:
 
 ```text
-temp_0 := alwaysFive();
-result := temp_0;
+__alwaysFive_res_0 := alwaysFive();
+result := __alwaysFive_res_0;
 ```

@@ -1052,6 +1052,58 @@ mod tests {
     }
 
     #[test]
+    fn function_block_feedback() {
+        //            +------ Counter ------+ (0)
+        //    +------>| in1            out1 |-------+-->  y  (1)
+        //    |       +---------------------+       |
+        //    +-------------------------------------+
+        //
+        //    Counter  called on instance myInstance
+        //    (0),(1)  evaluation-priority badges shown by the IDE
+        //
+        // The result variable must live in plain VAR (static in a program body): the feedback
+        // wire reads the previous cycle's value, VAR_TEMP would reset it every cycle
+        let xml = include_str!("../fixtures/valid/function_block_feedback/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @r"
+        PROGRAM mainProgram
+        VAR
+            myInstance : Counter;
+            y : DINT;
+        END_VAR
+        VAR
+            __Counter_res_0 : __output@Counter@out1;
+        END_VAR
+            myInstance(in1 := __Counter_res_0, out1 => __Counter_res_0);
+            y := __Counter_res_0;
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn feedback_in_function() {
+        //            +-------- inc --------+ (0)
+        //    +------>| x               inc |-------+-->  myFunc  (1)
+        //    |       +---------------------+       |
+        //    +-------------------------------------+
+        //
+        //    myFunc   the FUNCTION's return value (a sink named after the function)
+        //    (0),(1)  evaluation-priority badges shown by the IDE
+        //
+        // Same emission as in a program, but a function's VAR is per-invocation storage: the
+        // feedback wire deterministically reads the type default (0) on every call
+        let xml = include_str!("../fixtures/valid/feedback_in_function/myFunc.cfc");
+        assert_snapshot!(transpile(xml), @r"
+        FUNCTION myFunc : DINT
+        VAR
+            __inc_res_0 : __return@inc;
+        END_VAR
+            __inc_res_0 := inc(x := __inc_res_0);
+            myFunc := __inc_res_0;
+        END_FUNCTION
+        ");
+    }
+
+    #[test]
     fn program_call() {
         //                        +----- auxProgram -----+ (1)
         //    localIncrement ---->| increment      total |---->  localTotal  (2)

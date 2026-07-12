@@ -489,6 +489,48 @@ mod tests {
     }
 
     #[test]
+    fn function_block_feedback() {
+        //            +------ Counter ------+ (0)
+        //    +------>| in1            out1 |-------+-->  y  (1)
+        //    |       +---------------------+       |
+        //    +-------------------------------------+
+        //
+        //    Counter  called on instance myInstance
+        //    (0),(1)  evaluation-priority badges shown by the IDE
+        let xml = include_str!("../fixtures/valid/function_block_feedback/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::resolve(&deserialized);
+
+        // The single produced value (the out1 pin) is consumed twice: by the block's own input
+        // (the feedback wire) and by the sink
+        assert_eq!(resolver.sources.len(), 1);
+        let Object::BlockOutput(block, output) = resolver.get(2).unwrap() else { panic!() };
+        assert_eq!(block.type_name, "Counter");
+        assert_eq!(output.parameter_name, "out1");
+        assert!(resolver.is_consumed(2));
+    }
+
+    #[test]
+    fn feedback_in_function() {
+        //            +-------- inc --------+ (0)
+        //    +------>| x               inc |-------+-->  myFunc  (1)
+        //    |       +---------------------+       |
+        //    +-------------------------------------+
+        //
+        //    myFunc   the FUNCTION's return value (a sink named after the function)
+        //    (0),(1)  evaluation-priority badges shown by the IDE
+        let xml = include_str!("../fixtures/valid/feedback_in_function/myFunc.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::resolve(&deserialized);
+
+        assert_eq!(resolver.sources.len(), 1);
+        let Object::BlockOutput(block, output) = resolver.get(2).unwrap() else { panic!() };
+        assert_eq!(block.type_name, "inc");
+        assert_eq!(output.parameter_name, "inc");
+        assert!(resolver.is_consumed(2));
+    }
+
+    #[test]
     fn program_call() {
         //                        +----- auxProgram -----+ (1)
         //    localIncrement ---->| increment      total |---->  localTotal  (2)

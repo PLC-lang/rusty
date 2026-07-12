@@ -1,0 +1,7 @@
+// A direct self-feedback wire (design doc FB3, the integrator pattern): the block's
+// output pin is wired back to its own input. The consumed output's result variable
+// lives in plain VAR (static in a program body), so each cycle reads the previous
+// cycle's value and increments -- y = 1, 2, 3. This pins cycle persistence: moving
+// result variables back to VAR_TEMP would transpile identically but reset the loop
+// every cycle (y = 1, 1, 1).
+RUN: %COMPILE %S/Counter.st %S/mainProgram.cfc %S/main.st && %RUN | %CHECK %S/main.st

@@ -21,6 +21,6 @@ variable by reference — it is both read and written in place by the call.
 so the network means:
 
 ```text
-temp_0 := accumulate(value := localValue, sum := localSum);
-localResult := temp_0;
+__accumulate_res_0 := accumulate(value := localValue, sum := localSum);
+localResult := __accumulate_res_0;
 ```

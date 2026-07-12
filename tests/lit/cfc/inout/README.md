@@ -23,8 +23,8 @@ the mutation after the call — not just the returned value.
 Lowers to:
 
 ```text
-__temp_0 := accumulate(value := value, sum := sum);
-result := __temp_0;
+__accumulate_res_0 := accumulate(value := value, sum := sum);
+result := __accumulate_res_0;
 ```
 
 `sum` is passed by reference, so after the call `sum` is `15` (5 + 10), proving the

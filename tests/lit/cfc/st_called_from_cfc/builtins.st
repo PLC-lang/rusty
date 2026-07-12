@@ -1,4 +1,4 @@
-// Stand-in for a builtin operator block until plc_cfc models those (see ../OPEN.md).
+// Stand-in for a builtin operator block until plc_cfc models those.
 // A CFC block calls this like any user function; the body is just the native ST operator.
 FUNCTION MyAdd : DINT
 VAR_INPUT

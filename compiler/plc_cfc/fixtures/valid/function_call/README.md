@@ -21,6 +21,6 @@ return value is encoded. The block is evaluated once into a temporary, which the
 `localResult` sink then reads, so the network means:
 
 ```text
-temp_0 := myAdd(in1 := localA, in2 := localB);
-localResult := temp_0;
+__myAdd_res_0 := myAdd(in1 := localA, in2 := localB);
+localResult := __myAdd_res_0;
 ```
