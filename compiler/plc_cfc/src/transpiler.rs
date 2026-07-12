@@ -31,7 +31,8 @@
 //! first.
 //!
 //! The priority is stored in an `<EvaluationPriority priorityInNetwork="...">` entry on the object. Objects
-//! without one sort ahead of the rest.
+//! without one are rejected at deserialize time — a missing priority would silently sort ahead of the whole
+//! network, see [`crate::model`].
 //!
 //! ## Source & Sink
 //!
@@ -287,14 +288,30 @@ impl Transpiler {
             return Err(Diagnostic::new("Invalid ST declaration").with_sub_diagnostics(diagnostics));
         }
 
-        // Then the actual graphical units
-        unit.implementations[0].statements = self.transpile_network();
+        // Then the actual graphical units. The declaration may contain method implementations, which
+        // the parser pushes ahead of the POU's own body — find the body by name (methods carry
+        // qualified `<pou>.<method>` names) rather than assuming its position.
+        let statements = self.transpile_network();
+        let name = self.pou.name();
+        let Some(implementation) =
+            unit.implementations.iter_mut().find(|imp| imp.name.eq_ignore_ascii_case(name))
+        else {
+            return Err(Diagnostic::new(format!(
+                "Declaration does not contain an implementation for `{name}`"
+            )));
+        };
+        implementation.statements = statements;
 
         // Inject the generated temporary variables, if any. They live in a plain VAR block so they
         // persist across cycles in a program or function block body (previous-cycle reads, feedback
-        // loops); only inside a function body do they remain per-invocation storage.
+        // loops); only inside a function body do they remain per-invocation storage. Like the
+        // implementation above, the POU is selected by name rather than position.
         if !self.temporaries.is_empty() {
-            unit.pous[0].variable_blocks.push(VariableBlock::local(self.temporaries.into_values().collect()));
+            let Some(pou) = unit.pous.iter_mut().find(|pou| pou.name.eq_ignore_ascii_case(name)) else {
+                return Err(Diagnostic::new(format!("Declaration does not contain a POU named `{name}`")));
+            };
+
+            pou.variable_blocks.push(VariableBlock::local(self.temporaries.into_values().collect()));
         }
 
         Ok(unit)
@@ -405,7 +422,15 @@ impl Transpiler {
 
         if let Some(temp) = self.temporaries.get(&id) {
             let name = temp.name.clone();
-            return self.create_member_reference(&name, location);
+            let node = self.create_member_reference(&name, location);
+
+            // A negated output pin inverts the value it feeds to each of its consumers
+            return match self.resolver.get(id) {
+                Some(Object::BlockOutput(_, output)) if output.negated => {
+                    node.negate(self.id_provider.clone())
+                }
+                _ => node,
+            };
         }
 
         match self.resolver.get(id) {
@@ -738,6 +763,67 @@ mod tests {
         END_VAR
             __myGate_res_0 := myGate(a := NOT localA, b := localB);
             localResult := __myGate_res_0;
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn negated_output() {
+        //                      +----- myGate -----+ (1)
+        //    localA  --------->| a         myGate |--o--->  localResult  (2)
+        //    localB  --------->| b                |
+        //                      +------------------+
+        //
+        //    o        a negated output pin (consumers read NOT the pin's value)
+        //    (1),(2)  evaluation-priority badges shown by the IDE
+        let xml = include_str!("../fixtures/valid/negated_output/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @"
+        PROGRAM mainProgram
+        VAR
+            localA : BOOL;
+            localB : BOOL;
+            localResult : BOOL;
+        END_VAR
+        VAR
+            __myGate_res_0 : __return@myGate;
+        END_VAR
+            __myGate_res_0 := myGate(a := localA, b := localB);
+            localResult := NOT __myGate_res_0;
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn negated_output_fan_out() {
+        //                       +----- Toggle -----+ (1)
+        //    localEnable  ----->| enable      isOn |--o--+---->  localOff  (2)
+        //                       +------------------+     |
+        //                                                |    +----- myGate -----+ (3)
+        //                                                +--o-| a         myGate |--->  localResult  (4)
+        //                       localB  ----------------------| b                |
+        //                                                     +------------------+
+        //
+        //    o (pin)   the negated isOn output pin (consumers read NOT the pin's value)
+        //    o (wire)  the negated a input pin (wraps its value in NOT)
+        //    (1)-(4)   evaluation-priority badges shown by the IDE
+        let xml = include_str!("../fixtures/valid/negated_output_fan_out/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @"
+        PROGRAM mainProgram
+        VAR
+            myInstance : Toggle;
+            localEnable : BOOL;
+            localB : BOOL;
+            localOff : BOOL;
+            localResult : BOOL;
+        END_VAR
+        VAR
+            __Toggle_res_0 : __output@Toggle@isOn;
+            __myGate_res_1 : __return@myGate;
+        END_VAR
+            myInstance(enable := localEnable, isOn => __Toggle_res_0);
+            localOff := NOT __Toggle_res_0;
+            __myGate_res_1 := myGate(a := NOT NOT __Toggle_res_0, b := localB);
+            localResult := __myGate_res_1;
         END_PROGRAM
         ");
     }

@@ -1,0 +1,12 @@
+FUNCTION_BLOCK Toggle
+	VAR_INPUT
+		enable: BOOL;
+	END_VAR
+	VAR_OUTPUT
+		isOn: BOOL;
+	END_VAR
+
+	IF enable THEN
+		isOn := NOT isOn;
+	END_IF
+END_FUNCTION_BLOCK

@@ -39,7 +39,7 @@ pub struct Resolver {
 #[derive(Debug)]
 pub enum Object {
     Variable(DataSource),
-    // The `OutputVariable` field is only read in tests, hence the allow
+    // The `Block` field is only read in tests, hence the allow
     #[allow(dead_code)]
     BlockOutput(Block, OutputVariable),
 }
@@ -292,6 +292,51 @@ mod tests {
         assert_eq!(a.identifier, "localA");
         let Object::BlockOutput(block, _) = resolver.get(6).unwrap() else { panic!() };
         assert_eq!(block.type_name, "myGate");
+    }
+
+    #[test]
+    fn negated_output() {
+        //                      +----- myGate -----+ (1)
+        //    localA  --------->| a         myGate |--o--->  localResult  (2)
+        //    localB  --------->| b                |
+        //                      +------------------+
+        //
+        //    o        a negated output pin (consumers read NOT the pin's value)
+        //    (1),(2)  evaluation-priority badges shown by the IDE
+        let xml = include_str!("../fixtures/valid/negated_output/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::resolve(&deserialized);
+
+        assert_eq!(resolver.sources.len(), 3);
+        let Object::BlockOutput(block, output) = resolver.get(6).unwrap() else { panic!() };
+        assert_eq!(block.type_name, "myGate");
+        assert!(output.negated);
+    }
+
+    #[test]
+    fn negated_output_fan_out() {
+        //                       +----- Toggle -----+ (1)
+        //    localEnable  ----->| enable      isOn |--o--+---->  localOff  (2)
+        //                       +------------------+     |
+        //                                                |    +----- myGate -----+ (3)
+        //                                                +--o-| a         myGate |--->  localResult  (4)
+        //                       localB  ----------------------| b                |
+        //                                                     +------------------+
+        //
+        //    o (pin)   the negated isOn output pin (consumers read NOT the pin's value)
+        //    o (wire)  the negated a input pin (wraps its value in NOT)
+        //    (1)-(4)   evaluation-priority badges shown by the IDE
+        let xml = include_str!("../fixtures/valid/negated_output_fan_out/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::resolve(&deserialized);
+
+        assert_eq!(resolver.sources.len(), 4);
+        let Object::BlockOutput(toggle, is_on) = resolver.get(6).unwrap() else { panic!() };
+        assert_eq!(toggle.type_name, "Toggle");
+        assert!(is_on.negated);
+        let Object::BlockOutput(gate, result) = resolver.get(9).unwrap() else { panic!() };
+        assert_eq!(gate.type_name, "myGate");
+        assert!(!result.negated);
     }
 
     #[test]

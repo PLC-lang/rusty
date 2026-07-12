@@ -182,6 +182,8 @@ pub struct InputVariable {
 pub struct OutputVariable {
     #[serde(rename = "@parameterName")]
     pub parameter_name: String,
+    #[serde(rename = "@negated", default)]
+    pub negated: bool,
     #[serde(rename = "ConnectionPointOut", deserialize_with = "connection_point_out")]
     pub connection_out: u64,
 }
@@ -202,7 +204,7 @@ pub struct DataSink {
     pub global_id: u64,
     #[serde(rename = "@identifier")]
     pub identifier: String,
-    #[serde(rename = "AddData", default)]
+    #[serde(rename = "AddData", deserialize_with = "sink_add_data")]
     pub add_data: AddData,
     #[serde(rename = "ConnectionPointIn", default, deserialize_with = "connection_point_in")]
     pub connection_in: Option<u64>,
@@ -228,7 +230,7 @@ pub struct Jump {
 pub struct Return {
     #[serde(rename = "@globalId")]
     pub global_id: u64,
-    #[serde(rename = "AddData", default)]
+    #[serde(rename = "AddData", deserialize_with = "return_add_data")]
     pub add_data: AddData,
     #[serde(rename = "ConnectionPointIn", default, deserialize_with = "connection_point_in")]
     pub connection_in: Option<u64>,
@@ -344,19 +346,42 @@ where
     }
 }
 
-/// Unlike sinks and returns, whose [`AddData`] tolerates a missing priority, a block must carry one:
-/// its results are materialized into temporaries at its place in the evaluation order, so a block
-/// without a priority has no defined place to be evaluated at.
-fn block_add_data<'de, D>(deserializer: D) -> Result<AddData, D::Error>
+/// Every executable object (block, sink, return) is emitted at its priority's slot in the evaluation
+/// order, so an object without a priority has no defined place to be evaluated at. Worse, a missing
+/// priority would silently sort in front of the whole network (`None < Some(_)`) — for an
+/// unconditional `RETURN` that dead-codes the entire POU — hence it is rejected at deserialize time.
+/// The IDE always exports the entry; this only hardens against hand-edited or foreign files.
+fn add_data_with_required_priority<'de, D>(deserializer: D, kind: &str) -> Result<AddData, D::Error>
 where
     D: serde::de::Deserializer<'de>,
 {
     let add_data = AddData::deserialize(deserializer)?;
     if add_data.priority.is_none() {
-        return Err(serde::de::Error::custom("block is missing an `EvaluationPriority` entry"));
+        return Err(serde::de::Error::custom(format!("{kind} is missing an `EvaluationPriority` entry")));
     }
 
     Ok(add_data)
+}
+
+fn block_add_data<'de, D>(deserializer: D) -> Result<AddData, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    add_data_with_required_priority(deserializer, "block")
+}
+
+fn sink_add_data<'de, D>(deserializer: D) -> Result<AddData, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    add_data_with_required_priority(deserializer, "data sink")
+}
+
+fn return_add_data<'de, D>(deserializer: D) -> Result<AddData, D::Error>
+where
+    D: serde::de::Deserializer<'de>,
+{
+    add_data_with_required_priority(deserializer, "return")
 }
 
 fn connection_point_in<'de, D>(deserializer: D) -> Result<Option<u64>, D::Error>
@@ -403,7 +428,6 @@ impl Pou {
         }
     }
 
-    #[allow(dead_code)]
     pub fn name(&self) -> &str {
         &self.body().name
     }

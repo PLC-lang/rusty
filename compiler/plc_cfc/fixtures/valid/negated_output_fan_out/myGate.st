@@ -1,0 +1,7 @@
+FUNCTION myGate : BOOL
+	VAR_INPUT
+		a, b: BOOL;
+	END_VAR
+
+	myGate := a AND b;
+END_FUNCTION
