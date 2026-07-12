@@ -236,9 +236,12 @@ impl AstVisitor for AstSerializer<'_> {
                     self.result.push_str(referenced_type);
                 }
             }
-            DataTypeDeclaration::Definition { data_type, .. } => {
-                data_type.as_ref().walk(self);
-            }
+            DataTypeDeclaration::Definition { data_type, .. } => match data_type.as_ref() {
+                // An inline array must render as `ARRAY[...] OF ...`; walking it would concatenate
+                // the bare bounds and inner type name (`ARRAY[1..5] OF DINT` -> `15DINT`)
+                array @ DataType::ArrayType { .. } => self.visit_data_type(array),
+                data_type => data_type.walk(self),
+            },
             DataTypeDeclaration::Aggregate { referenced_type, .. } => {
                 self.result.push_str(referenced_type);
             }
@@ -271,6 +274,14 @@ impl AstVisitor for AstSerializer<'_> {
             }
             DataType::StructType { name: Some(name), .. } => {
                 self.result.push_str(name);
+            }
+            DataType::ArrayType { bounds, referenced_type, .. } => {
+                self.result.push_str("ARRAY[");
+                let was_in_paren = std::mem::replace(&mut self.is_in_paren, true);
+                bounds.walk(self);
+                self.is_in_paren = was_in_paren;
+                self.result.push_str("] OF ");
+                self.visit_data_type_declaration(referenced_type);
             }
             // TODO: This should be expanded to include the other types as needed
             _ => (),
@@ -404,10 +415,14 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_range_statement(&mut self, stmt: &RangeStatement, _node: &AstNode) {
-        stmt.walk(self)
+        stmt.start.walk(self);
+        self.result.push_str("..");
+        stmt.end.walk(self);
     }
 
-    fn visit_vla_range_statement(&mut self, _node: &AstNode) {}
+    fn visit_vla_range_statement(&mut self, _node: &AstNode) {
+        self.result.push('*');
+    }
 
     fn visit_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
         stmt.left.walk(self);

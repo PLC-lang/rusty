@@ -17,14 +17,14 @@
 //!    that module's documentation for how each kind of object is translated.
 //! 5. [Type temporaries](crate::placeholder): the temporaries the transpiler emits for block results carry
 //!    placeholder type names, since their real types are not known during parsing; [`resolve_temp_types`]
-//!    fills them in afterwards, at `post_index`.
+//!    fills them in afterwards, at `post_annotate`.
 //!
 //! ## In the compiler pipeline
 //!
 //! The driver selects a frontend per source file by type: XML (`.cfc`) sources are routed to [`parse_file`],
 //! which yields a `CompilationUnit` indistinguishable from one parsed from Structured Text. Step 5 above is
-//! wired in separately as a `post_index` participant (the driver's `CfcTempLowerer`), which rewrites the
-//! placeholder types and re-indexes once the global index is available.
+//! wired in separately as a `post_annotate` participant (the driver's `CfcTempLowerer`), which rewrites the
+//! placeholder types and re-indexes/re-annotates once the index and annotations are available.
 
 mod model;
 mod placeholder;
@@ -32,7 +32,7 @@ mod resolver;
 mod transpiler;
 mod validator;
 
-pub use placeholder::resolve_temp_types;
+pub use placeholder::{has_placeholder_types, resolve_temp_types};
 
 use ast::ast::{CompilationUnit, LinkageType};
 use ast::provider::IdProvider;

@@ -1,0 +1,6 @@
+// A CFC block calling a generic builtin (`FUNCTION SEL<U: ANY> : U`). The result temporary's
+// placeholder type (`__return@SEL`) cannot be resolved from SEL's declared return type -- that
+// is the generic marker `__SEL__U` -- so it must be typed from the annotated call, which the
+// annotator specialized to DINT. Before that fix this died with E064 naming a symbol the user
+// never wrote. G is TRUE, so SEL selects IN1.
+RUN: %COMPILE %S/mainProgram.cfc %S/main.st && %RUN | %CHECK %S/main.st

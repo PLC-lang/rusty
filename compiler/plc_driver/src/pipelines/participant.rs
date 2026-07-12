@@ -400,10 +400,13 @@ impl PipelineParticipantMut for ReferenceToReturnParticipant {
     }
 }
 
-/// Types the synthetic `temp_N` variables the CFC frontend emits with placeholder types. Their real
-/// type (a callee's return type or output-pin type) only becomes known once the global index is
-/// built, so this runs at `post_index`, rewriting each placeholder and re-indexing if anything changed
-/// (a no-op for non-CFC projects). The resolution itself lives in `plc_cfc::resolve_temp_types`.
+/// Types the synthetic `__<type>_res_<n>` variables the CFC frontend emits with placeholder types.
+/// Their real type (a callee's return type or output-pin type) only becomes known once the global
+/// index is built — and for *generic* callees (e.g. the builtin `SEL`) only once the annotator has
+/// specialized the call — so this runs at `post_annotate`, rewriting each placeholder and
+/// re-indexing/re-annotating. Registered first among the participants so downstream lowerers (e.g.
+/// aggregate returns) see the concrete types. The resolution itself lives in
+/// `plc_cfc::resolve_temp_types`.
 pub struct CfcTempLowerer {
     ids: IdProvider,
 }
@@ -415,19 +418,24 @@ impl CfcTempLowerer {
 }
 
 impl PipelineParticipantMut for CfcTempLowerer {
-    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        let IndexedProject { mut project, index, _unresolvables } = indexed_project;
-
-        let mut changed = false;
-        for unit in &mut project.units {
-            changed |= plc_cfc::resolve_temp_types(unit, &index);
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        // Fast path: no placeholder-typed temporaries means no CFC units needing resolution, so the
+        // re-index + re-annotate below is skipped (in particular for every non-CFC project).
+        if !annotated_project.units.iter().any(|unit| plc_cfc::has_placeholder_types(unit.get_unit())) {
+            return annotated_project;
         }
 
-        // Re-index only when temps were actually typed, so the new members land in the index.
-        if changed {
-            return project.index(self.ids.clone());
+        let AnnotatedProject { units, index, annotations, diagnostics } = annotated_project;
+
+        let mut units: Vec<_> = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect();
+        for unit in &mut units {
+            plc_cfc::resolve_temp_types(unit, &index, &annotations);
         }
 
-        IndexedProject { project, index, _unresolvables }
+        // Re-index and re-annotate so the temps' concrete types are visible downstream
+        let project = ParsedProject { units };
+        let mut project = project.index(self.ids.clone()).annotate(self.ids.clone());
+        project.diagnostics = diagnostics;
+        project
     }
 }

@@ -396,6 +396,25 @@ mod tests {
     }
 
     #[test]
+    fn compound_sink() {
+        //                     +----- function_0 -----+ (0)
+        //    input  <-------->| inout     function_0 |--->  results[1]  (1)
+        //                     +----------------------+
+        //
+        //    <-->     an in-out pin (passed by reference)
+        //    (0),(1)  evaluation-priority badges shown by the IDE
+        let xml = include_str!("../fixtures/valid/compound_sink/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::resolve(&deserialized);
+
+        assert_eq!(resolver.sources.len(), 2);
+        let Object::Variable(input) = resolver.get(6).unwrap() else { panic!() };
+        assert_eq!(input.identifier, "input");
+        let Object::BlockOutput(block, _) = resolver.get(7).unwrap() else { panic!() };
+        assert_eq!(block.type_name, "function_0");
+    }
+
+    #[test]
     fn function_pou() {
         //               +----- myAdd -----+ (1)
         //    a  ------->| in1       myAdd |--->  myFunc  (2)

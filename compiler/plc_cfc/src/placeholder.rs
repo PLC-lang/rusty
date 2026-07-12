@@ -11,11 +11,18 @@
 //! - `__return@<pou>` is the return type of function `<pou>`.
 //! - `__output@<pou>@<pin>` is the type of the output member `<pin>` on `<pou>`.
 //!
-//! Once the index exists, [`resolve_temp_types`] runs at `post_index`, decodes each placeholder and rewrites it
-//! with the real type looked up from the index. Placeholders it cannot resolve are left untouched.
+//! Once the index and annotations exist, [`resolve_temp_types`] runs at `post_annotate`, decodes each
+//! placeholder and rewrites it with the real type. Output pins are looked up in the index; return types
+//! also come from the index for concrete callees, but a *generic* function (e.g. the builtin
+//! `FUNCTION SEL<U: ANY> : U`) declares its return as a marker type (`__SEL__U`) that only a call site
+//! can specialize — those are resolved from the annotated type of the call assigned to the temporary,
+//! which is why this pass runs after annotation. Placeholders it cannot resolve are left untouched.
 
-use ast::ast::{CompilationUnit, DataTypeDeclaration};
+use std::collections::HashMap;
+
+use ast::ast::{Assignment, AstStatement, CompilationUnit, DataTypeDeclaration};
 use plc::index::Index;
+use plc::resolver::AnnotationMap;
 
 const RETURN_PREFIX: &str = "__return@";
 
@@ -29,7 +36,24 @@ pub(crate) fn output_placeholder(type_name: &str, pin: &str) -> String {
     format!("{OUTPUT_PREFIX}{type_name}@{pin}")
 }
 
-pub fn resolve_temp_types(unit: &mut CompilationUnit, index: &Index) -> bool {
+/// Returns true if the unit declares any placeholder-typed temporary, i.e. was produced by the CFC
+/// frontend and still needs [`resolve_temp_types`]. Cheap; lets the driver skip non-CFC projects.
+pub fn has_placeholder_types(unit: &CompilationUnit) -> bool {
+    unit.pous
+        .iter()
+        .flat_map(|pou| &pou.variable_blocks)
+        .filter(|block| block.kind.is_local())
+        .flat_map(|block| &block.variables)
+        .filter_map(|variable| variable.data_type_declaration.get_referenced_type())
+        .any(|referenced_type| decode(&referenced_type).is_some())
+}
+
+pub fn resolve_temp_types(
+    unit: &mut CompilationUnit,
+    index: &Index,
+    annotations: &impl AnnotationMap,
+) -> bool {
+    let call_types = collect_call_types(unit, index, annotations);
     let mut changed = false;
 
     for pou in &mut unit.pous {
@@ -41,7 +65,7 @@ pub fn resolve_temp_types(unit: &mut CompilationUnit, index: &Index) -> bool {
                     continue;
                 };
 
-                if let Some(resolved) = resolve(referenced_type, index) {
+                if let Some(resolved) = resolve(&variable.name, referenced_type, index, &call_types) {
                     *referenced_type = resolved;
                     changed = true;
                 }
@@ -52,15 +76,53 @@ pub fn resolve_temp_types(unit: &mut CompilationUnit, index: &Index) -> bool {
     changed
 }
 
+/// Maps each variable assigned from an expression to that expression's annotated type. For a
+/// temporary fed by a call this is the call's (per-call-site specialized) return type — the only
+/// authority for generic callees, whose *declared* return type is just a generic marker.
+fn collect_call_types(
+    unit: &CompilationUnit,
+    index: &Index,
+    annotations: &impl AnnotationMap,
+) -> HashMap<String, String> {
+    let mut call_types = HashMap::new();
+    for implementation in &unit.implementations {
+        for statement in &implementation.statements {
+            let AstStatement::Assignment(Assignment { left, right }) = statement.get_stmt() else {
+                continue;
+            };
+            let Some(name) = left.get_flat_reference_name() else { continue };
+            let Some(data_type) = annotations.get_type(right, index) else { continue };
+
+            call_types.insert(name.to_string(), data_type.get_name().to_string());
+        }
+    }
+
+    call_types
+}
+
 enum CfcTempType {
     Return { type_name: String },
     Output { type_name: String, pin: String },
 }
 
-fn resolve(referenced_type: &str, index: &Index) -> Option<String> {
+fn resolve(
+    variable_name: &str,
+    referenced_type: &str,
+    index: &Index,
+    call_types: &HashMap<String, String>,
+) -> Option<String> {
     match decode(referenced_type)? {
         CfcTempType::Return { type_name } => {
-            index.find_pou(&type_name)?.get_return_type().map(str::to_string)
+            let pou = index.find_pou(&type_name)?;
+
+            // A generic function's declared return type is a marker (`__SEL__U`) no variable can be
+            // declared with; the concrete type only exists at the call site, where the annotator
+            // already specialized it.
+            if pou.is_generic() {
+                return call_types.get(variable_name).cloned();
+            }
+
+            pou.get_return_type().map(str::to_string)
         }
 
         CfcTempType::Output { type_name, pin } => {
@@ -92,11 +154,18 @@ fn decode(referenced_type: &str) -> Option<CfcTempType> {
 
 #[cfg(test)]
 mod tests {
-    use super::{output_placeholder, resolve_temp_types, return_placeholder};
+    use super::{output_placeholder, return_placeholder};
     use ast::ast::{CompilationUnit, DataTypeDeclaration, LinkageType, Variable, VariableBlock};
     use ast::provider::IdProvider;
     use plc::index::{Index, indexer};
+    use plc::resolver::AnnotationMapImpl;
     use plc_source::source_location::{SourceLocation, SourceLocationFactory};
+
+    /// The annotation-less test harness: resolves with an empty annotation map, which suffices for
+    /// everything but generic callees (those are covered end-to-end in `tests/lit/cfc/generic_call`)
+    fn resolve_temp_types(unit: &mut CompilationUnit, index: &Index) -> bool {
+        super::resolve_temp_types(unit, index, &AnnotationMapImpl::default())
+    }
 
     fn parse_st(src: &str) -> CompilationUnit {
         plc::parser::parse(

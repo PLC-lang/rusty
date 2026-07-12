@@ -391,7 +391,10 @@ impl Transpiler {
     fn transpile_sink(&mut self, sink: &DataSink) -> Option<AstNode> {
         let location = self.create_object_location(sink.global_id, sink.add_data.priority);
         let value = self.resolve(sink.connection_in?, &location);
-        let target = self.create_member_reference(&sink.identifier, &location);
+
+        // The target is parsed as an expression, symmetric with sources: a sink may name a compound
+        // target such as `results[1]` or `myStruct.field`, which a flat identifier cannot express.
+        let target = self.parse_expression(&sink.identifier);
 
         Some(AstFactory::create_assignment(target, value, self.next_id()))
     }
@@ -892,6 +895,30 @@ mod tests {
             result : DINT;
         END_VAR
             result := localA + 5;
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn compound_sink() {
+        //                     +----- function_0 -----+ (0)
+        //    input  <-------->| inout     function_0 |--->  results[1]  (1)
+        //                     +----------------------+
+        //
+        //    <-->     an in-out pin (passed by reference)
+        //    (0),(1)  evaluation-priority badges shown by the IDE
+        let xml = include_str!("../fixtures/valid/compound_sink/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @r"
+        PROGRAM mainProgram
+        VAR
+            input : DINT;
+            results : ARRAY[1..5] OF DINT;
+        END_VAR
+        VAR
+            __function_0_res_0 : __return@function_0;
+        END_VAR
+            __function_0_res_0 := function_0(inout := input);
+            results[1] := __function_0_res_0;
         END_PROGRAM
         ");
     }

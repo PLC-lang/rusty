@@ -1,0 +1,5 @@
+// A CFC sink may name a compound target (an array element) rather than a plain identifier.
+// The sink `results[1]` must lower to a real index-access assignment; a flat identifier
+// token would abort compilation with E048. function_0 increments its in-out (41 -> 42)
+// and returns it, the sink routes that into the array slot.
+RUN: %COMPILE %S/function_0.st %S/mainProgram.cfc %S/main.st && %RUN | %CHECK %S/main.st
