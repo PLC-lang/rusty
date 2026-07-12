@@ -469,6 +469,26 @@ mod tests {
     }
 
     #[test]
+    fn method_call() {
+        //                     +-- myFb.getValue --+ (1)
+        //    localOffset ---->| offset   getValue |--->  localResult  (2)
+        //                     +-------------------+
+        //
+        //    myFb.getValue  the method, called on instance myInstance
+        //    (1),(2)        evaluation-priority badges shown by the IDE
+        let xml = include_str!("../fixtures/valid/method_call/mainProgram.cfc");
+        let deserialized = model::from_str(xml).unwrap();
+        let resolver = Resolver::resolve(&deserialized);
+
+        assert_eq!(resolver.sources.len(), 2);
+        let Object::Variable(offset) = resolver.get(2).unwrap() else { panic!() };
+        assert_eq!(offset.identifier, "localOffset");
+        let Object::BlockOutput(block, output) = resolver.get(4).unwrap() else { panic!() };
+        assert_eq!(block.type_name, "myFb.getValue");
+        assert_eq!(output.parameter_name, "getValue");
+    }
+
+    #[test]
     fn program_call() {
         //                        +----- auxProgram -----+ (1)
         //    localIncrement ---->| increment      total |---->  localTotal  (2)

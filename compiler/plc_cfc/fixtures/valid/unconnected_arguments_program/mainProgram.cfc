@@ -34,9 +34,6 @@ END_VAR
                             <ppx:ConnectionPointIn>
                                 <ppx:RelPosition x="0" y="70"/>
                             </ppx:ConnectionPointIn>
-                            <ppx:ConnectionPointOut connectionPointOutId="4">
-                                <ppx:RelPosition x="90" y="70"/>
-                            </ppx:ConnectionPointOut>
                         </ppx:InOutVariable>
                     </ppx:InOutVariables>
                     <ppx:InputVariables>

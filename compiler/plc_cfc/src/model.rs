@@ -168,6 +168,16 @@ pub struct Block {
     pub outputs: Vec<OutputVariable>,
 }
 
+impl Block {
+    /// The callable's own (unqualified) name. For an action or method block the `typeName` carries
+    /// an `<fb>.<callable>` qualifier, but the callable's return pin is named after the callable
+    /// alone — so return-pin detection (and the temporary's variable name, which must not contain
+    /// a dot) must use this instead of the raw `typeName`.
+    pub fn callee_name(&self) -> &str {
+        self.type_name.rsplit_once('.').map_or(self.type_name.as_str(), |(_, name)| name)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct InputVariable {
     #[serde(rename = "@parameterName")]

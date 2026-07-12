@@ -358,10 +358,10 @@ impl Transpiler {
             // Pre-created by [`create_temporaries`]; `None` means the pin is unconsumed
             let temp = self.temporaries.get(&output.connection_out).map(|var| var.name.clone());
 
-            // We're dealing with a function if both the output variable and block name are identical
-            // in which case the whole call is assigned to the temporary rather than routing the value
-            // through an output argument.
-            if output.parameter_name == block.type_name {
+            // We're dealing with a function (or method) if the output variable carries the callee's
+            // own name, in which case the whole call is assigned to the temporary rather than
+            // routing the value through an output argument.
+            if output.parameter_name == block.callee_name() {
                 return_value = temp;
                 continue;
             }
@@ -562,13 +562,16 @@ fn create_temporaries(pou: &Pou, resolver: &Resolver) -> IndexMap<u64, Variable>
                 continue;
             }
 
-            let placeholder = if output.parameter_name == block.type_name {
+            // The placeholder encodes the full (possibly dotted) `typeName` for the index lookup,
+            // but the variable's name uses the callee's own name — `__myFb.getValue_res_0` would
+            // not be a valid ST identifier.
+            let placeholder = if output.parameter_name == block.callee_name() {
                 placeholder::return_placeholder(&block.type_name)
             } else {
                 placeholder::output_placeholder(&block.type_name, &output.parameter_name)
             };
 
-            let name = format!("__{}_res_{}", block.type_name, temporaries.len());
+            let name = format!("__{}_res_{}", block.callee_name(), temporaries.len());
             temporaries.insert(id, create_internal_variable(&name, placeholder));
         }
     }
@@ -1016,6 +1019,34 @@ mod tests {
             myInstance : function_block_0;
         END_VAR
             myInstance.myAction();
+        END_PROGRAM
+        ");
+    }
+
+    #[test]
+    fn method_call() {
+        //                     +-- myFb.getValue --+ (1)
+        //    localOffset ---->| offset   getValue |--->  localResult  (2)
+        //                     +-------------------+
+        //
+        //    myFb.getValue  the method, called on instance myInstance
+        //    (1),(2)        evaluation-priority badges shown by the IDE
+        //
+        // The return pin is named after the method (`getValue`), not the dotted `typeName`, and
+        // the temporary's name must not contain the dot (`__myFb.getValue_res_0` is invalid ST)
+        let xml = include_str!("../fixtures/valid/method_call/mainProgram.cfc");
+        assert_snapshot!(transpile(xml), @r"
+        PROGRAM mainProgram
+        VAR
+            myInstance : myFb;
+            localOffset : DINT;
+            localResult : DINT;
+        END_VAR
+        VAR
+            __getValue_res_0 : __return@myFb.getValue;
+        END_VAR
+            __getValue_res_0 := myInstance.getValue(offset := localOffset);
+            localResult := __getValue_res_0;
         END_PROGRAM
         ");
     }

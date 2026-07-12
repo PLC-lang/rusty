@@ -1,0 +1,8 @@
+// A CFC block calls a METHOD on a function block instance. Like an action the dotted
+// typeName lowers to `<instance>.<method>`, but unlike an action the method has pins:
+// its return pin is named after the method alone, so return-pin detection and the
+// result temporary's name must use the callee's unqualified name (`__getValue_res_0`;
+// `__myFb.getValue_res_0` would be invalid ST).
+// NOTE: the IDE does not export method blocks yet -- this pins the anticipated shape,
+// modeled on action_call; cross-check once the IDE supports it.
+RUN: %COMPILE %S/myFb.st %S/mainProgram.cfc %S/main.st && %RUN | %CHECK %S/main.st
