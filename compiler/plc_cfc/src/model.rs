@@ -98,8 +98,16 @@ pub struct BodyContent {
 
 #[derive(Debug, Default, Deserialize)]
 pub struct Network {
-    #[serde(rename = "FbdObject", default)]
-    pub objects: Vec<FbdObject>,
+    #[serde(rename = "$value", default)]
+    pub nodes: Vec<NetworkElement>,
+}
+
+/// Graphical elements share a structure but arrive under two element names,
+/// interleaved in document order; a `$value` sequence captures both.
+#[derive(Debug, Deserialize)]
+pub enum NetworkElement {
+    FbdObject(FbdObject),
+    CommonObject(FbdObject),
 }
 
 #[derive(Debug, Deserialize)]
@@ -117,6 +125,10 @@ pub struct FbdObject {
 
     #[serde(rename = "@complexIdentifier")]
     pub complex_identifier: Option<String>,
+
+    /// The pairing name of a connector or continuation.
+    #[serde(rename = "@label")]
+    pub label: Option<String>,
 
     #[serde(rename = "AddData")]
     pub add_data: Option<AddData>,
@@ -180,9 +192,25 @@ impl PouContent {
     }
 }
 
+impl Network {
+    /// Every graphical element, regardless of its `FbdObject` / `CommonObject`
+    /// XML representation.
+    pub fn elements(&self) -> impl Iterator<Item = &FbdObject> {
+        self.nodes.iter().map(|node| match node {
+            NetworkElement::FbdObject(object) | NetworkElement::CommonObject(object) => object,
+        })
+    }
+}
+
 impl FbdObject {
+    /// A plain variable arrives in `identifier`; an indexed or qualified one
+    /// (`arr[i]`, `foo.bar`) arrives in `complexIdentifier` instead.
     pub fn identifier(&self) -> Option<&str> {
         self.identifier.as_deref().or(self.complex_identifier.as_deref())
+    }
+
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_deref()
     }
 
     pub fn priority(&self) -> Option<usize> {
