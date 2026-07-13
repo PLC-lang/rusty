@@ -19,8 +19,11 @@ pub(crate) fn transpile(
     source: &SourceCode,
     mut ids: IdProvider,
 ) -> (CompilationUnit, Vec<Diagnostic>) {
+    // The interface — signature and VAR blocks — comes from the declaration.
     let (mut unit, diagnostics) = helper::parse_interface(pou, source, ids.clone());
 
+    // Build the body: one AST node per resolved statement, already in order. A
+    // disconnected return carries no condition and contributes nothing.
     let factory = SourceLocationFactory::for_source(source);
     let statements = resolved
         .statements
@@ -34,6 +37,7 @@ pub(crate) fn transpile(
             }
         })
         .collect();
+
     if let Some(implementation) = unit.implementations.first_mut() {
         implementation.statements = statements;
     }
@@ -49,6 +53,8 @@ fn transpile_assignment(
 ) -> AstNode {
     let location = factory.create_block_location(sink.global_id);
 
+    // Parse both sides as expressions, then anchor them to the sink's diagram
+    // block so diagnostics point at the element, not the synthetic identifier text.
     let mut left = helper::parse_identifier(sink.identifier().unwrap_or_default(), ids.clone());
     let mut right = helper::parse_identifier(source.identifier().unwrap_or_default(), ids.clone());
     left.location = location.clone();
@@ -65,6 +71,7 @@ fn transpile_return(
 ) -> AstNode {
     let location = factory.create_block_location(object.global_id);
 
+    // The wired input guards the return; a negated pin inverts it with a `NOT`.
     let mut condition = helper::parse_identifier(condition.identifier().unwrap_or_default(), ids.clone());
     condition.location = location.clone();
     let condition = match object.negated() {
@@ -206,6 +213,59 @@ mod tests {
         END_VAR
             IF NOT myCondition THEN RETURN; END_IF;
         END_FUNCTION");
+        }
+    }
+
+    mod connectors {
+        use crate::test_utils::transpile_project;
+
+        #[test]
+        fn assignment() {
+            insta::assert_snapshot!(transpile_project("connectors/valid/assignment").unwrap(), @r"
+        PROGRAM assignment
+        VAR
+            foo : DINT;
+            bar : DINT;
+        END_VAR
+            bar := foo;
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn fan_out() {
+            insta::assert_snapshot!(transpile_project("connectors/valid/fan_out").unwrap(), @r"
+        PROGRAM fan_out
+        VAR
+            foo : DINT;
+            bar : DINT;
+            baz : DINT;
+        END_VAR
+            bar := foo;
+            baz := foo;
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn chain() {
+            insta::assert_snapshot!(transpile_project("connectors/valid/chain").unwrap(), @r"
+        PROGRAM chain
+        VAR
+            foo : DINT;
+            bar : DINT;
+        END_VAR
+            bar := foo;
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn unused() {
+            insta::assert_snapshot!(transpile_project("connectors/valid/unused").unwrap(), @r"
+        PROGRAM unused
+        VAR
+            foo : DINT;
+            bar : DINT;
+        END_VAR
+        END_PROGRAM");
         }
     }
 }

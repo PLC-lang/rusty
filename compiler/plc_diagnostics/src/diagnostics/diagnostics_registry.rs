@@ -182,12 +182,12 @@ lazy_static! {
         E078,   Error,      include_str!("./error_codes/E078.md"),
         E079,   Error,      include_str!("./error_codes/E079.md"),
         E080,   Error,      include_str!("./error_codes/E080.md"),
-        E081,   Error,      include_str!("./error_codes/E081.md"),   // TODO: Unclaimed, use me instead of creating a new diagnostic
-        E082,   Error,      include_str!("./error_codes/E082.md"),   // TODO: Unclaimed, use me instead of creating a new diagnostic
+        E081,   Error,      include_str!("./error_codes/E081.md"),   // Duplicate CFC connector
+        E082,   Error,      include_str!("./error_codes/E082.md"),   // Dangling CFC continuation
         E083,   Error,      include_str!("./error_codes/E083.md"),   // Unsupported CFC expression
         E084,   Warning,    include_str!("./error_codes/E084.md"),   // Unconnected CFC element
         E085,   Error,      include_str!("./error_codes/E085.md"),   // Disconnected CFC return
-        E086,   Error,      include_str!("./error_codes/E086.md"),   // TODO: Unclaimed, use me instead of creating a new diagnostic
+        E086,   Error,      include_str!("./error_codes/E086.md"),   // Open CFC connector
         E087,   Error,      include_str!("./error_codes/E087.md"),
         E088,   Error,      include_str!("./error_codes/E088.md"),
         E089,   Error,      include_str!("./error_codes/E089.md"),

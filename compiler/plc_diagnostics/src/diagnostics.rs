@@ -407,6 +407,33 @@ impl Diagnostic {
             .with_error_code("E085")
             .with_location(location)
     }
+
+    pub fn duplicate_connector<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Connector `{label}` is already defined"))
+            .with_error_code("E081")
+            .with_location(location)
+    }
+
+    pub fn dangling_continuation<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Continuation `{label}` has no matching connector"))
+            .with_error_code("E082")
+            .with_location(location)
+    }
+
+    pub fn open_connector<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Connector `{label}` has no incoming connection"))
+            .with_error_code("E086")
+            .with_location(location)
+    }
 }
 
 #[cfg(test)]
