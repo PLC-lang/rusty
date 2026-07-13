@@ -316,16 +316,19 @@ impl AstVisitorMut for AggregateTypeLowerer {
             return;
         };
         //Get the function being called
-        let (qualified_name, return_type_name, generic_name) =
-            match annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator)).cloned() {
-                Some(StatementAnnotation::Function { return_type, qualified_name, generic_name, .. }) => {
-                    (qualified_name, return_type, generic_name)
-                }
-                Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
-                    (qualified_name, return_type, None)
-                }
-                _ => return,
-            };
+        let (qualified_name, return_type_name, generic_name, call_name) = match annotation
+            .get(&stmt.operator)
+            .or_else(|| annotation.get_hint(&stmt.operator))
+            .cloned()
+        {
+            Some(StatementAnnotation::Function { return_type, qualified_name, generic_name, call_name }) => {
+                (qualified_name, return_type, generic_name, call_name)
+            }
+            Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
+                (qualified_name, return_type, None, None)
+            }
+            _ => return,
+        };
         //If there's a call name in the function, it is a generic and needs to be replaced.
         //HACK: this is because we don't lower generics
         let function_entry = index.find_pou(&qualified_name).expect("Function not found");
@@ -396,10 +399,19 @@ impl AstVisitorMut for AggregateTypeLowerer {
             }
 
             if is_generic_function {
-                //For generic functions, we need to replace the generic name with the function name
+                // For generic functions, replace the operator with the concrete monomorphization to
+                // call. Prefer `call_name` (the resolved monomorph, e.g. `TO_STRING__DINT`) over
+                // `qualified_name`: when no concrete monomorph exists the resolver leaves
+                // `qualified_name` pointing at the *generic* itself, and resetting to that makes the
+                // re-annotation re-monomorphize against the injected aggregate return buffer — binding
+                // e.g. `TO_STRING(aDint)` to `TO_STRING__STRING` and reinterpreting the argument's
+                // bytes as a string. Emitting the true monomorph name instead yields an external symbol
+                // the linker resolves (if provided) or rejects, exactly like scalar `{external}`
+                // generics such as `MAX` already resolve their `MAX__DINT`.
+                let concrete_name = call_name.as_deref().unwrap_or(&qualified_name);
                 *stmt.operator = AstFactory::create_member_reference(
                     AstFactory::create_identifier(
-                        &qualified_name,
+                        concrete_name,
                         stmt.operator.get_location(),
                         self.id_provider.next_id(),
                     ),
