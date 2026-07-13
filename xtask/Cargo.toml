@@ -25,4 +25,5 @@ tempfile.workspace = true
 clap = { version = "4.3.10", features = ["derive"] }
 plc = { path = "../", package = "plc-compiler" }
 plc_ast = { path = "../compiler/plc_ast" }
+plc_parser = { path = "../compiler/plc_parser" }
 plc_source = { path = "../compiler/plc_source" }

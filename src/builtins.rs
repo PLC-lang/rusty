@@ -16,13 +16,14 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use rustc_hash::FxHashMap;
 
+use plc_parser::{lexer, parser};
+
 use crate::{
     codegen::{
         generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
         CodegenError,
     },
     index::Index,
-    lexer, parser,
     resolver::{
         self,
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},

@@ -2,11 +2,11 @@ use ast::{
     ast::{AstId, AstNode, CompilationUnit, Implementation, LinkageType, PouType as AstPouType},
     provider::IdProvider,
 };
-use plc::{lexer, parser::expressions_parser::parse_expression};
 use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
 };
+use plc_parser::{lexer, parser::expressions_parser::parse_expression};
 
 use plc_source::{
     source_location::{SourceLocation, SourceLocationFactory},
@@ -147,7 +147,7 @@ impl<'parse, 'xml> ParseSession<'parse, 'xml> {
 
         //TODO: if our ST parser returns a diagnostic here, we might not have a text declaration and need to rely on the XML to provide us with
         // the necessary data. for now, we will assume to always have a text declaration
-        Some(plc::parser::parse(
+        Some(plc_parser::parser::parse(
             lexer::lex_with_ids(content, self.id_provider.clone(), self.range_factory.clone()),
             self.linkage,
             self.file_name,

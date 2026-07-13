@@ -8,9 +8,10 @@ use plc_index::GlobalContext;
 use plc_source::source_location::SourceLocationFactory;
 use plc_source::SourceCode;
 
+use plc_parser::{lexer, parser};
+
 use crate::{
     index::{indexer, Index},
-    lexer, parser,
     resolver::TypeAnnotator,
     test_utils::tests::parse_and_validate_buffered,
     typesystem,
