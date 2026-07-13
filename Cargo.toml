@@ -82,6 +82,7 @@ members = [
     "compiler/plc_lowering",
     "compiler/plc_llvm",
     "compiler/plc_header_generator",
+    "compiler/plc_cfc",
     "tests/test_utils",
 ]
 default-members = [".", "compiler/plc_driver"]
