@@ -517,9 +517,15 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_return_statement(&mut self, stmt: &ReturnStatement, _node: &AstNode) {
-        self.result.push_str("RETURN");
-        stmt.walk(self);
-        self.result.push(';');
+        // A CFC return carries a guard condition that has no bare ST syntax, so
+        // render it as the equivalent conditional block.
+        if stmt.condition.is_some() {
+            self.result.push_str("IF ");
+            stmt.walk(self);
+            self.result.push_str(" THEN RETURN; END_IF");
+        } else {
+            self.result.push_str("RETURN");
+        }
     }
 
     fn visit_jump_statement(&mut self, stmt: &JumpStatement, _node: &AstNode) {

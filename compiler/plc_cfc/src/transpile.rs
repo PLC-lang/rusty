@@ -10,8 +10,8 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocationFactory;
 use plc_source::SourceCode;
 
-use crate::model::Pou;
-use crate::resolve::{Assignment, Resolved};
+use crate::model::{FbdObject, Pou};
+use crate::resolve::{Resolved, Statement};
 
 pub(crate) fn transpile(
     pou: &Pou,
@@ -23,9 +23,16 @@ pub(crate) fn transpile(
 
     let factory = SourceLocationFactory::for_source(source);
     let statements = resolved
-        .assignments
+        .statements
         .iter()
-        .map(|assignment| transpile_assignment(assignment, &factory, &mut ids))
+        .filter_map(|statement| match statement {
+            Statement::Assignment { sink, source } => {
+                Some(transpile_assignment(sink, source, &factory, &mut ids))
+            }
+            Statement::Return { object, condition } => {
+                condition.map(|condition| transpile_return(object, condition, &factory, &mut ids))
+            }
+        })
         .collect();
     if let Some(implementation) = unit.implementations.first_mut() {
         implementation.statements = statements;
@@ -35,18 +42,37 @@ pub(crate) fn transpile(
 }
 
 fn transpile_assignment(
-    assignment: &Assignment,
+    sink: &FbdObject,
+    source: &FbdObject,
     factory: &SourceLocationFactory,
     ids: &mut IdProvider,
 ) -> AstNode {
-    let location = factory.create_block_location(assignment.sink.global_id);
+    let location = factory.create_block_location(sink.global_id);
 
-    let mut left = helper::parse_identifier(assignment.sink.identifier().unwrap_or_default(), ids.clone());
-    let mut right = helper::parse_identifier(assignment.source.identifier().unwrap_or_default(), ids.clone());
+    let mut left = helper::parse_identifier(sink.identifier().unwrap_or_default(), ids.clone());
+    let mut right = helper::parse_identifier(source.identifier().unwrap_or_default(), ids.clone());
     left.location = location.clone();
     right.location = location;
 
     AstFactory::create_assignment(left, right, ids.next_id())
+}
+
+fn transpile_return(
+    object: &FbdObject,
+    condition: &FbdObject,
+    factory: &SourceLocationFactory,
+    ids: &mut IdProvider,
+) -> AstNode {
+    let location = factory.create_block_location(object.global_id);
+
+    let mut condition = helper::parse_identifier(condition.identifier().unwrap_or_default(), ids.clone());
+    condition.location = location.clone();
+    let condition = match object.negated() {
+        true => AstFactory::create_not_expression(condition, location.clone(), ids.next_id()),
+        false => condition,
+    };
+
+    AstFactory::create_return_statement(Some(condition), location, ids.next_id())
 }
 
 pub(crate) mod helper {
@@ -153,6 +179,32 @@ mod tests {
             bar : DINT;
         END_VAR
             bar := foo;
+        END_FUNCTION");
+        }
+    }
+
+    mod returns {
+        use crate::test_utils::transpile_project;
+
+        #[test]
+        fn conditional_return() {
+            insta::assert_snapshot!(transpile_project("returns/valid/conditional_return").unwrap(), @r"
+        FUNCTION conditional_return : INT
+        VAR
+            myCondition : BOOL;
+        END_VAR
+            IF myCondition THEN RETURN; END_IF;
+        END_FUNCTION");
+        }
+
+        #[test]
+        fn negated_return() {
+            insta::assert_snapshot!(transpile_project("returns/valid/negated_return").unwrap(), @r"
+        FUNCTION negated_return : INT
+        VAR
+            myCondition : BOOL;
+        END_VAR
+            IF NOT myCondition THEN RETURN; END_IF;
         END_FUNCTION");
         }
     }

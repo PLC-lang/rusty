@@ -398,6 +398,15 @@ impl Diagnostic {
             .with_error_code("E084")
             .with_location(location)
     }
+
+    pub fn disconnected_return<T>(location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new("Return element is not connected to a condition")
+            .with_error_code("E085")
+            .with_location(location)
+    }
 }
 
 #[cfg(test)]

@@ -186,7 +186,7 @@ lazy_static! {
         E082,   Error,      include_str!("./error_codes/E082.md"),   // TODO: Unclaimed, use me instead of creating a new diagnostic
         E083,   Error,      include_str!("./error_codes/E083.md"),   // Unsupported CFC expression
         E084,   Warning,    include_str!("./error_codes/E084.md"),   // Unconnected CFC element
-        E085,   Error,      include_str!("./error_codes/E085.md"),   // TODO: Unclaimed, use me instead of creating a new diagnostic
+        E085,   Error,      include_str!("./error_codes/E085.md"),   // Disconnected CFC return
         E086,   Error,      include_str!("./error_codes/E086.md"),   // TODO: Unclaimed, use me instead of creating a new diagnostic
         E087,   Error,      include_str!("./error_codes/E087.md"),
         E088,   Error,      include_str!("./error_codes/E088.md"),
