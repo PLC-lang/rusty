@@ -1257,6 +1257,32 @@ fn any_string_does_not_allow_ints() {
 }
 
 #[test]
+fn any_string_variadic_flags_each_non_string_argument() {
+    // A generic variadic `{ref}` parameter (as used by the stdlib CONCAT/INSERT/... functions):
+    // every argument whose type is not ANY_STRING must be reported individually, while genuine
+    // string arguments are left alone. Regression test for variadic `{ref}` args escaping the
+    // generic type-nature check (they are pointers to the generic type, not the generic directly).
+    let src = r#"
+        FUNCTION CONCAT <T: ANY_STRING> : T
+        VAR_INPUT {ref}
+            args : {sized} T...;
+        END_VAR
+        END_FUNCTION
+
+        FUNCTION mainProg : DINT
+        VAR x : DINT; y : REAL; z : STRING; END_VAR
+            CONCAT(x, y);
+            CONCAT(x, y, z);
+            CONCAT(x, z);
+            CONCAT(1, 'hello');
+        END_FUNCTION
+    "#;
+
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(&diagnostics);
+}
+
+#[test]
 fn any_string_does_not_allow_time() {
     let src = r"
         FUNCTION test<T : ANY_STRING> : INT VAR_INPUT x : T; END_VAR END_FUNCTION
