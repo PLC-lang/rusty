@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_fan_out",
+	"files" : [
+		"fan_out.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

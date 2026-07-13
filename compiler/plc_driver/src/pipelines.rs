@@ -680,15 +680,13 @@ impl ParsedProject {
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
 
-                match source.get_type() {
-                    source_code::SourceType::Text => {
-                        parse_file(source, LinkageType::Internal, ctxt.provider(), diagnostician)
-                    }
-                    source_code::SourceType::Xml => {
-                        Err(Diagnostic::new("XML/CFC source files are currently not supported"))
-                    }
+                let parse_func = match source.get_type() {
+                    source_code::SourceType::Text => parse_file,
+                    source_code::SourceType::Xml => plc_cfc::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
-                }
+                };
+
+                parse_func(source, LinkageType::Internal, ctxt.provider(), diagnostician)
             })
             .collect::<Vec<_>>();
 
