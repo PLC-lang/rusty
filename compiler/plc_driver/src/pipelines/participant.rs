@@ -321,6 +321,10 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
         project.diagnostics = diagnostics;
         project
     }
+
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
+    }
 }
 
 impl PipelineParticipantMut for PolymorphismLowerer {

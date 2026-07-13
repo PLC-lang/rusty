@@ -265,12 +265,6 @@ impl TypeAnnotator<'_> {
         function_name: &str,
         generic_map: &FxHashMap<String, GenericType>,
     ) {
-        /// An internal struct used to hold the type and nature of a generic parameter
-        struct TypeAndNature<'a> {
-            datatype: &'a typesystem::DataType,
-            nature: TypeNature,
-        }
-
         let declared_parameters = self.index.get_available_parameters(function_name);
         // separate variadic and non variadic parameters
         let mut passed_parameters = Vec::new();
@@ -321,25 +315,27 @@ impl TypeAnnotator<'_> {
 
         // Then handle the varargs
         // Get the variadic argument if any
-        if let Some(dt) = self.index.get_variadic_member(function_name).map(|it| {
-            // if the member is generic
-            if let Some(DataTypeInformation::Generic { generic_symbol, nature, .. }) =
-                self.index.find_effective_type_info(it.get_type_name())
+        if let Some(variadic_member) = self.index.get_variadic_member(function_name) {
+            // The variadic member may be declared `{ref}` (e.g. CONCAT's `args: {sized} T...`),
+            // in which case its type is a pointer wrapping the element type. Unwrap it the same
+            // way the non-variadic branch does above; otherwise a generic `{ref}` vararg is never
+            // recognised as generic and its arguments escape type-nature validation entirely.
+            if let Some(DataTypeInformation::Generic { generic_symbol, nature, .. }) = self
+                .index
+                .find_effective_type_info(variadic_member.get_type_name())
+                .map(|t| self.index.find_elementary_pointer_type(t))
             {
-                let real_type = generic_map
+                let concrete = generic_map
                     .get(generic_symbol)
-                    .and_then(|it| self.index.find_effective_type_by_name(it.derived_type.as_str()))
-                    .map(|datatype| TypeAndNature { datatype, nature: *nature });
-                real_type
-            } else {
-                None
-            }
-        }) {
-            for p in variadic_parameters {
-                if let Some(TypeAndNature { datatype, nature }) = dt {
-                    self.annotation_map.add_generic_nature(p, nature);
-                    self.annotation_map
-                        .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
+                    .and_then(|it| self.index.find_effective_type_by_name(it.derived_type.as_str()));
+                for p in variadic_parameters {
+                    // Attach the declared nature so the E062 nature check runs even when the
+                    // concrete type could not be derived from the passed arguments.
+                    self.annotation_map.add_generic_nature(p, *nature);
+                    if let Some(datatype) = concrete {
+                        self.annotation_map
+                            .annotate_type_hint(p, StatementAnnotation::value(datatype.get_name()));
+                    }
                 }
             }
         }
