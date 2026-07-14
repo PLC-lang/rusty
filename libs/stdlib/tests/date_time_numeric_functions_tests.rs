@@ -1414,14 +1414,29 @@ macro_rules! panic_i64_f64_div_zero_tests {
     };
 }
 
-panic_i64_i64_tests!(
-    (add_time_panics_on_overflow, dtf::ADD_TIME, u32::MAX as i64, 1),
-    (add_dt_time_panics_on_overflow, dtf::ADD_DT_TIME, u32::MAX as i64, 1_000),
+macro_rules! panic_u32_u32_tests {
+    ($(($name:ident, $func:path, $lhs:expr, $rhs:expr)),+ $(,)?) => {
+        $(
+            #[test]
+            #[should_panic]
+            fn $name() {
+                let _ = $func($lhs, $rhs);
+            }
+        )+
+    };
+}
+
+panic_u32_u32_tests!(
+    (add_time_panics_on_overflow, dtf::ADD_TIME, u32::MAX, 1),
+    (add_dt_time_panics_on_overflow, dtf::ADD_DT_TIME, u32::MAX, 1_000),
     (sub_time_panics_on_underflow, dtf::SUB_TIME, 2_000, 5_000),
-    (sub_date_date_panics_when_time_difference_exceeds_time_range, dtf::SUB_DATE_DATE, (50 * 24 * 60 * 60) as i64, 0),
+    (sub_date_date_panics_when_time_difference_exceeds_time_range, dtf::SUB_DATE_DATE, 50 * 24 * 60 * 60, 0),
     (sub_tod_tod_panics_on_underflow, dtf::SUB_TOD_TOD, 1_000, 2_000),
     (sub_dt_time_panics_on_underflow, dtf::SUB_DT_TIME, 0, 1_000),
-    (sub_dt_dt_panics_when_time_difference_exceeds_time_range, dtf::SUB_DT_DT, (50 * 24 * 60 * 60) as i64, 0),
+    (sub_dt_dt_panics_when_time_difference_exceeds_time_range, dtf::SUB_DT_DT, 50 * 24 * 60 * 60, 0)
+);
+
+panic_i64_i64_tests!(
     (add_ltime_panics_on_overflow, dtf::ADD_LTIME, i64::MAX, 1),
     (add_ltod_ltime_panics_on_overflow, dtf::ADD_LTOD_LTIME, i64::MAX, 1),
     (add_ldt_ltime_panics_on_overflow, dtf::ADD_LDT_LTIME, i64::MAX, 1),
@@ -1443,9 +1458,19 @@ panic_i64_i64_tests!(
     (add_alias_ldate_and_time_ltime_panics_on_overflow, dtf::ADD__LDATE_AND_TIME__LTIME, i64::MAX, 1),
     (add_alias_ltime_of_day_ltime_panics_on_overflow, dtf::ADD__LTIME_OF_DAY__LTIME, i64::MAX, 1),
     (sub_alias_ldate_and_time_ltime_panics_on_underflow, dtf::SUB__LDATE_AND_TIME__LTIME, i64::MIN, 1),
-    (sub_alias_ldate_and_time_ldate_and_time_panics_on_large_delta, dtf::SUB__LDATE_AND_TIME__LDATE_AND_TIME, i64::MAX, i64::MIN),
+    (
+        sub_alias_ldate_and_time_ldate_and_time_panics_on_large_delta,
+        dtf::SUB__LDATE_AND_TIME__LDATE_AND_TIME,
+        i64::MAX,
+        i64::MIN
+    ),
     (sub_alias_ltime_of_day_ltime_panics_on_underflow, dtf::SUB__LTIME_OF_DAY__LTIME, i64::MIN, 1),
-    (sub_alias_ltime_of_day_ltime_of_day_panics_on_large_delta, dtf::SUB__LTIME_OF_DAY__LTIME_OF_DAY, i64::MAX, i64::MIN),
+    (
+        sub_alias_ltime_of_day_ltime_of_day_panics_on_large_delta,
+        dtf::SUB__LTIME_OF_DAY__LTIME_OF_DAY,
+        i64::MAX,
+        i64::MIN
+    ),
     (mul_time_lint_panics_on_overflow, dtf::MUL__TIME__LINT, i64::MAX, 2),
     (mul_time_lint_alias_panics_on_overflow, dtf::MUL_TIME__LINT, i64::MAX, 2),
     (mul_ltime_lint_panics_on_overflow, dtf::MUL_LTIME__LINT, i64::MAX, 2),

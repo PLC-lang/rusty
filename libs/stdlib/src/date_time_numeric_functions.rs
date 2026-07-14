@@ -3,14 +3,6 @@ use chrono::TimeZone;
 const MILLIS_PER_SECOND: u32 = 1_000;
 const MILLIS_PER_DAY: u32 = 60 * 60 * 24 * MILLIS_PER_SECOND;
 
-fn short_time_millis(input: i64) -> u32 {
-    input as u32
-}
-
-fn short_date_time_seconds(input: i64) -> u32 {
-    input as u32
-}
-
 fn checked_millis_to_seconds(input: u32) -> u32 {
     input / MILLIS_PER_SECOND
 }
@@ -25,8 +17,8 @@ fn checked_seconds_to_millis(input: u32) -> u32 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn ADD_TIME(in1: i64, in2: i64) -> u32 {
-    short_time_millis(in1).checked_add(short_time_millis(in2)).unwrap()
+pub extern "C-unwind" fn ADD_TIME(in1: u32, in2: u32) -> u32 {
+    in1.checked_add(in2).unwrap()
 }
 
 /// .
@@ -35,8 +27,8 @@ pub extern "C-unwind" fn ADD_TIME(in1: i64, in2: i64) -> u32 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn ADD_TOD_TIME(in1: i64, in2: i64) -> u32 {
-    ((short_time_millis(in1) as u64 + short_time_millis(in2) as u64) % MILLIS_PER_DAY as u64) as u32
+pub extern "C-unwind" fn ADD_TOD_TIME(in1: u32, in2: u32) -> u32 {
+    ((in1 as u64 + in2 as u64) % MILLIS_PER_DAY as u64) as u32
 }
 
 /// .
@@ -45,10 +37,9 @@ pub extern "C-unwind" fn ADD_TOD_TIME(in1: i64, in2: i64) -> u32 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn ADD_DT_TIME(in1: i64, in2: i64) -> u32 {
-    let dt_seconds = short_date_time_seconds(in1);
-    let time_seconds = checked_millis_to_seconds(short_time_millis(in2));
-    dt_seconds.checked_add(time_seconds).unwrap()
+pub extern "C-unwind" fn ADD_DT_TIME(in1: u32, in2: u32) -> u32 {
+    let time_seconds = checked_millis_to_seconds(in2);
+    in1.checked_add(time_seconds).unwrap()
 }
 
 fn add_datetime_time(in1: i64, in2: i64) -> i64 {
@@ -66,8 +57,8 @@ fn add_datetime_time(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_TIME(in1: i64, in2: i64) -> u32 {
-    short_time_millis(in1).checked_sub(short_time_millis(in2)).unwrap()
+pub extern "C-unwind" fn SUB_TIME(in1: u32, in2: u32) -> u32 {
+    in1.checked_sub(in2).unwrap()
 }
 
 /// .
@@ -76,10 +67,8 @@ pub extern "C-unwind" fn SUB_TIME(in1: i64, in2: i64) -> u32 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_DATE_DATE(in1: i64, in2: i64) -> u32 {
-    let lhs = short_date_time_seconds(in1);
-    let rhs = short_date_time_seconds(in2);
-    checked_seconds_to_millis(lhs.checked_sub(rhs).unwrap())
+pub extern "C-unwind" fn SUB_DATE_DATE(in1: u32, in2: u32) -> u32 {
+    checked_seconds_to_millis(in1.checked_sub(in2).unwrap())
 }
 
 /// .
@@ -88,10 +77,8 @@ pub extern "C-unwind" fn SUB_DATE_DATE(in1: i64, in2: i64) -> u32 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_TOD_TIME(in1: i64, in2: i64) -> u32 {
-    ((short_time_millis(in1) as u64 + MILLIS_PER_DAY as u64
-        - (short_time_millis(in2) % MILLIS_PER_DAY) as u64)
-        % MILLIS_PER_DAY as u64) as u32
+pub extern "C-unwind" fn SUB_TOD_TIME(in1: u32, in2: u32) -> u32 {
+    ((in1 as u64 + MILLIS_PER_DAY as u64 - (in2 % MILLIS_PER_DAY) as u64) % MILLIS_PER_DAY as u64) as u32
 }
 
 /// .
@@ -100,8 +87,8 @@ pub extern "C-unwind" fn SUB_TOD_TIME(in1: i64, in2: i64) -> u32 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_TOD_TOD(in1: i64, in2: i64) -> u32 {
-    short_time_millis(in1).checked_sub(short_time_millis(in2)).unwrap()
+pub extern "C-unwind" fn SUB_TOD_TOD(in1: u32, in2: u32) -> u32 {
+    in1.checked_sub(in2).unwrap()
 }
 
 fn sub_datetimes(in1: i64, in2: i64) -> i64 {
@@ -118,10 +105,9 @@ fn sub_datetimes(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_DT_TIME(in1: i64, in2: i64) -> u32 {
-    let dt_seconds = short_date_time_seconds(in1);
-    let time_seconds = checked_millis_to_seconds(short_time_millis(in2));
-    dt_seconds.checked_sub(time_seconds).unwrap()
+pub extern "C-unwind" fn SUB_DT_TIME(in1: u32, in2: u32) -> u32 {
+    let time_seconds = checked_millis_to_seconds(in2);
+    in1.checked_sub(time_seconds).unwrap()
 }
 
 fn sub_datetime_duration(in1: i64, in2: i64) -> i64 {
@@ -139,10 +125,8 @@ fn sub_datetime_duration(in1: i64, in2: i64) -> i64 {
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_DT_DT(in1: i64, in2: i64) -> u32 {
-    let lhs = short_date_time_seconds(in1);
-    let rhs = short_date_time_seconds(in2);
-    checked_seconds_to_millis(lhs.checked_sub(rhs).unwrap())
+pub extern "C-unwind" fn SUB_DT_DT(in1: u32, in2: u32) -> u32 {
+    checked_seconds_to_millis(in1.checked_sub(in2).unwrap())
 }
 
 /// .
