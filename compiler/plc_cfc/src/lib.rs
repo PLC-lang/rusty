@@ -4,6 +4,7 @@
 //! the document, resolves the network into ordered assignments, validates them,
 //! and transpiles the result into a [`CompilationUnit`].
 
+pub mod lowering;
 pub mod model;
 mod resolve;
 mod transpile;
