@@ -462,28 +462,26 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     return;
                 };
 
-                stmt.parameters.as_ref().iter().enumerate().any(|(param_index, param)| {
+                let aggregate_return_slot_present = index
+                    .get_declared_parameter(&qualified_name, 0)
+                    .is_some_and(|parameter| parameter.get_name() == return_name);
+
+                stmt.parameters.as_ref().iter().any(|param| {
                     is_output_assignment_and_type_cast_needed(
                         param,
                         annotation.as_ref(),
                         index,
-                        &qualified_name,
-                        param_index,
-                        is_method,
+                        aggregate_return_slot_present,
                     ) || is_output_assignment_and_has_direct_access(
                         param,
                         annotation.as_ref(),
                         index,
-                        &qualified_name,
-                        param_index,
-                        is_method,
+                        aggregate_return_slot_present,
                     ) || is_output_assignment_of_sized_string(
                         param,
                         annotation.as_ref(),
                         index,
-                        &qualified_name,
-                        param_index,
-                        is_method,
+                        aggregate_return_slot_present,
                     )
                 })
                     // Stateful structs (such as function blocks) have their own output assignment mechanism in codegen,
@@ -496,17 +494,23 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 let mut post_statements: Vec<AstNode> = Vec::new();
                 let mut expressions: Vec<AstNode> = Vec::new();
 
+                let aggregate_return_slot_present = self.index.as_ref().is_some_and(|index| {
+                    index
+                        .get_declared_parameter(&qualified_name, 0)
+                        .is_some_and(|parameter| parameter.get_name() == return_name)
+                });
+
                 let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
                 let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
 
-                for (param_index, param) in stmt.parameters.as_ref().iter().enumerate() {
+                for param in stmt.parameters.as_ref().iter() {
                     lower_output_assignments(
                         (&self.counter, self.id_provider.clone()),
                         param,
                         (&qualified_name, &return_name, is_method),
                         self.annotation.as_deref().expect("annotation exists when lowering calls"),
                         self.index.as_ref().expect("index exists when lowering calls"),
-                        param_index,
+                        aggregate_return_slot_present,
                         (&mut pre_statements, &mut expressions, &mut post_statements),
                     );
                 }
@@ -575,20 +579,11 @@ fn is_output_assignment_and_type_cast_needed(
     node: &AstNode,
     annotations: &dyn AnnotationMap,
     index: &Index,
-    pou_name: &str,
-    param_index: usize,
-    is_method: bool,
+    aggregate_return_slot_present: bool,
 ) -> bool {
     match &node.stmt {
-        AstStatement::ExpressionList(nodes) => nodes.iter().enumerate().any(|(param_index, node)| {
-            is_output_assignment_and_type_cast_needed(
-                node,
-                annotations,
-                index,
-                pou_name,
-                param_index,
-                is_method,
-            )
+        AstStatement::ExpressionList(nodes) => nodes.iter().any(|node| {
+            is_output_assignment_and_type_cast_needed(node, annotations, index, aggregate_return_slot_present)
         }),
         AstStatement::OutputAssignment(assignment) => {
             // For output assignment in a call these types need to be swapped
@@ -604,25 +599,26 @@ fn is_output_assignment_and_type_cast_needed(
             type_cast_needed(type_lhs, type_rhs, index)
         }
         _ => {
-            // The first parameter of a method is always "this"
-            if is_method && param_index == 0 {
-                return false;
-            }
-
             // We don't want to accidentally assign a pointer back to a literal that is passed
             if node.is_literal() {
                 return false;
             }
 
-            let Some(param_index) =
-                find_implicit_output_parameter_index(index, pou_name, param_index, is_method)
+            let Some((declaring_pou_name, param_index)) = find_argument_parameter_position(annotations, node)
             else {
                 return false;
             };
 
-            let Some(param_index_entry) = index.get_declared_parameter(pou_name, param_index) else {
+            let param_index = if aggregate_return_slot_present { param_index + 1 } else { param_index };
+
+            let Some(param_index_entry) = index.get_declared_parameter(declaring_pou_name, param_index)
+            else {
                 return false;
             };
+
+            if !param_index_entry.is_output() {
+                return false;
+            }
 
             let Some(type_lhs_pointer) = index.find_effective_type_by_name(&param_index_entry.data_type_name)
             else {
@@ -719,19 +715,15 @@ fn is_output_assignment_and_has_direct_access(
     node: &AstNode,
     annotations: &dyn AnnotationMap,
     index: &Index,
-    pou_name: &str,
-    param_index: usize,
-    is_method: bool,
+    aggregate_return_slot_present: bool,
 ) -> bool {
     match &node.stmt {
-        AstStatement::ExpressionList(nodes) => nodes.iter().enumerate().any(|(param_index, node)| {
+        AstStatement::ExpressionList(nodes) => nodes.iter().any(|node| {
             is_output_assignment_and_has_direct_access(
                 node,
                 annotations,
                 index,
-                pou_name,
-                param_index,
-                is_method,
+                aggregate_return_slot_present,
             )
         }),
         AstStatement::OutputAssignment(assignment) => {
@@ -745,20 +737,26 @@ fn is_output_assignment_and_has_direct_access(
             assignment.right.has_direct_access()
         }
         _ => {
-            // The first parameter of a method is always "this"
-            if is_method && param_index == 0 {
-                return false;
-            }
-
             // We don't want to accidentally assign a pointer back to a literal that is passed
             if node.is_literal() {
                 return false;
             }
 
-            let Some(_) = find_implicit_output_parameter_index(index, pou_name, param_index, is_method)
+            let Some((declaring_pou_name, param_index)) = find_argument_parameter_position(annotations, node)
             else {
                 return false;
             };
+
+            let param_index = if aggregate_return_slot_present { param_index + 1 } else { param_index };
+
+            let Some(param_index_entry) = index.get_declared_parameter(declaring_pou_name, param_index)
+            else {
+                return false;
+            };
+
+            if !param_index_entry.is_output() {
+                return false;
+            }
 
             let node_type = annotations.get_type_or_void(node, index);
 
@@ -776,13 +774,11 @@ fn is_output_assignment_of_sized_string(
     node: &AstNode,
     annotations: &dyn AnnotationMap,
     index: &Index,
-    pou_name: &str,
-    param_index: usize,
-    is_method: bool,
+    aggregate_return_slot_present: bool,
 ) -> bool {
     match &node.stmt {
-        AstStatement::ExpressionList(nodes) => nodes.iter().enumerate().any(|(param_index, node)| {
-            is_output_assignment_of_sized_string(node, annotations, index, pou_name, param_index, is_method)
+        AstStatement::ExpressionList(nodes) => nodes.iter().any(|node| {
+            is_output_assignment_of_sized_string(node, annotations, index, aggregate_return_slot_present)
         }),
         AstStatement::OutputAssignment(assignment) => {
             let left_node_type = annotations.get_type_or_void(assignment.left.as_ref(), index);
@@ -796,25 +792,26 @@ fn is_output_assignment_of_sized_string(
             string_type_alloc_needed(left_node_type, right_node_type, index)
         }
         _ => {
-            // The first parameter of a method is always "this"
-            if is_method && param_index == 0 {
-                return false;
-            }
-
             // We don't want to accidentally assign a pointer back to a literal that is passed
             if node.is_literal() {
                 return false;
             }
 
-            let Some(param_index) =
-                find_implicit_output_parameter_index(index, pou_name, param_index, is_method)
+            let Some((declaring_pou_name, param_index)) = find_argument_parameter_position(annotations, node)
             else {
                 return false;
             };
 
-            let Some(param_index_entry) = index.get_declared_parameter(pou_name, param_index) else {
+            let param_index = if aggregate_return_slot_present { param_index + 1 } else { param_index };
+
+            let Some(param_index_entry) = index.get_declared_parameter(declaring_pou_name, param_index)
+            else {
                 return false;
             };
+
+            if !param_index_entry.is_output() {
+                return false;
+            }
 
             let Some(type_lhs_pointer) = index.find_effective_type_by_name(&param_index_entry.data_type_name)
             else {
@@ -839,47 +836,19 @@ fn is_output_assignment_of_sized_string(
     }
 }
 
-fn is_implicit_output_assignment(index: &Index, pou_name: &str, param_index: u32) -> bool {
-    let Some(param_index_entry) = index.get_declared_parameter(pou_name, param_index) else {
-        return false;
-    };
-
-    param_index_entry.is_output()
-}
-
-fn find_implicit_output_parameter_index(
-    index: &Index,
-    pou_name: &str,
-    param_index: usize,
-    is_method: bool,
-) -> Option<u32> {
-    if is_method {
-        if param_index == 0 {
-            return None;
-        }
-
-        let declared_index = (param_index as u32) - 1;
-        return is_implicit_output_assignment(index, pou_name, declared_index).then_some(declared_index);
+fn find_argument_parameter_position<'a>(
+    annotations: &'a dyn AnnotationMap,
+    node: &AstNode,
+) -> Option<(&'a str, u32)> {
+    match annotations.get(node) {
+        Some(StatementAnnotation::Argument { position, pou, .. }) => Some((pou.as_str(), *position as u32)),
+        _ => match annotations.get_hint(node) {
+            Some(StatementAnnotation::Argument { position, pou, .. }) => {
+                Some((pou.as_str(), *position as u32))
+            }
+            _ => None,
+        },
     }
-
-    let declared_index = param_index as u32;
-    if is_implicit_output_assignment(index, pou_name, declared_index) {
-        return Some(declared_index);
-    }
-
-    // Some lowered call signatures shift implicit output positions by one in either
-    // direction depending on whether a synthetic return slot is materialized in the
-    // indexed signature.
-    if declared_index > 0 {
-        let declared_index_without_return_slot = declared_index - 1;
-        if is_implicit_output_assignment(index, pou_name, declared_index_without_return_slot) {
-            return Some(declared_index_without_return_slot);
-        }
-    }
-
-    let declared_index_with_return_slot = declared_index + 1;
-    is_implicit_output_assignment(index, pou_name, declared_index_with_return_slot)
-        .then_some(declared_index_with_return_slot)
 }
 
 fn lower_output_assignments(
@@ -888,42 +857,29 @@ fn lower_output_assignments(
     (qualified_pou_name, pou_name, is_method): (&str, &str, bool),
     annotations: &dyn AnnotationMap,
     index: &Index,
-    param_index: usize,
+    aggregate_return_slot_present: bool,
     (pre_statements, expressions, post_statements): (&mut Vec<AstNode>, &mut Vec<AstNode>, &mut Vec<AstNode>),
 ) {
-    let should_be_lowered = is_output_assignment_and_type_cast_needed(
-        param,
-        annotations,
-        index,
-        qualified_pou_name,
-        param_index,
-        is_method,
-    ) || is_output_assignment_and_has_direct_access(
-        param,
-        annotations,
-        index,
-        qualified_pou_name,
-        param_index,
-        is_method,
-    ) || is_output_assignment_of_sized_string(
-        param,
-        annotations,
-        index,
-        qualified_pou_name,
-        param_index,
-        is_method,
-    );
+    let should_be_lowered =
+        is_output_assignment_and_type_cast_needed(param, annotations, index, aggregate_return_slot_present)
+            || is_output_assignment_and_has_direct_access(
+                param,
+                annotations,
+                index,
+                aggregate_return_slot_present,
+            )
+            || is_output_assignment_of_sized_string(param, annotations, index, aggregate_return_slot_present);
 
     match &param.stmt {
         AstStatement::ExpressionList(list) => {
-            list.iter().enumerate().for_each(|(item_index, item)| {
+            list.iter().for_each(|item| {
                 lower_output_assignments(
                     (counter, id_provider.clone()),
                     item,
                     (qualified_pou_name, pou_name, is_method),
                     annotations,
                     index,
-                    item_index,
+                    aggregate_return_slot_present,
                     (pre_statements, expressions, post_statements),
                 )
             });
@@ -960,21 +916,27 @@ fn lower_output_assignments(
                 expressions.push(param.clone());
                 return;
             }
-            // The first parameter of a method is always "this", this is validated before hand
-            let Some(param_index) =
-                find_implicit_output_parameter_index(index, qualified_pou_name, param_index, is_method)
+            let Some((declaring_pou_name, param_index)) =
+                find_argument_parameter_position(annotations, param)
             else {
                 // If this fails, simply return the expression
                 expressions.push(param.clone());
                 return;
             };
 
-            let Some(param_index_entry) = index.get_declared_parameter(qualified_pou_name, param_index)
+            let param_index = if aggregate_return_slot_present { param_index + 1 } else { param_index };
+
+            let Some(param_index_entry) = index.get_declared_parameter(declaring_pou_name, param_index)
             else {
                 // If this fails, simply return the expression
                 expressions.push(param.clone());
                 return;
             };
+
+            if !param_index_entry.is_output() {
+                expressions.push(param.clone());
+                return;
+            }
 
             let Some(left_pointer_type) =
                 index.find_effective_type_by_name(&param_index_entry.data_type_name)
@@ -2352,6 +2314,65 @@ mod tests {
         Config_GetString(__Config_GetString0, '/some/config/value', __Config_GetString_Value1);
         retValue := __Config_GetString0;
         MyString := __Config_GetString_Value1;
+        ");
+    }
+
+    #[test]
+    fn calls_to_functions_with_string_output_should_lower_the_correct_variable() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : DINT
+            VAR_INPUT
+                Key   : STRING[1023];
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING[28];
+            END_VAR
+
+            Value := 'hi';
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                keyVar : STRING[10];
+                outVar : STRING[28];
+                r : DINT;
+            END_VAR
+
+            keyVar := 'my-key';
+            r := Config_GetString(keyVar, outVar);
+        END_PROGRAM
+
+        FUNCTION main
+            mainProg();
+        END_FUNCTION
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"
+        keyVar := 'my-key';
+        r := Config_GetString(keyVar, outVar);
         ");
     }
 }
