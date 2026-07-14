@@ -16,39 +16,39 @@ fn checked_millis_to_seconds(input: u32) -> u32 {
 }
 
 fn checked_seconds_to_millis(input: u32) -> u32 {
-    input.wrapping_mul(MILLIS_PER_SECOND)
+    input.checked_mul(MILLIS_PER_SECOND).unwrap()
 }
 
 /// .
 /// This operator returns the value of adding up two TIME operands.
-/// Panic on overflow
+/// Panics on overflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn ADD_TIME(in1: i64, in2: i64) -> u32 {
-    short_time_millis(in1).wrapping_add(short_time_millis(in2))
+    short_time_millis(in1).checked_add(short_time_millis(in2)).unwrap()
 }
 
 /// .
 /// This operator returns the value of adding up TOD and TIME.
-/// Panic on overflow
+/// Wraps around day boundaries.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn ADD_TOD_TIME(in1: i64, in2: i64) -> u32 {
-    short_time_millis(in1).wrapping_add(short_time_millis(in2)) % MILLIS_PER_DAY
+    ((short_time_millis(in1) as u64 + short_time_millis(in2) as u64) % MILLIS_PER_DAY as u64) as u32
 }
 
 /// .
 /// This operator returns the value of adding up DT and TIME.
-/// Panic on overflow
+/// Panics on overflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn ADD_DT_TIME(in1: i64, in2: i64) -> u32 {
     let dt_seconds = short_date_time_seconds(in1);
     let time_seconds = checked_millis_to_seconds(short_time_millis(in2));
-    dt_seconds.wrapping_add(time_seconds)
+    dt_seconds.checked_add(time_seconds).unwrap()
 }
 
 fn add_datetime_time(in1: i64, in2: i64) -> i64 {
@@ -62,44 +62,46 @@ fn add_datetime_time(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator produces the subtraction of two TIME operands
-/// Panic on overflow
+/// Panics on underflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn SUB_TIME(in1: i64, in2: i64) -> u32 {
-    short_time_millis(in1).wrapping_sub(short_time_millis(in2))
+    short_time_millis(in1).checked_sub(short_time_millis(in2)).unwrap()
 }
 
 /// .
 /// This operator produces the subtraction of two DATE operands
-/// Panic on overflow
+/// Panics on underflow and when the resulting TIME would overflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn SUB_DATE_DATE(in1: i64, in2: i64) -> u32 {
     let lhs = short_date_time_seconds(in1);
     let rhs = short_date_time_seconds(in2);
-    checked_seconds_to_millis(lhs.wrapping_sub(rhs))
+    checked_seconds_to_millis(lhs.checked_sub(rhs).unwrap())
 }
 
 /// .
 /// This operator produces the subtraction of TOD and TIME
-/// Panic on overflow
+/// Wraps around day boundaries.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn SUB_TOD_TIME(in1: i64, in2: i64) -> u32 {
-    short_time_millis(in1).wrapping_sub(short_time_millis(in2)) % MILLIS_PER_DAY
+    ((short_time_millis(in1) as u64 + MILLIS_PER_DAY as u64
+        - (short_time_millis(in2) % MILLIS_PER_DAY) as u64)
+        % MILLIS_PER_DAY as u64) as u32
 }
 
 /// .
 /// This operator produces the subtraction of two TOD operands
-/// Panic on overflow
+/// Panics on underflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn SUB_TOD_TOD(in1: i64, in2: i64) -> u32 {
-    short_time_millis(in1).wrapping_sub(short_time_millis(in2))
+    short_time_millis(in1).checked_sub(short_time_millis(in2)).unwrap()
 }
 
 fn sub_datetimes(in1: i64, in2: i64) -> i64 {
@@ -112,14 +114,14 @@ fn sub_datetimes(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator produces the subtraction of DT and TIME
-/// Panic on overflow
+/// Panics on underflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn SUB_DT_TIME(in1: i64, in2: i64) -> u32 {
     let dt_seconds = short_date_time_seconds(in1);
     let time_seconds = checked_millis_to_seconds(short_time_millis(in2));
-    dt_seconds.wrapping_sub(time_seconds)
+    dt_seconds.checked_sub(time_seconds).unwrap()
 }
 
 fn sub_datetime_duration(in1: i64, in2: i64) -> i64 {
@@ -133,14 +135,14 @@ fn sub_datetime_duration(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator produces the subtraction of two DT operands
-/// Panic on overflow
+/// Panics on underflow and when the resulting TIME would overflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C-unwind" fn SUB_DT_DT(in1: i64, in2: i64) -> u32 {
     let lhs = short_date_time_seconds(in1);
     let rhs = short_date_time_seconds(in2);
-    checked_seconds_to_millis(lhs.wrapping_sub(rhs))
+    checked_seconds_to_millis(lhs.checked_sub(rhs).unwrap())
 }
 
 /// .

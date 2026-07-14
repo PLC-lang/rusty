@@ -20,10 +20,4 @@ FUNCTION main
     result := SUB_TIME(t1, t2);
     printf('%s$N', REF(TIME_TO_STRING(result)));                                    // CHECK: 7s
 
-    // SUB_TIME with wrapping (u32 underflow, printed as signed)
-    t1 := TIME#2s;
-    t2 := TIME#5s;
-    result := SUB_TIME(t1, t2);
-    printf('%d$N', result);                                                         // CHECK: -3000
-
 END_FUNCTION
