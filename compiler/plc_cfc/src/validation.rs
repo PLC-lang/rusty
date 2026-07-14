@@ -33,11 +33,24 @@ fn validate_expressions(resolved: &Resolved, source: &SourceCode, ids: IdProvide
     };
 
     // A return's condition is left to the main pipeline's validator, which sees
-    // the full interface; here we only have the untyped model.
+    // the full interface; here we only have the untyped model. Block outputs are
+    // synthesized member references, so only free-text data sources are vetted.
     for statement in &resolved.statements {
-        if let Statement::Assignment { sink, source } = statement {
-            check(sink);
-            check(source);
+        match statement {
+            Statement::Assignment { sink, source } => {
+                check(sink);
+                if let Some(object) = source.variable() {
+                    check(object);
+                }
+            }
+            Statement::Call { arguments, .. } => {
+                for argument in arguments {
+                    if let Some(object) = argument.source.variable() {
+                        check(object);
+                    }
+                }
+            }
+            Statement::Return { .. } => {}
         }
     }
 
