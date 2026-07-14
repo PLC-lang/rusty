@@ -1,0 +1,6 @@
+RUN: not %COMPILE --error-format clang build plc.json 2>&1 | %CHECK %s
+
+An unwired in_out is emitted as an empty argument, which the main pipeline
+rejects — an in_out parameter must be a real reference.
+CHECK: {{.*}}function_inout_unwired.cfc:{{.*}}error[E031]: Expected a reference for parameter acc because their type is InOut
+CHECK: error: Compilation aborted due to critical errors

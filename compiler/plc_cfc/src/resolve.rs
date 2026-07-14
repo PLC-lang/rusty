@@ -18,6 +18,9 @@ pub(crate) struct Resolved<'model> {
     pub duplicate_connectors: Vec<&'model FbdObject>,
     /// Connectors/continuations where a consumed chain never reached a source.
     pub broken: Vec<Broken<'model>>,
+    /// Producer output-pin ids some consumer reads. A block output absent here is
+    /// unread — a stateless function then needs no captured temporary for it.
+    pub consumed_outputs: HashSet<usize>,
 }
 
 pub(crate) enum Statement<'model> {
@@ -109,17 +112,22 @@ pub(crate) fn resolve(network: &Network) -> Resolved<'_> {
     let mut statements = Vec::new();
     let mut unconnected = Vec::new();
     let mut broken = Vec::new();
+    let mut consumed_outputs = HashSet::new();
     for object in network.elements() {
         match role(object) {
             Role::Sink => match trace(source_pin(object), &producers) {
-                Trace::Reached(source) => statements.push(Statement::Assignment { sink: object, source }),
+                Trace::Reached(source) => {
+                    record_consumed(&source, &mut consumed_outputs);
+                    statements.push(Statement::Assignment { sink: object, source });
+                }
                 Trace::DeadEnd(at) => broken.push(at),
                 Trace::Unwired => {} // an unwired sink assigns nothing; drop it
             },
 
             Role::Return => match trace(source_pin(object), &producers) {
                 Trace::Reached(source) => {
-                    statements.push(Statement::Return { object, condition: Some(source) })
+                    record_consumed(&source, &mut consumed_outputs);
+                    statements.push(Statement::Return { object, condition: Some(source) });
                 }
                 Trace::DeadEnd(at) => broken.push(at),
                 // No wire means no guard; validation flags the bare return (E085).
@@ -133,7 +141,10 @@ pub(crate) fn resolve(network: &Network) -> Resolved<'_> {
                 let mut arguments = Vec::new();
                 for pin in object.input_pins().iter().chain(object.inout_pins()) {
                     match trace(pin.source_pin(), &producers) {
-                        Trace::Reached(source) => arguments.push(Argument { pin, source }),
+                        Trace::Reached(source) => {
+                            record_consumed(&source, &mut consumed_outputs);
+                            arguments.push(Argument { pin, source });
+                        }
                         Trace::DeadEnd(at) => broken.push(at),
                         Trace::Unwired => {}
                     }
@@ -152,7 +163,16 @@ pub(crate) fn resolve(network: &Network) -> Resolved<'_> {
     let mut seen = HashSet::new();
     broken.retain(|at| seen.insert(at.element.global_id));
 
-    Resolved { statements, unconnected, duplicate_connectors, broken }
+    Resolved { statements, unconnected, duplicate_connectors, broken, consumed_outputs }
+}
+
+/// Note a block output as read, so an unread function output can skip its temp.
+fn record_consumed(source: &Source, consumed: &mut HashSet<usize>) {
+    if let Source::Output { pin, .. } = source {
+        if let Some(id) = pin.output_pin() {
+            consumed.insert(id);
+        }
+    }
 }
 
 /// Index the network so the linking pass is pure lookup: map every output pin to
@@ -246,8 +266,7 @@ fn trace<'model>(start: Option<usize>, producers: &Producers<'model>) -> Trace<'
 
         // Step onto whatever feeds that connector; a connector with no input is
         // an open connector and produces no value.
-        match source_pin(connector).and_then(|id| producers.by_pin.get(&id).copied().map(|next| (id, next)))
-        {
+        match source_pin(connector).and_then(|id| producers.by_pin.get(&id).copied().map(|next| (id, next))) {
             Some((id, next)) => (pin, element) = (id, next),
             None => {
                 return Trace::DeadEnd(Broken { element: connector, reason: BrokenReason::OpenConnector })
@@ -276,9 +295,7 @@ mod tests {
     /// A source rendered as its diagram text and the global id it originates at.
     fn render_source(source: &Source) -> (String, usize) {
         match source {
-            Source::Variable(object) => {
-                (object.identifier().unwrap_or("?").to_string(), object.global_id)
-            }
+            Source::Variable(object) => (object.identifier().unwrap_or("?").to_string(), object.global_id),
             Source::Output { block, pin } => {
                 (format!("{}.{}", block.instance().unwrap_or("?"), pin.parameter_name), block.global_id)
             }
@@ -291,7 +308,11 @@ mod tests {
             let line = match statement {
                 Statement::Assignment { sink, source } => {
                     let (text, id) = render_source(source);
-                    format!("{} := {text}   [sink {} <- source {id}]\n", sink.identifier().unwrap_or("?"), sink.global_id)
+                    format!(
+                        "{} := {text}   [sink {} <- source {id}]\n",
+                        sink.identifier().unwrap_or("?"),
+                        sink.global_id
+                    )
                 }
                 Statement::Return { object, condition: Some(source) } => {
                     let (text, id) = render_source(source);

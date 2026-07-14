@@ -268,6 +268,28 @@ impl FbdObject {
         self.instance_name.as_deref().or_else(|| self.owner())
     }
 
+    /// The output pin carrying a function's return value: the pin named after the
+    /// callee. Only a non-void function exposes one.
+    // TODO: A void function has no return pin and is currently indistinguishable
+    //       from a program here; telling them apart needs the callee's kind,
+    //       which the untyped model doesn't carry.
+    pub fn return_pin(&self) -> Option<&Pin> {
+        let type_name = self.type_name()?;
+        self.output_pins().iter().find(|pin| pin.parameter_name == type_name)
+    }
+
+    /// A stateless function call: no caller instance and a return pin present. Its
+    /// outputs don't persist, so they are read through generated temporaries
+    /// rather than `instance.member`.
+    pub fn is_function(&self) -> bool {
+        self.instance_name.is_none() && self.return_pin().is_some()
+    }
+
+    /// Whether `pin` is this block's return pin (named after the callee).
+    pub fn is_return_pin(&self, pin: &Pin) -> bool {
+        self.type_name() == Some(pin.parameter_name.as_str())
+    }
+
     /// The reference a block is *called* through: the instance, suffixed with the
     /// action when `typeName` is qualified (`inst.act`); otherwise the instance.
     pub fn call_target(&self) -> Option<String> {
