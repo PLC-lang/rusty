@@ -1,39 +1,63 @@
 //! Structural resolution of an FBD network: classify each element, link every
-//! sink to its single source, and order the sinks by evaluation priority.
+//! sink and return to its source, and order the statements by evaluation
+//! priority.
 
 use std::collections::HashMap;
 
 use crate::model::{FbdObject, Network};
 
 pub(crate) struct Resolved<'model> {
-    /// Sinks paired with their source, in evaluation-priority order.
-    pub assignments: Vec<Assignment<'model>>,
+    /// Network statements in evaluation-priority order.
+    pub statements: Vec<Statement<'model>>,
     pub unconnected: Vec<&'model FbdObject>,
 }
 
-pub(crate) struct Assignment<'model> {
-    pub sink: &'model FbdObject,
-    pub source: &'model FbdObject,
+pub(crate) enum Statement<'model> {
+    Assignment { sink: &'model FbdObject, source: &'model FbdObject },
+    Return { object: &'model FbdObject, condition: Option<&'model FbdObject> },
 }
 
 enum Role {
     Source,
     Sink,
+    Return,
     Unconnected,
     Other,
+}
+
+impl<'model> Statement<'model> {
+    /// The element carrying this statement's priority and diagram location.
+    fn anchor(&self) -> &'model FbdObject {
+        match self {
+            Statement::Assignment { sink, .. } => sink,
+            Statement::Return { object, .. } => object,
+        }
+    }
 }
 
 fn role(object: &FbdObject) -> Role {
     match object.kind.as_str() {
         "ppx:DataSource" => Role::Source,
         "ppx:DataSink" => Role::Sink,
+        "ppx:Return" => Role::Return,
         "ppx:Unconnected" => Role::Unconnected,
         _ => Role::Other,
     }
 }
 
+fn source_of<'model>(
+    object: &FbdObject,
+    source_by_pin: &HashMap<usize, &'model FbdObject>,
+) -> Option<&'model FbdObject> {
+    object
+        .connection_in
+        .as_ref()
+        .and_then(|it| it.connections.first())
+        .and_then(|connection| source_by_pin.get(&connection.ref_out_id).copied())
+}
+
 pub(crate) fn resolve(network: &Network) -> Resolved<'_> {
-    // Index every output pin so a sink can find its source in one hop.
+    // Index every output pin so a consumer can find its source in one hop.
     let mut source_by_pin: HashMap<usize, &FbdObject> = HashMap::new();
     for object in &network.objects {
         if let Some(out) = &object.connection_out {
@@ -41,35 +65,32 @@ pub(crate) fn resolve(network: &Network) -> Resolved<'_> {
         }
     }
 
-    let mut assignments = Vec::new();
+    let mut statements = Vec::new();
     let mut unconnected = Vec::new();
 
     for object in &network.objects {
         match role(object) {
             Role::Sink => {
-                let source = object
-                    .connection_in
-                    .as_ref()
-                    .and_then(|it| it.connections.first())
-                    .and_then(|connection| source_by_pin.get(&connection.ref_out_id).copied());
-
-                if let Some(source) = source {
-                    assignments.push(Assignment { sink: object, source });
+                if let Some(source) = source_of(object, &source_by_pin) {
+                    statements.push(Statement::Assignment { sink: object, source });
                 }
+            }
+            Role::Return => {
+                statements.push(Statement::Return { object, condition: source_of(object, &source_by_pin) });
             }
             Role::Unconnected => unconnected.push(object),
             Role::Source | Role::Other => {}
         }
     }
 
-    assignments.sort_by_key(|it| it.sink.priority().unwrap_or(usize::MAX));
+    statements.sort_by_key(|statement| statement.anchor().priority().unwrap_or(usize::MAX));
 
-    Resolved { assignments, unconnected }
+    Resolved { statements, unconnected }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{resolve, Resolved};
+    use super::{resolve, Resolved, Statement};
     use crate::model::Pou;
 
     fn resolve_project(fixture: &str) -> String {
@@ -80,15 +101,26 @@ mod tests {
 
     fn render(resolved: &Resolved) -> String {
         let mut out = String::new();
-        for it in &resolved.assignments {
-            let (sink, source) = (it.sink, it.source);
-            let line = format!(
-                "{} := {}   [sink {} <- source {}]\n",
-                sink.identifier().unwrap_or("?"),
-                source.identifier().unwrap_or("?"),
-                sink.global_id,
-                source.global_id,
-            );
+        for statement in &resolved.statements {
+            let line = match statement {
+                Statement::Assignment { sink, source } => format!(
+                    "{} := {}   [sink {} <- source {}]\n",
+                    sink.identifier().unwrap_or("?"),
+                    source.identifier().unwrap_or("?"),
+                    sink.global_id,
+                    source.global_id,
+                ),
+                Statement::Return { object, condition: Some(source) } => format!(
+                    "RETURN {}{}   [return {} <- source {}]\n",
+                    if object.negated() { "NOT " } else { "" },
+                    source.identifier().unwrap_or("?"),
+                    object.global_id,
+                    source.global_id,
+                ),
+                Statement::Return { object, condition: None } => {
+                    format!("RETURN <disconnected>   [return {}]\n", object.global_id)
+                }
+            };
             out.push_str(&line);
         }
         let unconnected: Vec<_> =
@@ -145,6 +177,32 @@ mod tests {
             insta::assert_snapshot!(resolve_project("variables/valid/unconnected_variables"), @r"
         bar := foo   [sink 8 <- source 6]
         unconnected: foo, bar");
+        }
+    }
+
+    mod returns {
+        use super::resolve_project;
+
+        #[test]
+        fn conditional_return() {
+            insta::assert_snapshot!(resolve_project("returns/valid/conditional_return"), @r"
+        RETURN myCondition   [return 3 <- source 1]
+        unconnected: (none)");
+        }
+
+        #[test]
+        fn negated_return() {
+            insta::assert_snapshot!(resolve_project("returns/valid/negated_return"), @r"
+        RETURN NOT myCondition   [return 3 <- source 1]
+        unconnected: (none)");
+        }
+
+        #[test]
+        fn disconnected_return() {
+            insta::assert_snapshot!(resolve_project("returns/invalid/disconnected_return"), @r"
+        RETURN myCondition   [return 3 <- source 1]
+        RETURN <disconnected>   [return 4]
+        unconnected: (none)");
         }
     }
 }

@@ -57,6 +57,9 @@ pub struct Data {
 
     #[serde(rename = "EvaluationPriority")]
     pub evaluation_priority: Option<EvaluationPriority>,
+
+    #[serde(rename = "negated")]
+    pub negated: Option<Negated>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -70,6 +73,12 @@ pub struct TextDeclaration {
 pub struct EvaluationPriority {
     #[serde(rename = "@priorityInNetwork")]
     pub priority: usize,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Negated {
+    #[serde(rename = "@value")]
+    pub value: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -179,5 +188,12 @@ impl FbdObject {
     pub fn priority(&self) -> Option<usize> {
         let add_data = self.add_data.as_ref()?;
         add_data.data.iter().find_map(|data| data.evaluation_priority.as_ref()).map(|it| it.priority)
+    }
+
+    pub fn negated(&self) -> bool {
+        self.add_data
+            .as_ref()
+            .and_then(|add_data| add_data.data.iter().find_map(|data| data.negated.as_ref()))
+            .is_some_and(|negated| negated.value)
     }
 }
