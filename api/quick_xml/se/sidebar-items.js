@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["QuoteLevel"],"fn":["to_string","to_string_with_root","to_writer","to_writer_with_root"],"struct":["Serializer"]};

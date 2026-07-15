@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["unified_diff"],"struct":["UnifiedDiff","UnifiedDiffHunk","UnifiedHunkHeader"]};

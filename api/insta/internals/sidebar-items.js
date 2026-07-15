@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Content","SnapshotContents"],"struct":["AutoName","Filters","MetaData","SettingsBindDropGuard","TextSnapshotContents"]};

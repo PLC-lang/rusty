@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["diff","diff_deadline"]};
