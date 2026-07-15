@@ -682,7 +682,7 @@ impl ParsedProject {
 
                 let parse_func = match source.get_type() {
                     source_code::SourceType::Text => parse_file,
-                    source_code::SourceType::Xml => cfc::xml_parser::parse_file,
+                    source_code::SourceType::Xml => plc_cfc::parse_file,
                     source_code::SourceType::Unknown => unreachable!(),
                 };
 
