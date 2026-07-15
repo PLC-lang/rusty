@@ -268,61 +268,83 @@
 <a href=#268 id=268 data-nosnippet>268</a>        <span class="self">self</span>.instance_name.as_deref().or_else(|| <span class="self">self</span>.owner())
 <a href=#269 id=269 data-nosnippet>269</a>    }
 <a href=#270 id=270 data-nosnippet>270</a>
-<a href=#271 id=271 data-nosnippet>271</a>    <span class="doccomment">/// The reference a block is *called* through: the instance, suffixed with the
-<a href=#272 id=272 data-nosnippet>272</a>    /// action when `typeName` is qualified (`inst.act`); otherwise the instance.
-<a href=#273 id=273 data-nosnippet>273</a>    </span><span class="kw">pub fn </span>call_target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-<a href=#274 id=274 data-nosnippet>274</a>        <span class="kw">let </span>instance = <span class="self">self</span>.instance()<span class="question-mark">?</span>;
-<a href=#275 id=275 data-nosnippet>275</a>        <span class="prelude-val">Some</span>(<span class="kw">match </span><span class="self">self</span>.action() {
-<a href=#276 id=276 data-nosnippet>276</a>            <span class="prelude-val">Some</span>(action) =&gt; <span class="macro">format!</span>(<span class="string">"{instance}.{action}"</span>),
-<a href=#277 id=277 data-nosnippet>277</a>            <span class="prelude-val">None </span>=&gt; instance.to_string(),
-<a href=#278 id=278 data-nosnippet>278</a>        })
+<a href=#271 id=271 data-nosnippet>271</a>    <span class="doccomment">/// The output pin carrying a function's return value: the pin named after the
+<a href=#272 id=272 data-nosnippet>272</a>    /// callee. Only a non-void function exposes one.
+<a href=#273 id=273 data-nosnippet>273</a>    </span><span class="comment">// TODO: A void function has no return pin and is currently indistinguishable
+<a href=#274 id=274 data-nosnippet>274</a>    //       from a program here; telling them apart needs the callee's kind,
+<a href=#275 id=275 data-nosnippet>275</a>    //       which the untyped model doesn't carry.
+<a href=#276 id=276 data-nosnippet>276</a>    </span><span class="kw">pub fn </span>return_pin(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Pin&gt; {
+<a href=#277 id=277 data-nosnippet>277</a>        <span class="kw">let </span>type_name = <span class="self">self</span>.type_name()<span class="question-mark">?</span>;
+<a href=#278 id=278 data-nosnippet>278</a>        <span class="self">self</span>.output_pins().iter().find(|pin| pin.parameter_name == type_name)
 <a href=#279 id=279 data-nosnippet>279</a>    }
 <a href=#280 id=280 data-nosnippet>280</a>
-<a href=#281 id=281 data-nosnippet>281</a>    <span class="doccomment">/// The owner portion of `typeName`: everything before an action suffix
-<a href=#282 id=282 data-nosnippet>282</a>    /// (`MyFb.act` → `MyFb`), or the whole name when unqualified.
-<a href=#283 id=283 data-nosnippet>283</a>    </span><span class="kw">fn </span>owner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
-<a href=#284 id=284 data-nosnippet>284</a>        <span class="self">self</span>.type_name.as_deref().map(|name| name.rsplit_once(<span class="string">'.'</span>).map_or(name, |(owner, <span class="kw">_</span>)| owner))
-<a href=#285 id=285 data-nosnippet>285</a>    }
-<a href=#286 id=286 data-nosnippet>286</a>
-<a href=#287 id=287 data-nosnippet>287</a>    <span class="doccomment">/// The action a qualified `typeName` (`owner.action`) dispatches to, if any.
-<a href=#288 id=288 data-nosnippet>288</a>    </span><span class="kw">fn </span>action(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
-<a href=#289 id=289 data-nosnippet>289</a>        <span class="self">self</span>.type_name.as_deref().and_then(|name| name.rsplit_once(<span class="string">'.'</span>).map(|(<span class="kw">_</span>, action)| action))
-<a href=#290 id=290 data-nosnippet>290</a>    }
-<a href=#291 id=291 data-nosnippet>291</a>
-<a href=#292 id=292 data-nosnippet>292</a>    <span class="kw">pub fn </span>input_pins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Pin] {
-<a href=#293 id=293 data-nosnippet>293</a>        <span class="self">self</span>.input_variables.as_ref().map_or(<span class="kw-2">&amp;</span>[], |group| <span class="kw-2">&amp;</span>group.pins)
-<a href=#294 id=294 data-nosnippet>294</a>    }
-<a href=#295 id=295 data-nosnippet>295</a>
-<a href=#296 id=296 data-nosnippet>296</a>    <span class="kw">pub fn </span>output_pins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Pin] {
-<a href=#297 id=297 data-nosnippet>297</a>        <span class="self">self</span>.output_variables.as_ref().map_or(<span class="kw-2">&amp;</span>[], |group| <span class="kw-2">&amp;</span>group.pins)
-<a href=#298 id=298 data-nosnippet>298</a>    }
-<a href=#299 id=299 data-nosnippet>299</a>
-<a href=#300 id=300 data-nosnippet>300</a>    <span class="kw">pub fn </span>inout_pins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Pin] {
-<a href=#301 id=301 data-nosnippet>301</a>        <span class="self">self</span>.inout_variables.as_ref().map_or(<span class="kw-2">&amp;</span>[], |group| <span class="kw-2">&amp;</span>group.pins)
-<a href=#302 id=302 data-nosnippet>302</a>    }
-<a href=#303 id=303 data-nosnippet>303</a>
-<a href=#304 id=304 data-nosnippet>304</a>    <span class="kw">pub fn </span>priority(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-<a href=#305 id=305 data-nosnippet>305</a>        <span class="kw">let </span>add_data = <span class="self">self</span>.add_data.as_ref()<span class="question-mark">?</span>;
-<a href=#306 id=306 data-nosnippet>306</a>        add_data.data.iter().find_map(|data| data.evaluation_priority.as_ref()).map(|it| it.priority)
+<a href=#281 id=281 data-nosnippet>281</a>    <span class="doccomment">/// A stateless function call: no caller instance and a return pin present. Its
+<a href=#282 id=282 data-nosnippet>282</a>    /// outputs don't persist, so they are read through generated temporaries
+<a href=#283 id=283 data-nosnippet>283</a>    /// rather than `instance.member`.
+<a href=#284 id=284 data-nosnippet>284</a>    </span><span class="kw">pub fn </span>is_function(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+<a href=#285 id=285 data-nosnippet>285</a>        <span class="self">self</span>.instance_name.is_none() &amp;&amp; <span class="self">self</span>.return_pin().is_some()
+<a href=#286 id=286 data-nosnippet>286</a>    }
+<a href=#287 id=287 data-nosnippet>287</a>
+<a href=#288 id=288 data-nosnippet>288</a>    <span class="doccomment">/// Whether `pin` is this block's return pin (named after the callee).
+<a href=#289 id=289 data-nosnippet>289</a>    </span><span class="kw">pub fn </span>is_return_pin(<span class="kw-2">&amp;</span><span class="self">self</span>, pin: <span class="kw-2">&amp;</span>Pin) -&gt; bool {
+<a href=#290 id=290 data-nosnippet>290</a>        <span class="self">self</span>.type_name() == <span class="prelude-val">Some</span>(pin.parameter_name.as_str())
+<a href=#291 id=291 data-nosnippet>291</a>    }
+<a href=#292 id=292 data-nosnippet>292</a>
+<a href=#293 id=293 data-nosnippet>293</a>    <span class="doccomment">/// The reference a block is *called* through: the instance, suffixed with the
+<a href=#294 id=294 data-nosnippet>294</a>    /// action when `typeName` is qualified (`inst.act`); otherwise the instance.
+<a href=#295 id=295 data-nosnippet>295</a>    </span><span class="kw">pub fn </span>call_target(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+<a href=#296 id=296 data-nosnippet>296</a>        <span class="kw">let </span>instance = <span class="self">self</span>.instance()<span class="question-mark">?</span>;
+<a href=#297 id=297 data-nosnippet>297</a>        <span class="prelude-val">Some</span>(<span class="kw">match </span><span class="self">self</span>.action() {
+<a href=#298 id=298 data-nosnippet>298</a>            <span class="prelude-val">Some</span>(action) =&gt; <span class="macro">format!</span>(<span class="string">"{instance}.{action}"</span>),
+<a href=#299 id=299 data-nosnippet>299</a>            <span class="prelude-val">None </span>=&gt; instance.to_string(),
+<a href=#300 id=300 data-nosnippet>300</a>        })
+<a href=#301 id=301 data-nosnippet>301</a>    }
+<a href=#302 id=302 data-nosnippet>302</a>
+<a href=#303 id=303 data-nosnippet>303</a>    <span class="doccomment">/// The owner portion of `typeName`: everything before an action suffix
+<a href=#304 id=304 data-nosnippet>304</a>    /// (`MyFb.act` → `MyFb`), or the whole name when unqualified.
+<a href=#305 id=305 data-nosnippet>305</a>    </span><span class="kw">fn </span>owner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+<a href=#306 id=306 data-nosnippet>306</a>        <span class="self">self</span>.type_name.as_deref().map(|name| name.rsplit_once(<span class="string">'.'</span>).map_or(name, |(owner, <span class="kw">_</span>)| owner))
 <a href=#307 id=307 data-nosnippet>307</a>    }
 <a href=#308 id=308 data-nosnippet>308</a>
-<a href=#309 id=309 data-nosnippet>309</a>    <span class="kw">pub fn </span>negated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-<a href=#310 id=310 data-nosnippet>310</a>        <span class="self">self</span>.add_data
-<a href=#311 id=311 data-nosnippet>311</a>            .as_ref()
-<a href=#312 id=312 data-nosnippet>312</a>            .and_then(|add_data| add_data.data.iter().find_map(|data| data.negated.as_ref()))
-<a href=#313 id=313 data-nosnippet>313</a>            .is_some_and(|negated| negated.value)
-<a href=#314 id=314 data-nosnippet>314</a>    }
-<a href=#315 id=315 data-nosnippet>315</a>}
-<a href=#316 id=316 data-nosnippet>316</a>
-<a href=#317 id=317 data-nosnippet>317</a><span class="kw">impl </span>Pin {
-<a href=#318 id=318 data-nosnippet>318</a>    <span class="doccomment">/// The producer pin feeding an input/in_out pin's incoming wire.
-<a href=#319 id=319 data-nosnippet>319</a>    </span><span class="kw">pub fn </span>source_pin(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-<a href=#320 id=320 data-nosnippet>320</a>        <span class="self">self</span>.connection_in.as_ref()<span class="question-mark">?</span>.connections.first().map(|connection| connection.ref_out_id)
-<a href=#321 id=321 data-nosnippet>321</a>    }
-<a href=#322 id=322 data-nosnippet>322</a>
-<a href=#323 id=323 data-nosnippet>323</a>    <span class="doccomment">/// The producer pin an output pin exposes to downstream consumers.
-<a href=#324 id=324 data-nosnippet>324</a>    </span><span class="kw">pub fn </span>output_pin(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-<a href=#325 id=325 data-nosnippet>325</a>        <span class="self">self</span>.connection_out.as_ref().map(|out| out.id)
-<a href=#326 id=326 data-nosnippet>326</a>    }
-<a href=#327 id=327 data-nosnippet>327</a>}
+<a href=#309 id=309 data-nosnippet>309</a>    <span class="doccomment">/// The action a qualified `typeName` (`owner.action`) dispatches to, if any.
+<a href=#310 id=310 data-nosnippet>310</a>    </span><span class="kw">fn </span>action(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+<a href=#311 id=311 data-nosnippet>311</a>        <span class="self">self</span>.type_name.as_deref().and_then(|name| name.rsplit_once(<span class="string">'.'</span>).map(|(<span class="kw">_</span>, action)| action))
+<a href=#312 id=312 data-nosnippet>312</a>    }
+<a href=#313 id=313 data-nosnippet>313</a>
+<a href=#314 id=314 data-nosnippet>314</a>    <span class="kw">pub fn </span>input_pins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Pin] {
+<a href=#315 id=315 data-nosnippet>315</a>        <span class="self">self</span>.input_variables.as_ref().map_or(<span class="kw-2">&amp;</span>[], |group| <span class="kw-2">&amp;</span>group.pins)
+<a href=#316 id=316 data-nosnippet>316</a>    }
+<a href=#317 id=317 data-nosnippet>317</a>
+<a href=#318 id=318 data-nosnippet>318</a>    <span class="kw">pub fn </span>output_pins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Pin] {
+<a href=#319 id=319 data-nosnippet>319</a>        <span class="self">self</span>.output_variables.as_ref().map_or(<span class="kw-2">&amp;</span>[], |group| <span class="kw-2">&amp;</span>group.pins)
+<a href=#320 id=320 data-nosnippet>320</a>    }
+<a href=#321 id=321 data-nosnippet>321</a>
+<a href=#322 id=322 data-nosnippet>322</a>    <span class="kw">pub fn </span>inout_pins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Pin] {
+<a href=#323 id=323 data-nosnippet>323</a>        <span class="self">self</span>.inout_variables.as_ref().map_or(<span class="kw-2">&amp;</span>[], |group| <span class="kw-2">&amp;</span>group.pins)
+<a href=#324 id=324 data-nosnippet>324</a>    }
+<a href=#325 id=325 data-nosnippet>325</a>
+<a href=#326 id=326 data-nosnippet>326</a>    <span class="kw">pub fn </span>priority(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+<a href=#327 id=327 data-nosnippet>327</a>        <span class="kw">let </span>add_data = <span class="self">self</span>.add_data.as_ref()<span class="question-mark">?</span>;
+<a href=#328 id=328 data-nosnippet>328</a>        add_data.data.iter().find_map(|data| data.evaluation_priority.as_ref()).map(|it| it.priority)
+<a href=#329 id=329 data-nosnippet>329</a>    }
+<a href=#330 id=330 data-nosnippet>330</a>
+<a href=#331 id=331 data-nosnippet>331</a>    <span class="kw">pub fn </span>negated(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+<a href=#332 id=332 data-nosnippet>332</a>        <span class="self">self</span>.add_data
+<a href=#333 id=333 data-nosnippet>333</a>            .as_ref()
+<a href=#334 id=334 data-nosnippet>334</a>            .and_then(|add_data| add_data.data.iter().find_map(|data| data.negated.as_ref()))
+<a href=#335 id=335 data-nosnippet>335</a>            .is_some_and(|negated| negated.value)
+<a href=#336 id=336 data-nosnippet>336</a>    }
+<a href=#337 id=337 data-nosnippet>337</a>}
+<a href=#338 id=338 data-nosnippet>338</a>
+<a href=#339 id=339 data-nosnippet>339</a><span class="kw">impl </span>Pin {
+<a href=#340 id=340 data-nosnippet>340</a>    <span class="doccomment">/// The producer pin feeding an input/in_out pin's incoming wire.
+<a href=#341 id=341 data-nosnippet>341</a>    </span><span class="kw">pub fn </span>source_pin(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+<a href=#342 id=342 data-nosnippet>342</a>        <span class="self">self</span>.connection_in.as_ref()<span class="question-mark">?</span>.connections.first().map(|connection| connection.ref_out_id)
+<a href=#343 id=343 data-nosnippet>343</a>    }
+<a href=#344 id=344 data-nosnippet>344</a>
+<a href=#345 id=345 data-nosnippet>345</a>    <span class="doccomment">/// The producer pin an output pin exposes to downstream consumers.
+<a href=#346 id=346 data-nosnippet>346</a>    </span><span class="kw">pub fn </span>output_pin(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+<a href=#347 id=347 data-nosnippet>347</a>        <span class="self">self</span>.connection_out.as_ref().map(|out| out.id)
+<a href=#348 id=348 data-nosnippet>348</a>    }
+<a href=#349 id=349 data-nosnippet>349</a>}
 </code></pre></div></section></main></body></html>
