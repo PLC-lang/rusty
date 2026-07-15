@@ -99,6 +99,33 @@ is not validated here — with only the untyped model that is the main pipeline'
 job. The AST serializer renders a conditional return as `IF <cond> THEN RETURN;
 END_IF`.
 
+## Jumps and labels
+
+A `bmx:CfcJump` (the `bmx:` prefix survives, like `ppx:DataSource`) transfers
+control to a label named by its `@targetLabel`; a `bmx:CfcLabel` marks the
+target, carrying its name in the reused `@label` field. Both lower to the
+compiler's native constructs — `create_jump_statement(cond, target, ..)` and
+`create_label_statement(name, ..)` (the target is a flat reference to the label
+name, which the resolver binds to the indexed label) — and both are ordered by
+raw `EvaluationPriority` alongside sinks, returns, and calls, so a jump landing
+on an earlier or later label falls out of the sort for free (forward skips *and*
+backward loops).
+
+- A jump is **guarded** like a return: its wired input is the condition, and a
+  `<negated>` element wraps it in `NOT`. Unlike a return, a jump with **no wired
+  condition is legal** — it lowers to a `FALSE` guard (never taken) and only
+  warns (`E145`); the negation bubble is irrelevant then. The condition
+  *expression* is left to the main pipeline, same stance as a return condition.
+- **Structural checks are CFC-native**, mirroring connectors: a jump to a name
+  no label defines (`E142`) and two labels sharing a name (`E144`) are errors; a
+  label no jump targets is a warning (`E143`, still emitted). The main pipeline
+  *also* catches the two errors (unresolved reference; duplicate label `E018`),
+  but CFC aborts first with a block-anchored message — the same reason duplicate
+  connectors are caught here rather than downstream.
+- The AST serializer renders a jump as `IF <cond> THEN GOTO <label>` and a label
+  as `LABEL: <name>` (neither has bare ST syntax — jumps/labels are a CFC-only
+  AST construct with no parser support).
+
 ## Blocks (stateful calls)
 
 A `ppx:Block` is a call to its `@typeName`, and is both a consumer (its
@@ -169,7 +196,15 @@ Reused orphaned `plc_xml` codes (all Errors except `E084`):
 | `E085` | disconnected return (no wired condition)            |
 | `E086` | open connector (no input)                           |
 
-No `plc_xml` codes remain unclaimed — mint fresh codes from here on.
+No `plc_xml` codes remain unclaimed. Fresh codes minted since, from the current
+top of the registry:
+
+| Code   | Meaning                                             |
+|--------|-----------------------------------------------------|
+| `E142` | jump to a label no element defines                  |
+| `E143` | unused label (no jump targets it) (Warning)         |
+| `E144` | duplicate label name                                |
+| `E145` | disconnected jump (no wired condition) (Warning)    |
 
 **Block locations render as a note, not a snippet.** A `globalId` block location
 has no text range, so the codespan reporter emits a note `= <file>: block <id>`

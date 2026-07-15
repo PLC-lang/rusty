@@ -126,9 +126,14 @@ pub struct FbdObject {
     #[serde(rename = "@complexIdentifier")]
     pub complex_identifier: Option<String>,
 
-    /// The pairing name of a connector or continuation.
+    /// The pairing name of a connector or continuation, or the name a
+    /// `bmx:CfcLabel` defines as a jump target.
     #[serde(rename = "@label")]
     pub label: Option<String>,
+
+    /// The label a `bmx:CfcJump` transfers control to.
+    #[serde(rename = "@targetLabel")]
+    pub target_label: Option<String>,
 
     /// The called POU's name; present on a `ppx:Block`.
     #[serde(rename = "@typeName")]
@@ -255,6 +260,10 @@ impl FbdObject {
 
     pub fn label(&self) -> Option<&str> {
         self.label.as_deref()
+    }
+
+    pub fn target_label(&self) -> Option<&str> {
+        self.target_label.as_deref()
     }
 
     pub fn type_name(&self) -> Option<&str> {
