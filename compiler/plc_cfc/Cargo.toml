@@ -1,0 +1,17 @@
+[package]
+name = "plc_cfc"
+version = "1.1.0-dev"
+edition = "2021"
+license = "LGPL-3.0"
+description = "CFC/FBD XML -> Structured Text AST transpiler for the PLC compiler"
+
+[dependencies]
+serde.workspace = true
+quick-xml = { version = "0.38", features = ["serialize"] }
+plc = { path = "../..", package = "plc-compiler", version = "1.1.0-dev" }
+plc_ast = { path = "../plc_ast/", version = "1.1.0-dev" }
+plc_diagnostics = { path = "../plc_diagnostics", version = "1.1.0-dev" }
+plc_source = { path = "../plc_source", version = "1.1.0-dev" }
+
+[dev-dependencies]
+insta.workspace = true
