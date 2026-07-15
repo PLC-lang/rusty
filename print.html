@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-c189db7d.js";
+            window.path_to_searchindex_js = "searchindex-78a28f04.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-091fdcb9.js"></script>
@@ -1186,7 +1186,10 @@ function calls and other expressions are not.</p>
 <p>A CFC network contains an element that is not wired to anything. It has no
 effect on the program and is ignored during transpilation.</p>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="cyclic-connection"><a class="header" href="#cyclic-connection">Cyclic connection</a></h1>
+<h1 id="disconnected-cfc-return"><a class="header" href="#disconnected-cfc-return">Disconnected CFC return</a></h1>
+<p>A <code>RETURN</code> element in a CFC network is not wired to a condition. A conditional
+return only fires when its incoming value is true, so a return with nothing
+connected can never trigger and is almost certainly a mistake.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="no-associated-connector"><a class="header" href="#no-associated-connector">No associated connector</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
