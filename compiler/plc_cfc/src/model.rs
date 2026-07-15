@@ -130,8 +130,52 @@ pub struct FbdObject {
     #[serde(rename = "@label")]
     pub label: Option<String>,
 
+    /// The called POU's name; present on a `ppx:Block`.
+    #[serde(rename = "@typeName")]
+    pub type_name: Option<String>,
+
+    /// The caller-declared instance a function-block call runs on; absent for a
+    /// program call, which is a singleton reached by its bare type name.
+    #[serde(rename = "@instanceName")]
+    pub instance_name: Option<String>,
+
     #[serde(rename = "AddData")]
     pub add_data: Option<AddData>,
+
+    #[serde(rename = "ConnectionPointIn")]
+    pub connection_in: Option<ConnectionPointIn>,
+
+    #[serde(rename = "ConnectionPointOut")]
+    pub connection_out: Option<ConnectionPointOut>,
+
+    #[serde(rename = "InputVariables")]
+    pub input_variables: Option<PinGroup>,
+
+    #[serde(rename = "OutputVariables")]
+    pub output_variables: Option<PinGroup>,
+
+    #[serde(rename = "InOutVariables")]
+    pub inout_variables: Option<PinGroup>,
+}
+
+/// A block's parameter pins of one kind (input, output, or in_out). All three
+/// groups share a shape; only the child element name differs, and quick-xml
+/// matches `$value` on that local name.
+#[derive(Debug, Default, Deserialize)]
+pub struct PinGroup {
+    #[serde(rename = "$value", default)]
+    pub pins: Vec<Pin>,
+}
+
+/// One block parameter pin. An input/in_out pin carries an incoming wire; an
+/// output pin exposes a producer pin. `negated` is the pin's inversion bubble.
+#[derive(Debug, Deserialize)]
+pub struct Pin {
+    #[serde(rename = "@parameterName")]
+    pub parameter_name: String,
+
+    #[serde(rename = "@negated", default)]
+    pub negated: bool,
 
     #[serde(rename = "ConnectionPointIn")]
     pub connection_in: Option<ConnectionPointIn>,
@@ -213,6 +257,50 @@ impl FbdObject {
         self.label.as_deref()
     }
 
+    pub fn type_name(&self) -> Option<&str> {
+        self.type_name.as_deref()
+    }
+
+    /// The reference a block's outputs are *read* through: its declared instance
+    /// (function block), falling back to the owner POU (a program singleton, or
+    /// an action's owner — outputs live on the instance, not the action).
+    pub fn instance(&self) -> Option<&str> {
+        self.instance_name.as_deref().or_else(|| self.owner())
+    }
+
+    /// The reference a block is *called* through: the instance, suffixed with the
+    /// action when `typeName` is qualified (`inst.act`); otherwise the instance.
+    pub fn call_target(&self) -> Option<String> {
+        let instance = self.instance()?;
+        Some(match self.action() {
+            Some(action) => format!("{instance}.{action}"),
+            None => instance.to_string(),
+        })
+    }
+
+    /// The owner portion of `typeName`: everything before an action suffix
+    /// (`MyFb.act` → `MyFb`), or the whole name when unqualified.
+    fn owner(&self) -> Option<&str> {
+        self.type_name.as_deref().map(|name| name.rsplit_once('.').map_or(name, |(owner, _)| owner))
+    }
+
+    /// The action a qualified `typeName` (`owner.action`) dispatches to, if any.
+    fn action(&self) -> Option<&str> {
+        self.type_name.as_deref().and_then(|name| name.rsplit_once('.').map(|(_, action)| action))
+    }
+
+    pub fn input_pins(&self) -> &[Pin] {
+        self.input_variables.as_ref().map_or(&[], |group| &group.pins)
+    }
+
+    pub fn output_pins(&self) -> &[Pin] {
+        self.output_variables.as_ref().map_or(&[], |group| &group.pins)
+    }
+
+    pub fn inout_pins(&self) -> &[Pin] {
+        self.inout_variables.as_ref().map_or(&[], |group| &group.pins)
+    }
+
     pub fn priority(&self) -> Option<usize> {
         let add_data = self.add_data.as_ref()?;
         add_data.data.iter().find_map(|data| data.evaluation_priority.as_ref()).map(|it| it.priority)
@@ -223,5 +311,17 @@ impl FbdObject {
             .as_ref()
             .and_then(|add_data| add_data.data.iter().find_map(|data| data.negated.as_ref()))
             .is_some_and(|negated| negated.value)
+    }
+}
+
+impl Pin {
+    /// The producer pin feeding an input/in_out pin's incoming wire.
+    pub fn source_pin(&self) -> Option<usize> {
+        self.connection_in.as_ref()?.connections.first().map(|connection| connection.ref_out_id)
+    }
+
+    /// The producer pin an output pin exposes to downstream consumers.
+    pub fn output_pin(&self) -> Option<usize> {
+        self.connection_out.as_ref().map(|out| out.id)
     }
 }
