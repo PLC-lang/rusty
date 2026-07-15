@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_evaluation_order",
+	"files" : [
+		"evaluation_order.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

@@ -380,6 +380,24 @@ impl Diagnostic {
     {
         Diagnostic::new("Unnamed control").with_error_code("E087").with_location(location)
     }
+
+    pub fn unsupported_cfc_expression<T>(expression: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Unsupported CFC expression: `{expression}`"))
+            .with_error_code("E083")
+            .with_location(location)
+    }
+
+    pub fn unconnected_element<T>(name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Element `{name}` is unconnected and will be ignored"))
+            .with_error_code("E084")
+            .with_location(location)
+    }
 }
 
 #[cfg(test)]

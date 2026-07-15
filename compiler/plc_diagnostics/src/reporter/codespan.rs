@@ -77,6 +77,11 @@ impl CodeSpanDiagnosticReporter {
     fn emit(&mut self, diag: Diagnostic<usize>) -> Result<(), codespan_reporting::files::Error> {
         codespan_reporting::term::emit(&mut self.writer, &self.config, &self.files, &diag)
     }
+
+    fn file_name(&self, handle: usize) -> String {
+        use codespan_reporting::files::Files;
+        self.files.name(handle).map(|name| name.to_string()).unwrap_or_default()
+    }
 }
 
 impl Default for CodeSpanDiagnosticReporter {
@@ -112,32 +117,33 @@ impl DiagnosticReporter for CodeSpanDiagnosticReporter {
             };
 
             let mut labels = vec![];
+            let mut notes = vec![];
 
-            if !matches!(d.main_location.span, CodeSpan::None) {
-                labels.push(
-                    Label::primary(
-                        d.main_location.file_handle,
-                        d.main_location.span.to_range().unwrap_or(0..0),
-                    )
-                    .with_message(d.message.as_str()),
-                );
+            // A text range renders a source snippet; a diagram (block) location
+            // has no text, so it is reported as a note pointing at the block.
+            match &d.main_location.span {
+                CodeSpan::None => {}
+                span => match span.to_range() {
+                    Some(range) => labels.push(
+                        Label::primary(d.main_location.file_handle, range).with_message(d.message.as_str()),
+                    ),
+                    None => notes.push(format!("{}: {}", self.file_name(d.main_location.file_handle), span)),
+                },
             }
 
             if let Some(additional_locations) = &d.additional_locations {
                 labels.extend(additional_locations.iter().filter_map(|it| {
-                    if !matches!(it.span, CodeSpan::None) {
-                        Some(
-                            Label::secondary(it.file_handle, it.span.to_range().unwrap_or(0..0))
-                                .with_message("see also"),
-                        )
-                    } else {
-                        None
-                    }
+                    it.span
+                        .to_range()
+                        .map(|range| Label::secondary(it.file_handle, range).with_message("see also"))
                 }));
             }
 
-            let diag =
-                diagnostic_factory.with_labels(labels).with_message(d.message.as_str()).with_code(&d.code);
+            let diag = diagnostic_factory
+                .with_labels(labels)
+                .with_notes(notes)
+                .with_message(d.message.as_str())
+                .with_code(&d.code);
 
             let result = self.emit(diag);
             if result.is_err() && d.main_location.is_internal() {

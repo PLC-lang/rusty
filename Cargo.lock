@@ -2277,6 +2277,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "plc_cfc"
+version = "1.1.0-dev"
+dependencies = [
+ "insta",
+ "plc-compiler",
+ "plc_ast",
+ "plc_diagnostics",
+ "plc_source",
+ "quick-xml",
+ "serde",
+]
+
+[[package]]
 name = "plc_derive"
 version = "1.1.0-dev"
 dependencies = [
@@ -2317,6 +2330,7 @@ dependencies = [
  "log",
  "plc-compiler",
  "plc_ast",
+ "plc_cfc",
  "plc_diagnostics",
  "plc_header_generator",
  "plc_index",
@@ -2558,6 +2572,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fd00f0bb2e90d81d1044c2b32617f68fcb9fa3bb7640c23e9c748e53fb30934"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "quick-xml"
+version = "0.38.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b66c2058c55a409d601666cffe35f04333cf1013010882cec174a7467cd4e21c"
+dependencies = [
+ "memchr",
+ "serde",
 ]
 
 [[package]]
