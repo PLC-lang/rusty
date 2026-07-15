@@ -58,6 +58,46 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::LiteralReal { value, location, id } => (),
         // AstStatement::LiteralBool { value, location, id } => (),
         // AstStatement::LiteralString { value, is_wide, location, id } => (),
+        AstStatement::Literal(AstLiteral::Date(date)) => {
+            validate_temporal_literal_bounds(
+                validator,
+                date.value(),
+                date.is_long(),
+                "DATE",
+                1_000_000_000,
+                &statement.location,
+            );
+        }
+        AstStatement::Literal(AstLiteral::DateAndTime(date_time)) => {
+            validate_temporal_literal_bounds(
+                validator,
+                date_time.value(),
+                date_time.is_long(),
+                "DATE_AND_TIME",
+                1_000_000_000,
+                &statement.location,
+            );
+        }
+        AstStatement::Literal(AstLiteral::TimeOfDay(time_of_day)) => {
+            validate_temporal_literal_bounds(
+                validator,
+                time_of_day.value(),
+                time_of_day.is_long(),
+                "TIME_OF_DAY",
+                1_000_000,
+                &statement.location,
+            );
+        }
+        AstStatement::Literal(AstLiteral::Time(time)) => {
+            validate_temporal_literal_bounds(
+                validator,
+                Ok(time.value()),
+                time.is_long(),
+                "TIME",
+                1_000_000,
+                &statement.location,
+            );
+        }
         AstStatement::Literal(AstLiteral::Array(Array { elements: Some(elements) })) => {
             visit_statement(validator, elements.as_ref(), context);
         }
@@ -178,6 +218,42 @@ pub fn visit_statement<T: AnnotationMap>(
         _ => {}
     }
     validate_type_nature(validator, statement, context);
+}
+
+fn validate_temporal_literal_bounds(
+    validator: &mut Validator,
+    literal_value: Result<i64, String>,
+    is_long: bool,
+    literal_name: &str,
+    short_unit_divisor: i64,
+    location: &SourceLocation,
+) {
+    fn emit_warning(validator: &mut Validator, literal_name: &str, kind: &str, location: &SourceLocation) {
+        validator.push_diagnostic(
+            Diagnostic::new(format!("{literal_name} literal {kind}"))
+                .with_error_code("E142")
+                .with_location(location),
+        );
+    }
+
+    let value = match literal_value {
+        Ok(value) => value,
+        Err(_) => {
+            emit_warning(validator, literal_name, "out-of-range detected", location);
+            return;
+        }
+    };
+
+    if is_long {
+        return;
+    }
+
+    let short_units = value / short_unit_divisor;
+    if short_units < 0 {
+        emit_warning(validator, literal_name, "underflow detected", location);
+    } else if short_units > u32::MAX as i64 {
+        emit_warning(validator, literal_name, "overflow detected", location);
+    }
 }
 
 fn validate_reference_expression<T: AnnotationMap>(
