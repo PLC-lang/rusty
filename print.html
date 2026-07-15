@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-78a28f04.js";
+            window.path_to_searchindex_js = "searchindex-a51c5a6d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-091fdcb9.js"></script>
@@ -1172,9 +1172,15 @@ which (internally) yield a literal integer 0, 1 or 2.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="invalid-case-condition"><a class="header" href="#invalid-case-condition">Invalid case condition</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="empty-control-statement"><a class="header" href="#empty-control-statement">Empty control statement</a></h1>
+<h1 id="duplicate-cfc-connector"><a class="header" href="#duplicate-cfc-connector">Duplicate CFC connector</a></h1>
+<p>Two connectors in a CFC network share the same label. A connector is the single
+named source for its label, so continuations reading it would be ambiguous. Give
+each connector a distinct label.</p>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="undefined-node"><a class="header" href="#undefined-node">Undefined node</a></h1>
+<h1 id="dangling-cfc-continuation"><a class="header" href="#dangling-cfc-continuation">Dangling CFC continuation</a></h1>
+<p>A continuation refers to a label that no connector defines. It re-emits a named
+signal that was never captured, so whatever reads it receives no value. Add the
+matching connector or remove the continuation.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="unsupported-cfc-expression"><a class="header" href="#unsupported-cfc-expression">Unsupported CFC expression</a></h1>
 <p>A variable, source or sink element in a CFC network carries an expression that
@@ -1191,7 +1197,10 @@ effect on the program and is ignored during transpilation.</p>
 return only fires when its incoming value is true, so a return with nothing
 connected can never trigger and is almost certainly a mistake.</p>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="no-associated-connector"><a class="header" href="#no-associated-connector">No associated connector</a></h1>
+<h1 id="open-cfc-connector"><a class="header" href="#open-cfc-connector">Open CFC connector</a></h1>
+<p>A connector has no incoming connection, yet something reads its label through a
+continuation. The named signal is never produced, so the consumer would be left
+without a value. Wire a source into the connector.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="unnamed-control"><a class="header" href="#unnamed-control">Unnamed control</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>

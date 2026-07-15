@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Pou","PouKind"],"struct":["AddData","BodyContent","Connection","ConnectionPointIn","ConnectionPointOut","Data","EvaluationPriority","FbdObject","MainBody","Negated","Network","PouContent","TextDeclaration"]};
+window.SIDEBAR_ITEMS = {"enum":["NetworkElement","Pou","PouKind"],"struct":["AddData","BodyContent","Connection","ConnectionPointIn","ConnectionPointOut","Data","EvaluationPriority","FbdObject","MainBody","Negated","Network","PouContent","TextDeclaration"]};
