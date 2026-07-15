@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DeEvent","PayloadEvent"],"fn":["from_reader","from_str"],"struct":["AttributesDeserializer","Deserializer","IoReader","PredefinedEntityResolver","SimpleTypeDeserializer","SliceReader","Text"],"trait":["EntityResolver","XmlRead"]};

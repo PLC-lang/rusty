@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Pou","PouKind"],"struct":["AddData","BodyContent","Connection","ConnectionPointIn","ConnectionPointOut","Data","EvaluationPriority","FbdObject","MainBody","Network","PouContent","TextDeclaration"]};

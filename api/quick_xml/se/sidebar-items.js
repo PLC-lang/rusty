@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["QuoteLevel","TextFormat","WriteResult"],"fn":["to_string","to_string_with_root","to_utf8_io_writer","to_writer","to_writer_with_root"],"struct":["Serializer","SimpleTypeSerializer"]};

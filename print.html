@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-75b67a12.js";
+            window.path_to_searchindex_js = "searchindex-c189db7d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-091fdcb9.js"></script>
@@ -1176,9 +1176,15 @@ which (internally) yield a literal integer 0, 1 or 2.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="undefined-node"><a class="header" href="#undefined-node">Undefined node</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="unexpected-node"><a class="header" href="#unexpected-node">Unexpected node</a></h1>
+<h1 id="unsupported-cfc-expression"><a class="header" href="#unsupported-cfc-expression">Unsupported CFC expression</a></h1>
+<p>A variable, source or sink element in a CFC network carries an expression that
+is not supported. Only variable references (<code>foo</code>), qualified references
+(<code>foo.bar</code>), indexed references (<code>arr[i]</code>) and literals (<code>5</code>) are allowed;
+function calls and other expressions are not.</p>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="unconnected-source"><a class="header" href="#unconnected-source">Unconnected source</a></h1>
+<h1 id="unconnected-cfc-element"><a class="header" href="#unconnected-cfc-element">Unconnected CFC element</a></h1>
+<p>A CFC network contains an element that is not wired to anything. It has no
+effect on the program and is ignored during transpilation.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="cyclic-connection"><a class="header" href="#cyclic-connection">Cyclic connection</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
