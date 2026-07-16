@@ -273,7 +273,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             DataTypeInformation::Float { size, .. } => {
                 Ok(get_llvm_float_type(self.llvm.context, *size, name).into())
             }
-            DataTypeInformation::String { size, encoding } => {
+            DataTypeInformation::String { size, encoding, .. } => {
                 let base_type = if *encoding == StringEncoding::Utf8 {
                     self.llvm.context.i8_type()
                 } else {
