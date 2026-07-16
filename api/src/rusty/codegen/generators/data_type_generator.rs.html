@@ -273,7 +273,7 @@
 <a href=#273 id=273 data-nosnippet>273</a>            DataTypeInformation::Float { size, .. } =&gt; {
 <a href=#274 id=274 data-nosnippet>274</a>                <span class="prelude-val">Ok</span>(get_llvm_float_type(<span class="self">self</span>.llvm.context, <span class="kw-2">*</span>size, name).into())
 <a href=#275 id=275 data-nosnippet>275</a>            }
-<a href=#276 id=276 data-nosnippet>276</a>            DataTypeInformation::String { size, encoding } =&gt; {
+<a href=#276 id=276 data-nosnippet>276</a>            DataTypeInformation::String { size, encoding, .. } =&gt; {
 <a href=#277 id=277 data-nosnippet>277</a>                <span class="kw">let </span>base_type = <span class="kw">if </span><span class="kw-2">*</span>encoding == StringEncoding::Utf8 {
 <a href=#278 id=278 data-nosnippet>278</a>                    <span class="self">self</span>.llvm.context.i8_type()
 <a href=#279 id=279 data-nosnippet>279</a>                } <span class="kw">else </span>{
