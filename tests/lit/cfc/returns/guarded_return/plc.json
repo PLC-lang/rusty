@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_guarded_return",
+	"files" : [
+		"guarded_return.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

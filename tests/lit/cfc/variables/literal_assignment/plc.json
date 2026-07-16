@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_literal_assignment",
+	"files" : [
+		"literal_assignment.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

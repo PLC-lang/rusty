@@ -1,9 +1,0 @@
----
-source: tests/integration/cfc/resolver_tests.rs
-expression: annotations.get(jump)
----
-Some(
-    Label {
-        name: "lbl",
-    },
-)
