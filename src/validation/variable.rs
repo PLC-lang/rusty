@@ -11,7 +11,10 @@ use super::{
     ValidationContext, Validator, Validators,
 };
 use crate::{index::const_expressions::ConstExpression, resolver::AnnotationMap};
-use crate::{index::const_expressions::UnresolvableKind, typesystem::DataTypeInformation};
+use crate::{
+    index::const_expressions::UnresolvableKind,
+    typesystem::{DataTypeInformation, StructSource},
+};
 use crate::{index::PouIndexEntry, validation::statement::validate_enum_variant_assignment};
 use crate::{index::VariableIndexEntry, resolver::StatementAnnotation};
 
@@ -393,6 +396,7 @@ fn validate_variable<T: AnnotationMap>(
     context: &ValidationContext<T>,
 ) {
     validate_variable_redeclaration(validator, variable, context);
+    validate_variable_is_not_a_program_instance(validator, variable, context);
 
     validate_array_bounds_are_constant(validator, variable, context);
     validate_array_ranges(validator, variable, context);
@@ -515,6 +519,39 @@ fn validate_variable<T: AnnotationMap>(
                 .with_location(&variable.location),
             );
         }
+    }
+}
+
+/// Programs are singletons with exactly one compiler-managed global instance; they cannot be
+/// instantiated, so a program name must not be used as a variable type (also not as the element
+/// type of an array). IEC 61131-3 only allows program instances inside CONFIGURATION/RESOURCE
+/// declarations, which are not supported.
+fn validate_variable_is_not_a_program_instance<T: AnnotationMap>(
+    validator: &mut Validator,
+    variable: &Variable,
+    context: &ValidationContext<T>,
+) {
+    if variable.location.is_internal() {
+        return;
+    }
+
+    let ty_name = variable.data_type_declaration.get_name().unwrap_or_default();
+    let mut ty = context.index.get_effective_type_or_void_by_name(ty_name);
+    while let DataTypeInformation::Array { inner_type_name, .. } = ty.get_type_information() {
+        ty = context.index.get_effective_type_or_void_by_name(inner_type_name);
+    }
+
+    if let DataTypeInformation::Struct { source: StructSource::Pou(PouType::Program), .. } =
+        ty.get_type_information()
+    {
+        let program_name = ty.get_name();
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Program `{program_name}` cannot be used as a variable type; programs are singletons — call `{program_name}` directly instead",
+            ))
+            .with_error_code("E142")
+            .with_location(&variable.location),
+        );
     }
 }
 

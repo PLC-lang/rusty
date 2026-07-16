@@ -2504,25 +2504,53 @@ fn incorrect_argument_count_stateful_pous() {
        │                             ^ Expected a reference for parameter out_two because their type is Output
     ");
 
-    let diagnostics = parse_and_validate_buffered(&source.replace("<REPLACE_ME>", "PROGRAM"));
+    // Programs cannot be declared as instance variables (E142), so the PROGRAM variant
+    // calls the POUs directly by name instead.
+    let source = r"
+        FUNCTION main : DINT
+            prg_with_one_parameter();
+            prg_with_one_parameter(1, 2);
+
+            prg_with_two_parameters(1);
+            prg_with_two_parameters(1, 2, 3);
+        END_FUNCTION
+
+        PROGRAM prg_with_one_parameter
+            VAR_INPUT
+                in_one : DINT;
+            END_VAR
+        END_PROGRAM
+
+        PROGRAM prg_with_two_parameters
+            VAR_INPUT
+                in_one : DINT;
+            END_VAR
+
+            VAR_OUTPUT
+                out_two : DINT;
+            END_VAR
+        END_PROGRAM
+    ";
+
+    let diagnostics = parse_and_validate_buffered(source);
     assert_snapshot!(diagnostics, @r"
     error[E032]: this POU takes 1 argument but 2 arguments were supplied
-      ┌─ <internal>:9:13
+      ┌─ <internal>:4:13
       │
-    9 │             one_instance(1, 2);
-      │             ^^^^^^^^^^^^ this POU takes 1 argument but 2 arguments were supplied
+    4 │             prg_with_one_parameter(1, 2);
+      │             ^^^^^^^^^^^^^^^^^^^^^^ this POU takes 1 argument but 2 arguments were supplied
 
     error[E032]: this POU takes 2 arguments but 3 arguments were supplied
-       ┌─ <internal>:12:13
-       │
-    12 │             two_instance(1, 2, 3);
-       │             ^^^^^^^^^^^^ this POU takes 2 arguments but 3 arguments were supplied
+      ┌─ <internal>:7:13
+      │
+    7 │             prg_with_two_parameters(1, 2, 3);
+      │             ^^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 arguments but 3 arguments were supplied
 
     error[E031]: Expected a reference for parameter out_two because their type is Output
-       ┌─ <internal>:12:29
-       │
-    12 │             two_instance(1, 2, 3);
-       │                             ^ Expected a reference for parameter out_two because their type is Output
+      ┌─ <internal>:7:40
+      │
+    7 │             prg_with_two_parameters(1, 2, 3);
+      │                                        ^ Expected a reference for parameter out_two because their type is Output
     ");
 }
 
