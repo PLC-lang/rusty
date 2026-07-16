@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-a51c5a6d.js";
+            window.path_to_searchindex_js = "searchindex-26f2f594.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-091fdcb9.js"></script>
@@ -1080,7 +1080,57 @@ END_VAR
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="cannot-assign-to-constant"><a class="header" href="#cannot-assign-to-constant">Cannot assign to constant</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
-<h1 id="invalid-assignment"><a class="header" href="#invalid-assignment">Invalid assignment</a></h1>
+<h1 id="e037-invalid-assignment"><a class="header" href="#e037-invalid-assignment">E037: Invalid assignment</a></h1>
+<p>This error is reported for assignments or accesses that are not allowed, for example when the
+types of the left- and right-hand side are incompatible, when a <code>VOID</code> function result is
+assigned to a variable, or when a variable is written or read from a place where it must not be
+accessed.</p>
+<h2 id="example---incompatible-types"><a class="header" href="#example---incompatible-types">Example - incompatible types</a></h2>
+<pre><code class="language-st">FUNCTION main
+VAR
+    x : INT;
+    s : STRING;
+END_VAR
+    x := s; (* cannot assign 'STRING' to 'INT' *)
+END_FUNCTION
+</code></pre>
+<h2 id="example---var_output-assigned-outside-of-its-scope"><a class="header" href="#example---var_output-assigned-outside-of-its-scope">Example - VAR_OUTPUT assigned outside of its scope</a></h2>
+<p><code>VAR_OUTPUT</code> variables of a function block may only be written by the function block itself.
+From the outside they can only be read.</p>
+<pre><code class="language-st">FUNCTION_BLOCK FB
+VAR_OUTPUT
+    out : BOOL;
+END_VAR
+END_FUNCTION_BLOCK
+
+PROGRAM main
+VAR
+    fb : FB;
+END_VAR
+    fb.out := TRUE; (* VAR_OUTPUT variables cannot be assigned outside of their scope *)
+END_PROGRAM
+</code></pre>
+<h2 id="example---var_in_out-accessed-outside-of-its-scope"><a class="header" href="#example---var_in_out-accessed-outside-of-its-scope">Example - VAR_IN_OUT accessed outside of its scope</a></h2>
+<p><code>VAR_IN_OUT</code> variables of a function block or program may not be read or written from outside.
+They are references that are only bound to a target while the function block is being called, so
+any outside access - reading, writing or taking the address - would dereference an unbound
+reference. Pass the variable in the call instead.</p>
+<pre><code class="language-st">FUNCTION_BLOCK FB
+VAR_IN_OUT
+    inOut : LREAL;
+END_VAR
+END_FUNCTION_BLOCK
+
+PROGRAM main
+VAR
+    fb : FB;
+    value : LREAL;
+END_VAR
+    fb.inOut := value;  (* VAR_IN_OUT variables cannot be accessed outside of their scope *)
+    value := fb.inOut;  (* VAR_IN_OUT variables cannot be accessed outside of their scope *)
+    fb(inOut := value); (* correct: the variable is passed in the call *)
+END_PROGRAM
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="missing-type"><a class="header" href="#missing-type">Missing type</a></h1>
 <div style="break-before: page; page-break-before: always;"></div>
