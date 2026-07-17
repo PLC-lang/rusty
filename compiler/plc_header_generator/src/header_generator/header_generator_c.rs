@@ -586,6 +586,7 @@ impl GeneratedHeaderForC {
     /// ---
     ///
     /// Might return an empty [Vec<Variable>] if no variables are found within the variable blocks.
+    #[allow(clippy::too_many_arguments)]
     fn get_variables_from_variable_blocks(
         &mut self,
         variable_blocks: &[VariableBlock],
