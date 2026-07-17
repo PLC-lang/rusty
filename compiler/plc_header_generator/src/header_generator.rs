@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use plc::{index::Index, resolver::const_evaluator};
 use plc_ast::{
     ast::{
         self, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration, ReferenceAccess,
@@ -45,7 +46,10 @@ pub trait GeneratedHeader: FileHelper + TypeHelper + TemplateHelper + SymbolHelp
     ///
     /// The outcome of this method must be a populated [TemplateData](crate::header_generator::template_helper::TemplateData) on the generated header
     /// that contains all of the data necessary to run the templating engine.
-    fn prepare_template_data(&mut self, compilation_unit: &CompilationUnit);
+    fn prepare_template_data(&mut self, compilation_unit: &CompilationUnit, index: &Index);
+
+    /// Returns and clears the diagnostics that were collected while preparing the template data
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic>;
 
     /// Runs the templating engine and generates the header file contents
     ///
@@ -66,10 +70,11 @@ pub trait GeneratedHeader: FileHelper + TypeHelper + TemplateHelper + SymbolHelp
 pub fn get_generated_header(
     generate_header_options: &GenerateHeaderOptions,
     compilation_unit: &CompilationUnit,
+    index: &Index,
 ) -> Result<Box<dyn GeneratedHeader>, Diagnostic> {
     // Prepare the template data
     let mut generated_header =
-        prepare_template_data_for_header_generation(generate_header_options, compilation_unit)?;
+        prepare_template_data_for_header_generation(generate_header_options, compilation_unit, index)?;
 
     // Generate the headers
     generated_header.generate_headers()?;
@@ -87,6 +92,7 @@ pub fn get_generated_header(
 pub fn prepare_template_data_for_header_generation(
     generate_header_options: &GenerateHeaderOptions,
     compilation_unit: &CompilationUnit,
+    index: &Index,
 ) -> Result<Box<dyn GeneratedHeader>, Diagnostic> {
     let mut generated_header = get_empty_generated_header_from_options(generate_header_options)?;
 
@@ -97,7 +103,11 @@ pub fn prepare_template_data_for_header_generation(
     }
 
     // Prepare the template data
-    generated_header.prepare_template_data(compilation_unit);
+    generated_header.prepare_template_data(compilation_unit, index);
+
+    if let Some(diagnostic) = generated_header.take_diagnostics().into_iter().next() {
+        return Err(diagnostic);
+    }
 
     Ok(generated_header)
 }
@@ -336,63 +346,66 @@ fn get_user_generated_type_by_name<'a>(
     None
 }
 
-/// Given an Option<AstNode> containing a [Literal](plc_ast::ast::AstStatement::Literal), this will determine the [i128] size of a string.
-///
-/// This will return [i128] default in the case the AstNode is None or does not match the expected [Literal](plc_ast::ast::AstStatement::Literal).
-fn extract_string_size(size: &Option<AstNode>) -> i128 {
-    if size.is_none() {
-        return i128::default();
+/// Resolves the given AstNode to an integer value, evaluating constant expressions
+/// (e.g. references to global constants) through the given index if necessary.
+fn resolve_constant_integer(node: &AstNode, index: &Index) -> Result<i128, Diagnostic> {
+    if let AstStatement::Literal(AstLiteral::Integer(value)) = node.get_stmt() {
+        return Ok(*value);
     }
 
-    let size = size.clone().unwrap();
+    if let Ok(Some(resolved)) = const_evaluator::evaluate(node, None, index, None) {
+        if let AstStatement::Literal(AstLiteral::Integer(value)) = resolved.get_stmt() {
+            return Ok(*value);
+        }
+    }
 
-    match size.stmt {
+    Err(Diagnostic::new(
+        "Header generation failed: unable to resolve this expression to a constant integer value",
+    )
+    .with_location(&node.location))
+}
+
+/// Determines the size of a string from its size expression, defaulting to 0 if there is none.
+fn extract_string_size(size: &Option<AstNode>, index: &Index) -> Result<i128, Diagnostic> {
+    match size {
         // The string-termination-marker needs to be accounted for
-        AstStatement::Literal(AstLiteral::Integer(value)) => value + 1,
-        _ => i128::default(),
+        Some(size) => Ok(resolve_constant_integer(size, index)? + 1),
+        None => Ok(i128::default()),
     }
 }
 
 /// Determines what type of array this is, standard or multidimensional
-fn determine_array_type(bounds: &AstNode) -> Option<VariableType> {
+fn determine_array_type(bounds: &AstNode, index: &Index) -> Result<Option<VariableType>, Diagnostic> {
     match &bounds.stmt {
         AstStatement::RangeStatement(..) => {
-            let size = extract_array_size(bounds);
-            Some(VariableType::Array(size))
+            let size = extract_array_size(bounds, index)?;
+            Ok(Some(VariableType::Array(size)))
         }
-        AstStatement::VlaRangeStatement => Some(VariableType::Array(i128::default())),
+        AstStatement::VlaRangeStatement => Ok(Some(VariableType::Array(i128::default()))),
         AstStatement::ExpressionList(nodes) => {
             let mut sizes: Vec<i128> = Vec::new();
 
             for node in nodes {
-                sizes.push(extract_array_size(node));
+                sizes.push(extract_array_size(node, index)?);
             }
 
-            Some(VariableType::MultidimensionalArray(sizes))
+            Ok(Some(VariableType::MultidimensionalArray(sizes)))
         }
-        _ => None,
+        _ => Ok(None),
     }
 }
 
-/// Given an AstNode containing a [RangeStatement](plc_ast::ast::AstStatement::RangeStatement), this will determine the [i128] size of an array.
-///
-/// This will return [i128] default in the case the AstNode does not match the expected [RangeStatement](plc_ast::ast::AstStatement::RangeStatement).
-fn extract_array_size(bounds: &AstNode) -> i128 {
+/// Determines the size of an array from its [RangeStatement](plc_ast::ast::AstStatement::RangeStatement) bounds,
+/// defaulting to 0 for any other node kind.
+fn extract_array_size(bounds: &AstNode, index: &Index) -> Result<i128, Diagnostic> {
     match &bounds.stmt {
         AstStatement::RangeStatement(range_stmt) => {
-            let start_value = match range_stmt.start.get_stmt() {
-                AstStatement::Literal(AstLiteral::Integer(value)) => *value,
-                _ => i128::default(),
-            };
+            let start_value = resolve_constant_integer(&range_stmt.start, index)?;
+            let end_value = resolve_constant_integer(&range_stmt.end, index)?;
 
-            let end_value = match range_stmt.end.get_stmt() {
-                AstStatement::Literal(AstLiteral::Integer(value)) => *value,
-                _ => i128::default(),
-            };
-
-            end_value - start_value + 1
+            Ok(end_value - start_value + 1)
         }
-        _ => i128::default(),
+        _ => Ok(i128::default()),
     }
 }
 

@@ -587,8 +587,12 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
 
         let mut generated_headers: Vec<Box<dyn GeneratedHeader>> = Vec::new();
 
-        for unit in project.units {
-            generated_headers.push(get_generated_header(&generate_header_options, &unit.unit)?);
+        for unit in &project.units {
+            generated_headers.push(get_generated_header(
+                &generate_header_options,
+                &unit.unit,
+                &project.index,
+            )?);
         }
 
         let output_file = self.get_header_output_file().unwrap_or_default();

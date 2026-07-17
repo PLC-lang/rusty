@@ -911,6 +911,59 @@ fn case_13_reference_to_array_generated_header_file() {
     assert_snapshot!(&generated_header.get_contents());
 }
 
+// ------------------ //
+// -- Test Case 14 -- //
+// ------------------ //
+
+fn get_source_code_for_case_14_constant_sizes() -> SourceCode {
+    SourceCode::new(
+        "
+    VAR_GLOBAL CONSTANT
+        MESSAGE_STR_LEN : DINT := 256;
+        BUFFER_UPPER_BOUND : DINT := MESSAGE_STR_LEN - 1;
+    END_VAR
+
+    TYPE Message :
+    STRUCT
+        id : DINT;
+        message : STRING[MESSAGE_STR_LEN];
+        buffer : ARRAY[0..BUFFER_UPPER_BOUND] OF DINT;
+    END_STRUCT
+    END_TYPE
+    ",
+        "constant_sizes.pli",
+    )
+}
+
+#[test]
+fn case_14_constant_sizes_generated_header_file_template_data() {
+    let generated_headers =
+        prepare_all_generated_header_contents(get_source_code_for_case_14_constant_sizes());
+
+    // This test case should only produce one header file
+    assert!(generated_headers.len() == 1);
+
+    // Ensure the path has been configured correctly
+    assert!(generated_headers[0].get_path() == "constant_sizes.h");
+
+    let prepared_header_data = PreparedHeaderData {
+        template_data: generated_headers[0].get_template_data().clone(),
+        directory: generated_headers[0].get_directory().to_string(),
+        path: generated_headers[0].get_path().to_string(),
+        file_name: generated_headers[0].get_file_name().to_string(),
+        formatted_path: generated_headers[0].get_formatted_path().to_string(),
+    };
+
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
+}
+
+#[test]
+fn case_14_constant_sizes_generated_header_file() {
+    let generated_header =
+        get_all_generated_header_contents("case_14_constant_sizes_generated_header_file_template_data");
+    assert_snapshot!(&generated_header.get_contents());
+}
+
 // -------------------------------- //
 // -- Re-usable pipeline methods -- //
 // -------------------------------- //
@@ -985,9 +1038,12 @@ fn prepare_all_generated_header_contents(source_code: SourceCode) -> Vec<Box<dyn
     let mut generated_headers: Vec<Box<dyn GeneratedHeader>> = Vec::new();
 
     for unit in compilation_units {
-        let generated_header =
-            prepare_template_data_for_header_generation(&get_default_generated_header_options(), unit)
-                .expect("Header generation data preparation failed!");
+        let generated_header = prepare_template_data_for_header_generation(
+            &get_default_generated_header_options(),
+            unit,
+            &annotated_project_wrapper.annotated_project.index,
+        )
+        .expect("Header generation data preparation failed!");
 
         if !generated_header.is_empty() {
             generated_headers.push(generated_header);
