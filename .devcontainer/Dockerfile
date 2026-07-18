@@ -17,6 +17,7 @@ RUN apt-get update \
         lsb-release \
         software-properties-common \
         sudo \
+        vim \
         wget \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -52,5 +53,5 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
 # Install the snapshot testing CLI.
 RUN cargo install cargo-insta
 
-# Enable Starship for interactive Bash sessions.
-RUN printf '\n# Initialize the Starship prompt.\neval "$(starship init bash)"\n' >> "${HOME}/.bashrc"
+# Configure Claude Code and Starship for interactive Bash sessions.
+RUN printf '\n# Run Claude Code without permission prompts.\nalias claude="claude --dangerously-skip-permissions"\n\n# Initialize the Starship prompt.\neval "$(starship init bash)"\n' >> "${HOME}/.bashrc"
