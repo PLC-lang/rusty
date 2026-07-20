@@ -17,7 +17,7 @@ pub fn mangle_type(index: &Index, ty: &typesystem::DataType) -> Result<section_m
             Type::Integer { signed: *signed, size: *size, semantic_size: *semantic_size }
         }
         DataTypeInformation::Float { size, .. } => Type::Float { size: *size },
-        DataTypeInformation::String { size: TypeSize::LiteralInteger(size), encoding } => {
+        DataTypeInformation::String { size: TypeSize::LiteralInteger(size), encoding, .. } => {
             let encoding = match encoding {
                 StringEncoding::Utf8 => SectionStringEncoding::Utf8,
                 StringEncoding::Utf16 => SectionStringEncoding::Utf16,
