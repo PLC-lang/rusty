@@ -274,6 +274,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 linker_args: params.linker_args.clone(),
                 no_crt: params.no_crt,
                 no_libc: params.no_libc,
+                allow_undefined_symbols: params.allow_undefined_symbols,
                 relocation_preference,
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
@@ -1233,6 +1234,20 @@ impl GeneratedProject {
                 {
                     log::debug!("Applying -no-pie for --fno-pic executable link");
                     linker.add_driver_flag("-no-pie");
+                }
+
+                // Reject unresolved symbols when producing a shared object (unless explicitly
+                // allowed). An executable link already fails on undefined symbols, but a shared
+                // object link permits them by default; forcing `--no-undefined` turns a missing
+                // symbol (e.g. an unprovided generic monomorphization) into a build failure instead
+                // of an unresolved reference that would only surface at dlopen/final-link time.
+                if matches!(
+                    link_options.format,
+                    FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC
+                ) && !link_options.allow_undefined_symbols
+                {
+                    log::debug!("Applying --no-undefined for shared object link");
+                    linker.set_no_undefined();
                 }
 
                 match link_options.format {

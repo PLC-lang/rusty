@@ -290,3 +290,56 @@ fn link_with_library_path() {
     assert!(vec.lock().unwrap().contains(&"-ltest".to_string()));
     assert!(vec.lock().unwrap().contains(&format!("-L{}", dir.to_string_lossy())));
 }
+
+/// Runs the build pipeline with a mock linker and returns the arguments it was invoked with.
+fn captured_linker_args(args: &[&str]) -> Vec<String> {
+    let mut pipeline = BuildPipeline::new(args).expect("valid pipeline arguments");
+    let recorded = Arc::new(Mutex::new(Vec::<String>::new()));
+    pipeline.linker = LinkerType::Test(MockLinker { args: recorded.clone() });
+
+    let target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
+    let codegen_participant = CodegenParticipant {
+        compile_options: pipeline.get_compile_options().unwrap(),
+        link_options: pipeline.get_link_options().unwrap(),
+        target: target.clone(),
+        objects: Arc::new(RwLock::new(GeneratedProject {
+            target,
+            objects: pipeline.project.get_objects().to_vec(),
+        })),
+        got_layout: Default::default(),
+        compile_dirs: Default::default(),
+        libraries: pipeline.project.get_libraries().to_vec(),
+    };
+    pipeline.register_participant(Box::new(codegen_participant));
+    pipeline.run().unwrap();
+    let recorded = recorded.lock().unwrap().clone();
+    recorded
+}
+
+#[test]
+fn shared_object_link_rejects_undefined_symbols_by_default() {
+    let file = get_test_file("linking/lib.o");
+    let out = env::temp_dir().join("no_undefined_default.so").to_string_lossy().into_owned();
+    let args = captured_linker_args(&["plc", file.as_str(), "--shared", "-o", &out]);
+    assert!(args.contains(&"--no-undefined".to_string()), "expected --no-undefined in {args:?}");
+}
+
+#[test]
+fn shared_object_link_allows_undefined_symbols_with_flag() {
+    let file = get_test_file("linking/lib.o");
+    let out = env::temp_dir().join("allow_undefined.so").to_string_lossy().into_owned();
+    let args =
+        captured_linker_args(&["plc", file.as_str(), "--shared", "--allow-undefined-symbols", "-o", &out]);
+    assert!(!args.contains(&"--no-undefined".to_string()), "did not expect --no-undefined in {args:?}");
+}
+
+#[test]
+fn executable_link_does_not_reject_undefined_symbols() {
+    let file = get_test_file("linking/lib.o");
+    let out = env::temp_dir().join("exe_no_undefined.out").to_string_lossy().into_owned();
+    let args = captured_linker_args(&["plc", file.as_str(), "-o", &out]);
+    assert!(
+        !args.contains(&"--no-undefined".to_string()),
+        "did not expect --no-undefined for executable link in {args:?}"
+    );
+}

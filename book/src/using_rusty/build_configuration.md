@@ -145,6 +145,7 @@ All regular linker options from `plc` can also be used with the `build` subcomma
 - `--linker-arg=<arg>` (repeatable)
 - `--nocrt`
 - `--nolibc`
+- `--allow-undefined-symbols`
 - `--fpic` / `--fno-pic` (relocation model)
 
 ### Additional debug path options
