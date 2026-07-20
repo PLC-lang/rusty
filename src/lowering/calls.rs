@@ -58,7 +58,6 @@ use plc_ast::{
     provider::IdProvider,
     try_from_mut,
 };
-use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
@@ -66,7 +65,6 @@ use crate::{
     lowering::helper::create_member_reference_with_location,
     resolver::{AnnotationMap, StatementAnnotation},
     typesystem::{DataType, DataTypeInformation},
-    validation::statement::evaluate_generic_nature_violation,
 };
 
 // Performs lowering for aggregate types defined in functions
@@ -80,11 +78,6 @@ pub struct AggregateTypeLowerer {
     /// New statements to be added during visit, that should happen after the call. This should always be drained when read
     post_stmts: Vec<Vec<AstNode>>,
     counter: AtomicI32,
-    /// Diagnostics collected while visiting. Reported by the pipeline after lowering (see the
-    /// `PipelineParticipantMut::diagnostics` impl). We must emit generic type-nature errors here,
-    /// before lowering rewrites a generic call (e.g. `CONCAT`) into its concrete instantiation and
-    /// the subsequent re-annotation erases the generic nature the check relies on.
-    pub diagnostics: Vec<Diagnostic>,
 }
 
 impl AggregateTypeLowerer {
@@ -98,62 +91,6 @@ impl AggregateTypeLowerer {
 
     pub fn visit_unit(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
-    }
-
-    /// Collects `E062` diagnostics for call arguments whose actual type does not satisfy the nature
-    /// of the generic parameter they are bound to (e.g. a `DINT` passed to a `T: ANY_STRING`
-    /// variadic).
-    ///
-    /// This only fires for generic calls that this lowerer rewrites to their concrete instantiation
-    /// (e.g. `CONCAT` -> `CONCAT__STRING`): that rewrite plus the subsequent re-annotation erases
-    /// the generic nature, so the regular `validate_type_nature` pass can no longer see it. Every
-    /// other generic call keeps its nature and is reported by that pass, so we must skip them here
-    /// to avoid duplicate diagnostics. The rewrite happens iff the resolved function is a concrete
-    /// (non-generic) instantiation returning an aggregate type (see `visit_call_statement`).
-    fn collect_generic_nature_violations(&self, stmt: &CallStatement) -> Vec<Diagnostic> {
-        let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
-            return Vec::new();
-        };
-
-        let Some(StatementAnnotation::Function { qualified_name, generic_name, return_type, .. }) =
-            annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator))
-        else {
-            return Vec::new();
-        };
-
-        let is_rewritten_generic = generic_name.is_some()
-            && index.find_pou(qualified_name).is_some_and(|it| !it.is_generic() && !it.is_builtin())
-            && index.get_effective_type_or_void_by_name(return_type).is_aggregate_type();
-        if !is_rewritten_generic {
-            return Vec::new();
-        }
-
-        let Some(parameters) = stmt.parameters.as_deref() else {
-            return Vec::new();
-        };
-
-        let mut diagnostics = Vec::new();
-        for argument in flatten_expression_list(parameters) {
-            // The nature is attached to the passed value; for `x := val` that is the right-hand side.
-            let value = match argument.get_stmt() {
-                AstStatement::Assignment(data) | AstStatement::OutputAssignment(data) => &data.right,
-                _ => argument,
-            };
-
-            let (Some(actual_type), Some(nature)) =
-                (annotation.get_type(value, index), annotation.get_generic_nature(value))
-            else {
-                continue;
-            };
-            let type_hint = annotation.get_type_hint(value, index).unwrap_or(actual_type);
-
-            if let Some(diagnostic) =
-                evaluate_generic_nature_violation(actual_type, type_hint, *nature, index, value)
-            {
-                diagnostics.push(diagnostic);
-            }
-        }
-        diagnostics
     }
 
     fn steal_and_walk_list(&mut self, list: &mut Vec<AstNode>) {
@@ -304,40 +241,26 @@ impl AstVisitorMut for AggregateTypeLowerer {
         let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
         stmt.walk(self);
 
-        // Report generic type-nature violations (e.g. `CONCAT(aDint, aReal)`) now, while the call is
-        // still generic. The normal validator can only catch these before lowering; once we rewrite
-        // the call to its concrete instantiation the re-annotation drops the generic nature. Mirrors
-        // the diagnostics-during-lowering approach used by the property lowerer.
-        let nature_diagnostics = self.collect_generic_nature_violations(stmt);
-        self.diagnostics.extend(nature_diagnostics);
-
         let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
             //Early exit if not annotated or indexed
             return;
         };
-        //Get the function being called
-        let (qualified_name, return_type_name, generic_name, call_name) = match annotation
-            .get(&stmt.operator)
-            .or_else(|| annotation.get_hint(&stmt.operator))
-            .cloned()
-        {
-            Some(StatementAnnotation::Function { return_type, qualified_name, generic_name, call_name }) => {
-                (qualified_name, return_type, generic_name, call_name)
-            }
-            Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
-                (qualified_name, return_type, None, None)
-            }
-            _ => return,
-        };
-        //If there's a call name in the function, it is a generic and needs to be replaced.
-        //HACK: this is because we don't lower generics
+        //Get the function being called. Generic calls have already been rewritten to their concrete
+        //monomorphization by the `GenericLowerer` phase, so the operator here always names a concrete
+        //function (or function pointer).
+        let (qualified_name, return_type_name) =
+            match annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator)).cloned() {
+                Some(StatementAnnotation::Function { return_type, qualified_name, .. }) => {
+                    (qualified_name, return_type)
+                }
+                Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
+                    (qualified_name, return_type)
+                }
+                _ => return,
+            };
         let function_entry = index.find_pou(&qualified_name).expect("Function not found");
         let return_name = Pou::calc_return_name(function_entry.get_name()).to_string();
         let return_type = index.get_effective_type_or_void_by_name(&return_type_name);
-
-        let generic_function: Option<&crate::index::PouIndexEntry> =
-            generic_name.as_deref().and_then(|it| index.find_pou(it));
-        let is_generic_function = generic_function.is_some_and(|it| it.is_generic());
 
         //TODO: needs to be on the function
         if return_type.is_aggregate_type() && !function_entry.is_builtin() {
@@ -398,27 +321,6 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 parameters.insert(0, reference);
             }
 
-            if is_generic_function {
-                // For generic functions, replace the operator with the concrete monomorphization to
-                // call. Prefer `call_name` (the resolved monomorph, e.g. `TO_STRING__DINT`) over
-                // `qualified_name`: when no concrete monomorph exists the resolver leaves
-                // `qualified_name` pointing at the *generic* itself, and resetting to that makes the
-                // re-annotation re-monomorphize against the injected aggregate return buffer — binding
-                // e.g. `TO_STRING(aDint)` to `TO_STRING__STRING` and reinterpreting the argument's
-                // bytes as a string. Emitting the true monomorph name instead yields an external symbol
-                // the linker resolves (if provided) or rejects, exactly like scalar `{external}`
-                // generics such as `MAX` already resolve their `MAX__DINT`.
-                let concrete_name = call_name.as_deref().unwrap_or(&qualified_name);
-                *stmt.operator = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(
-                        concrete_name,
-                        stmt.operator.get_location(),
-                        self.id_provider.next_id(),
-                    ),
-                    None,
-                    self.id_provider.next_id(),
-                )
-            };
             stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
             //steal parameters, add one to the start, return parameters
             let mut reference = create_member_reference_with_location(

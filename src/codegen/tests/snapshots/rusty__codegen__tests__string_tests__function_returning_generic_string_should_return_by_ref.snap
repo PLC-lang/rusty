@@ -31,10 +31,10 @@ define void @main(ptr %0) {
 entry:
   %fmt = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  %__MID0 = alloca [81 x i8], align [filtered]
-  call void @llvm.memset.p0.i64(ptr align [filtered] %__MID0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-  call void @MID__STRING(ptr %__MID0, ptr %fmt, i32 1, i32 2)
-  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %x, ptr align [filtered] %__MID0, i32 80, i1 false)
+  %__MID__STRING0 = alloca [81 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %__MID__STRING0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  call void @MID__STRING(ptr %__MID__STRING0, ptr %fmt, i32 1, i32 2)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %x, ptr align [filtered] %__MID__STRING0, i32 80, i1 false)
   ret void
 }
 

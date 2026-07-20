@@ -323,7 +323,19 @@ impl TypeAnnotator<'_> {
             self.annotate_arguments_positional(&pou_name, operator, arguments)
         };
 
-        self.update_generic_call_statement(generics, &pou_name, operator, arguments_node, ctx.to_owned());
+        // Builtin generics (MUX/SEL/SHL/MOVE/…) are resolved inline by codegen: they have no
+        // monomorphization and none of the scalar-vs-aggregate divergence that motivated the lowering
+        // phase, so their generic resolution (return-type + argument nature/hints) stays here in the
+        // annotator. Non-builtin (user/stdlib) generic calls are monomorphized later by the
+        // `GenericLowerer` lowering phase, which materializes each monomorph as a real `{external}` POU.
+        let is_builtin_generic = matches!(
+            self.annotation_map.get(operator),
+            Some(StatementAnnotation::Function { qualified_name, .. })
+                if crate::builtins::get_builtin(qualified_name).is_some()
+        );
+        if is_builtin_generic {
+            self.update_generic_call_statement(generics, &pou_name, operator, arguments_node, ctx.to_owned());
+        }
     }
 
     /// Annotate call arguments when the caller mixes positional and named args,
@@ -509,6 +521,18 @@ impl TypeAnnotator<'_> {
     }
 
     fn get_vararg_type_name(&mut self, argument: &&AstNode, vararg: &VariableIndexEntry) -> String {
+        // Sized variadics (`{sized} T...`) store their arguments in a typed array of the declared
+        // element type, so a numeric argument must keep that exact element type rather than receiving
+        // the C-style default-argument promotion below (which only concerns unsized C-ABI variadics):
+        // promoting e.g. an INT argument to DINT would store a wider value into the narrower array
+        // slot. Only applied for numeric element types — a non-numeric element type keeps the existing
+        // per-argument behaviour so unrelated numeric arguments are unaffected.
+        if vararg.get_varargs().is_some_and(|it| it.is_sized())
+            && self.index.get_effective_type_or_void_by_name(vararg.get_type_name()).is_numerical()
+        {
+            return vararg.get_type_name().to_string();
+        }
+
         // intrinsic type promotion for variadics in order to be compatible with the C standard.
         // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
         // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion

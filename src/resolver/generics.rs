@@ -24,6 +24,18 @@ pub struct GenericType {
     generic_nature: TypeNature,
 }
 
+impl GenericType {
+    /// The concrete type this generic binding resolved to (e.g. `"DINT"`).
+    pub fn derived_type(&self) -> &str {
+        &self.derived_type
+    }
+
+    /// The nature the generic parameter was declared with (e.g. `ANY_INT`).
+    pub fn generic_nature(&self) -> TypeNature {
+        self.generic_nature
+    }
+}
+
 // Utility methods handling generic resolution
 impl TypeAnnotator<'_> {
     /// determines a possible generic for the current statement
@@ -375,9 +387,9 @@ pub fn no_generic_name_resolver(
 /// Determines a possible generic candidate for the given call argument: a pair of the generic
 /// symbol and the concrete datatype name (e.g. `("T", "INT")`). Shared by the annotator's first pass
 /// and the generic lowering phase, so both derive the same monomorphizations.
-pub(crate) fn get_generic_candidate<'idx, A: AnnotationMap>(
+pub(crate) fn get_generic_candidate<'idx>(
     index: &'idx Index,
-    annotations: &'idx A,
+    annotations: &'idx (dyn AnnotationMap + 'idx),
     type_name: &str,
     statement: &AstNode,
 ) -> Option<(&'idx str, &'idx str)> {
