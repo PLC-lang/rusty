@@ -3,7 +3,7 @@ use encoding_rs::Encoding;
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
-use plc_source::{SourceCode, SourceContainer};
+use plc_source::{SourceCode, SourceContainer, SourceType};
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
 
@@ -93,6 +93,11 @@ impl GlobalContext {
     /// Returns some [`SourceCode`] based on the given key
     pub fn get(&self, key: &str) -> Option<&SourceCode> {
         self.sources.get(key)
+    }
+
+    /// Returns an iterator over every registered CFC (XML) [`SourceCode`]
+    pub fn sources_cfc(&self) -> impl Iterator<Item = &SourceCode> {
+        self.sources.values().filter(|source| matches!(source.get_type(), SourceType::Xml))
     }
 
     /// Returns a cloned [`IdProvider`]

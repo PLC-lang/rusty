@@ -1,9 +1,6 @@
-//! Deserialization model for CFC (`.cfc`) files: a PLCopen-style XML document
-//! describing a single POU whose body is an FBD/CFC network.
-//!
-//! `quick-xml`'s serde support strips namespace prefixes and matches on the
-//! local name, so the `rename`s use bare names (`Function`, `type`) rather than
-//! their `ppx:` / `xsi:` prefixed forms, and attributes take a leading `@`.
+// quick-xml's serde support strips namespace prefixes and matches on the local
+// name, so the `rename`s use bare names (`Function`, `type`) rather than their
+// `ppx:` / `xsi:` prefixed forms, and attributes take a leading `@`.
 
 use serde::Deserialize;
 
@@ -64,7 +61,6 @@ pub struct Data {
 
 #[derive(Debug, Deserialize)]
 pub struct TextDeclaration {
-    /// The POU's header and variable blocks, carried verbatim as ST source.
     #[serde(rename = "content")]
     pub content: String,
 }
@@ -102,8 +98,7 @@ pub struct Network {
     pub nodes: Vec<NetworkElement>,
 }
 
-/// Graphical elements share a structure but arrive under two element names,
-/// interleaved in document order; a `$value` sequence captures both.
+// The two element names interleave; only a `$value` sequence captures both.
 #[derive(Debug, Deserialize)]
 pub enum NetworkElement {
     FbdObject(FbdObject),
@@ -112,8 +107,7 @@ pub enum NetworkElement {
 
 #[derive(Debug, Deserialize)]
 pub struct FbdObject {
-    /// The `xsi:type` discriminator, e.g. `"ppx:DataSource"` (prefix retained
-    /// because only names, not values, are stripped). Classified in `resolve`.
+    // The `xsi:type` discriminator; its prefix survives (values aren't stripped).
     #[serde(rename = "@type")]
     pub kind: String,
 
@@ -126,21 +120,15 @@ pub struct FbdObject {
     #[serde(rename = "@complexIdentifier")]
     pub complex_identifier: Option<String>,
 
-    /// The pairing name of a connector or continuation, or the name a
-    /// `bmx:CfcLabel` defines as a jump target.
     #[serde(rename = "@label")]
     pub label: Option<String>,
 
-    /// The label a `bmx:CfcJump` transfers control to.
     #[serde(rename = "@targetLabel")]
     pub target_label: Option<String>,
 
-    /// The called POU's name; present on a `ppx:Block`.
     #[serde(rename = "@typeName")]
     pub type_name: Option<String>,
 
-    /// The caller-declared instance a function-block call runs on; absent for a
-    /// program call, which is a singleton reached by its bare type name.
     #[serde(rename = "@instanceName")]
     pub instance_name: Option<String>,
 
@@ -163,17 +151,13 @@ pub struct FbdObject {
     pub inout_variables: Option<PinGroup>,
 }
 
-/// A block's parameter pins of one kind (input, output, or in_out). All three
-/// groups share a shape; only the child element name differs, and quick-xml
-/// matches `$value` on that local name.
+// Shared by the input/output/in_out groups; `$value` matches the element name.
 #[derive(Debug, Default, Deserialize)]
 pub struct PinGroup {
     #[serde(rename = "$value", default)]
     pub pins: Vec<Pin>,
 }
 
-/// One block parameter pin. An input/in_out pin carries an incoming wire; an
-/// output pin exposes a producer pin. `negated` is the pin's inversion bubble.
 #[derive(Debug, Deserialize)]
 pub struct Pin {
     #[serde(rename = "@parameterName")]
@@ -233,17 +217,11 @@ impl PouContent {
     }
 
     pub fn declaration(&self) -> Option<&str> {
-        self.add_data
-            .data
-            .iter()
-            .find_map(|data| data.text_declaration.as_ref())
-            .map(|it| it.content.as_str())
+        Some(self.add_data.data.first()?.text_declaration.as_ref()?.content.as_str())
     }
 }
 
 impl Network {
-    /// Every graphical element, regardless of its `FbdObject` / `CommonObject`
-    /// XML representation.
     pub fn elements(&self) -> impl Iterator<Item = &FbdObject> {
         self.nodes.iter().map(|node| match node {
             NetworkElement::FbdObject(object) | NetworkElement::CommonObject(object) => object,
@@ -252,8 +230,6 @@ impl Network {
 }
 
 impl FbdObject {
-    /// A plain variable arrives in `identifier`; an indexed or qualified one
-    /// (`arr[i]`, `foo.bar`) arrives in `complexIdentifier` instead.
     pub fn identifier(&self) -> Option<&str> {
         self.identifier.as_deref().or(self.complex_identifier.as_deref())
     }
@@ -270,56 +246,6 @@ impl FbdObject {
         self.type_name.as_deref()
     }
 
-    /// The reference a block's outputs are *read* through: its declared instance
-    /// (function block), falling back to the owner POU (a program singleton, or
-    /// an action's owner — outputs live on the instance, not the action).
-    pub fn instance(&self) -> Option<&str> {
-        self.instance_name.as_deref().or_else(|| self.owner())
-    }
-
-    /// The output pin carrying a function's return value: the pin named after the
-    /// callee. Only a non-void function exposes one.
-    // TODO: A void function has no return pin and is currently indistinguishable
-    //       from a program here; telling them apart needs the callee's kind,
-    //       which the untyped model doesn't carry.
-    pub fn return_pin(&self) -> Option<&Pin> {
-        let type_name = self.type_name()?;
-        self.output_pins().iter().find(|pin| pin.parameter_name == type_name)
-    }
-
-    /// A stateless function call: no caller instance and a return pin present. Its
-    /// outputs don't persist, so they are read through generated temporaries
-    /// rather than `instance.member`.
-    pub fn is_function(&self) -> bool {
-        self.instance_name.is_none() && self.return_pin().is_some()
-    }
-
-    /// Whether `pin` is this block's return pin (named after the callee).
-    pub fn is_return_pin(&self, pin: &Pin) -> bool {
-        self.type_name() == Some(pin.parameter_name.as_str())
-    }
-
-    /// The reference a block is *called* through: the instance, suffixed with the
-    /// action when `typeName` is qualified (`inst.act`); otherwise the instance.
-    pub fn call_target(&self) -> Option<String> {
-        let instance = self.instance()?;
-        Some(match self.action() {
-            Some(action) => format!("{instance}.{action}"),
-            None => instance.to_string(),
-        })
-    }
-
-    /// The owner portion of `typeName`: everything before an action suffix
-    /// (`MyFb.act` → `MyFb`), or the whole name when unqualified.
-    fn owner(&self) -> Option<&str> {
-        self.type_name.as_deref().map(|name| name.rsplit_once('.').map_or(name, |(owner, _)| owner))
-    }
-
-    /// The action a qualified `typeName` (`owner.action`) dispatches to, if any.
-    fn action(&self) -> Option<&str> {
-        self.type_name.as_deref().and_then(|name| name.rsplit_once('.').map(|(_, action)| action))
-    }
-
     pub fn input_pins(&self) -> &[Pin] {
         self.input_variables.as_ref().map_or(&[], |group| &group.pins)
     }
@@ -332,26 +258,25 @@ impl FbdObject {
         self.inout_variables.as_ref().map_or(&[], |group| &group.pins)
     }
 
-    pub fn priority(&self) -> Option<usize> {
-        let add_data = self.add_data.as_ref()?;
-        add_data.data.iter().find_map(|data| data.evaluation_priority.as_ref()).map(|it| it.priority)
+    pub fn negated(&self) -> bool {
+        self.data(|data| data.negated.as_ref()).is_some_and(|negated| negated.value)
     }
 
-    pub fn negated(&self) -> bool {
-        self.add_data
-            .as_ref()
-            .and_then(|add_data| add_data.data.iter().find_map(|data| data.negated.as_ref()))
-            .is_some_and(|negated| negated.value)
+    pub fn priority(&self) -> Option<usize> {
+        self.data(|data| data.evaluation_priority.as_ref()).map(|priority| priority.priority)
+    }
+
+    // `AddData` interleaves its payloads across several `Data` entries.
+    fn data<'a, T>(&'a self, pick: impl Fn(&'a Data) -> Option<&'a T>) -> Option<&'a T> {
+        self.add_data.as_ref()?.data.iter().find_map(pick)
     }
 }
 
 impl Pin {
-    /// The producer pin feeding an input/in_out pin's incoming wire.
     pub fn source_pin(&self) -> Option<usize> {
         self.connection_in.as_ref()?.connections.first().map(|connection| connection.ref_out_id)
     }
 
-    /// The producer pin an output pin exposes to downstream consumers.
     pub fn output_pin(&self) -> Option<usize> {
         self.connection_out.as_ref().map(|out| out.id)
     }
