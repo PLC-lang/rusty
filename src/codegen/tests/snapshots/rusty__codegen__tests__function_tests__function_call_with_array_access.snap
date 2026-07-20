@@ -23,19 +23,28 @@ entry:
   %value = alloca i32, align [filtered]
   store i32 0, ptr %value, align [filtered]
   %__foo0 = alloca [5 x i32], align [filtered]
+  call void @llvm.lifetime.start.p0(i64 -1, ptr %__foo0)
   call void @llvm.memset.p0.i64(ptr align [filtered] %__foo0, i8 0, i64 ptrtoint (ptr getelementptr ([5 x i32], ptr null, i32 1) to i64), i1 false)
   call void @foo(ptr %__foo0)
   %tmpVar = getelementptr inbounds [5 x i32], ptr %__foo0, i32 0, i32 2
   %load_tmpVar = load i32, ptr %tmpVar, align [filtered]
   store i32 %load_tmpVar, ptr %value, align [filtered]
+  call void @llvm.lifetime.end.p0(i64 -1, ptr %__foo0)
   ret void
 }
 
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
 declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(i64 immarg, ptr captures(none)) #1
+
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #2
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.end.p0(i64 immarg, ptr captures(none)) #1
 
 attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
-attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+attributes #1 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #2 = { nocallback nofree nounwind willreturn memory(argmem: write) }
