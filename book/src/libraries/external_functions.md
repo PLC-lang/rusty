@@ -38,36 +38,32 @@ A generic function is never called directly. Every call is resolved to a concret
 *monomorphization* whose name is the generic function's name followed by `__<TYPE>` for
 the resolved type argument. For example, `MAX(aDint, bDint)` resolves to `MAX__DINT`.
 
-The compiler does not synthesize the body of a monomorphization; each one must be
-*provided*, as one of:
+The compiler does not synthesize a monomorphization's body; the implementation is provided
+by one of:
 
 - an ordinary `FUNCTION` with the mangled name (an ST body),
-- an `{external}` declaration of the mangled name (implemented elsewhere, e.g. in C or
-  Rust, resolved at link time), or
+- an implementation linked in from elsewhere (e.g. in C or Rust), or
 - a compiler builtin.
 
-Calling a generic with a type for which no monomorphization is provided is reported as an
-unresolved reference (`E048`).
+When no ST body or builtin defines the mangled name, the compiler emits an `{external}`
+declaration for it and the symbol is resolved at link time; if nothing provides it there,
+the build fails with an undefined symbol. This applies regardless of the return type,
+including aggregate returns such as `STRING`, `WSTRING`, arrays and structs.
 
-### Monomorphizations returning aggregate types
+A type argument that does not satisfy the generic's nature constraint (e.g. a `REAL` for a
+`<T: ANY_INT>` parameter) is rejected at compile time with `E062`.
 
-When a generic function returns an aggregate type (`STRING`, `WSTRING`, an array or a
-struct), its monomorphization must be **declared in `ST`** — either as a body or as an
-`{external}` declaration. A symbol that exists only at link time (with no `ST`
-declaration) is enough for a scalar return, but not for an aggregate return: an
-aggregate-returning generic call whose monomorphization is not declared is reported as
-`E048` at compile time rather than failing at link time or run time.
-
-For example, the standard `TO_STRING <T: ANY> : STRING` conversion declares a
-monomorphization for every supported source type (`TO_STRING__DINT`, `TO_STRING__REAL`,
-…). Calling `TO_STRING` with a type that has no such declaration is a compile error:
+For example, the standard `TO_STRING <T: ANY> : STRING` conversion provides an
+implementation for every supported source type (`TO_STRING__DINT`, `TO_STRING__REAL`, …).
+Because `ANY` accepts every type, calling `TO_STRING` with a type that has no implementation
+compiles and then fails at link time with an undefined symbol:
 
 ```iecst
 TYPE Point : STRUCT x, y : DINT; END_STRUCT END_TYPE
 
 FUNCTION main : DINT
 VAR s : STRING; p : Point; END_VAR
-    s := TO_STRING(p);   // error[E048]: Could not resolve reference to TO_STRING__Point
+    s := TO_STRING(p);   // undefined symbol at link time: TO_STRING__Point
 END_FUNCTION
 ```
 
