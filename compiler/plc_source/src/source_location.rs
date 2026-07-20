@@ -35,11 +35,8 @@ impl SourceLocationFactory {
         SourceLocation { span: CodeSpan::Range(start..end), file: self.file.into() }
     }
 
-    pub fn create_block_location(&self, local_id: usize, execution_order: Option<usize>) -> SourceLocation {
-        SourceLocation {
-            span: CodeSpan::Block { local_id, execution_order, inner_range: None },
-            file: self.file.into(),
-        }
+    pub fn create_block_location(&self, local_id: usize) -> SourceLocation {
+        SourceLocation { span: CodeSpan::Block { local_id }, file: self.file.into() }
     }
 
     pub fn create_file_only_location(&self) -> SourceLocation {
@@ -81,7 +78,7 @@ impl TextLocation {
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum CodeSpan {
     /// The location of a block in a diagram
-    Block { local_id: usize, execution_order: Option<usize>, inner_range: Option<Range<usize>> },
+    Block { local_id: usize },
     /// An element spanning multiple IDs
     Combined(Vec<CodeSpan>),
     /// A location inside a text
@@ -93,12 +90,7 @@ pub enum CodeSpan {
 impl std::fmt::Debug for CodeSpan {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Block { local_id, execution_order, inner_range } => f
-                .debug_struct("Block")
-                .field("local_id", local_id)
-                .field("execution_order", execution_order)
-                .field("inner_range", inner_range)
-                .finish(),
+            Self::Block { local_id } => f.debug_struct("Block").field("local_id", local_id).finish(),
             Self::Combined(arg0) => f.debug_tuple("Combined").field(arg0).finish(),
             Self::None => write!(f, "None"),
 
@@ -149,7 +141,7 @@ impl CodeSpan {
     pub fn get_line(&self) -> usize {
         match self {
             Self::Range(range) => range.start.line,
-            Self::Block { local_id, .. } => *local_id,
+            Self::Block { local_id } => *local_id,
             _ => 0,
         }
     }
@@ -166,7 +158,7 @@ impl CodeSpan {
     pub fn get_line_plus_one(&self) -> usize {
         match self {
             Self::Range(range) => range.start.line + 1,
-            Self::Block { local_id, .. } => *local_id,
+            Self::Block { local_id } => *local_id,
             _ => 0,
         }
     }
@@ -192,7 +184,6 @@ impl CodeSpan {
     pub fn to_range(&self) -> Option<Range<usize>> {
         match self {
             CodeSpan::Range(range) => Some(range.start.offset..range.end.offset),
-            CodeSpan::Block { inner_range, .. } => inner_range.clone(),
             _ => None,
         }
     }
@@ -332,36 +323,18 @@ impl SourceLocation {
     /// In other words this results in `self.start .. other.end`
     pub fn span(&self, other: &SourceLocation) -> SourceLocation {
         let span = match (&self.span, &other.span) {
-            //ID -> ID = Combile
-            (
-                CodeSpan::Block { local_id, execution_order, inner_range },
-                CodeSpan::Block { local_id: other, inner_range: other_range, .. },
-            ) if local_id == other => {
-                let inner_range = match (inner_range, other_range) {
-                    (None, None) => None,
-                    (Some(range), None) | (None, Some(range)) => Some(range.clone()),
-                    (Some(start), Some(end)) => Some(start.start..end.end),
-                };
-
-                CodeSpan::Block { local_id: *local_id, execution_order: *execution_order, inner_range }
+            //ID -> ID = Combine
+            (CodeSpan::Block { local_id }, CodeSpan::Block { local_id: other }) if local_id == other => {
+                CodeSpan::Block { local_id: *local_id }
             }
             (CodeSpan::Block { .. }, CodeSpan::Block { .. }) => {
                 CodeSpan::Combined(vec![self.span.clone(), other.span.clone()])
             }
             //Range -> Range = Range
             (CodeSpan::Range(start), CodeSpan::Range(end)) => CodeSpan::Range(start.start..end.end),
-            //ID -> Range = InnerRange
-            (CodeSpan::Block { local_id, execution_order, inner_range }, CodeSpan::Range(range))
-            | (CodeSpan::Range(range), CodeSpan::Block { local_id, execution_order, inner_range }) => {
-                CodeSpan::Block {
-                    local_id: *local_id,
-                    execution_order: *execution_order,
-                    inner_range: inner_range
-                        .as_ref()
-                        .map(|it| it.start..range.end.offset)
-                        .or(Some(range.start.offset..range.end.offset)),
-                }
-            }
+            //ID -> Range = keep the block identity
+            (CodeSpan::Block { local_id }, CodeSpan::Range(_))
+            | (CodeSpan::Range(_), CodeSpan::Block { local_id }) => CodeSpan::Block { local_id: *local_id },
             //None any -> None (unsupported)
             (CodeSpan::None, _) | (_, CodeSpan::None) => CodeSpan::None,
             (CodeSpan::Combined(inner), CodeSpan::Combined(other)) => {
@@ -549,36 +522,21 @@ mod tests {
 
     #[test]
     fn span_two_blocks() {
-        let loc1 = SourceLocation {
-            file: None.into(),
-            span: CodeSpan::Block { local_id: 1, execution_order: Some(1), inner_range: None },
-        };
-        let loc2 = SourceLocation {
-            file: None.into(),
-            span: CodeSpan::Block { local_id: 2, execution_order: Some(1), inner_range: None },
-        };
+        let loc1 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
+        let loc2 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 2 } };
         assert_debug_snapshot!(loc1.span(&loc2));
     }
 
     #[test]
     fn span_two_blocks_with_same_id() {
-        let loc1 = SourceLocation {
-            file: None.into(),
-            span: CodeSpan::Block { local_id: 1, execution_order: Some(1), inner_range: None },
-        };
-        let loc2 = SourceLocation {
-            file: None.into(),
-            span: CodeSpan::Block { local_id: 1, execution_order: Some(1), inner_range: None },
-        };
+        let loc1 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
+        let loc2 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
         assert_debug_snapshot!(loc1.span(&loc2));
     }
 
     #[test]
     fn span_id_and_range() {
-        let loc1 = SourceLocation {
-            file: None.into(),
-            span: CodeSpan::Block { local_id: 1, execution_order: Some(1), inner_range: None },
-        };
+        let loc1 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
         let loc2 = SourceLocation {
             file: None.into(),
             span: CodeSpan::from_text_info(TextLocation::new(1, 0, 0), TextLocation::new(2, 0, 4)),
@@ -601,31 +559,16 @@ mod tests {
 
     #[test]
     fn span_combined() {
-        let loc1 = SourceLocation {
-            file: None.into(),
-            span: CodeSpan::Block { local_id: 1, execution_order: Some(1), inner_range: None },
-        };
-        let loc2 = SourceLocation {
-            file: None.into(),
-            span: CodeSpan::Block { local_id: 2, execution_order: Some(2), inner_range: None },
-        };
-        let loc3 = SourceLocation {
-            file: None.into(),
-            span: CodeSpan::Block { local_id: 3, execution_order: Some(3), inner_range: None },
-        };
-        let loc4 = SourceLocation {
-            file: None.into(),
-            span: CodeSpan::Block { local_id: 4, execution_order: Some(4), inner_range: None },
-        };
+        let loc1 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
+        let loc2 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 2 } };
+        let loc3 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 3 } };
+        let loc4 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 4 } };
         assert_debug_snapshot!(loc1.span(&loc2).span(&loc3.span(&loc4)));
     }
 
     #[test]
     fn span_none() {
-        let loc1 = SourceLocation {
-            file: None.into(),
-            span: CodeSpan::Block { local_id: 1, execution_order: Some(1), inner_range: None },
-        };
+        let loc1 = SourceLocation { file: None.into(), span: CodeSpan::Block { local_id: 1 } };
         let loc2 = SourceLocation { file: None.into(), span: CodeSpan::None };
         assert_debug_snapshot!(loc1.span(&loc2));
     }

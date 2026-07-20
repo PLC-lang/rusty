@@ -400,6 +400,33 @@ impl PipelineParticipantMut for RetainParticipant {
     }
 }
 
+/// Resolves the placeholder types on CFC function-output temporaries. `plc_cfc`
+/// emits temporaries typed `return@<fn>` / `output@<fn>@<pin>` because the
+/// callee's real type is unknown at parse time; once indexed, this rewrites each
+/// to that type and re-indexes so annotation sees the concrete declaration.
+pub struct CfcTypeLowerer {
+    ids: IdProvider,
+}
+
+impl CfcTypeLowerer {
+    pub fn new(ids: IdProvider) -> Self {
+        Self { ids }
+    }
+}
+
+impl PipelineParticipantMut for CfcTypeLowerer {
+    fn post_index(&mut self, mut indexed_project: IndexedProject) -> IndexedProject {
+        // Only a project with CFC function-output temporaries has placeholders to
+        // rewrite; when nothing changed (every non-CFC build), keep the index.
+        if !plc_cfc::lowering::resolve(&mut indexed_project.project.units, &indexed_project.index) {
+            return indexed_project;
+        }
+
+        // Re-index so the rewritten temporary types reach annotation.
+        indexed_project.project.index(self.ids.clone())
+    }
+}
+
 impl PipelineParticipantMut for ControlStatementParticipant {
     fn pre_index(&mut self, parsed_project: ParsedProject) -> ParsedProject {
         let ParsedProject { mut units } = parsed_project;

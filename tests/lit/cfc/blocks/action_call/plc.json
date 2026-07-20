@@ -1,0 +1,12 @@
+{
+	"name" : "cfc_action_call",
+	"files" : [
+		"action_call.cfc",
+		"counter.st",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
