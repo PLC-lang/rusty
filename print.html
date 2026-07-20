@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-26f2f594.js";
+            window.path_to_searchindex_js = "searchindex-17b6deea.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-091fdcb9.js"></script>
+        <script src="toc-1c9150eb.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2536,6 +2536,25 @@ END_FUNCTION_BLOCK
     END_METHOD
 END_FUNCTION_BLOCK
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="undefined-cfc-jump-target"><a class="header" href="#undefined-cfc-jump-target">Undefined CFC jump target</a></h1>
+<p>A <code>JMP</code> element in a CFC network refers to a label that no <code>LABEL</code> element
+defines. The jump has nowhere to land. Add the matching label or correct the
+jump’s target.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unused-cfc-label"><a class="header" href="#unused-cfc-label">Unused CFC label</a></h1>
+<p>A <code>LABEL</code> element in a CFC network is not the target of any <code>JMP</code>. It has no
+effect on control flow. Remove the label or wire a jump to it.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="duplicate-cfc-label"><a class="header" href="#duplicate-cfc-label">Duplicate CFC label</a></h1>
+<p>Two <code>LABEL</code> elements in a CFC network share the same name. A jump to that name
+would be ambiguous, since it could land on either one. Give each label a
+distinct name.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="disconnected-cfc-jump"><a class="header" href="#disconnected-cfc-jump">Disconnected CFC jump</a></h1>
+<p>A <code>JMP</code> element in a CFC network is not wired to a condition. A conditional jump
+only fires when its incoming value is true, so a jump with nothing connected can
+never be taken and is almost certainly a mistake.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>
