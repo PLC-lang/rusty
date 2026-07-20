@@ -6,7 +6,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     builtins,
     codegen::generators::expression_generator::get_implicit_call_parameter,
-    index::{ArgumentType, PouIndexEntry, VariableType},
+    index::{ArgumentType, Index, PouIndexEntry, VariableType},
     resolver::AnnotationMap,
     typesystem::{
         self, DataType, DataTypeInformation, StringEncoding, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE,
@@ -30,30 +30,7 @@ impl TypeAnnotator<'_> {
     /// returns a pair with the possible generics symbol and the real datatype
     /// e.g. `( "T", "INT" )`
     pub fn get_generic_candidate(&self, type_name: &str, statement: &AstNode) -> Option<(&str, &str)> {
-        //find inner type if this was turned into an array or pointer (if this is `POINTER TO T` lets find out what T is)
-        let effective_type = self.index.find_effective_type_info(type_name);
-        let candidate = match effective_type {
-            Some(DataTypeInformation::Pointer { inner_type_name, .. })
-            | Some(DataTypeInformation::Array { inner_type_name, .. }) => {
-                self.index.find_effective_type_info(inner_type_name)
-            }
-            _ => effective_type,
-        };
-
-        //If generic add a generic annotation
-        if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = candidate {
-            let statement = match statement.get_stmt() {
-                //The right side of the assignment is the source of truth
-                AstStatement::Assignment(data) => &data.right,
-                _ => statement,
-            };
-            //Find the statement's type
-            self.annotation_map
-                .get_type(statement, self.index)
-                .map(|it| (generic_symbol.as_str(), it.get_name()))
-        } else {
-            None
-        }
+        get_generic_candidate(self.index, &self.annotation_map, type_name, statement)
     }
 
     /// Updates the generic information of a function call. It collects all candidates for a generic function
@@ -350,33 +327,14 @@ impl TypeAnnotator<'_> {
         generic_map: &FxHashMap<String, GenericType>,
         generic_name_resolver: GenericNameResolver,
     ) -> (String, StatementAnnotation) {
-        let call_name = generic_name_resolver(generic_qualified_name, generics, generic_map);
-        let annotation = self
-            .index
-            .find_pou(&call_name)
-            .filter(|it| !it.is_generic())
-            .map(StatementAnnotation::from)
-            .map(|it| it.with_generic_name(generic_qualified_name))
-            .unwrap_or_else(|| {
-                let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
-                    self.index.get_type_information_or_void(generic_return_type)
-                {
-                    generic_map
-                        .get(generic_symbol)
-                        .map(|it| it.derived_type.as_str())
-                        .unwrap_or(generic_return_type)
-                } else {
-                    generic_return_type
-                }
-                .to_string();
-                StatementAnnotation::Function {
-                    qualified_name: generic_qualified_name.to_string(),
-                    return_type,
-                    generic_name: Some(generic_qualified_name.to_string()),
-                    call_name: Some(call_name.clone()),
-                }
-            });
-        (call_name, annotation)
+        get_specific_function_annotation(
+            self.index,
+            generics,
+            generic_qualified_name,
+            generic_return_type,
+            generic_map,
+            generic_name_resolver,
+        )
     }
 
     /// Derives the correct type for the generic call from the list of parameters
@@ -385,70 +343,7 @@ impl TypeAnnotator<'_> {
         generics: &[GenericBinding],
         generics_candidates: FxHashMap<String, Vec<String>>,
     ) -> FxHashMap<String, GenericType> {
-        let mut generic_map: FxHashMap<String, GenericType> = FxHashMap::default();
-        for GenericBinding { name, nature } in generics {
-            let smallest_possible_type =
-                self.index.find_effective_type_info(get_smallest_possible_type(nature));
-            //Get the current binding
-            if let Some(candidates) = generics_candidates.get(name) {
-                //Find the best suiting type
-                let winner = candidates
-                    .iter()
-                    .fold(smallest_possible_type, |previous_type: Option<&DataTypeInformation>, current| {
-                        let current_type = self
-                            .index
-                            .find_effective_type_info(current)
-                            // if type is not found, look for it in new index, because the type could have been created recently
-                            .or_else(|| self.annotation_map.new_index.find_effective_type_info(current))
-                            .map(|it| {
-                                match it {
-                                    // generic strings are a special case and need to be handled differently
-                                    DataTypeInformation::String {
-                                        encoding: StringEncoding::Utf8, ..
-                                    } => self.index.find_effective_type_info(STRING_TYPE).unwrap_or(it),
-                                    DataTypeInformation::String {
-                                        encoding: StringEncoding::Utf16, ..
-                                    } => self.index.find_effective_type_info(WSTRING_TYPE).unwrap_or(it),
-                                    _ => self.index.get_intrinsic_type_information(it),
-                                }
-                            });
-
-                        // Find bigger
-                        if let Some(current) = current_type {
-                            // check if the current type derives from the generic nature
-                            if self
-                                .index
-                                .find_effective_type_by_name(current.get_name())
-                                .map(|t| {
-                                    t.has_nature(*nature, self.index)
-                                        // INT parameter for REAL is allowed
-                                            | (nature.is_real() & t.is_numerical())
-                                })
-                                .unwrap_or_default()
-                            {
-                                // if we got the right nature we can search for the bigger type
-                                if let Some(previous) = previous_type {
-                                    return Some(typesystem::get_bigger_type(current, previous, self.index));
-                                } else {
-                                    // if the previous type was None just return the current
-                                    // type should be ok because of the previouse nature check
-                                    return current_type;
-                                }
-                            }
-                        }
-                        // if we didn't get the right nature return the last one
-                        previous_type
-                    })
-                    .map(DataTypeInformation::get_name);
-                if let Some(winner) = winner {
-                    generic_map.insert(
-                        name.into(),
-                        GenericType { derived_type: winner.to_string(), generic_nature: *nature },
-                    );
-                }
-            }
-        }
-        generic_map
+        derive_generic_types(self.index, &self.annotation_map.new_index, generics, generics_candidates)
     }
 }
 
@@ -475,6 +370,150 @@ pub fn no_generic_name_resolver(
     _: &FxHashMap<String, GenericType>,
 ) -> String {
     generic_name_resolver(qualified_name, &[], &FxHashMap::default())
+}
+
+/// Determines a possible generic candidate for the given call argument: a pair of the generic
+/// symbol and the concrete datatype name (e.g. `("T", "INT")`). Shared by the annotator's first pass
+/// and the generic lowering phase, so both derive the same monomorphizations.
+pub(crate) fn get_generic_candidate<'idx, A: AnnotationMap>(
+    index: &'idx Index,
+    annotations: &'idx A,
+    type_name: &str,
+    statement: &AstNode,
+) -> Option<(&'idx str, &'idx str)> {
+    //find inner type if this was turned into an array or pointer (if this is `POINTER TO T` lets find out what T is)
+    let effective_type = index.find_effective_type_info(type_name);
+    let candidate = match effective_type {
+        Some(DataTypeInformation::Pointer { inner_type_name, .. })
+        | Some(DataTypeInformation::Array { inner_type_name, .. }) => {
+            index.find_effective_type_info(inner_type_name)
+        }
+        _ => effective_type,
+    };
+
+    //If generic add a generic annotation
+    if let Some(DataTypeInformation::Generic { generic_symbol, .. }) = candidate {
+        let statement = match statement.get_stmt() {
+            //The right side of the assignment is the source of truth
+            AstStatement::Assignment(data) => &data.right,
+            _ => statement,
+        };
+        //Find the statement's type
+        annotations.get_type(statement, index).map(|it| (generic_symbol.as_str(), it.get_name()))
+    } else {
+        None
+    }
+}
+
+/// Takes the generic signature of a function and resolves it to its specific types according to
+/// `generic_map` and the `generic_name_resolver`. Returns the mangled call name and its annotation.
+/// Shared by the annotator's first pass and the generic lowering phase.
+pub(crate) fn get_specific_function_annotation(
+    index: &Index,
+    generics: &[GenericBinding],
+    generic_qualified_name: &str,
+    generic_return_type: &str,
+    generic_map: &FxHashMap<String, GenericType>,
+    generic_name_resolver: GenericNameResolver,
+) -> (String, StatementAnnotation) {
+    let call_name = generic_name_resolver(generic_qualified_name, generics, generic_map);
+    let annotation = index
+        .find_pou(&call_name)
+        .filter(|it| !it.is_generic())
+        .map(StatementAnnotation::from)
+        .map(|it| it.with_generic_name(generic_qualified_name))
+        .unwrap_or_else(|| {
+            let return_type = if let DataTypeInformation::Generic { generic_symbol, .. } =
+                index.get_type_information_or_void(generic_return_type)
+            {
+                generic_map
+                    .get(generic_symbol)
+                    .map(|it| it.derived_type.as_str())
+                    .unwrap_or(generic_return_type)
+            } else {
+                generic_return_type
+            }
+            .to_string();
+            StatementAnnotation::Function {
+                qualified_name: generic_qualified_name.to_string(),
+                return_type,
+                generic_name: Some(generic_qualified_name.to_string()),
+                call_name: Some(call_name.clone()),
+            }
+        });
+    (call_name, annotation)
+}
+
+/// Derives the concrete type for each generic binding from the collected argument candidates.
+/// `new_index` holds types created during the same annotation run (recently created monomorphs);
+/// the lowering phase passes the already-merged index for both. Shared by both callers.
+pub(crate) fn derive_generic_types<'a>(
+    index: &'a Index,
+    new_index: &'a Index,
+    generics: &[GenericBinding],
+    generics_candidates: FxHashMap<String, Vec<String>>,
+) -> FxHashMap<String, GenericType> {
+    let mut generic_map: FxHashMap<String, GenericType> = FxHashMap::default();
+    for GenericBinding { name, nature } in generics {
+        let smallest_possible_type = index.find_effective_type_info(get_smallest_possible_type(nature));
+        //Get the current binding
+        if let Some(candidates) = generics_candidates.get(name) {
+            //Find the best suiting type
+            let winner = candidates
+                .iter()
+                .fold(smallest_possible_type, |previous_type: Option<&DataTypeInformation>, current| {
+                    let current_type = index
+                        .find_effective_type_info(current)
+                        // if type is not found, look for it in new index, because the type could have been created recently
+                        .or_else(|| new_index.find_effective_type_info(current))
+                        .map(|it| {
+                            match it {
+                                // generic strings are a special case and need to be handled differently
+                                DataTypeInformation::String { encoding: StringEncoding::Utf8, .. } => {
+                                    index.find_effective_type_info(STRING_TYPE).unwrap_or(it)
+                                }
+                                DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } => {
+                                    index.find_effective_type_info(WSTRING_TYPE).unwrap_or(it)
+                                }
+                                _ => index.get_intrinsic_type_information(it),
+                            }
+                        });
+
+                    // Find bigger
+                    if let Some(current) = current_type {
+                        // check if the current type derives from the generic nature
+                        if index
+                            .find_effective_type_by_name(current.get_name())
+                            .map(|t| {
+                                t.has_nature(*nature, index)
+                                    // INT parameter for REAL is allowed
+                                        | (nature.is_real() & t.is_numerical())
+                            })
+                            .unwrap_or_default()
+                        {
+                            // if we got the right nature we can search for the bigger type
+                            if let Some(previous) = previous_type {
+                                return Some(typesystem::get_bigger_type(current, previous, index));
+                            } else {
+                                // if the previous type was None just return the current
+                                // type should be ok because of the previouse nature check
+                                return current_type;
+                            }
+                        }
+                    }
+                    // if we didn't get the right nature return the last one
+                    previous_type
+                })
+                .map(DataTypeInformation::get_name);
+            if let Some(winner) = winner {
+                generic_map.insert(
+                    name.into(),
+                    GenericType { derived_type: winner.to_string(), generic_nature: *nature },
+                );
+            }
+        }
+    }
+    generic_map
 }
 
 pub fn get_smallest_possible_type(nature: &TypeNature) -> &str {
