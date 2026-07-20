@@ -43,6 +43,10 @@ pub(crate) fn transpile(
             Statement::Return { object, condition } => {
                 condition.as_ref().map(|condition| transpile_return(object, condition, &factory, &mut ids))
             }
+            Statement::Jump { object, condition } => {
+                Some(transpile_jump(object, condition.as_ref(), &factory, &mut ids))
+            }
+            Statement::Label { object } => Some(transpile_label(object, &factory, &mut ids)),
             Statement::Call { block, arguments } => {
                 Some(transpile_call(block, arguments, consumed, &factory, &mut ids))
             }
@@ -96,6 +100,47 @@ fn transpile_return(
     };
 
     AstFactory::create_return_statement(Some(condition), location, ids.next_id())
+}
+
+fn transpile_jump(
+    object: &FbdObject,
+    condition: Option<&Source>,
+    factory: &SourceLocationFactory,
+    ids: &mut IdProvider,
+) -> AstNode {
+    let location = factory.create_block_location(object.global_id);
+
+    let condition = match condition {
+        Some(source) => {
+            let condition = render_source(source, &location, ids);
+            match object.negated() {
+                true => AstFactory::create_not_expression(condition, location.clone(), ids.next_id()),
+                false => condition,
+            }
+        }
+        None => {
+            // No wired condition → a FALSE guard the jump can never pass.
+            let mut condition = helper::parse_identifier("FALSE", ids.clone());
+            condition.location = location.clone();
+            condition
+        }
+    };
+
+    let mut target = helper::parse_identifier(object.target_label().unwrap_or_default(), ids.clone());
+    target.location = location.clone();
+
+    AstFactory::create_jump_statement(Box::new(condition), Box::new(target), location, ids.next_id())
+}
+
+/// A label is lowered to the compiler's native label statement, a bare target
+/// for a jump.
+fn transpile_label(object: &FbdObject, factory: &SourceLocationFactory, ids: &mut IdProvider) -> AstNode {
+    let location = factory.create_block_location(object.global_id);
+    AstFactory::create_label_statement(
+        object.label().unwrap_or_default().to_string(),
+        location,
+        ids.next_id(),
+    )
 }
 
 fn transpile_call(
@@ -356,6 +401,99 @@ mod tests {
         END_VAR
             IF NOT myCondition THEN RETURN; END_IF;
         END_FUNCTION");
+        }
+    }
+
+    mod jumps {
+        use crate::test_utils::transpile_project;
+
+        #[test]
+        fn conditional_jump() {
+            insta::assert_snapshot!(transpile_project("jumps/valid/conditional_jump").unwrap(), @r"
+        PROGRAM conditional_jump
+        VAR
+            x : DINT;
+            y : DINT;
+            myCondition : BOOL;
+        END_VAR
+            IF myCondition THEN GOTO skipAssignment;
+            y := x;
+            LABEL: skipAssignment
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn negated_jump() {
+            insta::assert_snapshot!(transpile_project("jumps/valid/negated_jump").unwrap(), @r"
+        PROGRAM negated_jump
+        VAR
+            x : DINT;
+            y : DINT;
+            myCondition : BOOL;
+        END_VAR
+            IF NOT myCondition THEN GOTO skipAssignment;
+            y := x;
+            LABEL: skipAssignment
+        END_PROGRAM");
+        }
+
+        // A jump with no wired condition lowers to a `FALSE` guard (it can never
+        // be taken); validation warns (E145). Transpile still emits it.
+        #[test]
+        fn disconnected_jump() {
+            insta::assert_snapshot!(transpile_project("jumps/valid/disconnected_jump").unwrap(), @r"
+        PROGRAM disconnected_jump
+        VAR
+            x : DINT;
+            y : DINT;
+            myCondition : BOOL;
+        END_VAR
+            IF FALSE THEN GOTO skipAssignment;
+            y := x;
+            LABEL: skipAssignment
+        END_PROGRAM");
+        }
+
+        // Shuffled document order, three jumps (two into `end`), two labels;
+        // the body comes out strictly in priority order.
+        #[test]
+        fn scrambled() {
+            insta::assert_snapshot!(transpile_project("jumps/valid/scrambled").unwrap(), @r"
+        PROGRAM scrambled
+        VAR
+            g1 : BOOL;
+            g2 : BOOL;
+            g3 : BOOL;
+            x : DINT;
+            a : DINT;
+            b : DINT;
+            c : DINT;
+        END_VAR
+            IF g1 THEN GOTO mid;
+            a := x;
+            IF g2 THEN GOTO end;
+            LABEL: mid
+            b := x;
+            IF g3 THEN GOTO end;
+            c := x;
+            LABEL: end
+        END_PROGRAM");
+        }
+
+        // A backward jump: the target label precedes the jump in priority order.
+        #[test]
+        fn backward_jump() {
+            insta::assert_snapshot!(transpile_project("jumps/valid/backward_jump").unwrap(), @r"
+        PROGRAM backward_jump
+        VAR
+            cond : BOOL;
+            i : DINT;
+            x : DINT;
+        END_VAR
+            LABEL: top
+            x := i;
+            IF cond THEN GOTO top;
+        END_PROGRAM");
         }
     }
 

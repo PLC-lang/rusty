@@ -1,5 +1,7 @@
 //! Semantic validation of a resolved CFC network.
 
+use std::collections::HashSet;
+
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocationFactory;
@@ -13,6 +15,7 @@ pub(crate) fn validate(resolved: &Resolved, source: &SourceCode, ids: IdProvider
     let mut diagnostics = Vec::new();
     diagnostics.extend(validate_expressions(resolved, source, ids));
     diagnostics.extend(validate_returns(resolved, source));
+    diagnostics.extend(validate_jumps(resolved, source));
     diagnostics.extend(validate_connectors(resolved, source));
     diagnostics.extend(validate_unconnected(resolved, source));
     diagnostics
@@ -50,7 +53,9 @@ fn validate_expressions(resolved: &Resolved, source: &SourceCode, ids: IdProvide
                     }
                 }
             }
-            Statement::Return { .. } => {}
+            // A return/jump condition is left to the main pipeline, like any
+            // other typed expression; a label carries no data source.
+            Statement::Return { .. } | Statement::Jump { .. } | Statement::Label { .. } => {}
         }
     }
 
@@ -69,6 +74,65 @@ fn validate_returns(resolved: &Resolved, source: &SourceCode) -> Vec<Diagnostic>
             _ => None,
         })
         .collect()
+}
+
+fn validate_jumps(resolved: &Resolved, source: &SourceCode) -> Vec<Diagnostic> {
+    let factory = SourceLocationFactory::for_source(source);
+    let mut diagnostics = Vec::new();
+
+    // The labels a jump can land on, and the targets some jump names. Both drive
+    // the cross-checks below; a label and its jump exist as separate elements.
+    let labels: HashSet<&str> = resolved
+        .statements
+        .iter()
+        .filter_map(|it| match it {
+            Statement::Label { object } => object.label(),
+            _ => None,
+        })
+        .collect();
+    let targets: HashSet<&str> = resolved
+        .statements
+        .iter()
+        .filter_map(|it| match it {
+            Statement::Jump { object, .. } => object.target_label(),
+            _ => None,
+        })
+        .collect();
+
+    for statement in &resolved.statements {
+        match statement {
+            // A jump with no wired condition can never be taken; the FALSE guard
+            // it lowers to is valid ST, so only this pass can flag it (E145).
+            Statement::Jump { object, condition } => {
+                let location = factory.create_block_location(object.global_id);
+                if condition.is_none() {
+                    diagnostics.push(Diagnostic::disconnected_jump(location.clone()));
+                }
+                // A jump to a name no label defines has nowhere to land (E142).
+                let target = object.target_label().unwrap_or_default();
+                if !labels.contains(target) {
+                    diagnostics.push(Diagnostic::undefined_jump_target(target, location));
+                }
+            }
+            // A label no jump names is dead routing — kept, but flagged (E143).
+            Statement::Label { object } => {
+                let name = object.label().unwrap_or_default();
+                if !targets.contains(name) {
+                    let location = factory.create_block_location(object.global_id);
+                    diagnostics.push(Diagnostic::unused_label(name, location));
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // Two labels sharing a name make a jump to it ambiguous (E144).
+    for label in &resolved.duplicate_labels {
+        let location = factory.create_block_location(label.global_id);
+        diagnostics.push(Diagnostic::duplicate_label(label.label().unwrap_or_default(), location));
+    }
+
+    diagnostics
 }
 
 fn validate_connectors(resolved: &Resolved, source: &SourceCode) -> Vec<Diagnostic> {
@@ -161,6 +225,44 @@ mod tests {
             insta::assert_snapshot!(transpile_project("returns/invalid/disconnected_return").unwrap_err(), @r"
         error[E085]: Return element is not connected to a condition
          = disconnected_return.cfc: Block 4
+        ");
+        }
+    }
+
+    mod jumps {
+        use crate::test_utils::{diagnostics, transpile_project};
+
+        // A jump with no wired condition can never be taken (warning, valid).
+        #[test]
+        fn disconnected_jump() {
+            insta::assert_snapshot!(diagnostics("jumps/valid/disconnected_jump"), @r"
+        warning[E145]: Jump element is not connected to a condition and can never be taken
+         = disconnected_jump.cfc: Block 1
+        ");
+        }
+
+        // A label no jump targets is emitted but flagged (warning, valid).
+        #[test]
+        fn unused_label() {
+            insta::assert_snapshot!(diagnostics("jumps/valid/unused_label"), @r"
+        warning[E143]: Label `orphan` is not referenced by any jump
+         = unused_label.cfc: Block 4
+        ");
+        }
+
+        #[test]
+        fn undefined_jump_target() {
+            insta::assert_snapshot!(transpile_project("jumps/invalid/undefined_jump_target").unwrap_err(), @r"
+        error[E142]: Jump refers to undefined label `missing`
+         = undefined_jump_target.cfc: Block 3
+        ");
+        }
+
+        #[test]
+        fn duplicate_label() {
+            insta::assert_snapshot!(transpile_project("jumps/invalid/duplicate_label").unwrap_err(), @r"
+        error[E144]: Label `dup` is already defined
+         = duplicate_label.cfc: Block 5
         ");
         }
     }
