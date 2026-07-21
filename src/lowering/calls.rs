@@ -301,161 +301,235 @@ impl AstVisitorMut for AggregateTypeLowerer {
 
     fn visit_call_statement(&mut self, node: &mut AstNode) {
         let original_location = node.get_location();
-        let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
-        stmt.walk(self);
+        let mut deferred_reference = None;
 
-        // Report generic type-nature violations (e.g. `CONCAT(aDint, aReal)`) now, while the call is
-        // still generic. The normal validator can only catch these before lowering; once we rewrite
-        // the call to its concrete instantiation the re-annotation drops the generic nature. Mirrors
-        // the diagnostics-during-lowering approach used by the property lowerer.
-        let nature_diagnostics = self.collect_generic_nature_violations(stmt);
-        self.diagnostics.extend(nature_diagnostics);
+        {
+            let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
+            stmt.walk(self);
 
-        let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
-            //Early exit if not annotated or indexed
-            return;
-        };
-        //Get the function being called
-        let (qualified_name, return_type_name, generic_name) =
-            match annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator)).cloned() {
-                Some(StatementAnnotation::Function { return_type, qualified_name, generic_name, .. }) => {
-                    (qualified_name, return_type, generic_name)
-                }
-                Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
-                    (qualified_name, return_type, None)
-                }
-                _ => return,
-            };
-        //If there's a call name in the function, it is a generic and needs to be replaced.
-        //HACK: this is because we don't lower generics
-        let function_entry = index.find_pou(&qualified_name).expect("Function not found");
-        let return_name = Pou::calc_return_name(function_entry.get_name()).to_string();
-        let return_type = index.get_effective_type_or_void_by_name(&return_type_name);
+            // Report generic type-nature violations (e.g. `CONCAT(aDint, aReal)`) now, while the call is
+            // still generic. The normal validator can only catch these before lowering; once we rewrite
+            // the call to its concrete instantiation the re-annotation drops the generic nature. Mirrors
+            // the diagnostics-during-lowering approach used by the property lowerer.
+            let nature_diagnostics = self.collect_generic_nature_violations(stmt);
+            self.diagnostics.extend(nature_diagnostics);
 
-        let generic_function: Option<&crate::index::PouIndexEntry> =
-            generic_name.as_deref().and_then(|it| index.find_pou(it));
-        let is_generic_function = generic_function.is_some_and(|it| it.is_generic());
+            let (
+                qualified_name,
+                return_type_name,
+                return_name,
+                is_builtin_function,
+                is_method,
+                can_have_output_assignment_lowering,
+                is_generic_function,
+                is_fnptr_call,
+                has_aggregate_return,
+            ) = {
+                let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
+                    //Early exit if not annotated or indexed
+                    return;
+                };
+                //Get the function being called
+                let (qualified_name, return_type_name, generic_name) = match annotation
+                    .get(&stmt.operator)
+                    .or_else(|| annotation.get_hint(&stmt.operator))
+                    .cloned()
+                {
+                    Some(StatementAnnotation::Function {
+                        return_type, qualified_name, generic_name, ..
+                    }) => (qualified_name, return_type, generic_name),
+                    Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
+                        (qualified_name, return_type, None)
+                    }
+                    _ => return,
+                };
+                //If there's a call name in the function, it is a generic and needs to be replaced.
+                //HACK: this is because we don't lower generics
+                let function_entry = index.find_pou(&qualified_name).expect("Function not found");
+                let return_name = Pou::calc_return_name(function_entry.get_name()).to_string();
+                let has_aggregate_return =
+                    index.get_effective_type_or_void_by_name(&return_type_name).is_aggregate_type();
 
-        //TODO: needs to be on the function
-        if return_type.is_aggregate_type() && !function_entry.is_builtin() {
-            //TODO: use qualified name
-            let name = format!(
-                "__{}{}",
-                stmt.operator.get_flat_reference_name().unwrap_or_default(),
-                self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
-            );
-            //Create an allocation of the new type
-            let alloca = AstNode {
-                stmt: AstStatement::AllocationStatement(Allocation {
-                    name: name.clone(),
-                    reference_type: return_type_name.to_string(),
-                }),
-                id: self.id_provider.next_id(),
-                location: original_location.clone(),
-                metadata: None,
-            };
-            self.push_pre_statement(alloca);
-            let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
-            let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
-            let reference = create_member_reference_with_location(
-                &name,
-                self.id_provider.clone(),
-                None,
-                original_location.clone(),
-            );
-            //If the function has an formal arguments (foo(x := 1)), we need to add an assignment to the reference
-            let reference = if stmt
-                .parameters
-                .as_ref()
-                .map(|it| flatten_expression_list(it))
-                .is_some_and(|it| it.iter().any(|it| it.is_assignment()))
-            {
-                let left = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(
-                        &return_name,
-                        original_location.clone(),
-                        self.id_provider.next_id(),
-                    ),
-                    None,
-                    self.id_provider.next_id(),
-                );
-                AstFactory::create_assignment(left, reference, self.id_provider.next_id())
-            } else {
-                reference
-            };
-            //TODO : we are creating th expression list twice in case of no params
-            let mut parameters =
-                stmt.parameters.as_mut().map(|it| steal_expression_list(it.borrow_mut())).unwrap_or_default();
+                let generic_function: Option<&crate::index::PouIndexEntry> =
+                    generic_name.as_deref().and_then(|it| index.find_pou(it));
+                let is_generic_function = generic_function.is_some_and(|it| it.is_generic());
+                let is_fnptr_call = annotation.get(&stmt.operator).is_some_and(|opt| opt.is_fnptr());
+                let is_method = function_entry.is_method();
 
-            // Place the alloca aggregate variable at index 1 when dealing with function pointers because 0
-            // is reserved for the instance variable.
-            if self.annotation.as_ref().unwrap().get(&stmt.operator).is_some_and(|opt| opt.is_fnptr()) {
-                parameters.insert(1, reference);
-            } else {
-                parameters.insert(0, reference);
-            }
-
-            if is_generic_function {
-                //For generic functions, we need to replace the generic name with the function name
-                *stmt.operator = AstFactory::create_member_reference(
-                    AstFactory::create_identifier(
-                        &qualified_name,
-                        stmt.operator.get_location(),
-                        self.id_provider.next_id(),
-                    ),
-                    None,
-                    self.id_provider.next_id(),
+                (
+                    qualified_name,
+                    return_type_name,
+                    return_name,
+                    function_entry.is_builtin(),
+                    is_method,
+                    function_entry.is_function() || function_entry.is_method(),
+                    is_generic_function,
+                    is_fnptr_call,
+                    has_aggregate_return,
                 )
             };
-            stmt.parameters.replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
-            //steal parameters, add one to the start, return parameters
-            let mut reference = create_member_reference_with_location(
-                &name,
-                self.id_provider.clone(),
-                None,
-                original_location,
-            );
-            std::mem::swap(node.get_stmt_mut(), reference.get_stmt_mut());
-            self.push_pre_statement(reference);
-        }
-        // Is this a function with any output assignments?
-        // Do any of the output assignments have types that need casting?
-        // Do any of the output assignments have direct access?
-        else if stmt
-            .parameters
-            .as_ref()
-            .iter()
-            .enumerate()
-            .any(|(param_index, param)|
-                is_output_assignment_and_type_cast_needed(param, annotation.as_ref(), index, &qualified_name, param_index, function_entry.is_method())
-                || is_output_assignment_and_has_direct_access(param, annotation.as_ref(), index, &qualified_name, param_index, function_entry.is_method()))
-            // Stateful structs (such as function blocks) have their own output assignment mechanism in codegen,
-            // and are not handled by this lowerer
-            && (function_entry.is_function() || function_entry.is_method())
-        {
-            let mut pre_statements: Vec<AstNode> = Vec::new();
-            let mut post_statements: Vec<AstNode> = Vec::new();
-            let mut expressions: Vec<AstNode> = Vec::new();
 
-            let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
-            let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
-
-            for (param_index, param) in stmt.parameters.as_ref().iter().enumerate() {
-                lower_output_assignments(
-                    (&self.counter, self.id_provider.clone()),
-                    param,
-                    (&qualified_name, &return_name, function_entry.is_method()),
-                    annotation.as_ref(),
-                    index,
-                    param_index,
-                    (&mut pre_statements, &mut expressions, &mut post_statements),
+            //TODO: needs to be on the function
+            if has_aggregate_return && !is_builtin_function {
+                //TODO: use qualified name
+                let name = format!(
+                    "__{}{}",
+                    stmt.operator.get_flat_reference_name().unwrap_or_default(),
+                    self.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
                 );
+                //Create an allocation of the new type
+                let alloca = AstNode {
+                    stmt: AstStatement::AllocationStatement(Allocation {
+                        name: name.clone(),
+                        reference_type: return_type_name.to_string(),
+                    }),
+                    id: self.id_provider.next_id(),
+                    location: original_location.clone(),
+                    metadata: None,
+                };
+                self.push_pre_statement(alloca);
+                let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
+                let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
+                let reference = create_member_reference_with_location(
+                    &name,
+                    self.id_provider.clone(),
+                    None,
+                    original_location.clone(),
+                );
+                //If the function has an formal arguments (foo(x := 1)), we need to add an assignment to the reference
+                let reference = if stmt
+                    .parameters
+                    .as_ref()
+                    .map(|it| flatten_expression_list(it))
+                    .is_some_and(|it| it.iter().any(|it| it.is_assignment()))
+                {
+                    let left = AstFactory::create_member_reference(
+                        AstFactory::create_identifier(
+                            &return_name,
+                            original_location.clone(),
+                            self.id_provider.next_id(),
+                        ),
+                        None,
+                        self.id_provider.next_id(),
+                    );
+                    AstFactory::create_assignment(left, reference, self.id_provider.next_id())
+                } else {
+                    reference
+                };
+                //TODO : we are creating th expression list twice in case of no params
+                let mut parameters = stmt
+                    .parameters
+                    .as_mut()
+                    .map(|it| steal_expression_list(it.borrow_mut()))
+                    .unwrap_or_default();
+
+                // Place the alloca aggregate variable at index 1 when dealing with function pointers because 0
+                // is reserved for the instance variable.
+                if is_fnptr_call {
+                    parameters.insert(1, reference);
+                } else {
+                    parameters.insert(0, reference);
+                }
+
+                if is_generic_function {
+                    //For generic functions, we need to replace the generic name with the function name
+                    *stmt.operator = AstFactory::create_member_reference(
+                        AstFactory::create_identifier(
+                            &qualified_name,
+                            stmt.operator.get_location(),
+                            self.id_provider.next_id(),
+                        ),
+                        None,
+                        self.id_provider.next_id(),
+                    )
+                };
+                stmt.parameters
+                    .replace(Box::new(AstFactory::create_expression_list(parameters, location, id)));
+                deferred_reference = Some(create_member_reference_with_location(
+                    &name,
+                    self.id_provider.clone(),
+                    None,
+                    original_location.clone(),
+                ));
             }
 
-            stmt.parameters.replace(Box::new(AstFactory::create_expression_list(expressions, location, id)));
+            // We actually need to do this as well not instead of
+            // Is this a function with any output assignments?
+            // Do any of the output assignments have types that need casting?
+            // Do any of the output assignments have direct access?
+            let needs_output_assignment_lowering = {
+                let Some((annotation, index)) = self.annotation.as_ref().zip(self.index.as_ref()) else {
+                    return;
+                };
 
-            self.push_pre_statements(&pre_statements);
-            self.push_post_statements(&post_statements);
+                let aggregate_return_slot_present = index
+                    .get_declared_parameter(&qualified_name, 0)
+                    .is_some_and(|parameter| parameter.get_name() == return_name);
+
+                stmt.parameters.as_ref().iter().any(|param| {
+                    is_output_assignment_and_type_cast_needed(
+                        param,
+                        annotation.as_ref(),
+                        index,
+                        aggregate_return_slot_present,
+                    ) || is_output_assignment_and_has_direct_access(
+                        param,
+                        annotation.as_ref(),
+                        index,
+                        aggregate_return_slot_present,
+                    ) || is_output_assignment_of_sized_string(
+                        param,
+                        annotation.as_ref(),
+                        index,
+                        aggregate_return_slot_present,
+                    )
+                })
+                    // Stateful structs (such as function blocks) have their own output assignment mechanism in codegen,
+                    // and are not handled by this lowerer
+                    && can_have_output_assignment_lowering
+            };
+
+            if needs_output_assignment_lowering {
+                let mut pre_statements: Vec<AstNode> = Vec::new();
+                let mut post_statements: Vec<AstNode> = Vec::new();
+                let mut expressions: Vec<AstNode> = Vec::new();
+
+                let aggregate_return_slot_present = self.index.as_ref().is_some_and(|index| {
+                    index
+                        .get_declared_parameter(&qualified_name, 0)
+                        .is_some_and(|parameter| parameter.get_name() == return_name)
+                });
+
+                let location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();
+                let id = stmt.parameters.as_ref().map(|it| it.get_id()).unwrap_or(self.id_provider.next_id());
+
+                for param in stmt.parameters.as_ref().iter() {
+                    lower_output_assignments(
+                        (&self.counter, self.id_provider.clone()),
+                        param,
+                        (&qualified_name, &return_name, is_method),
+                        self.annotation.as_deref().expect("annotation exists when lowering calls"),
+                        self.index.as_ref().expect("index exists when lowering calls"),
+                        aggregate_return_slot_present,
+                        (&mut pre_statements, &mut expressions, &mut post_statements),
+                    );
+                }
+
+                stmt.parameters.replace(Box::new(AstFactory::create_expression_list(
+                    expressions,
+                    location,
+                    id,
+                )));
+
+                self.push_pre_statements(&pre_statements);
+                self.push_post_statements(&post_statements);
+            }
+        }
+
+        if let Some(mut reference) = deferred_reference {
+            let previous_stmt = std::mem::replace(node.get_stmt_mut(), reference.stmt);
+            reference.stmt = previous_stmt;
+            self.push_pre_statement(reference);
         }
     }
 
@@ -505,20 +579,11 @@ fn is_output_assignment_and_type_cast_needed(
     node: &AstNode,
     annotations: &dyn AnnotationMap,
     index: &Index,
-    pou_name: &str,
-    param_index: usize,
-    is_method: bool,
+    aggregate_return_slot_present: bool,
 ) -> bool {
     match &node.stmt {
-        AstStatement::ExpressionList(nodes) => nodes.iter().enumerate().any(|(param_index, node)| {
-            is_output_assignment_and_type_cast_needed(
-                node,
-                annotations,
-                index,
-                pou_name,
-                param_index,
-                is_method,
-            )
+        AstStatement::ExpressionList(nodes) => nodes.iter().any(|node| {
+            is_output_assignment_and_type_cast_needed(node, annotations, index, aggregate_return_slot_present)
         }),
         AstStatement::OutputAssignment(assignment) => {
             // For output assignment in a call these types need to be swapped
@@ -534,25 +599,26 @@ fn is_output_assignment_and_type_cast_needed(
             type_cast_needed(type_lhs, type_rhs, index)
         }
         _ => {
-            // The first parameter of a method is always "this"
-            if is_method && param_index == 0 {
-                return false;
-            }
-
-            let param_index = if is_method { (param_index as u32) - 1 } else { param_index as u32 };
-
             // We don't want to accidentally assign a pointer back to a literal that is passed
             if node.is_literal() {
                 return false;
             }
 
-            if !is_implicit_output_assignment(index, pou_name, param_index) {
-                return false;
-            }
-
-            let Some(param_index_entry) = index.get_declared_parameter(pou_name, param_index) else {
+            let Some((declaring_pou_name, param_index)) = find_argument_parameter_position(annotations, node)
+            else {
                 return false;
             };
+
+            let param_index = if aggregate_return_slot_present { param_index + 1 } else { param_index };
+
+            let Some(param_index_entry) = index.get_declared_parameter(declaring_pou_name, param_index)
+            else {
+                return false;
+            };
+
+            if !param_index_entry.is_output() {
+                return false;
+            }
 
             let Some(type_lhs_pointer) = index.find_effective_type_by_name(&param_index_entry.data_type_name)
             else {
@@ -598,29 +664,66 @@ fn type_cast_needed(type_lhs: &DataType, type_rhs: &DataType, index: &Index) -> 
         return false;
     };
 
-    size_lhs != size_rhs
-        || (size_lhs == size_rhs
-            && ((type_info_lhs.is_signed_int() && type_info_rhs.is_unsigned_int())
-                || (type_info_lhs.is_int() && type_info_rhs.is_float())))
+    let types_are_the_same_size = size_lhs == size_rhs;
+
+    !types_are_the_same_size
+        || type_info_lhs.is_signed_int() && type_info_rhs.is_unsigned_int()
+        || type_info_lhs.is_int() && type_info_rhs.is_float()
+}
+
+fn string_type_alloc_needed(type_lhs: &DataType, type_rhs: &DataType, index: &Index) -> bool {
+    // If either type is void then this is an empty assignment and casting is not necessary
+    if type_lhs.is_void() || type_rhs.is_void() {
+        return false;
+    }
+
+    // Work with effective types because many call parameters are represented as
+    // alias wrapper types (e.g. __Foo_Bar).
+    let type_lhs = index.find_effective_type_by_name(type_lhs.get_name()).unwrap_or(type_lhs);
+    let type_rhs = index.find_effective_type_by_name(type_rhs.get_name()).unwrap_or(type_rhs);
+
+    // This helper is only relevant for string-like outputs.
+    if !type_lhs.is_string() || !type_rhs.is_string() {
+        return false;
+    }
+
+    // If both sides are unsized strings we keep the existing direct path.
+    if !type_lhs.is_sized_string() && !type_rhs.is_sized_string() {
+        return false;
+    }
+
+    // If only one side is explicitly sized, lower conservatively to avoid writing
+    // directly into a potentially smaller implicit buffer.
+    if type_lhs.is_sized_string() != type_rhs.is_sized_string() {
+        return true;
+    }
+
+    let type_info_lhs = type_lhs.get_type_information();
+    let type_info_rhs = type_rhs.get_type_information();
+
+    let Ok(size_lhs) = type_info_lhs.get_size(index) else {
+        return false;
+    };
+    let Ok(size_rhs) = type_info_rhs.get_size(index) else {
+        return false;
+    };
+
+    size_lhs > size_rhs
 }
 
 fn is_output_assignment_and_has_direct_access(
     node: &AstNode,
     annotations: &dyn AnnotationMap,
     index: &Index,
-    pou_name: &str,
-    param_index: usize,
-    is_method: bool,
+    aggregate_return_slot_present: bool,
 ) -> bool {
     match &node.stmt {
-        AstStatement::ExpressionList(nodes) => nodes.iter().enumerate().any(|(param_index, node)| {
+        AstStatement::ExpressionList(nodes) => nodes.iter().any(|node| {
             is_output_assignment_and_has_direct_access(
                 node,
                 annotations,
                 index,
-                pou_name,
-                param_index,
-                is_method,
+                aggregate_return_slot_present,
             )
         }),
         AstStatement::OutputAssignment(assignment) => {
@@ -634,19 +737,24 @@ fn is_output_assignment_and_has_direct_access(
             assignment.right.has_direct_access()
         }
         _ => {
-            // The first parameter of a method is always "this"
-            if is_method && param_index == 0 {
-                return false;
-            }
-
-            let param_index = if is_method { (param_index as u32) - 1 } else { param_index as u32 };
-
             // We don't want to accidentally assign a pointer back to a literal that is passed
             if node.is_literal() {
                 return false;
             }
 
-            if !is_implicit_output_assignment(index, pou_name, param_index) {
+            let Some((declaring_pou_name, param_index)) = find_argument_parameter_position(annotations, node)
+            else {
+                return false;
+            };
+
+            let param_index = if aggregate_return_slot_present { param_index + 1 } else { param_index };
+
+            let Some(param_index_entry) = index.get_declared_parameter(declaring_pou_name, param_index)
+            else {
+                return false;
+            };
+
+            if !param_index_entry.is_output() {
                 return false;
             }
 
@@ -662,12 +770,85 @@ fn is_output_assignment_and_has_direct_access(
     }
 }
 
-fn is_implicit_output_assignment(index: &Index, pou_name: &str, param_index: u32) -> bool {
-    let Some(param_index_entry) = index.get_declared_parameter(pou_name, param_index) else {
-        return false;
-    };
+fn is_output_assignment_of_sized_string(
+    node: &AstNode,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+    aggregate_return_slot_present: bool,
+) -> bool {
+    match &node.stmt {
+        AstStatement::ExpressionList(nodes) => nodes.iter().any(|node| {
+            is_output_assignment_of_sized_string(node, annotations, index, aggregate_return_slot_present)
+        }),
+        AstStatement::OutputAssignment(assignment) => {
+            let left_node_type = annotations.get_type_or_void(assignment.left.as_ref(), index);
+            let right_node_type = annotations.get_type_or_void(assignment.right.as_ref(), index);
 
-    param_index_entry.is_output()
+            // Empty assignments don't need to be lowered
+            if left_node_type.is_void() || right_node_type.is_void() {
+                return false;
+            }
+
+            string_type_alloc_needed(left_node_type, right_node_type, index)
+        }
+        _ => {
+            // We don't want to accidentally assign a pointer back to a literal that is passed
+            if node.is_literal() {
+                return false;
+            }
+
+            let Some((declaring_pou_name, param_index)) = find_argument_parameter_position(annotations, node)
+            else {
+                return false;
+            };
+
+            let param_index = if aggregate_return_slot_present { param_index + 1 } else { param_index };
+
+            let Some(param_index_entry) = index.get_declared_parameter(declaring_pou_name, param_index)
+            else {
+                return false;
+            };
+
+            if !param_index_entry.is_output() {
+                return false;
+            }
+
+            let Some(type_lhs_pointer) = index.find_effective_type_by_name(&param_index_entry.data_type_name)
+            else {
+                return false;
+            };
+
+            let type_lhs = match type_lhs_pointer.get_type_information() {
+                DataTypeInformation::Pointer { inner_type_name, .. } => {
+                    let Some(type_lhs) = index.find_effective_type_by_name(inner_type_name) else {
+                        return false;
+                    };
+
+                    type_lhs
+                }
+                _ => type_lhs_pointer,
+            };
+
+            let type_rhs = annotations.get_type_or_void(node, index);
+
+            string_type_alloc_needed(type_lhs, type_rhs, index)
+        }
+    }
+}
+
+fn find_argument_parameter_position<'a>(
+    annotations: &'a dyn AnnotationMap,
+    node: &AstNode,
+) -> Option<(&'a str, u32)> {
+    match annotations.get(node) {
+        Some(StatementAnnotation::Argument { position, pou, .. }) => Some((pou.as_str(), *position as u32)),
+        _ => match annotations.get_hint(node) {
+            Some(StatementAnnotation::Argument { position, pou, .. }) => {
+                Some((pou.as_str(), *position as u32))
+            }
+            _ => None,
+        },
+    }
 }
 
 fn lower_output_assignments(
@@ -676,35 +857,29 @@ fn lower_output_assignments(
     (qualified_pou_name, pou_name, is_method): (&str, &str, bool),
     annotations: &dyn AnnotationMap,
     index: &Index,
-    param_index: usize,
+    aggregate_return_slot_present: bool,
     (pre_statements, expressions, post_statements): (&mut Vec<AstNode>, &mut Vec<AstNode>, &mut Vec<AstNode>),
 ) {
-    let should_be_lowered = is_output_assignment_and_type_cast_needed(
-        param,
-        annotations,
-        index,
-        qualified_pou_name,
-        param_index,
-        is_method,
-    ) || is_output_assignment_and_has_direct_access(
-        param,
-        annotations,
-        index,
-        qualified_pou_name,
-        param_index,
-        is_method,
-    );
+    let should_be_lowered =
+        is_output_assignment_and_type_cast_needed(param, annotations, index, aggregate_return_slot_present)
+            || is_output_assignment_and_has_direct_access(
+                param,
+                annotations,
+                index,
+                aggregate_return_slot_present,
+            )
+            || is_output_assignment_of_sized_string(param, annotations, index, aggregate_return_slot_present);
 
     match &param.stmt {
         AstStatement::ExpressionList(list) => {
-            list.iter().enumerate().for_each(|(item_index, item)| {
+            list.iter().for_each(|item| {
                 lower_output_assignments(
                     (counter, id_provider.clone()),
                     item,
                     (qualified_pou_name, pou_name, is_method),
                     annotations,
                     index,
-                    item_index,
+                    aggregate_return_slot_present,
                     (pre_statements, expressions, post_statements),
                 )
             });
@@ -741,15 +916,27 @@ fn lower_output_assignments(
                 expressions.push(param.clone());
                 return;
             }
-            // The first parameter of a method is always "this", this is validated before hand
-            let param_index = if is_method { (param_index as u32) - 1 } else { param_index as u32 };
-
-            let Some(param_index_entry) = index.get_declared_parameter(qualified_pou_name, param_index)
+            let Some((declaring_pou_name, param_index)) =
+                find_argument_parameter_position(annotations, param)
             else {
                 // If this fails, simply return the expression
                 expressions.push(param.clone());
                 return;
             };
+
+            let param_index = if aggregate_return_slot_present { param_index + 1 } else { param_index };
+
+            let Some(param_index_entry) = index.get_declared_parameter(declaring_pou_name, param_index)
+            else {
+                // If this fails, simply return the expression
+                expressions.push(param.clone());
+                return;
+            };
+
+            if !param_index_entry.is_output() {
+                expressions.push(param.clone());
+                return;
+            }
 
             let Some(left_pointer_type) =
                 index.find_effective_type_by_name(&param_index_entry.data_type_name)
@@ -1830,5 +2017,362 @@ mod tests {
 
         let statement = &implementation.statements[0];
         assert_snapshot!(AstSerializer::format(statement), @"libFunction(inVar1 := 0, inVar2 := 0.0, result => i1)");
+    }
+
+    #[test]
+    fn calls_to_functions_with_sized_string_as_output_correctly_receive_size() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : DINT
+            VAR_INPUT
+                Key : STRING[1023];
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING[1023];
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                MyString : STRING;
+                MyInt: INT := 1234;
+                retValue : DINT;
+            END_VAR
+
+            retValue := Config_GetString('/some/config/value', MyString);
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"
+        alloca __Config_GetString_Value0: __Config_GetString_Value;
+        retValue := Config_GetString('/some/config/value', __Config_GetString_Value0);
+        MyString := __Config_GetString_Value0;
+        ");
+    }
+
+    #[test]
+    fn calls_to_functions_with_unsized_string_as_output_should_behave_as_default() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : DINT
+            VAR_INPUT
+                Key : STRING;
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                MyString : STRING;
+                MyInt: INT := 1234;
+                retValue : DINT;
+            END_VAR
+
+            retValue := Config_GetString('/some/config/value', MyString);
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"retValue := Config_GetString('/some/config/value', MyString);");
+    }
+
+    #[test]
+    fn calls_to_functions_with_no_output_assigned_should_not_be_lowered() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : DINT
+            VAR_INPUT
+                Key : STRING;
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            retValue := Config_GetString(Key := '/some/config/value', Value =>);
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"retValue := Config_GetString(Key := '/some/config/value', Value => );");
+    }
+
+    #[test]
+    fn calls_to_functions_where_callee_has_a_large_enough_buffer_should_result_in_no_lowering() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : DINT
+            VAR_INPUT
+                Key : STRING[1023];
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING[1023];
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                MyString : STRING[1024];
+                MyInt: INT := 1234;
+                retValue : DINT;
+            END_VAR
+
+            retValue := Config_GetString('/some/config/value', MyString);
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"retValue := Config_GetString('/some/config/value', MyString);");
+    }
+
+    #[test]
+    fn calls_to_functions_where_callee_has_a_same_size_buffer_should_result_in_no_lowering() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : DINT
+            VAR_INPUT
+                Key : STRING[1023];
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING[1023];
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                MyString : STRING[1023];
+                MyInt: INT := 1234;
+                retValue : DINT;
+            END_VAR
+
+            retValue := Config_GetString('/some/config/value', MyString);
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"retValue := Config_GetString('/some/config/value', MyString);");
+    }
+
+    #[test]
+    fn calls_to_functions_with_aggregate_return_type_should_still_be_lowered() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : STRING
+            VAR_INPUT
+                Key : STRING[30];
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING[30];
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                MyString : STRING[10];
+                MyInt: INT := 1234;
+                retValue : DINT;
+            END_VAR
+
+            retValue := Config_GetString('/some/config/value', MyString);
+        END_PROGRAM
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"
+        alloca __Config_GetString0: STRING;
+        alloca __Config_GetString_Value1: __Config_GetString_Value;
+        Config_GetString(__Config_GetString0, '/some/config/value', __Config_GetString_Value1);
+        retValue := __Config_GetString0;
+        MyString := __Config_GetString_Value1;
+        ");
+    }
+
+    #[test]
+    fn calls_to_functions_with_string_output_should_lower_the_correct_variable() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION Config_GetString : DINT
+            VAR_INPUT
+                Key   : STRING[1023];
+            END_VAR
+            VAR_OUTPUT
+                Value : STRING[28];
+            END_VAR
+
+            Value := 'hi';
+        END_FUNCTION
+
+        PROGRAM mainProg
+            VAR
+                keyVar : STRING[10];
+                outVar : STRING[28];
+                r : DINT;
+            END_VAR
+
+            keyVar := 'my-key';
+            r := Config_GetString(keyVar, outVar);
+        END_PROGRAM
+
+        FUNCTION main
+            mainProg();
+        END_FUNCTION
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+
+        let implementations = &unit.implementations;
+        let implementation = implementations
+            .iter()
+            .find(|i| i.name == "mainProg")
+            .expect("mainProg implementation should exist");
+        assert_eq!(implementation.name, "mainProg");
+
+        assert_snapshot!(&AstSerializer::format_nodes(&implementation.statements), @"
+        keyVar := 'my-key';
+        r := Config_GetString(keyVar, outVar);
+        ");
     }
 }

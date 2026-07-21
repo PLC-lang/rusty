@@ -110,6 +110,7 @@ pub fn visit_statement<T: AnnotationMap>(
             }
 
             validate_reference_expression(&data.access, validator, context, statement, &data.base);
+            validate_in_out_variable_access(validator, statement, data.base.as_deref(), context);
         }
         AstStatement::BinaryExpression(data) => {
             visit_all_statements!(validator, context, &data.left, &data.right);
@@ -1626,6 +1627,51 @@ fn is_ref_or_adr_call<T: AnnotationMap>(node: &AstNode, context: &ValidationCont
             .index
             .get_builtin_function(call_name)
             .is_some_and(|builtin| std::ptr::eq(builtin, ref_builtin))
+}
+
+/// Validates that a `VAR_IN_OUT` variable is not read or written outside of the POU it is
+/// declared in (e.g. `fbInstance.inOutVariable := 1;`). In the instance an in-out variable is a
+/// pointer that is only bound to a target for the duration of a call, so any outside access
+/// dereferences an unbound pointer.
+fn validate_in_out_variable_access<T: AnnotationMap>(
+    validator: &mut Validator,
+    statement: &AstNode,
+    base: Option<&AstNode>,
+    context: &ValidationContext<T>,
+) {
+    let location = statement.get_location();
+    if location.is_internal() {
+        return;
+    }
+
+    // a named argument in a call (`fbInstance(inOutVariable := x)`) is how the variable gets
+    // bound in the first place
+    if context.is_call() && base.is_none() {
+        return;
+    }
+
+    let Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
+        context.annotations.get(statement)
+    else {
+        return;
+    };
+
+    if !matches!(argument_type.get_inner(), VariableType::InOut) {
+        return;
+    }
+
+    if !variable_is_in_inherited_or_self_scope(
+        context.qualifier.and_then(|qualifier| context.index.find_pou(qualifier)),
+        context,
+        qualified_name,
+        &location,
+    ) {
+        validator.push_diagnostic(
+            Diagnostic::new("VAR_IN_OUT variables cannot be accessed outside of their scope.")
+                .with_error_code("E037")
+                .with_location(&location),
+        );
+    }
 }
 
 fn variable_is_in_inherited_or_self_scope<T: AnnotationMap>(

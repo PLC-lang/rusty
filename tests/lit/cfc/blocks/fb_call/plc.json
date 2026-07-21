@@ -1,0 +1,12 @@
+{
+	"name" : "cfc_fb_call",
+	"files" : [
+		"fb_call.cfc",
+		"counter.st",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

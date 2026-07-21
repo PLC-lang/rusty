@@ -398,6 +398,78 @@ impl Diagnostic {
             .with_error_code("E084")
             .with_location(location)
     }
+
+    pub fn disconnected_return<T>(location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new("Return element is not connected to a condition")
+            .with_error_code("E085")
+            .with_location(location)
+    }
+
+    pub fn duplicate_connector<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Connector `{label}` is already defined"))
+            .with_error_code("E081")
+            .with_location(location)
+    }
+
+    pub fn dangling_continuation<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Continuation `{label}` has no matching connector"))
+            .with_error_code("E082")
+            .with_location(location)
+    }
+
+    pub fn open_connector<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Connector `{label}` has no incoming connection"))
+            .with_error_code("E086")
+            .with_location(location)
+    }
+
+    pub fn undefined_jump_target<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Jump refers to undefined label `{label}`"))
+            .with_error_code("E142")
+            .with_location(location)
+    }
+
+    pub fn unused_label<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Label `{label}` is not referenced by any jump"))
+            .with_error_code("E143")
+            .with_location(location)
+    }
+
+    pub fn duplicate_label<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Label `{label}` is already defined"))
+            .with_error_code("E144")
+            .with_location(location)
+    }
+
+    pub fn disconnected_jump<T>(location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new("Jump element is not connected to a condition and can never be taken")
+            .with_error_code("E145")
+            .with_location(location)
+    }
 }
 
 #[cfg(test)]

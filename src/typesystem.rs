@@ -208,6 +208,10 @@ impl DataType {
         self.get_type_information().is_string()
     }
 
+    pub fn is_sized_string(&self) -> bool {
+        self.get_type_information().is_sized_string()
+    }
+
     pub fn is_interface(&self) -> bool {
         self.get_type_information().is_interface()
     }
@@ -464,6 +468,7 @@ pub enum DataTypeInformation {
     String {
         size: TypeSize,
         encoding: StringEncoding,
+        declared_with_length: bool,
     },
     SubRange {
         name: TypeId,
@@ -519,6 +524,13 @@ impl DataTypeInformation {
 
     pub fn is_string(&self) -> bool {
         matches!(self, DataTypeInformation::String { .. })
+    }
+
+    pub fn is_sized_string(&self) -> bool {
+        match self {
+            DataTypeInformation::String { declared_with_length, .. } => *declared_with_length,
+            _ => false,
+        }
     }
 
     pub fn is_string_utf8(&self) -> bool {
@@ -746,7 +758,7 @@ impl DataTypeInformation {
         let res = match self {
             DataTypeInformation::Integer { size, .. } => Ok(Bytes::from_bits(*size)),
             DataTypeInformation::Float { size, .. } => Ok(Bytes::from_bits(*size)),
-            DataTypeInformation::String { size, encoding } => Ok(size
+            DataTypeInformation::String { size, encoding, .. } => Ok(size
                 .as_int_value(index)
                 .map(|size| encoding.get_bytes_per_char() * size as u32)
                 .map(Bytes::new)
@@ -1274,6 +1286,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::String {
                 size: TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
                 encoding: StringEncoding::Utf8,
+                declared_with_length: false,
             },
             nature: TypeNature::String,
             location: SourceLocation::internal(),
@@ -1285,6 +1298,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::String {
                 size: TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
                 encoding: StringEncoding::Utf16,
+                declared_with_length: false,
             },
             nature: TypeNature::String,
             location: SourceLocation::internal(),

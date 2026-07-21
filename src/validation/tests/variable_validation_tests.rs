@@ -1621,6 +1621,142 @@ fn output_variables_must_be_assignable_within_the_scope_of_inheritance() {
 }
 
 #[test]
+fn in_out_variables_must_not_be_accessible_outside_of_their_scope() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK FB_Sample
+            VAR_IN_OUT
+                Velocity : LREAL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION takeIt : DINT
+            VAR_INPUT
+                value : LREAL;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM prog
+            VAR_IN_OUT
+                progInOut : LREAL;
+            END_VAR
+        END_PROGRAM
+
+        PROGRAM mainProg
+            VAR
+                myVel : LREAL;
+                fbSample : FB_Sample;
+                pVel : POINTER TO LREAL;
+            END_VAR
+
+            fbSample.Velocity := myVel;
+            myVel := fbSample.Velocity;
+            myVel := fbSample.Velocity + 1.0;
+            takeIt(fbSample.Velocity);
+            takeIt(value := fbSample.Velocity);
+            pVel := ADR(fbSample.Velocity);
+            prog.progInOut := myVel;
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(&diagnostics, @r"
+    error[E037]: VAR_IN_OUT variables cannot be accessed outside of their scope.
+       ┌─ <internal>:27:13
+       │
+    27 │             fbSample.Velocity := myVel;
+       │             ^^^^^^^^^^^^^^^^^ VAR_IN_OUT variables cannot be accessed outside of their scope.
+
+    error[E037]: VAR_IN_OUT variables cannot be accessed outside of their scope.
+       ┌─ <internal>:28:22
+       │
+    28 │             myVel := fbSample.Velocity;
+       │                      ^^^^^^^^^^^^^^^^^ VAR_IN_OUT variables cannot be accessed outside of their scope.
+
+    error[E037]: VAR_IN_OUT variables cannot be accessed outside of their scope.
+       ┌─ <internal>:29:22
+       │
+    29 │             myVel := fbSample.Velocity + 1.0;
+       │                      ^^^^^^^^^^^^^^^^^ VAR_IN_OUT variables cannot be accessed outside of their scope.
+
+    error[E037]: VAR_IN_OUT variables cannot be accessed outside of their scope.
+       ┌─ <internal>:30:20
+       │
+    30 │             takeIt(fbSample.Velocity);
+       │                    ^^^^^^^^^^^^^^^^^ VAR_IN_OUT variables cannot be accessed outside of their scope.
+
+    error[E037]: VAR_IN_OUT variables cannot be accessed outside of their scope.
+       ┌─ <internal>:31:29
+       │
+    31 │             takeIt(value := fbSample.Velocity);
+       │                             ^^^^^^^^^^^^^^^^^ VAR_IN_OUT variables cannot be accessed outside of their scope.
+
+    error[E037]: VAR_IN_OUT variables cannot be accessed outside of their scope.
+       ┌─ <internal>:32:25
+       │
+    32 │             pVel := ADR(fbSample.Velocity);
+       │                         ^^^^^^^^^^^^^^^^^ VAR_IN_OUT variables cannot be accessed outside of their scope.
+
+    error[E037]: VAR_IN_OUT variables cannot be accessed outside of their scope.
+       ┌─ <internal>:33:13
+       │
+    33 │             prog.progInOut := myVel;
+       │             ^^^^^^^^^^^^^^ VAR_IN_OUT variables cannot be accessed outside of their scope.
+    ");
+}
+
+#[test]
+fn in_out_variables_are_accessible_within_their_scope() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK FB_Other
+            VAR_IN_OUT
+                otherInOut : LREAL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FB_Sample
+            VAR_IN_OUT
+                Velocity : LREAL;
+            END_VAR
+            VAR
+                innerFb : FB_Other;
+            END_VAR
+
+            METHOD someMethod
+                Velocity := 3.0;
+            END_METHOD
+
+            Velocity := Velocity + 1.0;
+            THIS^.Velocity := 2.0;
+            innerFb(otherInOut := Velocity);
+        END_FUNCTION_BLOCK
+
+        ACTIONS FB_Sample
+            ACTION someAction
+                Velocity := 4.0;
+            END_ACTION
+        END_ACTIONS
+
+        FUNCTION_BLOCK FB_Child EXTENDS FB_Sample
+            Velocity := 5.0;
+        END_FUNCTION_BLOCK
+
+        PROGRAM mainProg
+            VAR
+                myVel : LREAL;
+                fbSample : FB_Sample;
+            END_VAR
+
+            fbSample(Velocity := myVel);
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(&diagnostics, @"");
+}
+
+#[test]
 fn enum_and_fb_output_must_not_generate_duplicate_symbol_error() {
     let diagnostics = parse_and_validate_buffered(
         "
