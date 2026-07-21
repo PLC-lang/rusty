@@ -30,7 +30,7 @@ FUNCTION main
 
     // TO_TOD
     // Updated checks for short datetime unit behavior after migration.
-    printf('%s$N', REF(LTOD_TO_STRING(TO_TOD(LTOD#16:36:15))));                     // CHECK: 00:00:01.940141568
+    printf('%s$N', REF(TOD_TO_STRING(TO_TOD(LTOD#16:36:15))));                      // CHECK: 16:36:15
     printf('%s$N', REF(TOD_TO_STRING(TO_TOD(DT#2024-11-12-16:36:15.100))));         // CHECK: 16:36:15
     printf('%s$N', REF(TOD_TO_STRING(TO_TOD(LDT#2024-11-12-16:36:15.100))));        // CHECK: 16:36:15.100
 

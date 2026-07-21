@@ -153,7 +153,7 @@ FUNCTION TO_TOD__LTIME_OF_DAY : TOD
         in : LTOD;
     END_VAR
 
-    TO_TOD__LTIME_OF_DAY := TO_TOD__TIME_OF_DAY(in);
+    TO_TOD__LTIME_OF_DAY := LTOD_TO_TOD(in);
 END_FUNCTION
 
 // -----------------------------------------------------------------------------------------------------------
