@@ -1271,15 +1271,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "html-escape"
-version = "0.2.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d1ad449764d627e22bfd7cd5e8868264fc9236e07c752972b4080cd351cb476"
-dependencies = [
- "utf8-width",
-]
-
-[[package]]
 name = "humansize"
 version = "2.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2257,7 +2248,6 @@ dependencies = [
  "plc_project",
  "plc_source",
  "plc_util",
- "plc_xml",
  "pretty_assertions",
  "rustc-hash",
  "section_mangler",
@@ -2284,6 +2274,19 @@ dependencies = [
  "rustc-hash",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "plc_cfc"
+version = "1.1.0-dev"
+dependencies = [
+ "insta",
+ "plc-compiler",
+ "plc_ast",
+ "plc_diagnostics",
+ "plc_source",
+ "quick-xml",
+ "serde",
 ]
 
 [[package]]
@@ -2327,6 +2330,7 @@ dependencies = [
  "log",
  "plc-compiler",
  "plc_ast",
+ "plc_cfc",
  "plc_diagnostics",
  "plc_header_generator",
  "plc_index",
@@ -2334,7 +2338,6 @@ dependencies = [
  "plc_project",
  "plc_source",
  "plc_util",
- "plc_xml",
  "pretty_assertions",
  "rayon",
  "serde",
@@ -2432,23 +2435,6 @@ dependencies = [
 [[package]]
 name = "plc_util"
 version = "1.1.0-dev"
-
-[[package]]
-name = "plc_xml"
-version = "1.1.0-dev"
-dependencies = [
- "html-escape",
- "indexmap 2.14.0",
- "insta",
- "itertools",
- "logos",
- "plc-compiler",
- "plc_ast",
- "plc_diagnostics",
- "plc_source",
- "quick-xml",
- "rustc-hash",
-]
 
 [[package]]
 name = "polling"
@@ -2590,9 +2576,9 @@ dependencies = [
 
 [[package]]
 name = "quick-xml"
-version = "0.30.0"
+version = "0.38.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eff6510e86862b57b210fd8cbe8ed3f0d7d600b9c2863cd4549a2e033c66e956"
+checksum = "b66c2058c55a409d601666cffe35f04333cf1013010882cec174a7467cd4e21c"
 dependencies = [
  "memchr",
  "serde",
@@ -3699,12 +3685,6 @@ dependencies = [
  "percent-encoding",
  "serde",
 ]
-
-[[package]]
-name = "utf8-width"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1292c0d970b54115d14f2492fe0170adf21d68a1de108eebc51c1df4f346a091"
 
 [[package]]
 name = "utf8_iter"

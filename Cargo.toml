@@ -53,7 +53,6 @@ driver = { path = "./compiler/plc_driver/", package = "plc_driver", version = "1
 project = { path = "./compiler/plc_project/", package = "plc_project", version = "1.1.0-dev", features = [
     "integration",
 ] }
-plc_xml = { path = "./compiler/plc_xml", version = "1.1.0-dev" }
 test_utils = { path = "./tests/test_utils" }
 plc_lowering = { path = "./compiler/plc_lowering", version = "1.1.0-dev" }
 serial_test = "*"
@@ -77,16 +76,16 @@ members = [
     "compiler/plc_project",
     "compiler/plc_source",
     "compiler/plc_util",
-    "compiler/plc_xml",
     "compiler/plc_derive",
     "compiler/plc_index",
     "compiler/section_mangler",
     "compiler/plc_lowering",
     "compiler/plc_llvm",
     "compiler/plc_header_generator",
+    "compiler/plc_cfc",
     "tests/test_utils",
 ]
-default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
+default-members = [".", "compiler/plc_driver"]
 
 [workspace.dependencies]
 inkwell = { version = "0.9", features = ["llvm21-1"] }
