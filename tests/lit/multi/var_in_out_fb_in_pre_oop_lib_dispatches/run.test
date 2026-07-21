@@ -1,0 +1,14 @@
+// XFAIL: *
+//
+// Known limitation tracked in https://github.com/PLC-lang/rusty/issues/1743 :
+// the polymorphism dispatch pass does not currently rewrite a call site
+// that invokes a `VAR_IN_OUT FB` parameter via the bare-name form
+// (`target()`). The call resolves statically to the parameter's
+// declared base type, so a downstream consumer that passes a derived
+// instance still sees the base body run. This is unrelated to the
+// precheck-gate work — the same test fails on a baseline build without
+// any gates. Remove the `XFAIL: *` directive once #1743 is fixed.
+
+RUN: %COMPILE %S/app.st && %RUN | %CHECK %s
+CHECK: FB_B body
+CHECK: FB_B_DERIVED body
