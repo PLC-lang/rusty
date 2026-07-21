@@ -152,7 +152,8 @@ impl AstVisitor for AstSerializer<'_> {
             }
             self.push_indent();
             statement.walk(self);
-            if !statement.is_expression_list() {
+            // A label reads as `LABEL: name`; an expression list ends its own members.
+            if !statement.is_expression_list() && statement.get_label_name().is_none() {
                 self.result.push(';');
             }
         }
@@ -529,10 +530,18 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_jump_statement(&mut self, stmt: &JumpStatement, _node: &AstNode) {
-        stmt.walk(self)
+        // A CFC jump carries a guard condition and has no bare ST syntax, so
+        // render it as a conditional GOTO to its target label.
+        self.result.push_str("IF ");
+        stmt.condition.walk(self);
+        self.result.push_str(" THEN GOTO ");
+        stmt.target.walk(self);
     }
 
-    fn visit_label_statement(&mut self, _stmt: &LabelStatement, _node: &AstNode) {}
+    fn visit_label_statement(&mut self, stmt: &LabelStatement, _node: &AstNode) {
+        self.result.push_str("LABEL: ");
+        self.result.push_str(&stmt.name);
+    }
 
     fn visit_allocation(&mut self, stmt: &Allocation, _node: &AstNode) {
         self.result.push_str(&format!("alloca {}: {}", stmt.name, stmt.reference_type));

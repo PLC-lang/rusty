@@ -434,6 +434,42 @@ impl Diagnostic {
             .with_error_code("E086")
             .with_location(location)
     }
+
+    pub fn undefined_jump_target<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Jump refers to undefined label `{label}`"))
+            .with_error_code("E142")
+            .with_location(location)
+    }
+
+    pub fn unused_label<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Label `{label}` is not referenced by any jump"))
+            .with_error_code("E143")
+            .with_location(location)
+    }
+
+    pub fn duplicate_label<T>(label: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Label `{label}` is already defined"))
+            .with_error_code("E144")
+            .with_location(location)
+    }
+
+    pub fn disconnected_jump<T>(location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new("Jump element is not connected to a condition and can never be taken")
+            .with_error_code("E145")
+            .with_location(location)
+    }
 }
 
 #[cfg(test)]
