@@ -6,7 +6,7 @@ use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
         flatten_expression_list, AstNode, AstStatement, BinaryExpression, CallStatement, DirectAccess,
-        DirectAccessType, JumpStatement, Operator, ReferenceAccess, UnaryExpression,
+        DirectAccessType, JumpStatement, Operator, ReferenceAccess, TypeNature, UnaryExpression,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -2266,6 +2266,33 @@ fn validate_for_loop<T: AnnotationMap>(
     //       by a VAR_INPUT {ref} function call.
 }
 
+/// Checks whether a generic call argument's `actual_type` satisfies the `generic_nature` it is
+/// bound to, returning the `E062` diagnostic (anchored at `location`) when it does not.
+///
+/// Shared with the aggregate-return lowerer, which must run this check before it rewrites a generic
+/// call to its concrete instantiation (which erases the generic nature this relies on).
+pub(crate) fn evaluate_generic_nature_violation(
+    actual_type: &DataType,
+    type_hint: &DataType,
+    generic_nature: TypeNature,
+    index: &Index,
+    location: &AstNode,
+) -> Option<Diagnostic> {
+    // An INT argument for a REAL generic is allowed, otherwise the nature must match.
+    if actual_type.has_nature(generic_nature, index) || (type_hint.is_real() && actual_type.is_numerical()) {
+        return None;
+    }
+
+    Some(
+        Diagnostic::new(format!(
+            "Invalid type nature for generic argument. {} is no {generic_nature}",
+            actual_type.get_name(),
+        ))
+        .with_error_code("E062")
+        .with_location(location),
+    )
+}
+
 /// Validates that the assigned type and type hint are compatible with the nature for this
 /// statement
 fn validate_type_nature<T: AnnotationMap>(
@@ -2297,19 +2324,14 @@ fn validate_type_nature<T: AnnotationMap>(
         {
             // check if type_hint and actual_type is compatible
             // should be handled by assignment validation
-            if !(actual_type.has_nature(*generic_nature, context.index)
-                // INT parameter for REAL is allowed
-                | (type_hint.is_real() & actual_type.is_numerical()))
-            {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Invalid type nature for generic argument. {} is no {}",
-                        actual_type.get_name(),
-                        generic_nature
-                    ))
-                    .with_error_code("E062")
-                    .with_location(statement),
-                );
+            if let Some(diagnostic) = evaluate_generic_nature_violation(
+                actual_type,
+                type_hint,
+                *generic_nature,
+                context.index,
+                statement,
+            ) {
+                validator.push_diagnostic(diagnostic);
             }
         }
     }
