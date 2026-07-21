@@ -1,5 +1,5 @@
 //! Structural resolution of an FBD network: classify each element, link every
-//! sink and return to the concrete source that feeds it, and order the
+//! sink, return, and jump to the concrete source that feeds it, and order the
 //! statements by evaluation priority.
 //!
 //! Connector/continuation pairs are spliced out during linking: they carry no
@@ -16,6 +16,8 @@ pub(crate) struct Resolved<'model> {
     pub unconnected: Vec<&'model FbdObject>,
     /// Connectors that repeat a label already claimed by an earlier one.
     pub duplicate_connectors: Vec<&'model FbdObject>,
+    /// Labels that repeat a name already claimed by an earlier one.
+    pub duplicate_labels: Vec<&'model FbdObject>,
     /// Connectors/continuations where a consumed chain never reached a source.
     pub broken: Vec<Broken<'model>>,
     /// Producer output-pin ids some consumer reads. A block output absent here is
@@ -26,6 +28,8 @@ pub(crate) struct Resolved<'model> {
 pub(crate) enum Statement<'model> {
     Assignment { sink: &'model FbdObject, source: Source<'model> },
     Return { object: &'model FbdObject, condition: Option<Source<'model>> },
+    Jump { object: &'model FbdObject, condition: Option<Source<'model>> },
+    Label { object: &'model FbdObject },
     Call { block: &'model FbdObject, arguments: Vec<Argument<'model>> },
 }
 
@@ -56,6 +60,8 @@ enum Role {
     Source,
     Sink,
     Return,
+    Jump,
+    Label,
     Block,
     Connector,
     Continuation,
@@ -86,6 +92,8 @@ impl<'model> Statement<'model> {
         match self {
             Statement::Assignment { sink, .. } => sink,
             Statement::Return { object, .. } => object,
+            Statement::Jump { object, .. } => object,
+            Statement::Label { object } => object,
             Statement::Call { block, .. } => block,
         }
     }
@@ -103,7 +111,7 @@ impl<'model> Source<'model> {
 }
 
 pub(crate) fn resolve(network: &Network) -> Resolved<'_> {
-    let (producers, duplicate_connectors) = index(network);
+    let (producers, duplicate_connectors, duplicate_labels) = index(network);
 
     // Link each consumer to its source: a sink becomes an assignment, a return
     // a (guarded) return, a block a call over its wired inputs. A chain that
@@ -134,6 +142,22 @@ pub(crate) fn resolve(network: &Network) -> Resolved<'_> {
                 Trace::Unwired => statements.push(Statement::Return { object, condition: None }),
             },
 
+            // Like a return, a jump is guarded by its wired condition. A jump with
+            // no wire can never be taken; it lowers to a `FALSE` guard and
+            // validation warns (E145).
+            Role::Jump => match trace(source_pin(object), &producers) {
+                Trace::Reached(source) => {
+                    record_consumed(&source, &mut consumed_outputs);
+                    statements.push(Statement::Jump { object, condition: Some(source) });
+                }
+                Trace::DeadEnd(at) => broken.push(at),
+                Trace::Unwired => statements.push(Statement::Jump { object, condition: None }),
+            },
+
+            // A label carries no wire; it is a bare target, ordered by priority
+            // like any other statement.
+            Role::Label => statements.push(Statement::Label { object }),
+
             // A block always emits its call so its state advances; only its wired
             // inputs and in_outs become arguments (an unwired input keeps last
             // cycle's value). Outputs are read back separately, as members.
@@ -163,7 +187,7 @@ pub(crate) fn resolve(network: &Network) -> Resolved<'_> {
     let mut seen = HashSet::new();
     broken.retain(|at| seen.insert(at.element.global_id));
 
-    Resolved { statements, unconnected, duplicate_connectors, broken, consumed_outputs }
+    Resolved { statements, unconnected, duplicate_connectors, duplicate_labels, broken, consumed_outputs }
 }
 
 /// Note a block output as read, so an unread function output can skip its temp.
@@ -177,11 +201,13 @@ fn record_consumed(source: &Source, consumed: &mut HashSet<usize>) {
 
 /// Index the network so the linking pass is pure lookup: map every output pin to
 /// its producer (and, for blocks, the exact pin), and claim connector labels.
-fn index(network: &Network) -> (Producers<'_>, Vec<&FbdObject>) {
+fn index(network: &Network) -> (Producers<'_>, Vec<&FbdObject>, Vec<&FbdObject>) {
     let mut by_pin = HashMap::new();
     let mut block_output = HashMap::new();
     let mut connector_by_label = HashMap::new();
     let mut duplicate_connectors = Vec::new();
+    let mut labels = HashSet::new();
+    let mut duplicate_labels = Vec::new();
 
     for object in network.elements() {
         // A data source or continuation exposes a single output pin; a block
@@ -211,9 +237,19 @@ fn index(network: &Network) -> (Producers<'_>, Vec<&FbdObject>) {
                 }
             }
         }
+
+        // A label names a jump target; two labels sharing a name make the target
+        // ambiguous, so the second and later ones are duplicates (E144).
+        if matches!(role(object), Role::Label) {
+            if let Some(label) = object.label() {
+                if !labels.insert(label) {
+                    duplicate_labels.push(object);
+                }
+            }
+        }
     }
 
-    (Producers { by_pin, block_output, connector_by_label }, duplicate_connectors)
+    (Producers { by_pin, block_output, connector_by_label }, duplicate_connectors, duplicate_labels)
 }
 
 fn role(object: &FbdObject) -> Role {
@@ -221,6 +257,8 @@ fn role(object: &FbdObject) -> Role {
         "ppx:DataSource" => Role::Source,
         "ppx:DataSink" => Role::Sink,
         "ppx:Return" => Role::Return,
+        "bmx:CfcJump" => Role::Jump,
+        "bmx:CfcLabel" => Role::Label,
         "ppx:Block" => Role::Block,
         "ppx:Connector" => Role::Connector,
         "ppx:Continuation" => Role::Continuation,
@@ -325,6 +363,25 @@ mod tests {
                 Statement::Return { object, condition: None } => {
                     format!("RETURN <disconnected>   [return {}]\n", object.global_id)
                 }
+                Statement::Jump { object, condition: Some(source) } => {
+                    let (text, id) = render_source(source);
+                    format!(
+                        "JMP {} IF {}{text}   [jump {} <- source {id}]\n",
+                        object.target_label().unwrap_or("?"),
+                        if object.negated() { "NOT " } else { "" },
+                        object.global_id,
+                    )
+                }
+                Statement::Jump { object, condition: None } => {
+                    format!(
+                        "JMP {} <disconnected>   [jump {}]\n",
+                        object.target_label().unwrap_or("?"),
+                        object.global_id
+                    )
+                }
+                Statement::Label { object } => {
+                    format!("LABEL {}   [label {}]\n", object.label().unwrap_or("?"), object.global_id)
+                }
                 Statement::Call { block, arguments } => {
                     let args = arguments
                         .iter()
@@ -420,6 +477,71 @@ mod tests {
             insta::assert_snapshot!(resolve_project("returns/invalid/disconnected_return"), @r"
         RETURN myCondition   [return 3 <- source 1]
         RETURN <disconnected>   [return 4]
+        unconnected: (none)");
+        }
+    }
+
+    mod jumps {
+        use super::resolve_project;
+
+        #[test]
+        fn conditional_jump() {
+            insta::assert_snapshot!(resolve_project("jumps/valid/conditional_jump"), @r"
+        JMP skipAssignment IF myCondition   [jump 1 <- source 4]
+        y := x   [sink 7 <- source 5]
+        LABEL skipAssignment   [label 2]
+        unconnected: (none)");
+        }
+
+        #[test]
+        fn negated_jump() {
+            insta::assert_snapshot!(resolve_project("jumps/valid/negated_jump"), @r"
+        JMP skipAssignment IF NOT myCondition   [jump 1 <- source 4]
+        y := x   [sink 7 <- source 5]
+        LABEL skipAssignment   [label 2]
+        unconnected: (none)");
+        }
+
+        #[test]
+        fn disconnected_jump() {
+            insta::assert_snapshot!(resolve_project("jumps/valid/disconnected_jump"), @r"
+        JMP skipAssignment <disconnected>   [jump 1]
+        y := x   [sink 7 <- source 5]
+        LABEL skipAssignment   [label 2]
+        unconnected: (none)");
+        }
+
+        #[test]
+        fn unused_label() {
+            insta::assert_snapshot!(resolve_project("jumps/valid/unused_label"), @r"
+        y := x   [sink 3 <- source 1]
+        LABEL orphan   [label 4]
+        unconnected: (none)");
+        }
+
+        // Document order is shuffled against priority; the resolved order is
+        // driven purely by `EvaluationPriority`, jumps and labels included.
+        #[test]
+        fn scrambled() {
+            insta::assert_snapshot!(resolve_project("jumps/valid/scrambled"), @r"
+        JMP mid IF g1   [jump 1 <- source 20]
+        a := x   [sink 2 <- source 23]
+        JMP end IF g2   [jump 3 <- source 21]
+        LABEL mid   [label 4]
+        b := x   [sink 5 <- source 23]
+        JMP end IF g3   [jump 6 <- source 22]
+        c := x   [sink 7 <- source 23]
+        LABEL end   [label 8]
+        unconnected: (none)");
+        }
+
+        // A label targeted by a later jump: control flows backward (a loop).
+        #[test]
+        fn backward_jump() {
+            insta::assert_snapshot!(resolve_project("jumps/valid/backward_jump"), @r"
+        LABEL top   [label 3]
+        x := i   [sink 6 <- source 4]
+        JMP top IF cond   [jump 1 <- source 7]
         unconnected: (none)");
         }
     }
