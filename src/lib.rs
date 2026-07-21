@@ -228,6 +228,18 @@ impl OptimizationLevel {
     fn is_optimized(&self) -> bool {
         !matches!(self, OptimizationLevel::None)
     }
+
+    /// The backend (`TargetMachine`) level backing this optimization level. `None` keeps
+    /// the IR pipeline at O0 (see `opt_params` — no inlining, unrolling or other
+    /// debug-hostile IR transforms) but raises the codegen level to `Less` so the
+    /// machine pipeline runs; most importantly LLVM's stack coloring, which merges the
+    /// lifetime-bracketed call temporaries and keeps string-heavy POU frames bounded.
+    fn codegen_level(&self) -> inkwell::OptimizationLevel {
+        match self {
+            OptimizationLevel::None => inkwell::OptimizationLevel::Less,
+            _ => (*self).into(),
+        }
+    }
 }
 
 #[macro_use]

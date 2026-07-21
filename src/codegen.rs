@@ -128,7 +128,7 @@ impl<'ink> CodeGen<'ink> {
                 &triple,
                 "generic", // CPU features - generic for portability
                 "",        // CPU features - empty string for default
-                optimization_level.into(),
+                optimization_level.codegen_level(),
                 inkwell::targets::RelocMode::Default,
                 inkwell::targets::CodeModel::Default,
             )
@@ -564,7 +564,7 @@ impl<'ink> GeneratedModule<'ink> {
                 //TODO : Add cpu features as optionals
                 "generic", //TargetMachine::get_host_cpu_name().to_string().as_str(),
                 "",        //TargetMachine::get_host_cpu_features().to_string().as_str(),
-                optimization_level.into(),
+                optimization_level.codegen_level(),
                 reloc,
                 CodeModel::Default,
             )
