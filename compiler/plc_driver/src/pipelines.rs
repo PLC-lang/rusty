@@ -23,7 +23,10 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
+    lowering::{
+        calls::AggregateTypeLowerer, generics::GenericLowerer, polymorphism::PolymorphismLowerer,
+        property::PropertyLowerer,
+    },
     output::{FormatOption, RelocationPreference},
     parser::parse_file,
     resolver::{
@@ -364,6 +367,9 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 self.context.should_generate_external_constructors(),
             )),
             Box::new(RetainParticipant::new(self.context.provider())),
+            // Resolve generic calls to concrete monomorphizations (materialized as {external} POUs)
+            // before the aggregate-return lowerer, so it only ever sees concrete calls.
+            Box::new(GenericLowerer::new(self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
             Box::new(ArrayLowerer::new(self.context.provider())),

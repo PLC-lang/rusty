@@ -26,7 +26,7 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, FxIndexSet, Index},
         lexer,
-        lowering::calls::AggregateTypeLowerer,
+        lowering::{calls::AggregateTypeLowerer, generics::GenericLowerer},
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
@@ -111,6 +111,70 @@ pub mod tests {
         index
     }
 
+    /// Runs the generic-monomorphization lowering phase over a single, already-indexed-and-annotated
+    /// unit, mirroring the driver's `GenericLowerer` participant fixed point: each pass rewrites
+    /// resolvable generic calls to concrete monomorphizations and materializes missing ones, then the
+    /// unit is re-indexed and re-annotated so those monomorphs become resolvable. Returns the final
+    /// index, annotations and any diagnostics the phase emitted (e.g. `E062` generic-nature
+    /// violations).
+    ///
+    /// Generic resolution no longer happens in the annotator's first pass, so unit-test harnesses call
+    /// this to exercise the same resolution the real compiler performs. Units with no user-declared
+    /// generic POU are returned untouched (nothing to monomorphize — generic *builtins* like `MAX` are
+    /// resolved by codegen, not this phase).
+    pub fn lower_generics_single_unit(
+        unit: &mut CompilationUnit,
+        index: Index,
+        annotations: AnnotationMapImpl,
+        id_provider: IdProvider,
+    ) -> (Index, AnnotationMapImpl, Vec<Diagnostic>) {
+        if !unit.pous.iter().any(|pou| !pou.generics.is_empty()) {
+            return (index, annotations, Vec::new());
+        }
+
+        let mut lowerer = GenericLowerer::new(id_provider.clone());
+        let mut index = index;
+        let mut annotations = annotations;
+        loop {
+            lowerer.index = Some(index);
+            lowerer.annotation = Some(Box::new(annotations));
+            let changed = lowerer.lower(std::slice::from_mut(unit));
+            lowerer.index = None;
+            lowerer.annotation = None;
+
+            // Re-index + re-annotate from the (possibly mutated) AST so materialized monomorph POUs
+            // are indexed and rewritten calls bind to them (mirrors `ParsedProject::index/annotate`).
+            pre_process(unit, id_provider.clone());
+            let new_index = index_unit_with_id(unit, id_provider.clone());
+            let (mut new_index, _) = evaluate_constants(new_index);
+            let (mut new_annotations, ..) = TypeAnnotator::visit_unit(&new_index, unit, id_provider.clone());
+            new_index.import(std::mem::take(&mut new_annotations.new_index));
+            index = new_index;
+            annotations = new_annotations;
+
+            if !changed {
+                break;
+            }
+        }
+        (index, annotations, std::mem::take(&mut lowerer.diagnostics))
+    }
+
+    /// Annotates an already-indexed unit and then runs the generic-monomorphization lowering phase,
+    /// returning the mutated unit (generic calls rewritten to their concrete monomorphizations), the
+    /// final index (with materialized `{external}` monomorph POUs) and the post-lowering annotations.
+    /// This is the unit-test entry point for asserting resolved generic-call names / argument type
+    /// hints, which are now produced by the lowering phase rather than the annotator's first pass.
+    pub fn annotate_and_lower_in_place(
+        mut unit: CompilationUnit,
+        mut index: Index,
+        id_provider: IdProvider,
+    ) -> (CompilationUnit, Index, AnnotationMapImpl) {
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
+        index.import(std::mem::take(&mut annotations.new_index));
+        let (index, annotations, _) = lower_generics_single_unit(&mut unit, index, annotations, id_provider);
+        (unit, index, annotations)
+    }
+
     pub fn index(src: &str) -> (CompilationUnit, Index) {
         let id_provider = IdProvider::default();
         let (unit, index, _) = do_index(src, id_provider);
@@ -164,13 +228,25 @@ pub mod tests {
 
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
         index.import(std::mem::take(&mut annotations.new_index));
+
+        // Resolve non-builtin generic calls to their concrete monomorphizations (mirrors the pipeline,
+        // which runs the `GenericLowerer` before the aggregate-return lowerer) so codegen tests see the
+        // materialized `{external}` monomorph POUs and concrete calls.
+        let (index, annotations, _generic_diagnostics) =
+            lower_generics_single_unit(&mut unit, index, annotations, id_provider.clone());
         all_annotations.import(annotations);
 
         let mut aggregate_lowerer = AggregateTypeLowerer::new(id_provider.clone());
         aggregate_lowerer.index.replace(index);
         aggregate_lowerer.annotation.replace(Box::new(all_annotations));
         aggregate_lowerer.visit_unit(&mut unit);
-        let mut full_index = aggregate_lowerer.index.take().unwrap();
+        drop(aggregate_lowerer);
+        // Re-index from the mutated AST so the returned index reflects the aggregate-return signature
+        // changes (e.g. a materialized monomorph's aggregate return converted to a by-ref parameter),
+        // mirroring the pipeline's post-aggregate-lowering re-index. Otherwise the index would be
+        // stale relative to the lowered units.
+        let full_index = index_unit_with_id(&unit, id_provider.clone());
+        let (mut full_index, _) = evaluate_constants(full_index);
         let mut all_annotations = AnnotationMapImpl::default();
 
         let (mut annotations, dependencies, literals) =
@@ -211,7 +287,7 @@ pub mod tests {
         let mut ctxt = GlobalContext::new();
         ctxt.insert(&src, None).unwrap();
 
-        let (unit, index, mut diagnostics) = do_index(src, ctxt.provider());
+        let (mut unit, index, mut diagnostics) = do_index(src, ctxt.provider());
         if abort && !diagnostics.is_empty() {
             // we don't want to continue if we have critical parse errors
             return diagnostics;
@@ -220,6 +296,12 @@ pub mod tests {
         let (mut index, ..) = evaluate_constants(index);
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, ctxt.provider());
         index.import(std::mem::take(&mut annotations.new_index));
+
+        // Generic resolution runs as a lowering phase (mirroring the compiler); validation runs after
+        // it, so E062 generic-nature violations are surfaced here.
+        let (index, annotations, generic_diagnostics) =
+            lower_generics_single_unit(&mut unit, index, annotations, ctxt.provider());
+        diagnostics.extend(generic_diagnostics);
 
         let mut validator = Validator::new(&ctxt);
         validator.perform_global_validation(&index);

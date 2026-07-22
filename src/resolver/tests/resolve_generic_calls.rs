@@ -6,8 +6,11 @@ use plc_ast::{
 
 use crate::{
     assert_type_and_hint,
-    resolver::{AnnotationMap, StatementAnnotation, TypeAnnotator},
-    test_utils::tests::{annotate_and_lower_with_ids, annotate_with_ids, index_and_lower, index_with_ids},
+    resolver::{AnnotationMap, StatementAnnotation},
+    test_utils::tests::{
+        annotate_and_lower_in_place, annotate_and_lower_with_ids, annotate_with_ids, index_and_lower,
+        index_with_ids,
+    },
     typesystem::{
         DataTypeInformation, DINT_TYPE, INT_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE, SINT_TYPE, STRING_TYPE,
         WSTRING_TYPE,
@@ -38,37 +41,26 @@ fn resolved_generic_call_added_to_index() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
-    // The implementations are added to the index
-    let implementations = annotations.new_index.get_implementations();
-    assert!(implementations.contains_key("myfunc__int"));
-    assert!(implementations.contains_key("myfunc__dint"));
-    assert!(implementations.contains_key("myfunc__real"));
-    assert_eq!(3, implementations.values().count()); //make sure BYTE-implementation was not added by the annotator
+    let (_unit, index, _annotations) = annotate_and_lower_in_place(unit, index, id_provider);
+    // Each called monomorphization is materialized as a real POU/implementation in the index; a
+    // never-called one (BYTE) is not (and the user-declared myFunc__SINT is used as-is).
+    assert!(index.find_implementation_by_name("myFunc__INT").is_some());
+    assert!(index.find_implementation_by_name("myFunc__DINT").is_some());
+    assert!(index.find_implementation_by_name("myFunc__REAL").is_some());
+    assert!(index.find_implementation_by_name("myFunc__BYTE").is_none());
 
-    //The pous are added to the index
-    let pous = annotations.new_index.get_pous();
-    assert!(pous.contains_key(&"myfunc__int".into()));
-    assert!(pous.contains_key(&"myfunc__dint".into()));
-    assert!(pous.contains_key(&"myfunc__real".into()));
-    assert_eq!(3, pous.values().count()); //make sure BYTE-implementation was not added by the annotator
+    assert!(index.find_pou("myFunc__INT").is_some());
+    assert!(index.find_pou("myFunc__DINT").is_some());
+    assert!(index.find_pou("myFunc__REAL").is_some());
+    assert!(index.find_pou("myFunc__BYTE").is_none());
 
-    //Each POU has members
-    assert_eq!("INT", annotations.new_index.find_member("myfunc__int", "x").unwrap().get_type_name());
-    assert_eq!(
-        "INT",
-        annotations.new_index.find_member("myfunc__int", "myfunc__int").unwrap().get_type_name()
-    );
-    assert_eq!("DINT", annotations.new_index.find_member("myfunc__dint", "x").unwrap().get_type_name());
-    assert_eq!(
-        "DINT",
-        annotations.new_index.find_member("myfunc__dint", "myfunc__dint").unwrap().get_type_name()
-    );
-    assert_eq!("REAL", annotations.new_index.find_member("myfunc__real", "x").unwrap().get_type_name());
-    assert_eq!(
-        "REAL",
-        annotations.new_index.find_member("myfunc__real", "myfunc__real").unwrap().get_type_name()
-    );
+    //Each materialized POU has concrete-typed members
+    assert_eq!("INT", index.find_member("myFunc__INT", "x").unwrap().get_type_name());
+    assert_eq!("INT", index.find_member("myFunc__INT", "myFunc__INT").unwrap().get_type_name());
+    assert_eq!("DINT", index.find_member("myFunc__DINT", "x").unwrap().get_type_name());
+    assert_eq!("DINT", index.find_member("myFunc__DINT", "myFunc__DINT").unwrap().get_type_name());
+    assert_eq!("REAL", index.find_member("myFunc__REAL", "x").unwrap().get_type_name());
+    assert_eq!("REAL", index.find_member("myFunc__REAL", "myFunc__REAL").unwrap().get_type_name());
 }
 
 #[test]
@@ -92,7 +84,7 @@ fn generic_call_annotated_with_correct_type() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
     let call = &unit.implementations[1].statements[0];
 
     //The return type should have the correct type
@@ -184,7 +176,7 @@ fn generic_call_multi_params_annotated_with_correct_type() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
 
     let call = &unit.implementations[1].statements[0];
 
@@ -311,7 +303,7 @@ fn call_order_of_parameters_does_not_change_annotations() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
 
     fn get_parameter_with_name<'a>(parameters_list: &[&'a AstNode], expected_name: &str) -> &'a AstNode {
         parameters_list
@@ -391,7 +383,7 @@ fn call_order_of_generic_parameters_does_not_change_annotations() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
 
     fn get_parameter_with_name<'a>(parameters_list: &[&'a AstNode], expected_name: &str) -> &'a AstNode {
         parameters_list
@@ -465,7 +457,7 @@ fn builtin_generic_functions_do_not_get_specialized_calls() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
     //The implementations are not added to the index
     let implementations = annotations.new_index.get_implementations();
     assert!(!implementations.contains_key("adr__int"));
@@ -525,7 +517,7 @@ fn builtin_adr_ref_return_annotated() {
         id_provider.clone(),
     );
 
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
     let stmt = &unit.implementations[0].statements[0];
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }, ..), .. } = stmt {
@@ -558,7 +550,7 @@ fn builtin_sel_param_type_is_not_changed() {
         id_provider.clone(),
     );
 
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
     //get the type/hints for a and b in the call, they should be unchanged (DINT, None)
     let call = &unit.implementations[0].statements[0];
     if let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }, ..), .. } = call {
@@ -591,7 +583,7 @@ fn resolve_variadic_generics() {
         id_provider.clone(),
     );
 
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
     //ex should resolve to ex__dint
     //a and b have the type dint
     let call = &unit.implementations[1].statements[0];
@@ -630,7 +622,7 @@ fn generic_call_gets_cast_to_biggest_type() {
     );
 
     //Expecting all values to be LREAL
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
     let call = &unit.implementations[1].statements[0];
     assert_type_and_hint!(&annotations, &index, call, LREAL_TYPE, None);
     //Call returns LREAL
@@ -658,7 +650,7 @@ fn sel_return_type_follows_params() {
         id_provider.clone(),
     );
 
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
     assert_type_and_hint!(&annotations, &index, &unit.implementations[0].statements[0], DINT_TYPE, None);
     assert_type_and_hint!(&annotations, &index, &unit.implementations[0].statements[1], DINT_TYPE, None);
     //Also test that the left side of the operator is dint
@@ -679,7 +671,7 @@ fn mux_return_type_follows_params() {
         id_provider.clone(),
     );
 
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
     assert_type_and_hint!(&annotations, &index, &unit.implementations[0].statements[0], DINT_TYPE, None);
     assert_type_and_hint!(&annotations, &index, &unit.implementations[0].statements[1], DINT_TYPE, None);
     //Also test that the left side of the operator is dint
@@ -690,7 +682,7 @@ fn mux_return_type_follows_params() {
 #[test]
 fn auto_pointer_of_generic_resolved() {
     let id_provider = IdProvider::default();
-    let (unit, mut index) = index_with_ids(
+    let (unit, index) = index_with_ids(
         " FUNCTION LEFT<T : ANY> : T
         VAR_IN_OUT
             IN : T;
@@ -713,7 +705,7 @@ fn auto_pointer_of_generic_resolved() {
         id_provider.clone(),
     );
 
-    annotate_with_ids(&unit, &mut index, id_provider);
+    let (_unit, index, _annotations) = annotate_and_lower_in_place(unit, index, id_provider);
 
     let member = index.find_member("LEFT_EXT__DINT", "IN").unwrap();
     let dt = index.find_effective_type_info(&member.data_type_name).unwrap();
@@ -727,7 +719,7 @@ fn auto_pointer_of_generic_resolved() {
 #[test]
 fn string_ref_as_generic_resolved() {
     let id_provider = IdProvider::default();
-    let (unit, mut index) = index_with_ids(
+    let (unit, index) = index_with_ids(
         " FUNCTION LEFT<T: ANY_STRING> : T
         VAR_INPUT {ref}
             IN : T;
@@ -750,7 +742,7 @@ fn string_ref_as_generic_resolved() {
         id_provider.clone(),
     );
 
-    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
 
     let call_statement = &unit.implementations[2].statements[0];
 
@@ -759,7 +751,16 @@ fn string_ref_as_generic_resolved() {
     {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
 
-        assert_type_and_hint!(&annotations, &index, parameters[0], "STRING", Some("STRING"));
+        // A `{ref}` parameter's monomorph is a normal by-ref function, so the argument is hinted to
+        // the auto-deref pointer type (matching every non-generic `{ref}` function) rather than the
+        // dereferenced element type the old generic-resolution pass produced.
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            parameters[0],
+            "STRING",
+            Some("__auto_pointer_to_STRING")
+        );
     } else {
         unreachable!("Should be a call statement")
     }
@@ -807,29 +808,24 @@ fn resolved_generic_any_real_call_with_ints_added_to_index() {
         END_PROGRAM",
         id_provider.clone(),
     );
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
-    // The implementations are added to the index
-    let implementations = annotations.new_index.get_implementations();
-    assert!(implementations.contains_key("myfunc__lreal"));
-    assert_eq!(1, implementations.values().count()); //make sure REAL-implementation was not added by the annotator
+    let (_unit, index, _annotations) = annotate_and_lower_in_place(unit, index, id_provider);
+    // The integer arguments all resolve to the single LREAL monomorphization (materialized); the
+    // REAL#1.0 call binds to the user-declared myFunc__REAL, so no per-integer-type monomorph exists.
+    assert!(index.find_pou("myFunc__LREAL").is_some());
+    assert!(index.find_implementation_by_name("myFunc__LREAL").is_some());
+    assert!(index.find_pou("myFunc__INT").is_none());
+    assert!(index.find_pou("myFunc__DINT").is_none());
+    assert!(index.find_pou("myFunc__LINT").is_none());
 
-    //The pous are added to the index
-    let pous = annotations.new_index.get_pous();
-    assert!(pous.contains_key(&"myfunc__lreal".into()));
-    assert_eq!(1, pous.values().count()); //make sure REAL-implementation was not added by the annotator
-
-    //Each POU has members
-    assert_eq!("LREAL", annotations.new_index.find_member("myfunc__lreal", "x").unwrap().get_type_name());
-    assert_eq!(
-        "LREAL",
-        annotations.new_index.find_member("myfunc__lreal", "myfunc__lreal").unwrap().get_type_name()
-    );
+    //The materialized POU has concrete-typed members
+    assert_eq!("LREAL", index.find_member("myFunc__LREAL", "x").unwrap().get_type_name());
+    assert_eq!("LREAL", index.find_member("myFunc__LREAL", "myFunc__LREAL").unwrap().get_type_name());
 }
 
 #[test]
 fn generic_string_functions_are_annotated_correctly() {
     let id_provider = IdProvider::default();
-    let (unit, mut index) = index_with_ids(
+    let (unit, index) = index_with_ids(
         "
         FUNCTION foo<T: ANY_STRING> : T
         VAR_INPUT {ref}
@@ -854,7 +850,7 @@ fn generic_string_functions_are_annotated_correctly() {
         id_provider.clone(),
     );
 
-    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let (_unit, _index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
 
     let mut functions = vec![];
     let mut values = vec![];
@@ -869,7 +865,7 @@ fn generic_string_functions_are_annotated_correctly() {
         &StatementAnnotation::Function {
             return_type: "STRING".to_string(),
             qualified_name: "foo__STRING".to_string(),
-            generic_name: Some("foo".to_string()),
+            generic_name: None,
             call_name: None,
         }
     );
@@ -880,7 +876,7 @@ fn generic_string_functions_are_annotated_correctly() {
 #[test]
 fn generic_string_functions_without_specific_implementation_are_annotated_correctly() {
     let id_provider = IdProvider::default();
-    let (unit, mut index) = index_with_ids(
+    let (unit, index) = index_with_ids(
         r#"
         FUNCTION LEN <T: ANY_STRING> : DINT
         VAR_INPUT {ref}
@@ -898,7 +894,7 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
         id_provider.clone(),
     );
 
-    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
     let assignment = &unit.implementations[1].statements[0];
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }, ..), .. } = assignment {
@@ -913,14 +909,20 @@ fn generic_string_functions_without_specific_implementation_are_annotated_correc
                 function_annotation,
                 &StatementAnnotation::Function {
                     return_type: "DINT".to_string(),
-                    qualified_name: "LEN".to_string(),
-                    generic_name: Some("LEN".to_string()),
-                    call_name: Some("LEN__STRING".to_owned(),),
+                    qualified_name: "LEN__STRING".to_string(),
+                    generic_name: None,
+                    call_name: None,
                 }
             );
 
             let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-            assert_type_and_hint!(&annotations, &index, parameters[0], "__STRING_3", Some("STRING"));
+            assert_type_and_hint!(
+                &annotations,
+                &index,
+                parameters[0],
+                "__STRING_3",
+                Some("__auto_pointer_to_STRING")
+            );
         } else {
             unreachable!("Not a call statement.")
         }
@@ -975,7 +977,7 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
         id_provider.clone()
     );
 
-    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    let (_unit, _index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
 
     let mut functions = vec![];
     let mut values = vec![];
@@ -990,7 +992,7 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
         &StatementAnnotation::Function {
             return_type: "__foo__STRING_return".to_string(),
             qualified_name: "foo__STRING".to_string(),
-            generic_name: Some("foo".to_string()),
+            generic_name: None,
             call_name: None,
         }
     );
@@ -1001,7 +1003,7 @@ fn generic_string_functions_with_non_default_length_are_annotated_correctly() {
 #[test]
 fn generic_return_type_name_resolved_correctly() {
     let id_provider = IdProvider::default();
-    let (unit, mut index) = index_with_ids(
+    let (unit, index) = index_with_ids(
         "
     FUNCTION foo<T: ANY_INT> : T
     VAR_INPUT
@@ -1015,7 +1017,7 @@ fn generic_return_type_name_resolved_correctly() {
         id_provider.clone(),
     );
 
-    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let (_unit, _index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
 
     let mut functions = vec![];
     let mut values = vec![];
@@ -1029,9 +1031,11 @@ fn generic_return_type_name_resolved_correctly() {
         functions[0],
         &StatementAnnotation::Function {
             return_type: "DINT".to_string(),
-            qualified_name: "foo".to_string(),
-            generic_name: Some("foo".to_string()),
-            call_name: Some("foo__DINT".to_string()),
+            // The operator is rewritten to reference the concrete monomorph directly, so the
+            // resolved annotation names the monomorph (not the generic + a `call_name` redirect).
+            qualified_name: "foo__DINT".to_string(),
+            generic_name: None,
+            call_name: None,
         }
     );
 
@@ -1049,6 +1053,13 @@ fn literal_string_as_parameter_resolves_correctly() {
         END_VAR
         END_FUNCTION
 
+        {external}
+        FUNCTION foo__STRING : STRING
+        VAR_INPUT
+            x : STRING;
+        END_VAR
+        END_FUNCTION
+
         FUNCTION main : DINT
             foo('     this is   a  very   long          sentence   with');
         END_FUNCTION
@@ -1057,21 +1068,21 @@ fn literal_string_as_parameter_resolves_correctly() {
     );
 
     let (annotations, index, unit) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let statement = flatten_expression_list(&unit.0.implementations[1].statements[0])[1];
+    let statement = flatten_expression_list(&unit.0.implementations[2].statements[0])[1];
 
     if let AstNode {
         stmt: AstStatement::CallStatement(CallStatement { operator, parameters, .. }, ..), ..
     } = statement
     {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, parameters[1], "__STRING_54", None);
+        // The literal is hinted to the `x : STRING` parameter of the resolved foo__STRING
+        // monomorphization.
+        assert_type_and_hint!(&annotations, &index, parameters[1], "__STRING_54", Some(STRING_TYPE));
         insta::assert_debug_snapshot!(annotations.get(operator).unwrap(), @r#"
         Function {
             return_type: "STRING",
             qualified_name: "foo__STRING",
-            generic_name: Some(
-                "foo",
-            ),
+            generic_name: None,
             call_name: None,
         }
         "#);
@@ -1160,6 +1171,15 @@ VAR_INPUT
 END_VAR
 END_FUNCTION
 
+{external}
+FUNCTION MID__STRING : STRING
+VAR_INPUT
+    s: STRING;
+    pos: DINT;
+    len: DINT;
+END_VAR
+END_FUNCTION
+
         ",
         id_provider.clone(),
     );
@@ -1169,8 +1189,9 @@ END_FUNCTION
     if let AstStatement::CallStatement(CallStatement { parameters, .. }) = call_statement.get_stmt() {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[2], DINT_TYPE, Some(DINT_TYPE));
-        //TODO: Shouldn the hint be DINT_TYPE?
-        assert_type_and_hint!(&annotations, &index, parameters[3], INT_TYPE, None);
+        // The argument is hinted to the `len : DINT` parameter of the resolved MID__STRING
+        // monomorphization.
+        assert_type_and_hint!(&annotations, &index, parameters[3], INT_TYPE, Some(DINT_TYPE));
     } else {
         unreachable!("This should always be a call statement.")
     }

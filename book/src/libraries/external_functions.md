@@ -19,6 +19,54 @@ At compilation time, the function `log` will be defined as an externally availab
 
 > Note: At linking time, a `log` function with a compatible signature must be available on the system.
 
+## Generic Functions
+
+A `FUNCTION` can be made generic by declaring one or more type parameters with a
+type-nature constraint, e.g. `<T: ANY_INT>`. The type parameters may be used as the type
+of inputs, outputs and the return value:
+
+```iecst
+FUNCTION MAX <T: ANY_ELEMENTARY> : T
+VAR_INPUT
+    in1 : T;
+    in2 : T;
+END_VAR
+END_FUNCTION
+```
+
+A generic function is never called directly. Every call is resolved to a concrete
+*monomorphization* whose name is the generic function's name followed by `__<TYPE>` for
+the resolved type argument. For example, `MAX(aDint, bDint)` resolves to `MAX__DINT`.
+
+The compiler does not synthesize a monomorphization's body; the implementation is provided
+by one of:
+
+- an ordinary `FUNCTION` with the mangled name (an ST body),
+- an implementation linked in from elsewhere (e.g. in C or Rust), or
+- a compiler builtin.
+
+When no ST body or builtin defines the mangled name, the compiler emits an `{external}`
+declaration for it and the symbol is resolved at link time; if nothing provides it there,
+the build fails with an undefined symbol. This applies regardless of the return type,
+including aggregate returns such as `STRING`, `WSTRING`, arrays and structs.
+
+A type argument that does not satisfy the generic's nature constraint (e.g. a `REAL` for a
+`<T: ANY_INT>` parameter) is rejected at compile time with `E062`.
+
+For example, the standard `TO_STRING <T: ANY> : STRING` conversion provides an
+implementation for every supported source type (`TO_STRING__DINT`, `TO_STRING__REAL`, …).
+Because `ANY` accepts every type, calling `TO_STRING` with a type that has no implementation
+compiles and then fails at link time with an undefined symbol:
+
+```iecst
+TYPE Point : STRUCT x, y : DINT; END_STRUCT END_TYPE
+
+FUNCTION main : DINT
+VAR s : STRING; p : Point; END_VAR
+    s := TO_STRING(p);   // undefined symbol at link time: TO_STRING__Point
+END_FUNCTION
+```
+
 ## Calling C functions
 
 `ST` code can call into foreign functions natively.
