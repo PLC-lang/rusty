@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-17b6deea.js";
+            window.path_to_searchindex_js = "searchindex-ea90532d.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-1c9150eb.js"></script>
@@ -209,6 +209,7 @@ echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' &gt;&gt; ~/.zprofile
 </code></pre>
 <h2 id="windows"><a class="header" href="#windows">Windows</a></h2>
 <p>Install <a href="https://www.rust-lang.org/tools/install">Rust</a> and download the appropriate LLVM version from https://github.com/PLC-lang/llvm-package-windows/releases/. Extract it and add the <code>bin/</code> directory to your PATH.</p>
+<p>Note: Rust will require C++ Build Tools. The recommended way is to install them with a full Visual Studio installation. However, a much faster and easier way is to install the build tools directly. Head over to https://visualstudio.microsoft.com/downloads/, scroll down to “Tools for Visual Studio” and download the binary (https://aka.ms/vs/stable/vs_BuildTools.exe).</p>
 <h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
 <ul>
 <li>The LLVM installation must exactly match the major version of the <code>llvm-sys</code> crate due to LLVM’s API compatibility guarantees. Currently LLVM 21 is required. See https://crates.io/crates/llvm-sys</li>
