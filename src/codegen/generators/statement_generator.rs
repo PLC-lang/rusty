@@ -218,34 +218,95 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             }
             AstStatement::ExpressionList(statements) => {
                 let mut llvm_index = LlvmTypedIndex::create_child(&llvm_index);
+                // Lowered statements arrive as [temp allocations..., original statement,
+                // copy-backs...] (see AggregateTypeLowerer::map); the list is exactly the
+                // temps' live range. Bracketing it with lifetime markers lets LLVM's stack
+                // coloring overlap the slots of consecutive statements instead of reserving
+                // a dead slot per call site for the rest of the function.
+                let mut list_allocations = vec![];
                 for stmt in statements {
-                    llvm_index = self.generate_statement(llvm_index, stmt)?;
+                    if let AstStatement::AllocationStatement(Allocation {
+                        name,
+                        reference_type,
+                        statement_scoped,
+                    }) = stmt.get_stmt()
+                    {
+                        let (updated_index, value) = self.generate_allocation(
+                            llvm_index,
+                            name,
+                            reference_type,
+                            &stmt.location,
+                            *statement_scoped,
+                        )?;
+                        llvm_index = updated_index;
+                        if *statement_scoped {
+                            list_allocations.push(value);
+                        }
+                    } else {
+                        llvm_index = self.generate_statement(llvm_index, stmt)?;
+                    }
+                }
+                for value in list_allocations {
+                    self.llvm.build_lifetime_end(value)?;
                 }
             }
-            AstStatement::AllocationStatement(Allocation { name, reference_type }) => {
-                let ty =
-                    llvm_index.find_associated_type(reference_type).expect("Type must exist at this point");
-                let value =
-                    self.llvm.create_entry_local_variable(self.function_context.function, name, &ty)?;
-                self.llvm.generate_variable_initializer(
-                    &llvm_index,
-                    self.index,
-                    (name, reference_type, &statement.location),
-                    value,
-                    None,
-                    &self.create_expr_generator(&llvm_index),
-                )?;
-                llvm_index.associate_loaded_local_variable(
-                    self.function_context.linking_context.get_type_name(),
-                    name,
-                    value,
-                )?;
+            AstStatement::AllocationStatement(Allocation { name, reference_type, .. }) => {
+                // Standalone allocations (e.g. loop bookkeeping temps) stay live until the
+                // end of the function and get no lifetime markers.
+                let (updated_index, _) =
+                    self.generate_allocation(llvm_index, name, reference_type, &statement.location, false)?;
+                llvm_index = updated_index;
             }
             _ => {
                 self.create_expr_generator(&llvm_index).generate_expression(statement)?;
             }
         }
         Ok(llvm_index)
+    }
+
+    /// Generates the stack storage for a lowered `AllocationStatement`, runs its
+    /// initializer at the current insertion point and registers the variable in the
+    /// given index. With `emit_lifetime_start` the slot is marked live before the
+    /// initializer writes to it; the caller is responsible for emitting the matching
+    /// `lifetime.end` once the slot's value is dead.
+    fn generate_allocation(
+        &self,
+        mut llvm_index: LlvmTypedIndex<'b>,
+        name: &str,
+        reference_type: &str,
+        location: &SourceLocation,
+        emit_lifetime_start: bool,
+    ) -> Result<(LlvmTypedIndex<'b>, PointerValue<'b>), CodegenError> {
+        let ty = llvm_index.find_associated_type(reference_type).expect("Type must exist at this point");
+        let value = self.llvm.create_entry_local_variable(self.function_context.function, name, &ty)?;
+        if emit_lifetime_start {
+            self.llvm.build_lifetime_start(value)?;
+        }
+        // Construct the expression generator directly (late-bound lifetimes) instead
+        // of via create_expr_generator, whose `&'a self` receiver would pin the
+        // borrow of `llvm_index` and prevent returning it.
+        let exp_gen = ExpressionCodeGenerator::new(
+            self.llvm,
+            self.index,
+            self.annotations,
+            &llvm_index,
+            self.function_context,
+            self.debug,
+        );
+        self.llvm.generate_variable_initializer(
+            &llvm_index,
+            self.index,
+            (name, reference_type, location),
+            value,
+            None,
+            &exp_gen,
+        )?;
+        llvm_index.associate_loaded_local_variable(
+            self.function_context.linking_context.get_type_name(),
+            name,
+            value,
+        )?;
+        Ok((llvm_index, value))
     }
 
     /// genertes a single statement
