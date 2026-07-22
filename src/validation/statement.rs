@@ -6,7 +6,7 @@ use plc_ast::control_statements::ForLoopStatement;
 use plc_ast::{
     ast::{
         flatten_expression_list, AstNode, AstStatement, BinaryExpression, CallStatement, DirectAccess,
-        DirectAccessType, JumpStatement, Operator, ReferenceAccess, UnaryExpression,
+        DirectAccessType, JumpStatement, Operator, ReferenceAccess, TypeNature, UnaryExpression,
     },
     control_statements::{AstControlStatement, ConditionalBlock},
     literals::{Array, AstLiteral, StringValue},
@@ -70,6 +70,7 @@ pub fn visit_statement<T: AnnotationMap>(
             }
 
             validate_reference_expression(&data.access, validator, context, statement, &data.base);
+            validate_in_out_variable_access(validator, statement, data.base.as_deref(), context);
         }
         AstStatement::BinaryExpression(data) => {
             visit_all_statements!(validator, context, &data.left, &data.right);
@@ -1552,6 +1553,51 @@ fn is_ref_or_adr_call<T: AnnotationMap>(node: &AstNode, context: &ValidationCont
             .is_some_and(|builtin| std::ptr::eq(builtin, ref_builtin))
 }
 
+/// Validates that a `VAR_IN_OUT` variable is not read or written outside of the POU it is
+/// declared in (e.g. `fbInstance.inOutVariable := 1;`). In the instance an in-out variable is a
+/// pointer that is only bound to a target for the duration of a call, so any outside access
+/// dereferences an unbound pointer.
+fn validate_in_out_variable_access<T: AnnotationMap>(
+    validator: &mut Validator,
+    statement: &AstNode,
+    base: Option<&AstNode>,
+    context: &ValidationContext<T>,
+) {
+    let location = statement.get_location();
+    if location.is_internal() {
+        return;
+    }
+
+    // a named argument in a call (`fbInstance(inOutVariable := x)`) is how the variable gets
+    // bound in the first place
+    if context.is_call() && base.is_none() {
+        return;
+    }
+
+    let Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) =
+        context.annotations.get(statement)
+    else {
+        return;
+    };
+
+    if !matches!(argument_type.get_inner(), VariableType::InOut) {
+        return;
+    }
+
+    if !variable_is_in_inherited_or_self_scope(
+        context.qualifier.and_then(|qualifier| context.index.find_pou(qualifier)),
+        context,
+        qualified_name,
+        &location,
+    ) {
+        validator.push_diagnostic(
+            Diagnostic::new("VAR_IN_OUT variables cannot be accessed outside of their scope.")
+                .with_error_code("E037")
+                .with_location(&location),
+        );
+    }
+}
+
 fn variable_is_in_inherited_or_self_scope<T: AnnotationMap>(
     option_pou: Option<&PouIndexEntry>,
     context: &ValidationContext<T>,
@@ -2220,6 +2266,33 @@ fn validate_for_loop<T: AnnotationMap>(
     //       by a VAR_INPUT {ref} function call.
 }
 
+/// Checks whether a generic call argument's `actual_type` satisfies the `generic_nature` it is
+/// bound to, returning the `E062` diagnostic (anchored at `location`) when it does not.
+///
+/// Shared with the aggregate-return lowerer, which must run this check before it rewrites a generic
+/// call to its concrete instantiation (which erases the generic nature this relies on).
+pub(crate) fn evaluate_generic_nature_violation(
+    actual_type: &DataType,
+    type_hint: &DataType,
+    generic_nature: TypeNature,
+    index: &Index,
+    location: &AstNode,
+) -> Option<Diagnostic> {
+    // An INT argument for a REAL generic is allowed, otherwise the nature must match.
+    if actual_type.has_nature(generic_nature, index) || (type_hint.is_real() && actual_type.is_numerical()) {
+        return None;
+    }
+
+    Some(
+        Diagnostic::new(format!(
+            "Invalid type nature for generic argument. {} is no {generic_nature}",
+            actual_type.get_name(),
+        ))
+        .with_error_code("E062")
+        .with_location(location),
+    )
+}
+
 /// Validates that the assigned type and type hint are compatible with the nature for this
 /// statement
 fn validate_type_nature<T: AnnotationMap>(
@@ -2251,19 +2324,14 @@ fn validate_type_nature<T: AnnotationMap>(
         {
             // check if type_hint and actual_type is compatible
             // should be handled by assignment validation
-            if !(actual_type.has_nature(*generic_nature, context.index)
-                // INT parameter for REAL is allowed
-                | (type_hint.is_real() & actual_type.is_numerical()))
-            {
-                validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Invalid type nature for generic argument. {} is no {}",
-                        actual_type.get_name(),
-                        generic_nature
-                    ))
-                    .with_error_code("E062")
-                    .with_location(statement),
-                );
+            if let Some(diagnostic) = evaluate_generic_nature_violation(
+                actual_type,
+                type_hint,
+                *generic_nature,
+                context.index,
+                statement,
+            ) {
+                validator.push_diagnostic(diagnostic);
             }
         }
     }

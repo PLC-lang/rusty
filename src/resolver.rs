@@ -1198,6 +1198,7 @@ impl AnnotationMapImpl {
     pub fn import(&mut self, other: AnnotationMapImpl) {
         self.type_map.extend(other.type_map);
         self.type_hint_map.extend(other.type_hint_map);
+        self.generic_nature_map.extend(other.generic_nature_map);
         self.hidden_function_calls.extend(other.hidden_function_calls);
         self.new_index.import(other.new_index);
     }
@@ -2911,6 +2912,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
             information: crate::typesystem::DataTypeInformation::String {
                 encoding: if is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 },
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
+                declared_with_length: true,
             },
             location: SourceLocation::internal(),
             linkage: plc_ast::ast::LinkageType::Internal,

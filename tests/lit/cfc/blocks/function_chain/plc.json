@@ -1,0 +1,12 @@
+{
+	"name" : "cfc_function_chain",
+	"files" : [
+		"function_chain.cfc",
+		"myAdd.st",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

@@ -3,7 +3,7 @@ use crate::{
         Allocation, ArgumentProperty, Assignment, AstNode, AstStatement, AutoDerefType, BinaryExpression,
         CallStatement, CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration, DefaultValue,
         DirectAccess, EmptyStatement, HardwareAccess, Implementation, Interface, JumpStatement,
-        LabelStatement, MultipliedStatement, Pou, PropertyBlock, RangeStatement, ReferenceAccess,
+        LabelStatement, MultipliedStatement, Pou, PouType, PropertyBlock, RangeStatement, ReferenceAccess,
         ReferenceExpr, UnaryExpression, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     control_statements::{AstControlStatement, ReturnStatement},
@@ -29,6 +29,21 @@ impl AstSerializer<'_> {
             is_in_paren: false,
         };
         serializer.visit(node);
+
+        serializer.result
+    }
+
+    /// Serializes a whole compilation unit back to Structured Text, POU by POU
+    /// (header, variable blocks, body statements, closing keyword).
+    pub fn from_unit(unit: &CompilationUnit) -> String {
+        let mut serializer = AstSerializer {
+            result: String::new(),
+            indent: 0,
+            unit: Some(unit),
+            user_type_context: None,
+            is_in_paren: false,
+        };
+        serializer.visit_compilation_unit(unit);
 
         serializer.result
     }
@@ -100,17 +115,49 @@ impl AstSerializer<'_> {
     }
 }
 
+fn pou_keywords(kind: &PouType) -> (&'static str, &'static str) {
+    match kind {
+        PouType::Program => ("PROGRAM", "END_PROGRAM"),
+        PouType::FunctionBlock => ("FUNCTION_BLOCK", "END_FUNCTION_BLOCK"),
+        PouType::Class => ("CLASS", "END_CLASS"),
+        PouType::Action => ("ACTION", "END_ACTION"),
+        _ => ("FUNCTION", "END_FUNCTION"),
+    }
+}
+
 impl AstVisitor for AstSerializer<'_> {
     fn visit(&mut self, node: &AstNode) {
         node.walk(self)
     }
 
-    fn visit_compilation_unit(&mut self, _: &CompilationUnit) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_compilation_unit(&mut self, unit: &CompilationUnit) {
+        for (index, pou) in unit.pous.iter().enumerate() {
+            if index > 0 {
+                self.result.push_str("\n\n");
+            }
+            self.visit_pou(pou);
+            if let Some(implementation) = unit.implementations.iter().find(|it| it.name == pou.name) {
+                self.visit_implementation(implementation);
+            }
+            self.result.push('\n');
+            self.result.push_str(pou_keywords(&pou.kind).1);
+        }
     }
 
-    fn visit_implementation(&mut self, _: &Implementation) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_implementation(&mut self, implementation: &Implementation) {
+        self.indent += 1;
+        for statement in &implementation.statements {
+            if statement.is_empty_statement() {
+                continue;
+            }
+            self.push_indent();
+            statement.walk(self);
+            // A label reads as `LABEL: name`; an expression list ends its own members.
+            if !statement.is_expression_list() && statement.get_label_name().is_none() {
+                self.result.push(';');
+            }
+        }
+        self.indent -= 1;
     }
 
     fn visit_variable_block(&mut self, variable_block: &VariableBlock) {
@@ -209,8 +256,18 @@ impl AstVisitor for AstSerializer<'_> {
         }
     }
 
-    fn visit_pou(&mut self, _: &Pou) {
-        unimplemented!("for now only interested in individual nodes located in a POU body")
+    fn visit_pou(&mut self, pou: &Pou) {
+        self.result.push_str(pou_keywords(&pou.kind).0);
+        self.result.push(' ');
+        self.result.push_str(&pou.name);
+        if let Some(return_type) = &pou.return_type {
+            self.result.push_str(" : ");
+            self.visit_data_type_declaration(return_type);
+        }
+        for variable_block in &pou.variable_blocks {
+            self.result.push('\n');
+            self.visit_variable_block(variable_block);
+        }
     }
 
     fn visit_empty_statement(&mut self, _stmt: &EmptyStatement, _node: &AstNode) {}
@@ -461,16 +518,30 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_return_statement(&mut self, stmt: &ReturnStatement, _node: &AstNode) {
-        self.result.push_str("RETURN");
-        stmt.walk(self);
-        self.result.push(';');
+        // A CFC return carries a guard condition that has no bare ST syntax, so
+        // render it as the equivalent conditional block.
+        if stmt.condition.is_some() {
+            self.result.push_str("IF ");
+            stmt.walk(self);
+            self.result.push_str(" THEN RETURN; END_IF");
+        } else {
+            self.result.push_str("RETURN");
+        }
     }
 
     fn visit_jump_statement(&mut self, stmt: &JumpStatement, _node: &AstNode) {
-        stmt.walk(self)
+        // A CFC jump carries a guard condition and has no bare ST syntax, so
+        // render it as a conditional GOTO to its target label.
+        self.result.push_str("IF ");
+        stmt.condition.walk(self);
+        self.result.push_str(" THEN GOTO ");
+        stmt.target.walk(self);
     }
 
-    fn visit_label_statement(&mut self, _stmt: &LabelStatement, _node: &AstNode) {}
+    fn visit_label_statement(&mut self, stmt: &LabelStatement, _node: &AstNode) {
+        self.result.push_str("LABEL: ");
+        self.result.push_str(&stmt.name);
+    }
 
     fn visit_allocation(&mut self, stmt: &Allocation, _node: &AstNode) {
         self.result.push_str(&format!("alloca {}: {}", stmt.name, stmt.reference_type));

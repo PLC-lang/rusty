@@ -1,0 +1,12 @@
+{
+	"name" : "cfc_program_call",
+	"files" : [
+		"program_call.cfc",
+		"accumulator.st",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
