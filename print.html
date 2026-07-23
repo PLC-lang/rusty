@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-ea90532d.js";
+            window.path_to_searchindex_js = "searchindex-1c685cc5.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-1c9150eb.js"></script>
+        <script src="toc-9170f667.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2556,6 +2556,16 @@ distinct name.</p>
 <p>A <code>JMP</code> element in a CFC network is not wired to a condition. A conditional jump
 only fires when its incoming value is true, so a jump with nothing connected can
 never be taken and is almost certainly a mistake.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unknown-cfc-block-type"><a class="header" href="#unknown-cfc-block-type">Unknown CFC block type</a></h1>
+<p>A block element in a CFC network calls a POU the project does not declare. The
+call cannot be classified (a function is lowered differently than a program or
+function block), so the block is rejected.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="undeclared-cfc-block-output"><a class="header" href="#undeclared-cfc-block-output">Undeclared CFC block output</a></h1>
+<p>A block element in a CFC network exposes an output pin the called POU does not
+declare. This usually means the diagram is stale: the callee’s signature
+changed after the block was placed.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>

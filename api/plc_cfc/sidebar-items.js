@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["parse_file"],"mod":["lowering","model"]};
+window.SIDEBAR_ITEMS = {"fn":["parse_file","transpile_file"],"mod":["model"]};

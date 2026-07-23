@@ -462,46 +462,46 @@
 <a href=#462 id=462 data-nosnippet>462</a>            .with_location(location)
 <a href=#463 id=463 data-nosnippet>463</a>    }
 <a href=#464 id=464 data-nosnippet>464</a>
-<a href=#465 id=465 data-nosnippet>465</a>    <span class="kw">pub fn </span>disconnected_jump&lt;T&gt;(location: T) -&gt; Diagnostic
+<a href=#465 id=465 data-nosnippet>465</a>    <span class="kw">pub fn </span>unknown_block_type&lt;T&gt;(name: <span class="kw-2">&amp;</span>str, location: T) -&gt; Diagnostic
 <a href=#466 id=466 data-nosnippet>466</a>    <span class="kw">where
 <a href=#467 id=467 data-nosnippet>467</a>        </span>T: Into&lt;SourceLocation&gt;,
 <a href=#468 id=468 data-nosnippet>468</a>    {
-<a href=#469 id=469 data-nosnippet>469</a>        Diagnostic::new(<span class="string">"Jump element is not connected to a condition and can never be taken"</span>)
-<a href=#470 id=470 data-nosnippet>470</a>            .with_error_code(<span class="string">"E145"</span>)
+<a href=#469 id=469 data-nosnippet>469</a>        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Block `{name}` refers to an undeclared POU"</span>))
+<a href=#470 id=470 data-nosnippet>470</a>            .with_error_code(<span class="string">"E146"</span>)
 <a href=#471 id=471 data-nosnippet>471</a>            .with_location(location)
 <a href=#472 id=472 data-nosnippet>472</a>    }
-<a href=#473 id=473 data-nosnippet>473</a>}
-<a href=#474 id=474 data-nosnippet>474</a>
-<a href=#475 id=475 data-nosnippet>475</a><span class="attr">#[cfg(test)]
-<a href=#476 id=476 data-nosnippet>476</a></span><span class="kw">mod </span>tests {
-<a href=#477 id=477 data-nosnippet>477</a>    <span class="kw">use </span>codespan_reporting::files::{Location, SimpleFile};
-<a href=#478 id=478 data-nosnippet>478</a>
-<a href=#479 id=479 data-nosnippet>479</a>    <span class="kw">use </span>crate::{diagnostics::Severity, reporter::clang::ClangFormatDiagnosticReporter};
-<a href=#480 id=480 data-nosnippet>480</a>
-<a href=#481 id=481 data-nosnippet>481</a>    <span class="attr">#[test]
-<a href=#482 id=482 data-nosnippet>482</a>    </span><span class="kw">fn </span>test_build_diagnostic_msg() {
-<a href=#483 id=483 data-nosnippet>483</a>        <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
-<a href=#484 id=484 data-nosnippet>484</a>        <span class="kw">let </span>file = SimpleFile::new(<span class="string">"test.st"</span>.to_string(), <span class="string">"source"</span>.to_string());
-<a href=#485 id=485 data-nosnippet>485</a>        <span class="kw">let </span>start = Location { line_number: <span class="number">4</span>, column_number: <span class="number">1 </span>};
-<a href=#486 id=486 data-nosnippet>486</a>        <span class="kw">let </span>end = Location { line_number: <span class="number">4</span>, column_number: <span class="number">4 </span>};
-<a href=#487 id=487 data-nosnippet>487</a>        <span class="kw">let </span>res = reporter.build_diagnostic_msg(
-<a href=#488 id=488 data-nosnippet>488</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>file),
-<a href=#489 id=489 data-nosnippet>489</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>start),
-<a href=#490 id=490 data-nosnippet>490</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>end),
-<a href=#491 id=491 data-nosnippet>491</a>            <span class="string">"E001"</span>,
-<a href=#492 id=492 data-nosnippet>492</a>            <span class="kw-2">&amp;</span>Severity::Error,
-<a href=#493 id=493 data-nosnippet>493</a>            <span class="string">"This is an error"</span>,
-<a href=#494 id=494 data-nosnippet>494</a>        );
-<a href=#495 id=495 data-nosnippet>495</a>
-<a href=#496 id=496 data-nosnippet>496</a>        <span class="macro">assert_eq!</span>(res, <span class="string">"test.st:4:1:{4:1-4:4}: error[E001]: This is an error"</span>);
-<a href=#497 id=497 data-nosnippet>497</a>    }
+<a href=#473 id=473 data-nosnippet>473</a>
+<a href=#474 id=474 data-nosnippet>474</a>    <span class="kw">pub fn </span>undeclared_block_output&lt;T&gt;(output: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str, location: T) -&gt; Diagnostic
+<a href=#475 id=475 data-nosnippet>475</a>    <span class="kw">where
+<a href=#476 id=476 data-nosnippet>476</a>        </span>T: Into&lt;SourceLocation&gt;,
+<a href=#477 id=477 data-nosnippet>477</a>    {
+<a href=#478 id=478 data-nosnippet>478</a>        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Output `{output}` is not declared by `{name}`"</span>))
+<a href=#479 id=479 data-nosnippet>479</a>            .with_error_code(<span class="string">"E147"</span>)
+<a href=#480 id=480 data-nosnippet>480</a>            .with_location(location)
+<a href=#481 id=481 data-nosnippet>481</a>    }
+<a href=#482 id=482 data-nosnippet>482</a>
+<a href=#483 id=483 data-nosnippet>483</a>    <span class="kw">pub fn </span>disconnected_jump&lt;T&gt;(location: T) -&gt; Diagnostic
+<a href=#484 id=484 data-nosnippet>484</a>    <span class="kw">where
+<a href=#485 id=485 data-nosnippet>485</a>        </span>T: Into&lt;SourceLocation&gt;,
+<a href=#486 id=486 data-nosnippet>486</a>    {
+<a href=#487 id=487 data-nosnippet>487</a>        Diagnostic::new(<span class="string">"Jump element is not connected to a condition and can never be taken"</span>)
+<a href=#488 id=488 data-nosnippet>488</a>            .with_error_code(<span class="string">"E145"</span>)
+<a href=#489 id=489 data-nosnippet>489</a>            .with_location(location)
+<a href=#490 id=490 data-nosnippet>490</a>    }
+<a href=#491 id=491 data-nosnippet>491</a>}
+<a href=#492 id=492 data-nosnippet>492</a>
+<a href=#493 id=493 data-nosnippet>493</a><span class="attr">#[cfg(test)]
+<a href=#494 id=494 data-nosnippet>494</a></span><span class="kw">mod </span>tests {
+<a href=#495 id=495 data-nosnippet>495</a>    <span class="kw">use </span>codespan_reporting::files::{Location, SimpleFile};
+<a href=#496 id=496 data-nosnippet>496</a>
+<a href=#497 id=497 data-nosnippet>497</a>    <span class="kw">use </span>crate::{diagnostics::Severity, reporter::clang::ClangFormatDiagnosticReporter};
 <a href=#498 id=498 data-nosnippet>498</a>
 <a href=#499 id=499 data-nosnippet>499</a>    <span class="attr">#[test]
-<a href=#500 id=500 data-nosnippet>500</a>    </span><span class="kw">fn </span>test_build_diagnostic_msg_equal_start_end() {
+<a href=#500 id=500 data-nosnippet>500</a>    </span><span class="kw">fn </span>test_build_diagnostic_msg() {
 <a href=#501 id=501 data-nosnippet>501</a>        <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
 <a href=#502 id=502 data-nosnippet>502</a>        <span class="kw">let </span>file = SimpleFile::new(<span class="string">"test.st"</span>.to_string(), <span class="string">"source"</span>.to_string());
 <a href=#503 id=503 data-nosnippet>503</a>        <span class="kw">let </span>start = Location { line_number: <span class="number">4</span>, column_number: <span class="number">1 </span>};
-<a href=#504 id=504 data-nosnippet>504</a>        <span class="kw">let </span>end = Location { line_number: <span class="number">4</span>, column_number: <span class="number">1 </span>};
+<a href=#504 id=504 data-nosnippet>504</a>        <span class="kw">let </span>end = Location { line_number: <span class="number">4</span>, column_number: <span class="number">4 </span>};
 <a href=#505 id=505 data-nosnippet>505</a>        <span class="kw">let </span>res = reporter.build_diagnostic_msg(
 <a href=#506 id=506 data-nosnippet>506</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>file),
 <a href=#507 id=507 data-nosnippet>507</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>start),
@@ -511,49 +511,67 @@
 <a href=#511 id=511 data-nosnippet>511</a>            <span class="string">"This is an error"</span>,
 <a href=#512 id=512 data-nosnippet>512</a>        );
 <a href=#513 id=513 data-nosnippet>513</a>
-<a href=#514 id=514 data-nosnippet>514</a>        <span class="macro">assert_eq!</span>(res, <span class="string">"test.st:4:1: error[E001]: This is an error"</span>);
+<a href=#514 id=514 data-nosnippet>514</a>        <span class="macro">assert_eq!</span>(res, <span class="string">"test.st:4:1:{4:1-4:4}: error[E001]: This is an error"</span>);
 <a href=#515 id=515 data-nosnippet>515</a>    }
 <a href=#516 id=516 data-nosnippet>516</a>
 <a href=#517 id=517 data-nosnippet>517</a>    <span class="attr">#[test]
-<a href=#518 id=518 data-nosnippet>518</a>    </span><span class="kw">fn </span>test_build_diagnostic_msg_no_location() {
+<a href=#518 id=518 data-nosnippet>518</a>    </span><span class="kw">fn </span>test_build_diagnostic_msg_equal_start_end() {
 <a href=#519 id=519 data-nosnippet>519</a>        <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
 <a href=#520 id=520 data-nosnippet>520</a>        <span class="kw">let </span>file = SimpleFile::new(<span class="string">"test.st"</span>.to_string(), <span class="string">"source"</span>.to_string());
-<a href=#521 id=521 data-nosnippet>521</a>        <span class="kw">let </span>res = reporter.build_diagnostic_msg(
-<a href=#522 id=522 data-nosnippet>522</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>file),
-<a href=#523 id=523 data-nosnippet>523</a>            <span class="prelude-val">None</span>,
-<a href=#524 id=524 data-nosnippet>524</a>            <span class="prelude-val">None</span>,
-<a href=#525 id=525 data-nosnippet>525</a>            <span class="string">"E001"</span>,
-<a href=#526 id=526 data-nosnippet>526</a>            <span class="kw-2">&amp;</span>Severity::Error,
-<a href=#527 id=527 data-nosnippet>527</a>            <span class="string">"This is an error"</span>,
-<a href=#528 id=528 data-nosnippet>528</a>        );
-<a href=#529 id=529 data-nosnippet>529</a>
-<a href=#530 id=530 data-nosnippet>530</a>        <span class="macro">assert_eq!</span>(res, <span class="string">"test.st: error[E001]: This is an error"</span>);
-<a href=#531 id=531 data-nosnippet>531</a>    }
-<a href=#532 id=532 data-nosnippet>532</a>
-<a href=#533 id=533 data-nosnippet>533</a>    <span class="attr">#[test]
-<a href=#534 id=534 data-nosnippet>534</a>    </span><span class="kw">fn </span>test_build_diagnostic_msg_no_file() {
-<a href=#535 id=535 data-nosnippet>535</a>        <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
-<a href=#536 id=536 data-nosnippet>536</a>        <span class="kw">let </span>start = Location { line_number: <span class="number">4</span>, column_number: <span class="number">1 </span>};
-<a href=#537 id=537 data-nosnippet>537</a>        <span class="kw">let </span>end = Location { line_number: <span class="number">4</span>, column_number: <span class="number">4 </span>};
-<a href=#538 id=538 data-nosnippet>538</a>        <span class="kw">let </span>res = reporter.build_diagnostic_msg(
-<a href=#539 id=539 data-nosnippet>539</a>            <span class="prelude-val">None</span>,
-<a href=#540 id=540 data-nosnippet>540</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>start),
-<a href=#541 id=541 data-nosnippet>541</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>end),
-<a href=#542 id=542 data-nosnippet>542</a>            <span class="string">"E001"</span>,
-<a href=#543 id=543 data-nosnippet>543</a>            <span class="kw-2">&amp;</span>Severity::Error,
-<a href=#544 id=544 data-nosnippet>544</a>            <span class="string">"This is an error"</span>,
-<a href=#545 id=545 data-nosnippet>545</a>        );
-<a href=#546 id=546 data-nosnippet>546</a>
-<a href=#547 id=547 data-nosnippet>547</a>        <span class="macro">assert_eq!</span>(res, <span class="string">"error[E001]: This is an error"</span>);
-<a href=#548 id=548 data-nosnippet>548</a>    }
-<a href=#549 id=549 data-nosnippet>549</a>
-<a href=#550 id=550 data-nosnippet>550</a>    <span class="attr">#[test]
-<a href=#551 id=551 data-nosnippet>551</a>    </span><span class="kw">fn </span>test_build_diagnostic_msg_no_file_no_location() {
-<a href=#552 id=552 data-nosnippet>552</a>        <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
-<a href=#553 id=553 data-nosnippet>553</a>        <span class="kw">let </span>res =
-<a href=#554 id=554 data-nosnippet>554</a>            reporter.build_diagnostic_msg(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="string">"E001"</span>, <span class="kw-2">&amp;</span>Severity::Error, <span class="string">"This is an error"</span>);
-<a href=#555 id=555 data-nosnippet>555</a>
-<a href=#556 id=556 data-nosnippet>556</a>        <span class="macro">assert_eq!</span>(res, <span class="string">"error[E001]: This is an error"</span>);
-<a href=#557 id=557 data-nosnippet>557</a>    }
-<a href=#558 id=558 data-nosnippet>558</a>}
+<a href=#521 id=521 data-nosnippet>521</a>        <span class="kw">let </span>start = Location { line_number: <span class="number">4</span>, column_number: <span class="number">1 </span>};
+<a href=#522 id=522 data-nosnippet>522</a>        <span class="kw">let </span>end = Location { line_number: <span class="number">4</span>, column_number: <span class="number">1 </span>};
+<a href=#523 id=523 data-nosnippet>523</a>        <span class="kw">let </span>res = reporter.build_diagnostic_msg(
+<a href=#524 id=524 data-nosnippet>524</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>file),
+<a href=#525 id=525 data-nosnippet>525</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>start),
+<a href=#526 id=526 data-nosnippet>526</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>end),
+<a href=#527 id=527 data-nosnippet>527</a>            <span class="string">"E001"</span>,
+<a href=#528 id=528 data-nosnippet>528</a>            <span class="kw-2">&amp;</span>Severity::Error,
+<a href=#529 id=529 data-nosnippet>529</a>            <span class="string">"This is an error"</span>,
+<a href=#530 id=530 data-nosnippet>530</a>        );
+<a href=#531 id=531 data-nosnippet>531</a>
+<a href=#532 id=532 data-nosnippet>532</a>        <span class="macro">assert_eq!</span>(res, <span class="string">"test.st:4:1: error[E001]: This is an error"</span>);
+<a href=#533 id=533 data-nosnippet>533</a>    }
+<a href=#534 id=534 data-nosnippet>534</a>
+<a href=#535 id=535 data-nosnippet>535</a>    <span class="attr">#[test]
+<a href=#536 id=536 data-nosnippet>536</a>    </span><span class="kw">fn </span>test_build_diagnostic_msg_no_location() {
+<a href=#537 id=537 data-nosnippet>537</a>        <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
+<a href=#538 id=538 data-nosnippet>538</a>        <span class="kw">let </span>file = SimpleFile::new(<span class="string">"test.st"</span>.to_string(), <span class="string">"source"</span>.to_string());
+<a href=#539 id=539 data-nosnippet>539</a>        <span class="kw">let </span>res = reporter.build_diagnostic_msg(
+<a href=#540 id=540 data-nosnippet>540</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>file),
+<a href=#541 id=541 data-nosnippet>541</a>            <span class="prelude-val">None</span>,
+<a href=#542 id=542 data-nosnippet>542</a>            <span class="prelude-val">None</span>,
+<a href=#543 id=543 data-nosnippet>543</a>            <span class="string">"E001"</span>,
+<a href=#544 id=544 data-nosnippet>544</a>            <span class="kw-2">&amp;</span>Severity::Error,
+<a href=#545 id=545 data-nosnippet>545</a>            <span class="string">"This is an error"</span>,
+<a href=#546 id=546 data-nosnippet>546</a>        );
+<a href=#547 id=547 data-nosnippet>547</a>
+<a href=#548 id=548 data-nosnippet>548</a>        <span class="macro">assert_eq!</span>(res, <span class="string">"test.st: error[E001]: This is an error"</span>);
+<a href=#549 id=549 data-nosnippet>549</a>    }
+<a href=#550 id=550 data-nosnippet>550</a>
+<a href=#551 id=551 data-nosnippet>551</a>    <span class="attr">#[test]
+<a href=#552 id=552 data-nosnippet>552</a>    </span><span class="kw">fn </span>test_build_diagnostic_msg_no_file() {
+<a href=#553 id=553 data-nosnippet>553</a>        <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
+<a href=#554 id=554 data-nosnippet>554</a>        <span class="kw">let </span>start = Location { line_number: <span class="number">4</span>, column_number: <span class="number">1 </span>};
+<a href=#555 id=555 data-nosnippet>555</a>        <span class="kw">let </span>end = Location { line_number: <span class="number">4</span>, column_number: <span class="number">4 </span>};
+<a href=#556 id=556 data-nosnippet>556</a>        <span class="kw">let </span>res = reporter.build_diagnostic_msg(
+<a href=#557 id=557 data-nosnippet>557</a>            <span class="prelude-val">None</span>,
+<a href=#558 id=558 data-nosnippet>558</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>start),
+<a href=#559 id=559 data-nosnippet>559</a>            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>end),
+<a href=#560 id=560 data-nosnippet>560</a>            <span class="string">"E001"</span>,
+<a href=#561 id=561 data-nosnippet>561</a>            <span class="kw-2">&amp;</span>Severity::Error,
+<a href=#562 id=562 data-nosnippet>562</a>            <span class="string">"This is an error"</span>,
+<a href=#563 id=563 data-nosnippet>563</a>        );
+<a href=#564 id=564 data-nosnippet>564</a>
+<a href=#565 id=565 data-nosnippet>565</a>        <span class="macro">assert_eq!</span>(res, <span class="string">"error[E001]: This is an error"</span>);
+<a href=#566 id=566 data-nosnippet>566</a>    }
+<a href=#567 id=567 data-nosnippet>567</a>
+<a href=#568 id=568 data-nosnippet>568</a>    <span class="attr">#[test]
+<a href=#569 id=569 data-nosnippet>569</a>    </span><span class="kw">fn </span>test_build_diagnostic_msg_no_file_no_location() {
+<a href=#570 id=570 data-nosnippet>570</a>        <span class="kw">let </span>reporter = ClangFormatDiagnosticReporter::default();
+<a href=#571 id=571 data-nosnippet>571</a>        <span class="kw">let </span>res =
+<a href=#572 id=572 data-nosnippet>572</a>            reporter.build_diagnostic_msg(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="string">"E001"</span>, <span class="kw-2">&amp;</span>Severity::Error, <span class="string">"This is an error"</span>);
+<a href=#573 id=573 data-nosnippet>573</a>
+<a href=#574 id=574 data-nosnippet>574</a>        <span class="macro">assert_eq!</span>(res, <span class="string">"error[E001]: This is an error"</span>);
+<a href=#575 id=575 data-nosnippet>575</a>    }
+<a href=#576 id=576 data-nosnippet>576</a>}
 </code></pre></div></section></main></body></html>
