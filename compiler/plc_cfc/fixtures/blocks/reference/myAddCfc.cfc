@@ -2,8 +2,7 @@
 <ppx:Function xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="myAddCfc">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>FUNCTION myAddCfc : INT
+            <bmx:TextDeclaration>FUNCTION myAddCfc : INT
     VAR_INPUT
         in1, in2: DINT;
     END_VAR
@@ -11,8 +10,7 @@
     VAR_OUTPUT
         myAddDoubledCfc: DINT;
     END_VAR
-              </content>
-            </textDeclaration>
+              </bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>

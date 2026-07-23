@@ -2,14 +2,12 @@
 <ppx:Program xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="function_void">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>PROGRAM function_void
+            <bmx:TextDeclaration>PROGRAM function_void
     VAR
         localIn : DINT := 3;
         localOut : DINT;
     END_VAR
-</content>
-            </textDeclaration>
+</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>

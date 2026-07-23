@@ -49,7 +49,7 @@ pub struct Data {
     #[serde(rename = "@handleUnknown")]
     pub handle_unknown: Option<String>,
 
-    #[serde(rename = "textDeclaration")]
+    #[serde(rename = "TextDeclaration")]
     pub text_declaration: Option<TextDeclaration>,
 
     #[serde(rename = "EvaluationPriority")]
@@ -61,7 +61,7 @@ pub struct Data {
 
 #[derive(Debug, Deserialize)]
 pub struct TextDeclaration {
-    #[serde(rename = "content")]
+    #[serde(rename = "$text")]
     pub content: String,
 }
 
