@@ -1,0 +1,29 @@
+PROGRAM a
+VAR_INPUT
+    in : DINT;
+END_VAR
+VAR_OUTPUT
+    out : DINT;
+END_VAR
+    out := in + 1;
+END_PROGRAM
+
+PROGRAM b
+VAR_INPUT
+    in : DINT;
+END_VAR
+VAR_OUTPUT
+    out : DINT;
+END_VAR
+    out := in + 1;
+END_PROGRAM
+
+PROGRAM c
+VAR_INPUT
+    in : DINT;
+END_VAR
+VAR_OUTPUT
+    out : DINT;
+END_VAR
+    out := in + 1;
+END_PROGRAM
