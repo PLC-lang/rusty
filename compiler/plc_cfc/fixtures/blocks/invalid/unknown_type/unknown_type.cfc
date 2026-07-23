@@ -2,13 +2,11 @@
 <ppx:Program xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="unknown_type">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>PROGRAM unknown_type
+            <bmx:TextDeclaration>PROGRAM unknown_type
     VAR
         countIn, countOut: DINT;
     END_VAR
-</content>
-            </textDeclaration>
+</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>

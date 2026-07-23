@@ -2,13 +2,11 @@
 <ppx:Program xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="dangling_continuation">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>PROGRAM dangling_continuation
+            <bmx:TextDeclaration>PROGRAM dangling_continuation
     VAR
         foo, bar: DINT;
     END_VAR
-</content>
-            </textDeclaration>
+</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>
