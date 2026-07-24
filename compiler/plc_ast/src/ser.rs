@@ -152,7 +152,8 @@ impl AstVisitor for AstSerializer<'_> {
             }
             self.push_indent();
             statement.walk(self);
-            if !statement.is_expression_list() {
+            // A label reads as `LABEL: name`; an expression list ends its own members.
+            if !statement.is_expression_list() && statement.get_label_name().is_none() {
                 self.result.push(';');
             }
         }
@@ -176,7 +177,7 @@ impl AstVisitor for AstSerializer<'_> {
         variable_block.variables.iter().for_each(|v| {
             self.push_indent();
             self.result.push_str(&format!("{} : ", v.name));
-            v.walk(self);
+            self.visit_variable(v);
             self.result.push(';');
         });
         self.indent -= 1;
@@ -184,7 +185,12 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_variable(&mut self, variable: &Variable) {
-        variable.data_type_declaration.walk(self);
+        self.visit_data_type_declaration(&variable.data_type_declaration);
+
+        if let Some(initializer) = &variable.initializer {
+            self.result.push_str(" := ");
+            initializer.walk(self);
+        }
     }
 
     fn visit_config_variable(&mut self, _: &ConfigVariable) {
@@ -529,10 +535,18 @@ impl AstVisitor for AstSerializer<'_> {
     }
 
     fn visit_jump_statement(&mut self, stmt: &JumpStatement, _node: &AstNode) {
-        stmt.walk(self)
+        // A CFC jump carries a guard condition and has no bare ST syntax, so
+        // render it as a conditional GOTO to its target label.
+        self.result.push_str("IF ");
+        stmt.condition.walk(self);
+        self.result.push_str(" THEN GOTO ");
+        stmt.target.walk(self);
     }
 
-    fn visit_label_statement(&mut self, _stmt: &LabelStatement, _node: &AstNode) {}
+    fn visit_label_statement(&mut self, stmt: &LabelStatement, _node: &AstNode) {
+        self.result.push_str("LABEL: ");
+        self.result.push_str(&stmt.name);
+    }
 
     fn visit_allocation(&mut self, stmt: &Allocation, _node: &AstNode) {
         self.result.push_str(&format!("alloca {}: {}", stmt.name, stmt.reference_type));
@@ -581,5 +595,25 @@ mod tests {
 
         let result = AstSerializer::format(&call);
         assert_eq!(result, "foo(1, 'two', 3, 'four')");
+    }
+
+    #[test]
+    fn variable_with_initializer() {
+        let variable = Variable {
+            name: "foo".to_string(),
+            data_type_declaration: DataTypeDeclaration::reference("DINT", SourceLocation::undefined()),
+            initializer: Some(AstFactory::create_literal(
+                AstLiteral::Integer(3),
+                SourceLocation::undefined(),
+                0,
+            )),
+            address: None,
+            location: SourceLocation::undefined(),
+        };
+        let block = VariableBlock::default().with_variables(vec![variable]);
+
+        let unit = CompilationUnit::new("<test>");
+        let result = AstSerializer::format_variable_block(&block, &unit);
+        assert_eq!(result, "VAR\n    foo : DINT := 3;\nEND_VAR");
     }
 }

@@ -8,6 +8,24 @@ warning[E067]: Implicit downcast from 'LREAL' to 'TIME'.
 29 │     v_time := v_lreal; // valid
    │               ^^^^^^^ Implicit downcast from 'LREAL' to 'TIME'.
 
+warning[E067]: Implicit downcast from 'REAL' to 'TIME'.
+   ┌─ <internal>:30:15
+   │
+30 │     v_time := REAL#2.0; // valid
+   │               ^^^^^^^^ Implicit downcast from 'REAL' to 'TIME'.
+
+warning[E067]: Implicit downcast from 'LTIME' to 'TIME'.
+   ┌─ <internal>:35:15
+   │
+35 │     v_time := v_ltime; // valid
+   │               ^^^^^^^ Implicit downcast from 'LTIME' to 'TIME'.
+
+warning[E067]: Implicit downcast from 'LTIME' to 'TIME'.
+   ┌─ <internal>:36:15
+   │
+36 │     v_time := LTIME#10h20m30s; // valid
+   │               ^^^^^^^^^^^^^^^ Implicit downcast from 'LTIME' to 'TIME'.
+
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'TIME'
    ┌─ <internal>:39:5
    │

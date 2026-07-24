@@ -243,6 +243,13 @@ lazy_static! {
         E139,   Error,      include_str!("./error_codes/E139.md"),  // Linker invocation failed (spawn / cmdline)
         E140,   Error,      include_str!("./error_codes/E140.md"),  // ':=' used for an output parameter
         E141,   Error,      include_str!("./error_codes/E141.md"),  // Member access on a non-auto-deref pointer base
+        E142,   Error,      include_str!("./error_codes/E142.md"),  // Undefined CFC jump target
+        E143,   Warning,    include_str!("./error_codes/E143.md"),  // Unused CFC label
+        E144,   Error,      include_str!("./error_codes/E144.md"),  // Duplicate CFC label
+        E145,   Warning,    include_str!("./error_codes/E145.md"),  // Disconnected CFC jump
+        E146,   Error,      include_str!("./error_codes/E146.md"),  // Unknown CFC block type
+        E147,   Error,      include_str!("./error_codes/E147.md"),  // Undeclared CFC block output
+        E148,   Warning,    include_str!("./error_codes/E148.md"),  // Temporal literal overflow or underflow
     );
 }
 

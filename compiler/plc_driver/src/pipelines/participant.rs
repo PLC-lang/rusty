@@ -367,30 +367,57 @@ impl PipelineParticipantMut for RetainParticipant {
     }
 }
 
-/// Resolves the placeholder types on CFC function-output temporaries. `plc_cfc`
-/// emits temporaries typed `return@<fn>` / `output@<fn>@<pin>` because the
-/// callee's real type is unknown at parse time; once indexed, this rewrites each
-/// to that type and re-indexes so annotation sees the concrete declaration.
-pub struct CfcTypeLowerer {
+/// Transpiles each CFC document post-index via [`plc_cfc::transpile_file`],
+/// swapping the parse step's interface-only unit for the full one; see the
+/// [`plc_cfc`] crate for the pipeline.
+pub struct CfcParticipant {
     ids: IdProvider,
+    sources: Vec<source_code::SourceCode>,
+    diagnostics: Vec<Diagnostic>,
 }
 
-impl CfcTypeLowerer {
-    pub fn new(ids: IdProvider) -> Self {
-        Self { ids }
+impl CfcParticipant {
+    pub fn new(ids: IdProvider, sources: Vec<source_code::SourceCode>) -> Self {
+        Self { ids, sources, diagnostics: Vec::new() }
     }
 }
 
-impl PipelineParticipantMut for CfcTypeLowerer {
+impl PipelineParticipantMut for CfcParticipant {
     fn post_index(&mut self, mut indexed_project: IndexedProject) -> IndexedProject {
-        // Only a project with CFC function-output temporaries has placeholders to
-        // rewrite; when nothing changed (every non-CFC build), keep the index.
-        if !plc_cfc::lowering::resolve(&mut indexed_project.project.units, &indexed_project.index) {
+        // Every non-CFC build: nothing to lower, keep the index.
+        if self.sources.is_empty() {
             return indexed_project;
         }
 
-        // Re-index so the rewritten temporary types reach annotation.
+        for source in &self.sources {
+            // Transpile the document's network against the index.
+            let (unit, diagnostics) =
+                match plc_cfc::transpile_file(source, &indexed_project.index, self.ids.clone()) {
+                    Ok(transpiled) => transpiled,
+                    // A malformed document already aborted the parse step.
+                    Err(diagnostic) => {
+                        self.diagnostics.push(diagnostic);
+                        continue;
+                    }
+                };
+
+            // Stash the diagnostics; they are collected after annotation.
+            self.diagnostics.extend(diagnostics);
+
+            // Swap the full unit in for the parse step's interface-only one.
+            if let Some(interface_only) =
+                indexed_project.project.units.iter_mut().find(|opt| opt.file == unit.file)
+            {
+                *interface_only = unit;
+            }
+        }
+
+        // Re-index so the transpiled bodies and their temporaries reach annotation.
         indexed_project.project.index(self.ids.clone())
+    }
+
+    fn diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
     }
 }
 

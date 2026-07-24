@@ -2,15 +2,13 @@
 <ppx:Program xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="program_mixed">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>PROGRAM program_mixed
+            <bmx:TextDeclaration>PROGRAM program_mixed
 VAR
     seed : DINT;
     p : DINT;
     q : DINT;
     r : DINT;
-END_VAR</content>
-            </textDeclaration>
+END_VAR</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>

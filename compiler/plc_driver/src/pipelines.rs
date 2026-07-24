@@ -344,11 +344,13 @@ impl<T: SourceContainer> BuildPipeline<T> {
     }
 
     pub fn get_default_mut_participants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
-        use participant::{ArrayLowerer, CfcTypeLowerer, InitParticipant};
+        use participant::{ArrayLowerer, CfcParticipant, InitParticipant};
+
+        let cfc_sources = self.context.sources_cfc().cloned().collect();
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
-            Box::new(CfcTypeLowerer::new(self.context.provider())),
+            Box::new(CfcParticipant::new(self.context.provider(), cfc_sources)),
             Box::new(LoopDesugarer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(PolymorphismLowerer::new(

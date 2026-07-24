@@ -115,10 +115,14 @@ define_int_type!(MAX__DINT, MIN__DINT, LIMIT__DINT, i32);
 define_int_type!(MAX__UDINT, MIN__UDINT, LIMIT__UDINT, u32);
 define_int_type!(MAX__LINT, MIN__LINT, LIMIT__LINT, i64);
 define_int_type!(MAX__ULINT, MIN__ULINT, LIMIT__ULINT, u64);
-define_int_type!(MAX__DATE, MIN__DATE, LIMIT__DATE, i64);
-define_int_type!(MAX__DATE_AND_TIME, MIN__DATE_AND_TIME, LIMIT__DATE_AND_TIME, i64);
-define_int_type!(MAX__TIME, MIN__TIME, LIMIT__TIME, i64);
-define_int_type!(MAX__TIME_OF_DAY, MIN__TIME_OF_DAY, LIMIT__TIME_OF_DAY, i64);
+define_int_type!(MAX__DATE, MIN__DATE, LIMIT__DATE, u32);
+define_int_type!(MAX__DATE_AND_TIME, MIN__DATE_AND_TIME, LIMIT__DATE_AND_TIME, u32);
+define_int_type!(MAX__TIME, MIN__TIME, LIMIT__TIME, u32);
+define_int_type!(MAX__TIME_OF_DAY, MIN__TIME_OF_DAY, LIMIT__TIME_OF_DAY, u32);
+define_int_type!(MAX__LDATE, MIN__LDATE, LIMIT__LDATE, i64);
+define_int_type!(MAX__LDATE_AND_TIME, MIN__LDATE_AND_TIME, LIMIT__LDATE_AND_TIME, i64);
+define_int_type!(MAX__LTIME, MIN__LTIME, LIMIT__LTIME, i64);
+define_int_type!(MAX__LTIME_OF_DAY, MIN__LTIME_OF_DAY, LIMIT__LTIME_OF_DAY, i64);
 //Floats
 define_float_type!(MAX__REAL, MIN__REAL, LIMIT__REAL, f32);
 define_float_type!(MAX__LREAL, MIN__LREAL, LIMIT__LREAL, f64);

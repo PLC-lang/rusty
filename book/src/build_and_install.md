@@ -52,6 +52,8 @@ ln -svf /opt/homebrew/opt/llvm@21/bin/FileCheck /opt/homebrew/opt/llvm@21/bin/Fi
 
 Install [Rust](https://www.rust-lang.org/tools/install) and download the appropriate LLVM version from https://github.com/PLC-lang/llvm-package-windows/releases/. Extract it and add the `bin/` directory to your PATH.
 
+Note: Rust will require C++ Build Tools. The recommended way is to install them with a full Visual Studio installation. However, a much faster and easier way is to install the build tools directly. Head over to https://visualstudio.microsoft.com/downloads/, scroll down to "Tools for Visual Studio" and download the binary (https://aka.ms/vs/stable/vs_BuildTools.exe). 
+
 ## Troubleshooting
 
 - The LLVM installation must exactly match the major version of the `llvm-sys` crate due to LLVM's API compatibility guarantees. Currently LLVM 21 is required. See https://crates.io/crates/llvm-sys

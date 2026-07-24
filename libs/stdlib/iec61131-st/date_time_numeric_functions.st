@@ -25,12 +25,12 @@ END_FUNCTION
 * This operator returns the value of adding up two LTIME operands.
 *
 *********************)
+{external}
 FUNCTION ADD_LTIME: LTIME
 VAR_INPUT
     IN1: LTIME;
     IN2: LTIME;
 END_VAR
-    ADD_LTIME := ADD_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of ADD for TOD *)
@@ -62,12 +62,12 @@ END_FUNCTION
 * Panic on overflow
 *
 *********************)
+{external}
 FUNCTION ADD_LTOD_LTIME: LTOD
 VAR_INPUT
     IN1: LTOD;
     IN2: LTIME;
 END_VAR
-    ADD_LTOD_LTIME := ADD_TOD_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of ADD for DT *)
@@ -99,12 +99,12 @@ END_FUNCTION
 * Panic on overflow
 *
 *********************)
+{external}
 FUNCTION ADD_LDT_LTIME: LDT
 VAR_INPUT
     IN1: LDT;
     IN2: LTIME;
 END_VAR
-    ADD_LDT_LTIME := ADD_DT_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for TIME *)
@@ -134,12 +134,12 @@ END_FUNCTION
 * This operator produces the subtraction of two LTIME operands
 *
 *********************)
+{external}
 FUNCTION SUB_LTIME: LTIME
 VAR_INPUT
     IN1: LTIME;
     IN2: LTIME;
 END_VAR
-    SUB_LTIME := SUB_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for DATE *)
@@ -171,12 +171,12 @@ END_FUNCTION
 * Panic on overflow
 *
 *********************)
+{external}
 FUNCTION SUB_LDATE_LDATE: LTIME
 VAR_INPUT
     IN1: LDATE;
     IN2: LDATE;
 END_VAR
-    SUB_LDATE_LDATE := SUB_DATE_DATE(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for TOD and TIME *)
@@ -208,12 +208,12 @@ END_FUNCTION
 * Panic on overflow
 *
 *********************)
+{external}
 FUNCTION SUB_LTOD_LTIME: LTOD
 VAR_INPUT
     IN1: LTOD;
     IN2: LTIME;
 END_VAR
-    SUB_LTOD_LTIME := SUB_TOD_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for TOD *)
@@ -245,12 +245,12 @@ END_FUNCTION
 * Panic on overflow
 *
 *********************)
+{external}
 FUNCTION SUB_LTOD_LTOD: LTIME
 VAR_INPUT
     IN1: LTOD;
     IN2: LTOD;
 END_VAR
-    SUB_LTOD_LTOD := SUB_TOD_TOD(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for DT and TIME *)
@@ -282,12 +282,12 @@ END_FUNCTION
 * Panic on overflow
 *
 *********************)
+{external}
 FUNCTION SUB_LDT_LTIME: LDT
 VAR_INPUT
     IN1: LDT;
     IN2: LTIME;
 END_VAR
-    SUB_LDT_LTIME := SUB_DT_TIME(IN1, IN2);
 END_FUNCTION
 
 (* Specialized implementation of SUB for DT *)
@@ -319,12 +319,12 @@ END_FUNCTION
 * Panic on overflow
 *
 *********************)
+{external}
 FUNCTION SUB_LDT_LDT: LTIME
 VAR_INPUT
     IN1: LDT;
     IN2: LDT;
 END_VAR
-    SUB_LDT_LDT := SUB_DT_DT(IN1, IN2);
 END_FUNCTION
 
 (********************

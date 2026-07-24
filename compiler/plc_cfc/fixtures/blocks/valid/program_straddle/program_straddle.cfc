@@ -2,14 +2,12 @@
 <ppx:Program xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="program_straddle">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>PROGRAM program_straddle
+            <bmx:TextDeclaration>PROGRAM program_straddle
 VAR
     seed : DINT;
     before : DINT;
     after : DINT;
-END_VAR</content>
-            </textDeclaration>
+END_VAR</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>

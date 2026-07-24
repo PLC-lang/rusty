@@ -2,14 +2,12 @@
 <ppx:Program xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="fan_out">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>PROGRAM fan_out
+            <bmx:TextDeclaration>PROGRAM fan_out
 VAR
     src : DINT;
     x : DINT;
     y : DINT;
-END_VAR</content>
-            </textDeclaration>
+END_VAR</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>

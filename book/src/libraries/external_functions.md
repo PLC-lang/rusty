@@ -19,6 +19,58 @@ At compilation time, the function `log` will be defined as an externally availab
 
 > Note: At linking time, a `log` function with a compatible signature must be available on the system.
 
+## Generic Functions
+
+A `FUNCTION` can be made generic by declaring one or more type parameters with a
+type-nature constraint, e.g. `<T: ANY_INT>`. The type parameters may be used as the type
+of inputs, outputs and the return value:
+
+```iecst
+FUNCTION MAX <T: ANY_ELEMENTARY> : T
+VAR_INPUT
+    in1 : T;
+    in2 : T;
+END_VAR
+END_FUNCTION
+```
+
+A generic function is never called directly. Every call is resolved to a concrete
+*monomorphization* whose name is the generic function's name followed by `__<TYPE>` for
+the resolved type argument. For example, `MAX(aDint, bDint)` resolves to `MAX__DINT`.
+
+The compiler does not synthesize the body of a monomorphization; each one must be
+*provided*, as one of:
+
+- an ordinary `FUNCTION` with the mangled name (an ST body),
+- an `{external}` declaration of the mangled name (implemented elsewhere, e.g. in C or
+  Rust, resolved at link time), or
+- a compiler builtin.
+
+Calling a generic with a type for which no monomorphization is provided is reported as an
+unresolved reference (`E048`).
+
+### Monomorphizations returning aggregate types
+
+When a generic function returns an aggregate type (`STRING`, `WSTRING`, an array or a
+struct), its monomorphization must be **declared in `ST`** — either as a body or as an
+`{external}` declaration. A symbol that exists only at link time (with no `ST`
+declaration) is enough for a scalar return, but not for an aggregate return: an
+aggregate-returning generic call whose monomorphization is not declared is reported as
+`E048` at compile time rather than failing at link time or run time.
+
+For example, the standard `TO_STRING <T: ANY> : STRING` conversion declares a
+monomorphization for every supported source type (`TO_STRING__DINT`, `TO_STRING__REAL`,
+…). Calling `TO_STRING` with a type that has no such declaration is a compile error:
+
+```iecst
+TYPE Point : STRUCT x, y : DINT; END_STRUCT END_TYPE
+
+FUNCTION main : DINT
+VAR s : STRING; p : Point; END_VAR
+    s := TO_STRING(p);   // error[E048]: Could not resolve reference to TO_STRING__Point
+END_FUNCTION
+```
+
 ## Calling C functions
 
 `ST` code can call into foreign functions natively.

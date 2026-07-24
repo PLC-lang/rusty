@@ -8,8 +8,8 @@ error[E062]: Invalid type nature for generic argument. TIME is no ANY_SIGNED
 3 │         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. TIME is no ANY_SIGNED
 
-error[E062]: Invalid type nature for generic argument. TIME is no ANY_SIGNED
+error[E062]: Invalid type nature for generic argument. LTIME is no ANY_SIGNED
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
-  │                                                           ^ Invalid type nature for generic argument. TIME is no ANY_SIGNED
+  │                                                           ^ Invalid type nature for generic argument. LTIME is no ANY_SIGNED
