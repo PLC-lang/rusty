@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use plc::typesystem::{get_builtin_types, DataType, DINT_TYPE, LWORD_TYPE};
+use plc::{
+    index::Index,
+    typesystem::{get_builtin_types, DataType, DINT_TYPE, LWORD_TYPE},
+};
 use plc_ast::ast::{
     self, ArgumentProperty, CompilationUnit, Identifier, Implementation, LinkageType, Pou, PouType,
     UserTypeDeclaration, VariableBlock, VariableBlockType,
@@ -28,6 +31,7 @@ pub struct GeneratedHeaderForC {
     pub file_information: HeaderFileInformation,
     contents: String,
     pub template_data: TemplateData,
+    diagnostics: Vec<Diagnostic>,
 }
 
 impl Default for GeneratedHeaderForC {
@@ -48,13 +52,17 @@ impl GeneratedHeader for GeneratedHeaderForC {
         &self.contents
     }
 
-    fn prepare_template_data(&mut self, compilation_unit: &CompilationUnit) {
+    fn prepare_template_data(&mut self, compilation_unit: &CompilationUnit, index: &Index) {
         let builtin_types = get_builtin_types();
 
-        self.prepare_global_variables(compilation_unit, &builtin_types);
-        self.prepare_user_types(compilation_unit, &builtin_types);
-        self.prepare_functions(compilation_unit, &builtin_types);
+        self.prepare_global_variables(compilation_unit, &builtin_types, index);
+        self.prepare_user_types(compilation_unit, &builtin_types, index);
+        self.prepare_functions(compilation_unit, &builtin_types, index);
         self.resolve_alias_dependencies();
+    }
+
+    fn take_diagnostics(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(&mut self.diagnostics)
     }
 
     fn generate_headers(&mut self) -> Result<(), Diagnostic> {
@@ -95,11 +103,17 @@ impl GeneratedHeaderForC {
             file_information: HeaderFileInformation::new(),
             template_data: TemplateData::new(),
             contents: String::new(),
+            diagnostics: Vec::new(),
         }
     }
 
     /// Populates the self scoped [TemplateData] instance with the user types that should be added to the generated header file
-    fn prepare_user_types(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
+    fn prepare_user_types(
+        &mut self,
+        compilation_unit: &CompilationUnit,
+        builtin_types: &[DataType],
+        index: &Index,
+    ) {
         for user_type in &compilation_unit.user_types {
             if user_type.linkage.is_external_or_included() {
                 continue;
@@ -110,12 +124,18 @@ impl GeneratedHeaderForC {
                 builtin_types,
                 &compilation_unit.user_types,
                 &compilation_unit.pous,
+                index,
             );
         }
     }
 
     /// Populates the self scoped [TemplateData] instance with the global variables that should be added to the generated header file
-    fn prepare_global_variables(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
+    fn prepare_global_variables(
+        &mut self,
+        compilation_unit: &CompilationUnit,
+        builtin_types: &[DataType],
+        index: &Index,
+    ) {
         self.template_data.global_variables = self.get_variables_from_variable_blocks(
             &compilation_unit.global_vars,
             builtin_types,
@@ -123,11 +143,17 @@ impl GeneratedHeaderForC {
             &compilation_unit.user_types,
             (&compilation_unit.pous, None),
             false,
+            index,
         );
     }
 
     /// Populates the self scoped [TemplateData] instance with the functions that should be added to the generated header file
-    fn prepare_functions(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
+    fn prepare_functions(
+        &mut self,
+        compilation_unit: &CompilationUnit,
+        builtin_types: &[DataType],
+        index: &Index,
+    ) {
         for pou in &compilation_unit.pous {
             if matches!(pou.kind, PouType::Init | PouType::ProjectInit) {
                 continue;
@@ -143,12 +169,19 @@ impl GeneratedHeaderForC {
                         &compilation_unit.user_types,
                         builtin_types,
                         &compilation_unit.pous,
+                        index,
                     ) {
                         self.template_data.functions.push(function);
                     }
                 }
                 PouType::FunctionBlock => {
-                    self.prepare_function_block(pou, compilation_unit, builtin_types, &compilation_unit.pous);
+                    self.prepare_function_block(
+                        pou,
+                        compilation_unit,
+                        builtin_types,
+                        &compilation_unit.pous,
+                        index,
+                    );
                 }
                 PouType::Program => {
                     let program_name = pou.name.to_string();
@@ -161,7 +194,13 @@ impl GeneratedHeaderForC {
                         variable_type: VariableType::Default,
                     });
 
-                    self.prepare_function_block(pou, compilation_unit, builtin_types, &compilation_unit.pous);
+                    self.prepare_function_block(
+                        pou,
+                        compilation_unit,
+                        builtin_types,
+                        &compilation_unit.pous,
+                        index,
+                    );
                 }
                 PouType::Method { parent, .. } => {
                     let type_info = &self.get_type_name_for_type(
@@ -190,6 +229,7 @@ impl GeneratedHeaderForC {
                         &compilation_unit.user_types,
                         (&compilation_unit.pous, Some(&pou.kind)),
                         true,
+                        index,
                     ));
 
                     self.template_data.functions.push(Function {
@@ -228,6 +268,7 @@ impl GeneratedHeaderForC {
         user_types: &[UserTypeDeclaration],
         builtin_types: &[DataType],
         pous: &Vec<Pou>,
+        index: &Index,
     ) -> Option<Function> {
         match pou.kind {
             PouType::Function => {
@@ -248,6 +289,7 @@ impl GeneratedHeaderForC {
                     user_types,
                     (pous, Some(&pou.kind)),
                     true,
+                    index,
                 );
 
                 Some(Function {
@@ -306,6 +348,7 @@ impl GeneratedHeaderForC {
         builtin_types: &[DataType],
         user_types: &[UserTypeDeclaration],
         pous: &Vec<Pou>,
+        index: &Index,
     ) {
         if !self.user_type_can_be_transformed_for_header(user_type, builtin_types) {
             return;
@@ -319,6 +362,7 @@ impl GeneratedHeaderForC {
                     false,
                     user_types,
                     pous,
+                    index,
                 );
 
                 self.template_data.user_defined_types.structs.push(UserType {
@@ -359,17 +403,15 @@ impl GeneratedHeaderForC {
                     builtin_types,
                 );
 
-                if let Some(variable_type) = determine_array_type(bounds) {
-                    self.template_data.user_defined_types.aliases.push(Variable {
-                        data_type: type_information.get_type_name(),
-                        name: name.clone().unwrap_or_default(),
-                        variable_type,
-                    });
-                } else {
-                    log::warn!(
-                        "Array type cannot be determined for array with name: {} but none found!",
-                        name.clone().unwrap_or_default()
-                    )
+                match determine_array_type(bounds, index) {
+                    Ok(variable_type) => {
+                        self.template_data.user_defined_types.aliases.push(Variable {
+                            data_type: type_information.get_type_name(),
+                            name: name.clone().unwrap_or_default(),
+                            variable_type,
+                        });
+                    }
+                    Err(diagnostic) => self.diagnostics.push(diagnostic),
                 }
             }
             ast::DataType::PointerType { name, referenced_type, .. } => {
@@ -392,13 +434,16 @@ impl GeneratedHeaderForC {
                     variable_type: VariableType::Default,
                 });
             }
-            ast::DataType::StringType { name, is_wide, size } => {
-                self.template_data.user_defined_types.aliases.push(Variable {
-                    data_type: self.get_type_name_for_string(is_wide),
-                    name: name.clone().unwrap_or_default(),
-                    variable_type: VariableType::Array(extract_string_size(size)),
-                });
-            }
+            ast::DataType::StringType { name, is_wide, size } => match extract_string_size(size, index) {
+                Ok(size) => {
+                    self.template_data.user_defined_types.aliases.push(Variable {
+                        data_type: self.get_type_name_for_string(is_wide),
+                        name: name.clone().unwrap_or_default(),
+                        variable_type: VariableType::Array(size),
+                    });
+                }
+                Err(diagnostic) => self.diagnostics.push(diagnostic),
+            },
             ast::DataType::SubRangeType { name, referenced_type, .. } => {
                 let type_information = self.get_type_name_for_type(
                     &ExtendedTypeName {
@@ -447,6 +492,7 @@ impl GeneratedHeaderForC {
         compilation_unit: &CompilationUnit,
         builtin_types: &[DataType],
         pous: &Vec<Pou>,
+        index: &Index,
     ) {
         let type_info = &self.get_type_name_for_type(
             &get_type_from_data_type_decleration(&pou.return_type, false),
@@ -470,6 +516,7 @@ impl GeneratedHeaderForC {
             &compilation_unit.user_types,
             (pous, Some(&pou.kind)),
             true,
+            index,
         );
 
         if let Some(super_class) = &pou.super_class {
@@ -535,6 +582,7 @@ impl GeneratedHeaderForC {
     /// ---
     ///
     /// Might return an empty [Vec<Variable>] if no variables are found within the variable blocks.
+    #[allow(clippy::too_many_arguments)]
     fn get_variables_from_variable_blocks(
         &mut self,
         variable_blocks: &[VariableBlock],
@@ -543,6 +591,7 @@ impl GeneratedHeaderForC {
         user_types: &[UserTypeDeclaration],
         (pous, pou_type): (&Vec<Pou>, Option<&PouType>),
         include_external: bool,
+        index: &Index,
     ) -> Vec<Variable> {
         let mut variables: Vec<Variable> = Vec::new();
 
@@ -565,6 +614,7 @@ impl GeneratedHeaderForC {
                     is_reference,
                     user_types,
                     pous,
+                    index,
                 ));
             }
         }
@@ -585,6 +635,7 @@ impl GeneratedHeaderForC {
         is_reference: bool,
         user_types: &[UserTypeDeclaration],
         pous: &Vec<Pou>,
+        index: &Index,
     ) -> Vec<Variable> {
         let mut variables: Vec<Variable> = Vec::new();
         let mut reference_symbol = if is_reference { self.get_reference_symbol() } else { String::new() };
@@ -625,6 +676,7 @@ impl GeneratedHeaderForC {
                             Some(&String::from(variable.get_name())),
                             Some(&type_name),
                             user_types,
+                            index,
                         ) {
                             // Function pointers
                             let data_type_with_no_reference_symbol = value.data_type.replace("*", "");
@@ -633,7 +685,7 @@ impl GeneratedHeaderForC {
 
                             if let Some(pou) = option_pou {
                                 if let Some(function) =
-                                    self.get_function(pou, user_types, builtin_types, pous)
+                                    self.get_function(pou, user_types, builtin_types, pous, index)
                                 {
                                     let prototype_name = format!("{}_ptr", function.name);
                                     let function_pointer_name = format!(
@@ -799,6 +851,7 @@ impl GeneratedHeaderForC {
         field_name_override: Option<&String>,
         type_name_override: Option<&String>,
         user_types: &[UserTypeDeclaration],
+        index: &Index,
     ) -> Option<Variable> {
         // We generally want to skip the declaration of user types that are only internally relevant
         if let Some(data_type_name) = user_type.data_type.get_name() {
@@ -840,11 +893,17 @@ impl GeneratedHeaderForC {
                     None
                 }
             }
-            ast::DataType::StringType { name, size, is_wide } => Some(Variable {
-                name: coalesce_field_name_override_with_default(name, field_name_override),
-                data_type: self.get_type_name_for_string(is_wide),
-                variable_type: VariableType::Array(extract_string_size(size)),
-            }),
+            ast::DataType::StringType { name, size, is_wide } => match extract_string_size(size, index) {
+                Ok(size) => Some(Variable {
+                    name: coalesce_field_name_override_with_default(name, field_name_override),
+                    data_type: self.get_type_name_for_string(is_wide),
+                    variable_type: VariableType::Array(size),
+                }),
+                Err(diagnostic) => {
+                    self.diagnostics.push(diagnostic);
+                    None
+                }
+            },
             ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
                 // The assumption here is that the referenced type has been given a name already by the parser
                 // As a sanity check we will return "None" and log an error if no name for this referenced type is found
@@ -859,13 +918,14 @@ impl GeneratedHeaderForC {
                         builtin_types,
                     );
 
-                    if let Some(variable_type) = determine_array_type(bounds) {
-                        Some(Variable { name, data_type: type_info.get_type_name(), variable_type })
-                    } else {
-                        log::warn!(
-                            "Array type cannot be determined for array with name: {name} but none found!"
-                        );
-                        None
+                    match determine_array_type(bounds, index) {
+                        Ok(variable_type) => {
+                            Some(Variable { name, data_type: type_info.get_type_name(), variable_type })
+                        }
+                        Err(diagnostic) => {
+                            self.diagnostics.push(diagnostic);
+                            None
+                        }
                     }
                 } else {
                     log::warn!("Referenced type expected for array with name: {name} but none found!");
@@ -887,6 +947,7 @@ impl GeneratedHeaderForC {
                             field_name_override,
                             type_name_override,
                             user_types,
+                            index,
                         ),
                         _ => {
                             let type_info = self.get_type_name_for_type(
