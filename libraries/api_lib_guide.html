@@ -35,10 +35,10 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-1c685cc5.js";
+            window.path_to_searchindex_js = "../searchindex-2b3b4004.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-9170f667.js"></script>
+        <script src="../toc-7e999a1e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -384,17 +384,17 @@ To stay standard compliant, an API/Library should try and follow these guideline
 <tr><td>ULINT</td><td>uint64_t</td><td>64</td><td></td></tr>
 <tr><td>REAL</td><td>float_t</td><td>32</td><td></td></tr>
 <tr><td>LREAL</td><td>double_t</td><td>64</td><td></td></tr>
-<tr><td>TIME</td><td>time_t</td><td>64</td><td>Note that all time and date types are 64 bit</td></tr>
+<tr><td>TIME</td><td>time_t</td><td>32</td><td>Short TIME/TOD types use 32-bit milliseconds</td></tr>
 <tr><td>LTIME</td><td>time_t</td><td>64</td><td></td></tr>
-<tr><td>DATE</td><td>time_t</td><td>64</td><td></td></tr>
+<tr><td>DATE</td><td>time_t</td><td>32</td><td>Short DATE/DT types use 32-bit seconds</td></tr>
 <tr><td>LDATE</td><td>time_t</td><td>64</td><td></td></tr>
-<tr><td>DATE_AND_TIME</td><td>time_t</td><td>64</td><td></td></tr>
+<tr><td>DATE_AND_TIME</td><td>time_t</td><td>32</td><td></td></tr>
 <tr><td>LDATE_AND_TIME</td><td>time_t</td><td>64</td><td></td></tr>
-<tr><td>DT</td><td>time_t</td><td>64</td><td></td></tr>
+<tr><td>DT</td><td>time_t</td><td>32</td><td></td></tr>
 <tr><td>LDT</td><td>time_t</td><td>64</td><td></td></tr>
-<tr><td>TIME_OF_DAY</td><td>time_t</td><td>64</td><td></td></tr>
+<tr><td>TIME_OF_DAY</td><td>time_t</td><td>32</td><td></td></tr>
 <tr><td>LTIME_OF_DAY</td><td>time_t</td><td>64</td><td></td></tr>
-<tr><td>TOD</td><td>time_t</td><td>64</td><td></td></tr>
+<tr><td>TOD</td><td>time_t</td><td>32</td><td></td></tr>
 <tr><td>LTOD</td><td>time_t</td><td>64</td><td></td></tr>
 <tr><td>POINTER TO type</td><td>*type</td><td>64</td><td>The Pointer size is equivalent to <code>LWORD</code> and not <code>DWORD</code></td></tr>
 <tr><td>REF_TO type</td><td>*type</td><td>64</td><td>Prefer this type to <code>POINTER TO</code> for standard compliance</td></tr>
@@ -479,7 +479,7 @@ pub struct myStruct {
     // Initialize members here
     fb_instance-&gt;a = 1;
     fb_instance-&gt;b = 2;
-    
+
     // ...perform any other needed initialization
 }
 </code></pre>

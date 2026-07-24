@@ -35,10 +35,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-1c685cc5.js";
+            window.path_to_searchindex_js = "searchindex-2b3b4004.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-9170f667.js"></script>
+        <script src="toc-7e999a1e.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -261,18 +261,23 @@ When declaring a <code>WSTRING</code>, the length-attribute is optional. The def
 <tr><th>Type name</th><th>Size</th><th>Internally stored as</th></tr>
 </thead>
 <tbody>
-<tr><td>TIME</td><td>64 bit</td><td>Timespan in nanoseconds</td></tr>
-<tr><td>TIME_OF_DAY</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
-<tr><td>DATE</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
-<tr><td>DATE_AND_TIME</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>TIME</td><td>32 bit</td><td>Unsigned milliseconds</td></tr>
+<tr><td>TIME_OF_DAY</td><td>32 bit</td><td>Unsigned milliseconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>DATE</td><td>32 bit</td><td>Unsigned seconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>DATE_AND_TIME</td><td>32 bit</td><td>Unsigned seconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>LTIME</td><td>64 bit</td><td>Nanoseconds</td></tr>
+<tr><td>LTIME_OF_DAY</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>LDATE</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
+<tr><td>LDATE_AND_TIME</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 </tbody>
 </table>
 </div>
-<p>Note that RuSTy already treats <code>TIME</code>, <code>TIME_OF_DAY</code>, <code>DATE</code> and <code>DATE_AND_TIME</code> as 64 bit numbers.
-Therefore the long pendants <code>LTIME</code>, <code>LTOD</code>, <code>LDATE</code> and <code>LDT</code> are mere aliases to the original types.</p>
+<p>RuSTy treats the short date/time family (<code>TIME</code>, <code>TIME_OF_DAY</code>, <code>DATE</code>, <code>DATE_AND_TIME</code>) as 32-bit unsigned values.
+Short <code>TIME</code>/<code>TOD</code> use milliseconds, while short <code>DATE</code>/<code>DT</code> use seconds.
+The long family (<code>LTIME</code>, <code>LTOD</code>, <code>LDATE</code>, <code>LDT</code>) remains 64-bit nanosecond precision.</p>
 <h3 id="date"><a class="header" href="#date">DATE</a></h3>
 <p>The <code>DATE</code> datatype is used to represent a Date in the Gregorian Calendar.
-Such a value is stored as an i64 with a precision in nanoseconds and denotes the number of nanoseconds
+Such a value is stored as a <code>u32</code> with a precision in seconds and denotes the number of seconds
 that have elapsed since January 1, 1970 UTC not counting leap seconds.
 DATE literals start with <code>DATE#</code> or <code>D#</code> followed by a date in the format of <code>yyyy-mm-dd</code>.</p>
 <p>Examples:</p>
@@ -283,8 +288,8 @@ DATE literals start with <code>DATE#</code> or <code>D#</code> followed by a dat
 </ul>
 <h3 id="date_and_time"><a class="header" href="#date_and_time">DATE_AND_TIME</a></h3>
 <p>The <code>DATE_AND_TIME</code> datatype is used to represent a certain point in time in the Gregorian Calendar.
-Such a value is stored as an <code>i64</code> with a precision in nanoseconds and denotes the
-number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Such a value is stored as a <code>u32</code> with a precision in seconds and denotes the
+number of seconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
 DATE_AND_TIME literals start with <code>DATE_AND_TIME#</code> or <code>DT#</code> followed by a date and time in the
 format of <code>yyyy-mm-dd-hh:mm:ss</code>.</p>
 <p>Note that only the seconds-segment can have a fraction denoting the milliseconds.</p>
@@ -296,23 +301,23 @@ format of <code>yyyy-mm-dd-hh:mm:ss</code>.</p>
 </ul>
 <h3 id="time_of_day"><a class="header" href="#time_of_day">TIME_OF_DAY</a></h3>
 <p>The <code>TIME_OF_DAY</code> datatype is used to represent a specific moment in time in a day.
-Such a value is stored as an <code>i64</code> value with a precision in nanoseconds and denotes the
-number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Such a value is stored as a <code>u32</code> value with a precision in milliseconds and denotes the
+number of milliseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
 Hence this value is stored as a <code>DATE_AND_TIME</code> with the day fixed to 1970-01-01.
 <code>TIME_OF_DAY</code> literals start with <code>TIME_OF_DAY#</code> or <code>TOD#</code> followed by a time in the
 format of <code>hh:mm:ss</code>.</p>
-<p>Note that only the seconeds-segment can have a fraction denoting the milliseconds.</p>
+<p>Note that only the seconds-segment can have a fraction denoting the milliseconds.</p>
 <p>Examples:</p>
 <ul>
 <li><code>t1 : TIME_OF_DAY := TIME_OF_DAY#14:20:10.25;</code></li>
-<li><code>t2 : TIME_OF_DAY := TIME_OF_DY#0:00:1;</code></li>
+<li><code>t2 : TIME_OF_DAY := TIME_OF_DAY#0:00:1;</code></li>
 <li><code>t3 : TIME_OF_DAY := TOD#23:59:59.999;</code></li>
 </ul>
 <h3 id="time"><a class="header" href="#time">TIME</a></h3>
 <p>The <code>TIME</code> datatype is used to represent a time-span.
-A <code>TIME</code> value is stored as an <code>i64</code> value with a precision in nanoseconds.
-TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <code>TIME</code> segements.</p>
-<p>Supported segements are:</p>
+A <code>TIME</code> value is stored as a <code>u32</code> value with a precision in milliseconds.
+TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <code>TIME</code> segments.</p>
+<p>Supported segments are:</p>
 <ul>
 <li><code>d</code> … <code>f64</code> days</li>
 <li><code>h</code> … <code>f64</code> hours</li>
@@ -328,6 +333,65 @@ TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <
 <li><code>t1 : TIME := TIME#2d4h6m8s10ms;</code></li>
 <li><code>t2 : TIME := T#2d4.2h;</code></li>
 <li><code>t3 : TIME := T#-10s4ms16ns;</code></li>
+</ul>
+<h3 id="ldate"><a class="header" href="#ldate">LDATE</a></h3>
+<p>The <code>LDATE</code> datatype is used to represent a Date in the Gregorian Calendar.
+Such a value is stored as an <code>i64</code> with a precision in nanoseconds and denotes the number of nanoseconds
+that have elapsed since January 1, 1970 UTC not counting leap seconds.
+LDATE literals start with <code>LDATE#</code> or <code>LD#</code> followed by a date in the format of <code>yyyy-mm-dd</code>.</p>
+<p>Examples:</p>
+<ul>
+<li><code>d1 : LDATE := LDATE#2021-05-02;</code></li>
+<li><code>d2 : LDATE := LDATE#1-12-24;</code></li>
+<li><code>d3 : LDATE := LD#2000-1-1;</code></li>
+</ul>
+<h3 id="ldate_and_time"><a class="header" href="#ldate_and_time">LDATE_AND_TIME</a></h3>
+<p>The <code>LDATE_AND_TIME</code> datatype is used to represent a certain point in time in the Gregorian Calendar.
+Such a value is stored as an <code>i64</code> with a precision in nanoseconds and denotes the
+number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+LDATE_AND_TIME literals start with <code>LDATE_AND_TIME#</code> or <code>LDT#</code> followed by a date and time in the
+format of <code>yyyy-mm-dd-hh:mm:ss</code>.</p>
+<p>Note that only the seconds-segment can have a fraction denoting the milliseconds.</p>
+<p>Examples:</p>
+<ul>
+<li><code>d1 : LDATE_AND_TIME := LDATE_AND_TIME#2021-05-02-14:20:10.25;</code></li>
+<li><code>d2 : LDATE_AND_TIME := LDATE_AND_TIME#1-12-24-00:00:1;</code></li>
+<li><code>d3 : LDATE_AND_TIME := LDT#1999-12-31-23:59:59.999;</code></li>
+</ul>
+<h3 id="ltime_of_day"><a class="header" href="#ltime_of_day">LTIME_OF_DAY</a></h3>
+<p>The <code>LTIME_OF_DAY</code> datatype is used to represent a specific moment in time in a day.
+Such a value is stored as an <code>i64</code> value with a precision in nanoseconds and denotes the
+number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Hence this value is stored as a <code>LDATE_AND_TIME</code> with the day fixed to 1970-01-01.
+<code>LTIME_OF_DAY</code> literals start with <code>LTIME_OF_DAY#</code> or <code>LTOD#</code> followed by a time in the
+format of <code>hh:mm:ss</code>.</p>
+<p>Note that only the seconds-segment can have a fraction denoting the milliseconds.</p>
+<p>Examples:</p>
+<ul>
+<li><code>t1 : LTIME_OF_DAY := LTIME_OF_DAY#14:20:10.25;</code></li>
+<li><code>t2 : LTIME_OF_DAY := LTIME_OF_DAY#0:00:1;</code></li>
+<li><code>t3 : LTIME_OF_DAY := LTOD#23:59:59.999;</code></li>
+</ul>
+<h3 id="ltime"><a class="header" href="#ltime">LTIME</a></h3>
+<p>The <code>LTIME</code> datatype is used to represent a time-span.
+A <code>LTIME</code> value is stored as an <code>i64</code> value with a precision in nanoseconds.
+LTIME literals start with <code>LTIME#</code> or <code>LT#</code> followed by the <code>LTIME</code> segments.</p>
+<p>Supported segments are:</p>
+<ul>
+<li><code>d</code> … <code>f64</code> days</li>
+<li><code>h</code> … <code>f64</code> hours</li>
+<li><code>m</code> … <code>f64</code>minutes</li>
+<li><code>s</code> … <code>f64</code> seconds</li>
+<li><code>ms</code> … <code>f64</code> milliseconds</li>
+<li><code>us</code> … <code>f64</code> microseconds</li>
+<li><code>ns</code> … <code>u32</code> nanaoseconds</li>
+</ul>
+<p>Note that only the last segment of a <code>LTIME</code> literal can have a fraction.</p>
+<p>Examples:</p>
+<ul>
+<li><code>t1 : LTIME := LTIME#2d4h6m8s10ms;</code></li>
+<li><code>t2 : LTIME := LT#2d4.2h;</code></li>
+<li><code>t3 : LTIME := LT#-10s4ms16ns;</code></li>
 </ul>
 <h2 id="other-types"><a class="header" href="#other-types">Other types</a></h2>
 <p>The <code>BOOL</code> type can either be assigned <code>TRUE</code> or <code>FALSE</code>.
