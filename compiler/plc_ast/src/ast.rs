@@ -1224,11 +1224,16 @@ impl Debug for AstNode {
             AstStatement::LabelStatement(LabelStatement { name, .. }) => {
                 f.debug_struct("LabelStatement").field("name", name).finish()
             }
-            AstStatement::AllocationStatement(Allocation { name, reference_type }) => f
-                .debug_struct("Allocation")
-                .field("name", name)
-                .field("reference_type", reference_type)
-                .finish(),
+            AstStatement::AllocationStatement(Allocation { name, reference_type, statement_scoped }) => {
+                let mut out = f.debug_struct("Allocation");
+                out.field("name", name).field("reference_type", reference_type);
+                // Only surface the exceptional pinned case; the common statement-scoped
+                // allocation keeps its compact debug output.
+                if !statement_scoped {
+                    out.field("statement_scoped", statement_scoped);
+                }
+                out.finish()
+            }
         }
     }
 }
@@ -2308,6 +2313,13 @@ pub struct LabelStatement {
 pub struct Allocation {
     pub name: String,
     pub reference_type: String,
+    /// `true` when the allocated value is dead once the enclosing (lowered) statement
+    /// completes — codegen may then bracket it with `llvm.lifetime` markers and the
+    /// aggregate-type lowering may hand the slot to a later statement. `false` pins the
+    /// slot for the whole function: loop bookkeeping values cross iterations, and temps
+    /// whose address escapes the statement (`ADR`/`REF` arguments, interface fat-pointer
+    /// captures) must stay valid and unshared.
+    pub statement_scoped: bool,
 }
 
 type DerefMarker = ();
