@@ -24,8 +24,8 @@ fn ltime_to_time_conversion() {
     let sources = vec![src.into()];
     let includes = get_includes(&["date_time_conversion.st"]);
     let mut maintype = MainType::default();
-    let res: i64 = compile_and_run(sources, includes, &mut maintype);
-    assert_eq!(res, 10000000000);
+    let res: u32 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(res, 10000);
 }
 
 #[test]
@@ -50,7 +50,7 @@ fn ldt_to_dt_conversion() {
     let sources = vec![src.into()];
     let includes = get_includes(&["date_time_conversion.st"]);
     let mut maintype = MainType::default();
-    let res: i64 = compile_and_run(sources, includes, &mut maintype);
+    let res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         res,
         chrono::NaiveDate::from_ymd_opt(2021, 4, 20)
@@ -58,8 +58,7 @@ fn ldt_to_dt_conversion() {
             .and_hms_opt(22, 33, 14)
             .unwrap()
             .and_utc()
-            .timestamp_nanos_opt()
-            .unwrap()
+            .timestamp() as u32
     );
 }
 
@@ -72,7 +71,7 @@ fn ldt_to_date_conversion() {
     let sources = vec![src.into()];
     let includes = get_includes(&["date_time_conversion.st"]);
     let mut maintype = MainType::default();
-    let res: i64 = compile_and_run(sources, includes, &mut maintype);
+    let res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         res,
         chrono::NaiveDate::from_ymd_opt(2000, 1, 1)
@@ -80,8 +79,7 @@ fn ldt_to_date_conversion() {
             .and_hms_opt(0, 0, 0)
             .unwrap()
             .and_utc()
-            .timestamp_nanos_opt()
-            .unwrap()
+            .timestamp() as u32
     );
 }
 
@@ -116,7 +114,7 @@ fn ldt_to_tod_conversion() {
     let sources = vec![src.into()];
     let includes = get_includes(&["date_time_conversion.st"]);
     let mut maintype = MainType::default();
-    let res: i64 = compile_and_run(sources, includes, &mut maintype);
+    let res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         res,
         chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
@@ -124,8 +122,7 @@ fn ldt_to_tod_conversion() {
             .and_hms_milli_opt(20, 15, 11, 543)
             .unwrap()
             .and_utc()
-            .timestamp_nanos_opt()
-            .unwrap()
+            .timestamp_millis() as u32
     );
 }
 
@@ -160,6 +157,27 @@ fn dt_to_date_conversion() {
     let sources = vec![src.into()];
     let includes = get_includes(&["date_time_conversion.st"]);
     let mut maintype = MainType::default();
+    let res: u32 = compile_and_run(sources, includes, &mut maintype);
+    assert_eq!(
+        res,
+        chrono::NaiveDate::from_ymd_opt(2000, 1, 1)
+            .unwrap()
+            .and_hms_opt(0, 0, 0)
+            .unwrap()
+            .and_utc()
+            .timestamp() as u32
+    );
+}
+
+#[test]
+fn dt_to_ldate_conversion() {
+    let src = "
+    FUNCTION main : LDATE
+        main := DT_TO_LDATE(DT#2000-01-01-20:15:11);
+    END_FUNCTION";
+    let sources = vec![src.into()];
+    let includes = get_includes(&["date_time_conversion.st"]);
+    let mut maintype = MainType::default();
     let res: i64 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         res,
@@ -187,7 +205,7 @@ fn dt_to_ltod_conversion() {
         res,
         chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
             .unwrap()
-            .and_hms_milli_opt(15, 36, 30, 123)
+            .and_hms_opt(15, 36, 30)
             .unwrap()
             .and_utc()
             .timestamp_nanos_opt()
@@ -204,16 +222,17 @@ fn dt_to_tod_conversion() {
     let sources = vec![src.into()];
     let includes = get_includes(&["date_time_conversion.st"]);
     let mut maintype = MainType::default();
-    let res: i64 = compile_and_run(sources, includes, &mut maintype);
+    let res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         res,
-        chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
+        chrono::NaiveDate::from_ymd_opt(2120, 2, 12)
             .unwrap()
-            .and_hms_milli_opt(20, 15, 11, 543)
+            .and_hms_opt(20, 15, 11)
             .unwrap()
             .and_utc()
-            .timestamp_nanos_opt()
-            .unwrap()
+            .timestamp() as u32
+            % 86_400
+            * 1000
     );
 }
 
@@ -226,7 +245,7 @@ fn ltod_to_tod_conversion() {
     let sources = vec![src.into()];
     let includes = get_includes(&["date_time_conversion.st"]);
     let mut maintype = MainType::default();
-    let res: i64 = compile_and_run(sources, includes, &mut maintype);
+    let res: u32 = compile_and_run(sources, includes, &mut maintype);
     assert_eq!(
         res,
         chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
@@ -234,8 +253,7 @@ fn ltod_to_tod_conversion() {
             .and_hms_opt(10, 20, 30)
             .unwrap()
             .and_utc()
-            .timestamp_nanos_opt()
-            .unwrap()
+            .timestamp_millis() as u32
     );
 }
 

@@ -39,7 +39,9 @@ use crate::{
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
         self, is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
-        StringEncoding, VarArgs, DEFAULT_STRING_LEN, DINT_TYPE, LINT_TYPE,
+        StringEncoding, VarArgs, DATE_AND_TIME_TYPE, DATE_TYPE, DEFAULT_STRING_LEN, DINT_TYPE,
+        LONG_DATE_AND_TIME_TYPE, LONG_DATE_TYPE, LONG_TIME_OF_DAY_TYPE, LONG_TIME_TYPE, TIME_OF_DAY_TYPE,
+        TIME_TYPE,
     },
 };
 
@@ -2456,19 +2458,21 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 AstLiteral::Date(d) => d
                     .value()
                     .map_err(|op| Diagnostic::codegen_error(op.as_str(), location).into())
-                    .and_then(|ns| self.create_const_int(ns))
+                    .and_then(|ns| self.create_temporal_const_int(literal_statement, ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::DateAndTime(dt) => dt
                     .value()
                     .map_err(|op| Diagnostic::codegen_error(op.as_str(), location).into())
-                    .and_then(|ns| self.create_const_int(ns))
+                    .and_then(|ns| self.create_temporal_const_int(literal_statement, ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::TimeOfDay(tod) => tod
                     .value()
                     .map_err(|op| Diagnostic::codegen_error(op.as_str(), location).into())
-                    .and_then(|ns| self.create_const_int(ns))
+                    .and_then(|ns| self.create_temporal_const_int(literal_statement, ns))
                     .map(ExpressionValue::RValue),
-                AstLiteral::Time(t) => self.create_const_int(t.value()).map(ExpressionValue::RValue),
+                AstLiteral::Time(t) => {
+                    self.create_temporal_const_int(literal_statement, t.value()).map(ExpressionValue::RValue)
+                }
                 AstLiteral::String(s) => self.generate_string_literal(literal_statement, s.value(), location),
                 AstLiteral::Array(arr) => self
                     .generate_literal_array(
@@ -2971,13 +2975,41 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(phi_value.as_basic_value())
     }
 
-    fn create_const_int(&self, value: i64) -> Result<BasicValueEnum<'ink>, CodegenError> {
+    fn create_const_int_for_type(
+        &self,
+        type_name: &str,
+        value: i64,
+    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let value = self.llvm.create_const_numeric(
-            &self.llvm_index.get_associated_type(LINT_TYPE)?,
+            &self.llvm_index.get_associated_type(type_name)?,
             value.to_string().as_str(),
             SourceLocation::internal(),
         )?;
         Ok(value)
+    }
+
+    fn create_temporal_const_int(
+        &self,
+        literal_statement: &AstNode,
+        value_in_nanos: i64,
+    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
+        let target_type_name = self.get_type_hint_for(literal_statement)?.get_name();
+
+        let converted = match target_type_name {
+            // Short DATE/DT are stored in seconds, so we lower nanosecond literals to whole seconds.
+            // See `book/src/datatypes.md` for the representation table.
+            DATE_TYPE | DATE_AND_TIME_TYPE => value_in_nanos / 1_000_000_000,
+            // Short TIME/TOD are stored in milliseconds, so we lower nanoseconds to whole milliseconds.
+            // See `book/src/datatypes.md` for the representation table.
+            TIME_TYPE | TIME_OF_DAY_TYPE => value_in_nanos / 1_000_000,
+            // Long temporal families retain nanosecond precision.
+            LONG_DATE_TYPE | LONG_DATE_AND_TIME_TYPE | LONG_TIME_TYPE | LONG_TIME_OF_DAY_TYPE => {
+                value_in_nanos
+            }
+            _ => value_in_nanos,
+        };
+
+        self.create_const_int_for_type(target_type_name, converted)
     }
 
     /// creates a binary expression (left op right) with generic

@@ -26,18 +26,6 @@ warning[E067]: Implicit downcast from 'ULINT' to 'UDINT'.
 34 │     v_udint := ULINT#10; // valid
    │                ^^^^^^^^ Implicit downcast from 'ULINT' to 'UDINT'.
 
-warning[E067]: Implicit downcast from 'TIME' to 'UDINT'.
-   ┌─ <internal>:37:16
-   │
-37 │     v_udint := v_time; // valid
-   │                ^^^^^^ Implicit downcast from 'TIME' to 'UDINT'.
-
-warning[E067]: Implicit downcast from 'TIME' to 'UDINT'.
-   ┌─ <internal>:38:16
-   │
-38 │     v_udint := TIME#10h20m30s; // valid
-   │                ^^^^^^^^^^^^^^ Implicit downcast from 'TIME' to 'UDINT'.
-
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'UDINT'
    ┌─ <internal>:41:5
    │
@@ -67,18 +55,6 @@ error[E037]: Invalid assignment: cannot assign 'CHAR' to 'UDINT'
    │
 45 │     v_udint := CHAR#'c'; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'UDINT'
-
-warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'UDINT'.
-   ┌─ <internal>:46:16
-   │
-46 │     v_udint := v_tod; // valid
-   │                ^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'UDINT'.
-
-warning[E067]: Implicit downcast from 'TIME_OF_DAY' to 'UDINT'.
-   ┌─ <internal>:47:16
-   │
-47 │     v_udint := TOD#15:36:30; // valid
-   │                ^^^^^^^^^^^^ Implicit downcast from 'TIME_OF_DAY' to 'UDINT'.
 
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'UDINT'
    ┌─ <internal>:49:5

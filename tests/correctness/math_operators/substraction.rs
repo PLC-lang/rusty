@@ -171,14 +171,14 @@ fn substract_time_basic() {
     VAR
         time_var : TIME := T#25s;
     END_VAR
-        main := time_var - 10000000000;
+        main := time_var - 10000;
     END_FUNCTION
     ";
 
     let mut main = MainType::default();
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 15000000000);
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 15000);
 }
 
 #[test]
@@ -188,14 +188,14 @@ fn substract_dt_type_basic() {
     VAR
         i3 : TIME := T#25s;
     END_VAR
-        main := i3 - 10000000000;
+        main := i3 - 10000;
     END_FUNCTION
     ";
 
     let mut main = MainType::default();
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 15000000000);
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 15000);
 }
 
 #[test]
@@ -205,14 +205,14 @@ fn substract_tod_type_basic() {
     VAR
         i3 : TIME := T#25s;
     END_VAR
-        main := i3 - 10000000000;
+        main := i3 - 10000;
     END_FUNCTION
     ";
 
     let mut main = MainType::default();
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 15000000000);
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 15000);
 }
 
 #[test]
@@ -231,11 +231,83 @@ fn substract_date_basic() {
 
     let mut main = MainType::default();
 
-    let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    let date_var =
-        chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp() as u32;
+    let date_temp = chrono::Utc.with_ymd_and_hms(2021, 1, 10, 0, 0, 0).unwrap().timestamp() as u32;
+    assert_eq!(res, date_temp - date_var);
+}
+
+#[test]
+fn substract_ltime_basic() {
+    let prog = "
+    FUNCTION main : LTIME
+    VAR
+        time_var : LTIME := LT#25s;
+    END_VAR
+        main := time_var - 10000000000;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 15000000000);
+}
+
+#[test]
+fn substract_ldt_type_basic() {
+    let prog = "
+    FUNCTION main : LDT
+    VAR
+        i3 : LTIME := LT#25s;
+    END_VAR
+        main := i3 - 10000000000;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 15000000000);
+}
+
+#[test]
+fn substract_ltod_type_basic() {
+    let prog = "
+    FUNCTION main : LTOD
+    VAR
+        i3 : LTIME := LT#25s;
+    END_VAR
+        main := i3 - 10000000000;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 15000000000);
+}
+
+#[test]
+fn substract_ldate_basic() {
+    let prog = "
+    FUNCTION main : LDATE
+    VAR
+        date_var : LDATE := LD#2021-01-01;
+        date_temp : LDATE := LD#2021-01-10;
+        result : LDATE;
+    END_VAR
+        result := date_temp - date_var;
+        main := result;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
     let date_temp =
-        chrono::Utc.with_ymd_and_hms(2021, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
+        chrono::Utc.with_ymd_and_hms(2021, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
     assert_eq!(res, date_temp - date_var);
 }
 

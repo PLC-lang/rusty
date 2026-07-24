@@ -30,8 +30,9 @@ use crate::{
     index::{ArgumentType, Index, PouIndexEntry, VariableIndexEntry, VariableType},
     typesystem::{
         self, get_bigger_type, DataTypeInformation, InternalType, StringEncoding, StructSource, BOOL_TYPE,
-        BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LREAL_TYPE, LWORD_TYPE,
-        REAL_TYPE, TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
+        BYTE_TYPE, DATE_AND_TIME_TYPE, DATE_TYPE, DINT_TYPE, DWORD_TYPE, LINT_TYPE, LONG_DATE_AND_TIME_TYPE,
+        LONG_DATE_TYPE, LONG_TIME_OF_DAY_TYPE, LONG_TIME_TYPE, LREAL_TYPE, LWORD_TYPE, REAL_TYPE,
+        TIME_OF_DAY_TYPE, TIME_TYPE, VOID_TYPE, WORD_TYPE,
     },
 };
 use crate::{
@@ -2829,17 +2830,23 @@ impl<'i> TypeAnnotator<'i> {
                     AstLiteral::Integer(value) => {
                         self.annotate(statement, StatementAnnotation::value(get_int_type_name_for(*value)));
                     }
-                    AstLiteral::Time { .. } => {
-                        self.annotate(statement, StatementAnnotation::value(TIME_TYPE))
+                    AstLiteral::Time(value) => {
+                        let type_name = if value.is_long() { LONG_TIME_TYPE } else { TIME_TYPE };
+                        self.annotate(statement, StatementAnnotation::value(type_name))
                     }
-                    AstLiteral::TimeOfDay { .. } => {
-                        self.annotate(statement, StatementAnnotation::value(TIME_OF_DAY_TYPE));
+                    AstLiteral::TimeOfDay(value) => {
+                        let type_name =
+                            if value.is_long() { LONG_TIME_OF_DAY_TYPE } else { TIME_OF_DAY_TYPE };
+                        self.annotate(statement, StatementAnnotation::value(type_name));
                     }
-                    AstLiteral::Date { .. } => {
-                        self.annotate(statement, StatementAnnotation::value(DATE_TYPE));
+                    AstLiteral::Date(value) => {
+                        let type_name = if value.is_long() { LONG_DATE_TYPE } else { DATE_TYPE };
+                        self.annotate(statement, StatementAnnotation::value(type_name));
                     }
-                    AstLiteral::DateAndTime { .. } => {
-                        self.annotate(statement, StatementAnnotation::value(DATE_AND_TIME_TYPE));
+                    AstLiteral::DateAndTime(value) => {
+                        let type_name =
+                            if value.is_long() { LONG_DATE_AND_TIME_TYPE } else { DATE_AND_TIME_TYPE };
+                        self.annotate(statement, StatementAnnotation::value(type_name));
                     }
                     AstLiteral::Real(value) => {
                         // XXX: if we have a float literal in an initializer (lhs) context, we need to see if the context expects a double or float type.

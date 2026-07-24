@@ -163,7 +163,7 @@ fn long_date_literals_are_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let statements = &unit.implementations[0].statements;
 
-    let expected_types = ["TIME", "DATE", "DATE_AND_TIME", "TIME_OF_DAY"];
+    let expected_types = ["LTIME", "LDATE", "LDATE_AND_TIME", "LTIME_OF_DAY"];
     for (i, s) in statements.iter().enumerate() {
         assert_eq!(expected_types[i], annotations.get_type_or_void(s, &index).get_name(), "{:#?}", s);
     }

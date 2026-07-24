@@ -14,14 +14,14 @@ error[E062]: Invalid type nature for generic argument. TIME is no ANY_CHARS
 3 │         FUNCTION func1  : INT VAR x : TIME; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. TIME is no ANY_CHARS
 
-error[E037]: Invalid assignment: cannot assign 'TIME' to 'CHAR'
+error[E037]: Invalid assignment: cannot assign 'LTIME' to 'CHAR'
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
-  │                                                           ^ Invalid assignment: cannot assign 'TIME' to 'CHAR'
+  │                                                           ^ Invalid assignment: cannot assign 'LTIME' to 'CHAR'
 
-error[E062]: Invalid type nature for generic argument. TIME is no ANY_CHARS
+error[E062]: Invalid type nature for generic argument. LTIME is no ANY_CHARS
   ┌─ <internal>:4:59
   │
 4 │         FUNCTION func2  : INT VAR x : LTIME; END_VAR test(x); END_FUNCTION
-  │                                                           ^ Invalid type nature for generic argument. TIME is no ANY_CHARS
+  │                                                           ^ Invalid type nature for generic argument. LTIME is no ANY_CHARS

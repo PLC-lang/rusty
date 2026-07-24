@@ -8,11 +8,11 @@ error[E062]: Invalid type nature for generic argument. DATE_AND_TIME is no ANY_R
 3 │         FUNCTION func1  : INT VAR x : DT; END_VAR test(x); END_FUNCTION
   │                                                        ^ Invalid type nature for generic argument. DATE_AND_TIME is no ANY_REAL
 
-error[E062]: Invalid type nature for generic argument. DATE_AND_TIME is no ANY_REAL
+error[E062]: Invalid type nature for generic argument. LDATE_AND_TIME is no ANY_REAL
   ┌─ <internal>:4:57
   │
 4 │         FUNCTION func2  : INT VAR x : LDT; END_VAR test(x); END_FUNCTION
-  │                                                         ^ Invalid type nature for generic argument. DATE_AND_TIME is no ANY_REAL
+  │                                                         ^ Invalid type nature for generic argument. LDATE_AND_TIME is no ANY_REAL
 
 error[E062]: Invalid type nature for generic argument. DATE is no ANY_REAL
   ┌─ <internal>:5:58
@@ -26,8 +26,8 @@ error[E062]: Invalid type nature for generic argument. TIME_OF_DAY is no ANY_REA
 6 │         FUNCTION func4  : INT VAR x : TOD; END_VAR test(x); END_FUNCTION
   │                                                         ^ Invalid type nature for generic argument. TIME_OF_DAY is no ANY_REAL
 
-error[E062]: Invalid type nature for generic argument. TIME_OF_DAY is no ANY_REAL
+error[E062]: Invalid type nature for generic argument. LTIME_OF_DAY is no ANY_REAL
   ┌─ <internal>:7:58
   │
 7 │         FUNCTION func5  : INT VAR x : LTOD; END_VAR test(x); END_FUNCTION
-  │                                                          ^ Invalid type nature for generic argument. TIME_OF_DAY is no ANY_REAL
+  │                                                          ^ Invalid type nature for generic argument. LTIME_OF_DAY is no ANY_REAL

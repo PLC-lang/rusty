@@ -52,9 +52,12 @@ define_endianness_for_int_types!(WORD, u16);
 define_endianness_for_int_types!(DWORD, u32);
 define_endianness_for_int_types!(LWORD, u64);
 define_endianness_for_int_types!(WCHAR, u16);
-define_endianness_for_int_types!(DATE, i64);
-define_endianness_for_int_types!(TIME_OF_DAY, i64);
-define_endianness_for_int_types!(DATE_AND_TIME, i64);
+define_endianness_for_int_types!(DATE, u32);
+define_endianness_for_int_types!(TIME_OF_DAY, u32);
+define_endianness_for_int_types!(DATE_AND_TIME, u32);
+define_endianness_for_int_types!(LDATE, i64);
+define_endianness_for_int_types!(LTIME_OF_DAY, i64);
+define_endianness_for_int_types!(LDATE_AND_TIME, i64);
 
 /// .
 /// Converts given f32 from native endian data format to big endian data format

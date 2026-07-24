@@ -1,0 +1,11 @@
+FUNCTION_BLOCK counter
+VAR_OUTPUT
+    out : DINT;
+END_VAR
+END_FUNCTION_BLOCK
+
+ACTIONS
+    ACTION reset
+        out := 0;
+    END_ACTION
+END_ACTIONS
