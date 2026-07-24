@@ -232,7 +232,7 @@ fn validate_temporal_literal_bounds(
     fn emit_warning(validator: &mut Validator, literal_name: &str, kind: &str, location: &SourceLocation) {
         validator.push_diagnostic(
             Diagnostic::new(format!("{literal_name} literal {kind}"))
-                .with_error_code("E146")
+                .with_error_code("E148")
                 .with_location(location),
         );
     }

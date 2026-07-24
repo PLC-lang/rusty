@@ -227,43 +227,43 @@ fn short_temporal_literals_overflow_and_underflow_produce_warnings() {
 
     let normalized = diagnostics.lines().map(str::trim_start).collect::<Vec<_>>().join("\n");
     assert_snapshot!(normalized, @r"
-    warning[E146]: DATE literal underflow detected
+    warning[E148]: DATE literal underflow detected
     ┌─ <internal>:4:35
     │
     4 │             d_underflow : DATE := DATE#1969-12-31;
     │                                   ^^^^^^^^^^^^^^^ DATE literal underflow detected
 
-    warning[E146]: DATE literal out-of-range detected
+    warning[E148]: DATE literal out-of-range detected
     ┌─ <internal>:5:34
     │
     5 │             d_overflow : DATE := DATE#2500-01-01;
     │                                  ^^^^^^^^^^^^^^^ DATE literal out-of-range detected
 
-    warning[E146]: DATE_AND_TIME literal underflow detected
+    warning[E148]: DATE_AND_TIME literal underflow detected
     ┌─ <internal>:6:34
     │
     6 │             dt_underflow : DT := DT#1969-12-31-23:59:59;
     │                                  ^^^^^^^^^^^^^^^^^^^^^^ DATE_AND_TIME literal underflow detected
 
-    warning[E146]: DATE_AND_TIME literal out-of-range detected
+    warning[E148]: DATE_AND_TIME literal out-of-range detected
     ┌─ <internal>:7:33
     │
     7 │             dt_overflow : DT := DT#2500-01-01-00:00:00;
     │                                 ^^^^^^^^^^^^^^^^^^^^^^ DATE_AND_TIME literal out-of-range detected
 
-    warning[E146]: TIME literal underflow detected
+    warning[E148]: TIME literal underflow detected
     ┌─ <internal>:8:35
     │
     8 │             t_underflow : TIME := TIME#-1ms;
     │                                   ^^^^^^^^^ TIME literal underflow detected
 
-    warning[E146]: TIME literal overflow detected
+    warning[E148]: TIME literal overflow detected
     ┌─ <internal>:9:34
     │
     9 │             t_overflow : TIME := TIME#4294967296ms;
     │                                  ^^^^^^^^^^^^^^^^^ TIME literal overflow detected
 
-    warning[E146]: TIME_OF_DAY literal out-of-range detected
+    warning[E148]: TIME_OF_DAY literal out-of-range detected
     ┌─ <internal>:10:35
     │
     10 │             tod_overflow : TOD := TOD#24:00:00;
