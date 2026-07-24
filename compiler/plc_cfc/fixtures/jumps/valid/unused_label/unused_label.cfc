@@ -2,13 +2,11 @@
 <ppx:Program xmlns:bmx="http://www.bachmann.at/xml/PLC" xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="unused_label">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>PROGRAM unused_label
+            <bmx:TextDeclaration>PROGRAM unused_label
 VAR
     x, y: DINT;
 END_VAR
-</content>
-            </textDeclaration>
+</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>

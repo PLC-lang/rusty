@@ -2,15 +2,13 @@
 <ppx:Function xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="function_call">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>FUNCTION function_call : INT
+            <bmx:TextDeclaration>FUNCTION function_call : INT
 VAR_INPUT
     in1, in2 : DINT;
 END_VAR
 VAR_OUTPUT
     doubledOut : DINT;
-END_VAR</content>
-            </textDeclaration>
+END_VAR</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>

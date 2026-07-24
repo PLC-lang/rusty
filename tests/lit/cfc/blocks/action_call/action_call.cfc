@@ -2,14 +2,12 @@
 <ppx:Program xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="action_call">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>PROGRAM action_call
+            <bmx:TextDeclaration>PROGRAM action_call
 VAR
     inst : counter;
     amount : DINT := 3;
     result : DINT;
-END_VAR</content>
-            </textDeclaration>
+END_VAR</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>
