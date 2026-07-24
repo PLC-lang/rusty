@@ -337,7 +337,10 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     .cloned()
                 {
                     Some(StatementAnnotation::Function {
-                        return_type, qualified_name, generic_name, call_name,
+                        return_type,
+                        qualified_name,
+                        generic_name,
+                        call_name,
                     }) => (qualified_name, return_type, generic_name, call_name),
                     Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
                         (qualified_name, return_type, None, None)
