@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-2b3b4004.js";
+            window.path_to_searchindex_js = "searchindex-4d667589.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-7e999a1e.js"></script>
@@ -2793,6 +2793,47 @@ END_FUNCTION
 <blockquote>
 <p>Note: At linking time, a <code>log</code> function with a compatible signature must be available on the system.</p>
 </blockquote>
+<h2 id="generic-functions"><a class="header" href="#generic-functions">Generic Functions</a></h2>
+<p>A <code>FUNCTION</code> can be made generic by declaring one or more type parameters with a
+type-nature constraint, e.g. <code>&lt;T: ANY_INT&gt;</code>. The type parameters may be used as the type
+of inputs, outputs and the return value:</p>
+<pre><code class="language-iecst">FUNCTION MAX &lt;T: ANY_ELEMENTARY&gt; : T
+VAR_INPUT
+    in1 : T;
+    in2 : T;
+END_VAR
+END_FUNCTION
+</code></pre>
+<p>A generic function is never called directly. Every call is resolved to a concrete
+<em>monomorphization</em> whose name is the generic function’s name followed by <code>__&lt;TYPE&gt;</code> for
+the resolved type argument. For example, <code>MAX(aDint, bDint)</code> resolves to <code>MAX__DINT</code>.</p>
+<p>The compiler does not synthesize the body of a monomorphization; each one must be
+<em>provided</em>, as one of:</p>
+<ul>
+<li>an ordinary <code>FUNCTION</code> with the mangled name (an ST body),</li>
+<li>an <code>{external}</code> declaration of the mangled name (implemented elsewhere, e.g. in C or
+Rust, resolved at link time), or</li>
+<li>a compiler builtin.</li>
+</ul>
+<p>Calling a generic with a type for which no monomorphization is provided is reported as an
+unresolved reference (<code>E048</code>).</p>
+<h3 id="monomorphizations-returning-aggregate-types"><a class="header" href="#monomorphizations-returning-aggregate-types">Monomorphizations returning aggregate types</a></h3>
+<p>When a generic function returns an aggregate type (<code>STRING</code>, <code>WSTRING</code>, an array or a
+struct), its monomorphization must be <strong>declared in <code>ST</code></strong> — either as a body or as an
+<code>{external}</code> declaration. A symbol that exists only at link time (with no <code>ST</code>
+declaration) is enough for a scalar return, but not for an aggregate return: an
+aggregate-returning generic call whose monomorphization is not declared is reported as
+<code>E048</code> at compile time rather than failing at link time or run time.</p>
+<p>For example, the standard <code>TO_STRING &lt;T: ANY&gt; : STRING</code> conversion declares a
+monomorphization for every supported source type (<code>TO_STRING__DINT</code>, <code>TO_STRING__REAL</code>,
+…). Calling <code>TO_STRING</code> with a type that has no such declaration is a compile error:</p>
+<pre><code class="language-iecst">TYPE Point : STRUCT x, y : DINT; END_STRUCT END_TYPE
+
+FUNCTION main : DINT
+VAR s : STRING; p : Point; END_VAR
+    s := TO_STRING(p);   // error[E048]: Could not resolve reference to TO_STRING__Point
+END_FUNCTION
+</code></pre>
 <h2 id="calling-c-functions"><a class="header" href="#calling-c-functions">Calling C functions</a></h2>
 <p><code>ST</code> code can call into foreign functions natively.
 To achieve this, the called function must be defined in a <code>C</code> compatible API, e.g. <code>extern "C"</code> blocks.</p>
