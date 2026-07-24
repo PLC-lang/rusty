@@ -138,8 +138,8 @@ fn mixed_math_time_basic() {
 
     let mut main = MainType::default();
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 4_000_000_000);
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 4000);
 }
 
 #[test]
@@ -157,8 +157,8 @@ fn mixed_math_tod_basic() {
 
     let mut main = MainType::default();
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 4000000000);
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 4000);
 }
 
 #[test]
@@ -167,8 +167,8 @@ fn mixed_math_date_basic() {
     FUNCTION main : DATE
     VAR
         date_var : DATE := D#2021-01-01;
-        date_10_days : DATE := 777600000000000;
-        date_1_day : DATE := 86400000000000;
+        date_10_days : DATE := 777600;
+        date_1_day : DATE := 86400;
         result : DATE;
     END_VAR
         result := date_var + date_10_days * 2 - date_1_day / 2;
@@ -178,13 +178,10 @@ fn mixed_math_date_basic() {
 
     let mut main = MainType::default();
 
-    let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    let date_var =
-        chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
-    let date_10_days =
-        chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
-    let date_1_day =
-        chrono::Utc.with_ymd_and_hms(1970, 1, 2, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp() as u32;
+    let date_10_days = chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp() as u32;
+    let date_1_day = chrono::Utc.with_ymd_and_hms(1970, 1, 2, 0, 0, 0).unwrap().timestamp() as u32;
     assert_eq!(res, date_var + date_10_days * 2 - date_1_day / 2);
 }
 
@@ -194,8 +191,8 @@ fn mixed_math_dt_basic() {
     FUNCTION main : DT
     VAR
         date_var : DT := D#2021-01-01;
-        date_10_days : DT := 777600000000000;
-        date_1_day : DT := 86400000000000;
+        date_10_days : DT := 777600;
+        date_1_day : DT := 86400;
         result : DT;
     END_VAR
         result := date_var + date_10_days * 2 - date_1_day / 2;
@@ -205,13 +202,100 @@ fn mixed_math_dt_basic() {
 
     let mut main = MainType::default();
 
-    let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    let date_var =
-        chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp() as u32;
+    let date_10_days = chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp() as u32;
+    let date_1_day = chrono::Utc.with_ymd_and_hms(1970, 1, 2, 0, 0, 0).unwrap().timestamp() as u32;
+    assert_eq!(res, date_var + date_10_days * 2 - date_1_day / 2);
+}
+
+#[test]
+fn mixed_math_ltime_basic() {
+    let prog = "
+    FUNCTION main : LTIME
+    VAR
+        t1 : LTIME := LT#5s;
+        time_var2 : LTIME := LT#6s;
+        time_var3 : LTIME := LT#10s;
+    END_VAR
+        main := t1 + time_var2 * 3 / 2 - time_var3;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 4_000_000_000);
+}
+
+#[test]
+fn mixed_math_ltod_basic() {
+    let prog = "
+    FUNCTION main : LTOD
+    VAR
+        t1 : LTOD := LT#5s;
+        t2 : LTOD := LT#6s;
+        t3 : LTOD := LT#10s;
+    END_VAR
+        main := t1 + t2 * 3 / 2 - t3;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 4_000_000_000);
+}
+
+#[test]
+fn mixed_math_ldate_basic() {
+    let prog = "
+    FUNCTION main : LDATE
+    VAR
+        date_var : LDATE := LD#2021-01-01;
+        date_10_days : LDATE := 777600000000000;
+        date_1_day : LDATE := 86400000000000;
+        result : LDATE;
+    END_VAR
+        result := date_var + date_10_days * 2 - date_1_day / 2;
+        main := result;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
     let date_10_days =
-        chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
+        chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
     let date_1_day =
-        chrono::Utc.with_ymd_and_hms(1970, 1, 2, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
+        chrono::Utc.with_ymd_and_hms(1970, 1, 2, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
+    assert_eq!(res, date_var + date_10_days * 2 - date_1_day / 2);
+}
+
+#[test]
+fn mixed_math_ldt_basic() {
+    let prog = "
+    FUNCTION main : LDT
+    VAR
+        date_var : LDT := LD#2021-01-01;
+        date_10_days : LDT := 777600000000000;
+        date_1_day : LDT := 86400000000000;
+        result : LDT;
+    END_VAR
+        result := date_var + date_10_days * 2 - date_1_day / 2;
+        main := result;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
+    let date_10_days =
+        chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
+    let date_1_day =
+        chrono::Utc.with_ymd_and_hms(1970, 1, 2, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
     assert_eq!(res, date_var + date_10_days * 2 - date_1_day / 2);
 }
 

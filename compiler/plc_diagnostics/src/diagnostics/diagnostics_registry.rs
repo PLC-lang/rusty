@@ -249,6 +249,7 @@ lazy_static! {
         E145,   Warning,    include_str!("./error_codes/E145.md"),  // Disconnected CFC jump
         E146,   Error,      include_str!("./error_codes/E146.md"),  // Unknown CFC block type
         E147,   Error,      include_str!("./error_codes/E147.md"),  // Undeclared CFC block output
+        E148,   Warning,    include_str!("./error_codes/E148.md"),  // Temporal literal overflow or underflow
     );
 }
 

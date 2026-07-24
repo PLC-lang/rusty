@@ -1,37 +1,45 @@
 use chrono::TimeZone;
 
+const MILLIS_PER_SECOND: u32 = 1_000;
+const MILLIS_PER_DAY: u32 = 60 * 60 * 24 * MILLIS_PER_SECOND;
+
+fn checked_millis_to_seconds(input: u32) -> u32 {
+    input / MILLIS_PER_SECOND
+}
+
+fn checked_seconds_to_millis(input: u32) -> u32 {
+    input.checked_mul(MILLIS_PER_SECOND).unwrap()
+}
+
 /// .
 /// This operator returns the value of adding up two TIME operands.
-/// Panic on overflow
+/// Panics on overflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn ADD_TIME(in1: i64, in2: i64) -> i64 {
-    chrono::Duration::nanoseconds(in1)
-        .checked_add(&chrono::Duration::nanoseconds(in2))
-        .unwrap()
-        .num_nanoseconds()
-        .unwrap()
+pub extern "C-unwind" fn ADD_TIME(in1: u32, in2: u32) -> u32 {
+    in1.checked_add(in2).unwrap()
 }
 
 /// .
 /// This operator returns the value of adding up TOD and TIME.
-/// Panic on overflow
+/// Wraps around day boundaries.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn ADD_TOD_TIME(in1: i64, in2: i64) -> i64 {
-    add_datetime_time(in1, in2)
+pub extern "C-unwind" fn ADD_TOD_TIME(in1: u32, in2: u32) -> u32 {
+    ((in1 as u64 + in2 as u64) % MILLIS_PER_DAY as u64) as u32
 }
 
 /// .
 /// This operator returns the value of adding up DT and TIME.
-/// Panic on overflow
+/// Panics on overflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn ADD_DT_TIME(in1: i64, in2: i64) -> i64 {
-    add_datetime_time(in1, in2)
+pub extern "C-unwind" fn ADD_DT_TIME(in1: u32, in2: u32) -> u32 {
+    let time_seconds = checked_millis_to_seconds(in2);
+    in1.checked_add(time_seconds).unwrap()
 }
 
 fn add_datetime_time(in1: i64, in2: i64) -> i64 {
@@ -45,46 +53,42 @@ fn add_datetime_time(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator produces the subtraction of two TIME operands
-/// Panic on overflow
+/// Panics on underflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_TIME(in1: i64, in2: i64) -> i64 {
-    chrono::Duration::nanoseconds(in1)
-        .checked_sub(&chrono::Duration::nanoseconds(in2))
-        .unwrap()
-        .num_nanoseconds()
-        .unwrap()
+pub extern "C-unwind" fn SUB_TIME(in1: u32, in2: u32) -> u32 {
+    in1.checked_sub(in2).unwrap()
 }
 
 /// .
 /// This operator produces the subtraction of two DATE operands
-/// Panic on overflow
+/// Panics on underflow and when the resulting TIME would overflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_DATE_DATE(in1: i64, in2: i64) -> i64 {
-    sub_datetimes(in1, in2)
+pub extern "C-unwind" fn SUB_DATE_DATE(in1: u32, in2: u32) -> u32 {
+    checked_seconds_to_millis(in1.checked_sub(in2).unwrap())
 }
 
 /// .
 /// This operator produces the subtraction of TOD and TIME
-/// Panic on overflow
+/// Wraps around day boundaries.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_TOD_TIME(in1: i64, in2: i64) -> i64 {
-    sub_datetime_duration(in1, in2)
+pub extern "C-unwind" fn SUB_TOD_TIME(in1: u32, in2: u32) -> u32 {
+    ((in1 as u64 + MILLIS_PER_DAY as u64 - (in2 % MILLIS_PER_DAY) as u64) % MILLIS_PER_DAY as u64) as u32
 }
 
 /// .
 /// This operator produces the subtraction of two TOD operands
-/// Panic on overflow
+/// Panics on underflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_TOD_TOD(in1: i64, in2: i64) -> i64 {
-    sub_datetimes(in1, in2)
+pub extern "C-unwind" fn SUB_TOD_TOD(in1: u32, in2: u32) -> u32 {
+    in1.checked_sub(in2).unwrap()
 }
 
 fn sub_datetimes(in1: i64, in2: i64) -> i64 {
@@ -97,12 +101,13 @@ fn sub_datetimes(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator produces the subtraction of DT and TIME
-/// Panic on overflow
+/// Panics on underflow.
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_DT_TIME(in1: i64, in2: i64) -> i64 {
-    sub_datetime_duration(in1, in2)
+pub extern "C-unwind" fn SUB_DT_TIME(in1: u32, in2: u32) -> u32 {
+    let time_seconds = checked_millis_to_seconds(in2);
+    in1.checked_sub(time_seconds).unwrap()
 }
 
 fn sub_datetime_duration(in1: i64, in2: i64) -> i64 {
@@ -116,12 +121,102 @@ fn sub_datetime_duration(in1: i64, in2: i64) -> i64 {
 
 /// .
 /// This operator produces the subtraction of two DT operands
+/// Panics on underflow and when the resulting TIME would overflow.
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB_DT_DT(in1: u32, in2: u32) -> u32 {
+    checked_seconds_to_millis(in1.checked_sub(in2).unwrap())
+}
+
+/// .
+/// This operator returns the value of adding up two LTIME operands.
 /// Panic on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C-unwind" fn SUB_DT_DT(in1: i64, in2: i64) -> i64 {
-    sub_datetimes(in1, in2)
+pub extern "C-unwind" fn ADD_LTIME(in1: i64, in2: i64) -> i64 {
+    ADD__LTIME__LTIME(in1, in2)
+}
+
+/// .
+/// This operator returns the value of adding up LTOD and LTIME.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn ADD_LTOD_LTIME(in1: i64, in2: i64) -> i64 {
+    ADD__LTOD__LTIME(in1, in2)
+}
+
+/// .
+/// This operator returns the value of adding up LDT and LTIME.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn ADD_LDT_LTIME(in1: i64, in2: i64) -> i64 {
+    ADD__LDT__LTIME(in1, in2)
+}
+
+/// .
+/// This operator produces the subtraction of two LTIME operands.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB_LTIME(in1: i64, in2: i64) -> i64 {
+    SUB__LTIME__LTIME(in1, in2)
+}
+
+/// .
+/// This operator produces the subtraction of two LDATE operands.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB_LDATE_LDATE(in1: i64, in2: i64) -> i64 {
+    SUB__LDATE__LDATE(in1, in2)
+}
+
+/// .
+/// This operator produces the subtraction of LTOD and LTIME.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB_LTOD_LTIME(in1: i64, in2: i64) -> i64 {
+    SUB__LTOD__LTIME(in1, in2)
+}
+
+/// .
+/// This operator produces the subtraction of two LTOD operands.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB_LTOD_LTOD(in1: i64, in2: i64) -> i64 {
+    SUB__LTOD__LTOD(in1, in2)
+}
+
+/// .
+/// This operator produces the subtraction of LDT and LTIME.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB_LDT_LTIME(in1: i64, in2: i64) -> i64 {
+    SUB__LDT__LTIME(in1, in2)
+}
+
+/// .
+/// This operator produces the subtraction of two LDT operands.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB_LDT_LDT(in1: i64, in2: i64) -> i64 {
+    SUB__LDT__LDT(in1, in2)
 }
 
 /// .
@@ -792,6 +887,356 @@ fn checked_div_time_by_f32(in1: i64, in2: f32) -> i64 {
 #[no_mangle]
 pub extern "C-unwind" fn DIV__TIME__LREAL(in1: i64, in2: f64) -> i64 {
     checked_div_time_by_f64(in1, in2)
+}
+
+/// .
+/// Compatibility alias for multiplying LTIME by SINT.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn MUL__LTIME__SINT(in1: i64, in2: i8) -> i64 {
+    MUL_LTIME__SINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for multiplying LTIME by INT.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn MUL__LTIME__INT(in1: i64, in2: i16) -> i64 {
+    MUL_LTIME__INT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for multiplying LTIME by DINT.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn MUL__LTIME__DINT(in1: i64, in2: i32) -> i64 {
+    MUL_LTIME__DINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for multiplying LTIME by LINT.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn MUL__LTIME__LINT(in1: i64, in2: i64) -> i64 {
+    MUL_LTIME__LINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for multiplying LTIME by USINT.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn MUL__LTIME__USINT(in1: i64, in2: u8) -> i64 {
+    MUL_LTIME__USINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for multiplying LTIME by UINT.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn MUL__LTIME__UINT(in1: i64, in2: u16) -> i64 {
+    MUL_LTIME__UINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for multiplying LTIME by UDINT.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn MUL__LTIME__UDINT(in1: i64, in2: u32) -> i64 {
+    MUL_LTIME__UDINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for multiplying LTIME by ULINT.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn MUL__LTIME__ULINT(in1: i64, in2: u64) -> i64 {
+    MUL_LTIME__ULINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for multiplying LTIME by REAL.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn MUL__LTIME__REAL(in1: i64, in2: f32) -> i64 {
+    MUL_LTIME__REAL(in1, in2)
+}
+
+/// .
+/// Compatibility alias for multiplying LTIME by LREAL.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn MUL__LTIME__LREAL(in1: i64, in2: f64) -> i64 {
+    MUL_LTIME__LREAL(in1, in2)
+}
+
+/// .
+/// Compatibility alias for dividing LTIME by SINT.
+/// Panic on overflow or division by zero
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn DIV__LTIME__SINT(in1: i64, in2: i8) -> i64 {
+    DIV_LTIME__SINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for dividing LTIME by INT.
+/// Panic on overflow or division by zero
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn DIV__LTIME__INT(in1: i64, in2: i16) -> i64 {
+    DIV_LTIME__INT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for dividing LTIME by DINT.
+/// Panic on overflow or division by zero
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn DIV__LTIME__DINT(in1: i64, in2: i32) -> i64 {
+    DIV_LTIME__DINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for dividing LTIME by LINT.
+/// Panic on overflow or division by zero
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn DIV__LTIME__LINT(in1: i64, in2: i64) -> i64 {
+    DIV_LTIME__LINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for dividing LTIME by USINT.
+/// Panic on overflow or division by zero
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn DIV__LTIME__USINT(in1: i64, in2: u8) -> i64 {
+    DIV_LTIME__USINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for dividing LTIME by UINT.
+/// Panic on overflow or division by zero
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn DIV__LTIME__UINT(in1: i64, in2: u16) -> i64 {
+    DIV_LTIME__UINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for dividing LTIME by UDINT.
+/// Panic on overflow or division by zero
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn DIV__LTIME__UDINT(in1: i64, in2: u32) -> i64 {
+    DIV_LTIME__UDINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for dividing LTIME by ULINT.
+/// Panic on overflow or division by zero
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn DIV__LTIME__ULINT(in1: i64, in2: u64) -> i64 {
+    DIV_LTIME__ULINT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for dividing LTIME by REAL.
+/// Panic on overflow or division by zero
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn DIV__LTIME__REAL(in1: i64, in2: f32) -> i64 {
+    DIV_LTIME__REAL(in1, in2)
+}
+
+/// .
+/// Compatibility alias for dividing LTIME by LREAL.
+/// Panic on overflow or division by zero
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn DIV__LTIME__LREAL(in1: i64, in2: f64) -> i64 {
+    DIV_LTIME__LREAL(in1, in2)
+}
+
+/// .
+/// Compatibility symbol for LTIME + LTIME overload resolution.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn ADD__LTIME__LTIME(in1: i64, in2: i64) -> i64 {
+    in1.checked_add(in2).unwrap()
+}
+
+/// .
+/// Compatibility symbol for LTOD + LTIME overload resolution.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn ADD__LTOD__LTIME(in1: i64, in2: i64) -> i64 {
+    add_datetime_time(in1, in2)
+}
+
+/// .
+/// Compatibility symbol for LDT + LTIME overload resolution.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn ADD__LDT__LTIME(in1: i64, in2: i64) -> i64 {
+    add_datetime_time(in1, in2)
+}
+
+/// .
+/// Compatibility symbol for LTIME - LTIME overload resolution.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB__LTIME__LTIME(in1: i64, in2: i64) -> i64 {
+    in1.checked_sub(in2).unwrap()
+}
+
+/// .
+/// Compatibility symbol for LDATE - LDATE overload resolution.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB__LDATE__LDATE(in1: i64, in2: i64) -> i64 {
+    sub_datetimes(in1, in2)
+}
+
+/// .
+/// Compatibility symbol for LTOD - LTIME overload resolution.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB__LTOD__LTIME(in1: i64, in2: i64) -> i64 {
+    sub_datetime_duration(in1, in2)
+}
+
+/// .
+/// Compatibility symbol for LTOD - LTOD overload resolution.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB__LTOD__LTOD(in1: i64, in2: i64) -> i64 {
+    sub_datetimes(in1, in2)
+}
+
+/// .
+/// Compatibility symbol for LDT - LTIME overload resolution.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB__LDT__LTIME(in1: i64, in2: i64) -> i64 {
+    sub_datetime_duration(in1, in2)
+}
+
+/// .
+/// Compatibility symbol for LDT - LDT overload resolution.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB__LDT__LDT(in1: i64, in2: i64) -> i64 {
+    sub_datetimes(in1, in2)
+}
+
+/// .
+/// Compatibility alias for LDATE_AND_TIME + LTIME.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn ADD__LDATE_AND_TIME__LTIME(in1: i64, in2: i64) -> i64 {
+    ADD__LDT__LTIME(in1, in2)
+}
+
+/// .
+/// Compatibility alias for LTIME_OF_DAY + LTIME.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn ADD__LTIME_OF_DAY__LTIME(in1: i64, in2: i64) -> i64 {
+    ADD__LTOD__LTIME(in1, in2)
+}
+
+/// .
+/// Compatibility alias for LDATE_AND_TIME - LTIME.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB__LDATE_AND_TIME__LTIME(in1: i64, in2: i64) -> i64 {
+    SUB__LDT__LTIME(in1, in2)
+}
+
+/// .
+/// Compatibility alias for LDATE_AND_TIME - LDATE_AND_TIME.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB__LDATE_AND_TIME__LDATE_AND_TIME(in1: i64, in2: i64) -> i64 {
+    SUB__LDT__LDT(in1, in2)
+}
+
+/// .
+/// Compatibility alias for LTIME_OF_DAY - LTIME.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB__LTIME_OF_DAY__LTIME(in1: i64, in2: i64) -> i64 {
+    SUB__LTOD__LTIME(in1, in2)
+}
+
+/// .
+/// Compatibility alias for LTIME_OF_DAY - LTIME_OF_DAY.
+/// Panic on overflow
+///
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C-unwind" fn SUB__LTIME_OF_DAY__LTIME_OF_DAY(in1: i64, in2: i64) -> i64 {
+    SUB__LTOD__LTOD(in1, in2)
 }
 
 /// .

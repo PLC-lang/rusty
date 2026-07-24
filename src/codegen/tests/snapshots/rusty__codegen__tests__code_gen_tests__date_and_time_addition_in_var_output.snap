@@ -17,11 +17,11 @@ entry:
   store i32 0, ptr %func, align [filtered]
   %deref = load ptr, ptr %d_and_t, align [filtered]
   %deref1 = load ptr, ptr %d_and_t, align [filtered]
-  %load_d_and_t = load i64, ptr %deref1, align [filtered]
+  %load_d_and_t = load i32, ptr %deref1, align [filtered]
   %deref2 = load ptr, ptr %time_var, align [filtered]
-  %load_time_var = load i64, ptr %deref2, align [filtered]
-  %tmpVar = add i64 %load_d_and_t, %load_time_var
-  store i64 %tmpVar, ptr %deref, align [filtered]
+  %load_time_var = load i32, ptr %deref2, align [filtered]
+  %tmpVar = add i32 %load_d_and_t, %load_time_var
+  store i32 %tmpVar, ptr %deref, align [filtered]
   %func_ret = load i32, ptr %func, align [filtered]
   ret i32 %func_ret
 }

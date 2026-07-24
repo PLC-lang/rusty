@@ -269,17 +269,17 @@ Below is a table of types and how they can be used from `C`
 | ULINT           | uint64_t     | 64   |                                                                                     |
 | REAL            | float_t      | 32   |                                                                                     |
 | LREAL           | double_t     | 64   |                                                                                     |
-| TIME            | time_t       | 64   | Note that all time and date types are 64 bit                                        |
+| TIME            | time_t       | 32   | Short TIME/TOD types use 32-bit milliseconds                                         |
 | LTIME           | time_t       | 64   |                                                                                     |
-| DATE            | time_t       | 64   |                                                                                     |
+| DATE            | time_t       | 32   | Short DATE/DT types use 32-bit seconds                                               |
 | LDATE           | time_t       | 64   |                                                                                     |
-| DATE_AND_TIME   | time_t       | 64   |                                                                                     |
+| DATE_AND_TIME   | time_t       | 32   |                                                                                     |
 | LDATE_AND_TIME  | time_t       | 64   |                                                                                     |
-| DT              | time_t       | 64   |                                                                                     |
+| DT              | time_t       | 32   |                                                                                     |
 | LDT             | time_t       | 64   |                                                                                     |
-| TIME_OF_DAY     | time_t       | 64   |                                                                                     |
+| TIME_OF_DAY     | time_t       | 32   |                                                                                     |
 | LTIME_OF_DAY    | time_t       | 64   |                                                                                     |
-| TOD             | time_t       | 64   |                                                                                     |
+| TOD             | time_t       | 32   |                                                                                     |
 | LTOD            | time_t       | 64   |                                                                                     |
 | POINTER TO type | \*type       | 64   | The Pointer size is equivalent to `LWORD` and not `DWORD`                           |
 | REF_TO type     | \*type       | 64   | Prefer this type to `POINTER TO` for standard compliance                            |
@@ -345,7 +345,7 @@ pub struct myStruct {
 
 ### 2.5 `FUNCTION_BLOCK` initialization
 
-When creating a library with `FUNCTION_BLOCK`s, you can implement initialization logic that runs when an instance is created. 
+When creating a library with `FUNCTION_BLOCK`s, you can implement initialization logic that runs when an instance is created.
 
 For more details on `FB_INIT` in IEC61131-3, refer to the [Program Organization Units (POUs)](../pous.md#function_block-initialization) documentation.
 
@@ -373,7 +373,7 @@ void myFunctionBlock__FB_INIT(myFunctionBlock* fb_instance) {
     // Initialize members here
     fb_instance->a = 1;
     fb_instance->b = 2;
-    
+
     // ...perform any other needed initialization
 }
 ```

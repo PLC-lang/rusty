@@ -7,7 +7,7 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%main = type { i64, i64, i64, i64 }
+%main = type { i32, i32, i32, i32 }
 
 @main_instance = global %main zeroinitializer
 
@@ -17,16 +17,16 @@ entry:
   %var_time_of_day = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %var_date = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
   %var_date_and_time = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
-  %load_var_time = load i64, ptr %var_time, align [filtered]
-  %load_var_time_of_day = load i64, ptr %var_time_of_day, align [filtered]
-  %tmpVar = icmp sgt i64 %load_var_time, %load_var_time_of_day
-  %load_var_time_of_day1 = load i64, ptr %var_time_of_day, align [filtered]
-  %load_var_date = load i64, ptr %var_date, align [filtered]
-  %tmpVar2 = icmp sgt i64 %load_var_time_of_day1, %load_var_date
+  %load_var_time = load i32, ptr %var_time, align [filtered]
+  %load_var_time_of_day = load i32, ptr %var_time_of_day, align [filtered]
+  %tmpVar = icmp sgt i32 %load_var_time, %load_var_time_of_day
+  %load_var_time_of_day1 = load i32, ptr %var_time_of_day, align [filtered]
+  %load_var_date = load i32, ptr %var_date, align [filtered]
+  %tmpVar2 = icmp sgt i32 %load_var_time_of_day1, %load_var_date
   %1 = and i1 %tmpVar, %tmpVar2
-  %load_var_date3 = load i64, ptr %var_date, align [filtered]
-  %load_var_date_and_time = load i64, ptr %var_date_and_time, align [filtered]
-  %tmpVar4 = icmp sgt i64 %load_var_date3, %load_var_date_and_time
+  %load_var_date3 = load i32, ptr %var_date, align [filtered]
+  %load_var_date_and_time = load i32, ptr %var_date_and_time, align [filtered]
+  %tmpVar4 = icmp sgt i32 %load_var_date3, %load_var_date_and_time
   %2 = and i1 %1, %tmpVar4
   %3 = zext i1 %2 to i8
   ret void
