@@ -103,6 +103,9 @@ pub struct LinkOptions {
     pub no_crt: bool,
     /// If set, disable implicit/default C libraries during executable linking.
     pub no_libc: bool,
+    /// If set, allow unresolved symbols when producing a shared object. Otherwise `--no-undefined`
+    /// is passed so a missing symbol fails the build instead of leaving an unresolved reference.
+    pub allow_undefined_symbols: bool,
     /// Relocation preference (PIC / NoPic / Default).
     pub relocation_preference: RelocationPreference,
     pub lib_location: Option<PathBuf>,

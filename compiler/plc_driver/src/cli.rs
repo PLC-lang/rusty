@@ -324,6 +324,14 @@ pub struct CompileParameters {
     pub no_libc: bool,
 
     #[clap(
+        name = "allow-undefined-symbols",
+        long = "allow-undefined-symbols",
+        help = "Allow unresolved symbols when producing a shared object (by default a shared object with undefined symbols is rejected via --no-undefined)",
+        global = true
+    )]
+    pub allow_undefined_symbols: bool,
+
+    #[clap(
         name = "debug",
         long,
         short = 'g',
