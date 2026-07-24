@@ -404,17 +404,13 @@ impl GeneratedHeaderForC {
                 );
 
                 match determine_array_type(bounds, index) {
-                    Ok(Some(variable_type)) => {
+                    Ok(variable_type) => {
                         self.template_data.user_defined_types.aliases.push(Variable {
                             data_type: type_information.get_type_name(),
                             name: name.clone().unwrap_or_default(),
                             variable_type,
                         });
                     }
-                    Ok(None) => log::warn!(
-                        "Array type cannot be determined for array with name: {} but none found!",
-                        name.clone().unwrap_or_default()
-                    ),
                     Err(diagnostic) => self.diagnostics.push(diagnostic),
                 }
             }
@@ -923,14 +919,8 @@ impl GeneratedHeaderForC {
                     );
 
                     match determine_array_type(bounds, index) {
-                        Ok(Some(variable_type)) => {
+                        Ok(variable_type) => {
                             Some(Variable { name, data_type: type_info.get_type_name(), variable_type })
-                        }
-                        Ok(None) => {
-                            log::warn!(
-                                "Array type cannot be determined for array with name: {name} but none found!"
-                            );
-                            None
                         }
                         Err(diagnostic) => {
                             self.diagnostics.push(diagnostic);

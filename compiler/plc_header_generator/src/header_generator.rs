@@ -375,13 +375,13 @@ fn extract_string_size(size: &Option<AstNode>, index: &Index) -> Result<i128, Di
 }
 
 /// Determines what type of array this is, standard or multidimensional
-fn determine_array_type(bounds: &AstNode, index: &Index) -> Result<Option<VariableType>, Diagnostic> {
+fn determine_array_type(bounds: &AstNode, index: &Index) -> Result<VariableType, Diagnostic> {
     match &bounds.stmt {
         AstStatement::RangeStatement(..) => {
             let size = extract_array_size(bounds, index)?;
-            Ok(Some(VariableType::Array(size)))
+            Ok(VariableType::Array(size))
         }
-        AstStatement::VlaRangeStatement => Ok(Some(VariableType::Array(i128::default()))),
+        AstStatement::VlaRangeStatement => Ok(VariableType::Array(i128::default())),
         AstStatement::ExpressionList(nodes) => {
             let mut sizes: Vec<i128> = Vec::new();
 
@@ -389,14 +389,14 @@ fn determine_array_type(bounds: &AstNode, index: &Index) -> Result<Option<Variab
                 sizes.push(extract_array_size(node, index)?);
             }
 
-            Ok(Some(VariableType::MultidimensionalArray(sizes)))
+            Ok(VariableType::MultidimensionalArray(sizes))
         }
-        _ => Ok(None),
+        _ => Err(Diagnostic::new("Header generation failed: unable to determine the array type")
+            .with_location(&bounds.location)),
     }
 }
 
-/// Determines the size of an array from its [RangeStatement](plc_ast::ast::AstStatement::RangeStatement) bounds,
-/// defaulting to 0 for any other node kind.
+/// Determines the size of an array from its [RangeStatement](plc_ast::ast::AstStatement::RangeStatement) bounds.
 fn extract_array_size(bounds: &AstNode, index: &Index) -> Result<i128, Diagnostic> {
     match &bounds.stmt {
         AstStatement::RangeStatement(range_stmt) => {
@@ -405,7 +405,8 @@ fn extract_array_size(bounds: &AstNode, index: &Index) -> Result<i128, Diagnosti
 
             Ok(end_value - start_value + 1)
         }
-        _ => Ok(i128::default()),
+        _ => Err(Diagnostic::new("Header generation failed: unable to determine the array size")
+            .with_location(&bounds.location)),
     }
 }
 

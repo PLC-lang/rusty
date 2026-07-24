@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use ast::ast::CompilationUnit;
 use insta::{assert_snapshot, internals::SnapshotContents, Snapshot};
+use plc_diagnostics::diagnostics::Diagnostic;
 use serde::{Deserialize, Serialize};
 use source_code::SourceCode;
 
@@ -964,6 +965,34 @@ fn case_14_constant_sizes_generated_header_file() {
     assert_snapshot!(&generated_header.get_contents());
 }
 
+// ------------------ //
+// -- Test Case 15 -- //
+// ------------------ //
+
+#[test]
+fn case_15_non_constant_sizes_report_a_diagnostic() {
+    let source_code = SourceCode::new(
+        "
+    VAR_GLOBAL
+        message_len : DINT := 256;
+    END_VAR
+
+    TYPE Message :
+    STRUCT
+        message : STRING[message_len];
+    END_STRUCT
+    END_TYPE
+    ",
+        "non_constant_sizes.pli",
+    );
+
+    let diagnostics = prepare_all_generated_header_diagnostics(source_code);
+    assert_eq!(
+        diagnostics.first().map(|diagnostic| diagnostic.get_message()),
+        Some("Header generation failed: unable to resolve this expression to a constant integer value")
+    );
+}
+
 // -------------------------------- //
 // -- Re-usable pipeline methods -- //
 // -------------------------------- //
@@ -1051,6 +1080,39 @@ fn prepare_all_generated_header_contents(source_code: SourceCode) -> Vec<Box<dyn
     }
 
     generated_headers
+}
+
+/// Returns the diagnostics reported while preparing the header template data for the given source code.
+///
+/// ---
+///
+/// The counterpart to [prepare_all_generated_header_contents] for source code that is expected to
+/// fail header generation.
+fn prepare_all_generated_header_diagnostics(source_code: SourceCode) -> Vec<Diagnostic> {
+    let parsed_project_wrapper = progress_pipeline_to_step_parsed(vec![source_code.clone()], vec![])
+        .expect("Parsing the project failed!");
+
+    let indexed_project_wrapper =
+        progress_pipeline_to_step_indexed(vec![source_code.clone()], vec![], parsed_project_wrapper)
+            .expect("Indexing the project failed!");
+
+    let annotated_project_wrapper =
+        progress_pipeline_to_step_annotated(vec![source_code], vec![], indexed_project_wrapper)
+            .expect("Annotating the project failed!");
+
+    let mut diagnostics: Vec<Diagnostic> = Vec::new();
+
+    for unit in &annotated_project_wrapper.annotated_project.units {
+        if let Err(diagnostic) = prepare_template_data_for_header_generation(
+            &get_default_generated_header_options(),
+            unit.get_unit(),
+            &annotated_project_wrapper.annotated_project.index,
+        ) {
+            diagnostics.push(diagnostic);
+        }
+    }
+
+    diagnostics
 }
 
 // -------------------- //
