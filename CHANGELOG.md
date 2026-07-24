@@ -2,11 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.1](https://github.com/PLC-lang/rusty/releases/tag/v1.0.1) - 2026-06-09
+## [1.1.0](https://github.com/PLC-lang/rusty/releases/tag/v1.1.0) - 2026-07-24
+
+### Added
+
+- **cfc**: Jumps (#1814)
+- **cfc**: Functions (#1812)
+- **cfc**: Stateful blocks (#1811)
+- **cfc**: Connectors and continuations (#1810)
+- **cfc**: Returns (#1809)
+- **cfc**: Variable source/sinks (#1808)
+- **stdlib**: Added LTIME to extra functions (#1781)
 
 ### Fixed
 
-- Hwmap no longer infinitely recurses when an enum is in the project (#1769)
+- **header-generator**: Evaluate STRING/ARRAY sizes referencing constants (#1815)
+- Resolve generic TO_STRING/TO_WSTRING to the correct monomorphization (#1805)
+- Ensuring no segfault when c library function returns oversized string (#1794)
+- Reject VAR_IN_OUT access from outside the declaring POU (#1806)
+- Validate the generic natures before lowering (#1793)
+- **stdlib**: CONCAT/INSERT/REPLACE no longer overflow the result buffer (#1791)
+- Invalid numeric literal strings no longer crash the application … (#1787)
+- Annotate allocas inside actions correctly (#1784)
+- Stdlib now accepts the correct data type for LDT_TO_** functions (#1780)
+- Resolve project paths containing glob metacharacters as literals (#1777)
+- Hwmap no longer infinitely recurses when an enum is in the project (#1769) (#1776)
+
+### Refactored
+
+- **cfc**: Adopt the bmx text declaration format (#1827)
+- **cfc**: Rewrite the transpiler around a post-index stage (#1824)
+- **cfc**: Delete plc_xml crate (#1807)
+
+### Documentation
+
+- Windows C++ Build Tools (#1792)
 ## [1.0.0](https://github.com/PLC-lang/rusty/releases/tag/v1.0.0) - 2026-06-03
 
 ### Added
