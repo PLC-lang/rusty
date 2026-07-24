@@ -1,0 +1,81 @@
+---
+source: src/validation/tests/generic_validation_tests.rs
+expression: "&diagnostics"
+---
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
+   ┌─ <internal>:10:20
+   │
+10 │             CONCAT(x, y);
+   │                    ^ Invalid assignment: cannot assign 'DINT' to 'STRING'
+
+error[E062]: Invalid type nature for generic argument. DINT is no ANY_STRING
+   ┌─ <internal>:10:20
+   │
+10 │             CONCAT(x, y);
+   │                    ^ Invalid type nature for generic argument. DINT is no ANY_STRING
+
+error[E037]: Invalid assignment: cannot assign 'REAL' to 'STRING'
+   ┌─ <internal>:10:23
+   │
+10 │             CONCAT(x, y);
+   │                       ^ Invalid assignment: cannot assign 'REAL' to 'STRING'
+
+error[E062]: Invalid type nature for generic argument. REAL is no ANY_STRING
+   ┌─ <internal>:10:23
+   │
+10 │             CONCAT(x, y);
+   │                       ^ Invalid type nature for generic argument. REAL is no ANY_STRING
+
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
+   ┌─ <internal>:11:20
+   │
+11 │             CONCAT(x, y, z);
+   │                    ^ Invalid assignment: cannot assign 'DINT' to 'STRING'
+
+error[E062]: Invalid type nature for generic argument. DINT is no ANY_STRING
+   ┌─ <internal>:11:20
+   │
+11 │             CONCAT(x, y, z);
+   │                    ^ Invalid type nature for generic argument. DINT is no ANY_STRING
+
+error[E037]: Invalid assignment: cannot assign 'REAL' to 'STRING'
+   ┌─ <internal>:11:23
+   │
+11 │             CONCAT(x, y, z);
+   │                       ^ Invalid assignment: cannot assign 'REAL' to 'STRING'
+
+error[E062]: Invalid type nature for generic argument. REAL is no ANY_STRING
+   ┌─ <internal>:11:23
+   │
+11 │             CONCAT(x, y, z);
+   │                       ^ Invalid type nature for generic argument. REAL is no ANY_STRING
+
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
+   ┌─ <internal>:12:20
+   │
+12 │             CONCAT(x, z);
+   │                    ^ Invalid assignment: cannot assign 'DINT' to 'STRING'
+
+error[E062]: Invalid type nature for generic argument. DINT is no ANY_STRING
+   ┌─ <internal>:12:20
+   │
+12 │             CONCAT(x, z);
+   │                    ^ Invalid type nature for generic argument. DINT is no ANY_STRING
+
+error[E031]: Expected a reference for parameter CONCAT__STRING because their type is InOut
+   ┌─ <internal>:13:20
+   │
+13 │             CONCAT(1, 'hello');
+   │                    ^ Expected a reference for parameter CONCAT__STRING because their type is InOut
+
+error[E037]: Invalid assignment: cannot assign 'DINT' to 'STRING'
+   ┌─ <internal>:13:20
+   │
+13 │             CONCAT(1, 'hello');
+   │                    ^ Invalid assignment: cannot assign 'DINT' to 'STRING'
+
+error[E062]: Invalid type nature for generic argument. DINT is no ANY_STRING
+   ┌─ <internal>:13:20
+   │
+13 │             CONCAT(1, 'hello');
+   │                    ^ Invalid type nature for generic argument. DINT is no ANY_STRING
