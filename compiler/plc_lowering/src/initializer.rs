@@ -40,7 +40,7 @@
 use std::rc::Rc;
 
 use plc::{
-    index::{FxIndexMap, Index},
+    index::{const_expressions::ConstId, FxIndexMap, Index},
     lowering::helper::{
         create_assignment, create_assignment_with_index, create_assignments_from_initializer_with_index,
         create_call_statement, create_member_reference, create_ref_assignment,
@@ -50,9 +50,10 @@ use plc::{
 };
 use plc_ast::{
     ast::{
-        AstFactory, AstNode, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration, LinkageType,
-        PouType, Variable, VariableBlockType,
+        AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration,
+        LinkageType, PouType, Variable, VariableBlockType,
     },
+    literals::AstLiteral,
     provider::IdProvider,
     visitor::{AstVisitor, Walker},
 };
@@ -255,7 +256,13 @@ impl AstVisitor for Initializer {
         // Determine if we need to create an initializer
         // For alias/reference variables (AT x), if there's no explicit initializer, we use the AT target (address)
         // BUT only if the address is a simple identifier (not a hardware address like %I* or %QX1.2.1)
-        let initializer_to_use = if variable.initializer.is_some() {
+        let folded_initializer = variable
+            .initializer
+            .as_ref()
+            .and_then(|it| self.folded_array_initializer(it, self.initial_value_id(variable.get_name())));
+        let initializer_to_use = if folded_initializer.is_some() {
+            folded_initializer.as_ref()
+        } else if variable.initializer.is_some() {
             variable.initializer.as_ref()
         } else if is_alias_or_reference_variable(variable, index)
             && variable.address.as_ref().is_some_and(is_simple_identifier_address)
@@ -376,6 +383,10 @@ impl AstVisitor for Initializer {
         let mut stmts = vec![];
         // Explicitly add the initializer call here
         if let Some(initializer) = &user_type.initializer {
+            let const_id =
+                self.index.as_ref().and_then(|idx| idx.find_type(name)).and_then(|dt| dt.initial_value);
+            let folded_initializer = self.folded_array_initializer(initializer, const_id);
+            let initializer = folded_initializer.as_ref().unwrap_or(initializer);
             let assignment = create_assignment("self", None, initializer, self.id_provider.clone());
             stmts.push(assignment);
         }
@@ -399,7 +410,10 @@ impl AstVisitor for Initializer {
                     }
                 }
 
-                if let Some(initializer) = &variable.initializer {
+                let folded_initializer = variable.initializer.as_ref().and_then(|it| {
+                    self.folded_array_initializer(it, self.initial_value_id(variable.get_name()))
+                });
+                if let Some(initializer) = folded_initializer.as_ref().or(variable.initializer.as_ref()) {
                     let init_policy = InitLoweringPolicy::for_struct_field(variable, initializer, index);
                     match init_policy {
                         InitLoweringPolicy::RefAssign(ref_rhs) => {
@@ -768,6 +782,29 @@ impl Initializer {
         } else {
             log::debug!("Dropping {} init statement(s): no current POU/datatype in context", node.len());
         }
+    }
+
+    /// For array-literal initializers, prefer the const-evaluator's folded statement over the
+    /// raw AST — the raw tree may contain constant expressions (e.g. `UDINT#0 + UDINT#1`)
+    /// which codegen's literal generator cannot evaluate.
+    fn folded_array_initializer(&self, raw: &AstNode, const_id: Option<ConstId>) -> Option<AstNode> {
+        if !matches!(raw.get_stmt(), AstStatement::Literal(AstLiteral::Array(_))) {
+            return None;
+        }
+        let index = self.index.as_ref()?;
+        index.get_const_expressions().get_resolved_constant_statement(&const_id?).cloned()
+    }
+
+    /// Finds the const-expression id of a variable's initial value (POU/struct member or global).
+    fn initial_value_id(&self, variable_name: &str) -> Option<ConstId> {
+        let index = self.index.as_ref()?;
+        self.context
+            .current_pou
+            .as_deref()
+            .or(self.context.current_datatype.as_deref())
+            .and_then(|container| index.find_member(container, variable_name))
+            .or_else(|| index.find_global_variable(variable_name))?
+            .initial_value
     }
 
     /// Creates a call statement to the constructor of the given type: `<type_name>__ctor(<var_name>)`.
