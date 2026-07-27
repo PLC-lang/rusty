@@ -60,7 +60,8 @@ fn string_literals_are_annotated() {
             nature: TypeNature::String,
             information: DataTypeInformation::String {
                 encoding: crate::typesystem::StringEncoding::Utf8,
-                size: crate::typesystem::TypeSize::LiteralInteger(4)
+                size: crate::typesystem::TypeSize::LiteralInteger(4),
+                declared_with_length: true,
             },
             location: SourceLocation::internal(),
             linkage: plc_ast::ast::LinkageType::Internal,
@@ -74,7 +75,8 @@ fn string_literals_are_annotated() {
             nature: TypeNature::String,
             information: DataTypeInformation::String {
                 encoding: crate::typesystem::StringEncoding::Utf16,
-                size: crate::typesystem::TypeSize::LiteralInteger(7)
+                size: crate::typesystem::TypeSize::LiteralInteger(7),
+                declared_with_length: true,
             },
             location: SourceLocation::internal(),
             linkage: plc_ast::ast::LinkageType::Internal,
@@ -513,6 +515,7 @@ fn expression_list_as_array_initilization_is_annotated_correctly() {
                 &DataTypeInformation::String {
                     encoding: StringEncoding::Utf8,
                     size: TypeSize::from_literal(4),
+                    declared_with_length: true,
                 }
             )
         }
@@ -682,4 +685,19 @@ fn struct_with_nested_array_in_array_of_structs_assignment_in_body() {
     let AstStatement::Assignment(c_assignment) = &c.stmt else { panic!() };
     let inner_array = &c_assignment.right;
     assert_eq!(&annotations.get_type_hint(inner_array, &index).unwrap().name, "__myStruct_c");
+}
+
+#[test]
+fn literal_string_types_carry_declared_with_length() {
+    let provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(r#"PROGRAM PRG 'abc'; "xyz"; END_PROGRAM"#, provider.clone());
+    annotate_with_ids(&unit, &mut index, provider);
+
+    // Assert on the information field directly — DataType's PartialEq ignores it,
+    // which is why the existing assertions at lines 64/79 pass vacuously.
+    let info = index.get_type_or_panic("__STRING_3").get_type_information();
+    assert!(
+        matches!(info, DataTypeInformation::String { declared_with_length: true, .. }),
+        "literal string types have a known explicit length and should report it: {info:?}"
+    );
 }

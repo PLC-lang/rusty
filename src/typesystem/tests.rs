@@ -160,6 +160,7 @@ fn get_bigger_size_string_test() {
         information: typesystem::DataTypeInformation::String {
             size: TypeSize::LiteralInteger(1024),
             encoding: typesystem::StringEncoding::Utf8,
+            declared_with_length: false,
         },
 
         nature: TypeNature::String,
@@ -172,6 +173,7 @@ fn get_bigger_size_string_test() {
         information: typesystem::DataTypeInformation::String {
             size: TypeSize::LiteralInteger(30),
             encoding: typesystem::StringEncoding::Utf8,
+            declared_with_length: false,
         },
         nature: TypeNature::String,
         location: SourceLocation::internal(),
@@ -237,6 +239,7 @@ fn get_bigger_size_mixed_test_no_() {
         information: typesystem::DataTypeInformation::String {
             size: TypeSize::LiteralInteger(1024),
             encoding: typesystem::StringEncoding::Utf8,
+            declared_with_length: false,
         },
         nature: TypeNature::String,
         location: SourceLocation::internal(),
@@ -248,6 +251,7 @@ fn get_bigger_size_mixed_test_no_() {
         information: typesystem::DataTypeInformation::String {
             size: TypeSize::LiteralInteger(1024),
             encoding: typesystem::StringEncoding::Utf16,
+            declared_with_length: false,
         },
         nature: TypeNature::String,
         location: SourceLocation::internal(),

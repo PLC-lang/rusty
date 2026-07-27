@@ -112,7 +112,7 @@ impl TypeHelper for GeneratedHeaderForC {
 
                 self.get_type_name_for_type(&referenced_data_type_info, builtin_types)
             }
-            DataTypeInformation::String { encoding, size } => match encoding {
+            DataTypeInformation::String { encoding, size, .. } => match encoding {
                 StringEncoding::Utf8 => TypeInformation {
                     name: self.get_type_name_for_string(&false),
                     attribute: determine_type_attribute(

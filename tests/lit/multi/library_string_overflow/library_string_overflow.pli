@@ -1,0 +1,11 @@
+TYPE ErrorCode : DINT;
+END_TYPE
+
+FUNCTION Config_GetString : ErrorCode
+VAR_INPUT
+    Key : STRING[1023];
+END_VAR
+VAR_OUTPUT
+    Value : STRING[1023];
+END_VAR
+END_FUNCTION

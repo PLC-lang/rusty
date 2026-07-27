@@ -1,0 +1,1 @@
+RUN: %COMPILE %S/library_string_overflow_prog.st && %RUN | %CHECK %S/library_string_overflow_prog.st

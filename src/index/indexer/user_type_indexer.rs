@@ -391,6 +391,7 @@ impl UserTypeIndexer<'_, '_> {
 
     fn index_string_type(&mut self, name: &str, is_wide: bool, size: Option<&AstNode>) {
         let encoding = if is_wide { StringEncoding::Utf16 } else { StringEncoding::Utf8 };
+        let declared_with_length = size.is_some();
 
         //TODO: handle the case where type_name is None
         let scope = self.current_scope();
@@ -416,7 +417,7 @@ impl UserTypeIndexer<'_, '_> {
             }
             None => TypeSize::from_literal((DEFAULT_STRING_LEN + 1).into()),
         };
-        let information = DataTypeInformation::String { size, encoding };
+        let information = DataTypeInformation::String { size, encoding, declared_with_length };
         self.register_type(name, information, TypeNature::String, LinkageType::Internal);
 
         //TODO: can we reuse this?
