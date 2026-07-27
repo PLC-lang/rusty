@@ -1,0 +1,10 @@
+{
+	"name" : "LibraryStringOverflowProject",
+	"files" : [
+		"library_string_overflow.pli"
+	],
+	"compile_type" : "Shared",
+	"output" : "prog.so",
+	"libraries" : [
+	]
+}
