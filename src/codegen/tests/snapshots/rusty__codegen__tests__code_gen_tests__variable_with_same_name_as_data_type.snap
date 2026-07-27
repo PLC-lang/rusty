@@ -7,18 +7,18 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%prog = type { i64 }
+%prog = type { i32 }
 
 @prog_instance = global %prog zeroinitializer
 
-define i64 @func() {
+define i32 @func() {
 entry:
-  %func = alloca i64, align [filtered]
-  %TIME = alloca i64, align [filtered]
-  store i64 0, ptr %TIME, align [filtered]
-  store i64 0, ptr %func, align [filtered]
-  %func_ret = load i64, ptr %func, align [filtered]
-  ret i64 %func_ret
+  %func = alloca i32, align [filtered]
+  %TIME = alloca i32, align [filtered]
+  store i32 0, ptr %TIME, align [filtered]
+  store i32 0, ptr %func, align [filtered]
+  %func_ret = load i32, ptr %func, align [filtered]
+  ret i32 %func_ret
 }
 
 define void @prog(ptr %0) {

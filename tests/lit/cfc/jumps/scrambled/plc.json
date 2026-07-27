@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_scrambled_jumps",
+	"files" : [
+		"scrambled.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

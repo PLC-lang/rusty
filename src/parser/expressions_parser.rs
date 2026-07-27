@@ -701,6 +701,7 @@ fn parse_date_from_string(
     text: &str,
     location: SourceLocation,
     id: AstId,
+    is_long: bool,
 ) -> Option<AstNode> {
     let mut segments = text.split('-');
 
@@ -718,14 +719,15 @@ fn parse_date_from_string(
         .map(|s| parse_number::<u32>(lexer, s, &location))
         .expect("day-segment - tokenizer broken?")?;
 
-    Some(AstNode::new_literal(AstLiteral::new_date(year, month, day), id, location))
+    Some(AstNode::new_literal(AstLiteral::new_date_with_long_flag(year, month, day, is_long), id, location))
 }
 
 fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Option<AstNode> {
     let location = lexer.location();
     //get rid of D# or DATE#
-    let slice = lexer.slice_and_advance();
+    let slice = lexer.slice_and_advance().to_string();
     let hash_location = slice.find('#').unwrap_or_default();
+    let is_long = slice[..hash_location].starts_with('L') || slice[..hash_location].starts_with('l');
     let last_minus_location = slice.rfind('-').expect("unexpected date-and-time syntax");
 
     let (_, date_and_time) = slice.split_at(hash_location + 1); //get rid of the prefix
@@ -742,35 +744,43 @@ fn parse_literal_date_and_time(lexer: &mut ParseSession) -> Option<AstNode> {
     let mut segments = time.split(':');
     let (hour, min, sec, nano) = parse_time_of_day(lexer, &mut segments, &location)?;
 
-    Some(AstNode::new_literal(
-        AstLiteral::new_date_and_time(year, month, day, hour, min, sec, nano),
-        lexer.next_id(),
-        location,
-    ))
+    let literal = if is_long {
+        AstLiteral::new_long_date_and_time(year, month, day, hour, min, sec, nano)
+    } else {
+        AstLiteral::new_date_and_time(year, month, day, hour, min, sec, nano)
+    };
+
+    Some(AstNode::new_literal(literal, lexer.next_id(), location))
 }
 
 fn parse_literal_date(lexer: &mut ParseSession) -> Option<AstNode> {
     let location = lexer.location();
     //get rid of D# or DATE#
-    let slice = lexer.slice_and_advance();
+    let slice = lexer.slice_and_advance().to_string();
     let hash_location = slice.find('#').unwrap_or_default();
+    let is_long = slice[..hash_location].starts_with('L') || slice[..hash_location].starts_with('l');
     let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
 
-    let next_id = lexer.next_id();
-    parse_date_from_string(lexer, slice, location, next_id)
+    let id = lexer.next_id();
+    parse_date_from_string(lexer, slice, location, id, is_long)
 }
 
 fn parse_literal_time_of_day(lexer: &mut ParseSession) -> Option<AstNode> {
     let location = lexer.location();
     //get rid of TOD# or TIME_OF_DAY#
-    let slice = lexer.slice_and_advance();
+    let slice = lexer.slice_and_advance().to_string();
     let hash_location = slice.find('#').unwrap_or_default();
+    let is_long = slice[..hash_location].starts_with('L') || slice[..hash_location].starts_with('l');
     let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
 
     let mut segments = slice.split(':');
     let (hour, min, sec, nano) = parse_time_of_day(lexer, &mut segments, &location)?;
 
-    Some(AstNode::new_literal(AstLiteral::new_time_of_day(hour, min, sec, nano), lexer.next_id(), location))
+    Some(AstNode::new_literal(
+        AstLiteral::new_time_of_day_with_long_flag(hour, min, sec, nano, is_long),
+        lexer.next_id(),
+        location,
+    ))
 }
 
 fn parse_time_of_day(
@@ -802,8 +812,10 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Option<AstNode> {
     const POS_NS: usize = 6;
     let location = lexer.location();
     //get rid of T# or TIME#
-    let slice = lexer.slice_and_advance();
-    let (_, slice) = slice.split_at(slice.find('#').unwrap_or_default() + 1); //get rid of the prefix
+    let slice = lexer.slice_and_advance().to_string();
+    let hash_location = slice.find('#').unwrap_or_default();
+    let is_long = slice[..hash_location].starts_with('L') || slice[..hash_location].starts_with('l');
+    let (_, slice) = slice.split_at(hash_location + 1); //get rid of the prefix
 
     let mut chars = slice.char_indices();
     let mut char = chars.next();
@@ -907,6 +919,7 @@ fn parse_literal_time(lexer: &mut ParseSession) -> Option<AstNode> {
             micro: values[POS_US].unwrap_or_default(),
             nano: values[POS_NS].map(|it| it as u32).unwrap_or(0u32),
             negative: is_negative,
+            is_long,
         }),
         lexer.next_id(),
         location,

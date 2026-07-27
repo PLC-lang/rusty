@@ -1,0 +1,36 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef CONSTANT_SIZES_H_
+#define CONSTANT_SIZES_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <time.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct {
+    int32_t id;
+    char message[257];
+    int32_t buffer[256];
+} Message;
+
+extern int32_t MESSAGE_STR_LEN;
+extern int32_t BUFFER_UPPER_BOUND;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !CONSTANT_SIZES_H_ */

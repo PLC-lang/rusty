@@ -185,8 +185,8 @@ fn adds_time_basic() {
 
     let mut main = MainType::default();
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 25000000010);
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 25010);
 }
 
 #[test]
@@ -202,8 +202,8 @@ fn adds_dt_type_basic() {
 
     let mut main = MainType::default();
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 25000000010);
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 35);
 }
 
 #[test]
@@ -212,7 +212,7 @@ fn adds_tod_type_basic() {
     #[derive(Default)]
     #[repr(C)]
     struct MainType {
-        i3: i32,
+        i3: u32,
     }
     let prog = "
     FUNCTION main : TOD
@@ -225,8 +225,8 @@ fn adds_tod_type_basic() {
 
     let mut main = MainType::default();
 
-    let res: i64 = compile_and_run(prog.to_string(), &mut main);
-    assert_eq!(res, 25000000010);
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 25010);
 }
 
 #[test]
@@ -235,7 +235,7 @@ fn add_date_basic() {
     FUNCTION main : DATE
     VAR
         date_var : DATE := D#2021-01-01;
-        date_10_days : DATE := 777600000000000;
+        date_10_days : DATE := 777600;
         result : DATE;
     END_VAR
         result := date_10_days + date_var;
@@ -245,11 +245,89 @@ fn add_date_basic() {
 
     let mut main = MainType::default();
 
-    let res: u64 = compile_and_run(prog.to_string(), &mut main);
-    let date_var =
-        chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
+    let res: u32 = compile_and_run(prog.to_string(), &mut main);
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp() as u32;
+    let date_10_days = chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp() as u32;
+    assert_eq!(res, date_10_days + date_var);
+}
+
+#[test]
+fn adds_ltime_basic() {
+    let prog = "
+    FUNCTION main : LTIME
+    VAR
+        time_var : LTIME := LT#25s;
+    END_VAR
+        main := time_var + 10;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 25000000010);
+}
+
+#[test]
+fn adds_ldt_type_basic() {
+    let prog = "
+    FUNCTION main : LDT
+    VAR
+        i3 : LDT := LT#25s;
+    END_VAR
+        main := i3 + 10;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 25000000010);
+}
+
+#[test]
+fn adds_ltod_type_basic() {
+    #[allow(dead_code)]
+    #[derive(Default)]
+    #[repr(C)]
+    struct MainType {
+        i3: i64,
+    }
+    let prog = "
+    FUNCTION main : LTOD
+    VAR
+        i3 : LTOD := LT#25s;
+    END_VAR
+        main := i3 + 10;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    assert_eq!(res, 25000000010);
+}
+
+#[test]
+fn add_ldate_basic() {
+    let prog = "
+    FUNCTION main : LDATE
+    VAR
+        date_var : LDATE := LD#2021-01-01;
+        date_10_days : LDATE := 777600000000000;
+        result : LDATE;
+    END_VAR
+        result := date_10_days + date_var;
+        main := result;
+    END_FUNCTION
+    ";
+
+    let mut main = MainType::default();
+
+    let res: i64 = compile_and_run(prog.to_string(), &mut main);
+    let date_var = chrono::Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
     let date_10_days =
-        chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap() as u64;
+        chrono::Utc.with_ymd_and_hms(1970, 1, 10, 0, 0, 0).unwrap().timestamp_nanos_opt().unwrap();
     assert_eq!(res, date_10_days + date_var);
 }
 

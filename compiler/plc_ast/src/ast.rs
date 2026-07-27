@@ -683,6 +683,14 @@ impl Debug for Variable {
 }
 
 impl Variable {
+    pub fn new(
+        name: impl Into<String>,
+        data_type_declaration: DataTypeDeclaration,
+        location: SourceLocation,
+    ) -> Variable {
+        Variable { name: name.into(), data_type_declaration, initializer: None, address: None, location }
+    }
+
     pub fn replace_data_type_with_reference_to(&mut self, type_name: String) -> DataTypeDeclaration {
         let new_data_type = DataTypeDeclaration::Reference {
             referenced_type: type_name,
@@ -727,6 +735,10 @@ impl From<&DataTypeDeclaration> for SourceLocation {
 }
 
 impl DataTypeDeclaration {
+    pub fn reference(referenced_type: impl Into<String>, location: SourceLocation) -> DataTypeDeclaration {
+        DataTypeDeclaration::Reference { referenced_type: referenced_type.into(), location }
+    }
+
     pub fn get_name(&self) -> Option<&str> {
         match self {
             Self::Aggregate { referenced_type, .. }

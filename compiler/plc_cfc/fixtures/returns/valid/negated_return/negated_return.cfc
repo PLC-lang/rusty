@@ -2,12 +2,10 @@
 <ppx:Function xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="negated_return">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>FUNCTION negated_return : INT&#13;
+            <bmx:TextDeclaration>FUNCTION negated_return : INT&#13;
 VAR&#13;
     myCondition: BOOL;&#13;
-END_VAR</content>
-            </textDeclaration>
+END_VAR</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>

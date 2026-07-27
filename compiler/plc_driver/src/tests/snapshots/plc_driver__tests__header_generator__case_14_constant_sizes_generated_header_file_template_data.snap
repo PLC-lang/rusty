@@ -1,0 +1,56 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [
+        {
+          "name": "Message",
+          "variables": [
+            {
+              "data_type": "int32_t",
+              "name": "id",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "char",
+              "name": "message",
+              "variable_type": {
+                "Array": 257
+              }
+            },
+            {
+              "data_type": "int32_t",
+              "name": "buffer",
+              "variable_type": {
+                "Array": 256
+              }
+            }
+          ],
+          "data_type": null
+        }
+      ],
+      "enums": []
+    },
+    "global_variables": [
+      {
+        "data_type": "int32_t",
+        "name": "MESSAGE_STR_LEN",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "int32_t",
+        "name": "BUFFER_UPPER_BOUND",
+        "variable_type": "Default"
+      }
+    ],
+    "functions": []
+  },
+  "directory": "",
+  "path": "constant_sizes.h",
+  "file_name": "CONSTANT_SIZES",
+  "formatted_path": "CONSTANT_SIZES_H_"
+}
