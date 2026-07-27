@@ -11,16 +11,16 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define i64 @TIME() {
+define i32 @TIME() {
 entry:
-  %TIME = alloca i64, align [filtered]
-  store i64 0, ptr %TIME, align [filtered]
-  %TIME_ret = load i64, ptr %TIME, align [filtered]
-  ret i64 %TIME_ret
+  %TIME = alloca i32, align [filtered]
+  store i32 0, ptr %TIME, align [filtered]
+  %TIME_ret = load i32, ptr %TIME, align [filtered]
+  ret i32 %TIME_ret
 }
 
 define void @prg(ptr %0) {
 entry:
-  %call = call i64 @TIME()
+  %call = call i32 @TIME()
   ret void
 }

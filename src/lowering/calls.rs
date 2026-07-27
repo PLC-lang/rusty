@@ -322,6 +322,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 is_method,
                 can_have_output_assignment_lowering,
                 is_generic_function,
+                call_name,
                 is_fnptr_call,
                 has_aggregate_return,
             ) = {
@@ -330,16 +331,19 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     return;
                 };
                 //Get the function being called
-                let (qualified_name, return_type_name, generic_name) = match annotation
+                let (qualified_name, return_type_name, generic_name, call_name) = match annotation
                     .get(&stmt.operator)
                     .or_else(|| annotation.get_hint(&stmt.operator))
                     .cloned()
                 {
                     Some(StatementAnnotation::Function {
-                        return_type, qualified_name, generic_name, ..
-                    }) => (qualified_name, return_type, generic_name),
+                        return_type,
+                        qualified_name,
+                        generic_name,
+                        call_name,
+                    }) => (qualified_name, return_type, generic_name, call_name),
                     Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
-                        (qualified_name, return_type, None)
+                        (qualified_name, return_type, None, None)
                     }
                     _ => return,
                 };
@@ -364,6 +368,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     is_method,
                     function_entry.is_function() || function_entry.is_method(),
                     is_generic_function,
+                    call_name,
                     is_fnptr_call,
                     has_aggregate_return,
                 )
@@ -432,10 +437,18 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 }
 
                 if is_generic_function {
-                    //For generic functions, we need to replace the generic name with the function name
+                    // For generic functions, replace the operator with the concrete monomorphization
+                    // to call. Prefer `call_name` (the resolved monomorph, e.g. `TO_STRING__DINT`)
+                    // over `qualified_name`: when no concrete monomorph exists the resolver leaves
+                    // `qualified_name` pointing at the *generic* itself, and resetting to that makes
+                    // the re-annotation re-monomorphize against the injected aggregate return buffer —
+                    // binding e.g. `TO_STRING(aDint)` to `TO_STRING__STRING` and reinterpreting the
+                    // argument's bytes as a string. Emitting the true monomorph name instead yields an
+                    // unresolved reference the compiler rejects.
+                    let concrete_name = call_name.as_deref().unwrap_or(&qualified_name);
                     *stmt.operator = AstFactory::create_member_reference(
                         AstFactory::create_identifier(
-                            &qualified_name,
+                            concrete_name,
                             stmt.operator.get_location(),
                             self.id_provider.next_id(),
                         ),

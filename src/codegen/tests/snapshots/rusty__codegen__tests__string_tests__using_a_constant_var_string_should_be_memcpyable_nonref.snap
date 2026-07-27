@@ -24,16 +24,16 @@ entry:
   ret i8 %STRING_EQUAL_ret
 }
 
-define i64 @FSTRING_TO_DT() {
+define i32 @FSTRING_TO_DT() {
 entry:
-  %FSTRING_TO_DT = alloca i64, align [filtered]
+  %FSTRING_TO_DT = alloca i32, align [filtered]
   %ignore = alloca [2 x i8], align [filtered]
   %fchar = alloca [2 x i8], align [filtered]
   %c = alloca [2 x i8], align [filtered]
   call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %ignore, ptr align [filtered] @__FSTRING_TO_DT.ignore__init, i64 ptrtoint (ptr getelementptr ([2 x i8], ptr null, i32 1) to i64), i1 false)
   call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %fchar, ptr align [filtered] @__FSTRING_TO_DT.fchar__init, i64 ptrtoint (ptr getelementptr ([2 x i8], ptr null, i32 1) to i64), i1 false)
   call void @llvm.memset.p0.i64(ptr align [filtered] %c, i8 0, i64 ptrtoint (ptr getelementptr ([2 x i8], ptr null, i32 1) to i64), i1 false)
-  store i64 0, ptr %FSTRING_TO_DT, align [filtered]
+  store i32 0, ptr %FSTRING_TO_DT, align [filtered]
   %call = call i8 @STRING_EQUAL(ptr %c, ptr %ignore)
   %0 = icmp ne i8 %call, 0
   br i1 %0, label %condition_body, label %continue
@@ -42,8 +42,8 @@ condition_body:                                   ; preds = %entry
   br label %continue
 
 continue:                                         ; preds = %condition_body, %entry
-  %FSTRING_TO_DT_ret = load i64, ptr %FSTRING_TO_DT, align [filtered]
-  ret i64 %FSTRING_TO_DT_ret
+  %FSTRING_TO_DT_ret = load i32, ptr %FSTRING_TO_DT, align [filtered]
+  ret i32 %FSTRING_TO_DT_ret
 }
 
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)

@@ -47,6 +47,7 @@ pub struct Date {
     year: i32,
     month: u32,
     day: u32,
+    is_long: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -58,6 +59,7 @@ pub struct DateAndTime {
     min: u32,
     sec: u32,
     nano: u32,
+    is_long: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -66,6 +68,7 @@ pub struct TimeOfDay {
     min: u32,
     sec: u32,
     nano: u32,
+    is_long: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -78,6 +81,7 @@ pub struct Time {
     pub micro: f64,
     pub nano: u32,
     pub negative: bool,
+    pub is_long: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -177,6 +181,28 @@ impl Time {
     pub fn is_negative(&self) -> bool {
         self.negative
     }
+
+    pub fn is_long(&self) -> bool {
+        self.is_long
+    }
+}
+
+impl Date {
+    pub fn is_long(&self) -> bool {
+        self.is_long
+    }
+}
+
+impl DateAndTime {
+    pub fn is_long(&self) -> bool {
+        self.is_long
+    }
+}
+
+impl TimeOfDay {
+    pub fn is_long(&self) -> bool {
+        self.is_long
+    }
 }
 
 impl Array {
@@ -209,7 +235,12 @@ impl AstLiteral {
 
     /// Creates a new literal date
     pub fn new_date(year: i32, month: u32, day: u32) -> Self {
-        AstLiteral::Date(Date { year, month, day })
+        AstLiteral::Date(Date { year, month, day, is_long: false })
+    }
+
+    /// Creates a new literal date with explicit width flavor
+    pub fn new_date_with_long_flag(year: i32, month: u32, day: u32, is_long: bool) -> Self {
+        AstLiteral::Date(Date { year, month, day, is_long })
     }
 
     /// Creates a new literal date and time
@@ -222,12 +253,30 @@ impl AstLiteral {
         sec: u32,
         nano: u32,
     ) -> Self {
-        AstLiteral::DateAndTime(DateAndTime { year, month, day, hour, min, sec, nano })
+        AstLiteral::DateAndTime(DateAndTime { year, month, day, hour, min, sec, nano, is_long: false })
+    }
+
+    /// Creates a new long literal date and time
+    pub fn new_long_date_and_time(
+        year: i32,
+        month: u32,
+        day: u32,
+        hour: u32,
+        min: u32,
+        sec: u32,
+        nano: u32,
+    ) -> Self {
+        AstLiteral::DateAndTime(DateAndTime { year, month, day, hour, min, sec, nano, is_long: true })
     }
 
     /// Creates a new literal time of day
     pub fn new_time_of_day(hour: u32, min: u32, sec: u32, nano: u32) -> Self {
-        AstLiteral::TimeOfDay(TimeOfDay { hour, min, sec, nano })
+        AstLiteral::TimeOfDay(TimeOfDay { hour, min, sec, nano, is_long: false })
+    }
+
+    /// Creates a new literal time of day with explicit width flavor
+    pub fn new_time_of_day_with_long_flag(hour: u32, min: u32, sec: u32, nano: u32, is_long: bool) -> Self {
+        AstLiteral::TimeOfDay(TimeOfDay { hour, min, sec, nano, is_long })
     }
 
     /// Creates a new literal null

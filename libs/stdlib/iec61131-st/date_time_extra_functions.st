@@ -16,12 +16,12 @@ END_FUNCTION
 * Concatenates DATE and LTOD to DT
 *
 *********************)
-FUNCTION CONCAT_DATE_LTOD : DT
+{external}
+FUNCTION CONCAT_DATE_LTOD : LDT
 VAR_INPUT
     date_input : DATE;
     tod_input : LTOD;
 END_VAR
-    CONCAT_DATE_LTOD := CONCAT_DATE_TOD(date_input, tod_input);
 END_FUNCTION
 
 (********************
@@ -68,6 +68,7 @@ END_VAR
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for SINT *)
+{external}
 FUNCTION CONCAT_LTOD__SINT : LTOD
 VAR_INPUT
     hour : SINT;
@@ -75,10 +76,10 @@ VAR_INPUT
     second : SINT;
     millisecond : SINT;
 END_VAR
-    CONCAT_LTOD__SINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for USINT *)
+{external}
 FUNCTION CONCAT_LTOD__USINT : LTOD
 VAR_INPUT
     hour : USINT;
@@ -86,10 +87,10 @@ VAR_INPUT
     second : USINT;
     millisecond : USINT;
 END_VAR
-    CONCAT_LTOD__USINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for INT *)
+{external}
 FUNCTION CONCAT_LTOD__INT : LTOD
 VAR_INPUT
     hour : INT;
@@ -97,10 +98,10 @@ VAR_INPUT
     second : INT;
     millisecond : INT;
 END_VAR
-    CONCAT_LTOD__INT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for UINT *)
+{external}
 FUNCTION CONCAT_LTOD__UINT : LTOD
 VAR_INPUT
     hour : UINT;
@@ -108,10 +109,10 @@ VAR_INPUT
     second : UINT;
     millisecond : UINT;
 END_VAR
-    CONCAT_LTOD__UINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for DINT *)
+{external}
 FUNCTION CONCAT_LTOD__DINT : LTOD
 VAR_INPUT
     hour : DINT;
@@ -119,10 +120,10 @@ VAR_INPUT
     second : DINT;
     millisecond : DINT;
 END_VAR
-    CONCAT_LTOD__DINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for UDINT *)
+{external}
 FUNCTION CONCAT_LTOD__UDINT : LTOD
 VAR_INPUT
     hour : UDINT;
@@ -130,10 +131,10 @@ VAR_INPUT
     second : UDINT;
     millisecond : UDINT;
 END_VAR
-    CONCAT_LTOD__UDINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for LINT *)
+{external}
 FUNCTION CONCAT_LTOD__LINT : LTOD
 VAR_INPUT
     hour : LINT;
@@ -141,10 +142,10 @@ VAR_INPUT
     second : LINT;
     millisecond : LINT;
 END_VAR
-    CONCAT_LTOD__LINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LTOD for ULINT *)
+{external}
 FUNCTION CONCAT_LTOD__ULINT : LTOD
 VAR_INPUT
     hour : ULINT;
@@ -152,7 +153,6 @@ VAR_INPUT
     second : ULINT;
     millisecond : ULINT;
 END_VAR
-    CONCAT_LTOD__ULINT := CONCAT_TOD(hour, minute, second, millisecond);
 END_FUNCTION
 
 (********************
@@ -274,6 +274,7 @@ END_VAR
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for INT *)
+{external}
 FUNCTION CONCAT_LDT__INT : LDT
 VAR_INPUT
     year : INT;
@@ -284,10 +285,10 @@ VAR_INPUT
     second : INT;
     millisecond : INT;
 END_VAR
-    CONCAT_LDT__INT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for UINT *)
+{external}
 FUNCTION CONCAT_LDT__UINT : LDT
 VAR_INPUT
     year : UINT;
@@ -298,10 +299,10 @@ VAR_INPUT
     second : UINT;
     millisecond : UINT;
 END_VAR
-    CONCAT_LDT__UINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for DINT *)
+{external}
 FUNCTION CONCAT_LDT__DINT : LDT
 VAR_INPUT
     year : DINT;
@@ -312,10 +313,10 @@ VAR_INPUT
     second : DINT;
     millisecond : DINT;
 END_VAR
-    CONCAT_LDT__DINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for UDINT *)
+{external}
 FUNCTION CONCAT_LDT__UDINT : LDT
 VAR_INPUT
     year : UDINT;
@@ -326,10 +327,10 @@ VAR_INPUT
     second : UDINT;
     millisecond : UDINT;
 END_VAR
-    CONCAT_LDT__UDINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for LINT *)
+{external}
 FUNCTION CONCAT_LDT__LINT : LDT
 VAR_INPUT
     year : LINT;
@@ -340,10 +341,10 @@ VAR_INPUT
     second : LINT;
     millisecond : LINT;
 END_VAR
-    CONCAT_LDT__LINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (* Specialized implementation of CONCAT_LDT for ULINT *)
+{external}
 FUNCTION CONCAT_LDT__ULINT : LDT
 VAR_INPUT
     year : ULINT;
@@ -354,7 +355,6 @@ VAR_INPUT
     second : ULINT;
     millisecond : ULINT;
 END_VAR
-    CONCAT_LDT__ULINT := CONCAT_DATE_LTOD(CONCAT_DATE(year, month, day), CONCAT_LTOD(hour, minute, second, millisecond));
 END_FUNCTION
 
 (********************
@@ -570,6 +570,7 @@ END_VAR
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for INT *)
+{external}
 FUNCTION SPLIT_LTOD__INT : INT
 VAR_INPUT
     in : LTOD;
@@ -580,10 +581,10 @@ VAR_OUTPUT
     second : INT;
     millisecond : INT;
 END_VAR
-    SPLIT_LTOD__INT := SPLIT_TOD__INT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for UINT *)
+{external}
 FUNCTION SPLIT_LTOD__UINT : INT
 VAR_INPUT
     in : LTOD;
@@ -594,10 +595,10 @@ VAR_OUTPUT
     second : UINT;
     millisecond : UINT;
 END_VAR
-    SPLIT_LTOD__UINT := SPLIT_TOD__UINT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for DINT *)
+{external}
 FUNCTION SPLIT_LTOD__DINT : INT
 VAR_INPUT
     in : LTOD;
@@ -608,10 +609,10 @@ VAR_OUTPUT
     second : DINT;
     millisecond : DINT;
 END_VAR
-    SPLIT_LTOD__DINT := SPLIT_TOD__DINT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for UDINT *)
+{external}
 FUNCTION SPLIT_LTOD__UDINT : INT
 VAR_INPUT
     in : LTOD;
@@ -622,10 +623,10 @@ VAR_OUTPUT
     second : UDINT;
     millisecond : UDINT;
 END_VAR
-    SPLIT_LTOD__UDINT := SPLIT_TOD__UDINT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for LINT *)
+{external}
 FUNCTION SPLIT_LTOD__LINT : INT
 VAR_INPUT
     in : LTOD;
@@ -636,10 +637,10 @@ VAR_OUTPUT
     second : LINT;
     millisecond : LINT;
 END_VAR
-    SPLIT_LTOD__LINT := SPLIT_TOD__LINT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LTOD for ULINT *)
+{external}
 FUNCTION SPLIT_LTOD__ULINT : INT
 VAR_INPUT
     in : LTOD;
@@ -650,7 +651,6 @@ VAR_OUTPUT
     second : ULINT;
     millisecond : ULINT;
 END_VAR
-    SPLIT_LTOD__ULINT := SPLIT_TOD__ULINT(in, hour, minute, second, millisecond);
 END_FUNCTION
 
 (********************
@@ -810,7 +810,6 @@ VAR_OUTPUT
     second : INT;
     millisecond : INT;
 END_VAR
-    SPLIT_LDT__INT := SPLIT_DT__INT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LDT for UINT *)
@@ -828,7 +827,6 @@ VAR_OUTPUT
     second : UINT;
     millisecond : UINT;
 END_VAR
-    SPLIT_LDT__UINT := SPLIT_DT__UINT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LDT for DINT *)
@@ -846,7 +844,6 @@ VAR_OUTPUT
     second : DINT;
     millisecond : DINT;
 END_VAR
-    SPLIT_LDT__DINT := SPLIT_DT__DINT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LDT for UDINT *)
@@ -864,7 +861,6 @@ VAR_OUTPUT
     second : UDINT;
     millisecond : UDINT;
 END_VAR
-    SPLIT_LDT__UDINT := SPLIT_DT__UDINT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LDT for LINT *)
@@ -882,7 +878,6 @@ VAR_OUTPUT
     second : LINT;
     millisecond : LINT;
 END_VAR
-    SPLIT_LDT__LINT := SPLIT_DT__LINT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (* Specialized implementation of SPLIT_LDT for ULINT *)
@@ -900,7 +895,6 @@ VAR_OUTPUT
     second : ULINT;
     millisecond : ULINT;
 END_VAR
-    SPLIT_LDT__ULINT := SPLIT_DT__ULINT(in, year, month, day, hour, minute, second, millisecond);
 END_FUNCTION
 
 (********************

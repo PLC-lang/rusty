@@ -1049,6 +1049,13 @@ fn literal_string_as_parameter_resolves_correctly() {
         END_VAR
         END_FUNCTION
 
+        {external}
+        FUNCTION foo__STRING : STRING
+        VAR_INPUT
+            x : STRING;
+        END_VAR
+        END_FUNCTION
+
         FUNCTION main : DINT
             foo('     this is   a  very   long          sentence   with');
         END_FUNCTION
@@ -1057,21 +1064,21 @@ fn literal_string_as_parameter_resolves_correctly() {
     );
 
     let (annotations, index, unit) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let statement = flatten_expression_list(&unit.0.implementations[1].statements[0])[1];
+    let statement = flatten_expression_list(&unit.0.implementations[2].statements[0])[1];
 
     if let AstNode {
         stmt: AstStatement::CallStatement(CallStatement { operator, parameters, .. }, ..), ..
     } = statement
     {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
-        assert_type_and_hint!(&annotations, &index, parameters[1], "__STRING_54", None);
+        // The literal is hinted to the `x : STRING` parameter of the resolved foo__STRING
+        // monomorphization.
+        assert_type_and_hint!(&annotations, &index, parameters[1], "__STRING_54", Some(STRING_TYPE));
         insta::assert_debug_snapshot!(annotations.get(operator).unwrap(), @r#"
         Function {
             return_type: "STRING",
             qualified_name: "foo__STRING",
-            generic_name: Some(
-                "foo",
-            ),
+            generic_name: None,
             call_name: None,
         }
         "#);
@@ -1160,6 +1167,15 @@ VAR_INPUT
 END_VAR
 END_FUNCTION
 
+{external}
+FUNCTION MID__STRING : STRING
+VAR_INPUT
+    s: STRING;
+    pos: DINT;
+    len: DINT;
+END_VAR
+END_FUNCTION
+
         ",
         id_provider.clone(),
     );
@@ -1169,8 +1185,9 @@ END_FUNCTION
     if let AstStatement::CallStatement(CallStatement { parameters, .. }) = call_statement.get_stmt() {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[2], DINT_TYPE, Some(DINT_TYPE));
-        //TODO: Shouldn the hint be DINT_TYPE?
-        assert_type_and_hint!(&annotations, &index, parameters[3], INT_TYPE, None);
+        // The argument is hinted to the `len : DINT` parameter of the resolved MID__STRING
+        // monomorphization.
+        assert_type_and_hint!(&annotations, &index, parameters[3], INT_TYPE, Some(DINT_TYPE));
     } else {
         unreachable!("This should always be a call statement.")
     }
