@@ -87,18 +87,23 @@ Examples:
 
 | Type name       | Size   | Internally stored as              |
 | --------------- | ------ | --------------------------------- |
-| TIME            | 64 bit | Timespan in nanoseconds           |
-| TIME\_OF\_DAY   | 64 bit | Nanoseconds since Jan 1, 1970 UTC |
-| DATE            | 64 bit | Nanoseconds since Jan 1, 1970 UTC |
-| DATE\_AND\_TIME | 64 bit | Nanoseconds since Jan 1, 1970 UTC |
+| TIME            | 32 bit | Unsigned milliseconds             |
+| TIME\_OF\_DAY   | 32 bit | Unsigned milliseconds since Jan 1, 1970 UTC |
+| DATE            | 32 bit | Unsigned seconds since Jan 1, 1970 UTC |
+| DATE\_AND\_TIME | 32 bit | Unsigned seconds since Jan 1, 1970 UTC |
+| LTIME           | 64 bit | Nanoseconds                       |
+| LTIME\_OF\_DAY  | 64 bit | Nanoseconds since Jan 1, 1970 UTC |
+| LDATE           | 64 bit | Nanoseconds since Jan 1, 1970 UTC |
+| LDATE\_AND\_TIME| 64 bit | Nanoseconds since Jan 1, 1970 UTC |
 
-Note that RuSTy already treats `TIME`, `TIME_OF_DAY`, `DATE` and `DATE_AND_TIME` as 64 bit numbers.
-Therefore the long pendants `LTIME`, `LTOD`, `LDATE` and `LDT` are mere aliases to the original types.
+RuSTy treats the short date/time family (`TIME`, `TIME_OF_DAY`, `DATE`, `DATE_AND_TIME`) as 32-bit unsigned values.
+Short `TIME`/`TOD` use milliseconds, while short `DATE`/`DT` use seconds.
+The long family (`LTIME`, `LTOD`, `LDATE`, `LDT`) remains 64-bit nanosecond precision.
 
 ### DATE
 
 The `DATE` datatype is used to represent a Date in the Gregorian Calendar.
-Such a value is stored as an i64 with a precision in nanoseconds and denotes the number of nanoseconds
+Such a value is stored as a `u32` with a precision in seconds and denotes the number of seconds
 that have elapsed since January 1, 1970 UTC not counting leap seconds.
 DATE literals start with `DATE#` or `D#` followed by a date in the format of `yyyy-mm-dd`.
 
@@ -111,8 +116,8 @@ Examples:
 ### DATE_AND_TIME
 
 The `DATE_AND_TIME` datatype is used to represent a certain point in time in the Gregorian Calendar.
-Such a value is stored as an `i64` with a precision in nanoseconds and denotes the
-number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Such a value is stored as a `u32` with a precision in seconds and denotes the
+number of seconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
 DATE_AND_TIME literals start with `DATE_AND_TIME#` or `DT#` followed by a date and time in the
 format of `yyyy-mm-dd-hh:mm:ss`.
 
@@ -127,27 +132,27 @@ Examples:
 ### TIME_OF_DAY
 
 The `TIME_OF_DAY` datatype is used to represent a specific moment in time in a day.
-Such a value is stored as an `i64` value with a precision in nanoseconds and denotes the
-number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Such a value is stored as a `u32` value with a precision in milliseconds and denotes the
+number of milliseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
 Hence this value is stored as a `DATE_AND_TIME` with the day fixed to 1970-01-01.
 `TIME_OF_DAY` literals start with `TIME_OF_DAY#` or `TOD#` followed by a time in the
 format of `hh:mm:ss`.
 
-Note that only the seconeds-segment can have a fraction denoting the milliseconds.
+Note that only the seconds-segment can have a fraction denoting the milliseconds.
 
 Examples:
 
 - `t1 : TIME_OF_DAY := TIME_OF_DAY#14:20:10.25;`
-- `t2 : TIME_OF_DAY := TIME_OF_DY#0:00:1;`
+- `t2 : TIME_OF_DAY := TIME_OF_DAY#0:00:1;`
 - `t3 : TIME_OF_DAY := TOD#23:59:59.999;`
 
 ### TIME
 
 The `TIME` datatype is used to represent a time-span.
-A `TIME` value is stored as an `i64` value with a precision in nanoseconds.
-TIME literals start with `TIME#` or `T#` followed by the `TIME` segements.
+A `TIME` value is stored as a `u32` value with a precision in milliseconds.
+TIME literals start with `TIME#` or `T#` followed by the `TIME` segments.
 
-Supported segements are:
+Supported segments are:
 
 - `d` ... `f64` days
 - `h` ... `f64` hours
@@ -164,6 +169,76 @@ Examples:
 - `t1 : TIME := TIME#2d4h6m8s10ms;`
 - `t2 : TIME := T#2d4.2h;`
 - `t3 : TIME := T#-10s4ms16ns;`
+
+### LDATE
+
+The `LDATE` datatype is used to represent a Date in the Gregorian Calendar.
+Such a value is stored as an `i64` with a precision in nanoseconds and denotes the number of nanoseconds
+that have elapsed since January 1, 1970 UTC not counting leap seconds.
+LDATE literals start with `LDATE#` or `LD#` followed by a date in the format of `yyyy-mm-dd`.
+
+Examples:
+
+- `d1 : LDATE := LDATE#2021-05-02;`
+- `d2 : LDATE := LDATE#1-12-24;`
+- `d3 : LDATE := LD#2000-1-1;`
+
+### LDATE_AND_TIME
+
+The `LDATE_AND_TIME` datatype is used to represent a certain point in time in the Gregorian Calendar.
+Such a value is stored as an `i64` with a precision in nanoseconds and denotes the
+number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+LDATE_AND_TIME literals start with `LDATE_AND_TIME#` or `LDT#` followed by a date and time in the
+format of `yyyy-mm-dd-hh:mm:ss`.
+
+Note that only the seconds-segment can have a fraction denoting the milliseconds.
+
+Examples:
+
+- `d1 : LDATE_AND_TIME := LDATE_AND_TIME#2021-05-02-14:20:10.25;`
+- `d2 : LDATE_AND_TIME := LDATE_AND_TIME#1-12-24-00:00:1;`
+- `d3 : LDATE_AND_TIME := LDT#1999-12-31-23:59:59.999;`
+
+### LTIME_OF_DAY
+
+The `LTIME_OF_DAY` datatype is used to represent a specific moment in time in a day.
+Such a value is stored as an `i64` value with a precision in nanoseconds and denotes the
+number of nanoseconds that have elapsed since January 1, 1970 UTC not counting leap seconds.
+Hence this value is stored as a `LDATE_AND_TIME` with the day fixed to 1970-01-01.
+`LTIME_OF_DAY` literals start with `LTIME_OF_DAY#` or `LTOD#` followed by a time in the
+format of `hh:mm:ss`.
+
+Note that only the seconds-segment can have a fraction denoting the milliseconds.
+
+Examples:
+
+- `t1 : LTIME_OF_DAY := LTIME_OF_DAY#14:20:10.25;`
+- `t2 : LTIME_OF_DAY := LTIME_OF_DAY#0:00:1;`
+- `t3 : LTIME_OF_DAY := LTOD#23:59:59.999;`
+
+### LTIME
+
+The `LTIME` datatype is used to represent a time-span.
+A `LTIME` value is stored as an `i64` value with a precision in nanoseconds.
+LTIME literals start with `LTIME#` or `LT#` followed by the `LTIME` segments.
+
+Supported segments are:
+
+- `d` ... `f64` days
+- `h` ... `f64` hours
+- `m` ... `f64`minutes
+- `s` ... `f64` seconds
+- `ms` ... `f64` milliseconds
+- `us` ... `f64` microseconds
+- `ns` ... `u32` nanaoseconds
+
+Note that only the last segment of a `LTIME` literal can have a fraction.
+
+Examples:
+
+- `t1 : LTIME := LTIME#2d4h6m8s10ms;`
+- `t2 : LTIME := LT#2d4.2h;`
+- `t3 : LTIME := LT#-10s4ms16ns;`
 
 ## Other types
 

@@ -347,11 +347,13 @@ impl<T: SourceContainer> BuildPipeline<T> {
     }
 
     pub fn get_default_mut_participants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
-        use participant::{ArrayLowerer, CfcTypeLowerer, InitParticipant};
+        use participant::{ArrayLowerer, CfcParticipant, InitParticipant};
+
+        let cfc_sources = self.context.sources_cfc().cloned().collect();
 
         // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
-            Box::new(CfcTypeLowerer::new(self.context.provider())),
+            Box::new(CfcParticipant::new(self.context.provider(), cfc_sources)),
             Box::new(LoopDesugarer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(PolymorphismLowerer::new(
@@ -593,8 +595,12 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
 
         let mut generated_headers: Vec<Box<dyn GeneratedHeader>> = Vec::new();
 
-        for unit in project.units {
-            generated_headers.push(get_generated_header(&generate_header_options, &unit.unit)?);
+        for unit in &project.units {
+            generated_headers.push(get_generated_header(
+                &generate_header_options,
+                &unit.unit,
+                &project.index,
+            )?);
         }
 
         let output_file = self.get_header_output_file().unwrap_or_default();

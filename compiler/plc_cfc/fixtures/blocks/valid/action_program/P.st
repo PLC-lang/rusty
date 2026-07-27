@@ -1,0 +1,14 @@
+PROGRAM P
+VAR_INPUT
+    step : DINT;
+END_VAR
+VAR_OUTPUT
+    out : DINT;
+END_VAR
+END_PROGRAM
+
+ACTIONS
+    ACTION bump
+        out := out + step;
+    END_ACTION
+END_ACTIONS

@@ -66,7 +66,7 @@ Return: Output variables are used for return.
 FUNCTION_BLOCK TP_LTIME
     VAR_INPUT
         IN : BOOL;
-        PT : TIME;
+        PT : LTIME;
     END_VAR
     VAR_OUTPUT
         Q  : BOOL;
@@ -151,10 +151,10 @@ VAR_INPUT
 END_VAR
 VAR_OUTPUT
     Q: BOOL;
-    ET: TIME;
+    ET: LTIME;
 END_VAR
 VAR
-  __signal__ : BOOL; (* Value representing the internal signal *)  
+  __signal__ : BOOL; (* Value representing the internal signal *)
   __is_running__: BOOL; (* Internal flag to track timer on/off state *)
   __BUFFER__ : ARRAY[1..24] OF BYTE; (* Buffer used for internal implementation *)
 END_VAR

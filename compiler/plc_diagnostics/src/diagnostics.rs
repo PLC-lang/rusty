@@ -462,6 +462,24 @@ impl Diagnostic {
             .with_location(location)
     }
 
+    pub fn unknown_block_type<T>(name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Block `{name}` refers to an undeclared POU"))
+            .with_error_code("E146")
+            .with_location(location)
+    }
+
+    pub fn undeclared_block_output<T>(output: &str, name: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!("Output `{output}` is not declared by `{name}`"))
+            .with_error_code("E147")
+            .with_location(location)
+    }
+
     pub fn disconnected_jump<T>(location: T) -> Diagnostic
     where
         T: Into<SourceLocation>,

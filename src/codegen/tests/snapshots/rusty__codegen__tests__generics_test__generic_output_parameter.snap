@@ -7,15 +7,15 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%prg = type { i16, i16, i64 }
+%prg = type { i16, i16, i32 }
 
 @prg_instance = global %prg zeroinitializer
 
-define i16 @foo__INT(i64 %0, ptr %1) {
+define i16 @foo__INT(i32 %0, ptr %1) {
 entry:
   %foo__INT = alloca i16, align [filtered]
-  %in1 = alloca i64, align [filtered]
-  store i64 %0, ptr %in1, align [filtered]
+  %in1 = alloca i32, align [filtered]
+  store i32 %0, ptr %in1, align [filtered]
   %out1 = alloca ptr, align [filtered]
   store ptr %1, ptr %out1, align [filtered]
   store i16 0, ptr %foo__INT, align [filtered]
@@ -28,8 +28,8 @@ entry:
   %theInt = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %iResult = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %data = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
-  %load_data = load i64, ptr %data, align [filtered]
-  %call = call i16 @foo__INT(i64 %load_data, ptr %theInt)
+  %load_data = load i32, ptr %data, align [filtered]
+  %call = call i16 @foo__INT(i32 %load_data, ptr %theInt)
   store i16 %call, ptr %iResult, align [filtered]
   ret void
 }

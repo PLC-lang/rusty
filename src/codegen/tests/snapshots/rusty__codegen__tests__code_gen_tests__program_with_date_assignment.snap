@@ -7,7 +7,7 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%prg = type { i64, i64, i64, i64 }
+%prg = type { i32, i32, i32, i32 }
 
 @prg_instance = global %prg zeroinitializer
 
@@ -17,17 +17,17 @@ entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
-  store i64 56190123000000, ptr %w, align [filtered]
-  store i64 56190123000000, ptr %w, align [filtered]
-  store i64 100012000000, ptr %x, align [filtered]
-  store i64 100012000000, ptr %x, align [filtered]
-  store i64 465436800000000000, ptr %y, align [filtered]
-  store i64 0, ptr %y, align [filtered]
-  store i64 465509714000000000, ptr %z, align [filtered]
-  store i64 58804123000000, ptr %z, align [filtered]
-  store i64 58804123456789, ptr %z, align [filtered]
-  store i64 946757700000000000, ptr %z, align [filtered]
-  store i64 946757700000000000, ptr %z, align [filtered]
-  store i64 946757708123000000, ptr %z, align [filtered]
+  store i32 56190123, ptr %w, align [filtered]
+  store i32 56190123, ptr %w, align [filtered]
+  store i32 100012, ptr %x, align [filtered]
+  store i32 100012, ptr %x, align [filtered]
+  store i32 465436800, ptr %y, align [filtered]
+  store i32 0, ptr %y, align [filtered]
+  store i32 465509714, ptr %z, align [filtered]
+  store i32 58804, ptr %z, align [filtered]
+  store i32 58804, ptr %z, align [filtered]
+  store i32 946757700, ptr %z, align [filtered]
+  store i32 946757700, ptr %z, align [filtered]
+  store i32 946757708, ptr %z, align [filtered]
   ret void
 }

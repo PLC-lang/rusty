@@ -2,8 +2,7 @@
 <ppx:FunctionBlock xmlns:ppx="www.iec.ch/public/TC65SC65BWG7TF10" xmlns:rxt="www.iec.ch/public/TC65SC65BWG7TF10/Recommendation" name="counter">
     <ppx:AddData>
         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-            <textDeclaration>
-                <content>FUNCTION_BLOCK counter
+            <bmx:TextDeclaration>FUNCTION_BLOCK counter
     VAR
         localVar: DINT;
     END_VAR
@@ -18,8 +17,7 @@
 
     VAR_IN_OUT
     END_VAR
-</content>
-            </textDeclaration>
+</bmx:TextDeclaration>
         </ppx:Data>
     </ppx:AddData>
     <ppx:MainBody>
