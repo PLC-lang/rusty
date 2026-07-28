@@ -2360,7 +2360,7 @@
 <a href=#2360 id=2360 data-nosnippet>2360</a>                    jumps.push(statement.get_id());
 <a href=#2361 id=2361 data-nosnippet>2361</a>                }
 <a href=#2362 id=2362 data-nosnippet>2362</a>            }
-<a href=#2363 id=2363 data-nosnippet>2363</a>            AstStatement::AllocationStatement(Allocation { name, reference_type }) =&gt; {
+<a href=#2363 id=2363 data-nosnippet>2363</a>            AstStatement::AllocationStatement(Allocation { name, reference_type, .. }) =&gt; {
 <a href=#2364 id=2364 data-nosnippet>2364</a>                <span class="kw">let </span>container = ctx.pou.map(|pou| {
 <a href=#2365 id=2365 data-nosnippet>2365</a>                    <span class="self">self</span>.index.find_implementation_by_name(pou).map(|it| it.get_type_name()).unwrap_or(pou)
 <a href=#2366 id=2366 data-nosnippet>2366</a>                });
