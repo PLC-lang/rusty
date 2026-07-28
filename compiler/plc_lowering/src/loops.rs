@@ -389,7 +389,7 @@ impl AstVisitorMut for ForDesugarer {
     }
 }
 
-mod helper {
+pub(crate) mod helper {
     use plc_ast::{
         ast::{Allocation, AstFactory, AstNode, AstStatement, Operator},
         control_statements::{ConditionalBlock, IfStatement, LoopStatement},

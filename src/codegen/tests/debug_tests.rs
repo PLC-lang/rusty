@@ -1069,7 +1069,38 @@ END_FUNCTION
     entry:
       %self = alloca ptr, align [filtered], !dbg !58
       store ptr %0, ptr %self, align [filtered], !dbg !58
+      %__struct__inner_arr__idx0 = alloca i32, align [filtered]
+      store i32 0, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
+      store i32 0, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
+      br label %while_body, !dbg !58
+
+    while_body:                                       ; preds = %continue1, %entry
+      %load___struct__inner_arr__idx0 = load i32, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
+      %tmpVar = icmp sgt i32 %load___struct__inner_arr__idx0, 2, !dbg !58
+      %1 = zext i1 %tmpVar to i8, !dbg !58
+      %2 = icmp ne i8 %1, 0, !dbg !58
+      br i1 %2, label %condition_body, label %continue1, !dbg !58
+
+    continue:                                         ; preds = %condition_body
       ret void, !dbg !58
+
+    condition_body:                                   ; preds = %while_body
+      br label %continue, !dbg !58
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue1, !dbg !58
+
+    continue1:                                        ; preds = %buffer_block, %while_body
+      %deref = load ptr, ptr %self, align [filtered], !dbg !58
+      %load___struct__inner_arr__idx02 = load i32, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
+      %tmpVar3 = mul i32 1, %load___struct__inner_arr__idx02, !dbg !58
+      %tmpVar4 = add i32 %tmpVar3, 0, !dbg !58
+      %tmpVar5 = getelementptr inbounds [3 x %inner], ptr %deref, i32 0, i32 %tmpVar4, !dbg !58
+      call void @inner__ctor(ptr %tmpVar5), !dbg !58
+      %load___struct__inner_arr__idx06 = load i32, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
+      %tmpVar7 = add i32 %load___struct__inner_arr__idx06, 1, !dbg !58
+      store i32 %tmpVar7, ptr %__struct__inner_arr__idx0, align [filtered], !dbg !58
+      br label %while_body, !dbg !58
     }
 
     define void @__struct__arr__ctor(ptr %0) {

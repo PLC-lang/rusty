@@ -3020,7 +3020,38 @@ fn super_with_structured_types() {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
+      %__parent_arr_data__idx0 = alloca i32, align [filtered]
+      store i32 0, ptr %__parent_arr_data__idx0, align [filtered]
+      store i32 0, ptr %__parent_arr_data__idx0, align [filtered]
+      br label %while_body
+
+    while_body:                                       ; preds = %continue1, %entry
+      %load___parent_arr_data__idx0 = load i32, ptr %__parent_arr_data__idx0, align [filtered]
+      %tmpVar = icmp sgt i32 %load___parent_arr_data__idx0, 1
+      %1 = zext i1 %tmpVar to i8
+      %2 = icmp ne i8 %1, 0
+      br i1 %2, label %condition_body, label %continue1
+
+    continue:                                         ; preds = %condition_body
       ret void
+
+    condition_body:                                   ; preds = %while_body
+      br label %continue
+
+    buffer_block:                                     ; No predecessors!
+      br label %continue1
+
+    continue1:                                        ; preds = %buffer_block, %while_body
+      %deref = load ptr, ptr %self, align [filtered]
+      %load___parent_arr_data__idx02 = load i32, ptr %__parent_arr_data__idx0, align [filtered]
+      %tmpVar3 = mul i32 1, %load___parent_arr_data__idx02
+      %tmpVar4 = add i32 %tmpVar3, 0
+      %tmpVar5 = getelementptr inbounds [2 x %Complex_Type], ptr %deref, i32 0, i32 %tmpVar4
+      call void @Complex_Type__ctor(ptr %tmpVar5)
+      %load___parent_arr_data__idx06 = load i32, ptr %__parent_arr_data__idx0, align [filtered]
+      %tmpVar7 = add i32 %load___parent_arr_data__idx06, 1
+      store i32 %tmpVar7, ptr %__parent_arr_data__idx0, align [filtered]
+      br label %while_body
     }
 
     define void @__vtable_parent__ctor(ptr %0) {
