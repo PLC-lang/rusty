@@ -510,7 +510,8 @@ fn type_level_struct_array_ctor_is_lowered() {
     );
     let stmts = find_impl_stmts(&project, "tarr__ctor");
     assert!(!has_literal_array(stmts));
-    assert_eq!(count_assignments(stmts), 3);
+    // 3 indexed assignments + the element construction loop's counter initialization
+    assert_eq!(count_assignments(stmts), 4);
 }
 
 /// Verify that type-level struct array initializers are lowered in the constructor body.
@@ -529,7 +530,8 @@ fn type_level_struct_array_is_lowered_in_ctor() {
     );
     let stmts = find_impl_stmts(&project, "tarr__ctor");
     assert!(!has_literal_array(stmts), "Type-level struct array should be lowered");
-    assert_eq!(count_assignments(stmts), 3);
+    // 3 indexed assignments + the element construction loop's counter initialization
+    assert_eq!(count_assignments(stmts), 4);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
