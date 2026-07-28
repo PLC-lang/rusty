@@ -2312,11 +2312,19 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let body = print_body_to_string(initializer.constructors.get("__prog_arr").unwrap());
-        assert!(
-            body.contains("MyFb__ctor"),
-            "the array member ctor must construct its elements (vtable, defaults, FB_INIT); got:\n{body}"
-        );
+        // The array member ctor must construct its elements (vtable, defaults, FB_INIT)
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_arr").unwrap()), @"
+        intern:
+        alloca __prog_arr__idx0: DINT
+        __prog_arr__idx0 := 0
+        WHILE TRUE DO
+            IF __prog_arr__idx0 > 15 THEN
+                EXIT;
+            END_IF
+            MyFb__ctor(self[__prog_arr__idx0])
+            __prog_arr__idx0 := __prog_arr__idx0 + 1
+        END_WHILE
+        ");
     }
 
     #[test]
@@ -2336,11 +2344,19 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let body = print_body_to_string(initializer.constructors.get("__prog_arr").unwrap());
-        assert!(
-            body.contains("Point__ctor"),
-            "the array member ctor must apply element defaults via the element ctor; got:\n{body}"
-        );
+        // The array member ctor must apply element defaults via the element ctor
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_arr").unwrap()), @"
+        intern:
+        alloca __prog_arr__idx0: DINT
+        __prog_arr__idx0 := 0
+        WHILE TRUE DO
+            IF __prog_arr__idx0 > 3 THEN
+                EXIT;
+            END_IF
+            Point__ctor(self[__prog_arr__idx0])
+            __prog_arr__idx0 := __prog_arr__idx0 + 1
+        END_WHILE
+        ");
     }
 
     #[test]
@@ -2362,11 +2378,19 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let body = print_body_to_string(initializer.constructors.get("FbArr").unwrap());
-        assert!(
-            body.contains("MyFb__ctor"),
-            "named array type ctors must construct their elements; got:\n{body}"
-        );
+        // Named array type ctors must construct their elements
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("FbArr").unwrap()), @"
+        intern:
+        alloca FbArr__idx0: DINT
+        FbArr__idx0 := 0
+        WHILE TRUE DO
+            IF FbArr__idx0 > 3 THEN
+                EXIT;
+            END_IF
+            MyFb__ctor(self[FbArr__idx0])
+            FbArr__idx0 := FbArr__idx0 + 1
+        END_WHILE
+        ");
     }
 
     #[test]
@@ -2386,16 +2410,32 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let outer = print_body_to_string(initializer.constructors.get("__prog_narr").unwrap());
-        assert!(
-            outer.contains("__prog_narr___ctor"),
-            "the outer array ctor must construct each inner array; got:\n{outer}"
-        );
-        let inner = print_body_to_string(initializer.constructors.get("__prog_narr_").unwrap());
-        assert!(
-            inner.contains("MyFb__ctor"),
-            "the inner array ctor must construct its elements; got:\n{inner}"
-        );
+        // The outer array ctor must construct each inner array
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_narr").unwrap()), @"
+        intern:
+        alloca __prog_narr__idx0: DINT
+        __prog_narr__idx0 := 0
+        WHILE TRUE DO
+            IF __prog_narr__idx0 > 1 THEN
+                EXIT;
+            END_IF
+            __prog_narr___ctor(self[__prog_narr__idx0])
+            __prog_narr__idx0 := __prog_narr__idx0 + 1
+        END_WHILE
+        ");
+        // The inner array ctor must construct its elements
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_narr_").unwrap()), @"
+        intern:
+        alloca __prog_narr___idx0: DINT
+        __prog_narr___idx0 := 0
+        WHILE TRUE DO
+            IF __prog_narr___idx0 > 2 THEN
+                EXIT;
+            END_IF
+            MyFb__ctor(self[__prog_narr___idx0])
+            __prog_narr___idx0 := __prog_narr___idx0 + 1
+        END_WHILE
+        ");
     }
 
     #[test]
@@ -2414,11 +2454,27 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let body = print_body_to_string(initializer.constructors.get("__prog_marr").unwrap());
-        assert!(
-            body.contains("Point__ctor"),
-            "multi-dimensional array ctors must construct every element; got:\n{body}"
-        );
+        // Multi-dimensional array ctors must construct every element (one loop per dimension)
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_marr").unwrap()), @"
+        intern:
+        alloca __prog_marr__idx0: DINT
+        __prog_marr__idx0 := 0
+        WHILE TRUE DO
+            IF __prog_marr__idx0 > 1 THEN
+                EXIT;
+            END_IF
+            alloca __prog_marr__idx1: DINT
+            __prog_marr__idx1 := 0
+            WHILE TRUE DO
+                IF __prog_marr__idx1 > 2 THEN
+                    EXIT;
+                END_IF
+                Point__ctor(self[__prog_marr__idx0, __prog_marr__idx1])
+                __prog_marr__idx1 := __prog_marr__idx1 + 1
+            END_WHILE
+            __prog_marr__idx0 := __prog_marr__idx0 + 1
+        END_WHILE
+        ");
     }
 
     #[test]
@@ -2437,11 +2493,19 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let body = print_body_to_string(initializer.constructors.get("__Holder_arr").unwrap());
-        assert!(
-            body.contains("MyFb__ctor"),
-            "array-typed struct field ctors must construct their elements; got:\n{body}"
-        );
+        // Array-typed struct field ctors must construct their elements
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__Holder_arr").unwrap()), @"
+        intern:
+        alloca __Holder_arr__idx0: DINT
+        __Holder_arr__idx0 := 0
+        WHILE TRUE DO
+            IF __Holder_arr__idx0 > 2 THEN
+                EXIT;
+            END_IF
+            MyFb__ctor(self[__Holder_arr__idx0])
+            __Holder_arr__idx0 := __Holder_arr__idx0 + 1
+        END_WHILE
+        ");
     }
 
     #[test]
@@ -2455,10 +2519,7 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        let body = print_body_to_string(initializer.constructors.get("__prog_arr").unwrap());
-        assert!(
-            !body.contains("__ctor"),
-            "arrays of built-in elements must not emit element ctor calls; got:\n{body}"
-        );
+        // Arrays of built-in elements must not emit element ctor calls; the body stays empty
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_arr").unwrap()), @"");
     }
 }
