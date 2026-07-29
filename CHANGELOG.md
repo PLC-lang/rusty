@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.4](https://github.com/PLC-lang/rusty/releases/tag/v1.0.4) - 2026-07-29
+
+### Fixed
+
+- Emit lifetime markers for lowered call temporaries (#1803) (#1819)
+- Ensuring no segfault when c library function returns oversized string (#1794) (#1825)
+- Reject VAR_IN_OUT access from outside the declaring POU (#1806) (#1818)
+- Validate the generic natures before lowering (#1793) (#1804)
+- **stdlib**: CONCAT/INSERT/REPLACE no longer overflow the result buffer (#1795)
+- Invalid numeric literal strings no longer crash the application … (#1789)
 ## [1.0.3](https://github.com/PLC-lang/rusty/releases/tag/v1.0.3) - 2026-07-01
 
 ### Fixed
