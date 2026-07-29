@@ -5766,6 +5766,7 @@ fn reference_to_alloca_resolved() {
             stmt: AstStatement::AllocationStatement(Allocation {
                 name: "foo".to_string(),
                 reference_type: "DINT".to_string(),
+                statement_scoped: true,
             }),
             id: id_provider.next_id(),
             location: SourceLocation::internal(),
@@ -5823,6 +5824,7 @@ fn reference_to_alloca_nested_resolved() {
             stmt: AstStatement::AllocationStatement(Allocation {
                 name: "foo".to_string(),
                 reference_type: "DINT".to_string(),
+                statement_scoped: true,
             }),
             id: id_provider.next_id(),
             location: SourceLocation::internal(),
@@ -5841,6 +5843,7 @@ fn reference_to_alloca_nested_resolved() {
                 stmt: AstStatement::AllocationStatement(Allocation {
                     name: "baz".to_string(),
                     reference_type: "DINT".to_string(),
+                    statement_scoped: true,
                 }),
                 id: id_provider.next_id(),
                 location: SourceLocation::internal(),
