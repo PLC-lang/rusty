@@ -56,7 +56,7 @@ project = { path = "./compiler/plc_project/", package = "plc_project", version =
 plc_xml = { path = "./compiler/plc_xml", version = "1.0.4" }
 test_utils = { path = "./tests/test_utils" }
 plc_lowering = { path = "./compiler/plc_lowering", version = "1.0.4" }
-serial_test = "*"
+serial_test = "3.5"
 tempfile.workspace = true
 encoding_rs.workspace = true
 encoding_rs_io.workspace = true
