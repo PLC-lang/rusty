@@ -1,6 +1,6 @@
 [package]
 name = "test_utils"
-version = "1.0.4"
+version = "1.0.5-dev"
 edition = "2021"
 publish = false
 
