@@ -389,7 +389,7 @@ impl AstVisitorMut for ForDesugarer {
     }
 }
 
-mod helper {
+pub(crate) mod helper {
     use plc_ast::{
         ast::{Allocation, AstFactory, AstNode, AstStatement, Operator},
         control_statements::{ConditionalBlock, IfStatement, LoopStatement},
@@ -489,6 +489,9 @@ mod helper {
             stmt: AstStatement::AllocationStatement(Allocation {
                 name: name.to_string(),
                 reference_type: String::from(ty),
+                // Loop bookkeeping values (`__ran_once_*` etc.) cross iterations; the
+                // slot must live for the whole function.
+                statement_scoped: false,
             }),
             id: ids.next_id(),
             location: SourceLocation::internal(),

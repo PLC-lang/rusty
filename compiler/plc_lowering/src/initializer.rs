@@ -39,8 +39,9 @@
 
 use std::rc::Rc;
 
+use crate::loops::helper as loop_helper;
 use plc::{
-    index::{FxIndexMap, Index},
+    index::{const_expressions::ConstId, FxIndexMap, Index},
     lowering::helper::{
         create_assignment, create_assignment_with_index, create_assignments_from_initializer_with_index,
         create_call_statement, create_member_reference, create_ref_assignment,
@@ -50,9 +51,10 @@ use plc::{
 };
 use plc_ast::{
     ast::{
-        AstFactory, AstNode, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration, LinkageType,
-        PouType, Variable, VariableBlockType,
+        AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit, DataType, DataTypeDeclaration,
+        LinkageType, Operator, PouType, RangeStatement, Variable, VariableBlockType,
     },
+    literals::AstLiteral,
     provider::IdProvider,
     visitor::{AstVisitor, Walker},
 };
@@ -255,7 +257,13 @@ impl AstVisitor for Initializer {
         // Determine if we need to create an initializer
         // For alias/reference variables (AT x), if there's no explicit initializer, we use the AT target (address)
         // BUT only if the address is a simple identifier (not a hardware address like %I* or %QX1.2.1)
-        let initializer_to_use = if variable.initializer.is_some() {
+        let folded_initializer = variable
+            .initializer
+            .as_ref()
+            .and_then(|it| self.folded_array_initializer(it, self.initial_value_id(variable.get_name())));
+        let initializer_to_use = if folded_initializer.is_some() {
+            folded_initializer.as_ref()
+        } else if variable.initializer.is_some() {
             variable.initializer.as_ref()
         } else if is_alias_or_reference_variable(variable, index)
             && variable.address.as_ref().is_some_and(is_simple_identifier_address)
@@ -376,6 +384,10 @@ impl AstVisitor for Initializer {
         let mut stmts = vec![];
         // Explicitly add the initializer call here
         if let Some(initializer) = &user_type.initializer {
+            let const_id =
+                self.index.as_ref().and_then(|idx| idx.find_type(name)).and_then(|dt| dt.initial_value);
+            let folded_initializer = self.folded_array_initializer(initializer, const_id);
+            let initializer = folded_initializer.as_ref().unwrap_or(initializer);
             let assignment = create_assignment("self", None, initializer, self.id_provider.clone());
             stmts.push(assignment);
         }
@@ -385,7 +397,30 @@ impl AstVisitor for Initializer {
 
     /// Processes a struct data type's fields, generating constructor calls for fields whose
     /// types have constructors, and lowering field initializers into assignments.
+    /// For array types, generates a loop calling the element type's constructor on every
+    /// element so that defaults, vtable pointers, and `FB_INIT` reach each array element.
     fn visit_data_type(&mut self, data_type: &plc_ast::ast::DataType) {
+        if let plc_ast::ast::DataType::ArrayType {
+            bounds, referenced_type, is_variable_length: false, ..
+        } = data_type
+        {
+            let index = self.index.as_ref().expect("index is set at this stage");
+
+            // Only arrays of types with constructors need per-element construction.
+            let Some(element_type) = referenced_type.get_referenced_type() else { return };
+            let has_constructor = self.constructors.contains_key(element_type)
+                || index
+                    .find_type(element_type)
+                    .is_some_and(|dt| !dt.linkage.is_built_in() && !dt.is_interface());
+            if !has_constructor {
+                return;
+            }
+
+            let Some(array_type) = self.context.current_datatype.clone() else { return };
+            if let Some(ctor_loop) = self.create_element_ctor_loop(&array_type, element_type, bounds) {
+                self.add_to_current_constructor(ctor_loop);
+            }
+        }
         if let plc_ast::ast::DataType::StructType { variables, .. } = data_type {
             let index = self.index.as_ref().expect("index is set at this stage");
             let mut constructor = vec![];
@@ -399,7 +434,10 @@ impl AstVisitor for Initializer {
                     }
                 }
 
-                if let Some(initializer) = &variable.initializer {
+                let folded_initializer = variable.initializer.as_ref().and_then(|it| {
+                    self.folded_array_initializer(it, self.initial_value_id(variable.get_name()))
+                });
+                if let Some(initializer) = folded_initializer.as_ref().or(variable.initializer.as_ref()) {
                     let init_policy = InitLoweringPolicy::for_struct_field(variable, initializer, index);
                     match init_policy {
                         InitLoweringPolicy::RefAssign(ref_rhs) => {
@@ -768,6 +806,136 @@ impl Initializer {
         } else {
             log::debug!("Dropping {} init statement(s): no current POU/datatype in context", node.len());
         }
+    }
+
+    /// For array-literal initializers, prefer the const-evaluator's folded statement over the
+    /// raw AST — the raw tree may contain constant expressions (e.g. `UDINT#0 + UDINT#1`)
+    /// which codegen's literal generator cannot evaluate.
+    fn folded_array_initializer(&self, raw: &AstNode, const_id: Option<ConstId>) -> Option<AstNode> {
+        if !matches!(raw.get_stmt(), AstStatement::Literal(AstLiteral::Array(_))) {
+            return None;
+        }
+        let index = self.index.as_ref()?;
+        index.get_const_expressions().get_resolved_constant_statement(&const_id?).cloned()
+    }
+
+    /// Finds the const-expression id of a variable's initial value (POU/struct member or global).
+    fn initial_value_id(&self, variable_name: &str) -> Option<ConstId> {
+        let index = self.index.as_ref()?;
+        self.context
+            .current_pou
+            .as_deref()
+            .or(self.context.current_datatype.as_deref())
+            .and_then(|container| index.find_member(container, variable_name))
+            .or_else(|| index.find_global_variable(variable_name))?
+            .initial_value
+    }
+
+    /// Builds the per-element construction loop for an array type's constructor, one loop per
+    /// dimension with the element ctor call innermost:
+    /// ```st
+    /// __idx0 := <lo>;
+    /// WHILE TRUE DO
+    ///     IF __idx0 > <hi> THEN EXIT; END_IF
+    ///     <element_type>__ctor(self[__idx0, ...]);
+    ///     __idx0 := __idx0 + 1;
+    /// END_WHILE
+    /// ```
+    /// The loops are emitted in the canonical `WHILE TRUE` form directly because the
+    /// `LoopDesugarer` pass has already run by the time constructors are generated.
+    /// Returns `None` when the bounds are not ranges (invalid declarations are left
+    /// to validation).
+    fn create_element_ctor_loop(
+        &mut self,
+        array_type: &str,
+        element_type: &str,
+        bounds: &AstNode,
+    ) -> Option<Vec<AstNode>> {
+        // One range and one counter per dimension. The counter names carry the array type
+        // name: allocation scopes are resolved by name across implementations, so they must
+        // be unique per constructor.
+        let dimensions: Vec<&AstNode> = match bounds.get_stmt() {
+            AstStatement::ExpressionList(expressions) => expressions.iter().collect(),
+            _ => vec![bounds],
+        };
+        let counters: Vec<(AstNode, AstNode)> = (0..dimensions.len())
+            .map(|dim| {
+                loop_helper::create_alloca(&mut self.id_provider, "DINT", format!("{array_type}__idx{dim}"))
+            })
+            .collect();
+
+        // `<element_type>__ctor(self[__idx0, __idx1, ...])`
+        let counter_refs: Vec<AstNode> = counters.iter().map(|(_, reference)| reference.clone()).collect();
+        let subscript = if counter_refs.len() == 1 {
+            counter_refs.into_iter().next().expect("exactly one counter")
+        } else {
+            AstFactory::create_expression_list(
+                counter_refs,
+                SourceLocation::internal(),
+                self.id_provider.next_id(),
+            )
+        };
+        let element_access = AstFactory::create_index_reference(
+            subscript,
+            Some(create_member_reference("self", self.id_provider.clone(), None)),
+            self.id_provider.next_id(),
+            SourceLocation::internal(),
+        );
+        let operator =
+            create_member_reference(&format!("{element_type}__ctor"), self.id_provider.clone(), None);
+        let call = AstFactory::create_call_statement(
+            operator,
+            Some(element_access),
+            self.id_provider.next_id(),
+            SourceLocation::internal(),
+        );
+
+        // Wrap the call in one loop per dimension, innermost dimension first.
+        let mut statements = vec![call];
+        for ((alloca, counter), dimension) in counters.into_iter().zip(dimensions.iter()).rev() {
+            let AstStatement::RangeStatement(RangeStatement { start, end }) = dimension.get_stmt() else {
+                return None;
+            };
+
+            // IF __idx > <hi> THEN EXIT; END_IF
+            let bound_guard = loop_helper::create_if_then_exit(
+                self.id_provider.clone(),
+                loop_helper::create_internal_binary_expression(
+                    counter.clone(),
+                    Operator::Greater,
+                    end.as_ref().clone(),
+                    &mut self.id_provider,
+                ),
+            );
+
+            // __idx := __idx + 1
+            let increment = loop_helper::create_internal_assignment(
+                counter.clone(),
+                loop_helper::create_internal_binary_expression(
+                    counter.clone(),
+                    Operator::Plus,
+                    loop_helper::create_literal_integer(&mut self.id_provider, 1),
+                    &mut self.id_provider,
+                ),
+                &mut self.id_provider,
+            );
+
+            let mut body = vec![bound_guard];
+            body.append(&mut statements);
+            body.push(increment);
+
+            statements = vec![
+                alloca,
+                loop_helper::create_internal_assignment(
+                    counter,
+                    start.as_ref().clone(),
+                    &mut self.id_provider,
+                ),
+                loop_helper::create_while_true_loop(&mut self.id_provider, body),
+            ];
+        }
+
+        Some(statements)
     }
 
     /// Creates a call statement to the constructor of the given type: `<type_name>__ctor(<var_name>)`.
@@ -2123,5 +2291,235 @@ mod tests {
         ");
         // Global constructor should call NodeA's constructor
         insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"NodeA__ctor(myNode)");
+    }
+
+    #[test]
+    fn array_of_function_blocks_constructs_every_element() {
+        let src = r#"
+        FUNCTION_BLOCK MyFb
+        VAR
+            x : INT := 7;
+        END_VAR
+            METHOD FB_INIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        PROGRAM prog
+        VAR
+            arr : ARRAY[0..15] OF MyFb;
+        END_VAR
+        END_PROGRAM
+        "#;
+
+        let initializer = parse_and_init(src);
+        // The array member ctor must construct its elements (vtable, defaults, FB_INIT)
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_arr").unwrap()), @"
+        intern:
+        alloca __prog_arr__idx0: DINT
+        __prog_arr__idx0 := 0
+        WHILE TRUE DO
+            IF __prog_arr__idx0 > 15 THEN
+                EXIT;
+            END_IF
+            MyFb__ctor(self[__prog_arr__idx0])
+            __prog_arr__idx0 := __prog_arr__idx0 + 1
+        END_WHILE
+        ");
+    }
+
+    #[test]
+    fn array_of_structs_constructs_every_element() {
+        let src = r#"
+        TYPE Point : STRUCT
+            x : DINT := 11;
+            y : DINT := 22;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM prog
+        VAR
+            arr : ARRAY[0..3] OF Point;
+        END_VAR
+        END_PROGRAM
+        "#;
+
+        let initializer = parse_and_init(src);
+        // The array member ctor must apply element defaults via the element ctor
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_arr").unwrap()), @"
+        intern:
+        alloca __prog_arr__idx0: DINT
+        __prog_arr__idx0 := 0
+        WHILE TRUE DO
+            IF __prog_arr__idx0 > 3 THEN
+                EXIT;
+            END_IF
+            Point__ctor(self[__prog_arr__idx0])
+            __prog_arr__idx0 := __prog_arr__idx0 + 1
+        END_WHILE
+        ");
+    }
+
+    #[test]
+    fn named_array_type_of_function_blocks_constructs_every_element() {
+        let src = r#"
+        FUNCTION_BLOCK MyFb
+        VAR
+            x : INT := 7;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        TYPE FbArr : ARRAY[0..3] OF MyFb; END_TYPE
+
+        PROGRAM prog
+        VAR
+            arr : FbArr;
+        END_VAR
+        END_PROGRAM
+        "#;
+
+        let initializer = parse_and_init(src);
+        // Named array type ctors must construct their elements
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("FbArr").unwrap()), @"
+        intern:
+        alloca FbArr__idx0: DINT
+        FbArr__idx0 := 0
+        WHILE TRUE DO
+            IF FbArr__idx0 > 3 THEN
+                EXIT;
+            END_IF
+            MyFb__ctor(self[FbArr__idx0])
+            FbArr__idx0 := FbArr__idx0 + 1
+        END_WHILE
+        ");
+    }
+
+    #[test]
+    fn nested_array_of_function_blocks_constructs_inner_arrays() {
+        let src = r#"
+        FUNCTION_BLOCK MyFb
+        VAR
+            x : INT := 7;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        PROGRAM prog
+        VAR
+            narr : ARRAY[0..1] OF ARRAY[0..2] OF MyFb;
+        END_VAR
+        END_PROGRAM
+        "#;
+
+        let initializer = parse_and_init(src);
+        // The outer array ctor must construct each inner array
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_narr").unwrap()), @"
+        intern:
+        alloca __prog_narr__idx0: DINT
+        __prog_narr__idx0 := 0
+        WHILE TRUE DO
+            IF __prog_narr__idx0 > 1 THEN
+                EXIT;
+            END_IF
+            __prog_narr___ctor(self[__prog_narr__idx0])
+            __prog_narr__idx0 := __prog_narr__idx0 + 1
+        END_WHILE
+        ");
+        // The inner array ctor must construct its elements
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_narr_").unwrap()), @"
+        intern:
+        alloca __prog_narr___idx0: DINT
+        __prog_narr___idx0 := 0
+        WHILE TRUE DO
+            IF __prog_narr___idx0 > 2 THEN
+                EXIT;
+            END_IF
+            MyFb__ctor(self[__prog_narr___idx0])
+            __prog_narr___idx0 := __prog_narr___idx0 + 1
+        END_WHILE
+        ");
+    }
+
+    #[test]
+    fn multi_dimensional_array_of_structs_constructs_every_element() {
+        let src = r#"
+        TYPE Point : STRUCT
+            x : DINT := 11;
+        END_STRUCT
+        END_TYPE
+
+        PROGRAM prog
+        VAR
+            marr : ARRAY[0..1, 0..2] OF Point;
+        END_VAR
+        END_PROGRAM
+        "#;
+
+        let initializer = parse_and_init(src);
+        // Multi-dimensional array ctors must construct every element (one loop per dimension)
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_marr").unwrap()), @"
+        intern:
+        alloca __prog_marr__idx0: DINT
+        __prog_marr__idx0 := 0
+        WHILE TRUE DO
+            IF __prog_marr__idx0 > 1 THEN
+                EXIT;
+            END_IF
+            alloca __prog_marr__idx1: DINT
+            __prog_marr__idx1 := 0
+            WHILE TRUE DO
+                IF __prog_marr__idx1 > 2 THEN
+                    EXIT;
+                END_IF
+                Point__ctor(self[__prog_marr__idx0, __prog_marr__idx1])
+                __prog_marr__idx1 := __prog_marr__idx1 + 1
+            END_WHILE
+            __prog_marr__idx0 := __prog_marr__idx0 + 1
+        END_WHILE
+        ");
+    }
+
+    #[test]
+    fn struct_with_array_of_function_blocks_field_constructs_elements() {
+        let src = r#"
+        FUNCTION_BLOCK MyFb
+        VAR
+            x : INT := 7;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        TYPE Holder : STRUCT
+            arr : ARRAY[0..2] OF MyFb;
+        END_STRUCT
+        END_TYPE
+        "#;
+
+        let initializer = parse_and_init(src);
+        // Array-typed struct field ctors must construct their elements
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__Holder_arr").unwrap()), @"
+        intern:
+        alloca __Holder_arr__idx0: DINT
+        __Holder_arr__idx0 := 0
+        WHILE TRUE DO
+            IF __Holder_arr__idx0 > 2 THEN
+                EXIT;
+            END_IF
+            MyFb__ctor(self[__Holder_arr__idx0])
+            __Holder_arr__idx0 := __Holder_arr__idx0 + 1
+        END_WHILE
+        ");
+    }
+
+    #[test]
+    fn array_of_builtin_elements_needs_no_element_construction() {
+        let src = r#"
+        PROGRAM prog
+        VAR
+            arr : ARRAY[0..3] OF DINT;
+        END_VAR
+        END_PROGRAM
+        "#;
+
+        let initializer = parse_and_init(src);
+        // Arrays of built-in elements must not emit element ctor calls; the body stays empty
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__prog_arr").unwrap()), @"");
     }
 }
