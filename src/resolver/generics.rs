@@ -413,6 +413,10 @@ impl TypeAnnotator<'_> {
                                 }
                             });
 
+                        if let Some(DataTypeInformation::Generic { .. }) = current_type {
+                            return previous_type;
+                        }
+
                         // Find bigger
                         if let Some(current) = current_type {
                             // check if the current type derives from the generic nature

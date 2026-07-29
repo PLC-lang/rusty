@@ -488,6 +488,17 @@ impl Diagnostic {
             .with_error_code("E145")
             .with_location(location)
     }
+
+    pub fn unresolved_generic_output<T>(block: &str, location: T) -> Diagnostic
+    where
+        T: Into<SourceLocation>,
+    {
+        Diagnostic::new(format!(
+            "Cannot determine a type for generic block `{block}`: no input decides its type"
+        ))
+        .with_error_code("E149")
+        .with_location(location)
+    }
 }
 
 #[cfg(test)]

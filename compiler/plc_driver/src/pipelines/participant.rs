@@ -389,6 +389,7 @@ impl PipelineParticipantMut for CfcParticipant {
             return indexed_project;
         }
 
+        let mut files = std::collections::HashSet::new();
         for source in &self.sources {
             // Transpile the document's network against the index.
             let (unit, diagnostics) =
@@ -408,12 +409,38 @@ impl PipelineParticipantMut for CfcParticipant {
             if let Some(interface_only) =
                 indexed_project.project.units.iter_mut().find(|opt| opt.file == unit.file)
             {
+                files.insert(unit.file);
                 *interface_only = unit;
             }
         }
 
         // Re-index so the transpiled bodies and their temporaries reach annotation.
-        indexed_project.project.index(self.ids.clone())
+        let mut indexed = indexed_project.project.index(self.ids.clone());
+
+        // Infer generic-typed temporaries to a fixed point: each round patches
+        // what the annotator resolved and re-indexes so the next round's
+        // reference resolution sees it. Chains of generic calls resolve one link
+        // per round; the common no-generics case exits after one cheap scan.
+        loop {
+            let IndexedProject { project, index, .. } = &mut indexed;
+
+            let mut patched = false;
+            for unit in project.units.iter_mut().filter(|unit| files.contains(&unit.file)) {
+                patched |= plc_cfc::infer_temporary_types(unit, index, self.ids.clone());
+            }
+
+            if !patched {
+                break;
+            }
+            indexed = indexed.project.index(self.ids.clone());
+        }
+
+        // Report the temporaries no round could resolve.
+        for unit in indexed.project.units.iter().filter(|unit| files.contains(&unit.file)) {
+            self.diagnostics.extend(plc_cfc::unresolved_temporaries(unit, &indexed.index));
+        }
+
+        indexed
     }
 
     fn diagnostics(&mut self) -> Vec<Diagnostic> {

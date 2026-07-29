@@ -13,10 +13,13 @@
 // Public as the shape of the `.cfc` format itself.
 pub mod model;
 
+mod infer;
 mod network;
 mod resolver;
 mod st;
 mod transpiler;
+
+pub use infer::{infer_temporary_types, unresolved_temporaries};
 
 use plc::index::Index;
 use plc_ast::ast::{CompilationUnit, LinkageType};
@@ -95,6 +98,10 @@ mod test_utils {
             index.register_type(data_type);
         }
 
+        // Builtin POUs (ADD, SEL, ...) join the index like in the driver.
+        let builtins = plc::builtins::parse_built_ins(IdProvider::default());
+        index.import(plc::index::indexer::index(&builtins));
+
         let dir = format!("{}/fixtures/{fixture}", env!("CARGO_MANIFEST_DIR"));
         for entry in std::fs::read_dir(dir).unwrap() {
             let path = entry.unwrap().path();
@@ -105,7 +112,10 @@ mod test_utils {
             let source = std::fs::read_to_string(&path).unwrap();
             let factory = plc_source::source_location::SourceLocationFactory::internal(&source);
             let session = plc::lexer::lex_with_ids(&source, IdProvider::default(), factory);
-            let (unit, _) = plc::parser::parse(session, LinkageType::Internal, "<callees>");
+            let (mut unit, _) = plc::parser::parse(session, LinkageType::Internal, "<callees>");
+
+            // Pre-process like the driver, so e.g. generic bindings index correctly.
+            plc_ast::ast::pre_process(&mut unit, IdProvider::default());
             index.import(plc::index::indexer::index(&unit));
         }
 
@@ -122,6 +132,22 @@ mod test_utils {
         }
     }
 
+    // Mimics the driver participant's fixed-point loop: re-index (now with the
+    // temporaries), patch what resolved, repeat until quiescent. Returns the
+    // diagnostics for whatever stayed unresolved.
+    fn infer(
+        fixture: &str,
+        unit: &mut plc_ast::ast::CompilationUnit,
+        ids: IdProvider,
+    ) -> Vec<plc_diagnostics::diagnostics::Diagnostic> {
+        loop {
+            let index = fixture_index(fixture, unit);
+            if !crate::infer_temporary_types(unit, &index, ids.clone()) {
+                return crate::unresolved_temporaries(unit, &index);
+            }
+        }
+    }
+
     pub(crate) fn transpile_project(fixture: &str) -> Result<String, String> {
         let source = fixture_source(fixture);
         let ids = IdProvider::default();
@@ -133,8 +159,10 @@ mod test_utils {
             .map_err(|_| abort(&mut diagnostician))?;
         let index = fixture_index(fixture, &interface);
 
-        let (unit, diagnostics) =
-            crate::transpile_file(&source, &index, ids).map_err(|err| err.get_message().to_string())?;
+        let (mut unit, mut diagnostics) = crate::transpile_file(&source, &index, ids.clone())
+            .map_err(|err| err.get_message().to_string())?;
+        diagnostics.extend(infer(fixture, &mut unit, ids));
+
         match diagnostician.handle(&diagnostics) {
             Severity::Error => Err(abort(&mut diagnostician)),
             _ => Ok(AstSerializer::from_unit(&unit)),
@@ -154,7 +182,8 @@ mod test_utils {
         };
         let index = fixture_index(fixture, &interface);
 
-        if let Ok((_, diagnostics)) = crate::transpile_file(&source, &index, ids) {
+        if let Ok((mut unit, mut diagnostics)) = crate::transpile_file(&source, &index, ids.clone()) {
+            diagnostics.extend(infer(fixture, &mut unit, ids));
             diagnostician.handle(&diagnostics);
         }
         diagnostician.buffer().unwrap_or_default()

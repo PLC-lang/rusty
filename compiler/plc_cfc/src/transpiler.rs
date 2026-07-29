@@ -114,6 +114,9 @@ impl Transpiler {
 
                 AstFactory::create_output_assignment(parameter, capture, self.ids.next_id())
             }
+
+            // A bare `value`, positioned by pin order.
+            Argument::Variadic { value } => *value,
         }
     }
 
@@ -781,6 +784,118 @@ mod tests {
             __out_addInto_1 := addInto(delta := 5, acc := );
             result := __out_addInto_1;
         END_PROGRAM");
+        }
+    }
+
+    mod generics {
+        use crate::test_utils::transpile_project;
+
+        #[test]
+        fn generic_call() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/generic_call").unwrap(), @"
+            FUNCTION generic_call : DINT
+            VAR_INPUT
+                in1 : DINT;
+                in2 : DINT;
+            END_VAR
+            VAR
+                __out_myGenAdd_1 : DINT;
+            END_VAR
+                __out_myGenAdd_1 := myGenAdd(a := in1, b := in2);
+                generic_call := __out_myGenAdd_1;
+            END_FUNCTION
+            ");
+        }
+
+        #[test]
+        fn generic_chain() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/generic_chain").unwrap(), @"
+            PROGRAM generic_chain
+            VAR
+                a : INT;
+                b : INT;
+                c : DINT;
+                result : DINT;
+            END_VAR
+            VAR
+                __out_myGenAdd_1 : INT;
+                __out_myGenAdd_5 : DINT;
+            END_VAR
+                __out_myGenAdd_1 := myGenAdd(a := a, b := b);
+                __out_myGenAdd_5 := myGenAdd(a := __out_myGenAdd_1, b := c);
+                result := __out_myGenAdd_5;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn generic_feedback() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/generic_feedback").unwrap(), @"
+            PROGRAM generic_feedback
+            VAR
+                seed : DINT;
+                acc : DINT;
+            END_VAR
+            VAR
+                __out_myGenAdd_1 : DINT;
+            END_VAR
+                __out_myGenAdd_1 := myGenAdd(a := seed, b := __out_myGenAdd_1);
+                acc := __out_myGenAdd_1;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn generic_output() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/generic_output").unwrap(), @"
+            PROGRAM generic_output
+            VAR
+                x : DINT;
+                y : DINT;
+            END_VAR
+            VAR
+                __out_doubled_1 : DINT;
+            END_VAR
+                myGenOut(a := x, doubled => __out_doubled_1);
+                y := __out_doubled_1;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn variadic_add() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/variadic_add").unwrap(), @"
+            PROGRAM variadic_add
+            VAR
+                x : INT;
+                y : DINT;
+                result : DINT;
+            END_VAR
+            VAR
+                __out_ADD_1 : DINT;
+            END_VAR
+                __out_ADD_1 := ADD(x, y, 5);
+                result := __out_ADD_1;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn variadic_unwired() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/variadic_unwired").unwrap(), @"
+            PROGRAM variadic_unwired
+            VAR
+                x : DINT;
+                z : DINT;
+                result : DINT;
+            END_VAR
+            VAR
+                __out_ADD_1 : DINT;
+            END_VAR
+                __out_ADD_1 := ADD(x, z);
+                result := __out_ADD_1;
+            END_PROGRAM
+            ");
         }
     }
 }

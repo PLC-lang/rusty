@@ -1,0 +1,19 @@
+FUNCTION myGenOut<T: ANY_NUM>
+VAR_INPUT
+    a : T;
+END_VAR
+VAR_OUTPUT
+    doubled : T;
+END_VAR
+END_FUNCTION
+
+FUNCTION myGenOut__DINT
+VAR_INPUT
+    a : DINT;
+END_VAR
+VAR_OUTPUT
+    doubled : DINT;
+END_VAR
+    doubled := a * 2;
+END_FUNCTION
+

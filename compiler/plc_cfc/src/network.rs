@@ -15,6 +15,7 @@ pub struct Temporary {
 pub enum Argument {
     Input { parameter: String, value: Box<AstNode> },
     Output { parameter: String, capture: Option<String> },
+    Variadic { value: Box<AstNode> },
 }
 
 pub enum Statement {

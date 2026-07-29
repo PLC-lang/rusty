@@ -172,24 +172,33 @@ impl<'index> Resolver<'index> {
                 // Stateless blocks (functions and sort of methods); temporaries for outputs
                 Role::Block if block::is_stateless(object, self.index) => {
                     let location = self.factory.create_block_location(object.global_id);
+                    let variadic = block::is_variadic(object, self.index);
 
                     let mut arguments = Vec::new();
                     for pin in block::inputs(object) {
                         let argument = match trace(pin.source_pin(), &survey) {
+                            // A variadic callee takes its values by pin order; the pins
+                            // carry no usable parameter names.
+                            Trace::Reached(source) if variadic => {
+                                Some(self.variadic(pin, &source, &location))
+                            }
+
                             // The traced source becomes the pin's passed value.
-                            Trace::Reached(source) => self.input(pin, &source, &location),
+                            Trace::Reached(source) => Some(self.input(pin, &source, &location)),
 
                             // A consumed chain that never reached a source; reported below.
                             Trace::DeadEnd(at) => {
                                 broken.push(at);
-                                self.empty_input(pin, &location)
+                                (!variadic).then(|| self.empty_input(pin, &location))
                             }
 
-                            // An unwired pin takes the callee's declared default.
-                            Trace::Unwired => self.empty_input(pin, &location),
+                            // An unwired pin takes the callee's declared default; a
+                            // variadic slot has none and is dropped to keep the
+                            // remaining positions meaningful.
+                            Trace::Unwired => (!variadic).then(|| self.empty_input(pin, &location)),
                         };
 
-                        arguments.push(argument);
+                        arguments.extend(argument);
                     }
 
                     // Consumed outputs are captured into temporaries
@@ -288,6 +297,14 @@ impl<'index> Resolver<'index> {
     fn empty_input(&mut self, pin: &Pin, location: &SourceLocation) -> Argument {
         let value = AstFactory::create_empty_statement(location.clone(), self.ids.next_id());
         Argument::Input { parameter: pin.parameter_name.clone(), value: Box::new(value) }
+    }
+
+    // A bare value, negated by the pin's inversion bubble.
+    fn variadic(&mut self, pin: &Pin, source: &Source, location: &SourceLocation) -> Argument {
+        let value = self.value(source, location);
+        let value = self.negate_if(value, location, pin.negated);
+
+        Argument::Variadic { value: Box::new(value) }
     }
 
     fn temporary(
@@ -513,6 +530,10 @@ mod block {
             && block.type_name().and_then(|name| index.find_pou(name)).is_some_and(|pou| pou.is_function())
     }
 
+    pub(super) fn is_variadic(block: &FbdObject, index: &Index) -> bool {
+        block.type_name().is_some_and(|name| index.get_variadic_member(name).is_some())
+    }
+
     pub(super) fn is_return_pin(block: &FbdObject, pin: &Pin) -> bool {
         block.type_name() == Some(pin.parameter_name.as_str())
     }
@@ -655,6 +676,7 @@ mod tests {
                                 format!("{parameter} => {capture}")
                             }
                             Argument::Output { parameter, capture: None } => format!("{parameter} => "),
+                            Argument::Variadic { value } => AstSerializer::format(value),
                         })
                         .collect::<Vec<_>>()
                         .join(", ");
@@ -976,6 +998,14 @@ mod tests {
             insta::assert_snapshot!(transpile_project("blocks/invalid/unknown_type").unwrap_err(), @r"
             error[E146]: Block `counter` refers to an undeclared POU
              = unknown_type.cfc: Block 3
+            ");
+        }
+
+        #[test]
+        fn generic_unresolved() {
+            insta::assert_snapshot!(transpile_project("blocks/invalid/generic_unresolved").unwrap_err(), @"
+            error[E149]: Cannot determine a type for generic block `myGenAdd`: no input decides its type
+             = generic_unresolved.cfc: Block 1
             ");
         }
 
