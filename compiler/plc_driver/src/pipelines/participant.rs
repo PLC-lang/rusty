@@ -418,9 +418,9 @@ impl PipelineParticipantMut for CfcParticipant {
         let mut indexed = indexed_project.project.index(self.ids.clone());
 
         // Infer generic-typed temporaries to a fixed point: each round patches
-        // what the annotator resolved and re-indexes so the next round's
-        // reference resolution sees it. Chains of generic calls resolve one link
-        // per round; the common no-generics case exits after one cheap scan.
+        // what the annotator resolved, in the units and the index alike, so the
+        // next round's annotation sees it. Chains of generic calls resolve one
+        // link per round; the common no-generics case exits after one cheap scan.
         loop {
             let IndexedProject { project, index, .. } = &mut indexed;
 
@@ -432,7 +432,6 @@ impl PipelineParticipantMut for CfcParticipant {
             if !patched {
                 break;
             }
-            indexed = indexed.project.index(self.ids.clone());
         }
 
         // Report the temporaries no round could resolve.

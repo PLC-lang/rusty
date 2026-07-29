@@ -46,6 +46,15 @@ where
         self.inner_map.get(key)
     }
 
+    /// returns the first element associated with the given key mutably or None
+    /// if this key was never associated with an element
+    pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut V>
+    where
+        Q: Hash + Equivalent<K> + ?Sized,
+    {
+        self.inner_map.get_mut(key).and_then(|it| it.first_mut())
+    }
+
     /// associates the given value with the give key. Existing associations are
     /// not overwritten, rather an additional association is added
     pub fn insert(&mut self, key: K, value: V) {

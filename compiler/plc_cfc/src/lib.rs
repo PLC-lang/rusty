@@ -132,20 +132,18 @@ mod test_utils {
         }
     }
 
-    // Mimics the driver participant's fixed-point loop: re-index (now with the
-    // temporaries), patch what resolved, repeat until quiescent. Returns the
-    // diagnostics for whatever stayed unresolved.
+    // Mimics the driver participant's fixed-point loop: index once (now with
+    // the temporaries), patch what resolved, repeat until quiescent. Returns
+    // the diagnostics for whatever stayed unresolved.
     fn infer(
         fixture: &str,
         unit: &mut plc_ast::ast::CompilationUnit,
         ids: IdProvider,
     ) -> Vec<plc_diagnostics::diagnostics::Diagnostic> {
-        loop {
-            let index = fixture_index(fixture, unit);
-            if !crate::infer_temporary_types(unit, &index, ids.clone()) {
-                return crate::unresolved_temporaries(unit, &index);
-            }
-        }
+        let mut index = fixture_index(fixture, unit);
+        while crate::infer_temporary_types(unit, &mut index, ids.clone()) {}
+
+        crate::unresolved_temporaries(unit, &index)
     }
 
     pub(crate) fn transpile_project(fixture: &str) -> Result<String, String> {

@@ -67,7 +67,8 @@
 //! then the type is derivable by simply asking the annotator for the type of the call, `x` and `y` decide
 //! `T = INT`. At the same time `__out_myAdd_5 := ...` is not derivable yet because it references a generic
 //! variable that has not been resolved yet: deriving now would consider `z` alone and could disagree with
-//! the final answer, so it has to wait one round until `__out_myAdd_1`'s patched declaration is re-indexed.
+//! the final answer, so it has to wait one round until `__out_myAdd_1`'s resolved type is published to the
+//! index and a fresh annotation can pick it up.
 //!
 //! This workflow is repeated until all generic variables have been resolved or we've hit a point where the
 //! remaining variables are genuinely not resolvable. Not resolvable being something like a generic output
@@ -81,10 +82,11 @@
 //!   '-----------------------------'
 //! ```
 //!
-//! The downside of doing this with a participant rather than a dedicated IR is the constant re-indexing with
-//! each loop. If we assume a unit has a very long chain of generic blocks like the following example then we
-//! have to assume that there are a total of (worst case) N re-indexes. One per link, because each link only
-//! becomes derivable once its predecessor's type has been indexed.
+//! The downside of doing this with a participant rather than a dedicated IR is the round-based looping. If
+//! we assume a unit has a very long chain of generic blocks like the following example then we have to
+//! assume a total of (worst case) N rounds. One per link, because each link only becomes derivable once its
+//! predecessor's type is published. Resolved types are published in place (`Index::update_member_type`), so
+//! a round only costs one annotation of this unit rather than a re-index of the whole project.
 //! ```text
 //!       +------------+     +------------+     +------------+
 //! x --> | a      out | --> | a      out | --> | a      out | --> ...
@@ -104,9 +106,10 @@ use plc_ast::ast::{
 use plc_ast::provider::IdProvider;
 use plc_diagnostics::diagnostics::Diagnostic;
 
-/// Runs one round; returns whether any temporary was patched (and another
-/// round, after a re-index, could make progress).
-pub fn infer_temporary_types(unit: &mut CompilationUnit, index: &Index, ids: IdProvider) -> bool {
+/// Runs one round; returns whether any temporary was patched, in both the
+/// unit's declarations and the index, meaning another round could make
+/// progress.
+pub fn infer_temporary_types(unit: &mut CompilationUnit, index: &mut Index, ids: IdProvider) -> bool {
     // Temporaries whose declared type is still generic, the unknowns.
     let open = open_temporaries(unit, index).map(|variable| variable.name.clone()).collect::<HashSet<_>>();
     if open.is_empty() {
@@ -119,7 +122,7 @@ pub fn infer_temporary_types(unit: &mut CompilationUnit, index: &Index, ids: IdP
     });
 
     // Annotate this unit only; declarations patched in earlier rounds are
-    // already indexed, so the answers improve round over round.
+    // already published to the index, so the answers improve round over round.
     let (annotations, ..) = TypeAnnotator::visit_unit(index, unit, ids);
 
     // Harvest the concrete type each open temporary's capture resolved to.
@@ -164,12 +167,14 @@ pub fn infer_temporary_types(unit: &mut CompilationUnit, index: &Index, ids: IdP
         }
     }
 
-    // Patch the resolved declarations in place.
+    // Patch the resolved declarations in place and publish them to the index,
+    // making them visible to the next round's annotation without a re-index.
     for pou in &mut unit.pous {
         for variable in pou.variable_blocks.iter_mut().flat_map(|block| block.variables.iter_mut()) {
             if let Some(data_type) = resolved.get(&variable.name) {
                 variable.data_type_declaration =
                     DataTypeDeclaration::reference(data_type, variable.location.clone());
+                index.update_member_type(&pou.name, &variable.name, data_type);
             }
         }
     }
