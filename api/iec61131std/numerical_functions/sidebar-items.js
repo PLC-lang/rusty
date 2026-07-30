@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["ROUND__LREAL","ROUND__REAL"]};

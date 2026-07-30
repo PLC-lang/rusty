@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/quick-xml-0.38.4/src/se/content.rs`."><title>content.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">quick_xml/se/</div>content.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Contains serializer for content of an XML element
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/quick-xml-0.38.4/src/se/content.rs`."><title>content.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.97.1 (8bab26f4f 2026-07-14)" data-channel="1.97.1" data-search-js="search-fd9372ac.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-fcd733ba.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">quick_xml/se/</div>content.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Contains serializer for content of an XML element
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span><span class="kw">crate</span>::de::TEXT_KEY;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::se::element::{ElementSerializer, Struct, Tuple};
@@ -472,7 +472,7 @@
 <a href=#472 id=472 data-nosnippet>472</a></span><span class="doccomment">/// Make tests public to reuse types in `elements::tests` module
 <a href=#473 id=473 data-nosnippet>473</a></span><span class="attr">#[cfg(test)]
 <a href=#474 id=474 data-nosnippet>474</a></span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>tests {
-<a href=#475 id=475 data-nosnippet>475</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#475 id=475 data-nosnippet>475</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#476 id=476 data-nosnippet>476</a>    <span class="kw">use </span><span class="kw">crate</span>::utils::Bytes;
 <a href=#477 id=477 data-nosnippet>477</a>    <span class="kw">use </span>serde::Serialize;
 <a href=#478 id=478 data-nosnippet>478</a>    <span class="kw">use </span>std::collections::BTreeMap;
@@ -588,7 +588,7 @@
 <a href=#588 id=588 data-nosnippet>588</a>
 <a href=#589 id=589 data-nosnippet>589</a>    <span class="kw">mod </span>without_indent {
 <a href=#590 id=590 data-nosnippet>590</a>        <span class="kw">use </span><span class="kw">super</span>::Struct;
-<a href=#591 id=591 data-nosnippet>591</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#591 id=591 data-nosnippet>591</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#592 id=592 data-nosnippet>592</a>        <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#593 id=593 data-nosnippet>593</a>
 <a href=#594 id=594 data-nosnippet>594</a>        <span class="doccomment">/// Checks that given `$data` successfully serialized as `$expected`
@@ -686,7 +686,7 @@
 <a href=#686 id=686 data-nosnippet>686</a>
 <a href=#687 id=687 data-nosnippet>687</a>        <span class="macro">err!</span>(bytes: Bytes(<span class="string">b"&lt;\"escaped &amp; bytes'&gt;"</span>) =&gt; Unsupported(<span class="string">"`serialize_bytes` not supported yet"</span>));
 <a href=#688 id=688 data-nosnippet>688</a>
-<a href=#689 id=689 data-nosnippet>689</a>        <span class="macro">serialize_as!</span>(option_none: Option::&lt;Enum&gt;::None =&gt; <span class="string">""</span>, SensitiveNothing);
+<a href=#689 id=689 data-nosnippet>689</a>        <span class="macro">serialize_as!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;Enum&gt;::None =&gt; <span class="string">""</span>, SensitiveNothing);
 <a href=#690 id=690 data-nosnippet>690</a>        <span class="macro">serialize_as!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">"non-escaped string"</span>) =&gt; <span class="string">"non-escaped string"</span>, SensitiveText);
 <a href=#691 id=691 data-nosnippet>691</a>        <span class="macro">serialize_as!</span>(option_some_empty_str: <span class="prelude-val">Some</span>(<span class="string">""</span>) =&gt; <span class="string">""</span>, SensitiveText);
 <a href=#692 id=692 data-nosnippet>692</a>
@@ -735,7 +735,7 @@
 <a href=#735 id=735 data-nosnippet>735</a>
 <a href=#736 id=736 data-nosnippet>736</a>        <span class="doccomment">/// Special field name `$text` should be serialized as a text content
 <a href=#737 id=737 data-nosnippet>737</a>        </span><span class="kw">mod </span>text_field {
-<a href=#738 id=738 data-nosnippet>738</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#738 id=738 data-nosnippet>738</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#739 id=739 data-nosnippet>739</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#740 id=740 data-nosnippet>740</a>
 <a href=#741 id=741 data-nosnippet>741</a>            <span class="macro">err!</span>(map: BTreeMap::from([(<span class="string">"$text"</span>, <span class="number">2</span>), (<span class="string">"_3"</span>, <span class="number">4</span>)])
@@ -766,7 +766,7 @@
 <a href=#766 id=766 data-nosnippet>766</a>
 <a href=#767 id=767 data-nosnippet>767</a>        <span class="doccomment">/// `$text` field inside a struct variant of an enum
 <a href=#768 id=768 data-nosnippet>768</a>        </span><span class="kw">mod </span>enum_with_text_field {
-<a href=#769 id=769 data-nosnippet>769</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#769 id=769 data-nosnippet>769</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#770 id=770 data-nosnippet>770</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#771 id=771 data-nosnippet>771</a>
 <a href=#772 id=772 data-nosnippet>772</a>            <span class="macro">macro_rules!</span> text {
@@ -827,7 +827,7 @@
 <a href=#827 id=827 data-nosnippet>827</a>                }
 <a href=#828 id=828 data-nosnippet>828</a>                =&gt; Unsupported(<span class="string">"`serialize_bytes` not supported yet"</span>));
 <a href=#829 id=829 data-nosnippet>829</a>
-<a href=#830 id=830 data-nosnippet>830</a>            <span class="macro">text!</span>(option_none: Option::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">""</span>);
+<a href=#830 id=830 data-nosnippet>830</a>            <span class="macro">text!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">""</span>);
 <a href=#831 id=831 data-nosnippet>831</a>            <span class="macro">text!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">"non-escaped string"</span>) =&gt; <span class="string">"non-escaped string"</span>);
 <a href=#832 id=832 data-nosnippet>832</a>            <span class="macro">text!</span>(option_some_empty_str: <span class="prelude-val">Some</span>(<span class="string">""</span>) =&gt; <span class="string">""</span>);
 <a href=#833 id=833 data-nosnippet>833</a>
@@ -891,7 +891,7 @@
 <a href=#891 id=891 data-nosnippet>891</a>
 <a href=#892 id=892 data-nosnippet>892</a>        <span class="doccomment">/// `$value` field inside a struct variant of an enum
 <a href=#893 id=893 data-nosnippet>893</a>        </span><span class="kw">mod </span>enum_with_value_field {
-<a href=#894 id=894 data-nosnippet>894</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#894 id=894 data-nosnippet>894</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#895 id=895 data-nosnippet>895</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#896 id=896 data-nosnippet>896</a>
 <a href=#897 id=897 data-nosnippet>897</a>            <span class="macro">macro_rules!</span> value {
@@ -952,7 +952,7 @@
 <a href=#952 id=952 data-nosnippet>952</a>                }
 <a href=#953 id=953 data-nosnippet>953</a>                =&gt; Unsupported(<span class="string">"`serialize_bytes` not supported yet"</span>));
 <a href=#954 id=954 data-nosnippet>954</a>
-<a href=#955 id=955 data-nosnippet>955</a>            <span class="macro">value!</span>(option_none: Option::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">""</span>);
+<a href=#955 id=955 data-nosnippet>955</a>            <span class="macro">value!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">""</span>);
 <a href=#956 id=956 data-nosnippet>956</a>            <span class="macro">value!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">"non-escaped string"</span>) =&gt; <span class="string">"non-escaped string"</span>);
 <a href=#957 id=957 data-nosnippet>957</a>            <span class="macro">value!</span>(option_some_empty_str: <span class="prelude-val">Some</span>(<span class="string">""</span>) =&gt; <span class="string">""</span>);
 <a href=#958 id=958 data-nosnippet>958</a>
@@ -1033,7 +1033,7 @@
 <a href=#1033 id=1033 data-nosnippet>1033</a>        }
 <a href=#1034 id=1034 data-nosnippet>1034</a>
 <a href=#1035 id=1035 data-nosnippet>1035</a>        <span class="kw">mod </span>attributes {
-<a href=#1036 id=1036 data-nosnippet>1036</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#1036 id=1036 data-nosnippet>1036</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#1037 id=1037 data-nosnippet>1037</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#1038 id=1038 data-nosnippet>1038</a>
 <a href=#1039 id=1039 data-nosnippet>1039</a>            <span class="macro">err!</span>(map_attr: BTreeMap::from([(<span class="string">"@key1"</span>, <span class="number">1</span>), (<span class="string">"@key2"</span>, <span class="number">2</span>)])
@@ -1059,7 +1059,7 @@
 <a href=#1059 id=1059 data-nosnippet>1059</a>
 <a href=#1060 id=1060 data-nosnippet>1060</a>    <span class="kw">mod </span>with_indent {
 <a href=#1061 id=1061 data-nosnippet>1061</a>        <span class="kw">use </span><span class="kw">super</span>::Struct;
-<a href=#1062 id=1062 data-nosnippet>1062</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#1062 id=1062 data-nosnippet>1062</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#1063 id=1063 data-nosnippet>1063</a>        <span class="kw">use </span><span class="kw">crate</span>::writer::Indentation;
 <a href=#1064 id=1064 data-nosnippet>1064</a>        <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#1065 id=1065 data-nosnippet>1065</a>
@@ -1157,7 +1157,7 @@
 <a href=#1157 id=1157 data-nosnippet>1157</a>
 <a href=#1158 id=1158 data-nosnippet>1158</a>        <span class="macro">err!</span>(bytes: Bytes(<span class="string">b"&lt;\"escaped &amp; bytes'&gt;"</span>) =&gt; Unsupported(<span class="string">"`serialize_bytes` not supported yet"</span>));
 <a href=#1159 id=1159 data-nosnippet>1159</a>
-<a href=#1160 id=1160 data-nosnippet>1160</a>        <span class="macro">serialize_as!</span>(option_none: Option::&lt;Enum&gt;::None =&gt; <span class="string">""</span>, SensitiveNothing);
+<a href=#1160 id=1160 data-nosnippet>1160</a>        <span class="macro">serialize_as!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;Enum&gt;::None =&gt; <span class="string">""</span>, SensitiveNothing);
 <a href=#1161 id=1161 data-nosnippet>1161</a>        <span class="macro">serialize_as!</span>(option_some: <span class="prelude-val">Some</span>(Enum::Unit) =&gt; <span class="string">"&lt;Unit/&gt;"</span>);
 <a href=#1162 id=1162 data-nosnippet>1162</a>
 <a href=#1163 id=1163 data-nosnippet>1163</a>        <span class="macro">serialize_as!</span>(unit: () =&gt; <span class="string">""</span>, Nothing);
@@ -1203,7 +1203,7 @@
 <a href=#1203 id=1203 data-nosnippet>1203</a>
 <a href=#1204 id=1204 data-nosnippet>1204</a>        <span class="doccomment">/// Special field name `$text` should be serialized as text content
 <a href=#1205 id=1205 data-nosnippet>1205</a>        </span><span class="kw">mod </span>text_field {
-<a href=#1206 id=1206 data-nosnippet>1206</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#1206 id=1206 data-nosnippet>1206</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#1207 id=1207 data-nosnippet>1207</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#1208 id=1208 data-nosnippet>1208</a>
 <a href=#1209 id=1209 data-nosnippet>1209</a>            <span class="macro">err!</span>(map: BTreeMap::from([(<span class="string">"$text"</span>, <span class="number">2</span>), (<span class="string">"_3"</span>, <span class="number">4</span>)])
@@ -1230,7 +1230,7 @@
 <a href=#1230 id=1230 data-nosnippet>1230</a>
 <a href=#1231 id=1231 data-nosnippet>1231</a>        <span class="doccomment">/// `$text` field inside a struct variant of an enum
 <a href=#1232 id=1232 data-nosnippet>1232</a>        </span><span class="kw">mod </span>enum_with_text_field {
-<a href=#1233 id=1233 data-nosnippet>1233</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#1233 id=1233 data-nosnippet>1233</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#1234 id=1234 data-nosnippet>1234</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#1235 id=1235 data-nosnippet>1235</a>
 <a href=#1236 id=1236 data-nosnippet>1236</a>            <span class="macro">macro_rules!</span> text {
@@ -1291,7 +1291,7 @@
 <a href=#1291 id=1291 data-nosnippet>1291</a>                }
 <a href=#1292 id=1292 data-nosnippet>1292</a>                =&gt; Unsupported(<span class="string">"`serialize_bytes` not supported yet"</span>));
 <a href=#1293 id=1293 data-nosnippet>1293</a>
-<a href=#1294 id=1294 data-nosnippet>1294</a>            <span class="macro">text!</span>(option_none: Option::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">""</span>);
+<a href=#1294 id=1294 data-nosnippet>1294</a>            <span class="macro">text!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">""</span>);
 <a href=#1295 id=1295 data-nosnippet>1295</a>            <span class="macro">text!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">"non-escaped string"</span>) =&gt; <span class="string">"non-escaped string"</span>);
 <a href=#1296 id=1296 data-nosnippet>1296</a>            <span class="macro">text!</span>(option_some_empty_str: <span class="prelude-val">Some</span>(<span class="string">""</span>) =&gt; <span class="string">""</span>);
 <a href=#1297 id=1297 data-nosnippet>1297</a>
@@ -1355,7 +1355,7 @@
 <a href=#1355 id=1355 data-nosnippet>1355</a>
 <a href=#1356 id=1356 data-nosnippet>1356</a>        <span class="doccomment">/// `$value` field inside a struct variant of an enum
 <a href=#1357 id=1357 data-nosnippet>1357</a>        </span><span class="kw">mod </span>enum_with_value_field {
-<a href=#1358 id=1358 data-nosnippet>1358</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#1358 id=1358 data-nosnippet>1358</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#1359 id=1359 data-nosnippet>1359</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#1360 id=1360 data-nosnippet>1360</a>
 <a href=#1361 id=1361 data-nosnippet>1361</a>            <span class="macro">macro_rules!</span> value {
@@ -1416,7 +1416,7 @@
 <a href=#1416 id=1416 data-nosnippet>1416</a>                }
 <a href=#1417 id=1417 data-nosnippet>1417</a>                =&gt; Unsupported(<span class="string">"`serialize_bytes` not supported yet"</span>));
 <a href=#1418 id=1418 data-nosnippet>1418</a>
-<a href=#1419 id=1419 data-nosnippet>1419</a>            <span class="macro">value!</span>(option_none: Option::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">""</span>);
+<a href=#1419 id=1419 data-nosnippet>1419</a>            <span class="macro">value!</span>(option_none: <span class="prelude-ty">Option</span>::&lt;<span class="kw-2">&amp;</span>str&gt;::None =&gt; <span class="string">""</span>);
 <a href=#1420 id=1420 data-nosnippet>1420</a>            <span class="macro">value!</span>(option_some: <span class="prelude-val">Some</span>(<span class="string">"non-escaped string"</span>) =&gt; <span class="string">"non-escaped string"</span>);
 <a href=#1421 id=1421 data-nosnippet>1421</a>            <span class="macro">value!</span>(option_some_empty_str: <span class="prelude-val">Some</span>(<span class="string">""</span>) =&gt; <span class="string">""</span>);
 <a href=#1422 id=1422 data-nosnippet>1422</a>
@@ -1500,7 +1500,7 @@
 <a href=#1500 id=1500 data-nosnippet>1500</a>        }
 <a href=#1501 id=1501 data-nosnippet>1501</a>
 <a href=#1502 id=1502 data-nosnippet>1502</a>        <span class="kw">mod </span>attributes {
-<a href=#1503 id=1503 data-nosnippet>1503</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#1503 id=1503 data-nosnippet>1503</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#1504 id=1504 data-nosnippet>1504</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#1505 id=1505 data-nosnippet>1505</a>
 <a href=#1506 id=1506 data-nosnippet>1506</a>            <span class="macro">err!</span>(map_attr: BTreeMap::from([(<span class="string">"@key1"</span>, <span class="number">1</span>), (<span class="string">"@key2"</span>, <span class="number">2</span>)])

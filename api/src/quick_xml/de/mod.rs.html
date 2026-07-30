@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/quick-xml-0.38.4/src/de/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">quick_xml/de/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Serde `Deserializer` module.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/quick-xml-0.38.4/src/de/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="quick_xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.97.1 (8bab26f4f 2026-07-14)" data-channel="1.97.1" data-search-js="search-fd9372ac.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-fcd733ba.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">quick_xml/de/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Serde `Deserializer` module.
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! Due to the complexity of the XML standard and the fact that Serde was developed
 <a href=#4 id=4 data-nosnippet>4</a>//! with JSON in mind, not all Serde concepts apply smoothly to XML. This leads to
@@ -2114,7 +2114,7 @@
 <a href=#2114 id=2114 data-nosnippet>2114</a><span class="kw">pub use </span><span class="self">self</span>::simple_type::SimpleTypeDeserializer;
 <a href=#2115 id=2115 data-nosnippet>2115</a><span class="kw">pub use </span><span class="kw">crate</span>::errors::serialize::DeError;
 <a href=#2116 id=2116 data-nosnippet>2116</a>
-<a href=#2117 id=2117 data-nosnippet>2117</a><span class="kw">use </span>crate::{
+<a href=#2117 id=2117 data-nosnippet>2117</a><span class="kw">use crate</span>::{
 <a href=#2118 id=2118 data-nosnippet>2118</a>    de::map::ElementMapAccess,
 <a href=#2119 id=2119 data-nosnippet>2119</a>    encoding::Decoder,
 <a href=#2120 id=2120 data-nosnippet>2120</a>    errors::Error,
@@ -3549,7 +3549,7 @@
 <a href=#3549 id=3549 data-nosnippet>3549</a>
 <a href=#3550 id=3550 data-nosnippet>3550</a><span class="attr">#[cfg(test)]
 <a href=#3551 id=3551 data-nosnippet>3551</a></span><span class="kw">mod </span>tests {
-<a href=#3552 id=3552 data-nosnippet>3552</a>    <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#3552 id=3552 data-nosnippet>3552</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#3553 id=3553 data-nosnippet>3553</a>    <span class="kw">use </span><span class="kw">crate</span>::errors::IllFormedError;
 <a href=#3554 id=3554 data-nosnippet>3554</a>    <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#3555 id=3555 data-nosnippet>3555</a>
@@ -3560,7 +3560,7 @@
 <a href=#3560 id=3560 data-nosnippet>3560</a>
 <a href=#3561 id=3561 data-nosnippet>3561</a>    <span class="attr">#[cfg(feature = <span class="string">"overlapped-lists"</span>)]
 <a href=#3562 id=3562 data-nosnippet>3562</a>    </span><span class="kw">mod </span>skip {
-<a href=#3563 id=3563 data-nosnippet>3563</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#3563 id=3563 data-nosnippet>3563</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#3564 id=3564 data-nosnippet>3564</a>        <span class="kw">use </span><span class="kw">crate</span>::de::DeEvent::<span class="kw-2">*</span>;
 <a href=#3565 id=3565 data-nosnippet>3565</a>        <span class="kw">use </span><span class="kw">crate</span>::events::BytesEnd;
 <a href=#3566 id=3566 data-nosnippet>3566</a>        <span class="kw">use </span>pretty_assertions::assert_eq;
@@ -4035,7 +4035,7 @@
 <a href=#4035 id=4035 data-nosnippet>4035</a>    }
 <a href=#4036 id=4036 data-nosnippet>4036</a>
 <a href=#4037 id=4037 data-nosnippet>4037</a>    <span class="kw">mod </span>read_to_end {
-<a href=#4038 id=4038 data-nosnippet>4038</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4038 id=4038 data-nosnippet>4038</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4039 id=4039 data-nosnippet>4039</a>        <span class="kw">use </span><span class="kw">crate</span>::de::DeEvent::<span class="kw-2">*</span>;
 <a href=#4040 id=4040 data-nosnippet>4040</a>        <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4041 id=4041 data-nosnippet>4041</a>
@@ -4232,7 +4232,7 @@
 <a href=#4232 id=4232 data-nosnippet>4232</a>    /// That tests ensures that comments and processed instructions is ignored
 <a href=#4233 id=4233 data-nosnippet>4233</a>    /// and can split one logical string in pieces.
 <a href=#4234 id=4234 data-nosnippet>4234</a>    </span><span class="kw">mod </span>merge_text {
-<a href=#4235 id=4235 data-nosnippet>4235</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4235 id=4235 data-nosnippet>4235</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4236 id=4236 data-nosnippet>4236</a>        <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4237 id=4237 data-nosnippet>4237</a>
 <a href=#4238 id=4238 data-nosnippet>4238</a>        <span class="attr">#[test]
@@ -4283,7 +4283,7 @@
 <a href=#4283 id=4283 data-nosnippet>4283</a>        }
 <a href=#4284 id=4284 data-nosnippet>4284</a>
 <a href=#4285 id=4285 data-nosnippet>4285</a>        <span class="kw">mod </span>comment_between {
-<a href=#4286 id=4286 data-nosnippet>4286</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4286 id=4286 data-nosnippet>4286</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4287 id=4287 data-nosnippet>4287</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4288 id=4288 data-nosnippet>4288</a>
 <a href=#4289 id=4289 data-nosnippet>4289</a>            <span class="attr">#[test]
@@ -4372,7 +4372,7 @@
 <a href=#4372 id=4372 data-nosnippet>4372</a>        }
 <a href=#4373 id=4373 data-nosnippet>4373</a>
 <a href=#4374 id=4374 data-nosnippet>4374</a>        <span class="kw">mod </span>pi_between {
-<a href=#4375 id=4375 data-nosnippet>4375</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4375 id=4375 data-nosnippet>4375</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4376 id=4376 data-nosnippet>4376</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4377 id=4377 data-nosnippet>4377</a>
 <a href=#4378 id=4378 data-nosnippet>4378</a>            <span class="attr">#[test]
@@ -4466,17 +4466,17 @@
 <a href=#4466 id=4466 data-nosnippet>4466</a>    /// This tests ensures that any combination of payload data is processed
 <a href=#4467 id=4467 data-nosnippet>4467</a>    /// as expected.
 <a href=#4468 id=4468 data-nosnippet>4468</a>    </span><span class="kw">mod </span>triples {
-<a href=#4469 id=4469 data-nosnippet>4469</a>        <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4469 id=4469 data-nosnippet>4469</a>        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4470 id=4470 data-nosnippet>4470</a>        <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4471 id=4471 data-nosnippet>4471</a>
 <a href=#4472 id=4472 data-nosnippet>4472</a>        <span class="kw">mod </span>start {
-<a href=#4473 id=4473 data-nosnippet>4473</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4473 id=4473 data-nosnippet>4473</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4474 id=4474 data-nosnippet>4474</a>
 <a href=#4475 id=4475 data-nosnippet>4475</a>            <span class="doccomment">/// &lt;tag1&gt;&lt;tag2&gt;...
 <a href=#4476 id=4476 data-nosnippet>4476</a>            </span><span class="comment">// The same name is intentional
 <a href=#4477 id=4477 data-nosnippet>4477</a>            </span><span class="attr">#[allow(clippy::module_inception)]
 <a href=#4478 id=4478 data-nosnippet>4478</a>            </span><span class="kw">mod </span>start {
-<a href=#4479 id=4479 data-nosnippet>4479</a>                <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4479 id=4479 data-nosnippet>4479</a>                <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4480 id=4480 data-nosnippet>4480</a>                <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4481 id=4481 data-nosnippet>4481</a>
 <a href=#4482 id=4482 data-nosnippet>4482</a>                <span class="attr">#[test]
@@ -4528,7 +4528,7 @@
 <a href=#4528 id=4528 data-nosnippet>4528</a>
 <a href=#4529 id=4529 data-nosnippet>4529</a>            <span class="doccomment">/// &lt;tag&gt;&lt;/tag&gt;...
 <a href=#4530 id=4530 data-nosnippet>4530</a>            </span><span class="kw">mod </span>end {
-<a href=#4531 id=4531 data-nosnippet>4531</a>                <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4531 id=4531 data-nosnippet>4531</a>                <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4532 id=4532 data-nosnippet>4532</a>                <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4533 id=4533 data-nosnippet>4533</a>
 <a href=#4534 id=4534 data-nosnippet>4534</a>                <span class="attr">#[test]
@@ -4587,7 +4587,7 @@
 <a href=#4587 id=4587 data-nosnippet>4587</a>
 <a href=#4588 id=4588 data-nosnippet>4588</a>            <span class="doccomment">/// &lt;tag&gt; text ...
 <a href=#4589 id=4589 data-nosnippet>4589</a>            </span><span class="kw">mod </span>text {
-<a href=#4590 id=4590 data-nosnippet>4590</a>                <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4590 id=4590 data-nosnippet>4590</a>                <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4591 id=4591 data-nosnippet>4591</a>                <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4592 id=4592 data-nosnippet>4592</a>
 <a href=#4593 id=4593 data-nosnippet>4593</a>                <span class="attr">#[test]
@@ -4630,7 +4630,7 @@
 <a href=#4630 id=4630 data-nosnippet>4630</a>
 <a href=#4631 id=4631 data-nosnippet>4631</a>            <span class="doccomment">/// &lt;tag&gt;&lt;![CDATA[ cdata ]]&gt;...
 <a href=#4632 id=4632 data-nosnippet>4632</a>            </span><span class="kw">mod </span>cdata {
-<a href=#4633 id=4633 data-nosnippet>4633</a>                <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4633 id=4633 data-nosnippet>4633</a>                <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4634 id=4634 data-nosnippet>4634</a>                <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4635 id=4635 data-nosnippet>4635</a>
 <a href=#4636 id=4636 data-nosnippet>4636</a>                <span class="attr">#[test]
@@ -4695,11 +4695,11 @@
 <a href=#4695 id=4695 data-nosnippet>4695</a>        }
 <a href=#4696 id=4696 data-nosnippet>4696</a>
 <a href=#4697 id=4697 data-nosnippet>4697</a>        <span class="kw">mod </span>text {
-<a href=#4698 id=4698 data-nosnippet>4698</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4698 id=4698 data-nosnippet>4698</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4699 id=4699 data-nosnippet>4699</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4700 id=4700 data-nosnippet>4700</a>
 <a href=#4701 id=4701 data-nosnippet>4701</a>            <span class="kw">mod </span>start {
-<a href=#4702 id=4702 data-nosnippet>4702</a>                <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4702 id=4702 data-nosnippet>4702</a>                <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4703 id=4703 data-nosnippet>4703</a>                <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4704 id=4704 data-nosnippet>4704</a>
 <a href=#4705 id=4705 data-nosnippet>4705</a>                <span class="attr">#[test]
@@ -4769,7 +4769,7 @@
 <a href=#4769 id=4769 data-nosnippet>4769</a>            <span class="comment">// text::text::something is equivalent to text::something
 <a href=#4770 id=4770 data-nosnippet>4770</a>
 <a href=#4771 id=4771 data-nosnippet>4771</a>            </span><span class="kw">mod </span>cdata {
-<a href=#4772 id=4772 data-nosnippet>4772</a>                <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4772 id=4772 data-nosnippet>4772</a>                <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4773 id=4773 data-nosnippet>4773</a>                <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4774 id=4774 data-nosnippet>4774</a>
 <a href=#4775 id=4775 data-nosnippet>4775</a>                <span class="attr">#[test]
@@ -4827,11 +4827,11 @@
 <a href=#4827 id=4827 data-nosnippet>4827</a>        }
 <a href=#4828 id=4828 data-nosnippet>4828</a>
 <a href=#4829 id=4829 data-nosnippet>4829</a>        <span class="kw">mod </span>cdata {
-<a href=#4830 id=4830 data-nosnippet>4830</a>            <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4830 id=4830 data-nosnippet>4830</a>            <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4831 id=4831 data-nosnippet>4831</a>            <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4832 id=4832 data-nosnippet>4832</a>
 <a href=#4833 id=4833 data-nosnippet>4833</a>            <span class="kw">mod </span>start {
-<a href=#4834 id=4834 data-nosnippet>4834</a>                <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4834 id=4834 data-nosnippet>4834</a>                <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4835 id=4835 data-nosnippet>4835</a>                <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4836 id=4836 data-nosnippet>4836</a>
 <a href=#4837 id=4837 data-nosnippet>4837</a>                <span class="attr">#[test]
@@ -4899,7 +4899,7 @@
 <a href=#4899 id=4899 data-nosnippet>4899</a>            }
 <a href=#4900 id=4900 data-nosnippet>4900</a>
 <a href=#4901 id=4901 data-nosnippet>4901</a>            <span class="kw">mod </span>text {
-<a href=#4902 id=4902 data-nosnippet>4902</a>                <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4902 id=4902 data-nosnippet>4902</a>                <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4903 id=4903 data-nosnippet>4903</a>                <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4904 id=4904 data-nosnippet>4904</a>
 <a href=#4905 id=4905 data-nosnippet>4905</a>                <span class="attr">#[test]
@@ -4950,7 +4950,7 @@
 <a href=#4950 id=4950 data-nosnippet>4950</a>            <span class="comment">// The same name is intentional
 <a href=#4951 id=4951 data-nosnippet>4951</a>            </span><span class="attr">#[allow(clippy::module_inception)]
 <a href=#4952 id=4952 data-nosnippet>4952</a>            </span><span class="kw">mod </span>cdata {
-<a href=#4953 id=4953 data-nosnippet>4953</a>                <span class="kw">use </span>super::<span class="kw-2">*</span>;
+<a href=#4953 id=4953 data-nosnippet>4953</a>                <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <a href=#4954 id=4954 data-nosnippet>4954</a>                <span class="kw">use </span>pretty_assertions::assert_eq;
 <a href=#4955 id=4955 data-nosnippet>4955</a>
 <a href=#4956 id=4956 data-nosnippet>4956</a>                <span class="attr">#[test]

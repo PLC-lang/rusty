@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ColorChoice"],"macro":["arg","command","value_parser"],"mod":["builder","error","parser"],"struct":["Id"],"trait":["Args","CommandFactory","FromArgMatches","Parser","Subcommand","ValueEnum"],"type":["Error"]};
+window.SIDEBAR_ITEMS = {"enum":["ColorChoice"],"macro":[["arg",1],["command",1],["value_parser",1]],"mod":["builder","error","parser"],"struct":["Id"],"trait":["Args","CommandFactory","FromArgMatches","Parser","Subcommand","ValueEnum"],"type":["Error"]};

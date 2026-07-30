@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["MDBOOK_VERSION"],"macro":["static_regex"],"mod":["book","config","errors","utils"]};
+window.SIDEBAR_ITEMS = {"constant":["MDBOOK_VERSION"],"macro":[["static_regex",1]],"mod":["book","config","errors","utils"]};

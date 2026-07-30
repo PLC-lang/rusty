@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["Ok"],"macro":["anyhow","bail","ensure"],"struct":["Chain","Error"],"trait":["Context"],"type":["Result"]};
+window.SIDEBAR_ITEMS = {"fn":["Ok"],"macro":[["anyhow",1],["bail",1],["ensure",1]],"struct":["Chain","Error"],"trait":["Context"],"type":["Result"]};

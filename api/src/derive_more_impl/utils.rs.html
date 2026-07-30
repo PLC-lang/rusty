@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/utils.rs`."><title>utils.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="derive_more_impl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0 (59807616e 2026-04-14)" data-channel="1.95.0" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">derive_more_impl/</div>utils.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="attr">#![cfg_attr(
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/derive_more-impl-1.0.0/src/utils.rs`."><title>utils.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-17e0aaed.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="derive_more_impl" data-themes="" data-resource-suffix="" data-rustdoc-version="1.97.1 (8bab26f4f 2026-07-14)" data-channel="1.97.1" data-search-js="search-fd9372ac.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-fcd733ba.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">derive_more_impl/</div>utils.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="attr">#![cfg_attr(
 <a href=#2 id=2 data-nosnippet>2</a>    not(all(feature = <span class="string">"add"</span>, feature = <span class="string">"mul"</span>)),
 <a href=#3 id=3 data-nosnippet>3</a>    allow(dead_code, unused_mut)
 <a href=#4 id=4 data-nosnippet>4</a>)]
@@ -1489,7 +1489,7 @@
 <a href=#1489 id=1489 data-nosnippet>1489</a>        spanned::Spanned <span class="kw">as _</span>,
 <a href=#1490 id=1490 data-nosnippet>1490</a>    };
 <a href=#1491 id=1491 data-nosnippet>1491</a>
-<a href=#1492 id=1492 data-nosnippet>1492</a>    <span class="kw">use </span>super::{Either, Spanning};
+<a href=#1492 id=1492 data-nosnippet>1492</a>    <span class="kw">use super</span>::{Either, Spanning};
 <a href=#1493 id=1493 data-nosnippet>1493</a>
 <a href=#1494 id=1494 data-nosnippet>1494</a>    <span class="attr">#[cfg(any(
 <a href=#1495 id=1495 data-nosnippet>1495</a>        feature = <span class="string">"as_ref"</span>,
@@ -1508,11 +1508,11 @@
 <a href=#1508 id=1508 data-nosnippet>1508</a>    <span class="attr">#[cfg(any(feature = <span class="string">"as_ref"</span>, feature = <span class="string">"from"</span>, feature = <span class="string">"try_from"</span>))]
 <a href=#1509 id=1509 data-nosnippet>1509</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::types::Types;
 <a href=#1510 id=1510 data-nosnippet>1510</a>    <span class="attr">#[cfg(any(feature = <span class="string">"as_ref"</span>, feature = <span class="string">"from"</span>))]
-<a href=#1511 id=1511 data-nosnippet>1511</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>self::{
+<a href=#1511 id=1511 data-nosnippet>1511</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{
 <a href=#1512 id=1512 data-nosnippet>1512</a>        conversion::Conversion, field_conversion::FieldConversion, forward::Forward,
 <a href=#1513 id=1513 data-nosnippet>1513</a>    };
 <a href=#1514 id=1514 data-nosnippet>1514</a>    <span class="attr">#[cfg(feature = <span class="string">"try_from"</span>)]
-<a href=#1515 id=1515 data-nosnippet>1515</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>self::{repr_conversion::ReprConversion, repr_int::ReprInt};
+<a href=#1515 id=1515 data-nosnippet>1515</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::{repr_conversion::ReprConversion, repr_int::ReprInt};
 <a href=#1516 id=1516 data-nosnippet>1516</a>
 <a href=#1517 id=1517 data-nosnippet>1517</a>    <span class="doccomment">/// [`Parse`]ing with additional state or metadata.
 <a href=#1518 id=1518 data-nosnippet>1518</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Parser {
@@ -1655,7 +1655,7 @@
 <a href=#1655 id=1655 data-nosnippet>1655</a>            spanned::Spanned <span class="kw">as _</span>,
 <a href=#1656 id=1656 data-nosnippet>1656</a>        };
 <a href=#1657 id=1657 data-nosnippet>1657</a>
-<a href=#1658 id=1658 data-nosnippet>1658</a>        <span class="kw">use </span>super::{ParseMultiple, Parser, Spanning};
+<a href=#1658 id=1658 data-nosnippet>1658</a>        <span class="kw">use super</span>::{ParseMultiple, Parser, Spanning};
 <a href=#1659 id=1659 data-nosnippet>1659</a>
 <a href=#1660 id=1660 data-nosnippet>1660</a>        <span class="doccomment">/// Representation of an empty attribute, containing no arguments.
 <a href=#1661 id=1661 data-nosnippet>1661</a>        ///
@@ -1740,7 +1740,7 @@
 <a href=#1740 id=1740 data-nosnippet>1740</a>        <span class="kw">use </span>proc_macro2::Span;
 <a href=#1741 id=1741 data-nosnippet>1741</a>        <span class="kw">use </span>syn::parse::{Parse, ParseStream};
 <a href=#1742 id=1742 data-nosnippet>1742</a>
-<a href=#1743 id=1743 data-nosnippet>1743</a>        <span class="kw">use </span>super::{ParseMultiple, Parser, Spanning};
+<a href=#1743 id=1743 data-nosnippet>1743</a>        <span class="kw">use super</span>::{ParseMultiple, Parser, Spanning};
 <a href=#1744 id=1744 data-nosnippet>1744</a>
 <a href=#1745 id=1745 data-nosnippet>1745</a>        <span class="doccomment">/// Representation of a [`#[repr(u/i*)]` Rust attribute][0].
 <a href=#1746 id=1746 data-nosnippet>1746</a>        ///
@@ -1842,7 +1842,7 @@
 <a href=#1842 id=1842 data-nosnippet>1842</a>            spanned::Spanned <span class="kw">as _</span>,
 <a href=#1843 id=1843 data-nosnippet>1843</a>        };
 <a href=#1844 id=1844 data-nosnippet>1844</a>
-<a href=#1845 id=1845 data-nosnippet>1845</a>        <span class="kw">use </span>super::{ParseMultiple, Spanning};
+<a href=#1845 id=1845 data-nosnippet>1845</a>        <span class="kw">use super</span>::{ParseMultiple, Spanning};
 <a href=#1846 id=1846 data-nosnippet>1846</a>
 <a href=#1847 id=1847 data-nosnippet>1847</a>        <span class="doccomment">/// Representation of a `skip`/`ignore` attribute.
 <a href=#1848 id=1848 data-nosnippet>1848</a>        ///
@@ -1898,7 +1898,7 @@
 <a href=#1898 id=1898 data-nosnippet>1898</a>            Token,
 <a href=#1899 id=1899 data-nosnippet>1899</a>        };
 <a href=#1900 id=1900 data-nosnippet>1900</a>
-<a href=#1901 id=1901 data-nosnippet>1901</a>        <span class="kw">use </span>super::{ParseMultiple, Spanning};
+<a href=#1901 id=1901 data-nosnippet>1901</a>        <span class="kw">use super</span>::{ParseMultiple, Spanning};
 <a href=#1902 id=1902 data-nosnippet>1902</a>
 <a href=#1903 id=1903 data-nosnippet>1903</a>        <span class="doccomment">/// Representation of an attribute, containing a comma-separated list of types.
 <a href=#1904 id=1904 data-nosnippet>1904</a>        ///
@@ -1936,7 +1936,7 @@
 <a href=#1936 id=1936 data-nosnippet>1936</a>
 <a href=#1937 id=1937 data-nosnippet>1937</a>        <span class="kw">use </span><span class="kw">crate</span>::utils::attr;
 <a href=#1938 id=1938 data-nosnippet>1938</a>
-<a href=#1939 id=1939 data-nosnippet>1939</a>        <span class="kw">use </span>super::{Either, ParseMultiple, Spanning};
+<a href=#1939 id=1939 data-nosnippet>1939</a>        <span class="kw">use super</span>::{Either, ParseMultiple, Spanning};
 <a href=#1940 id=1940 data-nosnippet>1940</a>
 <a href=#1941 id=1941 data-nosnippet>1941</a>        <span class="doccomment">/// Untyped analogue of a [`Conversion`], recreating its type structure via [`Either`].
 <a href=#1942 id=1942 data-nosnippet>1942</a>        ///
@@ -2003,7 +2003,7 @@
 <a href=#2003 id=2003 data-nosnippet>2003</a>
 <a href=#2004 id=2004 data-nosnippet>2004</a>        <span class="kw">use </span><span class="kw">crate</span>::utils::attr;
 <a href=#2005 id=2005 data-nosnippet>2005</a>
-<a href=#2006 id=2006 data-nosnippet>2006</a>        <span class="kw">use </span>super::{Either, ParseMultiple, Spanning};
+<a href=#2006 id=2006 data-nosnippet>2006</a>        <span class="kw">use super</span>::{Either, ParseMultiple, Spanning};
 <a href=#2007 id=2007 data-nosnippet>2007</a>
 <a href=#2008 id=2008 data-nosnippet>2008</a>        <span class="doccomment">/// Untyped analogue of a [`FieldConversion`], recreating its type structure via [`Either`].
 <a href=#2009 id=2009 data-nosnippet>2009</a>        ///
@@ -2103,7 +2103,7 @@
 <a href=#2103 id=2103 data-nosnippet>2103</a>
 <a href=#2104 id=2104 data-nosnippet>2104</a>        <span class="kw">use </span><span class="kw">crate</span>::utils::attr;
 <a href=#2105 id=2105 data-nosnippet>2105</a>
-<a href=#2106 id=2106 data-nosnippet>2106</a>        <span class="kw">use </span>super::{ParseMultiple, Spanning};
+<a href=#2106 id=2106 data-nosnippet>2106</a>        <span class="kw">use super</span>::{ParseMultiple, Spanning};
 <a href=#2107 id=2107 data-nosnippet>2107</a>
 <a href=#2108 id=2108 data-nosnippet>2108</a>        <span class="doccomment">/// Representation of an attribute, specifying which `repr`-conversions should be generated:
 <a href=#2109 id=2109 data-nosnippet>2109</a>        /// either direct into a discriminant, or for concrete specified types forwarding from a

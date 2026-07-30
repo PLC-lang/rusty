@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["listener"],"struct":["Event","EventListener"],"trait":["IntoNotification","Listener","Notification"]};
+window.SIDEBAR_ITEMS = {"macro":[["listener",1]],"struct":["Event","EventListener"],"trait":["IntoNotification","Listener","Notification"]};

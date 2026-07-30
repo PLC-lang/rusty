@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["try_from","try_from_mut","visit_all_nodes_mut"],"mod":["ast","control_statements","literals","mut_visitor","provider","ser","visitor"]};
+window.SIDEBAR_ITEMS = {"macro":[["try_from",1],["try_from_mut",1],["visit_all_nodes_mut",1]],"mod":["ast","control_statements","literals","mut_visitor","provider","ser","visitor"]};

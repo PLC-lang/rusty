@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["STATIC_MAX_LEVEL"],"enum":["Level"],"fn":["max_level"],"macro":["debug","error","info","log","log_enabled","trace","warn"]};
+window.SIDEBAR_ITEMS = {"constant":["STATIC_MAX_LEVEL"],"enum":["Level"],"fn":["max_level"],"macro":[["debug",1],["error",1],["info",1],["log",1],["log_enabled",1],["trace",1],["warn",1]]};
