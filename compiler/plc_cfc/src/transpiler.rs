@@ -881,6 +881,42 @@ mod tests {
         }
 
         #[test]
+        fn mux_call() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/mux_call").unwrap(), @r"
+            PROGRAM mux_call
+            VAR
+                sel : DINT;
+                a : DINT;
+                b : DINT;
+                result : DINT;
+            END_VAR
+            VAR
+                __out_MUX_1 : DINT;
+            END_VAR
+                __out_MUX_1 := MUX(sel, a, b);
+                result := __out_MUX_1;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
+        fn variadic_feedback() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/variadic_feedback").unwrap(), @r"
+            PROGRAM variadic_feedback
+            VAR
+                seed : DINT;
+                acc : DINT;
+            END_VAR
+            VAR
+                __out_ADD_1 : DINT;
+            END_VAR
+                __out_ADD_1 := ADD(__out_ADD_1, seed);
+                acc := __out_ADD_1;
+            END_PROGRAM
+            ");
+        }
+
+        #[test]
         fn variadic_unwired() {
             insta::assert_snapshot!(transpile_project("blocks/valid/variadic_unwired").unwrap(), @"
             PROGRAM variadic_unwired
