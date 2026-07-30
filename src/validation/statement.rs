@@ -61,9 +61,9 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::Literal(AstLiteral::Date(date)) => {
             validate_temporal_literal_bounds(
                 validator,
-                date.value(),
+                date.value().map_err(|_| BoundError::OutOfRange),
                 date.is_long(),
-                "DATE",
+                if date.is_long() { "LDATE" } else { "DATE" },
                 1_000_000_000,
                 &statement.location,
             );
@@ -71,9 +71,9 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::Literal(AstLiteral::DateAndTime(date_time)) => {
             validate_temporal_literal_bounds(
                 validator,
-                date_time.value(),
+                date_time.value().map_err(|_| BoundError::OutOfRange),
                 date_time.is_long(),
-                "DATE_AND_TIME",
+                if date_time.is_long() { "LDATE_AND_TIME" } else { "DATE_AND_TIME" },
                 1_000_000_000,
                 &statement.location,
             );
@@ -81,19 +81,42 @@ pub fn visit_statement<T: AnnotationMap>(
         AstStatement::Literal(AstLiteral::TimeOfDay(time_of_day)) => {
             validate_temporal_literal_bounds(
                 validator,
-                time_of_day.value(),
+                time_of_day.value().map_err(|_| BoundError::OutOfRange),
                 time_of_day.is_long(),
-                "TIME_OF_DAY",
+                if time_of_day.is_long() { "LTIME_OF_DAY" } else { "TIME_OF_DAY" },
                 1_000_000,
                 &statement.location,
             );
         }
         AstStatement::Literal(AstLiteral::Time(time)) => {
+            // Time::value() uses f64 arithmetic and casts to i64 with saturation, so an
+            // out-of-range value silently becomes i64::MAX/MIN. Compute the raw f64 nanoseconds
+            // up-front and pass a directional Err before the cast can hide the overflow.
+            let raw_nanos: f64 = {
+                let hours = time.day * 24.0 + time.hour;
+                let mins = hours * 60.0 + time.min;
+                let secs = mins * 60.0 + time.sec;
+                let millis = secs * 1_000.0 + time.milli;
+                let micros = millis * 1_000.0 + time.micro;
+                let nanos = micros * 1_000.0 + time.nano as f64;
+                if time.negative {
+                    -nanos
+                } else {
+                    nanos
+                }
+            };
+            let lit_value: Result<i64, BoundError> = if raw_nanos > i64::MAX as f64 {
+                Err(BoundError::Overflow)
+            } else if raw_nanos < i64::MIN as f64 {
+                Err(BoundError::Underflow)
+            } else {
+                Ok(time.value())
+            };
             validate_temporal_literal_bounds(
                 validator,
-                Ok(time.value()),
+                lit_value,
                 time.is_long(),
-                "TIME",
+                if time.is_long() { "LTIME" } else { "TIME" },
                 1_000_000,
                 &statement.location,
             );
@@ -221,17 +244,33 @@ pub fn visit_statement<T: AnnotationMap>(
     validate_type_nature(validator, statement, context);
 }
 
+enum BoundError {
+    Overflow,
+    Underflow,
+    OutOfRange,
+}
+
 fn validate_temporal_literal_bounds(
     validator: &mut Validator,
-    literal_value: Result<i64, String>,
+    literal_value: Result<i64, BoundError>,
     is_long: bool,
     literal_name: &str,
     short_unit_divisor: i64,
     location: &SourceLocation,
 ) {
-    fn emit_warning(validator: &mut Validator, literal_name: &str, kind: &str, location: &SourceLocation) {
+    fn emit_warning(
+        validator: &mut Validator,
+        literal_name: &str,
+        kind: BoundError,
+        location: &SourceLocation,
+    ) {
+        let msg = match kind {
+            BoundError::Overflow => "overflow detected",
+            BoundError::Underflow => "underflow detected",
+            BoundError::OutOfRange => "out-of-range detected",
+        };
         validator.push_diagnostic(
-            Diagnostic::new(format!("{literal_name} literal {kind}"))
+            Diagnostic::new(format!("{literal_name} literal {msg}"))
                 .with_error_code("E148")
                 .with_location(location),
         );
@@ -239,8 +278,8 @@ fn validate_temporal_literal_bounds(
 
     let value = match literal_value {
         Ok(value) => value,
-        Err(_) => {
-            emit_warning(validator, literal_name, "out-of-range detected", location);
+        Err(kind) => {
+            emit_warning(validator, literal_name, kind, location);
             return;
         }
     };
@@ -251,9 +290,9 @@ fn validate_temporal_literal_bounds(
 
     let short_units = value / short_unit_divisor;
     if short_units < 0 {
-        emit_warning(validator, literal_name, "underflow detected", location);
+        emit_warning(validator, literal_name, BoundError::Underflow, location);
     } else if short_units > u32::MAX as i64 {
-        emit_warning(validator, literal_name, "overflow detected", location);
+        emit_warning(validator, literal_name, BoundError::Overflow, location);
     }
 }
 
