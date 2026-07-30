@@ -33,6 +33,13 @@ filter_commits = false
 tag_pattern = "v[0-9].*"
 sort_commits = "newest"
 
+# Strip leading whitespace so a squashed PR title with a stray leading space
+# still parses as a conventional commit; unparsed subjects are dropped from
+# both the changelog and the version-bump calculation.
+commit_preprocessors = [
+  { pattern = '^[ \t]+', replace = "" },
+]
+
 commit_parsers = [
   { message = "^feat", group = "<!-- 0 -->Added" },
   { message = "^fix", group = "<!-- 1 -->Fixed" },
