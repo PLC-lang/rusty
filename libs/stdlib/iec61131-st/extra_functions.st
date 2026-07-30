@@ -723,19 +723,18 @@ END_FUNCTION
 * Converts LREAL to TIME.
 *
 ******************************************************************************)
+{external}
 FUNCTION LREAL_TO_TIME : TIME
 VAR_INPUT
     IN : LREAL;
 END_VAR
-// TODO: seconds.millis? round as nanos?
-    LREAL_TO_TIME := ROUND(IN);
 END_FUNCTION
 
+{external}
 FUNCTION LREAL_TO_LTIME : LTIME
 VAR_INPUT
     IN : LREAL;
 END_VAR
-    LREAL_TO_LTIME := ROUND(IN);
 END_FUNCTION
 
 (******************************************************************************
