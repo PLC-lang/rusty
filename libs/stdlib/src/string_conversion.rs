@@ -37,6 +37,8 @@ pub unsafe extern "C" fn STRING_TO_WSTRING_EXT(src: *const u8, dest: *mut u16) -
             dest = dest.add(1);
         }
     }
+    // Do not rely on the destination being zero-initialized.
+    *dest = 0;
 
     0
 }
@@ -101,6 +103,8 @@ pub unsafe extern "C" fn WSTRING_TO_WCHAR(input: *const u16) -> u16 {
 #[no_mangle]
 pub unsafe extern "C" fn CHAR_TO_STRING(dest: *mut u8, input: u8) -> i32 {
     *dest = input;
+    // Do not rely on the destination being zero-initialized.
+    *dest.add(1) = 0;
     0
 }
 
@@ -113,5 +117,29 @@ pub unsafe extern "C" fn CHAR_TO_STRING(dest: *mut u8, input: u8) -> i32 {
 #[no_mangle]
 pub unsafe extern "C" fn WCHAR_TO_WSTRING(dest: *mut u16, input: u16) -> i32 {
     *dest = input;
+    // Do not rely on the destination being zero-initialized.
+    *dest.add(1) = 0;
     0
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn conversions_terminate_results_in_dirty_buffers() {
+        // Result buffers are not guaranteed to be zeroed; every writer must
+        // terminate its own output instead of relying on zeroed memory.
+        let mut dest8 = [0xAA_u8; 81];
+        unsafe { CHAR_TO_STRING(dest8.as_mut_ptr(), b'x') };
+        assert_eq!(dest8[..2], [b'x', 0]);
+
+        let mut dest16 = [0xAAAA_u16; 81];
+        unsafe { WCHAR_TO_WSTRING(dest16.as_mut_ptr(), u16::from('x' as u8)) };
+        assert_eq!(dest16[..2], ['x' as u16, 0]);
+
+        dest16.fill(0xAAAA);
+        unsafe { STRING_TO_WSTRING_EXT("ab\0".as_ptr(), dest16.as_mut_ptr()) };
+        assert_eq!(dest16[..3], ['a' as u16, 'b' as u16, 0]);
+    }
 }
