@@ -175,6 +175,18 @@ pub extern "C" fn TIME() -> i64 {
     dt.num_seconds_from_midnight() as i64 * 1e9 as i64 + dt.nanosecond() as i64
 }
 
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C" fn LREAL_TO_TIME(input: f64) -> i64 {
+    input.round() as i64
+}
+
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C" fn LREAL_TO_LTIME(input: f64) -> i64 {
+    input.round() as i64
+}
+
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
