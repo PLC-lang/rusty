@@ -391,12 +391,13 @@ impl TypeAnnotator<'_> {
                 self.index.find_effective_type_info(get_smallest_possible_type(nature));
             //Get the current binding
             if let Some(candidates) = generics_candidates.get(name) {
-                //Find the best suiting type
-                let winner = candidates
+                // Resolve each candidate to its intrinsic type; an unresolved generic (e.g. a
+                // still-open CFC temporary fed back into the call) carries no evidence and gets
+                // no vote.
+                let concrete = candidates
                     .iter()
-                    .fold(smallest_possible_type, |previous_type: Option<&DataTypeInformation>, current| {
-                        let current_type = self
-                            .index
+                    .filter_map(|current| {
+                        self.index
                             .find_effective_type_info(current)
                             // if type is not found, look for it in new index, because the type could have been created recently
                             .or_else(|| self.annotation_map.new_index.find_effective_type_info(current))
@@ -411,34 +412,41 @@ impl TypeAnnotator<'_> {
                                     } => self.index.find_effective_type_info(WSTRING_TYPE).unwrap_or(it),
                                     _ => self.index.get_intrinsic_type_information(it),
                                 }
-                            });
+                            })
+                    })
+                    .filter(|it| !matches!(it, DataTypeInformation::Generic { .. }))
+                    .collect::<Vec<_>>();
 
-                        if let Some(DataTypeInformation::Generic { .. }) = current_type {
-                            return previous_type;
-                        }
+                // Nothing concrete binds this generic; leave it unresolved rather than letting
+                // the smallest-possible seed decide out of thin air.
+                if concrete.is_empty() {
+                    continue;
+                }
 
-                        // Find bigger
-                        if let Some(current) = current_type {
-                            // check if the current type derives from the generic nature
-                            if self
-                                .index
-                                .find_effective_type_by_name(current.get_name())
-                                .map(|t| {
-                                    t.has_nature(*nature, self.index)
-                                        // INT parameter for REAL is allowed
-                                            | (nature.is_real() & t.is_numerical())
-                                })
-                                .unwrap_or_default()
-                            {
-                                // if we got the right nature we can search for the bigger type
-                                if let Some(previous) = previous_type {
-                                    return Some(typesystem::get_bigger_type(current, previous, self.index));
-                                } else {
-                                    // if the previous type was None just return the current
-                                    // type should be ok because of the previouse nature check
-                                    return current_type;
+                //Find the best suiting type
+                let winner = concrete
+                    .into_iter()
+                    .fold(smallest_possible_type, |previous_type: Option<&DataTypeInformation>, current| {
+                        // check if the current type derives from the generic nature
+                        if self
+                            .index
+                            .find_effective_type_by_name(current.get_name())
+                            .map(|t| {
+                                t.has_nature(*nature, self.index)
+                                    // INT parameter for REAL is allowed
+                                        | (nature.is_real() & t.is_numerical())
+                            })
+                            .unwrap_or_default()
+                        {
+                            // if we got the right nature we can search for the bigger type
+                            return match previous_type {
+                                Some(previous) => {
+                                    Some(typesystem::get_bigger_type(current, previous, self.index))
                                 }
-                            }
+                                // if the previous type was None just return the current
+                                // type should be ok because of the previouse nature check
+                                None => Some(current),
+                            };
                         }
                         // if we didn't get the right nature return the last one
                         previous_type

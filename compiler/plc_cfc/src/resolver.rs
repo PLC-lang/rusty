@@ -1010,6 +1010,14 @@ mod tests {
         }
 
         #[test]
+        fn generic_unbound_feedback() {
+            insta::assert_snapshot!(transpile_project("blocks/invalid/generic_unbound_feedback").unwrap_err(), @r"
+            error[E149]: Cannot determine a type for generic block `myGenScale`: no input decides its type
+             = generic_unbound_feedback.cfc: Block 1
+            ");
+        }
+
+        #[test]
         fn function_stale_output() {
             insta::assert_snapshot!(transpile_project("blocks/invalid/function_stale_output").unwrap_err(), @r"
             error[E147]: Output `oldDoubled` is not declared by `myAdd`
