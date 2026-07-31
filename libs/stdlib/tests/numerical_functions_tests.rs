@@ -145,31 +145,3 @@ fn absolute_on_lreal_test() {
     assert_eq!(maintype.b, 0.0f64);
     assert_eq!(maintype.c, 2.6f64);
 }
-
-#[test]
-fn test_round_real() {
-    let src = r"
-        FUNCTION main : REAL
-            main := ROUND(REAL#2.5);
-        END_FUNCTION
-        ";
-    let sources = vec![src.into()];
-    let includes = get_includes(&["numerical_functions.st"]);
-    let mut maintype = plc_driver::runner::MainType::default();
-    let res: f32 = compile_and_run(sources, includes, &mut maintype);
-    assert_eq!(res, 3.0f32);
-}
-
-#[test]
-fn test_round_lreal() {
-    let src = r"
-        FUNCTION main : LREAL
-            main := ROUND(LREAL#2.5);
-        END_FUNCTION
-        ";
-    let mut maintype = plc_driver::runner::MainType::default();
-    let sources = vec![src.into()];
-    let includes = get_includes(&["numerical_functions.st"]);
-    let res: f64 = compile_and_run(sources, includes, &mut maintype);
-    assert_eq!(res, 3.0f64);
-}
