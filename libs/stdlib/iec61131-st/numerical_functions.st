@@ -68,15 +68,3 @@ END_VAR
     END_IF
 END_FUNCTION
 
-(**************************
- *
- * Rounds a given ANY_REAL to the nearest integer
- * Rounds half values away from zero
- *
-*************************)
-{external}
-FUNCTION ROUND<T : ANY_REAL> : T
-VAR_INPUT
-    in : T;
-END_VAR
-END_FUNCTION
