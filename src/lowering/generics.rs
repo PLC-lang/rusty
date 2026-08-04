@@ -270,6 +270,20 @@ impl GenericLowerer {
                 statement.parameters.as_deref().map(flatten_expression_list).unwrap_or_default();
             let pairs = paired_args(index, &qualified_name, &args);
 
+            // An argument whose type is still generic (a nested call not yet monomorphized) would
+            // poison the biggest-type derivation; defer this call to a later fixed-point pass.
+            let has_unresolved_generic_arg = pairs.iter().any(|(param_type, arg)| {
+                get_generic_candidate(index, annotations, param_type, arg).is_some_and(|(_, concrete)| {
+                    matches!(
+                        index.find_effective_type_info(concrete),
+                        Some(DataTypeInformation::Generic { .. })
+                    )
+                })
+            });
+            if has_unresolved_generic_arg {
+                return;
+            }
+
             let candidates = pairs.iter().fold(
                 FxHashMap::<String, Vec<String>>::default(),
                 |mut acc, (param_type, arg)| {
@@ -366,28 +380,31 @@ impl GenericLowerer {
     }
 }
 
-/// Pairs each call argument with the declared type name of the parameter it binds to, handling
-/// positional, named and variadic (`...`) arguments — the same pairing the annotator uses when
-/// collecting generic candidates.
+/// Pairs each call argument with the declared type name of the parameter it binds to. As in the
+/// annotator and codegen, named arguments claim their slots first, positional arguments fill the
+/// remaining slots left-to-right and surplus positional arguments bind to the variadic member.
 fn paired_args<'a>(index: &Index, pou_name: &str, args: &[&'a AstNode]) -> Vec<(String, &'a AstNode)> {
     let params = index.get_available_parameters(pou_name);
+
+    let named_positions: FxHashSet<usize> = args
+        .iter()
+        .filter_map(|arg| {
+            let name = arg.get_assignment_identifier()?;
+            params.iter().position(|it| it.get_name().eq_ignore_ascii_case(name))
+        })
+        .collect();
+    let mut free_slots = (0..params.len()).filter(|it| !named_positions.contains(it));
+
     let mut pairs = Vec::new();
-    let has_named = args.iter().any(|it| it.is_assignment() || it.is_output_assignment());
-    if has_named {
-        for arg in args {
-            let Some(name) = arg.get_assignment_identifier() else { continue };
+    for arg in args {
+        if let Some(name) = arg.get_assignment_identifier() {
             if let Some(param) = params.iter().find(|it| it.get_name().eq_ignore_ascii_case(name)) {
                 pairs.push((param.get_type_name().to_string(), *arg));
             }
-        }
-    } else {
-        for (param, arg) in params.iter().zip(args.iter()) {
-            pairs.push((param.get_type_name().to_string(), *arg));
-        }
-        if let Some(vararg) = index.get_variadic_member(pou_name) {
-            for arg in args.iter().skip(params.len()) {
-                pairs.push((vararg.get_type_name().to_string(), *arg));
-            }
+        } else if let Some(slot) = free_slots.next() {
+            pairs.push((params[slot].get_type_name().to_string(), *arg));
+        } else if let Some(vararg) = index.get_variadic_member(pou_name) {
+            pairs.push((vararg.get_type_name().to_string(), *arg));
         }
     }
     pairs

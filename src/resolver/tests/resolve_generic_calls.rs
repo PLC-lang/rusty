@@ -638,6 +638,81 @@ fn generic_call_gets_cast_to_biggest_type() {
 }
 
 #[test]
+fn nested_generic_call_resolves_to_inner_concrete_type() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+    FUNCTION innerFn<T: ANY_NUM> : T
+    VAR_INPUT
+        x : T;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION outerFn<T: ANY_NUM> : T
+    VAR_INPUT
+        x : T;
+    END_VAR
+    END_FUNCTION
+
+    PROGRAM PRG
+    VAR
+        d : DINT;
+    END_VAR
+        outerFn(innerFn(d));
+    END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
+
+    let call = &unit.implementations[2].statements[0];
+    assert_type_and_hint!(&annotations, &index, call, DINT_TYPE, None);
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, parameters, .. }, ..), .. } =
+        call
+    else {
+        panic!("Expected call statement")
+    };
+    assert_eq!(Some("outerFn__DINT"), annotations.get_call_name(operator));
+
+    let inner = flatten_expression_list(parameters.as_ref().as_ref().unwrap())[0];
+    assert_type_and_hint!(&annotations, &index, inner, DINT_TYPE, Some(DINT_TYPE));
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }, ..), .. } = inner else {
+        panic!("Expected call statement")
+    };
+    assert_eq!(Some("innerFn__DINT"), annotations.get_call_name(operator));
+}
+
+#[test]
+fn generic_call_with_mixed_positional_and_named_args_resolves_to_biggest_type() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        "
+    FUNCTION myFunc<T: ANY_NUM> : T
+    VAR_INPUT
+        a : T;
+        b : T;
+    END_VAR
+    END_FUNCTION
+
+    PROGRAM PRG
+    VAR
+        big   : LREAL;
+        small : INT;
+    END_VAR
+        myFunc(big, b := small);
+    END_PROGRAM",
+        id_provider.clone(),
+    );
+    let (unit, index, annotations) = annotate_and_lower_in_place(unit, index, id_provider);
+
+    let call = &unit.implementations[1].statements[0];
+    assert_type_and_hint!(&annotations, &index, call, LREAL_TYPE, None);
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { operator, .. }, ..), .. } = call else {
+        panic!("Expected call statement")
+    };
+    assert_eq!(Some("myFunc__LREAL"), annotations.get_call_name(operator));
+}
+
+#[test]
 fn sel_return_type_follows_params() {
     let id_provider = IdProvider::default();
     let (unit, index) = index_with_ids(
