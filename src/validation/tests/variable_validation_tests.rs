@@ -1823,6 +1823,12 @@ fn function_output_with_mismatched_type_assignment_must_produce_a_friendly_error
     );
 
     assert_snapshot!(&diagnostics, @"
+    error[E037]: Parameter result is passed by reference, it requires an argument of type REAL but got INT
+       ┌─ <internal>:20:27
+       │
+    20 │                 result => i1
+       │                           ^^ Parameter result is passed by reference, it requires an argument of type REAL but got INT
+
     warning[E067]: Implicit downcast from 'REAL' to 'INT'.
        ┌─ <internal>:20:17
        │

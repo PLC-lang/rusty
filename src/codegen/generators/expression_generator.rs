@@ -1249,9 +1249,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         let type_name =
                             if both_sides_are_reference_to { name } else { inner_type_name.as_str() };
 
-                        Some((it.get_declaration_type(), type_name, both_sides_are_reference_to))
+                        Some((it.get_declaration_type(), type_name, parameter_is_reference_to))
                     } else {
-                        Some((it.get_declaration_type(), name, both_sides_are_reference_to))
+                        Some((it.get_declaration_type(), name, parameter_is_reference_to))
                     }
                 })
                 // TODO : Is this idomatic, we need to wrap in ok because the next step does not necessarily fail
@@ -1268,11 +1268,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     }
                 })?;
 
-            if let Some((declaration_type, type_name, both_sides_are_reference_to)) = parameter_info {
+            if let Some((declaration_type, type_name, parameter_is_reference_to)) = parameter_info {
+                // REFERENCE TO parameters always receive an address: the address of a plain
+                // variable argument, or the target address of a reference argument.
                 let argument: BasicValueEnum = if declaration_type.is_by_ref()
                     || (self.index.get_effective_type_or_void_by_name(type_name).is_aggregate_type()
                         && declaration_type.is_input())
-                    || both_sides_are_reference_to
+                    || parameter_is_reference_to
                 {
                     let declared_parameter = declared_parameters.get(i);
                     self.generate_argument_by_ref(argument, type_name, declared_parameter.copied())?
@@ -1597,7 +1599,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let declaration_type = parameter.get_declaration_type();
         let parameter_type_info = self.index.get_effective_type_or_void_by_name(&parameter_type_name);
 
+        // REFERENCE TO parameters expect an address; the fallback arm allocates one.
+        let parameter_is_reference_to = self
+            .index
+            .find_effective_type_info(parameter.get_type_name())
+            .is_some_and(|it| it.is_reference_to());
+
         match declaration_type {
+            ArgumentType::ByVal(..) if parameter_is_reference_to => {
+                let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
+                Ok(ptr_value.as_basic_value_enum())
+            }
             ArgumentType::ByVal(..)
                 if declaration_type.is_input() && parameter_type_info.is_aggregate_type() =>
             {
