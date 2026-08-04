@@ -1,0 +1,3 @@
+RUN: %COMPILE %S/app.st && %RUN | %CHECK %s
+CHECK: FB_B body
+CHECK: FB_B_DERIVED body

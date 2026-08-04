@@ -19,3 +19,8 @@ tests/lit/**/*.txt
 tests/lit/**/Output/
 tests/lit/**/header_generator/**/*.h
 !tests/lit/**/header_generator/**/dependencies.plc.h
+
+# Local-only baseline / test corpora (not committed)
+/.baseline/
+/benchmarks/local/
+

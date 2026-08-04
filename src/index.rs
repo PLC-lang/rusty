@@ -1665,6 +1665,13 @@ impl Index {
         self.properties.get_all(pou_name).unwrap_or(&vec![]).to_vec()
     }
 
+    /// True if any POU in the index declares one or more properties. Cheap;
+    /// short-circuits at the first hit. Used by `PropertyLowerer` to skip
+    /// its post-annotate hook on projects that don't use properties.
+    pub fn has_any_properties(&self) -> bool {
+        self.properties.keys().next().is_some()
+    }
+
     /// return the `VariableIndexEntry` associated with the given fully qualified name using `.` as
     /// a delimiter. (e.g. "PLC_PRG.x", or "MyClass.MyMethod.x")
     pub fn find_fully_qualified_variable(&self, fully_qualified_name: &str) -> Option<&VariableIndexEntry> {
