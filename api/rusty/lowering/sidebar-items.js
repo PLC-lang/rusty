@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["calls","helper","polymorphism","property"]};
+window.SIDEBAR_ITEMS = {"mod":["calls","generics","helper","polymorphism","property"]};
