@@ -23,7 +23,7 @@ DataType {
                 linkage: Internal,
                 binding: None,
                 source_location: SourceLocation {
-                    span: Range(6:17 - 6:20),
+                    span: Range(6:8 - 10:20),
                     file: Some(
                         "<internal>",
                     ),
@@ -59,7 +59,7 @@ DataType {
     },
     nature: Any,
     location: SourceLocation {
-        span: Range(6:17 - 6:20),
+        span: Range(6:8 - 10:20),
         file: Some(
             "<internal>",
         ),

@@ -1653,7 +1653,13 @@ fn generic_call_with_formal_parameter() {
 ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    insta::assert_snapshot!(diagnostics, @r"
+    insta::assert_snapshot!(diagnostics, @"
+    error[E062]: Invalid type nature for generic argument. __STRING_19 is no ANY_NUMBER
+       ┌─ <internal>:21:35
+       │
+    21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
+       │                                   ^^^^^^^^^^^^^^^^^^^^^ Invalid type nature for generic argument. __STRING_19 is no ANY_NUMBER
+
     error[E089]: Invalid call parameters
        ┌─ <internal>:20:30
        │
@@ -1666,16 +1672,16 @@ fn generic_call_with_formal_parameter() {
     20 │         myLocalNumber := FOO(y := 0); // unresolved reference
        │                              ^ Could not resolve reference to y
 
-    error[E062]: Invalid type nature for generic argument. __STRING_19 is no ANY_NUMBER
+    error[E064]: Could not resolve generic type T with ANY_NUMBER
        ┌─ <internal>:21:35
        │
     21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
-       │                                   ^^^^^^^^^^^^^^^^^^^^^ Invalid type nature for generic argument. __STRING_19 is no ANY_NUMBER
+       │                                   ^^^^^^^^^^^^^^^^^^^^^ Could not resolve generic type T with ANY_NUMBER
 
-    error[E037]: Invalid assignment: cannot assign 'STRING' to 'USINT'
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'FUNCTION FOO < T: ANY_NUM >: T VAR_INPUT x: T; END_VAR END_FUNCTION'
        ┌─ <internal>:21:30
        │
     21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
-       │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'USINT'
+       │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'FUNCTION FOO < T: ANY_NUM >: T VAR_INPUT x: T; END_VAR END_FUNCTION'
     ");
 }

@@ -26,23 +26,11 @@ error[E062]: Invalid type nature for generic argument. BYTE is no ANY_UNSIGNED
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                            ^^^^^^^^ Invalid type nature for generic argument. BYTE is no ANY_UNSIGNED
 
-error[E037]: Invalid assignment: cannot assign 'STRING' to 'UDINT'
-   ┌─ <internal>:15:70
-   │
-15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                      ^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'UDINT'
-
 error[E062]: Invalid type nature for generic argument. STRING is no ANY_UNSIGNED
    ┌─ <internal>:15:70
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                      ^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_UNSIGNED
-
-error[E037]: Invalid assignment: cannot assign 'CHAR' to 'UDINT'
-   ┌─ <internal>:15:79
-   │
-15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
-   │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'UDINT'
 
 error[E062]: Invalid type nature for generic argument. CHAR is no ANY_UNSIGNED
    ┌─ <internal>:15:79
