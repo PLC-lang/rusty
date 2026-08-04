@@ -19,14 +19,28 @@ const NANOS_PER_MILLISECOND: i64 = 1_000 * 1_000;
 const NANOS_PER_SECOND: i64 = 1_000 * NANOS_PER_MILLISECOND;
 // --------- x_TO_STRING
 
+/// Formats `args` into `dest` and appends the null terminator the IEC string layout
+/// requires. Returns the number of content bytes written (excluding the terminator).
+/// Writers must not rely on the destination being zero-initialized; the buffer may
+/// hold arbitrary bytes.
+///
+/// # Safety
+/// `dest` must have room for `capacity` bytes.
+unsafe fn write_terminated(dest: *mut u8, capacity: usize, args: std::fmt::Arguments) -> usize {
+    let content = core::slice::from_raw_parts_mut(dest, capacity - 1);
+    let mut cursor = std::io::Cursor::new(content);
+    cursor.write_fmt(args).unwrap();
+    let written = cursor.position() as usize;
+    *dest.add(written) = 0;
+    written
+}
+
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn BYTE_TO_STRING_EXT(input: u8, dest: *mut u8) -> i32 {
-    let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
-
-    write!(&mut *buf, "{input}").unwrap();
+    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input}"));
 
     0
 }
@@ -36,9 +50,7 @@ pub unsafe extern "C" fn BYTE_TO_STRING_EXT(input: u8, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LWORD_TO_STRING_EXT(input: u64, dest: *mut u8) -> i32 {
-    let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
-
-    write!(&mut *buf, "{input}").unwrap();
+    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input}"));
 
     0
 }
@@ -48,8 +60,7 @@ pub unsafe extern "C" fn LWORD_TO_STRING_EXT(input: u64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LINT_TO_STRING_EXT(input: i64, dest: *mut u8) -> i32 {
-    let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
-    write!(&mut *buf, "{input}").unwrap();
+    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input}"));
 
     0
 }
@@ -59,12 +70,11 @@ pub unsafe extern "C" fn LINT_TO_STRING_EXT(input: i64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
-    let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
     // double: 52 bits are used for the mantissa (about 16 decimal digits)
     if input.floor() < 1e14 {
-        write!(&mut *buf, "{input:.6}").unwrap()
+        write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6}"));
     } else {
-        write!(&mut *buf, "{input:.6e}").unwrap()
+        write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6e}"));
     }
 
     0
@@ -75,14 +85,13 @@ pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
-    let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
     // float: 23 bits are used for the mantissa (about 7 decimal digits)
 
     // TODO: discuss when scientific notation should be displayed
     if input.floor() < 1e6 {
-        write!(&mut *buf, "{input:.6}").unwrap()
+        write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6}"));
     } else {
-        write!(&mut *buf, "{input:.6e}").unwrap()
+        write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6e}"));
     }
 
     0
@@ -184,6 +193,18 @@ pub extern "C" fn LTIME() -> i64 {
     dt.num_seconds_from_midnight() as i64 * NANOS_PER_SECOND + dt.nanosecond() as i64
 }
 
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C" fn LREAL_TO_TIME(input: f64) -> u32 {
+    input.round() as u32
+}
+
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C" fn LREAL_TO_LTIME(input: f64) -> i64 {
+    input.round() as i64
+}
+
 /// # Safety
 /// Uses raw pointers, inherently unsafe.
 #[allow(non_snake_case)]
@@ -201,14 +222,15 @@ pub unsafe extern "C" fn LTIME_TO_STRING(dest: *mut u8, input: i64) {
 }
 
 unsafe fn write_time_to_string(input_nanos: i64, dest: *mut u8) {
-    let mut dest = dest;
     let literals = parse_timestamp(input_nanos);
-    literals.iter().filter(|&it| it.0 != 0).for_each(|it| {
-        let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
-        write!(&mut *buf, "{}{}", it.0, it.1).unwrap();
-        let idx = buf.iter().position(|&c| c == 0).unwrap();
-        dest = dest.add(idx);
-    });
+    // Terminate up front so a zero duration (every component filtered out) yields an
+    // empty string; each component then overwrites the previous terminator.
+    *dest = 0;
+    let mut offset = 0;
+    for it in literals.iter().filter(|&it| it.0 != 0) {
+        offset +=
+            write_terminated(dest.add(offset), DEFAULT_STRING_LEN - offset, format_args!("{}{}", it.0, it.1));
+    }
 }
 
 fn parse_timestamp<'a>(timestamp_nanos: i64) -> [(u32, &'a str); 7] {
@@ -247,9 +269,7 @@ unsafe fn write_dt_to_string(input_nanos: i64, dest: *mut u8) {
     let datetime = chrono::Utc.timestamp_nanos(input_nanos);
     let date = datetime.date_naive().to_string();
     let time = datetime.time().to_string();
-    let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
-
-    write!(&mut *buf, "{date}-{time}").unwrap();
+    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{date}-{time}"));
 }
 
 /// # Safety
@@ -271,9 +291,7 @@ pub unsafe extern "C" fn LDATE_TO_STRING(dest: *mut u8, input: i64) {
 unsafe fn write_date_to_string(input_nanos: i64, dest: *mut u8) {
     let datetime = chrono::Utc.timestamp_nanos(input_nanos).date_naive();
     let date = datetime.to_string();
-    let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
-
-    write!(&mut *buf, "{date}").unwrap();
+    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{date}"));
 }
 
 /// # Safety
@@ -295,14 +313,72 @@ pub unsafe extern "C" fn LTOD_TO_STRING(dest: *mut u8, input: i64) {
 unsafe fn write_tod_to_string(input_nanos: i64, dest: *mut u8) {
     let datetime = chrono::Utc.timestamp_nanos(input_nanos);
     let time = datetime.time().to_string();
-    let buf = core::slice::from_raw_parts_mut(dest, DEFAULT_STRING_LEN);
-
-    write!(&mut *buf, "{time}").unwrap();
+    write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{time}"));
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+
+    /// Reads the IEC string (up to the first terminator) from a buffer.
+    fn terminated_str(buf: &[u8]) -> &str {
+        let len = buf.iter().position(|&c| c == 0).expect("result must be null-terminated");
+        std::str::from_utf8(&buf[..len]).unwrap()
+    }
+
+    #[test]
+    fn conversions_terminate_results_in_dirty_buffers() {
+        // Result buffers are not guaranteed to be zeroed; every writer must
+        // terminate its own output instead of relying on zeroed memory.
+        let mut dest = [0xAA_u8; 81];
+        let dest_ptr = dest.as_mut_ptr();
+
+        unsafe { BYTE_TO_STRING_EXT(42, dest_ptr) };
+        assert_eq!("42", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        unsafe { LWORD_TO_STRING_EXT(7, dest_ptr) };
+        assert_eq!("7", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        unsafe { LINT_TO_STRING_EXT(-12, dest_ptr) };
+        assert_eq!("-12", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        unsafe { REAL_TO_STRING_EXT(3.5, dest_ptr) };
+        assert_eq!("3.500000", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        unsafe { LREAL_TO_STRING_EXT(2.5, dest_ptr) };
+        assert_eq!("2.500000", terminated_str(&dest));
+
+        let datetime = chrono::NaiveDate::from_ymd_opt(1982, 12, 15)
+            .and_then(|date| date.and_hms_nano_opt(10, 10, 2, 123456789))
+            .expect("Cannot create date time from given parameters");
+        let timestamp = datetime.and_utc().timestamp_nanos_opt().unwrap();
+
+        dest.fill(0xAA);
+        unsafe { LDATE_TO_STRING(dest_ptr, timestamp) };
+        assert_eq!("1982-12-15", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        unsafe { LDT_TO_STRING(dest_ptr, timestamp) };
+        assert_eq!("1982-12-15-10:10:02.123456789", terminated_str(&dest));
+
+        dest.fill(0xAA);
+        unsafe { LTOD_TO_STRING(dest_ptr, timestamp) };
+        assert_eq!("10:10:02.123456789", terminated_str(&dest));
+
+        // skipped zero-components must not leave stale bytes between the parts
+        dest.fill(0xAA);
+        unsafe { LTIME_TO_STRING(dest_ptr, (2 * 3600 + 3) * 1_000_000_000) };
+        assert_eq!("2h3s", terminated_str(&dest));
+
+        // a zero duration writes no component but must still terminate
+        dest.fill(0xAA);
+        unsafe { LTIME_TO_STRING(dest_ptr, 0) };
+        assert_eq!("", terminated_str(&dest));
+    }
 
     // tests
     #[test]

@@ -289,3 +289,46 @@ fn long_temporal_literals_do_not_produce_short_range_warnings() {
     let normalized = diagnostics.lines().map(str::trim_start).collect::<Vec<_>>().join("\n");
     assert_snapshot!(normalized, @r"");
 }
+
+#[test]
+fn long_temporal_literals_overflow_produce_warnings() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        PROGRAM prg
+        VAR
+            ltime_overflow : LTIME := LTIME#3000000d;
+            ldate_overflow : LDATE := LDATE#2300-12-31;
+            ldt_overflow : LDT := LDT#2300-12-31-00:00:00;
+            ltod_overflow : LTOD := LTOD#24:59:59;
+        END_VAR
+        END_PROGRAM
+       "#,
+    );
+
+    let normalized = diagnostics.lines().map(str::trim_start).collect::<Vec<_>>().join("\n");
+    assert_snapshot!(normalized, @"
+    warning[E148]: LTIME literal overflow detected
+    ┌─ <internal>:4:39
+    │
+    4 │             ltime_overflow : LTIME := LTIME#3000000d;
+    │                                       ^^^^^^^^^^^^^^ LTIME literal overflow detected
+
+    warning[E148]: LDATE literal out-of-range detected
+    ┌─ <internal>:5:39
+    │
+    5 │             ldate_overflow : LDATE := LDATE#2300-12-31;
+    │                                       ^^^^^^^^^^^^^^^^ LDATE literal out-of-range detected
+
+    warning[E148]: LDATE_AND_TIME literal out-of-range detected
+    ┌─ <internal>:6:35
+    │
+    6 │             ldt_overflow : LDT := LDT#2300-12-31-00:00:00;
+    │                                   ^^^^^^^^^^^^^^^^^^^^^^^ LDATE_AND_TIME literal out-of-range detected
+
+    warning[E148]: LTIME_OF_DAY literal out-of-range detected
+    ┌─ <internal>:7:37
+    │
+    7 │             ltod_overflow : LTOD := LTOD#24:59:59;
+    │                                     ^^^^^^^^^^^^^ LTIME_OF_DAY literal out-of-range detected
+    ");
+}
