@@ -1487,6 +1487,290 @@ fn validate_call_by_ref_explicit() {
 }
 
 #[test]
+fn validate_call_by_ref_reference_to_input() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION func : DINT
+            VAR_INPUT
+                refIn : REFERENCE TO DINT;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                x : DINT;
+                r : REFERENCE TO DINT;
+            END_VAR
+
+            func(refIn := x); // Valid
+            func(refIn := r); // Valid
+            func(x);          // Valid
+            func(refIn := 5);
+            func(refIn := x + 1);
+            func(refIn := );
+            func(5);
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(&diagnostics, @"
+    error[E031]: Expected a reference for parameter refIn because their type is REFERENCE TO
+       ┌─ <internal>:17:27
+       │
+    17 │             func(refIn := 5);
+       │                           ^ Expected a reference for parameter refIn because their type is REFERENCE TO
+
+    error[E031]: Expected a reference for parameter refIn because their type is REFERENCE TO
+       ┌─ <internal>:18:27
+       │
+    18 │             func(refIn := x + 1);
+       │                           ^^^^^ Expected a reference for parameter refIn because their type is REFERENCE TO
+
+    error[E031]: Expected a reference for parameter refIn because their type is REFERENCE TO
+       ┌─ <internal>:19:27
+       │
+    19 │             func(refIn := );
+       │                           ^ Expected a reference for parameter refIn because their type is REFERENCE TO
+
+    error[E031]: Expected a reference for parameter refIn because their type is REFERENCE TO
+       ┌─ <internal>:20:18
+       │
+    20 │             func(5);
+       │                  ^ Expected a reference for parameter refIn because their type is REFERENCE TO
+    ");
+}
+
+#[test]
+fn validate_reference_to_input_argument_must_have_identical_type() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION func : DINT
+            VAR_INPUT
+                refIn : REFERENCE TO DINT;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                d : DINT;
+                i : INT;
+                l : LINT;
+                r : REFERENCE TO DINT;
+                ri : REFERENCE TO INT;
+                p : REF_TO DINT;
+            END_VAR
+
+            func(refIn := d); // Valid
+            func(refIn := r); // Valid
+            func(refIn := i);
+            func(refIn := l);
+            func(refIn := ri);
+            func(refIn := p);
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(&diagnostics, @"
+    error[E037]: Parameter refIn is passed by reference, it requires an argument of type DINT but got INT
+       ┌─ <internal>:20:27
+       │
+    20 │             func(refIn := i);
+       │                           ^ Parameter refIn is passed by reference, it requires an argument of type DINT but got INT
+
+    error[E037]: Parameter refIn is passed by reference, it requires an argument of type DINT but got LINT
+       ┌─ <internal>:21:27
+       │
+    21 │             func(refIn := l);
+       │                           ^ Parameter refIn is passed by reference, it requires an argument of type DINT but got LINT
+
+    warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
+       ┌─ <internal>:21:27
+       │
+    21 │             func(refIn := l);
+       │                           ^ Implicit downcast from 'LINT' to 'DINT'.
+
+    error[E037]: Parameter refIn is passed by reference, it requires an argument of type DINT but got INT
+       ┌─ <internal>:22:27
+       │
+    22 │             func(refIn := ri);
+       │                           ^^ Parameter refIn is passed by reference, it requires an argument of type DINT but got INT
+
+    error[E065]: The type DINT 32 is too small to hold a Pointer
+       ┌─ <internal>:23:18
+       │
+    23 │             func(refIn := p);
+       │                  ^^^^^^^^^^ The type DINT 32 is too small to hold a Pointer
+    ");
+}
+
+#[test]
+fn validate_by_ref_argument_must_have_identical_type() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION func : DINT
+            VAR_IN_OUT
+                io : DINT;
+            END_VAR
+
+            VAR_OUTPUT
+                out : DINT;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                d : DINT;
+                i : INT;
+            END_VAR
+
+            func(io := d, out => d); // Valid
+            func(io := i, out => d);
+            func(io := d, out => i);
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(&diagnostics, @"
+    error[E037]: Parameter io is passed by reference, it requires an argument of type DINT but got INT
+       ┌─ <internal>:19:24
+       │
+    19 │             func(io := i, out => d);
+       │                        ^ Parameter io is passed by reference, it requires an argument of type DINT but got INT
+
+    error[E037]: Parameter out is passed by reference, it requires an argument of type DINT but got INT
+       ┌─ <internal>:20:34
+       │
+    20 │             func(io := d, out => i);
+       │                                  ^ Parameter out is passed by reference, it requires an argument of type DINT but got INT
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:20:27
+       │
+    20 │             func(io := d, out => i);
+       │                           ^^^ Implicit downcast from 'DINT' to 'INT'.
+    ");
+}
+
+#[test]
+fn validate_by_ref_argument_must_not_be_constant() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION func : DINT
+            VAR_INPUT
+                byVal : DINT;
+                refIn : REFERENCE TO DINT;
+            END_VAR
+
+            VAR_IN_OUT
+                io : DINT;
+            END_VAR
+
+            VAR_OUTPUT
+                out : DINT;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION reader : DINT
+            VAR_INPUT {ref}
+                efficientIn : DINT;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR CONSTANT
+                c : DINT := 1;
+            END_VAR
+            VAR
+                x : DINT;
+            END_VAR
+
+            func(byVal := c, refIn := x, io := x, out => x); // Valid, by-val inputs accept constants
+            reader(efficientIn := c);                        // Valid, {ref} is a read-only optimization
+            func(byVal := x, refIn := c, io := x, out => x);
+            func(byVal := x, refIn := x, io := c, out => x);
+            func(byVal := x, refIn := x, io := x, out => c);
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(&diagnostics, @"
+    warning[E042]: VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.
+       ┌─ <internal>:32:20
+       │
+    32 │             reader(efficientIn := c);                        // Valid, {ref} is a read-only optimization
+       │                    ^^^^^^^^^^^^^^^^ VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.
+
+    error[E031]: Parameter refIn is passed by reference and needs a variable with write access, but 'main.c' is constant
+       ┌─ <internal>:33:39
+       │
+    33 │             func(byVal := x, refIn := c, io := x, out => x);
+       │                                       ^ Parameter refIn is passed by reference and needs a variable with write access, but 'main.c' is constant
+
+    error[E031]: Parameter io is passed by reference and needs a variable with write access, but 'main.c' is constant
+       ┌─ <internal>:34:48
+       │
+    34 │             func(byVal := x, refIn := x, io := c, out => x);
+       │                                                ^ Parameter io is passed by reference and needs a variable with write access, but 'main.c' is constant
+
+    error[E031]: Parameter out is passed by reference and needs a variable with write access, but 'main.c' is constant
+       ┌─ <internal>:35:58
+       │
+    35 │             func(byVal := x, refIn := x, io := x, out => c);
+       │                                                          ^ Parameter out is passed by reference and needs a variable with write access, but 'main.c' is constant
+    ");
+}
+
+#[test]
+fn validate_method_call_requires_reference_to_input() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb_t
+            VAR_INPUT
+                refFbIn : REFERENCE TO DINT;
+            END_VAR
+
+            METHOD m
+                VAR_INPUT
+                    refIn : REFERENCE TO DINT;
+                    plain : DINT;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        PROGRAM main
+            VAR
+                fb : fb_t;
+                x : DINT;
+            END_VAR
+
+            fb.m(refIn := x);             // Valid, `plain` stays optional
+            fb.m(refIn := x, plain := 1); // Valid
+            fb.m(plain := 1);
+            fb.m();
+
+            // The binding of a stateful POU input persists in the instance, it stays optional
+            fb(refFbIn := x); // Valid
+            fb();             // Valid
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(&diagnostics, @"
+    error[E030]: Argument `refIn` is missing
+       ┌─ <internal>:23:13
+       │
+    23 │             fb.m(plain := 1);
+       │             ^^^^ Argument `refIn` is missing
+
+    error[E030]: Argument `refIn` is missing
+       ┌─ <internal>:24:13
+       │
+    24 │             fb.m();
+       │             ^^^^ Argument `refIn` is missing
+    ");
+}
+
+#[test]
 fn exlicit_param_unknown_reference() {
     let diagnostics = parse_and_validate_buffered(
         "
