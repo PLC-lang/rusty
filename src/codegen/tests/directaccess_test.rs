@@ -564,6 +564,7 @@ fn direct_access_in_output_assignment_of_function() {
       store i16 0, ptr %wordVar, align [filtered]
       store i16 0, ptr %wordVar, align [filtered]
       %__FLIP_out0 = alloca i8, align [filtered]
+      call void @llvm.lifetime.start.p0(i64 -1, ptr %__FLIP_out0)
       store i8 0, ptr %__FLIP_out0, align [filtered]
       call void @FLIP(i8 85, ptr %__FLIP_out0)
       %0 = load i16, ptr %wordVar, align [filtered]
@@ -573,7 +574,16 @@ fn direct_access_in_output_assignment_of_function() {
       %value = shl i16 %1, 0
       %or = or i16 %erase, %value
       store i16 %or, ptr %wordVar, align [filtered]
+      call void @llvm.lifetime.end.p0(i64 -1, ptr %__FLIP_out0)
       ret void
     }
+
+    ; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.lifetime.start.p0(i64 immarg, ptr captures(none)) #0
+
+    ; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.lifetime.end.p0(i64 immarg, ptr captures(none)) #0
+
+    attributes #0 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
     "#);
 }

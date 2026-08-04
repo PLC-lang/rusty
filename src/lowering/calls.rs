@@ -80,6 +80,10 @@ pub struct AggregateTypeLowerer {
     /// New statements to be added during visit, that should happen after the call. This should always be drained when read
     post_stmts: Vec<Vec<AstNode>>,
     counter: AtomicI32,
+    /// Non-zero while walking expressions whose address outlives the statement (`ADR`/
+    /// `REF` arguments, `REF=` right-hand sides). Temps allocated in this context are
+    /// pinned: they keep their function-long stack slot and get no lifetime markers.
+    address_context: usize,
     /// Diagnostics collected while visiting. Reported by the pipeline after lowering (see the
     /// `PipelineParticipantMut::diagnostics` impl). We must emit generic type-nature errors here,
     /// before lowering rewrites a generic call (e.g. `CONCAT`) into its concrete instantiation and
@@ -299,13 +303,37 @@ impl AstVisitorMut for AggregateTypeLowerer {
         stmt.walk(self);
     }
 
+    fn visit_ref_assignment(&mut self, node: &mut AstNode) {
+        let stmt = try_from_mut!(node, Assignment).expect("Assignment");
+        stmt.left.walk(self);
+        // The right-hand side's address is captured by the reference on the left, so any
+        // temp allocated for it must outlive the statement.
+        self.address_context += 1;
+        stmt.right.walk(self);
+        self.address_context -= 1;
+    }
+
     fn visit_call_statement(&mut self, node: &mut AstNode) {
         let original_location = node.get_location();
         let mut deferred_reference = None;
 
         {
             let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
+            // ADR/REF yield the address of their argument; whatever that address is stored in
+            // may outlive the statement, so temps allocated underneath are pinned. This also
+            // covers interface fat-pointer captures: the polymorphism lowering (which runs
+            // before this pass) has already wrapped those in ADR(...).
+            let takes_address = stmt
+                .operator
+                .get_flat_reference_name()
+                .is_some_and(|name| name.eq_ignore_ascii_case("ADR") || name.eq_ignore_ascii_case("REF"));
+            if takes_address {
+                self.address_context += 1;
+            }
             stmt.walk(self);
+            if takes_address {
+                self.address_context -= 1;
+            }
 
             // Report generic type-nature violations (e.g. `CONCAT(aDint, aReal)`) now, while the call is
             // still generic. The normal validator can only catch these before lowering; once we rewrite
@@ -322,6 +350,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 is_method,
                 can_have_output_assignment_lowering,
                 is_generic_function,
+                call_name,
                 is_fnptr_call,
                 has_aggregate_return,
             ) = {
@@ -330,16 +359,19 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     return;
                 };
                 //Get the function being called
-                let (qualified_name, return_type_name, generic_name) = match annotation
+                let (qualified_name, return_type_name, generic_name, call_name) = match annotation
                     .get(&stmt.operator)
                     .or_else(|| annotation.get_hint(&stmt.operator))
                     .cloned()
                 {
                     Some(StatementAnnotation::Function {
-                        return_type, qualified_name, generic_name, ..
-                    }) => (qualified_name, return_type, generic_name),
+                        return_type,
+                        qualified_name,
+                        generic_name,
+                        call_name,
+                    }) => (qualified_name, return_type, generic_name, call_name),
                     Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
-                        (qualified_name, return_type, None)
+                        (qualified_name, return_type, None, None)
                     }
                     _ => return,
                 };
@@ -364,6 +396,7 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     is_method,
                     function_entry.is_function() || function_entry.is_method(),
                     is_generic_function,
+                    call_name,
                     is_fnptr_call,
                     has_aggregate_return,
                 )
@@ -382,6 +415,9 @@ impl AstVisitorMut for AggregateTypeLowerer {
                     stmt: AstStatement::AllocationStatement(Allocation {
                         name: name.clone(),
                         reference_type: return_type_name.to_string(),
+                        // The temp is dead once its statement completes unless its
+                        // address escapes the statement (`ADR`/`REF`).
+                        statement_scoped: self.address_context == 0,
                     }),
                     id: self.id_provider.next_id(),
                     location: original_location.clone(),
@@ -432,10 +468,18 @@ impl AstVisitorMut for AggregateTypeLowerer {
                 }
 
                 if is_generic_function {
-                    //For generic functions, we need to replace the generic name with the function name
+                    // For generic functions, replace the operator with the concrete monomorphization
+                    // to call. Prefer `call_name` (the resolved monomorph, e.g. `TO_STRING__DINT`)
+                    // over `qualified_name`: when no concrete monomorph exists the resolver leaves
+                    // `qualified_name` pointing at the *generic* itself, and resetting to that makes
+                    // the re-annotation re-monomorphize against the injected aggregate return buffer —
+                    // binding e.g. `TO_STRING(aDint)` to `TO_STRING__STRING` and reinterpreting the
+                    // argument's bytes as a string. Emitting the true monomorph name instead yields an
+                    // unresolved reference the compiler rejects.
+                    let concrete_name = call_name.as_deref().unwrap_or(&qualified_name);
                     *stmt.operator = AstFactory::create_member_reference(
                         AstFactory::create_identifier(
-                            &qualified_name,
+                            concrete_name,
                             stmt.operator.get_location(),
                             self.id_provider.next_id(),
                         ),
@@ -991,6 +1035,8 @@ fn lower_output_assignment(
         stmt: AstStatement::AllocationStatement(Allocation {
             name: name.clone(),
             reference_type: left_type.get_name().to_string(),
+            // Read back into the output variable by a post-statement of the same list.
+            statement_scoped: true,
         }),
         id: id_provider.next_id(),
         location: location.clone(),
@@ -1439,6 +1485,44 @@ mod tests {
             // __alloca __complexFunc2 : STRING;
             // complexFunc(__complexFunc2);
             // a := __complexFunc2;
+            a := complexFunc();
+        END_FUNCTION
+        "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+        assert_debug_snapshot!(unit.implementations[1]);
+    }
+
+    #[test]
+    fn temps_with_escaping_address_are_pinned() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+        FUNCTION complexFunc : STRING
+            complexFunc := 'hello';
+        END_FUNCTION
+
+        FUNCTION main
+        VAR
+            p : REF_TO STRING;
+            a : STRING;
+        END_VAR
+            // the temp's address outlives the statement: pinned (statement_scoped:
+            // false), so codegen emits no lifetime markers for it
+            p := ADR(complexFunc());
+            // statement-scoped, gets lifetime markers
             a := complexFunc();
         END_FUNCTION
         "#,

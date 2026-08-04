@@ -2359,7 +2359,7 @@ impl<'i> TypeAnnotator<'i> {
                     jumps.push(statement.get_id());
                 }
             }
-            AstStatement::AllocationStatement(Allocation { name, reference_type }) => {
+            AstStatement::AllocationStatement(Allocation { name, reference_type, .. }) => {
                 let container = ctx.pou.map(|pou| {
                     self.index.find_implementation_by_name(pou).map(|it| it.get_type_name()).unwrap_or(pou)
                 });

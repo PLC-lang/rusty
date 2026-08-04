@@ -446,6 +446,104 @@ fn using_a_constant_var_string_should_be_memcpyable() {
 }
 
 #[test]
+fn lowered_call_temps_are_bracketed_with_lifetime_markers() {
+    // Aggregate-return calls get one caller-side temp per call site; the lifetime
+    // markers around each lowered statement let LLVM's stack coloring overlap the
+    // slots of consecutive statements instead of accumulating one dead slot per
+    // call site for the rest of the function. Temps of the same statement (nested
+    // calls) must be live simultaneously: start/start .. end/end.
+    let result = codegen(
+        r#"
+        FUNCTION make : STRING
+        END_FUNCTION
+
+        FUNCTION wrap : STRING
+        VAR_INPUT
+            s : STRING;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            a : STRING;
+        END_VAR
+            a := make();
+            a := wrap(make());
+        END_PROGRAM
+    "#,
+    );
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %main = type { [81 x i8] }
+
+    @main_instance = global %main zeroinitializer
+
+    define void @make(ptr %0) {
+    entry:
+      %make = alloca ptr, align [filtered]
+      store ptr %0, ptr %make, align [filtered]
+      ret void
+    }
+
+    define void @wrap(ptr %0, ptr %1) {
+    entry:
+      %wrap = alloca ptr, align [filtered]
+      store ptr %0, ptr %wrap, align [filtered]
+      %s = alloca [81 x i8], align [filtered]
+      call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 81, i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %s, ptr align [filtered] %1, i64 80, i1 false)
+      ret void
+    }
+
+    define void @main(ptr %0) {
+    entry:
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %__make0 = alloca [81 x i8], align [filtered]
+      call void @llvm.lifetime.start.p0(i64 -1, ptr %__make0)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %__make0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      call void @make(ptr %__make0)
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %a, ptr align [filtered] %__make0, i32 80, i1 false)
+      call void @llvm.lifetime.end.p0(i64 -1, ptr %__make0)
+      %__make1 = alloca [81 x i8], align [filtered]
+      call void @llvm.lifetime.start.p0(i64 -1, ptr %__make1)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %__make1, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      call void @make(ptr %__make1)
+      %__wrap2 = alloca [81 x i8], align [filtered]
+      call void @llvm.lifetime.start.p0(i64 -1, ptr %__wrap2)
+      call void @llvm.memset.p0.i64(ptr align [filtered] %__wrap2, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      call void @wrap(ptr %__wrap2, ptr %__make1)
+      call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %a, ptr align [filtered] %__wrap2, i32 80, i1 false)
+      call void @llvm.lifetime.end.p0(i64 -1, ptr %__make1)
+      call void @llvm.lifetime.end.p0(i64 -1, ptr %__wrap2)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #1
+
+    ; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.lifetime.start.p0(i64 immarg, ptr captures(none)) #2
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #1
+
+    ; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.lifetime.end.p0(i64 immarg, ptr captures(none)) #2
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #2 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+    "#);
+}
+
+#[test]
 #[ignore = "missing validation for literal string assignments"]
 fn assigning_utf8_literal_to_wstring() {
     let result = codegen(

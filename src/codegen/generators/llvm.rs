@@ -8,10 +8,12 @@ use inkwell::types::{ArrayType, BasicType};
 use inkwell::{
     builder::Builder,
     context::Context,
+    intrinsics::Intrinsic,
     module::{Linkage, Module},
     types::{BasicTypeEnum, StringRadix},
     values::{
-        AnyValue, AsValueRef, BasicValue, BasicValueEnum, FunctionValue, GlobalValue, IntValue, PointerValue,
+        AnyValue, AsValueRef, BasicMetadataValueEnum, BasicValue, BasicValueEnum, FunctionValue, GlobalValue,
+        IntValue, PointerValue,
     },
     AddressSpace,
 };
@@ -143,6 +145,68 @@ impl<'a> Llvm<'a> {
         // Prevent Module::drop from disposing the module we don't own.
         std::mem::forget(module);
         Ok((global.as_pointer_value(), alignment))
+    }
+
+    /// Emits `llvm.lifetime.start` for the given stack slot at the builder's current
+    /// position. The slot is considered dead before this point, which allows LLVM's
+    /// stack coloring to overlap it with slots whose lifetimes don't intersect.
+    /// Callers must emit a matching [`Llvm::build_lifetime_end`] on every path on
+    /// which the slot's value dies.
+    pub fn build_lifetime_start(&self, pointer: PointerValue) -> Result<(), CodegenError> {
+        self.build_lifetime_marker("llvm.lifetime.start", pointer)
+    }
+
+    /// Emits `llvm.lifetime.end` for the given stack slot at the builder's current
+    /// position. See [`Llvm::build_lifetime_start`].
+    pub fn build_lifetime_end(&self, pointer: PointerValue) -> Result<(), CodegenError> {
+        self.build_lifetime_marker("llvm.lifetime.end", pointer)
+    }
+
+    fn build_lifetime_marker(&self, intrinsic_name: &str, pointer: PointerValue) -> Result<(), CodegenError> {
+        // SAFETY: every value in this codegen belongs to the one LLVM context behind
+        // `self.context`; the incoming borrow lifetime stems from index bookkeeping,
+        // not from the value's actual lifetime, so re-wrapping it at the builder's
+        // lifetime is sound.
+        let pointer: PointerValue<'a> = unsafe { PointerValue::new(pointer.as_value_ref()) };
+        let intrinsic = Intrinsic::find(intrinsic_name).ok_or_else(|| {
+            CodegenError::new(format!("Intrinsic {intrinsic_name} not found"), SourceLocation::internal())
+        })?;
+        let block = self.builder.get_insert_block().ok_or_else(|| {
+            CodegenError::new("No insert block when emitting lifetime marker", SourceLocation::internal())
+        })?;
+        let function = block.get_parent().ok_or_else(|| {
+            CodegenError::new("No parent function for insert block", SourceLocation::internal())
+        })?;
+        // SAFETY: inkwell does not expose a safe API to get a function's parent
+        // module, so we query it via LLVM C API. We only wrap a non-null module
+        // ref and must not drop the wrapper because we do not own module lifetime.
+        let module_ref = unsafe { inkwell::llvm_sys::core::LLVMGetGlobalParent(function.as_value_ref()) };
+        if module_ref.is_null() {
+            return Err(CodegenError::new(
+                "No parent module for insert function",
+                SourceLocation::internal(),
+            ));
+        }
+        let module = unsafe { Module::new(module_ref) };
+        let declaration = intrinsic.get_declaration(&module, &[pointer.get_type().into()]);
+        // Prevent Module::drop from disposing the module we don't own.
+        std::mem::forget(module);
+        let declaration = declaration.ok_or_else(|| {
+            CodegenError::new(
+                format!("No declaration for intrinsic {intrinsic_name}"),
+                SourceLocation::internal(),
+            )
+        })?;
+        // LLVM 21 declares the intrinsic as `(i64 size, ptr)` where -1 means "the whole
+        // object"; newer versions drop the size parameter, so pick the call shape from
+        // the declared arity.
+        let args: Vec<BasicMetadataValueEnum> = if declaration.count_params() == 2 {
+            vec![self.context.i64_type().const_all_ones().into(), pointer.into()]
+        } else {
+            vec![pointer.into()]
+        };
+        self.builder.build_call(declaration, &args, "")?;
+        Ok(())
     }
 
     /// creates a local variable at the builder's location

@@ -780,6 +780,9 @@ mod helper {
             stmt: AstStatement::AllocationStatement(Allocation {
                 name: name.to_string(),
                 reference_type: FATPOINTER_TYPE_NAME.to_string(),
+                // The fat pointer itself is consumed by the dispatch call of its own
+                // statement; only the object it points at may need pinning.
+                statement_scoped: true,
             }),
             id: ids.next_id(),
             location: SourceLocation::internal(),

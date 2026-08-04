@@ -200,15 +200,19 @@ fn function_pointer_method_with_return_type_aggregate() {
       store ptr @A__foo, ptr %fooPtr, align [filtered]
       store ptr @A__bar, ptr %barPtr, align [filtered]
       %__0 = alloca [81 x i8], align [filtered]
+      call void @llvm.lifetime.start.p0(i64 -1, ptr %__0)
       call void @llvm.memset.p0.i64(ptr align [filtered] %__0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
       %0 = load ptr, ptr %fooPtr, align [filtered]
       call void %0(ptr %instanceA, ptr %__0)
       %load___0 = load [81 x i8], ptr %__0, align [filtered]
+      call void @llvm.lifetime.end.p0(i64 -1, ptr %__0)
       %__1 = alloca [5 x i32], align [filtered]
+      call void @llvm.lifetime.start.p0(i64 -1, ptr %__1)
       call void @llvm.memset.p0.i64(ptr align [filtered] %__1, i8 0, i64 ptrtoint (ptr getelementptr ([5 x i32], ptr null, i32 1) to i64), i1 false)
       %1 = load ptr, ptr %barPtr, align [filtered]
       call void %1(ptr %instanceA, ptr %__1)
       %load___1 = load [5 x i32], ptr %__1, align [filtered]
+      call void @llvm.lifetime.end.p0(i64 -1, ptr %__1)
       ret void
     }
 
@@ -221,8 +225,15 @@ fn function_pointer_method_with_return_type_aggregate() {
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
 
+    ; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.lifetime.start.p0(i64 immarg, ptr captures(none)) #2
+
+    ; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.lifetime.end.p0(i64 immarg, ptr captures(none)) #2
+
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #2 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 

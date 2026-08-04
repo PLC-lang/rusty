@@ -11,7 +11,7 @@ pub mod date_time_numeric_functions;
 pub mod endianness_conversion_functions;
 pub mod extra_functions;
 pub mod flanks;
-pub mod numerical_functions;
+pub mod num_conversion;
 pub mod string_conversion;
 pub mod string_functions;
 pub mod timers;
