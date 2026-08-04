@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-5b06a9c0.js";
+            window.path_to_searchindex_js = "searchindex-78abdf07.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-70070b90.js"></script>
@@ -252,6 +252,7 @@ END_FUNCTION
 <li>You add library search paths by providing additional <code>-L /path/...</code> options. By default, this will be the current directory.</li>
 <li>The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.</li>
 <li>For executable links with compiler drivers, startup/runtime defaults can be controlled explicitly with <code>--nocrt</code> and <code>--nolibc</code>.</li>
+<li>When producing a shared object, unresolved symbols are rejected (<code>--no-undefined</code>) so that a missing symbol fails the build instead of leaving an undefined reference to be resolved at load time. Pass <code>--allow-undefined-symbols</code> to permit them (for example when the symbols are provided by the host at <code>dlopen</code> time).</li>
 <li><code>-l</code> also supports exact filenames (<code>-l:libfoo.so.1</code>) and direct full paths (<code>-l/path/to/libfoo.so.1</code>).</li>
 </ul>
 <h3 id="debug-path-remapping"><a class="header" href="#debug-path-remapping">Debug path remapping</a></h3>

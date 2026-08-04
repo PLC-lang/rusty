@@ -23,14 +23,18 @@
 <a href=#23 id=23 data-nosnippet>23</a>        <span class="comment">//Navigate to directory
 <a href=#24 id=24 data-nosnippet>24</a>        </span>sh.change_dir(<span class="kw-2">&amp;</span><span class="self">self</span>.directory);
 <a href=#25 id=25 data-nosnippet>25</a>
-<a href=#26 id=26 data-nosnippet>26</a>        <span class="comment">// Run compile
-<a href=#27 id=27 data-nosnippet>27</a>        </span><span class="kw">let </span>start = Instant::now();
-<a href=#28 id=28 data-nosnippet>28</a>        sh.cmd(<span class="kw-2">&amp;</span><span class="self">self</span>.compiler).args(<span class="kw-2">&amp;</span>[<span class="string">"build"</span>, <span class="string">"-O"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.optimization]).run()<span class="question-mark">?</span>;
-<a href=#29 id=29 data-nosnippet>29</a>        <span class="prelude-val">Ok</span>(start.elapsed())
-<a href=#30 id=30 data-nosnippet>30</a>    }
-<a href=#31 id=31 data-nosnippet>31</a>
-<a href=#32 id=32 data-nosnippet>32</a>    <span class="kw">fn </span>get_wrapped(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: Duration) -&gt; DurationWrapper {
-<a href=#33 id=33 data-nosnippet>33</a>        DurationWrapper::Millis(duration)
+<a href=#26 id=26 data-nosnippet>26</a>        <span class="comment">// Run compile. Benchmark corpora such as oscat are libraries that reference stdlib runtime
+<a href=#27 id=27 data-nosnippet>27</a>        // symbols they do not define (resolved at load time), so allow undefined symbols — otherwise
+<a href=#28 id=28 data-nosnippet>28</a>        // the default `--no-undefined` for shared-object links would reject the build.
+<a href=#29 id=29 data-nosnippet>29</a>        </span><span class="kw">let </span>start = Instant::now();
+<a href=#30 id=30 data-nosnippet>30</a>        sh.cmd(<span class="kw-2">&amp;</span><span class="self">self</span>.compiler)
+<a href=#31 id=31 data-nosnippet>31</a>            .args(<span class="kw-2">&amp;</span>[<span class="string">"build"</span>, <span class="string">"-O"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.optimization, <span class="string">"--allow-undefined-symbols"</span>])
+<a href=#32 id=32 data-nosnippet>32</a>            .run()<span class="question-mark">?</span>;
+<a href=#33 id=33 data-nosnippet>33</a>        <span class="prelude-val">Ok</span>(start.elapsed())
 <a href=#34 id=34 data-nosnippet>34</a>    }
-<a href=#35 id=35 data-nosnippet>35</a>}
+<a href=#35 id=35 data-nosnippet>35</a>
+<a href=#36 id=36 data-nosnippet>36</a>    <span class="kw">fn </span>get_wrapped(<span class="kw-2">&amp;</span><span class="self">self</span>, duration: Duration) -&gt; DurationWrapper {
+<a href=#37 id=37 data-nosnippet>37</a>        DurationWrapper::Millis(duration)
+<a href=#38 id=38 data-nosnippet>38</a>    }
+<a href=#39 id=39 data-nosnippet>39</a>}
 </code></pre></div></section></main></body></html>
