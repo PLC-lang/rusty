@@ -97,6 +97,7 @@
 use std::collections::{HashMap, HashSet};
 
 use plc::index::Index;
+use plc::lowering::generics::derive_call_generic_map;
 use plc::resolver::{AnnotationMap, TypeAnnotator};
 use plc::typesystem::{DataType, DataTypeInformation};
 use plc_ast::ast::{
@@ -141,7 +142,7 @@ pub fn infer_temporary_types(unit: &mut CompilationUnit, index: &mut Index, ids:
         // `temporary := callee(...)`: the temporary takes the call's annotated (return) type.
         if let Some(name) = return_capture {
             if open.contains(name) && is_ready(call, name, &open) {
-                match concrete_type(annotations.get_type(call_node, index), index) {
+                match resolved_type(annotations.get_type(call_node, index), call, &annotations, index) {
                     Some(data_type) => {
                         log::trace!("`{name}` resolved to `{data_type}` (return capture)");
                         resolved.insert(name.to_string(), data_type);
@@ -156,7 +157,7 @@ pub fn infer_temporary_types(unit: &mut CompilationUnit, index: &mut Index, ids:
             let AstStatement::OutputAssignment(inner) = argument.get_stmt() else { continue };
             let Some(name) = base_reference(&inner.right) else { continue };
             if open.contains(name) && is_ready(call, name, &open) {
-                match concrete_type(annotations.get_type(&inner.left, index), index) {
+                match resolved_type(annotations.get_type(&inner.left, index), call, &annotations, index) {
                     Some(data_type) => {
                         log::trace!("`{name}` resolved to `{data_type}` (output capture)");
                         resolved.insert(name.to_string(), data_type);
@@ -239,6 +240,33 @@ fn is_ready(call: &CallStatement, own: &str, open: &HashSet<String>) -> bool {
         log::trace!("`{own}`: no external input, cannot resolve");
     }
     external
+}
+
+/// The concrete type behind an annotated capture: the annotator's answer when it is already
+/// concrete (see [`concrete_type`]). When it is still generic — the annotator no longer resolves
+/// non-builtin generic calls, that happens in the later `GenericLowerer` phase — the binding is
+/// derived from the call's concrete arguments instead; arguments that are themselves still
+/// generic carry no vote, so a resolved external input decides even in feedback shapes.
+fn resolved_type(
+    data_type: Option<&DataType>,
+    call: &CallStatement,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) -> Option<String> {
+    if let Some(concrete) = concrete_type(data_type, index) {
+        return Some(concrete);
+    }
+
+    // Look up which generic symbol the still-generic capture binds, and what the call's concrete
+    // arguments derived for it.
+    let DataTypeInformation::Generic { generic_symbol, .. } = data_type?.get_type_information() else {
+        return None;
+    };
+    let generic_map = derive_call_generic_map(index, annotations, call)?;
+    let derived = generic_map.get(generic_symbol)?.derived_type();
+
+    // A type absent from the global index would dangle after the re-index.
+    index.find_effective_type_by_name(derived).map(|it| it.get_name().to_string())
 }
 
 // The annotator's answer, if usable: generic/void results are still undecided,
