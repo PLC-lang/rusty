@@ -23,9 +23,13 @@ impl Task for Compile {
         //Navigate to directory
         sh.change_dir(&self.directory);
 
-        // Run compile
+        // Run compile. Benchmark corpora such as oscat are libraries that reference stdlib runtime
+        // symbols they do not define (resolved at load time), so allow undefined symbols — otherwise
+        // the default `--no-undefined` for shared-object links would reject the build.
         let start = Instant::now();
-        sh.cmd(&self.compiler).args(&["build", "-O", &self.optimization]).run()?;
+        sh.cmd(&self.compiler)
+            .args(&["build", "-O", &self.optimization, "--allow-undefined-symbols"])
+            .run()?;
         Ok(start.elapsed())
     }
 

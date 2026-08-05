@@ -15,7 +15,7 @@ use std::{
 use ast::provider::IdProvider;
 use plc::{
     codegen::GeneratedModule,
-    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer},
+    lowering::{calls::AggregateTypeLowerer, generics::GenericLowerer, polymorphism::PolymorphismLowerer},
     output::FormatOption,
     ConfigFormat, OnlineChange, Target,
 };
@@ -320,6 +320,39 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
         let mut project = project.index(self.id_provider.clone()).annotate(self.id_provider.clone());
         project.diagnostics = diagnostics;
         project
+    }
+}
+
+impl PipelineParticipantMut for GenericLowerer {
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { units, mut index, mut annotations, diagnostics } = annotated_project;
+        let mut units = units;
+        loop {
+            self.index = Some(index);
+            self.annotation = Some(Box::new(annotations));
+            let mut unit_asts = units.into_iter().map(|AnnotatedUnit { unit, .. }| unit).collect::<Vec<_>>();
+
+            let changed = self.lower(&mut unit_asts);
+            self.index = None;
+            self.annotation = None;
+
+            // Re-index and re-annotate so materialized monomorph POUs become resolvable and the
+            // rewritten calls bind to them. Loop for nested generics until a pass changes nothing.
+            let project = ParsedProject { units: unit_asts }
+                .index(self.id_provider.clone())
+                .annotate(self.id_provider.clone());
+            let AnnotatedProject {
+                units: next_units, index: next_index, annotations: next_annotations, ..
+            } = project;
+            units = next_units;
+            index = next_index;
+            annotations = next_annotations;
+
+            if !changed {
+                break;
+            }
+        }
+        AnnotatedProject { units, index, annotations, diagnostics }
     }
 
     fn diagnostics(&mut self) -> Vec<Diagnostic> {

@@ -96,6 +96,7 @@ Please note that RuSTy will attempt to link the generated object file by default
 - You add library search paths by providing additional `-L /path/...` options. By default, this will be the current directory.
 - The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.
 - For executable links with compiler drivers, startup/runtime defaults can be controlled explicitly with `--nocrt` and `--nolibc`.
+- When producing a shared object, unresolved symbols are rejected (`--no-undefined`) so that a missing symbol fails the build instead of leaving an undefined reference to be resolved at load time. Pass `--allow-undefined-symbols` to permit them (for example when the symbols are provided by the host at `dlopen` time).
 - `-l` also supports exact filenames (`-l:libfoo.so.1`) and direct full paths (`-l/path/to/libfoo.so.1`).
 
 ### Debug path remapping

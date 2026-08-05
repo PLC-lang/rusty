@@ -23,7 +23,10 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{calls::AggregateTypeLowerer, polymorphism::PolymorphismLowerer, property::PropertyLowerer},
+    lowering::{
+        calls::AggregateTypeLowerer, generics::GenericLowerer, polymorphism::PolymorphismLowerer,
+        property::PropertyLowerer,
+    },
     output::{FormatOption, RelocationPreference},
     parser::parse_file,
     resolver::{
@@ -274,6 +277,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 linker_args: params.linker_args.clone(),
                 no_crt: params.no_crt,
                 no_libc: params.no_libc,
+                allow_undefined_symbols: params.allow_undefined_symbols,
                 relocation_preference,
                 lib_location: params.get_lib_location(),
                 build_location: params.get_build_location(),
@@ -366,6 +370,9 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 self.context.should_generate_external_constructors(),
             )),
             Box::new(RetainParticipant::new(self.context.provider())),
+            // Resolve generic calls to concrete monomorphizations (materialized as {external} POUs)
+            // before the aggregate-return lowerer, so it only ever sees concrete calls.
+            Box::new(GenericLowerer::new(self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
             Box::new(ArrayLowerer::new(self.context.provider())),
@@ -1239,6 +1246,20 @@ impl GeneratedProject {
                 {
                     log::debug!("Applying -no-pie for --fno-pic executable link");
                     linker.add_driver_flag("-no-pie");
+                }
+
+                // Reject unresolved symbols when producing a shared object (unless explicitly
+                // allowed). An executable link already fails on undefined symbols, but a shared
+                // object link permits them by default; forcing `--no-undefined` turns a missing
+                // symbol (e.g. an unprovided generic monomorphization) into a build failure instead
+                // of an unresolved reference that would only surface at dlopen/final-link time.
+                if matches!(
+                    link_options.format,
+                    FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC
+                ) && !link_options.allow_undefined_symbols
+                {
+                    log::debug!("Applying --no-undefined for shared object link");
+                    linker.set_no_undefined();
                 }
 
                 match link_options.format {

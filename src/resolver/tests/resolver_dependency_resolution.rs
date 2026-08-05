@@ -3,7 +3,7 @@ use plc_source::SourceCode;
 
 use crate::{
     resolver::{Dependency, TypeAnnotator},
-    test_utils::tests::index_with_ids,
+    test_utils::tests::{index_with_ids, lower_generics_single_unit},
 };
 
 #[test]
@@ -611,39 +611,38 @@ fn chained_function_dependency_resoltion() {
 
 #[test]
 fn generic_function_concrete_type_resolved() {
-    let units = [
-        "
+    // `foo`'s monomorphizations are materialized by the generic-lowering phase; the Call/Datatype
+    // dependencies for the concrete `foo__DINT` / `foo__INT` are produced by the re-annotation that
+    // runs after lowering (the call operators are rewritten to reference the monomorphs directly, so
+    // the pre-lowering `foo` call dependency no longer appears).
+    let src = "
         FUNCTION foo<T: ANY_NUMBER> : DINT
         VAR_INPUT
             x : T;
         END_VAR
         END_FUNCTION
-        ",
-        "
+
         PROGRAM prog
             foo(1);
             foo(INT#1);
         END_PROGRAM
-        ",
-    ];
+        ";
 
     let id_provider = IdProvider::default();
-    let (_, index1) = index_with_ids(units[0], id_provider.clone());
-    let (unit2, index2) = index_with_ids(units[1], id_provider.clone());
-    let mut index = index1;
-    index.import(index2);
+    let (mut unit, mut index) = index_with_ids(src, id_provider.clone());
+    let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
+    index.import(std::mem::take(&mut annotations.new_index));
+    let (index, _annotations, _diagnostics) =
+        lower_generics_single_unit(&mut unit, index, annotations, id_provider.clone());
 
-    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
-    assert!(dependencies.contains(&Dependency::Call("foo".into())));
-    assert!(dependencies.contains(&Dependency::Datatype("foo".into())));
     assert!(dependencies.contains(&Dependency::Call("foo__DINT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("foo__DINT".into())));
     assert!(dependencies.contains(&Dependency::Call("foo__INT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("foo__INT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("INT".into())));
-    assert_eq!(dependencies.len(), 10);
 }
 
 #[test]
