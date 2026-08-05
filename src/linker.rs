@@ -138,6 +138,13 @@ impl Linker {
         self.linker.add_linker_arg(arg.to_string());
     }
 
+    /// Reject unresolved symbols at link time (`--no-undefined`). Used when producing a shared
+    /// object so that a missing symbol (e.g. an unprovided generic monomorphization) fails the
+    /// build instead of leaving an undefined reference in the `.so` to be resolved at load time.
+    pub fn set_no_undefined(&mut self) {
+        self.add_linker_arg("--no-undefined");
+    }
+
     /// Add a driver-level flag.
     ///
     /// Driver linkers receive this directly (e.g. `cc -no-pie`).

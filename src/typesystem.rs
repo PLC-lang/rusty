@@ -1552,6 +1552,15 @@ pub fn get_bigger_type<'t, T: DataTypeInformationProvider<'t> + std::convert::Fr
     let lt = left_type.get_type_information();
     let rt = right_type.get_type_information();
 
+    // An unresolved generic carries no size or class of its own; the other side decides. Its
+    // `Any` nature would otherwise pass the numerical/real checks below and promote to REAL.
+    if matches!(lt, DataTypeInformation::Generic { .. }) {
+        return right_type;
+    }
+    if matches!(rt, DataTypeInformation::Generic { .. }) {
+        return left_type;
+    }
+
     let ldt = index.get_type(lt.get_name());
     let rdt = index.get_type(rt.get_name());
 

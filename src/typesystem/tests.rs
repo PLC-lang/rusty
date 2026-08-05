@@ -129,6 +129,21 @@ fn get_bigger_size_real_test() {
 }
 
 #[test]
+fn get_bigger_size_generic_test() {
+    // Given an index containing a generic binding type
+    let (_, index) = index("FUNCTION gen<T: ANY_NUM> : T VAR_INPUT a : T; END_VAR END_FUNCTION");
+    let generic_type = index.get_type_or_panic("__gen__T");
+    let dint_type = index.get_type_or_panic(DINT_TYPE);
+    let real_type = index.get_type_or_panic(REAL_TYPE);
+
+    // An unresolved generic never wins (nor promotes an integer pair to REAL);
+    // the concrete side decides regardless of order.
+    assert_eq!(dint_type, typesystem::get_bigger_type(generic_type, dint_type, &index));
+    assert_eq!(dint_type, typesystem::get_bigger_type(dint_type, generic_type, &index));
+    assert_eq!(real_type, typesystem::get_bigger_type(generic_type, real_type, &index));
+}
+
+#[test]
 fn get_bigger_size_numeric_test() {
     // Given an initialized index
     let index = get_builtin_index();

@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_sel_call",
+	"files" : [
+		"sel_call.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

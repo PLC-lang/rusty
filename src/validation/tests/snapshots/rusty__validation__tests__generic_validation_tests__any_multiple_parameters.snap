@@ -2,6 +2,12 @@
 source: src/validation/tests/generic_validation_tests.rs
 expression: "&diagnostics"
 ---
+warning[E067]: Implicit downcast from 'REAL' to 'DATE'.
+   ┌─ <internal>:15:14
+   │
+15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
+   │              ^^^^^^^^ Implicit downcast from 'REAL' to 'DATE'.
+
 error[E037]: Invalid assignment: cannot assign 'STRING' to 'DATE'
    ┌─ <internal>:15:70
    │

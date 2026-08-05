@@ -1237,6 +1237,14 @@ impl TypeIndex {
         self.types.get(&type_name.to_lowercase()).or_else(|| self.find_pou_type(type_name))
     }
 
+    pub fn find_type_mut(&mut self, type_name: &str) -> Option<&mut DataType> {
+        let key = type_name.to_lowercase();
+        match self.types.get(&key) {
+            Some(_) => self.types.get_mut(&key),
+            None => self.pou_types.get_mut(&key),
+        }
+    }
+
     pub fn find_pou_type(&self, type_name: &str) -> Option<&DataType> {
         self.pou_types.get(&type_name.to_lowercase())
     }
@@ -1607,6 +1615,22 @@ impl Index {
     /// Searches for variable name in the given container, if not found, attempts to search for it in super classes
     pub fn find_member(&self, container_name: &str, variable_name: &str) -> Option<&VariableIndexEntry> {
         self.find_member_recursive(container_name, variable_name, &mut FxHashSet::default())
+    }
+
+    /// Updates the declared type of a container's local member in place, e.g. after a lowering
+    /// pass replaced a generic declaration with a concrete one. Returns whether the member existed.
+    pub fn update_member_type(&mut self, container_name: &str, variable_name: &str, type_name: &str) -> bool {
+        let Some(data_type) = self.type_index.find_type_mut(container_name) else { return false };
+        let DataTypeInformation::Struct { members, .. } = &mut data_type.information else { return false };
+
+        let Some(member) =
+            members.iter_mut().find(|member| member.get_name().eq_ignore_ascii_case(variable_name))
+        else {
+            return false;
+        };
+
+        member.data_type_name = type_name.to_string();
+        true
     }
 
     fn find_member_recursive<'b>(
