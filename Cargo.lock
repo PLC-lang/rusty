@@ -2281,6 +2281,7 @@ name = "plc_cfc"
 version = "1.1.0-dev"
 dependencies = [
  "insta",
+ "log",
  "plc-compiler",
  "plc_ast",
  "plc_diagnostics",

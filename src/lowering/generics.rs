@@ -36,7 +36,7 @@ use crate::{
     resolver::{
         generics::{
             derive_generic_types, generic_name_resolver, get_generic_candidate,
-            get_specific_function_annotation,
+            get_specific_function_annotation, GenericType,
         },
         AnnotationMap, StatementAnnotation,
     },
@@ -378,6 +378,43 @@ impl GenericLowerer {
             create_member_reference_with_location(&call_name, self.id_provider.clone(), None, location);
         self.changed = true;
     }
+}
+
+/// Derives the generic bindings of a call to a (non-builtin) generic function from its concrete
+/// arguments alone; candidates that are themselves still generic carry no vote. Returns `None`
+/// when the callee is not a generic function subject to monomorphization. Callers that must wait
+/// for nested generic calls to resolve first (like the lowering phase itself) check that
+/// separately; consumers that resolve incrementally (like the CFC temporary inference) take the
+/// partial evidence as-is.
+pub fn derive_call_generic_map(
+    index: &Index,
+    annotations: &dyn AnnotationMap,
+    call: &CallStatement,
+) -> Option<FxHashMap<String, GenericType>> {
+    // Only non-builtin generic functions are monomorphized; builtins resolve inline in codegen.
+    let Some(StatementAnnotation::Function { qualified_name, .. }) = annotations.get(&call.operator) else {
+        return None;
+    };
+    let Some(PouIndexEntry::Function { generics, .. }) = index.find_pou(qualified_name) else {
+        return None;
+    };
+    if generics.is_empty() || builtins::get_builtin(qualified_name).is_some() {
+        return None;
+    }
+
+    // Collect the concrete evidence each argument contributes to its parameter's generic symbol.
+    let args: Vec<&AstNode> = call.parameters.as_deref().map(flatten_expression_list).unwrap_or_default();
+    let candidates = paired_args(index, qualified_name, &args).iter().fold(
+        FxHashMap::<String, Vec<String>>::default(),
+        |mut acc, (param_type, arg)| {
+            if let Some((symbol, concrete)) = get_generic_candidate(index, annotations, param_type, arg) {
+                acc.entry(symbol.to_string()).or_default().push(concrete.to_string());
+            }
+            acc
+        },
+    );
+
+    Some(derive_generic_types(index, index, generics, candidates))
 }
 
 /// Pairs each call argument with the declared type name of the parameter it binds to. As in the

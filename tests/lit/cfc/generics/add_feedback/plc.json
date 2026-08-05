@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_add_feedback",
+	"files" : [
+		"add_feedback.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}
