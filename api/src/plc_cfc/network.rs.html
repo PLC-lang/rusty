@@ -15,13 +15,14 @@
 <a href=#15 id=15 data-nosnippet>15</a><span class="kw">pub enum </span>Argument {
 <a href=#16 id=16 data-nosnippet>16</a>    Input { parameter: String, value: Box&lt;AstNode&gt; },
 <a href=#17 id=17 data-nosnippet>17</a>    Output { parameter: String, capture: <span class="prelude-ty">Option</span>&lt;String&gt; },
-<a href=#18 id=18 data-nosnippet>18</a>}
-<a href=#19 id=19 data-nosnippet>19</a>
-<a href=#20 id=20 data-nosnippet>20</a><span class="kw">pub enum </span>Statement {
-<a href=#21 id=21 data-nosnippet>21</a>    Assignment { sink: AstNode, source: AstNode },
-<a href=#22 id=22 data-nosnippet>22</a>    Return { condition: AstNode, location: SourceLocation },
-<a href=#23 id=23 data-nosnippet>23</a>    Jump { condition: <span class="prelude-ty">Option</span>&lt;AstNode&gt;, target: String, location: SourceLocation },
-<a href=#24 id=24 data-nosnippet>24</a>    Label { name: String, location: SourceLocation },
-<a href=#25 id=25 data-nosnippet>25</a>    Call { target: String, arguments: Vec&lt;Argument&gt;, capture: <span class="prelude-ty">Option</span>&lt;String&gt;, location: SourceLocation },
-<a href=#26 id=26 data-nosnippet>26</a>}
+<a href=#18 id=18 data-nosnippet>18</a>    Variadic { value: Box&lt;AstNode&gt; },
+<a href=#19 id=19 data-nosnippet>19</a>}
+<a href=#20 id=20 data-nosnippet>20</a>
+<a href=#21 id=21 data-nosnippet>21</a><span class="kw">pub enum </span>Statement {
+<a href=#22 id=22 data-nosnippet>22</a>    Assignment { sink: AstNode, source: AstNode },
+<a href=#23 id=23 data-nosnippet>23</a>    Return { condition: AstNode, location: SourceLocation },
+<a href=#24 id=24 data-nosnippet>24</a>    Jump { condition: <span class="prelude-ty">Option</span>&lt;AstNode&gt;, target: String, location: SourceLocation },
+<a href=#25 id=25 data-nosnippet>25</a>    Label { name: String, location: SourceLocation },
+<a href=#26 id=26 data-nosnippet>26</a>    Call { target: String, arguments: Vec&lt;Argument&gt;, capture: <span class="prelude-ty">Option</span>&lt;String&gt;, location: SourceLocation },
+<a href=#27 id=27 data-nosnippet>27</a>}
 </code></pre></div></section></main></body></html>

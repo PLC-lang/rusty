@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["parse_file","transpile_file"],"mod":["model"]};
+window.SIDEBAR_ITEMS = {"fn":["infer_temporary_types","parse_file","transpile_file","unresolved_temporaries"],"mod":["model"]};

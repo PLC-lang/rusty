@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["GenericLowerer"]};
+window.SIDEBAR_ITEMS = {"fn":["derive_call_generic_map"],"struct":["GenericLowerer"]};

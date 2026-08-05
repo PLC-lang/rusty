@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-78abdf07.js";
+            window.path_to_searchindex_js = "searchindex-667f4e03.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-70070b90.js"></script>
+        <script src="toc-41c07479.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2574,6 +2574,33 @@ changed after the block was placed.</p>
 <p>Covered temporal literals include DATE, DT, TOD, TIME and their long variants.</p>
 <p>For short temporal types (DATE/DT/TOD/TIME), values outside the 32-bit runtime storage domain trigger this warning.
 For long temporal types, out-of-range literal encodings also trigger this warning.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unresolved-generic-cfc-block-output"><a class="header" href="#unresolved-generic-cfc-block-output">Unresolved generic CFC block output</a></h1>
+<p>A generic block like <code>ADD&lt;T1: ANY_NUM, T2: ANY_NUM&gt; : T1</code> — where <code>IN1</code> binds
+<code>T1</code>, the remaining variadic inputs bind <code>T2</code>, and the output is typed <code>T1</code> —
+has no types of its own: every call must resolve the bindings to concrete
+types, and in a CFC network they are inferred from the block’s wired inputs.
+Feeding generic outputs back into generic inputs is ambiguous: each side
+waits on the other and the binding could be anything, so nothing ever decides
+it.</p>
+<pre><code>        ADD
+      +---------------+
+ .--&gt; | IN1       ADD | --+--&gt; acc
+ +--&gt; |               |   |
+ |    +---------------+   |
+ '------------------------'   [output feeds back into every input]
+</code></pre>
+<p>Wire at least one input to a concretely typed source — a variable, a literal,
+or the output of a non-generic block:</p>
+<pre><code>        ADD
+      +---------------+
+x --&gt; | IN1       ADD | --+--&gt; acc     [x : DINT decides T1 = DINT]
+ .--&gt; |               |   |
+ |    +---------------+   |
+ '------------------------'
+</code></pre>
+<p>Routing a feedback loop through a declared variable also resolves it: the
+variable’s declared type decides the generic binding.</p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="header-generation"><a class="header" href="#header-generation">Header Generation</a></h1>
 <p>In addition to providing the ability to <a href="#external-functions">call out to external code</a> (code not written in ST), rusty also provides a generator for header files to simplify the process of implementing the external code.</p>

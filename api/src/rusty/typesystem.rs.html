@@ -1552,111 +1552,120 @@
 <a href=#1552 id=1552 data-nosnippet>1552</a>    <span class="kw">let </span>lt = left_type.get_type_information();
 <a href=#1553 id=1553 data-nosnippet>1553</a>    <span class="kw">let </span>rt = right_type.get_type_information();
 <a href=#1554 id=1554 data-nosnippet>1554</a>
-<a href=#1555 id=1555 data-nosnippet>1555</a>    <span class="kw">let </span>ldt = index.get_type(lt.get_name());
-<a href=#1556 id=1556 data-nosnippet>1556</a>    <span class="kw">let </span>rdt = index.get_type(rt.get_name());
-<a href=#1557 id=1557 data-nosnippet>1557</a>
-<a href=#1558 id=1558 data-nosnippet>1558</a>    <span class="comment">// if left and right have the same type, check which ranks higher
-<a href=#1559 id=1559 data-nosnippet>1559</a>    </span><span class="kw">if </span>is_same_type_class(lt, rt, index) {
-<a href=#1560 id=1560 data-nosnippet>1560</a>        <span class="kw">if </span>get_rank(lt, index) &lt; get_rank(rt, index) {
-<a href=#1561 id=1561 data-nosnippet>1561</a>            <span class="kw">return </span>right_type;
-<a href=#1562 id=1562 data-nosnippet>1562</a>        }
-<a href=#1563 id=1563 data-nosnippet>1563</a>    } <span class="kw">else if let </span>(<span class="prelude-val">Ok</span>(ldt), <span class="prelude-val">Ok</span>(rdt)) = (ldt, rdt) {
-<a href=#1564 id=1564 data-nosnippet>1564</a>        <span class="comment">// check is_numerical() on TypeNature e.g. DataTypeInformation::Integer is numerical but also used for CHARS which are not considered as numerical
-<a href=#1565 id=1565 data-nosnippet>1565</a>        </span><span class="kw">if </span>(ldt.is_numerical() &amp;&amp; rdt.is_numerical()) &amp;&amp; (ldt.is_real() || rdt.is_real()) {
-<a href=#1566 id=1566 data-nosnippet>1566</a>            <span class="kw">let </span>real_type = index.get_type_or_panic(REAL_TYPE);
-<a href=#1567 id=1567 data-nosnippet>1567</a>            <span class="kw">let </span>real_size = real_type.get_type_information().get_size_in_bits(index).unwrap();
-<a href=#1568 id=1568 data-nosnippet>1568</a>            <span class="kw">if </span>lt.get_size_in_bits(index).unwrap_or_default() &gt; real_size
-<a href=#1569 id=1569 data-nosnippet>1569</a>                || rt.get_size_in_bits(index).unwrap_or_default() &gt; real_size
-<a href=#1570 id=1570 data-nosnippet>1570</a>            {
-<a href=#1571 id=1571 data-nosnippet>1571</a>                <span class="kw">return </span>index.get_type_or_panic(LREAL_TYPE).into();
-<a href=#1572 id=1572 data-nosnippet>1572</a>            } <span class="kw">else </span>{
-<a href=#1573 id=1573 data-nosnippet>1573</a>                <span class="kw">return </span>real_type.into();
-<a href=#1574 id=1574 data-nosnippet>1574</a>            }
-<a href=#1575 id=1575 data-nosnippet>1575</a>        } <span class="kw">else if </span>lt.is_string() &amp; rt.is_character() {
-<a href=#1576 id=1576 data-nosnippet>1576</a>            <span class="kw">return </span>left_type;
-<a href=#1577 id=1577 data-nosnippet>1577</a>        } <span class="kw">else if </span>rt.is_string() &amp; lt.is_character() {
-<a href=#1578 id=1578 data-nosnippet>1578</a>            <span class="kw">return </span>right_type;
-<a href=#1579 id=1579 data-nosnippet>1579</a>        }
-<a href=#1580 id=1580 data-nosnippet>1580</a>    }
-<a href=#1581 id=1581 data-nosnippet>1581</a>
-<a href=#1582 id=1582 data-nosnippet>1582</a>    left_type
-<a href=#1583 id=1583 data-nosnippet>1583</a>}
-<a href=#1584 id=1584 data-nosnippet>1584</a>
-<a href=#1585 id=1585 data-nosnippet>1585</a><span class="doccomment">/// returns the signed version of the given data_type if its a signed int-type
-<a href=#1586 id=1586 data-nosnippet>1586</a>/// returns the original type if it is no signed int-type
-<a href=#1587 id=1587 data-nosnippet>1587</a></span><span class="kw">pub fn </span>get_signed_type&lt;<span class="lifetime">'t</span>&gt;(
-<a href=#1588 id=1588 data-nosnippet>1588</a>    data_type: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>DataTypeInformation,
-<a href=#1589 id=1589 data-nosnippet>1589</a>    index: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>Index,
-<a href=#1590 id=1590 data-nosnippet>1590</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'t </span>DataTypeInformation&gt; {
-<a href=#1591 id=1591 data-nosnippet>1591</a>    <span class="kw">if </span>data_type.is_int() {
-<a href=#1592 id=1592 data-nosnippet>1592</a>        <span class="kw">let </span>signed_type = <span class="kw">match </span>data_type.get_name() {
-<a href=#1593 id=1593 data-nosnippet>1593</a>            BYTE_TYPE =&gt; SINT_TYPE,
-<a href=#1594 id=1594 data-nosnippet>1594</a>            USINT_TYPE =&gt; SINT_TYPE,
-<a href=#1595 id=1595 data-nosnippet>1595</a>            WORD_TYPE =&gt; INT_TYPE,
-<a href=#1596 id=1596 data-nosnippet>1596</a>            UINT_TYPE =&gt; INT_TYPE,
-<a href=#1597 id=1597 data-nosnippet>1597</a>            DWORD_TYPE =&gt; DINT_TYPE,
-<a href=#1598 id=1598 data-nosnippet>1598</a>            UDINT_TYPE =&gt; DINT_TYPE,
-<a href=#1599 id=1599 data-nosnippet>1599</a>            ULINT_TYPE =&gt; LINT_TYPE,
-<a href=#1600 id=1600 data-nosnippet>1600</a>            LWORD_TYPE =&gt; LINT_TYPE,
-<a href=#1601 id=1601 data-nosnippet>1601</a>            <span class="kw">_ </span>=&gt; data_type.get_name(),
-<a href=#1602 id=1602 data-nosnippet>1602</a>        };
-<a href=#1603 id=1603 data-nosnippet>1603</a>        <span class="kw">return </span>index.get_type(signed_type).ok().map(|t| t.get_type_information());
-<a href=#1604 id=1604 data-nosnippet>1604</a>    }
-<a href=#1605 id=1605 data-nosnippet>1605</a>    <span class="prelude-val">Some</span>(data_type)
-<a href=#1606 id=1606 data-nosnippet>1606</a>}
-<a href=#1607 id=1607 data-nosnippet>1607</a>
-<a href=#1608 id=1608 data-nosnippet>1608</a><span class="doccomment">/**
-<a href=#1609 id=1609 data-nosnippet>1609</a> * returns the compare-function name for the given type and operator.
-<a href=#1610 id=1610 data-nosnippet>1610</a> * Returns None if the given operator is no comparison operator
-<a href=#1611 id=1611 data-nosnippet>1611</a> */
-<a href=#1612 id=1612 data-nosnippet>1612</a></span><span class="kw">pub fn </span>get_equals_function_name_for(type_name: <span class="kw-2">&amp;</span>str, operator: <span class="kw-2">&amp;</span>Operator) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
-<a href=#1613 id=1613 data-nosnippet>1613</a>    <span class="kw">let </span>suffix = <span class="kw">match </span>operator {
-<a href=#1614 id=1614 data-nosnippet>1614</a>        Operator::Equal =&gt; <span class="prelude-val">Some</span>(<span class="string">"EQUAL"</span>),
-<a href=#1615 id=1615 data-nosnippet>1615</a>        Operator::Less =&gt; <span class="prelude-val">Some</span>(<span class="string">"LESS"</span>),
-<a href=#1616 id=1616 data-nosnippet>1616</a>        Operator::Greater =&gt; <span class="prelude-val">Some</span>(<span class="string">"GREATER"</span>),
-<a href=#1617 id=1617 data-nosnippet>1617</a>        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-<a href=#1618 id=1618 data-nosnippet>1618</a>    };
-<a href=#1619 id=1619 data-nosnippet>1619</a>
-<a href=#1620 id=1620 data-nosnippet>1620</a>    suffix.map(|suffix| <span class="macro">format!</span>(<span class="string">"{type_name}_{suffix}"</span>)) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
-<a href=#1621 id=1621 data-nosnippet>1621</a></span>}
-<a href=#1622 id=1622 data-nosnippet>1622</a>
-<a href=#1623 id=1623 data-nosnippet>1623</a><span class="kw">pub fn </span>get_literal_actual_signed_type_name(lit: <span class="kw-2">&amp;</span>AstLiteral, signed: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
-<a href=#1624 id=1624 data-nosnippet>1624</a>    <span class="comment">// Returns a range with the min and max value of the given type
-<a href=#1625 id=1625 data-nosnippet>1625</a>    </span><span class="macro">macro_rules!</span> is_covered_by {
-<a href=#1626 id=1626 data-nosnippet>1626</a>        (<span class="macro-nonterminal">$t</span>:ty, <span class="macro-nonterminal">$e</span>:expr) =&gt; {
-<a href=#1627 id=1627 data-nosnippet>1627</a>            &lt;<span class="macro-nonterminal">$t</span>&gt;::MIN <span class="kw">as </span>i128 &lt;= <span class="macro-nonterminal">$e </span><span class="kw">as </span>i128 &amp;&amp; <span class="macro-nonterminal">$e </span><span class="kw">as </span>i128 &lt;= &lt;<span class="macro-nonterminal">$t</span>&gt;::MAX <span class="kw">as </span>i128
-<a href=#1628 id=1628 data-nosnippet>1628</a>        };
-<a href=#1629 id=1629 data-nosnippet>1629</a>    }
-<a href=#1630 id=1630 data-nosnippet>1630</a>
-<a href=#1631 id=1631 data-nosnippet>1631</a>    <span class="kw">match </span>lit {
-<a href=#1632 id=1632 data-nosnippet>1632</a>        AstLiteral::Integer(value) =&gt; <span class="kw">match </span>signed {
-<a href=#1633 id=1633 data-nosnippet>1633</a>            <span class="comment">// BOOL types are not signed
-<a href=#1634 id=1634 data-nosnippet>1634</a>            </span><span class="bool-val">false </span><span class="kw">if </span><span class="kw-2">*</span>value == <span class="number">0_i128 </span>|| <span class="kw-2">*</span>value == <span class="number">1_i128 </span>=&gt; <span class="prelude-val">Some</span>(BOOL_TYPE),
-<a href=#1635 id=1635 data-nosnippet>1635</a>
-<a href=#1636 id=1636 data-nosnippet>1636</a>            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i8, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(SINT_TYPE),
-<a href=#1637 id=1637 data-nosnippet>1637</a>            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i16, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(INT_TYPE),
-<a href=#1638 id=1638 data-nosnippet>1638</a>            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i32, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(DINT_TYPE),
-<a href=#1639 id=1639 data-nosnippet>1639</a>            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i64, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(LINT_TYPE),
-<a href=#1640 id=1640 data-nosnippet>1640</a>
-<a href=#1641 id=1641 data-nosnippet>1641</a>            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u8, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(USINT_TYPE),
-<a href=#1642 id=1642 data-nosnippet>1642</a>            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u16, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(UINT_TYPE),
-<a href=#1643 id=1643 data-nosnippet>1643</a>            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u32, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(UDINT_TYPE),
-<a href=#1644 id=1644 data-nosnippet>1644</a>            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u64, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(ULINT_TYPE),
-<a href=#1645 id=1645 data-nosnippet>1645</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(VOID_TYPE),
-<a href=#1646 id=1646 data-nosnippet>1646</a>        },
-<a href=#1647 id=1647 data-nosnippet>1647</a>        AstLiteral::Bool { .. } =&gt; <span class="prelude-val">Some</span>(BOOL_TYPE),
-<a href=#1648 id=1648 data-nosnippet>1648</a>        AstLiteral::String(StringValue { is_wide: <span class="bool-val">true</span>, .. }) =&gt; <span class="prelude-val">Some</span>(WSTRING_TYPE),
-<a href=#1649 id=1649 data-nosnippet>1649</a>        AstLiteral::String(StringValue { is_wide: <span class="bool-val">false</span>, .. }) =&gt; <span class="prelude-val">Some</span>(STRING_TYPE),
-<a href=#1650 id=1650 data-nosnippet>1650</a>        AstLiteral::Real { .. } =&gt; <span class="prelude-val">Some</span>(LREAL_TYPE),
-<a href=#1651 id=1651 data-nosnippet>1651</a>        AstLiteral::Date(date) =&gt; <span class="prelude-val">Some</span>(<span class="kw">if </span>date.is_long() { LONG_DATE_TYPE } <span class="kw">else </span>{ DATE_TYPE }),
-<a href=#1652 id=1652 data-nosnippet>1652</a>        AstLiteral::DateAndTime(date_time) =&gt; {
-<a href=#1653 id=1653 data-nosnippet>1653</a>            <span class="prelude-val">Some</span>(<span class="kw">if </span>date_time.is_long() { LONG_DATE_AND_TIME_TYPE } <span class="kw">else </span>{ DATE_AND_TIME_TYPE })
-<a href=#1654 id=1654 data-nosnippet>1654</a>        }
-<a href=#1655 id=1655 data-nosnippet>1655</a>        AstLiteral::Time(time) =&gt; <span class="prelude-val">Some</span>(<span class="kw">if </span>time.is_long() { LONG_TIME_TYPE } <span class="kw">else </span>{ TIME_TYPE }),
-<a href=#1656 id=1656 data-nosnippet>1656</a>        AstLiteral::TimeOfDay(time_of_day) =&gt; {
-<a href=#1657 id=1657 data-nosnippet>1657</a>            <span class="prelude-val">Some</span>(<span class="kw">if </span>time_of_day.is_long() { LONG_TIME_OF_DAY_TYPE } <span class="kw">else </span>{ TIME_OF_DAY_TYPE })
-<a href=#1658 id=1658 data-nosnippet>1658</a>        }
-<a href=#1659 id=1659 data-nosnippet>1659</a>        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-<a href=#1660 id=1660 data-nosnippet>1660</a>    }
-<a href=#1661 id=1661 data-nosnippet>1661</a>}
+<a href=#1555 id=1555 data-nosnippet>1555</a>    <span class="comment">// An unresolved generic carries no size or class of its own; the other side decides. Its
+<a href=#1556 id=1556 data-nosnippet>1556</a>    // `Any` nature would otherwise pass the numerical/real checks below and promote to REAL.
+<a href=#1557 id=1557 data-nosnippet>1557</a>    </span><span class="kw">if </span><span class="macro">matches!</span>(lt, DataTypeInformation::Generic { .. }) {
+<a href=#1558 id=1558 data-nosnippet>1558</a>        <span class="kw">return </span>right_type;
+<a href=#1559 id=1559 data-nosnippet>1559</a>    }
+<a href=#1560 id=1560 data-nosnippet>1560</a>    <span class="kw">if </span><span class="macro">matches!</span>(rt, DataTypeInformation::Generic { .. }) {
+<a href=#1561 id=1561 data-nosnippet>1561</a>        <span class="kw">return </span>left_type;
+<a href=#1562 id=1562 data-nosnippet>1562</a>    }
+<a href=#1563 id=1563 data-nosnippet>1563</a>
+<a href=#1564 id=1564 data-nosnippet>1564</a>    <span class="kw">let </span>ldt = index.get_type(lt.get_name());
+<a href=#1565 id=1565 data-nosnippet>1565</a>    <span class="kw">let </span>rdt = index.get_type(rt.get_name());
+<a href=#1566 id=1566 data-nosnippet>1566</a>
+<a href=#1567 id=1567 data-nosnippet>1567</a>    <span class="comment">// if left and right have the same type, check which ranks higher
+<a href=#1568 id=1568 data-nosnippet>1568</a>    </span><span class="kw">if </span>is_same_type_class(lt, rt, index) {
+<a href=#1569 id=1569 data-nosnippet>1569</a>        <span class="kw">if </span>get_rank(lt, index) &lt; get_rank(rt, index) {
+<a href=#1570 id=1570 data-nosnippet>1570</a>            <span class="kw">return </span>right_type;
+<a href=#1571 id=1571 data-nosnippet>1571</a>        }
+<a href=#1572 id=1572 data-nosnippet>1572</a>    } <span class="kw">else if let </span>(<span class="prelude-val">Ok</span>(ldt), <span class="prelude-val">Ok</span>(rdt)) = (ldt, rdt) {
+<a href=#1573 id=1573 data-nosnippet>1573</a>        <span class="comment">// check is_numerical() on TypeNature e.g. DataTypeInformation::Integer is numerical but also used for CHARS which are not considered as numerical
+<a href=#1574 id=1574 data-nosnippet>1574</a>        </span><span class="kw">if </span>(ldt.is_numerical() &amp;&amp; rdt.is_numerical()) &amp;&amp; (ldt.is_real() || rdt.is_real()) {
+<a href=#1575 id=1575 data-nosnippet>1575</a>            <span class="kw">let </span>real_type = index.get_type_or_panic(REAL_TYPE);
+<a href=#1576 id=1576 data-nosnippet>1576</a>            <span class="kw">let </span>real_size = real_type.get_type_information().get_size_in_bits(index).unwrap();
+<a href=#1577 id=1577 data-nosnippet>1577</a>            <span class="kw">if </span>lt.get_size_in_bits(index).unwrap_or_default() &gt; real_size
+<a href=#1578 id=1578 data-nosnippet>1578</a>                || rt.get_size_in_bits(index).unwrap_or_default() &gt; real_size
+<a href=#1579 id=1579 data-nosnippet>1579</a>            {
+<a href=#1580 id=1580 data-nosnippet>1580</a>                <span class="kw">return </span>index.get_type_or_panic(LREAL_TYPE).into();
+<a href=#1581 id=1581 data-nosnippet>1581</a>            } <span class="kw">else </span>{
+<a href=#1582 id=1582 data-nosnippet>1582</a>                <span class="kw">return </span>real_type.into();
+<a href=#1583 id=1583 data-nosnippet>1583</a>            }
+<a href=#1584 id=1584 data-nosnippet>1584</a>        } <span class="kw">else if </span>lt.is_string() &amp; rt.is_character() {
+<a href=#1585 id=1585 data-nosnippet>1585</a>            <span class="kw">return </span>left_type;
+<a href=#1586 id=1586 data-nosnippet>1586</a>        } <span class="kw">else if </span>rt.is_string() &amp; lt.is_character() {
+<a href=#1587 id=1587 data-nosnippet>1587</a>            <span class="kw">return </span>right_type;
+<a href=#1588 id=1588 data-nosnippet>1588</a>        }
+<a href=#1589 id=1589 data-nosnippet>1589</a>    }
+<a href=#1590 id=1590 data-nosnippet>1590</a>
+<a href=#1591 id=1591 data-nosnippet>1591</a>    left_type
+<a href=#1592 id=1592 data-nosnippet>1592</a>}
+<a href=#1593 id=1593 data-nosnippet>1593</a>
+<a href=#1594 id=1594 data-nosnippet>1594</a><span class="doccomment">/// returns the signed version of the given data_type if its a signed int-type
+<a href=#1595 id=1595 data-nosnippet>1595</a>/// returns the original type if it is no signed int-type
+<a href=#1596 id=1596 data-nosnippet>1596</a></span><span class="kw">pub fn </span>get_signed_type&lt;<span class="lifetime">'t</span>&gt;(
+<a href=#1597 id=1597 data-nosnippet>1597</a>    data_type: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>DataTypeInformation,
+<a href=#1598 id=1598 data-nosnippet>1598</a>    index: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>Index,
+<a href=#1599 id=1599 data-nosnippet>1599</a>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'t </span>DataTypeInformation&gt; {
+<a href=#1600 id=1600 data-nosnippet>1600</a>    <span class="kw">if </span>data_type.is_int() {
+<a href=#1601 id=1601 data-nosnippet>1601</a>        <span class="kw">let </span>signed_type = <span class="kw">match </span>data_type.get_name() {
+<a href=#1602 id=1602 data-nosnippet>1602</a>            BYTE_TYPE =&gt; SINT_TYPE,
+<a href=#1603 id=1603 data-nosnippet>1603</a>            USINT_TYPE =&gt; SINT_TYPE,
+<a href=#1604 id=1604 data-nosnippet>1604</a>            WORD_TYPE =&gt; INT_TYPE,
+<a href=#1605 id=1605 data-nosnippet>1605</a>            UINT_TYPE =&gt; INT_TYPE,
+<a href=#1606 id=1606 data-nosnippet>1606</a>            DWORD_TYPE =&gt; DINT_TYPE,
+<a href=#1607 id=1607 data-nosnippet>1607</a>            UDINT_TYPE =&gt; DINT_TYPE,
+<a href=#1608 id=1608 data-nosnippet>1608</a>            ULINT_TYPE =&gt; LINT_TYPE,
+<a href=#1609 id=1609 data-nosnippet>1609</a>            LWORD_TYPE =&gt; LINT_TYPE,
+<a href=#1610 id=1610 data-nosnippet>1610</a>            <span class="kw">_ </span>=&gt; data_type.get_name(),
+<a href=#1611 id=1611 data-nosnippet>1611</a>        };
+<a href=#1612 id=1612 data-nosnippet>1612</a>        <span class="kw">return </span>index.get_type(signed_type).ok().map(|t| t.get_type_information());
+<a href=#1613 id=1613 data-nosnippet>1613</a>    }
+<a href=#1614 id=1614 data-nosnippet>1614</a>    <span class="prelude-val">Some</span>(data_type)
+<a href=#1615 id=1615 data-nosnippet>1615</a>}
+<a href=#1616 id=1616 data-nosnippet>1616</a>
+<a href=#1617 id=1617 data-nosnippet>1617</a><span class="doccomment">/**
+<a href=#1618 id=1618 data-nosnippet>1618</a> * returns the compare-function name for the given type and operator.
+<a href=#1619 id=1619 data-nosnippet>1619</a> * Returns None if the given operator is no comparison operator
+<a href=#1620 id=1620 data-nosnippet>1620</a> */
+<a href=#1621 id=1621 data-nosnippet>1621</a></span><span class="kw">pub fn </span>get_equals_function_name_for(type_name: <span class="kw-2">&amp;</span>str, operator: <span class="kw-2">&amp;</span>Operator) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+<a href=#1622 id=1622 data-nosnippet>1622</a>    <span class="kw">let </span>suffix = <span class="kw">match </span>operator {
+<a href=#1623 id=1623 data-nosnippet>1623</a>        Operator::Equal =&gt; <span class="prelude-val">Some</span>(<span class="string">"EQUAL"</span>),
+<a href=#1624 id=1624 data-nosnippet>1624</a>        Operator::Less =&gt; <span class="prelude-val">Some</span>(<span class="string">"LESS"</span>),
+<a href=#1625 id=1625 data-nosnippet>1625</a>        Operator::Greater =&gt; <span class="prelude-val">Some</span>(<span class="string">"GREATER"</span>),
+<a href=#1626 id=1626 data-nosnippet>1626</a>        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+<a href=#1627 id=1627 data-nosnippet>1627</a>    };
+<a href=#1628 id=1628 data-nosnippet>1628</a>
+<a href=#1629 id=1629 data-nosnippet>1629</a>    suffix.map(|suffix| <span class="macro">format!</span>(<span class="string">"{type_name}_{suffix}"</span>)) <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+<a href=#1630 id=1630 data-nosnippet>1630</a></span>}
+<a href=#1631 id=1631 data-nosnippet>1631</a>
+<a href=#1632 id=1632 data-nosnippet>1632</a><span class="kw">pub fn </span>get_literal_actual_signed_type_name(lit: <span class="kw-2">&amp;</span>AstLiteral, signed: bool) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+<a href=#1633 id=1633 data-nosnippet>1633</a>    <span class="comment">// Returns a range with the min and max value of the given type
+<a href=#1634 id=1634 data-nosnippet>1634</a>    </span><span class="macro">macro_rules!</span> is_covered_by {
+<a href=#1635 id=1635 data-nosnippet>1635</a>        (<span class="macro-nonterminal">$t</span>:ty, <span class="macro-nonterminal">$e</span>:expr) =&gt; {
+<a href=#1636 id=1636 data-nosnippet>1636</a>            &lt;<span class="macro-nonterminal">$t</span>&gt;::MIN <span class="kw">as </span>i128 &lt;= <span class="macro-nonterminal">$e </span><span class="kw">as </span>i128 &amp;&amp; <span class="macro-nonterminal">$e </span><span class="kw">as </span>i128 &lt;= &lt;<span class="macro-nonterminal">$t</span>&gt;::MAX <span class="kw">as </span>i128
+<a href=#1637 id=1637 data-nosnippet>1637</a>        };
+<a href=#1638 id=1638 data-nosnippet>1638</a>    }
+<a href=#1639 id=1639 data-nosnippet>1639</a>
+<a href=#1640 id=1640 data-nosnippet>1640</a>    <span class="kw">match </span>lit {
+<a href=#1641 id=1641 data-nosnippet>1641</a>        AstLiteral::Integer(value) =&gt; <span class="kw">match </span>signed {
+<a href=#1642 id=1642 data-nosnippet>1642</a>            <span class="comment">// BOOL types are not signed
+<a href=#1643 id=1643 data-nosnippet>1643</a>            </span><span class="bool-val">false </span><span class="kw">if </span><span class="kw-2">*</span>value == <span class="number">0_i128 </span>|| <span class="kw-2">*</span>value == <span class="number">1_i128 </span>=&gt; <span class="prelude-val">Some</span>(BOOL_TYPE),
+<a href=#1644 id=1644 data-nosnippet>1644</a>
+<a href=#1645 id=1645 data-nosnippet>1645</a>            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i8, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(SINT_TYPE),
+<a href=#1646 id=1646 data-nosnippet>1646</a>            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i16, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(INT_TYPE),
+<a href=#1647 id=1647 data-nosnippet>1647</a>            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i32, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(DINT_TYPE),
+<a href=#1648 id=1648 data-nosnippet>1648</a>            <span class="bool-val">true </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(i64, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(LINT_TYPE),
+<a href=#1649 id=1649 data-nosnippet>1649</a>
+<a href=#1650 id=1650 data-nosnippet>1650</a>            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u8, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(USINT_TYPE),
+<a href=#1651 id=1651 data-nosnippet>1651</a>            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u16, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(UINT_TYPE),
+<a href=#1652 id=1652 data-nosnippet>1652</a>            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u32, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(UDINT_TYPE),
+<a href=#1653 id=1653 data-nosnippet>1653</a>            <span class="bool-val">false </span><span class="kw">if </span><span class="macro">is_covered_by!</span>(u64, <span class="kw-2">*</span>value) =&gt; <span class="prelude-val">Some</span>(ULINT_TYPE),
+<a href=#1654 id=1654 data-nosnippet>1654</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(VOID_TYPE),
+<a href=#1655 id=1655 data-nosnippet>1655</a>        },
+<a href=#1656 id=1656 data-nosnippet>1656</a>        AstLiteral::Bool { .. } =&gt; <span class="prelude-val">Some</span>(BOOL_TYPE),
+<a href=#1657 id=1657 data-nosnippet>1657</a>        AstLiteral::String(StringValue { is_wide: <span class="bool-val">true</span>, .. }) =&gt; <span class="prelude-val">Some</span>(WSTRING_TYPE),
+<a href=#1658 id=1658 data-nosnippet>1658</a>        AstLiteral::String(StringValue { is_wide: <span class="bool-val">false</span>, .. }) =&gt; <span class="prelude-val">Some</span>(STRING_TYPE),
+<a href=#1659 id=1659 data-nosnippet>1659</a>        AstLiteral::Real { .. } =&gt; <span class="prelude-val">Some</span>(LREAL_TYPE),
+<a href=#1660 id=1660 data-nosnippet>1660</a>        AstLiteral::Date(date) =&gt; <span class="prelude-val">Some</span>(<span class="kw">if </span>date.is_long() { LONG_DATE_TYPE } <span class="kw">else </span>{ DATE_TYPE }),
+<a href=#1661 id=1661 data-nosnippet>1661</a>        AstLiteral::DateAndTime(date_time) =&gt; {
+<a href=#1662 id=1662 data-nosnippet>1662</a>            <span class="prelude-val">Some</span>(<span class="kw">if </span>date_time.is_long() { LONG_DATE_AND_TIME_TYPE } <span class="kw">else </span>{ DATE_AND_TIME_TYPE })
+<a href=#1663 id=1663 data-nosnippet>1663</a>        }
+<a href=#1664 id=1664 data-nosnippet>1664</a>        AstLiteral::Time(time) =&gt; <span class="prelude-val">Some</span>(<span class="kw">if </span>time.is_long() { LONG_TIME_TYPE } <span class="kw">else </span>{ TIME_TYPE }),
+<a href=#1665 id=1665 data-nosnippet>1665</a>        AstLiteral::TimeOfDay(time_of_day) =&gt; {
+<a href=#1666 id=1666 data-nosnippet>1666</a>            <span class="prelude-val">Some</span>(<span class="kw">if </span>time_of_day.is_long() { LONG_TIME_OF_DAY_TYPE } <span class="kw">else </span>{ TIME_OF_DAY_TYPE })
+<a href=#1667 id=1667 data-nosnippet>1667</a>        }
+<a href=#1668 id=1668 data-nosnippet>1668</a>        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+<a href=#1669 id=1669 data-nosnippet>1669</a>    }
+<a href=#1670 id=1670 data-nosnippet>1670</a>}
 </code></pre></div></section></main></body></html>
