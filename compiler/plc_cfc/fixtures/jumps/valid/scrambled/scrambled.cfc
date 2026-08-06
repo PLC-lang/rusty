@@ -25,7 +25,7 @@ END_VAR
                 <ppx:FbdObject xsi:type="bmx:CfcJump" targetLabel="end" globalId="6">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <negated value="false"/>
+                            <bmx:Negation inNegated="false"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
                             <EvaluationPriority priorityInNetwork="5"/>
@@ -54,7 +54,7 @@ END_VAR
                 <ppx:FbdObject xsi:type="bmx:CfcJump" targetLabel="mid" globalId="1">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <negated value="false"/>
+                            <bmx:Negation inNegated="false"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
                             <EvaluationPriority priorityInNetwork="0"/>
@@ -119,7 +119,7 @@ END_VAR
                 <ppx:FbdObject xsi:type="bmx:CfcJump" targetLabel="end" globalId="3">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <negated value="false"/>
+                            <bmx:Negation inNegated="false"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
                             <EvaluationPriority priorityInNetwork="2"/>
