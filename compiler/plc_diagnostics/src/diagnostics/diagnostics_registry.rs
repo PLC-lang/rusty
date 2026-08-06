@@ -243,6 +243,8 @@ lazy_static! {
         E139,   Error,      include_str!("./error_codes/E139.md"),  // Linker invocation failed (spawn / cmdline)
         E140,   Error,      include_str!("./error_codes/E140.md"),  // ':=' used for an output parameter
         E141,   Error,      include_str!("./error_codes/E141.md"),  // Member access on a non-auto-deref pointer base
+        // E142..E149 are used on later branches, E150 matches the same warning there
+        E150,   Warning,    include_str!("./error_codes/E150.md"),  // ABS on an unsigned value has no effect
     );
 }
 

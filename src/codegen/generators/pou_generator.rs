@@ -79,7 +79,9 @@ pub fn generate_implementation_stubs<'ink>(
         .filter_map(|name| index.find_implementation_by_name(name).map(|it| (name, it)))
         .collect::<FxIndexMap<_, _>>();
     for (name, implementation) in implementations {
-        if !implementation.is_generic() {
+        // builtins (e.g. ABS__UINT) are generated inline by their codegen hook and must
+        // not leave an external declaration behind
+        if !implementation.is_generic() && index.get_builtin_function(name).is_none() {
             let curr_f = pou_generator.generate_implementation_stub(
                 implementation,
                 module,

@@ -469,6 +469,60 @@ fn builtin_function_call_move() {
 }
 
 #[test]
+fn builtin_function_call_abs_unsigned_ints() {
+    // the generic declaration mimics the one the standard library includes provide;
+    // the unsigned monomorphs bind to the builtins and generate the argument as-is
+    let result = codegen(
+        "FUNCTION ABS<T: ANY_NUM> : T
+        VAR_INPUT
+            IN : T;
+        END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            a : USINT;
+            b : UINT;
+            c : UDINT;
+            d : ULINT;
+        END_VAR
+            a := ABS(a);
+            b := ABS(b);
+            c := ABS(c);
+            d := ABS(IN := d);
+        END_PROGRAM",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %main = type { i8, i16, i32, i64 }
+
+    @main_instance = global %main zeroinitializer
+
+    define void @main(ptr %0) {
+    entry:
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      %c = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+      %d = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+      %load_a = load i8, ptr %a, align [filtered]
+      store i8 %load_a, ptr %a, align [filtered]
+      %load_b = load i16, ptr %b, align [filtered]
+      store i16 %load_b, ptr %b, align [filtered]
+      %load_c = load i32, ptr %c, align [filtered]
+      store i32 %load_c, ptr %c, align [filtered]
+      %load_d = load i64, ptr %d, align [filtered]
+      store i64 %load_d, ptr %d, align [filtered]
+      ret void
+    }
+    "#);
+}
+
+#[test]
 fn builtin_function_call_sizeof() {
     let result = codegen(
         "PROGRAM main
