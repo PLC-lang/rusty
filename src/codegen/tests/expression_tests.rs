@@ -469,6 +469,162 @@ fn builtin_function_call_move() {
 }
 
 #[test]
+fn builtin_function_call_abs_signed_ints() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a : SINT;
+            b : INT;
+            c : DINT;
+            d : LINT;
+        END_VAR
+            a := ABS(a);
+            b := ABS(b);
+            c := ABS(c);
+            d := ABS(IN := d);
+        END_PROGRAM",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %main = type { i8, i16, i32, i64 }
+
+    @main_instance = global %main zeroinitializer
+
+    define void @main(ptr %0) {
+    entry:
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      %c = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+      %d = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+      %load_a = load i8, ptr %a, align [filtered]
+      %1 = call i8 @llvm.abs.i8(i8 %load_a, i1 false)
+      store i8 %1, ptr %a, align [filtered]
+      %load_b = load i16, ptr %b, align [filtered]
+      %2 = call i16 @llvm.abs.i16(i16 %load_b, i1 false)
+      store i16 %2, ptr %b, align [filtered]
+      %load_c = load i32, ptr %c, align [filtered]
+      %3 = call i32 @llvm.abs.i32(i32 %load_c, i1 false)
+      store i32 %3, ptr %c, align [filtered]
+      %load_d = load i64, ptr %d, align [filtered]
+      %4 = call i64 @llvm.abs.i64(i64 %load_d, i1 false)
+      store i64 %4, ptr %d, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+    declare i8 @llvm.abs.i8(i8, i1 immarg) #0
+
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+    declare i16 @llvm.abs.i16(i16, i1 immarg) #0
+
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+    declare i32 @llvm.abs.i32(i32, i1 immarg) #0
+
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+    declare i64 @llvm.abs.i64(i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
+    "#);
+}
+
+#[test]
+fn builtin_function_call_abs_floats() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a : REAL;
+            b : LREAL;
+        END_VAR
+            a := ABS(a);
+            b := ABS(b);
+        END_PROGRAM",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %main = type { float, double }
+
+    @main_instance = global %main zeroinitializer
+
+    define void @main(ptr %0) {
+    entry:
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      %load_a = load float, ptr %a, align [filtered]
+      %1 = call float @llvm.fabs.f32(float %load_a)
+      store float %1, ptr %a, align [filtered]
+      %load_b = load double, ptr %b, align [filtered]
+      %2 = call double @llvm.fabs.f64(double %load_b)
+      store double %2, ptr %b, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+    declare float @llvm.fabs.f32(float) #0
+
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
+    declare double @llvm.fabs.f64(double) #0
+
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
+    "#);
+}
+
+#[test]
+fn builtin_function_call_abs_unsigned_ints() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a : USINT;
+            b : UINT;
+            c : UDINT;
+            d : ULINT;
+        END_VAR
+            a := ABS(a);
+            b := ABS(b);
+            c := ABS(c);
+            d := ABS(d);
+        END_PROGRAM",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %main = type { i8, i16, i32, i64 }
+
+    @main_instance = global %main zeroinitializer
+
+    define void @main(ptr %0) {
+    entry:
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      %c = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+      %d = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+      %load_a = load i8, ptr %a, align [filtered]
+      store i8 %load_a, ptr %a, align [filtered]
+      %load_b = load i16, ptr %b, align [filtered]
+      store i16 %load_b, ptr %b, align [filtered]
+      %load_c = load i32, ptr %c, align [filtered]
+      store i32 %load_c, ptr %c, align [filtered]
+      %load_d = load i64, ptr %d, align [filtered]
+      store i64 %load_d, ptr %d, align [filtered]
+      ret void
+    }
+    "#);
+}
+
+#[test]
 fn builtin_function_call_sizeof() {
     let result = codegen(
         "PROGRAM main
