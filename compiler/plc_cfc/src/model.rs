@@ -55,8 +55,8 @@ pub struct Data {
     #[serde(rename = "EvaluationPriority")]
     pub evaluation_priority: Option<EvaluationPriority>,
 
-    #[serde(rename = "negated")]
-    pub negated: Option<Negated>,
+    #[serde(rename = "Negation")]
+    pub negation: Option<Negation>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -71,10 +71,15 @@ pub struct EvaluationPriority {
     pub priority: usize,
 }
 
+// The negation bubbles on an element's connection points; an element carries
+// at most the side(s) it has pins for (e.g. a `DataSource` only `outNegated`).
 #[derive(Debug, Deserialize)]
-pub struct Negated {
-    #[serde(rename = "@value")]
-    pub value: bool,
+pub struct Negation {
+    #[serde(rename = "@inNegated", default)]
+    pub in_negated: bool,
+
+    #[serde(rename = "@outNegated", default)]
+    pub out_negated: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -258,8 +263,12 @@ impl FbdObject {
         self.inout_variables.as_ref().map_or(&[], |group| &group.pins)
     }
 
-    pub fn negated(&self) -> bool {
-        self.data(|data| data.negated.as_ref()).is_some_and(|negated| negated.value)
+    pub fn in_negated(&self) -> bool {
+        self.data(|data| data.negation.as_ref()).is_some_and(|negation| negation.in_negated)
+    }
+
+    pub fn out_negated(&self) -> bool {
+        self.data(|data| data.negation.as_ref()).is_some_and(|negation| negation.out_negated)
     }
 
     pub fn priority(&self) -> Option<usize> {

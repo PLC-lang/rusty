@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_negated_route",
+	"files" : [
+		"negated_route.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

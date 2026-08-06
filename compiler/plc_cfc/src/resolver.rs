@@ -80,11 +80,13 @@ impl<'index> Resolver<'index> {
         for object in network.elements() {
             match Role::from(object) {
                 Role::Sink => match trace(consumes(object), &survey) {
-                    // The traced source becomes the sink's assigned value.
+                    // The traced source becomes the sink's assigned value,
+                    // negated once more by the sink's own inversion bubble.
                     Trace::Reached(source) => {
                         let location = self.factory.create_block_location(object.global_id);
                         let sink = self.expression(object, &location);
                         let source = self.value(&source, &location);
+                        let source = self.negate_if(source, &location, object.in_negated());
 
                         let statement = Statement::Assignment { sink, source };
                         statements.push((object.priority(), statement));
@@ -401,23 +403,31 @@ impl<'index> Resolver<'index> {
         node
     }
 
-    // The value a source produces: a vetted plain expression, or a block-output member read.
+    // The value a source produces: a vetted plain expression, or a block-output
+    // member read; either negated by the producer's inversion bubble.
     fn value(&mut self, source: &Source, location: &SourceLocation) -> AstNode {
         match source {
-            Source::Variable(object) => self.expression(object, location),
+            Source::Variable(object) => {
+                let node = self.expression(object, location);
+                self.negate_if(node, location, object.out_negated())
+            }
             Source::Output { block, pin } => self.member_read(block, pin, location),
         }
     }
 
-    // Creates an AST node, wrapped in a NOT expression if the consumer is negated in the graph.
+    // Creates an AST node, wrapped in a NOT expression for each inversion
+    // bubble on the wire: the producer's, then the consumer's on top.
     fn condition(&mut self, consumer: &FbdObject, source: &Source, location: &SourceLocation) -> AstNode {
         // Unvetted; a condition may be any ST expression.
         let node = match source {
-            Source::Variable(object) => self.parse(object, location),
+            Source::Variable(object) => {
+                let node = self.parse(object, location);
+                self.negate_if(node, location, object.out_negated())
+            }
             Source::Output { block, pin } => self.member_read(block, pin, location),
         };
 
-        self.negate_if(node, location, consumer.negated())
+        self.negate_if(node, location, consumer.in_negated())
     }
 
     fn member_read(&mut self, block: &FbdObject, pin: &Pin, location: &SourceLocation) -> AstNode {
@@ -724,6 +734,21 @@ mod tests {
         }
 
         #[test]
+        fn negated_source() {
+            insta::assert_snapshot!(resolve_project("variables/valid/negated_source"), @"bar := NOT foo");
+        }
+
+        #[test]
+        fn negated_sink() {
+            insta::assert_snapshot!(resolve_project("variables/valid/negated_sink"), @"bar := NOT foo");
+        }
+
+        #[test]
+        fn negated_both() {
+            insta::assert_snapshot!(resolve_project("variables/valid/negated_both"), @"bar := NOT NOT foo");
+        }
+
+        #[test]
         fn unconnected_variables() {
             insta::assert_snapshot!(resolve_project("variables/valid/unconnected_variables"), @"bar := foo");
             insta::assert_snapshot!(diagnostics("variables/valid/unconnected_variables"), @r"
@@ -761,6 +786,21 @@ mod tests {
         fn unused_is_quiet() {
             insta::assert_snapshot!(diagnostics("connectors/valid/unused"), @"");
         }
+
+        #[test]
+        fn negated_source() {
+            insta::assert_snapshot!(resolve_project("connectors/valid/negated_source"), @"bar := NOT foo");
+        }
+
+        #[test]
+        fn negated_sink() {
+            insta::assert_snapshot!(resolve_project("connectors/valid/negated_sink"), @"bar := NOT foo");
+        }
+
+        #[test]
+        fn negated_both() {
+            insta::assert_snapshot!(resolve_project("connectors/valid/negated_both"), @"bar := NOT NOT foo");
+        }
     }
 
     mod returns {
@@ -774,6 +814,16 @@ mod tests {
         #[test]
         fn negated_return() {
             insta::assert_snapshot!(resolve_project("returns/valid/negated_return"), @"RETURN NOT myCondition");
+        }
+
+        #[test]
+        fn negated_return_source() {
+            insta::assert_snapshot!(resolve_project("returns/valid/negated_return_source"), @"RETURN NOT myCondition");
+        }
+
+        #[test]
+        fn negated_return_both() {
+            insta::assert_snapshot!(resolve_project("returns/valid/negated_return_both"), @"RETURN NOT NOT myCondition");
         }
     }
 
@@ -793,6 +843,22 @@ mod tests {
         fn negated_jump() {
             insta::assert_snapshot!(resolve_project("jumps/valid/negated_jump"), @r"
             JMP skipAssignment IF NOT myCondition
+            y := x
+            LABEL skipAssignment");
+        }
+
+        #[test]
+        fn negated_jump_source() {
+            insta::assert_snapshot!(resolve_project("jumps/valid/negated_jump_source"), @r"
+            JMP skipAssignment IF NOT myCondition
+            y := x
+            LABEL skipAssignment");
+        }
+
+        #[test]
+        fn negated_jump_both() {
+            insta::assert_snapshot!(resolve_project("jumps/valid/negated_jump_both"), @r"
+            JMP skipAssignment IF NOT NOT myCondition
             y := x
             LABEL skipAssignment");
         }
@@ -877,6 +943,43 @@ mod tests {
         #[test]
         fn program_feedback() {
             insta::assert_snapshot!(resolve_project("blocks/valid/program_feedback"), @"counter(in := counter.out)");
+        }
+
+        #[test]
+        fn fb_pins() {
+            insta::assert_snapshot!(resolve_project("blocks/valid/fb_pins"), @r"
+            inst(in := NOT a1)
+            b1 := NOT inst.out");
+        }
+
+        #[test]
+        fn function_pins() {
+            insta::assert_snapshot!(resolve_project("blocks/valid/function_pins"), @r"
+            __out_myAdd_1 := myAdd(IN1 := NOT a1, IN2 := a2, myAddDoubled => __out_myAddDoubled_1)
+            b2 := NOT __out_myAddDoubled_1
+            b1 := NOT __out_myAdd_1");
+        }
+
+        #[test]
+        fn function_args() {
+            insta::assert_snapshot!(resolve_project("blocks/valid/function_args"), @r"
+            __out_myAdd_1 := myAdd(in1 := NOT NOT a1, in2 := NOT a2, myAddDoubled => __out_myAddDoubled_1)
+            b1 := NOT NOT __out_myAdd_1
+            b2 := NOT __out_myAddDoubled_1");
+        }
+
+        #[test]
+        fn variadic_negated() {
+            insta::assert_snapshot!(resolve_project("blocks/valid/variadic_negated"), @r"
+            __out_ADD_1 := ADD(NOT a1, NOT a2, NOT NOT a3)
+            b1 := __out_ADD_1");
+        }
+
+        #[test]
+        fn function_inout_negated() {
+            insta::assert_snapshot!(resolve_project("blocks/invalid/function_inout_negated"), @r"
+            __out_addInto_1 := addInto(delta := a1, acc := NOT NOT acc1)
+            b1 := __out_addInto_1");
         }
 
         #[test]
