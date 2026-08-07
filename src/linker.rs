@@ -38,12 +38,12 @@ impl From<Option<&str>> for LinkerType {
 }
 
 impl Linker {
-    pub fn new(target: &str, linker: LinkerType) -> Result<Linker, LinkerError> {
+    pub fn new(target: &str, sysroot: Option<&str>, linker: LinkerType) -> Result<Linker, LinkerError> {
         Ok(Linker {
             errors: Vec::default(),
             linker: match linker {
-                LinkerType::Internal => Box::new(resolve_internal_linker(target)?),
-                LinkerType::External(linker) => Box::new(resolve_external_linker(target, &linker)?),
+                LinkerType::Internal => Box::new(resolve_internal_linker(target, sysroot)?),
+                LinkerType::External(linker) => Box::new(resolve_external_linker(target, sysroot, &linker)?),
                 LinkerType::Test(linker) => Box::new(linker),
             },
         })
@@ -155,17 +155,17 @@ impl Linker {
 }
 
 /// Resolve the internal linker in this order: `cc` -> `clang` -> `ld.lld` -> `ld`.
-fn resolve_internal_linker(target: &str) -> Result<CcLinker, LinkerError> {
+fn resolve_internal_linker(target: &str, sysroot: Option<&str>) -> Result<CcLinker, LinkerError> {
     log::debug!("Resolving internal linker for target `{target}`");
 
     // Prefer compiler drivers for correct default platform setup.
     if which("cc").is_ok() {
         log::trace!("Candidate linker available: cc");
-        return resolve_driver_linker("cc", target).or_else(|err| {
+        return resolve_driver_linker("cc", target, sysroot).or_else(|err| {
             log::debug!("cc rejected for target `{target}`: {err:?}");
             if which("clang").is_ok() {
                 log::trace!("Falling back to clang");
-                resolve_driver_linker("clang", target).or_else(|err| {
+                resolve_driver_linker("clang", target, sysroot).or_else(|err| {
                     log::debug!("clang rejected for target `{target}`: {err:?}");
                     resolve_direct_linker_fallback()
                 })
@@ -178,7 +178,7 @@ fn resolve_internal_linker(target: &str) -> Result<CcLinker, LinkerError> {
 
     if which("clang").is_ok() {
         log::trace!("cc unavailable, trying clang");
-        return resolve_driver_linker("clang", target).or_else(|err| {
+        return resolve_driver_linker("clang", target, sysroot).or_else(|err| {
             log::debug!("clang rejected for target `{target}`: {err:?}");
             resolve_direct_linker_fallback()
         });
@@ -192,11 +192,15 @@ fn resolve_internal_linker(target: &str) -> Result<CcLinker, LinkerError> {
 ///
 /// Driver-like linkers (e.g. `cc`, `clang`, `gcc`) get driver semantics,
 /// all others are treated as direct linkers.
-fn resolve_external_linker(target: &str, linker: &str) -> Result<CcLinker, LinkerError> {
+fn resolve_external_linker(
+    target: &str,
+    sysroot: Option<&str>,
+    linker: &str,
+) -> Result<CcLinker, LinkerError> {
     log::debug!("Resolving external linker `{linker}` for target `{target}`");
     if is_driver_linker(linker) {
         log::trace!("External linker `{linker}` detected as compiler-driver linker");
-        resolve_driver_linker(linker, target)
+        resolve_driver_linker(linker, target, sysroot)
     } else {
         log::trace!("External linker `{linker}` treated as direct linker");
         Ok(CcLinker::new(linker))
@@ -231,7 +235,7 @@ fn is_driver_linker(linker: &str) -> bool {
 }
 
 /// Resolve a compiler-driver linker and compute default pre-arguments.
-fn resolve_driver_linker(linker: &str, target: &str) -> Result<CcLinker, LinkerError> {
+fn resolve_driver_linker(linker: &str, target: &str, sysroot: Option<&str>) -> Result<CcLinker, LinkerError> {
     if which(linker).is_err() {
         log::debug!("Requested driver linker `{linker}` is not available on PATH");
         return Err(LinkerError::Link(format!("Linker not found: {linker}")));
@@ -241,7 +245,7 @@ fn resolve_driver_linker(linker: &str, target: &str) -> Result<CcLinker, LinkerE
     let cross_target = !target_matches_host(target);
     log::trace!("Driver linker `{linker}` cross-target={cross_target} target=`{target}`");
 
-    if supports_target_flag(linker, target, &pre_args) {
+    if supports_target_flag(linker, target, sysroot, &pre_args) {
         pre_args.push(format!("--target={target}"));
         log::trace!("Driver linker `{linker}` supports --target; added target flag");
     } else if cross_target {
@@ -269,6 +273,24 @@ fn default_driver_pre_args() -> Vec<String> {
     args
 }
 
+/// Assemble the argument list for the driver-support probe.
+///
+/// The probe must carry the flags of the real link that decide whether the target's
+/// crt files and libc resolve — most importantly the sysroot: a cross link (e.g.
+/// Windows host, `linux-gnu` target) can never succeed without it, and omitting it
+/// would reject a perfectly usable driver.
+fn probe_args(target: &str, sysroot: Option<&str>, pre_args: &[String]) -> Vec<String> {
+    let null_output = if cfg!(windows) { "NUL" } else { "/dev/null" };
+
+    let mut args = vec![format!("--target={target}")];
+    if let Some(sysroot) = sysroot {
+        args.push(format!("--sysroot={sysroot}"));
+    }
+    args.extend(pre_args.iter().cloned());
+    args.extend(["-x", "c", "-o", null_output, "-"].map(String::from));
+    args
+}
+
 /// Probe whether a driver linker can actually compile **and link** for `target`.
 ///
 /// The probe includes `pre_args` (e.g. `-fuse-ld=lld`) so that it tests the same
@@ -276,17 +298,14 @@ fn default_driver_pre_args() -> Vec<String> {
 /// program *without* `-nostdlib` so the probe also verifies that the target's
 /// sysroot (crt files, libc, etc.) is available — matching what a real link will
 /// need.
-fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool {
+fn supports_target_flag(linker: &str, target: &str, sysroot: Option<&str>, pre_args: &[String]) -> bool {
     use std::time::{Duration, Instant};
 
-    let null_output = if cfg!(windows) { "NUL" } else { "/dev/null" };
     let probe_src = "int main(){return 0;}";
     let timeout = Duration::from_secs(10);
 
     let supported = Command::new(linker)
-        .arg(format!("--target={target}"))
-        .args(pre_args)
-        .args(["-x", "c", "-o", null_output, "-"])
+        .args(probe_args(target, sysroot, pre_args))
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -318,7 +337,7 @@ fn supports_target_flag(linker: &str, target: &str, pre_args: &[String]) -> bool
         .unwrap_or(false);
 
     log::trace!(
-        "supports_target_flag(linker=`{linker}`, target=`{target}`, pre_args={pre_args:?}) => {supported}"
+        "supports_target_flag(linker=`{linker}`, target=`{target}`, sysroot={sysroot:?}, pre_args={pre_args:?}) => {supported}"
     );
     supported
 }
@@ -759,7 +778,7 @@ fn quote_response_file_arg(arg: &str) -> String {
 
 #[cfg(test)]
 mod test {
-    use crate::linker::{CcLinker, Linker, LinkerInterface, LinkerType};
+    use crate::linker::{probe_args, resolve_external_linker, CcLinker, Linker, LinkerInterface, LinkerType};
 
     #[test]
     fn windows_target_triple_should_result_in_ok() {
@@ -777,7 +796,7 @@ mod test {
             "i686-windows-gnu",
             "i686-win32-gnu",
         ] {
-            assert!(Linker::new(target, LinkerType::Internal).is_ok());
+            assert!(Linker::new(target, None, LinkerType::Internal).is_ok());
         }
     }
 
@@ -786,7 +805,7 @@ mod test {
         for target in
             &["x86_64-linux-gnu", "x86_64-pc-linux-gnu", "x86_64-unknown-linux-gnu", "aarch64-apple-darwin"]
         {
-            assert!(Linker::new(target, LinkerType::Internal).is_ok());
+            assert!(Linker::new(target, None, LinkerType::Internal).is_ok());
         }
     }
 
@@ -830,6 +849,60 @@ mod test {
         let mut linker = CcLinker::new("ld.lld");
         linker.add_lib(":libfoo.so.1");
         assert_eq!(linker.command_args(), vec!["-l:libfoo.so.1"]);
+    }
+
+    #[test]
+    fn probe_args_include_sysroot_when_present() {
+        let args = probe_args("x86_64-linux-gnu", Some("/sysroots/amd64"), &["-fuse-ld=lld".to_string()]);
+        assert_eq!(args[0], "--target=x86_64-linux-gnu");
+        assert_eq!(args[1], "--sysroot=/sysroots/amd64");
+        assert_eq!(args[2], "-fuse-ld=lld");
+    }
+
+    #[test]
+    fn probe_args_omit_sysroot_when_absent() {
+        let args = probe_args("x86_64-linux-gnu", None, &[]);
+        assert_eq!(args[0], "--target=x86_64-linux-gnu");
+        assert!(!args.iter().any(|it| it.starts_with("--sysroot")));
+    }
+
+    /// Cross-compilation resolution: a driver that can only link the target when given a
+    /// sysroot (the Windows-host/linux-target case) must be selected when the build supplies
+    /// one, and rejected when it does not.
+    #[cfg(unix)]
+    #[test]
+    fn cross_target_driver_resolution_depends_on_sysroot_in_probe() {
+        use std::os::unix::fs::PermissionsExt;
+
+        // A stand-in driver: the probe link succeeds only when a sysroot is passed. The name
+        // must contain `clang` so it classifies as a compiler-driver linker.
+        let dir = tempfile::tempdir().unwrap();
+        let script = dir.path().join("fake-clang");
+        std::fs::write(
+            &script,
+            r#"#!/bin/sh
+for arg in "$@"; do
+  case "$arg" in
+    --sysroot=*) exit 0 ;;
+  esac
+done
+exit 1
+"#,
+        )
+        .unwrap();
+        std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+        let script = script.to_string_lossy();
+
+        // The target arch never matches the host, so resolution must go through the probe.
+        let target = "imaginary-arch-linux-gnu";
+
+        // With a sysroot the probe passes and the driver is selected with the target flag.
+        let linker = resolve_external_linker(target, Some("/sysroots/amd64"), &script)
+            .expect("driver must be accepted when the probe carries the sysroot");
+        assert!(linker.command_args().contains(&format!("--target={target}")));
+
+        // Without a sysroot the probe link fails and the cross-target driver is rejected.
+        assert!(resolve_external_linker(target, None, &script).is_err());
     }
 
     use crate::linker::{diagnose_spawn_error, LinkerError};
