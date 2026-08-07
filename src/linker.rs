@@ -279,15 +279,18 @@ fn default_driver_pre_args() -> Vec<String> {
 /// crt files and libc resolve — most importantly the sysroot: a cross link (e.g.
 /// Windows host, `linux-gnu` target) can never succeed without it, and omitting it
 /// would reject a perfectly usable driver.
-fn probe_args(target: &str, sysroot: Option<&str>, pre_args: &[String]) -> Vec<String> {
-    let null_output = if cfg!(windows) { "NUL" } else { "/dev/null" };
-
+///
+/// `output` must likewise be a path the linker can actually create. The null device is
+/// *not* usable: on Windows `ld.lld` treats `-o NUL` as a regular file and fails with
+/// "failed to write output 'NUL': permission denied", which would again reject an
+/// otherwise-capable driver.
+fn probe_args(target: &str, sysroot: Option<&str>, pre_args: &[String], output: &str) -> Vec<String> {
     let mut args = vec![format!("--target={target}")];
     if let Some(sysroot) = sysroot {
         args.push(format!("--sysroot={sysroot}"));
     }
     args.extend(pre_args.iter().cloned());
-    args.extend(["-x", "c", "-o", null_output, "-"].map(String::from));
+    args.extend(["-x", "c", "-o", output, "-"].map(String::from));
     args
 }
 
@@ -304,8 +307,19 @@ fn supports_target_flag(linker: &str, target: &str, sysroot: Option<&str>, pre_a
     let probe_src = "int main(){return 0;}";
     let timeout = Duration::from_secs(10);
 
+    // The probe must link to a real, writable path — see `probe_args`.
+    let probe_dir = match tempfile::tempdir() {
+        Ok(dir) => dir,
+        Err(err) => {
+            log::debug!("supports_target_flag: could not create probe directory: {err}");
+            return false;
+        }
+    };
+    let probe_out = probe_dir.path().join("plc-linker-probe.out");
+    let probe_out = probe_out.to_string_lossy().to_string();
+
     let supported = Command::new(linker)
-        .args(probe_args(target, sysroot, pre_args))
+        .args(probe_args(target, sysroot, pre_args, &probe_out))
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -853,56 +867,124 @@ mod test {
 
     #[test]
     fn probe_args_include_sysroot_when_present() {
-        let args = probe_args("x86_64-linux-gnu", Some("/sysroots/amd64"), &["-fuse-ld=lld".to_string()]);
+        let args = probe_args(
+            "x86_64-linux-gnu",
+            Some("/sysroots/amd64"),
+            &["-fuse-ld=lld".to_string()],
+            "/tmp/p.out",
+        );
         assert_eq!(args[0], "--target=x86_64-linux-gnu");
         assert_eq!(args[1], "--sysroot=/sysroots/amd64");
         assert_eq!(args[2], "-fuse-ld=lld");
     }
 
+    /// The probe's `-o` operand must be the caller-supplied path, never a null device.
+    /// See `probe_does_not_link_to_the_null_device` for the behavioural counterpart.
+    #[test]
+    fn probe_args_never_target_the_null_device() {
+        let args = probe_args("x86_64-linux-gnu", Some("/sysroots/amd64"), &[], "/tmp/probe.out");
+
+        let output_idx = args.iter().position(|it| it == "-o").expect("probe must pass -o") + 1;
+        assert_eq!(args[output_idx], "/tmp/probe.out");
+        assert!(!args.iter().any(|it| it == "NUL" || it == "/dev/null"));
+    }
+
     #[test]
     fn probe_args_omit_sysroot_when_absent() {
-        let args = probe_args("x86_64-linux-gnu", None, &[]);
+        let args = probe_args("x86_64-linux-gnu", None, &[], "/tmp/p.out");
         assert_eq!(args[0], "--target=x86_64-linux-gnu");
         assert!(!args.iter().any(|it| it.starts_with("--sysroot")));
+    }
+
+    /// What a stand-in compiler driver accepts, so a probe can be steered from a test.
+    enum FakeDriver {
+        /// Exits 0 only when the probe passes a `--sysroot=`.
+        RequiresSysroot,
+        /// Exits 0 only when the probe's output path is *not* a null device.
+        RejectsNullOutput,
+    }
+
+    /// Write a stand-in compiler driver and return its path.
+    ///
+    /// The file name contains `clang` so `is_driver_linker` classifies it as a compiler
+    /// driver. Both host families are covered: a POSIX shell script on unix, a batch file
+    /// on Windows — the Windows variant matters most here, since the null-device defect
+    /// this guards against is Windows-specific.
+    fn write_fake_driver(dir: &Path, behaviour: FakeDriver) -> String {
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+
+            let body = match behaviour {
+                FakeDriver::RequiresSysroot => {
+                    "for arg in \"$@\"; do\n  case \"$arg\" in --sysroot=*) exit 0 ;; esac\ndone\nexit 1\n"
+                }
+                FakeDriver::RejectsNullOutput => {
+                    "prev=\"\"\nfor arg in \"$@\"; do\n  if [ \"$prev\" = \"-o\" ]; then\n    case \"$arg\" in /dev/null|NUL) exit 1 ;; esac\n  fi\n  prev=\"$arg\"\ndone\nexit 0\n"
+                }
+            };
+
+            let script = dir.join("fake-clang");
+            std::fs::write(&script, format!("#!/bin/sh\n{body}")).unwrap();
+            std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+            script.to_string_lossy().into_owned()
+        }
+
+        #[cfg(windows)]
+        {
+            // `findstr` sets errorlevel 1 when the pattern is absent.
+            let body = match behaviour {
+                FakeDriver::RequiresSysroot => {
+                    "echo %* | findstr /C:\"--sysroot=\" >nul\r\nif errorlevel 1 exit /b 1\r\nexit /b 0\r\n"
+                }
+                FakeDriver::RejectsNullOutput => {
+                    "echo %* | findstr /C:\"-o NUL\" /C:\"-o /dev/null\" >nul\r\nif errorlevel 1 exit /b 0\r\nexit /b 1\r\n"
+                }
+            };
+
+            let script = dir.join("fake-clang.bat");
+            std::fs::write(&script, format!("@echo off\r\n{body}")).unwrap();
+            script.to_string_lossy().into_owned()
+        }
     }
 
     /// Cross-compilation resolution: a driver that can only link the target when given a
     /// sysroot (the Windows-host/linux-target case) must be selected when the build supplies
     /// one, and rejected when it does not.
-    #[cfg(unix)]
     #[test]
     fn cross_target_driver_resolution_depends_on_sysroot_in_probe() {
-        use std::os::unix::fs::PermissionsExt;
-
-        // A stand-in driver: the probe link succeeds only when a sysroot is passed. The name
-        // must contain `clang` so it classifies as a compiler-driver linker.
         let dir = tempfile::tempdir().unwrap();
-        let script = dir.path().join("fake-clang");
-        std::fs::write(
-            &script,
-            r#"#!/bin/sh
-for arg in "$@"; do
-  case "$arg" in
-    --sysroot=*) exit 0 ;;
-  esac
-done
-exit 1
-"#,
-        )
-        .unwrap();
-        std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
-        let script = script.to_string_lossy();
+        let driver = write_fake_driver(dir.path(), FakeDriver::RequiresSysroot);
 
         // The target arch never matches the host, so resolution must go through the probe.
         let target = "imaginary-arch-linux-gnu";
 
         // With a sysroot the probe passes and the driver is selected with the target flag.
-        let linker = resolve_external_linker(target, Some("/sysroots/amd64"), &script)
+        let linker = resolve_external_linker(target, Some("/sysroots/amd64"), &driver)
             .expect("driver must be accepted when the probe carries the sysroot");
         assert!(linker.command_args().contains(&format!("--target={target}")));
 
         // Without a sysroot the probe link fails and the cross-target driver is rejected.
-        assert!(resolve_external_linker(target, None, &script).is_err());
+        assert!(resolve_external_linker(target, None, &driver).is_err());
+    }
+
+    /// Regression: the probe must link to a real, writable path.
+    ///
+    /// It previously linked to the null device (`NUL` on Windows, `/dev/null` elsewhere).
+    /// `ld.lld` treats `-o NUL` as an ordinary file and fails with "failed to write output
+    /// 'NUL': permission denied", so on a Windows host the probe rejected every otherwise
+    /// capable driver and resolution silently fell back to a direct linker — which carries
+    /// no default libraries and left `libc` symbols undefined.
+    #[test]
+    fn probe_does_not_link_to_the_null_device() {
+        let dir = tempfile::tempdir().unwrap();
+        let driver = write_fake_driver(dir.path(), FakeDriver::RejectsNullOutput);
+
+        let target = "imaginary-arch-linux-gnu";
+
+        let linker = resolve_external_linker(target, Some("/sysroots/amd64"), &driver)
+            .expect("probe must not use the null device as its output path");
+        assert!(linker.command_args().contains(&format!("--target={target}")));
     }
 
     use crate::linker::{diagnose_spawn_error, LinkerError};
