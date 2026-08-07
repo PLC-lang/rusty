@@ -57,6 +57,9 @@ pub struct Data {
 
     #[serde(rename = "Negation")]
     pub negation: Option<Negation>,
+
+    #[serde(rename = "StorageMode")]
+    pub storage_mode: Option<StorageMode>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -80,6 +83,20 @@ pub struct Negation {
 
     #[serde(rename = "@outNegated", default)]
     pub out_negated: bool,
+}
+
+// The Set/Reset latch behavior on a data sink: the incoming value no longer
+// assigns but guards a constant `TRUE` (Set) or `FALSE` (Reset) store.
+#[derive(Debug, Deserialize)]
+pub struct StorageMode {
+    #[serde(rename = "@mode")]
+    pub mode: Storage,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub enum Storage {
+    Set,
+    Reset,
 }
 
 #[derive(Debug, Deserialize)]
@@ -273,6 +290,10 @@ impl FbdObject {
 
     pub fn priority(&self) -> Option<usize> {
         self.data(|data| data.evaluation_priority.as_ref()).map(|priority| priority.priority)
+    }
+
+    pub fn storage(&self) -> Option<Storage> {
+        self.data(|data| data.storage_mode.as_ref()).map(|storage| storage.mode)
     }
 
     // `AddData` interleaves its payloads across several `Data` entries.

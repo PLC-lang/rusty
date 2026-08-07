@@ -88,7 +88,7 @@ impl<'index> Resolver<'index> {
                         let source = self.value(&source, &location);
                         let source = self.negate_if(source, &location, object.in_negated());
 
-                        let statement = Statement::Assignment { sink, source };
+                        let statement = Statement::Assignment { sink, source, storage: object.storage() };
                         statements.push((object.priority(), statement));
                     }
 
@@ -641,7 +641,7 @@ mod tests {
     use plc_ast::provider::IdProvider;
     use plc_ast::ser::AstSerializer;
 
-    use crate::model::Pou;
+    use crate::model::{Pou, Storage};
     use crate::network::{Argument, Network, Statement};
     use crate::test_utils::fixture_source;
 
@@ -662,8 +662,19 @@ mod tests {
             .statements
             .iter()
             .map(|statement| match statement {
-                Statement::Assignment { sink, source } => {
+                Statement::Assignment { sink, source, storage: None } => {
                     format!("{} := {}", AstSerializer::format(sink), AstSerializer::format(source))
+                }
+                Statement::Assignment { sink, source, storage: Some(storage) } => {
+                    let value = match storage {
+                        Storage::Set => "TRUE",
+                        Storage::Reset => "FALSE",
+                    };
+                    format!(
+                        "IF {} THEN {} := {value}",
+                        AstSerializer::format(source),
+                        AstSerializer::format(sink)
+                    )
                 }
                 Statement::Return { condition, .. } => {
                     format!("RETURN {}", AstSerializer::format(condition))
@@ -746,6 +757,25 @@ mod tests {
         #[test]
         fn negated_both() {
             insta::assert_snapshot!(resolve_project("variables/valid/negated_both"), @"bar := NOT NOT foo");
+        }
+
+        #[test]
+        fn storage_set() {
+            insta::assert_snapshot!(resolve_project("variables/valid/storage_set"), @"IF a THEN b := TRUE");
+        }
+
+        #[test]
+        fn storage_reset() {
+            insta::assert_snapshot!(resolve_project("variables/valid/storage_reset"), @"IF a THEN b := FALSE");
+        }
+
+        #[test]
+        fn storage_negated() {
+            insta::assert_snapshot!(resolve_project("variables/valid/storage_negated"), @r"
+            IF a THEN b := TRUE
+            IF NOT a THEN b := TRUE
+            IF NOT a THEN b := FALSE
+            IF NOT NOT a THEN b := TRUE");
         }
 
         #[test]
