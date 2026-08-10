@@ -16,7 +16,7 @@ END_VAR
                 <ppx:FbdObject xsi:type="bmx:CfcJump" targetLabel="skipAssignment" globalId="1">
                     <ppx:AddData>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
-                            <negated value="false"/>
+                            <bmx:Negation inNegated="false"/>
                         </ppx:Data>
                         <ppx:Data name="http://www.bachmann.at/xml/PLC" handleUnknown="implementation">
                             <EvaluationPriority priorityInNetwork="0"/>

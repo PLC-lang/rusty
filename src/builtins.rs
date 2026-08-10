@@ -1,7 +1,7 @@
 use inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
-    values::{BasicValue, IntValue},
+    values::{BasicValue, IntValue, ValueKind},
 };
 use lazy_static::lazy_static;
 use plc_ast::{
@@ -466,6 +466,88 @@ lazy_static! {
                 generic_name_resolver,
                 code: |_, _, _| {
                     unreachable!("DIV is not generated as a function call");
+                }
+            }
+        ),
+        (
+            "ABS",
+            BuiltIn {
+                decl: "FUNCTION ABS<T: ANY_NUM> : T
+                VAR_INPUT
+                    IN : T;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: None,
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_count(validator, operator, &parameters, 1);
+
+                    // ABS of an unsigned value returns the value unchanged, such a call is
+                    // almost always a mistake (e.g. an argument expression that underflowed)
+                    let Some(param) = parameters.map(flatten_expression_list).and_then(|it| it.first().copied()) else {
+                        return;
+                    };
+                    let param = extract_actual_parameter(param);
+
+                    // arguments whose actual type does not satisfy ANY_NUM already report E062,
+                    // stay silent for those
+                    if !annotations.get_type(param, index).is_some_and(|it| it.has_nature(TypeNature::Num, index)) {
+                        return;
+                    }
+
+                    // the argument's type hint carries the concrete type derived for T
+                    let Some(data_type) = annotations.get_type_hint(param, index).or_else(|| annotations.get_type(param, index)) else {
+                        return;
+                    };
+
+                    if index.get_intrinsic_type(data_type).get_type_information().is_unsigned_int() {
+                        validator.push_diagnostic(
+                            Diagnostic::new(format!(
+                                "ABS on a value of unsigned type '{}' has no effect",
+                                data_type.get_name()
+                            ))
+                            .with_error_code("E150")
+                            .with_location(operator),
+                        );
+                    }
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, location| {
+                    let [param] = params else {
+                        return Err(Diagnostic::codegen_error("Expected exactly one parameter for ABS", location).into());
+                    };
+                    let param = extract_actual_parameter(param);
+
+                    // the argument's type hint carries the concrete type derived for T
+                    let type_info = generator.index.get_intrinsic_type_information(generator.get_type_hint_info_for(param)?);
+                    let value = generator.generate_expression(param)?;
+
+                    // |x| = x for unsigned values
+                    if type_info.is_unsigned_int() {
+                        return Ok(ExpressionValue::RValue(value));
+                    }
+
+                    // pick the intrinsic by type; is_int_min_poison = false, so ABS(INT_MIN) wraps to INT_MIN
+                    let is_int_min_poison = generator.llvm.context.bool_type().const_zero();
+                    let (intrinsic, arguments) = if type_info.is_signed_int() {
+                        ("llvm.abs", vec![value.into(), is_int_min_poison.into()])
+                    } else if type_info.is_float() {
+                        ("llvm.fabs", vec![value.into()])
+                    } else {
+                        return Err(Diagnostic::codegen_error(
+                            format!("Cannot generate ABS for type {}", type_info.get_name()),
+                            location,
+                        ).into());
+                    };
+
+                    let declaration = generator.llvm.get_intrinsic_declaration(intrinsic, &[value.get_type()])?;
+                    match generator.llvm.builder.build_call(declaration, &arguments, "")?.try_as_basic_value() {
+                        ValueKind::Basic(value) => Ok(ExpressionValue::RValue(value)),
+                        ValueKind::Instruction(_) => Err(Diagnostic::codegen_error(
+                            format!("Invalid result for intrinsic {intrinsic}"),
+                            location,
+                        ).into()),
+                    }
                 }
             }
         ),

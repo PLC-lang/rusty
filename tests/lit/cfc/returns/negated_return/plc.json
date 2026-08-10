@@ -1,0 +1,11 @@
+{
+	"name" : "cfc_negated_return",
+	"files" : [
+		"negated_return.cfc",
+		"main.st",
+		"../../../util/printf.pli"
+	],
+	"compile_type" : "Static",
+	"output" : "app",
+	"libraries" : []
+}

@@ -193,6 +193,42 @@ mod tests {
             bar := foo;
         END_FUNCTION");
         }
+
+        #[test]
+        fn negated_source() {
+            insta::assert_snapshot!(transpile_project("variables/valid/negated_source").unwrap(), @r"
+        PROGRAM negated_source
+        VAR
+            foo : BOOL;
+            bar : BOOL;
+        END_VAR
+            bar := NOT foo;
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn negated_sink() {
+            insta::assert_snapshot!(transpile_project("variables/valid/negated_sink").unwrap(), @r"
+        PROGRAM negated_sink
+        VAR
+            foo : BOOL;
+            bar : BOOL;
+        END_VAR
+            bar := NOT foo;
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn negated_both() {
+            insta::assert_snapshot!(transpile_project("variables/valid/negated_both").unwrap(), @r"
+        PROGRAM negated_both
+        VAR
+            foo : BOOL;
+            bar : BOOL;
+        END_VAR
+            bar := NOT NOT foo;
+        END_PROGRAM");
+        }
     }
 
     mod returns {
@@ -217,6 +253,28 @@ mod tests {
             myCondition : BOOL;
         END_VAR
             IF NOT myCondition THEN RETURN; END_IF;
+        END_FUNCTION");
+        }
+
+        #[test]
+        fn negated_return_source() {
+            insta::assert_snapshot!(transpile_project("returns/valid/negated_return_source").unwrap(), @r"
+        FUNCTION negated_return_source : INT
+        VAR
+            myCondition : BOOL;
+        END_VAR
+            IF NOT myCondition THEN RETURN; END_IF;
+        END_FUNCTION");
+        }
+
+        #[test]
+        fn negated_return_both() {
+            insta::assert_snapshot!(transpile_project("returns/valid/negated_return_both").unwrap(), @r"
+        FUNCTION negated_return_both : INT
+        VAR
+            myCondition : BOOL;
+        END_VAR
+            IF NOT NOT myCondition THEN RETURN; END_IF;
         END_FUNCTION");
         }
     }
@@ -249,6 +307,36 @@ mod tests {
             myCondition : BOOL;
         END_VAR
             IF NOT myCondition THEN GOTO skipAssignment;
+            y := x;
+            LABEL: skipAssignment
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn negated_jump_source() {
+            insta::assert_snapshot!(transpile_project("jumps/valid/negated_jump_source").unwrap(), @r"
+        PROGRAM negated_jump_source
+        VAR
+            x : DINT;
+            y : DINT;
+            myCondition : BOOL;
+        END_VAR
+            IF NOT myCondition THEN GOTO skipAssignment;
+            y := x;
+            LABEL: skipAssignment
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn negated_jump_both() {
+            insta::assert_snapshot!(transpile_project("jumps/valid/negated_jump_both").unwrap(), @r"
+        PROGRAM negated_jump_both
+        VAR
+            x : DINT;
+            y : DINT;
+            myCondition : BOOL;
+        END_VAR
+            IF NOT NOT myCondition THEN GOTO skipAssignment;
             y := x;
             LABEL: skipAssignment
         END_PROGRAM");
@@ -358,6 +446,42 @@ mod tests {
             foo : DINT;
             bar : DINT;
         END_VAR
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn negated_source() {
+            insta::assert_snapshot!(transpile_project("connectors/valid/negated_source").unwrap(), @r"
+        PROGRAM negated_source
+        VAR
+            foo : BOOL;
+            bar : BOOL;
+        END_VAR
+            bar := NOT foo;
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn negated_sink() {
+            insta::assert_snapshot!(transpile_project("connectors/valid/negated_sink").unwrap(), @r"
+        PROGRAM negated_sink
+        VAR
+            foo : BOOL;
+            bar : BOOL;
+        END_VAR
+            bar := NOT foo;
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn negated_both() {
+            insta::assert_snapshot!(transpile_project("connectors/valid/negated_both").unwrap(), @r"
+        PROGRAM negated_both
+        VAR
+            foo : BOOL;
+            bar : BOOL;
+        END_VAR
+            bar := NOT NOT foo;
         END_PROGRAM");
         }
     }
@@ -494,6 +618,20 @@ mod tests {
         END_VAR
             program_0(in := NOT localIn, inout := NOT localInOut);
             localOut := NOT program_0.out;
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn fb_pins() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/fb_pins").unwrap(), @r"
+        PROGRAM fb_pins
+        VAR
+            inst : counter;
+            a1 : DINT;
+            b1 : DINT;
+        END_VAR
+            inst(in := NOT a1);
+            b1 := NOT inst.out;
         END_PROGRAM");
         }
 
@@ -744,6 +882,65 @@ mod tests {
         }
 
         #[test]
+        fn function_pins() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/function_pins").unwrap(), @r"
+        PROGRAM function_pins
+        VAR
+            a1 : DINT;
+            a2 : DINT;
+            b1 : DINT;
+            b2 : DINT;
+        END_VAR
+        VAR
+            __out_myAdd_1 : DINT;
+            __out_myAddDoubled_1 : DINT;
+        END_VAR
+            __out_myAdd_1 := myAdd(IN1 := NOT a1, IN2 := a2, myAddDoubled => __out_myAddDoubled_1);
+            b2 := NOT __out_myAddDoubled_1;
+            b1 := NOT __out_myAdd_1;
+        END_PROGRAM");
+        }
+
+        #[test]
+        fn function_args() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/function_args").unwrap(), @r"
+        PROGRAM function_args
+        VAR
+            a1 : DINT;
+            a2 : DINT;
+            b1 : DINT;
+            b2 : DINT;
+        END_VAR
+        VAR
+            __out_myAdd_1 : DINT;
+            __out_myAddDoubled_1 : DINT;
+        END_VAR
+            __out_myAdd_1 := myAdd(in1 := NOT NOT a1, in2 := NOT a2, myAddDoubled => __out_myAddDoubled_1);
+            b1 := NOT NOT __out_myAdd_1;
+            b2 := NOT __out_myAddDoubled_1;
+        END_PROGRAM");
+        }
+
+        // Transpiles without a diagnostic; the later validation stage rejects
+        // the negated inout (E031), pinned by the lit test of the same name.
+        #[test]
+        fn function_inout_negated() {
+            insta::assert_snapshot!(transpile_project("blocks/invalid/function_inout_negated").unwrap(), @r"
+        PROGRAM function_inout_negated
+        VAR
+            a1 : DINT;
+            acc1 : DINT;
+            b1 : DINT;
+        END_VAR
+        VAR
+            __out_addInto_1 : DINT;
+        END_VAR
+            __out_addInto_1 := addInto(delta := a1, acc := NOT NOT acc1);
+            b1 := __out_addInto_1;
+        END_PROGRAM");
+        }
+
+        #[test]
         fn function_bare() {
             insta::assert_snapshot!(transpile_project("blocks/valid/function_bare").unwrap(), @r"
         PROGRAM function_bare
@@ -932,6 +1129,24 @@ mod tests {
                 result := __out_ADD_1;
             END_PROGRAM
             ");
+        }
+
+        #[test]
+        fn variadic_negated() {
+            insta::assert_snapshot!(transpile_project("blocks/valid/variadic_negated").unwrap(), @r"
+            PROGRAM variadic_negated
+            VAR
+                a1 : DINT;
+                a2 : DINT;
+                a3 : DINT;
+                b1 : DINT;
+            END_VAR
+            VAR
+                __out_ADD_1 : DINT;
+            END_VAR
+                __out_ADD_1 := ADD(NOT a1, NOT a2, NOT NOT a3);
+                b1 := __out_ADD_1;
+            END_PROGRAM");
         }
     }
 }
