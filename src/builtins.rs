@@ -469,6 +469,69 @@ lazy_static! {
                 }
             }
         ),
+        // The standard library provides no ABS implementations for unsigned types; these
+        // builtins provide them so the generic resolver binds e.g. ABS(UINT#1) to
+        // ABS__UINT instead of inventing an external declaration that nothing implements
+        (
+            "ABS__USINT",
+            BuiltIn {
+                decl: "FUNCTION ABS__USINT : USINT
+                VAR_INPUT
+                    IN : USINT;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: None,
+                validation: Some(validate_abs_unsigned_call),
+                generic_name_resolver: no_generic_name_resolver,
+                code: generate_abs_identity,
+            }
+        ),
+        (
+            "ABS__UINT",
+            BuiltIn {
+                decl: "FUNCTION ABS__UINT : UINT
+                VAR_INPUT
+                    IN : UINT;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: None,
+                validation: Some(validate_abs_unsigned_call),
+                generic_name_resolver: no_generic_name_resolver,
+                code: generate_abs_identity,
+            }
+        ),
+        (
+            "ABS__UDINT",
+            BuiltIn {
+                decl: "FUNCTION ABS__UDINT : UDINT
+                VAR_INPUT
+                    IN : UDINT;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: None,
+                validation: Some(validate_abs_unsigned_call),
+                generic_name_resolver: no_generic_name_resolver,
+                code: generate_abs_identity,
+            }
+        ),
+        (
+            "ABS__ULINT",
+            BuiltIn {
+                decl: "FUNCTION ABS__ULINT : ULINT
+                VAR_INPUT
+                    IN : ULINT;
+                END_VAR
+                END_FUNCTION
+                ",
+                annotation: None,
+                validation: Some(validate_abs_unsigned_call),
+                generic_name_resolver: no_generic_name_resolver,
+                code: generate_abs_identity,
+            }
+        ),
         // TODO: MOD and AND/OR/XOR/NOT ANY_BIT ( NOT also supports boolean ) - FIXME: these are all keywords and therefore conflicting
         (
             "GT",
@@ -1007,6 +1070,63 @@ fn validate_argument_count(
 
     if params.len() != expected {
         validator.push_diagnostic(Diagnostic::invalid_argument_count(expected, params.len(), operator));
+    }
+}
+
+/// Validates a call bound to one of the unsigned ABS builtins. ABS of an unsigned value
+/// returns the value unchanged, such a call is almost always a mistake (e.g. an argument
+/// expression that already underflowed).
+fn validate_abs_unsigned_call(
+    validator: &mut Validator,
+    operator: &AstNode,
+    parameters: Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    validate_argument_count(validator, operator, &parameters, 1);
+
+    let Some(param) = parameters.map(flatten_expression_list).and_then(|it| it.first().copied()) else {
+        return;
+    };
+    let param = extract_actual_parameter(param);
+
+    // arguments whose actual type does not satisfy ANY_NUM already report E062,
+    // stay silent for those
+    if !annotations.get_type(param, index).is_some_and(|it| it.has_nature(TypeNature::Num, index)) {
+        return;
+    }
+
+    // the argument's type hint carries the concrete type derived for T
+    let Some(data_type) =
+        annotations.get_type_hint(param, index).or_else(|| annotations.get_type(param, index))
+    else {
+        return;
+    };
+
+    if index.get_intrinsic_type(data_type).get_type_information().is_unsigned_int() {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "ABS on a value of unsigned type '{}' has no effect",
+                data_type.get_name()
+            ))
+            .with_error_code("E150")
+            .with_location(operator),
+        );
+    }
+}
+
+/// Codegen for the unsigned ABS builtins: |x| = x for unsigned values, the argument is
+/// generated as-is
+fn generate_abs_identity<'ink, 'b>(
+    generator: &'b ExpressionCodeGenerator<'ink, 'b>,
+    params: &[&AstNode],
+    location: SourceLocation,
+) -> Result<ExpressionValue<'ink>, CodegenError> {
+    if let [param] = params {
+        let param = extract_actual_parameter(param);
+        generator.generate_expression(param).map(ExpressionValue::RValue)
+    } else {
+        Err(Diagnostic::codegen_error("Expected exactly one parameter for ABS", location).into())
     }
 }
 
