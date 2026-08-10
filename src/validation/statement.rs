@@ -1138,30 +1138,32 @@ fn validate_by_ref_argument_type<T: AnnotationMap>(
         return;
     }
 
-    if arg_type.get_name() != param_type.get_name() {
-        // REFERENCE TO parameters reject any type difference. The other by-ref kinds keep
-        // the established implicit-downcast warning for a larger argument; only a smaller
-        // argument is an error, the callee would access memory beyond the argument's storage.
-        let arg_is_smaller = match (
-            arg_type.get_type_information().get_size(context.index),
-            param_type.get_type_information().get_size(context.index),
-        ) {
-            (Ok(arg_size), Ok(param_size)) => arg_size < param_size,
-            _ => false,
-        };
-
-        if param_type_info.is_reference_to() || arg_is_smaller {
-            validator.push_diagnostic(
-                Diagnostic::new(format!(
-                    "Parameter {} is passed by reference, it requires an argument of type {} but got {}",
-                    param.get_name(),
-                    validator.get_type_name_or_slice(param_type),
-                    validator.get_type_name_or_slice(arg_type)
-                ))
-                .with_error_code("E037")
-                .with_location(arg),
-            );
+    // The callee accesses the argument's storage with the parameter's type: a smaller argument
+    // is read or written beyond its bounds, a larger or equal-sized one is reinterpreted with
+    // byte-order dependent results. Require a representation match: subranges share their
+    // intrinsic type's representation and bind in both directions.
+    fn representation<'idx>(index: &'idx Index, ty: &'idx DataType) -> &'idx DataType {
+        match ty.get_type_information() {
+            DataTypeInformation::SubRange { referenced_type, .. } => {
+                index.get_effective_type_or_void_by_name(referenced_type)
+            }
+            _ => ty,
         }
+    }
+
+    if representation(context.index, arg_type).get_name()
+        != representation(context.index, param_type).get_name()
+    {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Parameter {} is passed by reference, it requires an argument of type {} but got {}",
+                param.get_name(),
+                validator.get_type_name_or_slice(param_type),
+                validator.get_type_name_or_slice(arg_type)
+            ))
+            .with_error_code("E037")
+            .with_location(arg),
+        );
     }
 }
 

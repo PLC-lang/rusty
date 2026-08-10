@@ -1621,33 +1621,68 @@ fn validate_by_ref_argument_must_have_identical_type() {
             VAR
                 d : DINT;
                 i : INT;
+                l : LINT;
+                r : REAL;
             END_VAR
 
             func(io := d, out => d); // Valid
-            func(io := i, out => d);
+            func(io := i, out => d); // Smaller argument, accessed beyond its bounds
             func(io := d, out => i);
+            func(io := l, out => d); // Larger argument, endianness-dependent reinterpretation
+            func(io := d, out => l);
+            func(io := r, out => d); // Equal size, reinterpreted bit pattern
         END_PROGRAM
         "#,
     );
 
     assert_snapshot!(&diagnostics, @"
     error[E037]: Parameter io is passed by reference, it requires an argument of type DINT but got INT
-       ┌─ <internal>:19:24
+       ┌─ <internal>:21:24
        │
-    19 │             func(io := i, out => d);
+    21 │             func(io := i, out => d); // Smaller argument, accessed beyond its bounds
        │                        ^ Parameter io is passed by reference, it requires an argument of type DINT but got INT
 
     error[E037]: Parameter out is passed by reference, it requires an argument of type DINT but got INT
-       ┌─ <internal>:20:34
+       ┌─ <internal>:22:34
        │
-    20 │             func(io := d, out => i);
+    22 │             func(io := d, out => i);
        │                                  ^ Parameter out is passed by reference, it requires an argument of type DINT but got INT
 
     warning[E067]: Implicit downcast from 'DINT' to 'INT'.
-       ┌─ <internal>:20:27
+       ┌─ <internal>:22:27
        │
-    20 │             func(io := d, out => i);
+    22 │             func(io := d, out => i);
        │                           ^^^ Implicit downcast from 'DINT' to 'INT'.
+
+    error[E037]: Parameter io is passed by reference, it requires an argument of type DINT but got LINT
+       ┌─ <internal>:23:24
+       │
+    23 │             func(io := l, out => d); // Larger argument, endianness-dependent reinterpretation
+       │                        ^ Parameter io is passed by reference, it requires an argument of type DINT but got LINT
+
+    warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
+       ┌─ <internal>:23:24
+       │
+    23 │             func(io := l, out => d); // Larger argument, endianness-dependent reinterpretation
+       │                        ^ Implicit downcast from 'LINT' to 'DINT'.
+
+    error[E037]: Parameter out is passed by reference, it requires an argument of type DINT but got LINT
+       ┌─ <internal>:24:34
+       │
+    24 │             func(io := d, out => l);
+       │                                  ^ Parameter out is passed by reference, it requires an argument of type DINT but got LINT
+
+    error[E037]: Parameter io is passed by reference, it requires an argument of type DINT but got REAL
+       ┌─ <internal>:25:24
+       │
+    25 │             func(io := r, out => d); // Equal size, reinterpreted bit pattern
+       │                        ^ Parameter io is passed by reference, it requires an argument of type DINT but got REAL
+
+    warning[E067]: Implicit downcast from 'REAL' to 'DINT'.
+       ┌─ <internal>:25:24
+       │
+    25 │             func(io := r, out => d); // Equal size, reinterpreted bit pattern
+       │                        ^ Implicit downcast from 'REAL' to 'DINT'.
     ");
 }
 
@@ -1718,6 +1753,126 @@ fn validate_by_ref_argument_must_not_be_constant() {
     35 │             func(byVal := x, refIn := x, io := x, out => c);
        │                                                          ^ Parameter out is passed by reference and needs a variable with write access, but 'main.c' is constant
     ");
+}
+
+#[test]
+fn validate_by_ref_argument_with_alias_and_subrange_types() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        TYPE MyInt : DINT; END_TYPE
+        TYPE MyRange : INT(1..10); END_TYPE
+
+        FUNCTION refFunc : DINT
+            VAR_INPUT
+                refDint : REFERENCE TO DINT;
+                refInt : REFERENCE TO INT;
+                refRange : REFERENCE TO MyRange;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION inOutFunc : DINT
+            VAR_IN_OUT
+                io : DINT;
+                ioInt : INT;
+                ioRange : MyRange;
+            END_VAR
+        END_FUNCTION
+
+        PROGRAM main
+            VAR
+                d : DINT;
+                i : INT;
+                alias : MyInt;
+                ranged : MyRange;
+            END_VAR
+
+            // Valid: aliases resolve to their target type, subranges share their
+            // intrinsic type's representation (both directions)
+            refFunc(refDint := alias, refInt := ranged, refRange := i);
+            refFunc(refDint := d, refInt := i, refRange := ranged);
+            inOutFunc(io := alias, ioInt := ranged, ioRange := i);
+
+            // Different representations: MyRange is an INT, MyInt is a DINT
+            refFunc(refDint := ranged, refInt := alias, refRange := d);
+            inOutFunc(io := ranged, ioInt := alias, ioRange := ranged);
+        END_PROGRAM
+        "#,
+    );
+
+    assert_snapshot!(&diagnostics, @"
+    error[E037]: Parameter refDint is passed by reference, it requires an argument of type DINT but got MyRange
+       ┌─ <internal>:36:32
+       │
+    36 │             refFunc(refDint := ranged, refInt := alias, refRange := d);
+       │                                ^^^^^^ Parameter refDint is passed by reference, it requires an argument of type DINT but got MyRange
+
+    error[E037]: Parameter refInt is passed by reference, it requires an argument of type INT but got DINT
+       ┌─ <internal>:36:50
+       │
+    36 │             refFunc(refDint := ranged, refInt := alias, refRange := d);
+       │                                                  ^^^^^ Parameter refInt is passed by reference, it requires an argument of type INT but got DINT
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:36:50
+       │
+    36 │             refFunc(refDint := ranged, refInt := alias, refRange := d);
+       │                                                  ^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+    error[E037]: Parameter refRange is passed by reference, it requires an argument of type MyRange but got DINT
+       ┌─ <internal>:36:69
+       │
+    36 │             refFunc(refDint := ranged, refInt := alias, refRange := d);
+       │                                                                     ^ Parameter refRange is passed by reference, it requires an argument of type MyRange but got DINT
+
+    warning[E067]: Implicit downcast from 'DINT' to 'MyRange'.
+       ┌─ <internal>:36:69
+       │
+    36 │             refFunc(refDint := ranged, refInt := alias, refRange := d);
+       │                                                                     ^ Implicit downcast from 'DINT' to 'MyRange'.
+
+    error[E037]: Parameter io is passed by reference, it requires an argument of type DINT but got MyRange
+       ┌─ <internal>:37:29
+       │
+    37 │             inOutFunc(io := ranged, ioInt := alias, ioRange := ranged);
+       │                             ^^^^^^ Parameter io is passed by reference, it requires an argument of type DINT but got MyRange
+
+    error[E037]: Parameter ioInt is passed by reference, it requires an argument of type INT but got DINT
+       ┌─ <internal>:37:46
+       │
+    37 │             inOutFunc(io := ranged, ioInt := alias, ioRange := ranged);
+       │                                              ^^^^^ Parameter ioInt is passed by reference, it requires an argument of type INT but got DINT
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:37:46
+       │
+    37 │             inOutFunc(io := ranged, ioInt := alias, ioRange := ranged);
+       │                                              ^^^^^ Implicit downcast from 'DINT' to 'INT'.
+    ");
+}
+
+#[test]
+fn validate_by_ref_argument_type_check_skips_builtins() {
+    // LOWER_BOUND and UPPER_BOUND declare a generic VAR_IN_OUT parameter; builtins bring
+    // their own validation and must not be checked against their placeholder types.
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION func : DINT
+            VAR_IN_OUT
+                arr : ARRAY[*] OF INT;
+            END_VAR
+            VAR
+                i : INT;
+                d : DINT;
+            END_VAR
+
+            func := LOWER_BOUND(arr, 1) + UPPER_BOUND(arr, 1);
+            func := MUX(i, d, d, d);
+            func := SEL(FALSE, d, d);
+        END_FUNCTION
+        "#,
+    );
+
+    assert_snapshot!(&diagnostics, @"");
 }
 
 #[test]

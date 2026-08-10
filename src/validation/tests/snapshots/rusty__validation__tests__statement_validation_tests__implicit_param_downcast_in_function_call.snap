@@ -2,11 +2,23 @@
 source: src/validation/tests/statement_validation_tests.rs
 expression: "&diagnostics"
 ---
+error[E037]: Parameter in_ref_int is passed by reference, it requires an argument of type INT but got LINT
+   ┌─ <internal>:12:17
+   │
+12 │                 var1_lint, // downcast
+   │                 ^^^^^^^^^ Parameter in_ref_int is passed by reference, it requires an argument of type INT but got LINT
+
 warning[E067]: Implicit downcast from 'LINT' to 'INT'.
    ┌─ <internal>:12:17
    │
 12 │                 var1_lint, // downcast
    │                 ^^^^^^^^^ Implicit downcast from 'LINT' to 'INT'.
+
+error[E037]: Parameter in_ref_dword is passed by reference, it requires an argument of type DWORD but got LWORD
+   ┌─ <internal>:13:17
+   │
+13 │                 var_lword, // downcast
+   │                 ^^^^^^^^^ Parameter in_ref_dword is passed by reference, it requires an argument of type DWORD but got LWORD
 
 warning[E067]: Implicit downcast from 'LWORD' to 'DWORD'.
    ┌─ <internal>:13:17
@@ -26,6 +38,12 @@ warning[E067]: Implicit downcast from 'INT' to 'SINT'.
 15 │                 INT#var1_lint, // downcast
    │                 ^^^^^^^^^^^^^ Implicit downcast from 'INT' to 'SINT'.
 
+error[E037]: Parameter in_out is passed by reference, it requires an argument of type INT but got LINT
+   ┌─ <internal>:16:17
+   │
+16 │                 var2_lint, // downcast
+   │                 ^^^^^^^^^ Parameter in_out is passed by reference, it requires an argument of type INT but got LINT
+
 warning[E067]: Implicit downcast from 'LINT' to 'INT'.
    ┌─ <internal>:16:17
    │
@@ -37,6 +55,12 @@ error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'STRING'
    │
 17 │                 var_in_out_wstr, // invalid
    │                 ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
+
+error[E037]: Parameter out_var is passed by reference, it requires an argument of type DINT but got LINT
+   ┌─ <internal>:18:17
+   │
+18 │                 var1_lint // downcast
+   │                 ^^^^^^^^^ Parameter out_var is passed by reference, it requires an argument of type DINT but got LINT
 
 warning[E067]: Implicit downcast from 'LINT' to 'DINT'.
    ┌─ <internal>:18:17
