@@ -251,6 +251,7 @@ lazy_static! {
         E147,   Error,      include_str!("./error_codes/E147.md"),  // Undeclared CFC block output
         E148,   Warning,    include_str!("./error_codes/E148.md"),  // Temporal literal overflow or underflow
         E149,   Error,      include_str!("./error_codes/E149.md"),  // Unresolved generic CFC block output
+        E150,   Warning,    include_str!("./error_codes/E150.md"),  // ABS on an unsigned value has no effect
     );
 }
 

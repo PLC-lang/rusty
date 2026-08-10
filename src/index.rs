@@ -2362,12 +2362,14 @@ impl Index {
 
     /// If the provided name is a builtin function, returns it from the builtin index
     pub fn get_builtin_function(&self, name: &str) -> Option<&'_ BuiltIn> {
-        //Find a type for that function, see if that type is builtin
-        if let Some(PouIndexEntry::Function { linkage: LinkageType::BuiltIn, .. }) = self.find_pou(name) {
-            builtins::get_builtin(name)
-        } else {
-            None
-        }
+        // Find a POU with builtin linkage for that function, see if it is a builtin.
+        // A library include may declare the same (generic) function name and be registered
+        // before the builtin entry, so check every POU registered under the name.
+        self.pous
+            .get_all(&name.to_lowercase())?
+            .iter()
+            .find(|it| matches!(it, PouIndexEntry::Function { linkage: LinkageType::BuiltIn, .. }))
+            .and_then(|_| builtins::get_builtin(name))
     }
 
     pub fn get_type_layout(&self) -> &DataLayout {
