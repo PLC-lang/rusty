@@ -436,7 +436,20 @@ impl CcLinker {
 /// LLD >= 19). Older lld versions reject unknown long options even with `--version`,
 /// which makes this a reliable feature probe.
 fn lld_supports_debug_names(lld: &str) -> bool {
-    let supported = Command::new(lld)
+    // Resolve the linker before spawning, exactly as `finalize` does for the real link.
+    // Spawning the bare name is not equivalent on Windows: `ld.lld` carries an apparent
+    // `.lld` extension, so `CreateProcess` never falls back to `ld.lld.exe` and the probe
+    // fails to *spawn* — which is indistinguishable from the flag being unsupported, and
+    // silently disables the merge on every Windows host.
+    let lld_path = match which(lld) {
+        Ok(path) => path,
+        Err(err) => {
+            log::debug!("lld_supports_debug_names: could not resolve `{lld}` on PATH: {err}");
+            return false;
+        }
+    };
+
+    let supported = Command::new(&lld_path)
         .args(["--debug-names", "--version"])
         .stdin(Stdio::null())
         .stdout(Stdio::null())
@@ -444,7 +457,7 @@ fn lld_supports_debug_names(lld: &str) -> bool {
         .status()
         .map(|status| status.success())
         .unwrap_or(false);
-    log::trace!("lld_supports_debug_names(`{lld}`) => {supported}");
+    log::trace!("lld_supports_debug_names(`{}`) => {supported}", lld_path.display());
     supported
 }
 
