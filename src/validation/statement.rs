@@ -1140,33 +1140,145 @@ fn compare_function_exists<T: AnnotationMap>(
 }
 
 /// Validates if an argument can be passed to a function with [`VariableType::Output`] and
-/// [`VariableType::InOut`] parameter types by checking if the argument is a reference (e.g. `foo(x)`) or
-/// an assignment (e.g. `foo(x := y)`, `foo(x => y)`). If neither is the case a diagnostic is generated.
-fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, arg: &AstNode) {
+/// [`VariableType::InOut`] and `REFERENCE TO` parameter types by checking if the argument is a
+/// reference (e.g. `foo(x)`) or an assignment (e.g. `foo(x := y)`, `foo(x => y)`). If neither is
+/// the case a diagnostic is generated.
+fn validate_call_by_ref<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    param: &VariableIndexEntry,
+    arg: &AstNode,
+) {
     let ty = param.argument_type.get_inner();
-    if !matches!(ty, VariableType::Output | VariableType::InOut) {
+    let param_is_reference_to =
+        context.index.find_effective_type_info(param.get_type_name()).is_some_and(|it| it.is_reference_to());
+    if !(matches!(ty, VariableType::Output | VariableType::InOut) || param_is_reference_to) {
         return;
     }
 
     match (arg.can_be_assigned_to(), arg.get_stmt()) {
-        (true, _) => (),
+        // By-ref parameters need write access to their argument
+        (true, _) => {
+            if let Some(StatementAnnotation::Variable { constant: true, qualified_name, .. }) =
+                context.annotations.get(arg)
+            {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Parameter {} is passed by reference and needs a variable with write access, but '{qualified_name}' is constant",
+                        param.get_name()
+                    ))
+                    .with_error_code("E031")
+                    .with_location(arg),
+                );
+            }
+        }
 
         // Output assignments are optional, e.g. `foo(bar => )` is considered valid
         (false, AstStatement::EmptyStatement(_)) if matches!(ty, VariableType::Output) => (),
 
         (false, AstStatement::Assignment(data) | AstStatement::OutputAssignment(data)) => {
-            validate_call_by_ref(validator, param, &data.right);
+            validate_call_by_ref(validator, context, param, &data.right);
         }
 
         _ => validator.push_diagnostic(
             Diagnostic::new(format!(
                 "Expected a reference for parameter {} because their type is {}",
                 param.get_name(),
-                param.get_variable_type()
+                if param_is_reference_to {
+                    "REFERENCE TO".to_string()
+                } else {
+                    param.get_variable_type().to_string()
+                }
             ))
             .with_error_code("E031")
             .with_location(arg),
         ),
+    }
+}
+
+/// A parameter that is passed by reference (`VAR_IN_OUT`, a function `VAR_OUTPUT`,
+/// `VAR_INPUT {ref}` or a `REFERENCE TO` type) binds the address of its argument, so implicit
+/// conversions are not possible: the argument must have exactly the parameter's type.
+fn validate_by_ref_argument_type<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    param: &VariableIndexEntry,
+    arg: &AstNode,
+) {
+    let Some(param_type_info) = context.index.find_effective_type_info(param.get_type_name()) else {
+        return;
+    };
+    if !(param.get_declaration_type().is_by_ref() || param_type_info.is_reference_to()) {
+        return;
+    }
+
+    // Non-references (literals, expressions) are passed through a temporary or already flagged
+    // by `validate_call_by_ref`.
+    if !arg.can_be_assigned_to() {
+        return;
+    }
+
+    // By-ref parameter types may be wrapped in an auto-deref pointer: compare the target type.
+    let param_type =
+        if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } = param_type_info {
+            context.index.get_effective_type_or_void_by_name(inner_type_name)
+        } else {
+            context.index.get_effective_type_or_void_by_name(param.get_type_name())
+        };
+
+    // Reference arguments are transparent: compare their target type.
+    let arg_type = context.annotations.get_type_or_void(arg, context.index);
+    let arg_type = if let DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } =
+        arg_type.get_type_information()
+    {
+        context.index.get_effective_type_or_void_by_name(inner_type_name)
+    } else {
+        arg_type
+    };
+
+    if arg_type.get_type_information().is_pointer() {
+        return;
+    }
+
+    // Only concrete elementary types are compared: structurally equal aggregates carry
+    // distinct type names and their compatibility is covered by the general assignment
+    // validation, as are aggregate arguments to elementary parameters. Pointer targets are
+    // covered by the pointer assignment validation, generic targets are only concrete after
+    // instantiation.
+    if arg_type.is_aggregate_type()
+        || param_type.is_aggregate_type()
+        || param_type.get_type_information().is_pointer()
+        || param_type.get_type_information().is_generic(context.index)
+    {
+        return;
+    }
+
+    // The callee accesses the argument's storage with the parameter's type: a smaller argument
+    // is read or written beyond its bounds, a larger or equal-sized one is reinterpreted with
+    // byte-order dependent results. Require a representation match: subranges share their
+    // intrinsic type's representation and bind in both directions.
+    fn representation<'idx>(index: &'idx Index, ty: &'idx DataType) -> &'idx DataType {
+        match ty.get_type_information() {
+            DataTypeInformation::SubRange { referenced_type, .. } => {
+                index.get_effective_type_or_void_by_name(referenced_type)
+            }
+            _ => ty,
+        }
+    }
+
+    if representation(context.index, arg_type).get_name()
+        != representation(context.index, param_type).get_name()
+    {
+        validator.push_diagnostic(
+            Diagnostic::new(format!(
+                "Parameter {} is passed by reference, it requires an argument of type {} but got {}",
+                param.get_name(),
+                validator.get_type_name_or_slice(param_type),
+                validator.get_type_name_or_slice(arg_type)
+            ))
+            .with_error_code("E037")
+            .with_location(arg),
+        );
     }
 }
 
@@ -2134,7 +2246,12 @@ fn validate_call<T: AnnotationMap>(
                 }
 
                 if let Some(left) = parameters.get(parameter_idx) {
-                    validate_call_by_ref(validator, left, argument);
+                    validate_call_by_ref(validator, context, left, argument);
+                    // Builtins declare their parameters with generic placeholder types and
+                    // bring their own validation.
+                    if builtins::get_builtin(pou.get_name()).is_none() {
+                        validate_by_ref_argument_type(validator, context, left, right);
+                    }
                     // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
                     // save actual location in parent for InOut validation
                     variable_location_in_parent.push(left.get_location_in_parent());
@@ -2258,8 +2375,20 @@ fn validate_call<T: AnnotationMap>(
             return;
         }
 
-        let declared_in_out_params: Vec<&VariableIndexEntry> =
-            parameters.into_iter().filter(|param| param.is_inout()).collect();
+        // VAR_IN_OUT arguments are always required. REFERENCE TO inputs of methods are bound
+        // per call and therefore required as well; on stateful POUs their binding persists in
+        // the instance, so they stay optional.
+        let declared_in_out_params: Vec<&VariableIndexEntry> = parameters
+            .into_iter()
+            .filter(|param| {
+                param.is_inout()
+                    || (pou.is_method()
+                        && context
+                            .index
+                            .find_effective_type_info(param.get_type_name())
+                            .is_some_and(|it| it.is_reference_to()))
+            })
+            .collect();
 
         if !declared_in_out_params.is_empty() {
             // Check if all IN_OUT arguments were passed by cross-checking with the parameters
