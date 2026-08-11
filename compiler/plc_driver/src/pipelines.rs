@@ -280,6 +280,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 output_directory: params.get_output_directory(),
                 linker_script,
                 module_name: self.get_module_name(),
+                merge_debug_names: !matches!(params.debug_level(), plc::DebugLevel::None),
             }
         })
     }
@@ -1178,6 +1179,9 @@ impl GeneratedProject {
                 if let Some(fuse) = &link_options.fuse_linker {
                     log::debug!("Applying --fuse-ld={fuse}");
                     linker.set_fuse_ld(fuse);
+                }
+                if link_options.merge_debug_names {
+                    linker.enable_debug_names_merge();
                 }
                 if link_options.no_crt {
                     log::debug!("Applying --nocrt to linker invocation");

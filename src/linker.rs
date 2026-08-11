@@ -138,6 +138,22 @@ impl Linker {
         self.linker.add_linker_arg(arg.to_string());
     }
 
+    /// Merge the per-object `.debug_names` units into a single index at link time
+    /// (lld's `--debug-names`, available since LLD 19).
+    ///
+    /// Without this, the linker concatenates one DWARF 5 name-index unit per compile
+    /// unit; that is valid DWARF, but gdb only supports a single-unit `.debug_names`
+    /// and *ignores* the whole section ("ignoring .debug_names"), falling back to a
+    /// cold scan of all debug info â for debugger attach this means the target stays
+    /// ptrace-stopped for the entire scan, on every attach.
+    ///
+    /// The flag is only added when the active linker backend is an lld that accepts
+    /// it (probed with `--debug-names --version`); otherwise this is a no-op and the
+    /// link behaves exactly as before.
+    pub fn enable_debug_names_merge(&mut self) {
+        self.linker.enable_debug_names_merge();
+    }
+
     /// Add a driver-level flag.
     ///
     /// Driver linkers receive this directly (e.g. `cc -no-pie`).
@@ -377,6 +393,52 @@ impl CcLinker {
     fn command_args(&self) -> Vec<String> {
         self.pre_args.iter().chain(self.args.iter()).cloned().collect()
     }
+
+    /// Determine the lld binary acting as the link backend, if any.
+    ///
+    /// - Driver mode: the last `-fuse-ld=<backend>` decides; `lld` maps to `ld.lld`,
+    ///   an explicit path/name containing "lld" is used as-is.
+    /// - Direct mode: the linker itself must be an lld flavour (`ld.lld`, `lld`, ...).
+    fn lld_backend(&self) -> Option<String> {
+        if self.driver_mode {
+            let backend =
+                self.pre_args.iter().rev().find_map(|arg| arg.strip_prefix("-fuse-ld="))?;
+            if backend == "lld" {
+                return Some("ld.lld".to_string());
+            }
+            if backend.contains("lld") {
+                return Some(backend.to_string());
+            }
+            return None;
+        }
+
+        let name = Path::new(&self.linker)
+            .file_name()
+            .and_then(|it| it.to_str())
+            .unwrap_or(&self.linker)
+            .to_ascii_lowercase();
+        if name.contains("lld") {
+            Some(self.linker.clone())
+        } else {
+            None
+        }
+    }
+}
+
+/// Probe whether the given lld accepts `--debug-names` (merged DWARF 5 name index,
+/// LLD >= 19). Older lld versions reject unknown long options even with `--version`,
+/// which makes this a reliable feature probe.
+fn lld_supports_debug_names(lld: &str) -> bool {
+    let supported = Command::new(lld)
+        .args(["--debug-names", "--version"])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false);
+    log::trace!("lld_supports_debug_names(`{lld}`) => {supported}");
+    supported
 }
 
 impl LinkerInterface for CcLinker {
@@ -413,6 +475,22 @@ impl LinkerInterface for CcLinker {
             log::trace!("Forwarding linker arg directly: {arg}");
             self.add_arg(arg);
         }
+    }
+
+    fn enable_debug_names_merge(&mut self) {
+        let Some(lld) = self.lld_backend() else {
+            log::debug!(
+                "Not merging .debug_names: linker `{}` does not use an lld backend",
+                self.linker
+            );
+            return;
+        };
+        if !lld_supports_debug_names(&lld) {
+            log::debug!("Not merging .debug_names: `{lld}` does not support --debug-names (needs LLD >= 19)");
+            return;
+        }
+        log::debug!("Merging .debug_names at link time (--debug-names via `{lld}`)");
+        self.add_linker_arg("--debug-names".to_string());
     }
 
     fn add_driver_flag(&mut self, flag: String) {
@@ -543,6 +621,10 @@ trait LinkerInterface {
     fn add_driver_flag(&mut self, flag: String) {
         self.add_arg(flag);
     }
+
+    /// Merge per-CU `.debug_names` at link time when the backend supports it.
+    /// Default: no-op (mock/test linkers, non-lld backends).
+    fn enable_debug_names_merge(&mut self) {}
 
     fn add_obj(&mut self, path: &str) {
         self.add_arg(path.into());
