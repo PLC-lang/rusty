@@ -1187,96 +1187,99 @@
 <a href=#1187 id=1187 data-nosnippet>1187</a>            <span class="kw">_ </span>=&gt; {
 <a href=#1188 id=1188 data-nosnippet>1188</a>                <span class="comment">// Only initialize a linker if we need to use it
 <a href=#1189 id=1189 data-nosnippet>1189</a>                </span><span class="kw">let </span>target_triple = <span class="self">self</span>.target.get_target_triple();
-<a href=#1190 id=1190 data-nosnippet>1190</a>                <span class="kw">let </span><span class="kw-2">mut </span>linker =
-<a href=#1191 id=1191 data-nosnippet>1191</a>                    plc::linker::Linker::new(<span class="kw-2">&amp;</span>target_triple.as_str().to_string_lossy(), link_options.linker)<span class="question-mark">?</span>;
-<a href=#1192 id=1192 data-nosnippet>1192</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(fuse) = <span class="kw-2">&amp;</span>link_options.fuse_linker {
-<a href=#1193 id=1193 data-nosnippet>1193</a>                    <span class="macro">log::debug!</span>(<span class="string">"Applying --fuse-ld={fuse}"</span>);
-<a href=#1194 id=1194 data-nosnippet>1194</a>                    linker.set_fuse_ld(fuse);
-<a href=#1195 id=1195 data-nosnippet>1195</a>                }
-<a href=#1196 id=1196 data-nosnippet>1196</a>                <span class="kw">if </span>link_options.no_crt {
-<a href=#1197 id=1197 data-nosnippet>1197</a>                    <span class="macro">log::debug!</span>(<span class="string">"Applying --nocrt to linker invocation"</span>);
-<a href=#1198 id=1198 data-nosnippet>1198</a>                    linker.set_no_crt();
-<a href=#1199 id=1199 data-nosnippet>1199</a>                }
-<a href=#1200 id=1200 data-nosnippet>1200</a>                <span class="kw">if </span>link_options.no_libc {
-<a href=#1201 id=1201 data-nosnippet>1201</a>                    <span class="macro">log::debug!</span>(<span class="string">"Applying --nolibc to linker invocation"</span>);
-<a href=#1202 id=1202 data-nosnippet>1202</a>                    linker.set_no_libc();
-<a href=#1203 id=1203 data-nosnippet>1203</a>                }
-<a href=#1204 id=1204 data-nosnippet>1204</a>                <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;</span>link_options.linker_args {
-<a href=#1205 id=1205 data-nosnippet>1205</a>                    <span class="macro">log::trace!</span>(<span class="string">"Applying --linker-arg={arg}"</span>);
-<a href=#1206 id=1206 data-nosnippet>1206</a>                    linker.add_linker_arg(arg);
-<a href=#1207 id=1207 data-nosnippet>1207</a>                }
-<a href=#1208 id=1208 data-nosnippet>1208</a>                <span class="kw">for </span>obj <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.objects {
-<a href=#1209 id=1209 data-nosnippet>1209</a>                    linker.add_obj(<span class="kw-2">&amp;</span>obj.get_path().to_string_lossy());
+<a href=#1190 id=1190 data-nosnippet>1190</a>                <span class="kw">let </span><span class="kw-2">mut </span>linker = plc::linker::Linker::new(
+<a href=#1191 id=1191 data-nosnippet>1191</a>                    <span class="kw-2">&amp;</span>target_triple.as_str().to_string_lossy(),
+<a href=#1192 id=1192 data-nosnippet>1192</a>                    <span class="self">self</span>.target.get_sysroot(),
+<a href=#1193 id=1193 data-nosnippet>1193</a>                    link_options.linker,
+<a href=#1194 id=1194 data-nosnippet>1194</a>                )<span class="question-mark">?</span>;
+<a href=#1195 id=1195 data-nosnippet>1195</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(fuse) = <span class="kw-2">&amp;</span>link_options.fuse_linker {
+<a href=#1196 id=1196 data-nosnippet>1196</a>                    <span class="macro">log::debug!</span>(<span class="string">"Applying --fuse-ld={fuse}"</span>);
+<a href=#1197 id=1197 data-nosnippet>1197</a>                    linker.set_fuse_ld(fuse);
+<a href=#1198 id=1198 data-nosnippet>1198</a>                }
+<a href=#1199 id=1199 data-nosnippet>1199</a>                <span class="kw">if </span>link_options.no_crt {
+<a href=#1200 id=1200 data-nosnippet>1200</a>                    <span class="macro">log::debug!</span>(<span class="string">"Applying --nocrt to linker invocation"</span>);
+<a href=#1201 id=1201 data-nosnippet>1201</a>                    linker.set_no_crt();
+<a href=#1202 id=1202 data-nosnippet>1202</a>                }
+<a href=#1203 id=1203 data-nosnippet>1203</a>                <span class="kw">if </span>link_options.no_libc {
+<a href=#1204 id=1204 data-nosnippet>1204</a>                    <span class="macro">log::debug!</span>(<span class="string">"Applying --nolibc to linker invocation"</span>);
+<a href=#1205 id=1205 data-nosnippet>1205</a>                    linker.set_no_libc();
+<a href=#1206 id=1206 data-nosnippet>1206</a>                }
+<a href=#1207 id=1207 data-nosnippet>1207</a>                <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;</span>link_options.linker_args {
+<a href=#1208 id=1208 data-nosnippet>1208</a>                    <span class="macro">log::trace!</span>(<span class="string">"Applying --linker-arg={arg}"</span>);
+<a href=#1209 id=1209 data-nosnippet>1209</a>                    linker.add_linker_arg(arg);
 <a href=#1210 id=1210 data-nosnippet>1210</a>                }
-<a href=#1211 id=1211 data-nosnippet>1211</a>                <span class="kw">for </span>obj <span class="kw">in </span>objects {
+<a href=#1211 id=1211 data-nosnippet>1211</a>                <span class="kw">for </span>obj <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.objects {
 <a href=#1212 id=1212 data-nosnippet>1212</a>                    linker.add_obj(<span class="kw-2">&amp;</span>obj.get_path().to_string_lossy());
 <a href=#1213 id=1213 data-nosnippet>1213</a>                }
-<a href=#1214 id=1214 data-nosnippet>1214</a>                <span class="kw">for </span>lib_path <span class="kw">in </span><span class="kw-2">&amp;</span>link_options.library_paths {
-<a href=#1215 id=1215 data-nosnippet>1215</a>                    linker.add_lib_path(<span class="kw-2">&amp;</span>lib_path.to_string_lossy());
+<a href=#1214 id=1214 data-nosnippet>1214</a>                <span class="kw">for </span>obj <span class="kw">in </span>objects {
+<a href=#1215 id=1215 data-nosnippet>1215</a>                    linker.add_obj(<span class="kw-2">&amp;</span>obj.get_path().to_string_lossy());
 <a href=#1216 id=1216 data-nosnippet>1216</a>                }
-<a href=#1217 id=1217 data-nosnippet>1217</a>                <span class="kw">for </span>lib <span class="kw">in </span><span class="kw-2">&amp;</span>link_options.libraries {
-<a href=#1218 id=1218 data-nosnippet>1218</a>                    linker.add_lib(lib);
+<a href=#1217 id=1217 data-nosnippet>1217</a>                <span class="kw">for </span>lib_path <span class="kw">in </span><span class="kw-2">&amp;</span>link_options.library_paths {
+<a href=#1218 id=1218 data-nosnippet>1218</a>                    linker.add_lib_path(<span class="kw-2">&amp;</span>lib_path.to_string_lossy());
 <a href=#1219 id=1219 data-nosnippet>1219</a>                }
-<a href=#1220 id=1220 data-nosnippet>1220</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(sysroot) = <span class="self">self</span>.target.get_sysroot() {
-<a href=#1221 id=1221 data-nosnippet>1221</a>                    linker.add_sysroot(sysroot);
+<a href=#1220 id=1220 data-nosnippet>1220</a>                <span class="kw">for </span>lib <span class="kw">in </span><span class="kw-2">&amp;</span>link_options.libraries {
+<a href=#1221 id=1221 data-nosnippet>1221</a>                    linker.add_lib(lib);
 <a href=#1222 id=1222 data-nosnippet>1222</a>                }
-<a href=#1223 id=1223 data-nosnippet>1223</a>                <span class="comment">//Include the current directory in lib search
-<a href=#1224 id=1224 data-nosnippet>1224</a>                </span>linker.add_lib_path(<span class="string">"."</span>);
-<a href=#1225 id=1225 data-nosnippet>1225</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(loc) = build_location {
-<a href=#1226 id=1226 data-nosnippet>1226</a>                    linker.add_lib_path(<span class="kw-2">&amp;</span>loc.to_string_lossy());
-<a href=#1227 id=1227 data-nosnippet>1227</a>                }
-<a href=#1228 id=1228 data-nosnippet>1228</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(loc) = lib_location {
+<a href=#1223 id=1223 data-nosnippet>1223</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(sysroot) = <span class="self">self</span>.target.get_sysroot() {
+<a href=#1224 id=1224 data-nosnippet>1224</a>                    linker.add_sysroot(sysroot);
+<a href=#1225 id=1225 data-nosnippet>1225</a>                }
+<a href=#1226 id=1226 data-nosnippet>1226</a>                <span class="comment">//Include the current directory in lib search
+<a href=#1227 id=1227 data-nosnippet>1227</a>                </span>linker.add_lib_path(<span class="string">"."</span>);
+<a href=#1228 id=1228 data-nosnippet>1228</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(loc) = build_location {
 <a href=#1229 id=1229 data-nosnippet>1229</a>                    linker.add_lib_path(<span class="kw-2">&amp;</span>loc.to_string_lossy());
 <a href=#1230 id=1230 data-nosnippet>1230</a>                }
-<a href=#1231 id=1231 data-nosnippet>1231</a>
-<a href=#1232 id=1232 data-nosnippet>1232</a>                <span class="comment">//HACK: Create a temp file that would contain the bultin linker script
-<a href=#1233 id=1233 data-nosnippet>1233</a>                //FIXME: This has to be done regardless if the file is used or not because it has
-<a href=#1234 id=1234 data-nosnippet>1234</a>                //to be in scope by the time we call the linker
-<a href=#1235 id=1235 data-nosnippet>1235</a>                </span><span class="kw">match </span>link_options.linker_script {
-<a href=#1236 id=1236 data-nosnippet>1236</a>                    LinkerScript::Path(script) =&gt; linker.set_linker_script(script),
-<a href=#1237 id=1237 data-nosnippet>1237</a>                    LinkerScript::None =&gt; {}
-<a href=#1238 id=1238 data-nosnippet>1238</a>                    <span class="attr">#[allow(deprecated)]
-<a href=#1239 id=1239 data-nosnippet>1239</a>                    </span>LinkerScript::Builtin =&gt; {}
-<a href=#1240 id=1240 data-nosnippet>1240</a>                };
-<a href=#1241 id=1241 data-nosnippet>1241</a>
-<a href=#1242 id=1242 data-nosnippet>1242</a>                <span class="comment">// When building an executable with --fno-pic, forward -no-pie
-<a href=#1243 id=1243 data-nosnippet>1243</a>                // so the linker does not reject non-PIC relocations.
-<a href=#1244 id=1244 data-nosnippet>1244</a>                </span><span class="kw">if </span>link_options.relocation_preference == plc::output::RelocationPreference::NoPic
-<a href=#1245 id=1245 data-nosnippet>1245</a>                    &amp;&amp; <span class="macro">matches!</span>(link_options.format, FormatOption::Static)
-<a href=#1246 id=1246 data-nosnippet>1246</a>                {
-<a href=#1247 id=1247 data-nosnippet>1247</a>                    <span class="macro">log::debug!</span>(<span class="string">"Applying -no-pie for --fno-pic executable link"</span>);
-<a href=#1248 id=1248 data-nosnippet>1248</a>                    linker.add_driver_flag(<span class="string">"-no-pie"</span>);
-<a href=#1249 id=1249 data-nosnippet>1249</a>                }
-<a href=#1250 id=1250 data-nosnippet>1250</a>
-<a href=#1251 id=1251 data-nosnippet>1251</a>                <span class="comment">// Reject unresolved symbols when producing a shared object (unless explicitly
-<a href=#1252 id=1252 data-nosnippet>1252</a>                // allowed). An executable link already fails on undefined symbols, but a shared
-<a href=#1253 id=1253 data-nosnippet>1253</a>                // object link permits them by default; forcing `--no-undefined` turns a missing
-<a href=#1254 id=1254 data-nosnippet>1254</a>                // symbol (e.g. an unprovided generic monomorphization) into a build failure instead
-<a href=#1255 id=1255 data-nosnippet>1255</a>                // of an unresolved reference that would only surface at dlopen/final-link time.
-<a href=#1256 id=1256 data-nosnippet>1256</a>                </span><span class="kw">if </span><span class="macro">matches!</span>(
-<a href=#1257 id=1257 data-nosnippet>1257</a>                    link_options.format,
-<a href=#1258 id=1258 data-nosnippet>1258</a>                    FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC
-<a href=#1259 id=1259 data-nosnippet>1259</a>                ) &amp;&amp; !link_options.allow_undefined_symbols
-<a href=#1260 id=1260 data-nosnippet>1260</a>                {
-<a href=#1261 id=1261 data-nosnippet>1261</a>                    <span class="macro">log::debug!</span>(<span class="string">"Applying --no-undefined for shared object link"</span>);
-<a href=#1262 id=1262 data-nosnippet>1262</a>                    linker.set_no_undefined();
-<a href=#1263 id=1263 data-nosnippet>1263</a>                }
-<a href=#1264 id=1264 data-nosnippet>1264</a>
-<a href=#1265 id=1265 data-nosnippet>1265</a>                <span class="kw">match </span>link_options.format {
-<a href=#1266 id=1266 data-nosnippet>1266</a>                    FormatOption::Static =&gt; linker.build_executable(output_location).map_err(Into::into),
-<a href=#1267 id=1267 data-nosnippet>1267</a>                    FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC =&gt; {
-<a href=#1268 id=1268 data-nosnippet>1268</a>                        linker.build_shared_obj(output_location).map_err(Into::into)
-<a href=#1269 id=1269 data-nosnippet>1269</a>                    }
-<a href=#1270 id=1270 data-nosnippet>1270</a>                    FormatOption::Object | FormatOption::Relocatable =&gt; {
-<a href=#1271 id=1271 data-nosnippet>1271</a>                        linker.build_relocatable(output_location).map_err(Into::into)
+<a href=#1231 id=1231 data-nosnippet>1231</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(loc) = lib_location {
+<a href=#1232 id=1232 data-nosnippet>1232</a>                    linker.add_lib_path(<span class="kw-2">&amp;</span>loc.to_string_lossy());
+<a href=#1233 id=1233 data-nosnippet>1233</a>                }
+<a href=#1234 id=1234 data-nosnippet>1234</a>
+<a href=#1235 id=1235 data-nosnippet>1235</a>                <span class="comment">//HACK: Create a temp file that would contain the bultin linker script
+<a href=#1236 id=1236 data-nosnippet>1236</a>                //FIXME: This has to be done regardless if the file is used or not because it has
+<a href=#1237 id=1237 data-nosnippet>1237</a>                //to be in scope by the time we call the linker
+<a href=#1238 id=1238 data-nosnippet>1238</a>                </span><span class="kw">match </span>link_options.linker_script {
+<a href=#1239 id=1239 data-nosnippet>1239</a>                    LinkerScript::Path(script) =&gt; linker.set_linker_script(script),
+<a href=#1240 id=1240 data-nosnippet>1240</a>                    LinkerScript::None =&gt; {}
+<a href=#1241 id=1241 data-nosnippet>1241</a>                    <span class="attr">#[allow(deprecated)]
+<a href=#1242 id=1242 data-nosnippet>1242</a>                    </span>LinkerScript::Builtin =&gt; {}
+<a href=#1243 id=1243 data-nosnippet>1243</a>                };
+<a href=#1244 id=1244 data-nosnippet>1244</a>
+<a href=#1245 id=1245 data-nosnippet>1245</a>                <span class="comment">// When building an executable with --fno-pic, forward -no-pie
+<a href=#1246 id=1246 data-nosnippet>1246</a>                // so the linker does not reject non-PIC relocations.
+<a href=#1247 id=1247 data-nosnippet>1247</a>                </span><span class="kw">if </span>link_options.relocation_preference == plc::output::RelocationPreference::NoPic
+<a href=#1248 id=1248 data-nosnippet>1248</a>                    &amp;&amp; <span class="macro">matches!</span>(link_options.format, FormatOption::Static)
+<a href=#1249 id=1249 data-nosnippet>1249</a>                {
+<a href=#1250 id=1250 data-nosnippet>1250</a>                    <span class="macro">log::debug!</span>(<span class="string">"Applying -no-pie for --fno-pic executable link"</span>);
+<a href=#1251 id=1251 data-nosnippet>1251</a>                    linker.add_driver_flag(<span class="string">"-no-pie"</span>);
+<a href=#1252 id=1252 data-nosnippet>1252</a>                }
+<a href=#1253 id=1253 data-nosnippet>1253</a>
+<a href=#1254 id=1254 data-nosnippet>1254</a>                <span class="comment">// Reject unresolved symbols when producing a shared object (unless explicitly
+<a href=#1255 id=1255 data-nosnippet>1255</a>                // allowed). An executable link already fails on undefined symbols, but a shared
+<a href=#1256 id=1256 data-nosnippet>1256</a>                // object link permits them by default; forcing `--no-undefined` turns a missing
+<a href=#1257 id=1257 data-nosnippet>1257</a>                // symbol (e.g. an unprovided generic monomorphization) into a build failure instead
+<a href=#1258 id=1258 data-nosnippet>1258</a>                // of an unresolved reference that would only surface at dlopen/final-link time.
+<a href=#1259 id=1259 data-nosnippet>1259</a>                </span><span class="kw">if </span><span class="macro">matches!</span>(
+<a href=#1260 id=1260 data-nosnippet>1260</a>                    link_options.format,
+<a href=#1261 id=1261 data-nosnippet>1261</a>                    FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC
+<a href=#1262 id=1262 data-nosnippet>1262</a>                ) &amp;&amp; !link_options.allow_undefined_symbols
+<a href=#1263 id=1263 data-nosnippet>1263</a>                {
+<a href=#1264 id=1264 data-nosnippet>1264</a>                    <span class="macro">log::debug!</span>(<span class="string">"Applying --no-undefined for shared object link"</span>);
+<a href=#1265 id=1265 data-nosnippet>1265</a>                    linker.set_no_undefined();
+<a href=#1266 id=1266 data-nosnippet>1266</a>                }
+<a href=#1267 id=1267 data-nosnippet>1267</a>
+<a href=#1268 id=1268 data-nosnippet>1268</a>                <span class="kw">match </span>link_options.format {
+<a href=#1269 id=1269 data-nosnippet>1269</a>                    FormatOption::Static =&gt; linker.build_executable(output_location).map_err(Into::into),
+<a href=#1270 id=1270 data-nosnippet>1270</a>                    FormatOption::Shared | FormatOption::PIC | FormatOption::NoPIC =&gt; {
+<a href=#1271 id=1271 data-nosnippet>1271</a>                        linker.build_shared_obj(output_location).map_err(Into::into)
 <a href=#1272 id=1272 data-nosnippet>1272</a>                    }
-<a href=#1273 id=1273 data-nosnippet>1273</a>                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Already handled in previous match"</span>),
-<a href=#1274 id=1274 data-nosnippet>1274</a>                }
-<a href=#1275 id=1275 data-nosnippet>1275</a>            }
-<a href=#1276 id=1276 data-nosnippet>1276</a>        }<span class="question-mark">?</span>;
-<a href=#1277 id=1277 data-nosnippet>1277</a>
-<a href=#1278 id=1278 data-nosnippet>1278</a>        <span class="kw">let </span>output: Object = Object::from(output_location).with_target(<span class="kw-2">&amp;</span><span class="self">self</span>.target);
-<a href=#1279 id=1279 data-nosnippet>1279</a>        <span class="prelude-val">Ok</span>(output)
-<a href=#1280 id=1280 data-nosnippet>1280</a>    }
-<a href=#1281 id=1281 data-nosnippet>1281</a>}
+<a href=#1273 id=1273 data-nosnippet>1273</a>                    FormatOption::Object | FormatOption::Relocatable =&gt; {
+<a href=#1274 id=1274 data-nosnippet>1274</a>                        linker.build_relocatable(output_location).map_err(Into::into)
+<a href=#1275 id=1275 data-nosnippet>1275</a>                    }
+<a href=#1276 id=1276 data-nosnippet>1276</a>                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Already handled in previous match"</span>),
+<a href=#1277 id=1277 data-nosnippet>1277</a>                }
+<a href=#1278 id=1278 data-nosnippet>1278</a>            }
+<a href=#1279 id=1279 data-nosnippet>1279</a>        }<span class="question-mark">?</span>;
+<a href=#1280 id=1280 data-nosnippet>1280</a>
+<a href=#1281 id=1281 data-nosnippet>1281</a>        <span class="kw">let </span>output: Object = Object::from(output_location).with_target(<span class="kw-2">&amp;</span><span class="self">self</span>.target);
+<a href=#1282 id=1282 data-nosnippet>1282</a>        <span class="prelude-val">Ok</span>(output)
+<a href=#1283 id=1283 data-nosnippet>1283</a>    }
+<a href=#1284 id=1284 data-nosnippet>1284</a>}
 </code></pre></div></section></main></body></html>
