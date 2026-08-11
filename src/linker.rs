@@ -509,7 +509,7 @@ impl LinkerInterface for CcLinker {
         // file must outlive the spawned linker, so bind it in the function
         // scope.
         let response_file = if should_use_response_file(&linker_location, &args) {
-            match write_response_file(&args) {
+            match write_response_file(&args, ResponseFileStyle::for_linker(self.driver_mode)) {
                 Ok(f) => {
                     log::debug!(
                         "Linker command line is {} bytes across {} args; routing through response file: {}",
@@ -751,12 +751,14 @@ fn should_use_response_file(linker: &Path, args: &[String]) -> bool {
 /// line, args containing whitespace are double-quoted and have backslashes and
 /// embedded quotes escaped. Accepted by `lld`/`ld.lld`/`ld.bfd`/`gold`/`gcc`/
 /// `clang` (and by `lld-link`/MSVC `link.exe`, which use the same convention).
-fn write_response_file(args: &[String]) -> std::io::Result<NamedTempFile> {
+///
+/// `style` must match the command being spawned — see [`ResponseFileStyle`].
+fn write_response_file(args: &[String], style: ResponseFileStyle) -> std::io::Result<NamedTempFile> {
     let mut file = NamedTempFile::new()?;
     let arg_bytes: usize = args.iter().map(String::len).sum();
     let mut buf = String::with_capacity(arg_bytes + args.len());
     for arg in args {
-        buf.push_str(&quote_response_file_arg(arg));
+        buf.push_str(&quote_response_file_arg(arg, style));
         buf.push('\n');
     }
     file.write_all(buf.as_bytes())?;
@@ -764,29 +766,64 @@ fn write_response_file(args: &[String]) -> std::io::Result<NamedTempFile> {
     Ok(file)
 }
 
-/// Quote a single argument for a GNU-format response file. Args without
-/// whitespace or embedded quotes are emitted unchanged so Windows paths like
-/// `C:\foo` survive unescaped (an unquoted backslash is literal in this
-/// format). When quoting is required, backslashes are doubled inside the
-/// quoted region so the file parses identically under `lld` and binutils-style
-/// linkers.
-fn quote_response_file_arg(arg: &str) -> String {
+/// How the linker consuming a response file tokenizes backslashes.
+///
+/// The two families disagree, and a Windows path is destroyed if the wrong one is
+/// assumed, so the style must follow the command actually being spawned.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum ResponseFileStyle {
+    /// `lld`, `ld.bfd`, `gold`: an unquoted backslash is literal, so `C:\foo\bar.o`
+    /// is passed through as written.
+    LiteralBackslash,
+    /// Compiler drivers (`clang`, `cc`, `gcc`): a backslash escapes the following
+    /// character, so every backslash must be doubled. A bare `C:\foo\bar.o` reaches
+    /// the driver as `C:foobar.o`.
+    EscapedBackslash,
+}
+
+impl ResponseFileStyle {
+    /// Driver linkers hand the response file to the compiler driver's own tokenizer;
+    /// direct linkers parse it themselves.
+    fn for_linker(driver_mode: bool) -> Self {
+        if driver_mode {
+            ResponseFileStyle::EscapedBackslash
+        } else {
+            ResponseFileStyle::LiteralBackslash
+        }
+    }
+}
+
+/// Quote a single argument for a GNU-format response file.
+///
+/// An argument carrying whitespace or an embedded quote is wrapped in double quotes.
+/// Backslash handling additionally depends on `style`; see [`ResponseFileStyle`].
+fn quote_response_file_arg(arg: &str, style: ResponseFileStyle) -> String {
     if arg.is_empty() {
         return "\"\"".to_string();
     }
+
     let needs_quoting = arg.chars().any(|c| c == ' ' || c == '\t' || c == '\n' || c == '"');
-    if !needs_quoting {
+    // Inside a quoted region backslashes are always doubled, so the file parses
+    // identically under both families.
+    let escape_backslash = needs_quoting || style == ResponseFileStyle::EscapedBackslash;
+
+    if !needs_quoting && !escape_backslash {
         return arg.to_string();
     }
+
     let mut out = String::with_capacity(arg.len() + 2);
-    out.push('"');
+    if needs_quoting {
+        out.push('"');
+    }
     for c in arg.chars() {
-        if c == '"' || c == '\\' {
+        if c == '"' || (c == '\\' && escape_backslash) {
             out.push('\\');
         }
         out.push(c);
     }
-    out.push('"');
+    if needs_quoting {
+        out.push('"');
+    }
     out
 }
 
@@ -1056,33 +1093,67 @@ mod test {
     };
     use serial_test::serial;
 
+    use crate::linker::ResponseFileStyle;
+
+    const LITERAL: ResponseFileStyle = ResponseFileStyle::LiteralBackslash;
+    const ESCAPED: ResponseFileStyle = ResponseFileStyle::EscapedBackslash;
+
     #[test]
     fn response_file_quoting_leaves_plain_args_alone() {
-        assert_eq!(quote_response_file_arg("-O2"), "-O2");
-        assert_eq!(quote_response_file_arg("--target=x86_64-linux-gnu"), "--target=x86_64-linux-gnu");
-        assert_eq!(quote_response_file_arg("/tmp/libfoo.so.1"), "/tmp/libfoo.so.1");
-        // Backslashes without whitespace stay unescaped — unquoted backslash is
-        // literal in the GNU response-file format.
-        assert_eq!(quote_response_file_arg(r"C:\foo\bar.o"), r"C:\foo\bar.o");
+        assert_eq!(quote_response_file_arg("-O2", LITERAL), "-O2");
+        assert_eq!(
+            quote_response_file_arg("--target=x86_64-linux-gnu", LITERAL),
+            "--target=x86_64-linux-gnu"
+        );
+        assert_eq!(quote_response_file_arg("/tmp/libfoo.so.1", LITERAL), "/tmp/libfoo.so.1");
+        // A direct linker takes an unquoted backslash literally, so the path is
+        // emitted as written.
+        assert_eq!(quote_response_file_arg(r"C:\foo\bar.o", LITERAL), r"C:\foo\bar.o");
+    }
+
+    /// Regression: a compiler driver treats a backslash as an escape, so an unescaped
+    /// Windows path reaches it as `C:foobar.o` and the link fails with "no such file
+    /// or directory" for every object.
+    #[test]
+    fn response_file_quoting_escapes_backslashes_for_driver_linkers() {
+        assert_eq!(quote_response_file_arg(r"C:\foo\bar.o", ESCAPED), r"C:\\foo\\bar.o");
+        // Flags and forward-slash paths are unaffected.
+        assert_eq!(quote_response_file_arg("-O2", ESCAPED), "-O2");
+        assert_eq!(quote_response_file_arg("/tmp/libfoo.so.1", ESCAPED), "/tmp/libfoo.so.1");
+    }
+
+    #[test]
+    fn response_file_style_follows_the_linker_family() {
+        assert_eq!(ResponseFileStyle::for_linker(true), ESCAPED);
+        assert_eq!(ResponseFileStyle::for_linker(false), LITERAL);
     }
 
     #[test]
     fn response_file_quoting_escapes_args_with_whitespace() {
-        // Whitespace forces quoting; backslashes inside the quoted region are
-        // doubled so the file parses identically under lld and binutils.
-        assert_eq!(quote_response_file_arg(r"C:\Program Files\foo.o"), r#""C:\\Program Files\\foo.o""#);
-        assert_eq!(quote_response_file_arg("a b"), r#""a b""#);
-        assert_eq!(quote_response_file_arg("with\ttab"), "\"with\ttab\"");
+        // Whitespace forces quoting; backslashes inside the quoted region are doubled
+        // under either style, so the file parses identically for both families.
+        for style in [LITERAL, ESCAPED] {
+            assert_eq!(
+                quote_response_file_arg(r"C:\Program Files\foo.o", style),
+                r#""C:\\Program Files\\foo.o""#
+            );
+            assert_eq!(quote_response_file_arg("a b", style), r#""a b""#);
+            assert_eq!(quote_response_file_arg("with\ttab", style), "\"with\ttab\"");
+        }
     }
 
     #[test]
     fn response_file_quoting_escapes_embedded_quotes() {
-        assert_eq!(quote_response_file_arg(r#"say "hi""#), r#""say \"hi\"""#);
+        for style in [LITERAL, ESCAPED] {
+            assert_eq!(quote_response_file_arg(r#"say "hi""#, style), r#""say \"hi\"""#);
+        }
     }
 
     #[test]
     fn response_file_quoting_emits_empty_arg_as_quoted_empty() {
-        assert_eq!(quote_response_file_arg(""), "\"\"");
+        for style in [LITERAL, ESCAPED] {
+            assert_eq!(quote_response_file_arg("", style), "\"\"");
+        }
     }
 
     #[test]
@@ -1166,7 +1237,7 @@ mod test {
             r"C:\Program Files\foo.o".to_string(),
             "/tmp/libbar.so.1".to_string(),
         ];
-        let file = write_response_file(&args).expect("write response file");
+        let file = write_response_file(&args, LITERAL).expect("write response file");
         let contents = std::fs::read_to_string(file.path()).expect("read response file back");
         assert_eq!(
             contents,
@@ -1175,5 +1246,78 @@ mod test {
              \"C:\\\\Program Files\\\\foo.o\"\n\
              /tmp/libbar.so.1\n",
         );
+    }
+
+    /// Regression: object paths written for a driver linker must survive the driver's
+    /// tokenizer. Before this, every backslash was dropped and the link failed with
+    /// "no such file or directory" for each object.
+    #[test]
+    fn write_response_file_escapes_object_paths_for_driver_linkers() {
+        let args = vec![
+            r"C:\build\tmp\obj\mainProg.st.o".to_string(),
+            r"C:\build\tmp\obj\taskRun.st.o".to_string(),
+            "-o".to_string(),
+            r"C:\build\prog.so".to_string(),
+        ];
+        let file = write_response_file(&args, ESCAPED).expect("write response file");
+        let contents = std::fs::read_to_string(file.path()).expect("read response file back");
+        assert_eq!(
+            contents,
+            "C:\\\\build\\\\tmp\\\\obj\\\\mainProg.st.o\n\
+             C:\\\\build\\\\tmp\\\\obj\\\\taskRun.st.o\n\
+             -o\n\
+             C:\\\\build\\\\prog.so\n",
+        );
+
+        // Every emitted line must unescape back to the original argument.
+        for (written, original) in contents.lines().zip(&args) {
+            assert_eq!(written.replace("\\\\", "\\"), *original);
+        }
+    }
+
+    /// The response file a driver linker actually receives round-trips its arguments.
+    /// Exercised through `CcLinker` so the style is picked the way `finalize` picks it,
+    /// rather than being asserted against a hand-passed constant.
+    #[test]
+    fn driver_linker_response_file_round_trips_windows_paths() {
+        let obj = r"C:\tmp\a b\obj\mainProg.st.o";
+
+        let mut driver = CcLinker::new_driver("clang", vec!["-fuse-ld=lld".to_string()]);
+        driver.add_obj(obj);
+        let driver_args = driver.command_args();
+
+        for (linker, style) in [(&driver, ESCAPED), (&CcLinker::new("ld.lld"), LITERAL)] {
+            let _ = linker;
+            let file = write_response_file(&driver_args, style).expect("write response file");
+            let contents = std::fs::read_to_string(file.path()).expect("read response file back");
+            assert!(
+                contents.lines().any(|line| unescape_response_arg(line, style) == obj),
+                "object path did not round-trip for {style:?}: {contents}"
+            );
+        }
+    }
+
+    /// Minimal inverse of `quote_response_file_arg`, mirroring how each linker family
+    /// tokenizes the file.
+    fn unescape_response_arg(line: &str, style: ResponseFileStyle) -> String {
+        let quoted = line.starts_with('"') && line.ends_with('"') && line.len() >= 2;
+        let body = if quoted { &line[1..line.len() - 1] } else { line };
+
+        if !quoted && style == LITERAL {
+            return body.to_string();
+        }
+
+        let mut out = String::with_capacity(body.len());
+        let mut chars = body.chars();
+        while let Some(c) = chars.next() {
+            if c == '\\' {
+                if let Some(next) = chars.next() {
+                    out.push(next);
+                }
+            } else {
+                out.push(c);
+            }
+        }
+        out
     }
 }
