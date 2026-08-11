@@ -117,6 +117,11 @@ pub struct LinkOptions {
     pub output_directory: Option<PathBuf>,
     pub linker_script: LinkerScript,
     pub module_name: Option<String>,
+    /// If set (i.e. the build carries debug info), ask the linker to merge the per-CU
+    /// `.debug_names` units into a single index (lld `--debug-names`, LLD >= 19) so gdb
+    /// can use the index instead of ignoring the concatenated multi-unit section and
+    /// cold-scanning all DWARF on every debugger attach. No-op on linkers without support.
+    pub merge_debug_names: bool,
 }
 
 #[derive(Clone, Default, Debug)]
