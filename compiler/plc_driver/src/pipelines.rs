@@ -1187,8 +1187,11 @@ impl GeneratedProject {
             _ => {
                 // Only initialize a linker if we need to use it
                 let target_triple = self.target.get_target_triple();
-                let mut linker =
-                    plc::linker::Linker::new(&target_triple.as_str().to_string_lossy(), link_options.linker)?;
+                let mut linker = plc::linker::Linker::new(
+                    &target_triple.as_str().to_string_lossy(),
+                    self.target.get_sysroot(),
+                    link_options.linker,
+                )?;
                 if let Some(fuse) = &link_options.fuse_linker {
                     log::debug!("Applying --fuse-ld={fuse}");
                     linker.set_fuse_ld(fuse);
