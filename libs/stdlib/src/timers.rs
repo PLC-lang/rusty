@@ -61,12 +61,13 @@ impl TimerParams {
     }
 
     fn update_elapsed_time(&mut self) {
+        // `is_running` and `start_time` are always set together; if the start time is
+        // ever missing regardless, keep the previous elapsed time instead of panicking.
         if self.is_running() {
-            let elapsed_millis =
-                self.get_run_time().expect("Timer should be running").as_millis().min(u32::MAX as u128)
-                    as u32;
-
-            self.set_elapsed_time(std::cmp::min(self.preset_time, elapsed_millis));
+            if let Some(run_time) = self.get_run_time() {
+                let elapsed_millis = run_time.as_millis().min(u32::MAX as u128) as u32;
+                self.set_elapsed_time(std::cmp::min(self.preset_time, elapsed_millis));
+            }
         }
     }
 
@@ -114,11 +115,12 @@ impl TimerParamsLTime {
     }
 
     fn update_elapsed_time(&mut self) {
+        // `is_running` and `start_time` are always set together; if the start time is
+        // ever missing regardless, keep the previous elapsed time instead of panicking.
         if self.is_running() {
-            self.set_elapsed_time(std::cmp::min(
-                self.preset_time,
-                self.get_run_time().expect("Timer should be running").as_nanos() as i64,
-            ));
+            if let Some(run_time) = self.get_run_time() {
+                self.set_elapsed_time(std::cmp::min(self.preset_time, run_time.as_nanos() as i64));
+            }
         }
     }
 

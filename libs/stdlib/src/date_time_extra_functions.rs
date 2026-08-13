@@ -6,7 +6,9 @@ const NANOS_PER_MILLISECOND: i64 = 1_000 * 1_000;
 const NANOS_PER_SECOND: i64 = 1_000 * 1_000 * 1_000;
 
 fn dt_from_epoch_seconds(seconds: u32) -> chrono::DateTime<chrono::Utc> {
-    chrono::Utc.timestamp_opt(seconds as i64, 0).single().expect("Out of range")
+    // Every u32 second count is a valid chrono timestamp; fall back to the
+    // epoch defensively instead of panicking.
+    chrono::Utc.timestamp_opt(seconds as i64, 0).single().unwrap_or_default()
 }
 
 fn split_tod_fields(millis: u32) -> (u32, u32, u32, u32) {
@@ -411,8 +413,8 @@ pub extern "C" fn concat_ldt(
 #[no_mangle]
 pub extern "C" fn SPLIT_DATE__INT(in1: u32, out1: &mut i16, out2: &mut i16, out3: &mut i16) -> i16 {
     let date = dt_from_epoch_seconds(in1).date_naive();
-    // if year does not fit in target data type -> panic
-    *out1 = date.year().try_into().unwrap();
+    // the year of any representable DATE fits every target type; write 0 defensively otherwise
+    *out1 = date.year().try_into().unwrap_or_default();
     *out2 = date.month() as i16;
     *out3 = date.day() as i16;
 
@@ -427,8 +429,8 @@ pub extern "C" fn SPLIT_DATE__INT(in1: u32, out1: &mut i16, out2: &mut i16, out3
 #[no_mangle]
 pub extern "C" fn SPLIT_DATE__UINT(in1: u32, out1: &mut u16, out2: &mut u16, out3: &mut u16) -> i16 {
     let date = dt_from_epoch_seconds(in1).date_naive();
-    // if year does not fit in target data type -> panic
-    *out1 = date.year().try_into().unwrap();
+    // the year of any representable DATE fits every target type; write 0 defensively otherwise
+    *out1 = date.year().try_into().unwrap_or_default();
     *out2 = date.month() as u16;
     *out3 = date.day() as u16;
 
@@ -456,8 +458,8 @@ pub extern "C" fn SPLIT_DATE__DINT(in1: u32, out1: &mut i32, out2: &mut i32, out
 #[no_mangle]
 pub extern "C" fn SPLIT_DATE__UDINT(in1: u32, out1: &mut u32, out2: &mut u32, out3: &mut u32) -> i16 {
     let date = dt_from_epoch_seconds(in1).date_naive();
-    // if year does not fit in target data type -> panic
-    *out1 = date.year().try_into().unwrap();
+    // the year of any representable DATE fits every target type; write 0 defensively otherwise
+    *out1 = date.year().try_into().unwrap_or_default();
     *out2 = date.month();
     *out3 = date.day();
 
@@ -487,8 +489,8 @@ pub extern "C" fn SPLIT_DATE__LINT(in1: u32, out1: &mut i64, out2: &mut i64, out
 #[no_mangle]
 pub extern "C" fn SPLIT_DATE__ULINT(in1: u32, out1: &mut u64, out2: &mut u64, out3: &mut u64) -> i16 {
     let date = dt_from_epoch_seconds(in1).date_naive();
-    // if year does not fit in target data type -> panic
-    *out1 = date.year().try_into().unwrap();
+    // the year of any representable DATE fits every target type; write 0 defensively otherwise
+    *out1 = date.year().try_into().unwrap_or_default();
     *out2 = date.month() as u64;
     *out3 = date.day() as u64;
 
@@ -764,7 +766,7 @@ pub extern "C" fn SPLIT_DT__INT(
 ) -> i16 {
     let dt = dt_from_epoch_seconds(in1);
     // if year does not fit in target data type -> panic
-    *out1 = dt.year().try_into().unwrap();
+    *out1 = dt.year().try_into().unwrap_or_default();
     *out2 = dt.month() as i16;
     *out3 = dt.day() as i16;
     *out4 = dt.hour() as i16;
@@ -792,7 +794,7 @@ pub extern "C" fn SPLIT_DT__UINT(
 ) -> i16 {
     let dt = dt_from_epoch_seconds(in1);
     // if year does not fit in target data type -> panic
-    *out1 = dt.year().try_into().unwrap();
+    *out1 = dt.year().try_into().unwrap_or_default();
     *out2 = dt.month() as u16;
     *out3 = dt.day() as u16;
     *out4 = dt.hour() as u16;
@@ -847,7 +849,7 @@ pub extern "C" fn SPLIT_DT__UDINT(
 ) -> i16 {
     let dt = dt_from_epoch_seconds(in1);
     // if year does not fit in target data type -> panic
-    *out1 = dt.year().try_into().unwrap();
+    *out1 = dt.year().try_into().unwrap_or_default();
     *out2 = dt.month();
     *out3 = dt.day();
     *out4 = dt.hour();
@@ -903,7 +905,7 @@ pub extern "C" fn SPLIT_DT__ULINT(
 ) -> i16 {
     let dt = dt_from_epoch_seconds(in1);
     // if year does not fit in target data type -> panic
-    *out1 = dt.year().try_into().unwrap();
+    *out1 = dt.year().try_into().unwrap_or_default();
     *out2 = dt.month() as u64;
     *out3 = dt.day() as u64;
     *out4 = dt.hour() as u64;
@@ -930,7 +932,7 @@ pub extern "C" fn SPLIT_LDT__INT(
     out7: &mut i16,
 ) -> i16 {
     let (year, month, day, hour, minute, second, millisecond) = split_ldt_fields(in1);
-    *out1 = year.try_into().unwrap();
+    *out1 = year.try_into().unwrap_or_default();
     *out2 = month as i16;
     *out3 = day as i16;
     *out4 = hour as i16;
@@ -957,7 +959,7 @@ pub extern "C" fn SPLIT_LDT__UINT(
     out7: &mut u16,
 ) -> i16 {
     let (year, month, day, hour, minute, second, millisecond) = split_ldt_fields(in1);
-    *out1 = year.try_into().unwrap();
+    *out1 = year.try_into().unwrap_or_default();
     *out2 = month as u16;
     *out3 = day as u16;
     *out4 = hour as u16;
@@ -1011,7 +1013,7 @@ pub extern "C" fn SPLIT_LDT__UDINT(
     out7: &mut u32,
 ) -> i16 {
     let (year, month, day, hour, minute, second, millisecond) = split_ldt_fields(in1);
-    *out1 = year.try_into().unwrap();
+    *out1 = year.try_into().unwrap_or_default();
     *out2 = month;
     *out3 = day;
     *out4 = hour;
@@ -1065,7 +1067,7 @@ pub extern "C" fn SPLIT_LDT__ULINT(
     out7: &mut u64,
 ) -> i16 {
     let (year, month, day, hour, minute, second, millisecond) = split_ldt_fields(in1);
-    *out1 = year.try_into().unwrap();
+    *out1 = year.try_into().unwrap_or_default();
     *out2 = month as u64;
     *out3 = day as u64;
     *out4 = hour as u64;

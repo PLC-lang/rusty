@@ -20,7 +20,8 @@ const NANOS_PER_SECOND: i64 = 1_000 * NANOS_PER_MILLISECOND;
 // --------- x_TO_STRING
 
 /// Formats `args` into `dest` and appends the null terminator the IEC string layout
-/// requires. Returns the number of content bytes written (excluding the terminator).
+/// requires. Output that does not fit into `capacity - 1` bytes is truncated. Returns
+/// the number of content bytes written (excluding the terminator).
 /// Writers must not rely on the destination being zero-initialized; the buffer may
 /// hold arbitrary bytes.
 ///
@@ -29,7 +30,9 @@ const NANOS_PER_SECOND: i64 = 1_000 * NANOS_PER_MILLISECOND;
 unsafe fn write_terminated(dest: *mut u8, capacity: usize, args: std::fmt::Arguments) -> usize {
     let content = core::slice::from_raw_parts_mut(dest, capacity - 1);
     let mut cursor = std::io::Cursor::new(content);
-    cursor.write_fmt(args).unwrap();
+    // A full buffer truncates the output instead of failing: a too-long string must
+    // not bring down the runtime.
+    let _ = cursor.write_fmt(args);
     let written = cursor.position() as usize;
     *dest.add(written) = 0;
     written

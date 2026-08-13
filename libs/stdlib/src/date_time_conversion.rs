@@ -11,16 +11,14 @@ const SECONDS_PER_DAY: u32 = 60 * 60 * 24;
 #[no_mangle]
 pub extern "C" fn DATE_AND_TIME_TO_DATE(input: u32) -> u32 {
     let input_seconds = input as i64;
-    let date_time = chrono::Utc.timestamp_opt(input_seconds, 0).single().expect("Out of range DT value");
-
-    let midnight_seconds = date_time
-        .date_naive()
-        .and_hms_opt(0, 0, 0)
-        .expect("Cannot create date time from date")
-        .and_utc()
-        .timestamp();
-
-    midnight_seconds as u32
+    // Every u32 second count is a valid chrono timestamp; fall back to the
+    // epoch defensively instead of panicking.
+    chrono::Utc
+        .timestamp_opt(input_seconds, 0)
+        .single()
+        .and_then(|date_time| date_time.date_naive().and_hms_opt(0, 0, 0))
+        .map(|midnight| midnight.and_utc().timestamp() as u32)
+        .unwrap_or(0)
 }
 
 /// .
@@ -31,10 +29,13 @@ pub extern "C" fn DATE_AND_TIME_TO_DATE(input: u32) -> u32 {
 pub extern "C" fn LDATE_AND_TIME_TO_LDATE(input: i64) -> i64 {
     let date_time = chrono::Utc.timestamp_nanos(input);
 
-    let new_date_time =
-        date_time.date_naive().and_hms_opt(0, 0, 0).expect("Cannot create date time from date");
-
-    new_date_time.and_utc().timestamp_nanos_opt().expect("Out of range, cannot create DATE")
+    // Midnight of a date derived from an i64 nanosecond timestamp is always
+    // representable; fall back to the epoch defensively instead of panicking.
+    date_time
+        .date_naive()
+        .and_hms_opt(0, 0, 0)
+        .and_then(|new_date_time| new_date_time.and_utc().timestamp_nanos_opt())
+        .unwrap_or(0)
 }
 
 /// .
@@ -44,14 +45,17 @@ pub extern "C" fn LDATE_AND_TIME_TO_LDATE(input: i64) -> i64 {
 #[no_mangle]
 pub extern "C" fn DATE_AND_TIME_TO_TIME_OF_DAY(input: u32) -> u32 {
     let input_seconds = input as i64;
-    let date_time = chrono::Utc.timestamp_opt(input_seconds, 0).single().expect("Out of range DT value");
-
-    let midnight = chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
-        .and_then(|date| date.and_hms_opt(date_time.hour(), date_time.minute(), date_time.second()))
-        .expect("Cannot create date time from given parameters")
-        .and_utc();
-
-    midnight.timestamp_millis() as u32
+    // Every u32 second count is a valid chrono timestamp; fall back to midnight
+    // defensively instead of panicking.
+    chrono::Utc
+        .timestamp_opt(input_seconds, 0)
+        .single()
+        .and_then(|date_time| {
+            chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
+                .and_then(|date| date.and_hms_opt(date_time.hour(), date_time.minute(), date_time.second()))
+        })
+        .map(|time_of_day| time_of_day.and_utc().timestamp_millis() as u32)
+        .unwrap_or(0)
 }
 
 /// .
@@ -66,11 +70,12 @@ pub extern "C" fn LDATE_AND_TIME_TO_LTIME_OF_DAY(input: i64) -> i64 {
     let sec = date_time.second();
     let nano = date_time.timestamp_subsec_nanos();
 
-    let new_date_time = chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
+    // A time of day on 1970-01-01 is always representable; fall back to
+    // midnight defensively instead of panicking.
+    chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
         .and_then(|date| date.and_hms_nano_opt(hour, min, sec, nano))
-        .expect("Cannot create date time from given parameters");
-
-    new_date_time.and_utc().timestamp_nanos_opt().expect("Out of range, cannot create TOD")
+        .and_then(|new_date_time| new_date_time.and_utc().timestamp_nanos_opt())
+        .unwrap_or(0)
 }
 
 /// .

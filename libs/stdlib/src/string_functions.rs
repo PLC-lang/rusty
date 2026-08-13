@@ -44,7 +44,42 @@ pub unsafe fn ptr_to_slice<'a, T: PrimInt>(src: *const T) -> &'a [T] {
 }
 
 type Utf16Iterator<'a> = std::char::DecodeUtf16<std::iter::Copied<std::slice::Iter<'a, u16>>>;
-type Utf8Iterator<'a> = core::str::Chars<'a>;
+type Utf8Iterator<'a> = Utf8LossyChars<'a>;
+
+/// Iterator over the characters of a byte slice, decoding UTF-8 lossily. Invalid sequences
+/// yield one [`char::REPLACEMENT_CHARACTER`] each instead of failing, mirroring
+/// [`String::from_utf8_lossy`] without allocating. Strings handed to the standard library
+/// come from raw PLC memory and are not guaranteed to hold valid UTF-8.
+pub struct Utf8LossyChars<'a> {
+    chunks: std::str::Utf8Chunks<'a>,
+    valid: core::str::Chars<'a>,
+    replacement_pending: bool,
+}
+
+impl<'a> Utf8LossyChars<'a> {
+    fn new(slice: &'a [u8]) -> Self {
+        Self { chunks: slice.utf8_chunks(), valid: "".chars(), replacement_pending: false }
+    }
+}
+
+impl<'a> Iterator for Utf8LossyChars<'a> {
+    type Item = char;
+
+    fn next(&mut self) -> Option<char> {
+        loop {
+            if let Some(c) = self.valid.next() {
+                return Some(c);
+            }
+            if self.replacement_pending {
+                self.replacement_pending = false;
+                return Some(char::REPLACEMENT_CHARACTER);
+            }
+            let chunk = self.chunks.next()?;
+            self.valid = chunk.valid().chars();
+            self.replacement_pending = !chunk.invalid().is_empty();
+        }
+    }
+}
 
 pub trait CharsDecoder<T: PrimInt> {
     type IteratorType: Iterator;
@@ -98,7 +133,7 @@ impl<'a> CharsDecoder<u8> for EncodedCharsIter<Utf8Iterator<'a>> {
     type IteratorType = Utf8Iterator<'a>;
     unsafe fn decode(src: *const u8) -> Self {
         let slice = ptr_to_slice(src);
-        Self { iter: std::str::from_utf8(slice).unwrap().chars() }
+        Self { iter: Utf8LossyChars::new(slice) }
     }
 }
 
@@ -140,7 +175,8 @@ impl<I: Iterator<Item = Result<char, DecodeUtf16Error>>> CharsEncoder<u16> for I
         let mut remaining = max_elements;
         let mut written = 0;
         for c in self {
-            let c = c.unwrap();
+            // Unpaired surrogates in raw PLC memory must not bring down the runtime.
+            let c = c.unwrap_or(char::REPLACEMENT_CHARACTER);
             let len = c.len_utf16();
             // Stop before we would exceed the budget; never truncate mid-character.
             if len > remaining {
@@ -219,8 +255,9 @@ pub unsafe extern "C" fn FIND__STRING(src1: *const u8, src2: *const u8) -> i32 {
     }
 
     if let Some(idx) = haystack.windows(needle.len()).position(|window| window == needle) {
-        // get chars until byte index
-        let char_index = core::str::from_utf8(std::slice::from_raw_parts(src1, idx)).unwrap().chars().count();
+        // get chars until byte index; decode lossily so invalid UTF-8 counts as one
+        // character per invalid sequence instead of failing
+        let char_index = Utf8LossyChars::new(std::slice::from_raw_parts(src1, idx)).count();
         // correct for ST indexing
         char_index as i32 + 1
     } else {
@@ -705,8 +742,6 @@ pub unsafe extern "C-unwind" fn REPLACE_EXT__WSTRING(
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if trying to index outside of the array or trying
-/// to replace more characters than remaining.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn CONCAT__STRING(dest: *mut u8, argc: i32, argv: *const *const u8) {
@@ -722,13 +757,13 @@ pub unsafe extern "C" fn CONCAT__STRING(dest: *mut u8, argc: i32, argv: *const *
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if trying to index outside of the array or trying
-/// to replace more characters than remaining.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn CONCAT_EXT__STRING(dest: *mut u8, argc: i32, argv: *const *const u8) -> i32 {
+    // Generated code always passes valid pointers; nothing sensible can be
+    // written through a null destination, so bail out instead of panicking.
     if argv.is_null() || dest.is_null() {
-        panic!("Received null-pointer.")
+        return 0;
     }
     let mut dest = dest;
     let mut argv = argv;
@@ -753,8 +788,6 @@ pub unsafe extern "C-unwind" fn CONCAT_EXT__STRING(dest: *mut u8, argc: i32, arg
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if trying to index outside of the array or trying
-/// to replace more characters than remaining.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn CONCAT__WSTRING(dest: *mut u16, argc: i32, argv: *const *const u16) {
@@ -770,8 +803,6 @@ pub unsafe extern "C" fn CONCAT__WSTRING(dest: *mut u16, argc: i32, argv: *const
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if trying to index outside of the array or trying
-/// to replace more characters than remaining.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn CONCAT_EXT__WSTRING(
@@ -779,8 +810,10 @@ pub unsafe extern "C-unwind" fn CONCAT_EXT__WSTRING(
     argc: i32,
     argv: *const *const u16,
 ) -> i32 {
+    // Generated code always passes valid pointers; nothing sensible can be
+    // written through a null destination, so bail out instead of panicking.
     if argv.is_null() || dest.is_null() {
-        panic!("Received null-pointer.")
+        return 0;
     }
     let mut dest = dest;
     let mut argv = argv;
@@ -801,8 +834,10 @@ fn compare<T>(argc: i32, argv: *const *const T, predicate_func: fn(Ordering) -> 
 where
     T: Ord + PrimInt,
 {
+    // Generated code always passes at least two arguments; a chain of zero
+    // comparisons is vacuously true.
     if argc < 2 {
-        panic!("Too few arguments for function call.")
+        return true;
     }
     let mut argv = argv;
     unsafe {
@@ -1820,5 +1855,66 @@ mod test {
         }
         let argc = argv.len() as i32;
         unsafe { assert!(__WSTRING_LESS(argc, argv.as_ptr())) }
+    }
+
+    #[test]
+    fn test_len_counts_invalid_utf8_bytes_as_replacement_chars() {
+        let src = [b'a', 0xFF, b'b', 0];
+        unsafe {
+            assert_eq!(LEN__STRING(src.as_ptr()), 3);
+        }
+    }
+
+    #[test]
+    fn test_find_with_invalid_utf8_prefix() {
+        let haystack = [b'a', 0xFF, b'b', 0];
+        let needle = b"b\0";
+        unsafe {
+            assert_eq!(FIND__STRING(haystack.as_ptr(), needle.as_ptr()), 3);
+        }
+    }
+
+    #[test]
+    fn test_concat_with_invalid_utf8_replaces_bad_bytes() {
+        let argvec: [&[u8]; 2] = [&[b'a', 0xFF, 0], b"b\0"];
+        let mut argv: [*const u8; 2] = [std::ptr::null(); 2];
+        for (i, arg) in argvec.iter().enumerate() {
+            argv[i] = arg.as_ptr();
+        }
+        let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
+        unsafe {
+            CONCAT_EXT__STRING(dest.as_mut_ptr(), argv.len() as i32, argv.as_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "a\u{FFFD}b");
+        }
+    }
+
+    #[test]
+    fn test_concat_with_null_pointers_is_a_no_op() {
+        let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
+        unsafe {
+            assert_eq!(CONCAT_EXT__STRING(dest.as_mut_ptr(), 2, std::ptr::null()), 0);
+            assert_eq!(CONCAT_EXT__STRING(std::ptr::null_mut(), 2, std::ptr::null()), 0);
+        }
+    }
+
+    #[test]
+    fn test_compare_with_too_few_arguments_is_vacuously_true() {
+        unsafe {
+            assert!(__STRING_EQUAL(0, std::ptr::null()));
+            assert!(__STRING_GREATER(1, std::ptr::null()));
+        }
+    }
+
+    #[test]
+    fn test_left_ext_wstring_with_unpaired_surrogate() {
+        let src: [u16; 4] = [0xD800, 'b' as u16, 'c' as u16, 0];
+        let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
+        unsafe {
+            LEFT_EXT__WSTRING(src.as_ptr(), 2, dest.as_mut_ptr());
+        }
+        let expected: Vec<u16> = "\u{FFFD}b".encode_utf16().collect();
+        assert_eq!(&dest[..2], expected.as_slice());
+        assert_eq!(dest[2], 0);
     }
 }
