@@ -1986,11 +1986,16 @@ fn validate_call<T: AnnotationMap>(
         );
     }
 
-    // Check if we're dealing with a builtin function and if so call its validation function
-    if let Some(validation) = builtins::get_builtin(fn_ident.get_flat_reference_name().unwrap_or_default())
-        .and_then(BuiltIn::get_validation)
-    {
-        validation(validator, fn_ident, fn_args, context.annotations, context.index);
+    // Check if we're dealing with a builtin function and if so call its validation function.
+    // A generic call can also bind to a builtin under its resolved name (e.g. ABS(UINT#1)
+    // binds to ABS__UINT), so dispatch the validation of the bound builtin as well.
+    let flat_name = fn_ident.get_flat_reference_name().unwrap_or_default();
+    let call_name =
+        context.annotations.get_call_name(fn_ident).filter(|it| !it.eq_ignore_ascii_case(flat_name));
+    for name in std::iter::once(flat_name).chain(call_name) {
+        if let Some(validation) = builtins::get_builtin(name).and_then(BuiltIn::get_validation) {
+            validation(validator, fn_ident, fn_args, context.annotations, context.index);
+        }
     }
 
     let Some(pou) = context.find_pou(fn_ident) else {
