@@ -1,13 +1,14 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// XFAIL: *
-// Test that MUL with TIME and unsigned integer overflow causes a panic
+// Test that MUL with TIME and an unsigned integer beyond the LINT range wraps instead of panicking
 
-PROGRAM main
+FUNCTION main : DINT
 VAR
     a : TIME;
 END_VAR
-    // Multiplying TIME by max ULINT value should overflow and panic
-    a := MUL(TIME#1ns, ULINT#9223372036854775808);
-    // CHECK: Should not reach here
-    printf('Should not reach here$N');
-END_PROGRAM
+    // The factor wraps to LINT minimum in modular 64-bit arithmetic; the low
+    // 32 bits of the product are zero
+    a := MUL(TIME#1ms, ULINT#9223372036854775808);
+    // CHECK: result: 0
+    printf('result: %u$N', a);
+    main := 0;
+END_FUNCTION

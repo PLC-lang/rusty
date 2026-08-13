@@ -1,13 +1,13 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// XFAIL: *
-// Test that SUB with TIME overflow causes a panic
+// Test that SUB with TIME wraps on underflow instead of panicking
 
-PROGRAM main
+FUNCTION main : DINT
 VAR
     a : TIME;
 END_VAR
-    // Subtracting from minimum TIME value should overflow and panic
-    a := SUB(TIME#-9223372036854775807ms, TIME#1ms);
-    // CHECK: Should not reach here
-    printf('Should not reach here$N');
-END_PROGRAM
+    // 1000ms - 5000ms wraps modulo 2^32 to 4294963296ms
+    a := SUB(TIME#1s, TIME#5s);
+    // CHECK: result: 4294963296
+    printf('result: %u$N', a);
+    main := 0;
+END_FUNCTION

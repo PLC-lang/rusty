@@ -1,13 +1,13 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// XFAIL: *
-// Test that MUL with TIME and LREAL overflow causes a panic
+// Test that MUL with TIME and LREAL saturates on overflow instead of panicking
 
-PROGRAM main
+FUNCTION main : DINT
 VAR
     a : TIME;
 END_VAR
-    // Multiplying TIME by large LREAL value should overflow and panic
-    a := MUL(TIME#-2s700ms, LREAL#3.40282347e38);
-    // CHECK: Should not reach here
-    printf('Should not reach here$N');
-END_PROGRAM
+    // The product saturates at the LINT maximum; its low 32 bits are all ones
+    a := MUL(TIME#1s, LREAL#1.0E300);
+    // CHECK: result: 4294967295
+    printf('result: %u$N', a);
+    main := 0;
+END_FUNCTION

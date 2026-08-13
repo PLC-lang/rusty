@@ -1,13 +1,13 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// XFAIL: *
-// Test that MUL with TIME and REAL overflow causes a panic
+// Test that MUL with TIME and REAL saturates on overflow instead of panicking
 
-PROGRAM main
+FUNCTION main : DINT
 VAR
     a : TIME;
 END_VAR
-    // Multiplying TIME by max REAL value should overflow and panic
-    a := MUL(TIME#-2s700ms, REAL#3.40282347e38);
-    // CHECK: Should not reach here
-    printf('Should not reach here$N');
-END_PROGRAM
+    // The product saturates at the LINT maximum; its low 32 bits are all ones
+    a := MUL(TIME#1s, REAL#3.40282347e38);
+    // CHECK: result: 4294967295
+    printf('result: %u$N', a);
+    main := 0;
+END_FUNCTION

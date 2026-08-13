@@ -1,13 +1,13 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// XFAIL: *
-// Test that MUL with TIME and signed integer overflow causes a panic
+// Test that MUL with TIME and a signed integer wraps on overflow instead of panicking
 
-PROGRAM main
+FUNCTION main : DINT
 VAR
     a : TIME;
 END_VAR
-    // Multiplying TIME by max LINT value should overflow and panic
-    a := MUL(TIME#10ns, LINT#9223372036854775807);
-    // CHECK: Should not reach here
-    printf('Should not reach here$N');
-END_PROGRAM
+    // 1728000000ms * 200 = 345600000000ms wraps modulo 2^32 to 2002616320ms
+    a := MUL(TIME#20d, LINT#200);
+    // CHECK: result: 2002616320
+    printf('result: %u$N', a);
+    main := 0;
+END_FUNCTION

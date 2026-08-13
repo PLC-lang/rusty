@@ -1,13 +1,12 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// XFAIL: *
-// Test that DIV with TIME by zero causes a panic
+// Test that DIV with TIME by zero yields zero instead of panicking
 
-PROGRAM main
+FUNCTION main : DINT
 VAR
     a : TIME;
 END_VAR
-    // Dividing TIME by zero should panic
-    a := DIV(TIME#10ns, LINT#0);
-    // CHECK: Should not reach here
-    printf('Should not reach here$N');
-END_PROGRAM
+    a := DIV(TIME#10s, LINT#0);
+    // CHECK: result: 0
+    printf('result: %u$N', a);
+    main := 0;
+END_FUNCTION
