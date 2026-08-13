@@ -320,20 +320,14 @@ pub unsafe extern "C" fn FIND__WSTRING(src1: *const u16, src2: *const u16) -> i3
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if the requested substring length is either negative or
-/// longer than the base string.
+/// The requested length is clamped into `[0, LEN(src)]`, so an over-long
+/// request yields the whole string and a negative one an empty string.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn LEFT_EXT__STRING(src: *const u8, substr_len: i32, dest: *mut u8) -> i32 {
-    if substr_len < 0 {
-        panic!("Length parameter cannot be negative.");
-    }
     let mut dest = dest;
-    let substr_len = substr_len as usize;
     let nchars = EncodedCharsIter::decode(src).count();
-    if nchars < substr_len {
-        panic!("Requested substring length exceeds string length.")
-    }
+    let substr_len = (substr_len.max(0) as usize).min(nchars);
     let chars = EncodedCharsIter::decode(src).take(substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -350,20 +344,14 @@ pub unsafe extern "C-unwind" fn LEFT_EXT__STRING(src: *const u8, substr_len: i32
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if the requested substring length is either negative or
-/// longer than the base string.
+/// The requested length is clamped into `[0, LEN(src)]`, so an over-long
+/// request yields the whole string and a negative one an empty string.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn LEFT_EXT__WSTRING(src: *const u16, substr_len: i32, dest: *mut u16) -> i32 {
-    if substr_len < 0 {
-        panic!("Length parameter cannot be negative.");
-    }
     let mut dest = dest;
-    let substr_len = substr_len as usize;
     let nchars = EncodedCharsIter::decode(src).count();
-    if nchars < substr_len {
-        panic!("Requested substring length exceeds string length.")
-    }
+    let substr_len = (substr_len.max(0) as usize).min(nchars);
     let chars = EncodedCharsIter::decode(src).take(substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -380,20 +368,14 @@ pub unsafe extern "C-unwind" fn LEFT_EXT__WSTRING(src: *const u16, substr_len: i
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if the requested substring length is either negative or
-/// longer than the base string.
+/// The requested length is clamped into `[0, LEN(src)]`, so an over-long
+/// request yields the whole string and a negative one an empty string.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn RIGHT_EXT__STRING(src: *const u8, substr_len: i32, dest: *mut u8) -> i32 {
-    if substr_len < 0 {
-        panic!("Length parameter cannot be negative.");
-    }
     let mut dest = dest;
-    let substr_len = substr_len as usize;
     let nchars = EncodedCharsIter::decode(src).count();
-    if nchars < substr_len {
-        panic!("Requested substring length exceeds string length.")
-    }
+    let substr_len = (substr_len.max(0) as usize).min(nchars);
     let chars = EncodedCharsIter::decode(src).skip(nchars - substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -410,20 +392,14 @@ pub unsafe extern "C-unwind" fn RIGHT_EXT__STRING(src: *const u8, substr_len: i3
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if the requested substring length is either negative or
-/// longer than the base string.
+/// The requested length is clamped into `[0, LEN(src)]`, so an over-long
+/// request yields the whole string and a negative one an empty string.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn RIGHT_EXT__WSTRING(src: *const u16, substr_len: i32, dest: *mut u16) -> i32 {
-    if substr_len < 0 {
-        panic!("Length parameter cannot be negative.");
-    }
     let mut dest = dest;
-    let substr_len = substr_len as usize;
     let nchars = EncodedCharsIter::decode(src).count();
-    if nchars < substr_len {
-        panic!("Requested substring length exceeds string length.")
-    }
+    let substr_len = (substr_len.max(0) as usize).min(nchars);
     let chars = EncodedCharsIter::decode(src).skip(nchars - substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -439,9 +415,8 @@ pub unsafe extern "C-unwind" fn RIGHT_EXT__WSTRING(src: *const u16, substr_len: 
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if the requested substring length or position are negative
-/// or the substring length exceeds the remaining characters from the
-/// starting position of the base string.
+/// An out-of-range start position yields an empty string; the requested
+/// length is clamped to the characters remaining from the start position.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn MID_EXT__STRING(
@@ -450,21 +425,15 @@ pub unsafe extern "C-unwind" fn MID_EXT__STRING(
     start_index: i32,
     dest: *mut u8,
 ) -> i32 {
-    if substr_len < 0 {
-        panic!("Length parameter cannot be negative.");
-    }
     let mut dest = dest;
-    let substr_len = substr_len as usize;
-    let start_index = start_index as usize;
     let nchars = EncodedCharsIter::decode(src).count();
-    if start_index < 1 || start_index > nchars {
-        panic!("Position is out of bounds.")
+    if start_index < 1 || start_index > nchars as i32 {
+        *dest = 0;
+        return 0;
     }
     // correct for 0-indexing
-    let start_index = start_index - 1;
-    if nchars < substr_len + start_index {
-        panic!("Requested substring length {substr_len} from position {start_index} exceeds string length.")
-    }
+    let start_index = (start_index - 1) as usize;
+    let substr_len = (substr_len.max(0) as usize).min(nchars - start_index);
     let chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -481,9 +450,8 @@ pub unsafe extern "C-unwind" fn MID_EXT__STRING(
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if the requested substring length or position are negative
-/// or the substring length exceeds the remaining characters from the
-/// starting position of the base string.
+/// An out-of-range start position yields an empty string; the requested
+/// length is clamped to the characters remaining from the start position.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn MID_EXT__WSTRING(
@@ -492,21 +460,15 @@ pub unsafe extern "C-unwind" fn MID_EXT__WSTRING(
     start_index: i32,
     dest: *mut u16,
 ) -> i32 {
-    if substr_len < 0 {
-        panic!("Length parameter cannot be negative.");
-    }
     let mut dest = dest;
-    let substr_len = substr_len as usize;
-    let start_index = start_index as usize;
     let nchars = EncodedCharsIter::decode(src).count();
-    if start_index < 1 || start_index > nchars {
-        panic!("Position is out of bounds.")
+    if start_index < 1 || start_index > nchars as i32 {
+        *dest = 0;
+        return 0;
     }
     // correct for 0-indexing
-    let start_index = start_index - 1;
-    if nchars < substr_len + start_index {
-        panic!("Requested substring length {substr_len} from position {start_index} exceeds string length.")
-    }
+    let start_index = (start_index - 1) as usize;
+    let substr_len = (substr_len.max(0) as usize).min(nchars - start_index);
     let chars = EncodedCharsIter::decode(src).skip(start_index).take(substr_len);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`);
@@ -524,8 +486,7 @@ pub unsafe extern "C-unwind" fn MID_EXT__WSTRING(
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if the position parameter exceeds the
-/// source array bounds.
+/// An out-of-range position keeps the base string untouched.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn INSERT_EXT__STRING(
@@ -537,7 +498,8 @@ pub unsafe extern "C-unwind" fn INSERT_EXT__STRING(
     let mut dest = dest;
     let nchars = EncodedCharsIter::decode(src_base).count();
     if pos < 0 || pos > nchars as i32 {
-        panic! {"Positional parameter is out of bounds."}
+        EncodedCharsIter::decode(src_base).encode_bounded(&mut dest, STRING_RESULT_LEN);
+        return 0;
     }
     let pos = pos as usize;
     // Truncate at the result-buffer capacity so we never overflow the caller's
@@ -559,8 +521,7 @@ pub unsafe extern "C-unwind" fn INSERT_EXT__STRING(
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if the position parameter exceeds the
-/// source array bounds.
+/// An out-of-range position keeps the base string untouched.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn INSERT_EXT__WSTRING(
@@ -572,7 +533,8 @@ pub unsafe extern "C-unwind" fn INSERT_EXT__WSTRING(
     let mut dest = dest;
     let nchars = EncodedCharsIter::decode(src_base).count();
     if pos < 0 || pos > nchars as i32 {
-        panic! {"Positional parameter is out of bounds."}
+        EncodedCharsIter::decode(src_base).encode_bounded(&mut dest, STRING_RESULT_LEN);
+        return 0;
     }
     let pos = pos as usize;
     // Truncate at the result-buffer capacity so we never overflow the caller's
@@ -594,8 +556,9 @@ pub unsafe extern "C-unwind" fn INSERT_EXT__WSTRING(
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if the position parameter is out of bounds of the
-/// array or if trying to delete too many characters.
+/// An out-of-range position or a negative amount keeps the base string
+/// untouched; the amount is clamped to the characters remaining from the
+/// given position.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn DELETE_EXT__STRING(
@@ -606,21 +569,13 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__STRING(
 ) -> i32 {
     let mut dest = dest;
     let nchars = EncodedCharsIter::decode(src).count();
-    if pos < 1 || pos > nchars as i32 {
-        panic!("Index out of bounds.")
+    if pos < 1 || pos > nchars as i32 || num_chars_to_delete < 0 {
+        EncodedCharsIter::decode(src).encode(&mut dest);
+        return 0;
     }
     // correct for 0-indexing
     let pos = pos as usize - 1;
-    let ndel = num_chars_to_delete as usize;
-    if ndel + pos > nchars {
-        panic!(
-            r#"Cannot delete {} characters starting from index {}.
-            Index out of bounds.
-            "#,
-            num_chars_to_delete,
-            pos + 1
-        )
-    }
+    let ndel = (num_chars_to_delete as usize).min(nchars - pos);
 
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
@@ -639,8 +594,9 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__STRING(
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if the position parameter is out of bounds of the
-/// array or if trying to delete too many characters.
+/// An out-of-range position or a negative amount keeps the base string
+/// untouched; the amount is clamped to the characters remaining from the
+/// given position.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn DELETE_EXT__WSTRING(
@@ -651,21 +607,13 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__WSTRING(
 ) -> i32 {
     let mut dest = dest;
     let nchars = EncodedCharsIter::decode(src).count();
-    if pos < 1 || pos > nchars as i32 {
-        panic!("Index out of bounds.")
+    if pos < 1 || pos > nchars as i32 || num_chars_to_delete < 0 {
+        EncodedCharsIter::decode(src).encode(&mut dest);
+        return 0;
     }
     // correct for 0-indexing
     let pos = pos as usize - 1;
-    let ndel = num_chars_to_delete as usize;
-    if ndel + pos > nchars {
-        panic!(
-            r#"Cannot delete {} characters starting from index {}.
-            Index out of bounds.
-            "#,
-            num_chars_to_delete,
-            pos + 1
-        )
-    }
+    let ndel = (num_chars_to_delete as usize).min(nchars - pos);
 
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
@@ -685,8 +633,9 @@ pub unsafe extern "C-unwind" fn DELETE_EXT__WSTRING(
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if trying to index outside of the array or trying
-/// to replace more characters than remaining.
+/// An out-of-range position or a negative amount keeps the base string
+/// untouched; the amount is clamped to the characters remaining from the
+/// given position.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn REPLACE_EXT__STRING(
@@ -698,22 +647,13 @@ pub unsafe extern "C-unwind" fn REPLACE_EXT__STRING(
 ) -> i32 {
     let mut dest = dest;
     let nbase = EncodedCharsIter::decode(src_base).count();
-    if pos < 1 || pos > nbase as i32 {
-        panic!("Index out of bounds.")
+    if pos < 1 || pos > nbase as i32 || num_chars_to_replace < 0 {
+        EncodedCharsIter::decode(src_base).encode_bounded(&mut dest, STRING_RESULT_LEN);
+        return 0;
     }
     // correct for 0-indexing
     let pos = (pos - 1) as usize;
-    let nreplace = num_chars_to_replace as usize;
-
-    if nreplace + pos > nbase {
-        panic!(
-            r#"Cannot replace {} characters starting from index {}.
-            Index out of bounds.
-            "#,
-            nreplace,
-            pos + 1
-        )
-    }
+    let nreplace = (num_chars_to_replace as usize).min(nbase - pos);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
     EncodedCharsIter::decode(src_base)
@@ -735,8 +675,9 @@ pub unsafe extern "C-unwind" fn REPLACE_EXT__STRING(
 /// # Safety
 ///
 /// Works on raw pointers, inherently unsafe.
-/// Will panic if trying to index outside of the array or trying
-/// to replace more characters than remaining.
+/// An out-of-range position or a negative amount keeps the base string
+/// untouched; the amount is clamped to the characters remaining from the
+/// given position.
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C-unwind" fn REPLACE_EXT__WSTRING(
@@ -748,21 +689,13 @@ pub unsafe extern "C-unwind" fn REPLACE_EXT__WSTRING(
 ) -> i32 {
     let mut dest = dest;
     let nbase = EncodedCharsIter::decode(src_base).count();
-    if pos < 1 || pos > nbase as i32 {
-        panic!("Index out of bounds.")
+    if pos < 1 || pos > nbase as i32 || num_chars_to_replace < 0 {
+        EncodedCharsIter::decode(src_base).encode_bounded(&mut dest, STRING_RESULT_LEN);
+        return 0;
     }
     // correct for 0-indexing
     let pos = (pos - 1) as usize;
-    let nreplace = num_chars_to_replace as usize;
-    if nreplace + pos > nbase {
-        panic!(
-            r#"Cannot replace {} characters starting from index {}.
-            Index out of bounds.
-            "#,
-            nreplace,
-            pos + 1
-        )
-    }
+    let nreplace = (num_chars_to_replace as usize).min(nbase - pos);
     // Truncate at the result-buffer capacity so we never overflow the caller's
     // `STRING[2048]` / `WSTRING[2048]` destination (see `STRING_RESULT_LEN`).
     EncodedCharsIter::decode(src_base)
@@ -1142,13 +1075,25 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn test_left_ext_str_len_out_of_range() {
+    fn test_left_ext_str_len_out_of_range_returns_whole_string() {
         let src = "hello\0 world";
         let len = 7;
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             LEFT_EXT__STRING(src.as_ptr(), len, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "hello");
+        }
+    }
+
+    #[test]
+    fn test_left_ext_str_negative_len_returns_empty_string() {
+        let src = "hello\0";
+        let mut dest: [u8; DEFAULT_STRING_SIZE] = [1; DEFAULT_STRING_SIZE];
+        unsafe {
+            LEFT_EXT__STRING(src.as_ptr(), -1, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "");
         }
     }
 
@@ -1203,13 +1148,27 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn test_mid_ext_str_start_index_out_of_range() {
+    fn test_mid_ext_str_start_index_out_of_range_returns_empty_string() {
         let src = "hello world\0";
         let len = 5;
         let start_index = 12;
+        let mut dest: [u8; DEFAULT_STRING_SIZE] = [1; DEFAULT_STRING_SIZE];
+        unsafe {
+            MID_EXT__STRING(src.as_ptr(), len, start_index, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "");
+        }
+    }
+
+    #[test]
+    fn test_mid_ext_str_len_out_of_range_is_clamped_to_remainder() {
+        let src = "hello world\0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
-        unsafe { MID_EXT__STRING(src.as_ptr(), len, start_index, dest.as_mut_ptr()) };
+        unsafe {
+            MID_EXT__STRING(src.as_ptr(), 10, 7, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "world");
+        }
     }
 
     #[test]
@@ -1249,24 +1208,26 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn test_insert_ext_str_pos_out_of_range() {
+    fn test_insert_ext_str_pos_out_of_range_keeps_base_untouched() {
         let base = "hello world\0";
         let insert = "brave new \0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), base.len() as i32, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "hello world");
         }
     }
 
     #[test]
-    #[should_panic]
-    fn test_insert_ext_str_pos_negative() {
+    fn test_insert_ext_str_pos_negative_keeps_base_untouched() {
         let base = "hello world\0";
         let insert = "brave new \0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             INSERT_EXT__STRING(base.as_ptr(), insert.as_ptr(), -2, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "hello world");
         }
     }
 
@@ -1316,32 +1277,46 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn test_delete_ext_str_too_many_del_chars() {
+    fn test_delete_ext_str_too_many_del_chars_is_clamped_to_remainder() {
         let src = "hello world\0";
-        let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
+        let mut dest: [u8; DEFAULT_STRING_SIZE] = [1; DEFAULT_STRING_SIZE];
         unsafe {
             DELETE_EXT__STRING(src.as_ptr(), 12, 1, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "");
         }
     }
 
     #[test]
-    #[should_panic]
-    fn test_delete_ext_str_pos_out_of_range_lower() {
+    fn test_delete_ext_str_pos_out_of_range_lower_keeps_base_untouched() {
         let src = "hello world\0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             DELETE_EXT__STRING(src.as_ptr(), 11, 0, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "hello world");
         }
     }
 
     #[test]
-    #[should_panic]
-    fn test_delete_ext_str_pos_out_of_range_upper() {
+    fn test_delete_ext_str_pos_out_of_range_upper_keeps_base_untouched() {
         let src = "hello world\0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             DELETE_EXT__STRING(src.as_ptr(), 11, 12, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "hello world");
+        }
+    }
+
+    #[test]
+    fn test_delete_ext_str_negative_count_keeps_base_untouched() {
+        let src = "hello world\0";
+        let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
+        unsafe {
+            DELETE_EXT__STRING(src.as_ptr(), -1, 2, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "hello world");
         }
     }
 
@@ -1382,35 +1357,38 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn test_replace_ext_str_replace_too_many_chars() {
+    fn test_replace_ext_str_replace_too_many_chars_is_clamped_to_remainder() {
         let base = "hello world\0";
         let replacement = "aldo, how are you\0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), 12, 1, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "aldo, how are you");
         }
     }
 
     #[test]
-    #[should_panic]
-    fn test_replace_ext_str_pos_out_of_bounds_lower() {
+    fn test_replace_ext_str_pos_out_of_bounds_lower_keeps_base_untouched() {
         let base = "hello world\0";
         let replacement = "aldo, how are you\0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), 8, 0, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "hello world");
         }
     }
 
     #[test]
-    #[should_panic]
-    fn test_replace_ext_str_pos_out_of_bounds_upper() {
+    fn test_replace_ext_str_pos_out_of_bounds_upper_keeps_base_untouched() {
         let base = "hello world\0";
         let replacement = "aldo, how are you\0";
         let mut dest: [u8; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             REPLACE_EXT__STRING(base.as_ptr(), replacement.as_ptr(), 8, 12, dest.as_mut_ptr());
+            let string = CStr::from_ptr(dest.as_ptr() as *const _).to_str().unwrap();
+            assert_eq!(string, "hello world");
         }
     }
 
@@ -1574,13 +1552,17 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn test_left_ext_wstring_len_out_of_range() {
+    fn test_left_ext_wstring_len_out_of_range_returns_whole_string() {
         let src = "hello world\0".encode_utf16().collect::<Vec<u16>>();
         let src_ptr = src.as_slice().as_ptr();
         let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             LEFT_EXT__WSTRING(src_ptr, 14, dest.as_mut_ptr());
+            let res = String::from_utf16_lossy(std::slice::from_raw_parts(
+                dest.as_ptr(),
+                get_null_terminated_len(dest.as_ptr()),
+            ));
+            assert_eq!("hello world", res);
         }
     }
 
@@ -1632,13 +1614,17 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn test_mid_ext_wstring_index_out_of_range() {
+    fn test_mid_ext_wstring_index_out_of_range_returns_empty_string() {
         let src = "hello world\0".encode_utf16().collect::<Vec<u16>>();
         let src_ptr = src.as_slice().as_ptr();
-        let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
+        let mut dest: [u16; DEFAULT_STRING_SIZE] = [1; DEFAULT_STRING_SIZE];
         unsafe {
             MID_EXT__WSTRING(src_ptr, 4, 12, dest.as_mut_ptr());
+            let res = String::from_utf16_lossy(std::slice::from_raw_parts(
+                dest.as_ptr(),
+                get_null_terminated_len(dest.as_ptr()),
+            ));
+            assert_eq!("", res);
         }
     }
 
@@ -1694,8 +1680,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn test_insert_ext_wstring_pos_out_of_range() {
+    fn test_insert_ext_wstring_pos_out_of_range_keeps_base_untouched() {
         let base = "hello world\0".encode_utf16().collect::<Vec<u16>>();
         let base_ptr = base.as_slice().as_ptr();
         let to_insert = "brave new \0".encode_utf16().collect::<Vec<u16>>();
@@ -1703,6 +1688,11 @@ mod test {
         let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             INSERT_EXT__WSTRING(base_ptr, to_insert_ptr, 12, dest.as_mut_ptr());
+            let res = String::from_utf16_lossy(std::slice::from_raw_parts(
+                dest.as_ptr(),
+                get_null_terminated_len(dest.as_ptr()),
+            ));
+            assert_eq!("hello world", res);
         }
     }
 
@@ -1738,35 +1728,47 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn test_delete_ext_wstring_too_many_del_chars() {
+    fn test_delete_ext_wstring_too_many_del_chars_is_clamped_to_remainder() {
         let src = "hello world\0".encode_utf16().collect::<Vec<u16>>();
         let src_ptr = src.as_slice().as_ptr();
         let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             DELETE_EXT__WSTRING(src_ptr, 10, 3, dest.as_mut_ptr());
+            let res = String::from_utf16_lossy(std::slice::from_raw_parts(
+                dest.as_ptr(),
+                get_null_terminated_len(dest.as_ptr()),
+            ));
+            assert_eq!("he", res);
         }
     }
 
     #[test]
-    #[should_panic]
-    fn test_delete_ext_wstring_pos_out_of_range_lower() {
+    fn test_delete_ext_wstring_pos_out_of_range_lower_keeps_base_untouched() {
         let src = "hello world\0".encode_utf16().collect::<Vec<u16>>();
         let src_ptr = src.as_slice().as_ptr();
         let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             DELETE_EXT__WSTRING(src_ptr, 9, 0, dest.as_mut_ptr());
+            let res = String::from_utf16_lossy(std::slice::from_raw_parts(
+                dest.as_ptr(),
+                get_null_terminated_len(dest.as_ptr()),
+            ));
+            assert_eq!("hello world", res);
         }
     }
 
     #[test]
-    #[should_panic]
-    fn test_delete_ext_wstring_pos_out_of_range_upper() {
+    fn test_delete_ext_wstring_pos_out_of_range_upper_keeps_base_untouched() {
         let src = "hello world\0".encode_utf16().collect::<Vec<u16>>();
         let src_ptr = src.as_slice().as_ptr();
         let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             DELETE_EXT__WSTRING(src_ptr, 9, 12, dest.as_mut_ptr());
+            let res = String::from_utf16_lossy(std::slice::from_raw_parts(
+                dest.as_ptr(),
+                get_null_terminated_len(dest.as_ptr()),
+            ));
+            assert_eq!("hello world", res);
         }
     }
 
@@ -1824,8 +1826,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn test_replace_ext_wstring_replace_too_many_chars() {
+    fn test_replace_ext_wstring_replace_too_many_chars_is_clamped_to_remainder() {
         let base = "hello world\0".encode_utf16().collect::<Vec<u16>>();
         let base_ptr = base.as_slice().as_ptr();
         let replacement = " is out of this \0".encode_utf16().collect::<Vec<u16>>();
@@ -1833,12 +1834,16 @@ mod test {
         let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             REPLACE_EXT__WSTRING(base_ptr, replacement_ptr, 12, 1, dest.as_mut_ptr());
+            let res = String::from_utf16_lossy(std::slice::from_raw_parts(
+                dest.as_ptr(),
+                get_null_terminated_len(dest.as_ptr()),
+            ));
+            assert_eq!(" is out of this ", res);
         }
     }
 
     #[test]
-    #[should_panic]
-    fn test_replace_ext_wstring_pos_out_of_bounds_lower() {
+    fn test_replace_ext_wstring_pos_out_of_bounds_lower_keeps_base_untouched() {
         let base = "hello world\0".encode_utf16().collect::<Vec<u16>>();
         let base_ptr = base.as_slice().as_ptr();
         let replacement = " is out of this \0".encode_utf16().collect::<Vec<u16>>();
@@ -1846,12 +1851,16 @@ mod test {
         let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             REPLACE_EXT__WSTRING(base_ptr, replacement_ptr, 8, 0, dest.as_mut_ptr());
+            let res = String::from_utf16_lossy(std::slice::from_raw_parts(
+                dest.as_ptr(),
+                get_null_terminated_len(dest.as_ptr()),
+            ));
+            assert_eq!("hello world", res);
         }
     }
 
     #[test]
-    #[should_panic]
-    fn test_replace_ext_wstring_pos_out_of_bounds_upper() {
+    fn test_replace_ext_wstring_pos_out_of_bounds_upper_keeps_base_untouched() {
         let base = "hello world\0".encode_utf16().collect::<Vec<u16>>();
         let base_ptr = base.as_slice().as_ptr();
         let replacement = " is out of this \0".encode_utf16().collect::<Vec<u16>>();
@@ -1859,6 +1868,11 @@ mod test {
         let mut dest: [u16; DEFAULT_STRING_SIZE] = [0; DEFAULT_STRING_SIZE];
         unsafe {
             REPLACE_EXT__WSTRING(base_ptr, replacement_ptr, 8, 12, dest.as_mut_ptr());
+            let res = String::from_utf16_lossy(std::slice::from_raw_parts(
+                dest.as_ptr(),
+                get_null_terminated_len(dest.as_ptr()),
+            ));
+            assert_eq!("hello world", res);
         }
     }
 
