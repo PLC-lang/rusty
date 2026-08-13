@@ -73,8 +73,10 @@ pub unsafe extern "C" fn LINT_TO_STRING_EXT(input: i64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
-    // double: 52 bits are used for the mantissa (about 16 decimal digits)
-    if input.floor() < 1e14 {
+    // double: 52 bits are used for the mantissa (about 16 decimal digits);
+    // compare the magnitude so large negative values also use scientific
+    // notation instead of overflowing the result buffer with plain digits
+    if input.abs() < 1e14 {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6}"));
     } else {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6e}"));
@@ -88,10 +90,11 @@ pub unsafe extern "C" fn LREAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub unsafe extern "C" fn REAL_TO_STRING_EXT(input: f64, dest: *mut u8) -> i32 {
-    // float: 23 bits are used for the mantissa (about 7 decimal digits)
+    // float: 23 bits are used for the mantissa (about 7 decimal digits);
+    // compare the magnitude so large negative values also use scientific notation
 
     // TODO: discuss when scientific notation should be displayed
-    if input.floor() < 1e6 {
+    if input.abs() < 1e6 {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6}"));
     } else {
         write_terminated(dest, DEFAULT_STRING_LEN, format_args!("{input:.6e}"));
@@ -454,6 +457,30 @@ mod test {
             std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
 
         assert_eq!(format!("{e_notation:.6e}"), res_scientific.trim_end_matches('\0'));
+    }
+
+    #[test]
+    fn lreal_to_string_conversion_large_negative_values_use_scientific_notation() {
+        // a plain-decimal rendering of -1e300 has over 300 digits and used to
+        // overflow the 80-byte result buffer
+        let huge_negative = -1.0e300;
+        let mut dest = [0_u8; 81];
+        let dest_ptr = dest.as_mut_ptr();
+        let _ = unsafe { LREAL_TO_STRING_EXT(huge_negative, dest_ptr) };
+        let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+
+        assert_eq!(format!("{huge_negative:.6e}"), res.trim_end_matches('\0'));
+    }
+
+    #[test]
+    fn real_to_string_conversion_large_negative_values_use_scientific_notation() {
+        let large_negative = -2_000_000.0;
+        let mut dest = [0_u8; 81];
+        let dest_ptr = dest.as_mut_ptr();
+        let _ = unsafe { REAL_TO_STRING_EXT(large_negative, dest_ptr) };
+        let res = std::str::from_utf8(unsafe { core::slice::from_raw_parts(dest_ptr, 81) }).unwrap();
+
+        assert_eq!(format!("{large_negative:.6e}"), res.trim_end_matches('\0'));
     }
 
     #[test]
