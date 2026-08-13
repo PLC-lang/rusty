@@ -39,7 +39,7 @@ fn split_ldt_fields(nanos: i64) -> (i32, u32, u32, u32, u32, u32, u32) {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn CONCAT_DATE_TOD(in1: u32, in2: u32) -> u32 {
-    in1 + in2 / MILLIS_PER_SECOND
+    in1.wrapping_add(in2 / MILLIS_PER_SECOND)
 }
 
 /// .
@@ -111,11 +111,13 @@ pub extern "C" fn CONCAT_DATE__ULINT(in1: u64, in2: u64, in3: u64) -> u32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn concat_date(in1: i32, in2: u32, in3: u32) -> u32 {
-    let dt = NaiveDate::from_ymd_opt(in1, in2, in3)
+    // Invalid components (month 13, day 32, ...) and dates before the epoch
+    // yield DATE#1970-01-01 instead of panicking or silently wrapping the
+    // negative timestamp into a bogus date.
+    NaiveDate::from_ymd_opt(in1, in2, in3)
         .and_then(|date| date.and_hms_opt(0, 0, 0))
-        .expect("Invalid parameters, cannot create date");
-
-    dt.and_utc().timestamp() as u32
+        .map(|dt| dt.and_utc().timestamp().max(0) as u32)
+        .unwrap_or(0)
 }
 
 /// .
@@ -370,9 +372,14 @@ pub extern "C" fn CONCAT_LDT__ULINT(
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn concat_tod(in1: u32, in2: u32, in3: u32, in4: u32) -> u32 {
-    NaiveDate::from_ymd_opt(1970, 1, 1)
+    // Out-of-range components (hour 25, minute 61, ...) yield TOD#00:00:00
+    // instead of panicking.
+    if NaiveDate::from_ymd_opt(1970, 1, 1)
         .and_then(|date| date.and_hms_milli_opt(in1, in2, in3, in4))
-        .expect("Invalid parameters, cannot create TOD");
+        .is_none()
+    {
+        return 0;
+    }
 
     ((in1 * 3_600 + in2 * 60 + in3) * MILLIS_PER_SECOND) + in4
 }

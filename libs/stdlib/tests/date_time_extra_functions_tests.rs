@@ -1086,3 +1086,30 @@ fn day_of_week() {
     assert_eq!(maintype.b, 0);
     assert_eq!(maintype.c, 6);
 }
+
+use iec61131std::date_time_extra_functions as dtef;
+
+#[test]
+fn concat_date_with_invalid_components_yields_epoch() {
+    assert_eq!(dtef::CONCAT_DATE__INT(2024, 13, 45), 0);
+    assert_eq!(dtef::CONCAT_DATE__INT(2024, 0, 1), 0);
+}
+
+#[test]
+fn concat_date_before_epoch_yields_epoch() {
+    assert_eq!(dtef::CONCAT_DATE__INT(1969, 6, 1), 0);
+}
+
+#[test]
+fn concat_tod_with_invalid_components_yields_midnight() {
+    assert_eq!(dtef::CONCAT_TOD__INT(25, 0, 0, 0), 0);
+    assert_eq!(dtef::CONCAT_TOD__INT(1, 61, 0, 0), 0);
+}
+
+#[test]
+fn concat_date_tod_wraps_on_overflow() {
+    // DATE#2106-02-07 plus a full day of TOD exceeds the u32 second range
+    let date = 4_294_944_000_u32; // 2106-02-07-00:00:00 as seconds since the epoch
+    let tod = 86_399_999_u32; // TOD#23:59:59.999 in milliseconds
+    assert_eq!(dtef::CONCAT_DATE_TOD(date, tod), date.wrapping_add(tod / 1_000));
+}
