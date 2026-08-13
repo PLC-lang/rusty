@@ -456,7 +456,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let value = match unary_operator {
             Operator::Not => {
-                let operator = self.generate_expression(expression)?.into_int_value();
+                let generated = self.generate_expression(expression)?;
+                if !generated.is_int_value() {
+                    let type_name = self.get_type_hint_for(expression)?.get_name();
+                    return Err(Diagnostic::new(format!(
+                        "Unary `NOT` requires a bit or integer operand, got `{type_name}`"
+                    ))
+                    .with_error_code("E151")
+                    .with_location(expression)
+                    .into());
+                }
+
+                let operator = generated.into_int_value();
                 let operator = if self
                     .get_type_hint_for(expression)
                     .map(|it| it.get_type_information().is_bool())
