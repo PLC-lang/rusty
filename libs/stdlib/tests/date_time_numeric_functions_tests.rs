@@ -1310,6 +1310,18 @@ defensive_arithmetic_tests!(
     (mul_time_lreal_nan_yields_zero, dtf::MUL__TIME__LREAL, 1_000, f64::NAN, 0),
 );
 
+// Float scaling rounds to the nearest nanosecond instead of truncating toward zero
+defensive_arithmetic_tests!(
+    (
+        mul_time_lreal_rounds_to_nearest_nano,
+        dtf::MUL__TIME__LREAL,
+        1_000_000_000,
+        0.9999999995_f64,
+        1_000_000_000
+    ),
+    (div_time_lreal_rounds_to_nearest_nano, dtf::DIV__TIME__LREAL, 7, 2.0_f64, 4),
+);
+
 // TIME/LTIME division by zero yields zero instead of panicking
 defensive_arithmetic_tests!(
     (div_time_sint_returns_zero_on_zero_divisor, dtf::DIV__TIME__SINT, 1, 0_i8, 0),

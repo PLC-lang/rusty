@@ -730,7 +730,7 @@ fn wrapping_div_time_by_unsigned_int(in1: i64, in2: u64) -> i64 {
 
 /// .
 /// Multiply TIME with REAL
-/// Wraps on overflow
+/// Saturates at the TIME range on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -740,7 +740,7 @@ pub extern "C-unwind" fn MUL__TIME__REAL(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Multiply TIME with REAL
-/// Wraps on overflow
+/// Saturates at the TIME range on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -750,7 +750,7 @@ pub extern "C-unwind" fn MUL_TIME__REAL(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Multiply LTIME with REAL
-/// Wraps on overflow
+/// Saturates at the TIME range on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -764,7 +764,7 @@ fn mul_time_with_f32(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Multiply TIME with LREAL
-/// Wraps on overflow
+/// Saturates at the TIME range on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -774,7 +774,7 @@ pub extern "C-unwind" fn MUL__TIME__LREAL(in1: i64, in2: f64) -> i64 {
 
 /// .
 /// Multiply TIME with LREAL
-/// Wraps on overflow
+/// Saturates at the TIME range on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -784,7 +784,7 @@ pub extern "C-unwind" fn MUL_TIME__LREAL(in1: i64, in2: f64) -> i64 {
 
 /// .
 /// Multiply LTIME with LREAL
-/// Wraps on overflow
+/// Saturates at the TIME range on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -793,17 +793,18 @@ pub extern "C-unwind" fn MUL_LTIME__LREAL(in1: i64, in2: f64) -> i64 {
 }
 
 fn mul_time_with_f64(in1: i64, in2: f64) -> i64 {
-    let res = in1 as f64 * in2;
+    // Round to the nearest nanosecond like the previous Duration-based
+    // implementation; the float-to-int cast saturates at the i64 range.
+    let res = (in1 as f64 * in2).round();
     if res.is_nan() {
         return 0;
     }
-    // the float-to-int cast saturates at the i64 range
     res as i64
 }
 
 /// .
 /// Divide TIME by REAL
-/// Wraps on overflow; division by zero yields zero
+/// Saturates at the TIME range on overflow; division by zero yields zero
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -813,7 +814,7 @@ pub extern "C-unwind" fn DIV__TIME__REAL(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Divide TIME by REAL
-/// Wraps on overflow; division by zero yields zero
+/// Saturates at the TIME range on overflow; division by zero yields zero
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -823,7 +824,7 @@ pub extern "C-unwind" fn DIV_TIME__REAL(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Divide LTIME by REAL
-/// Wraps on overflow; division by zero yields zero
+/// Saturates at the TIME range on overflow; division by zero yields zero
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -837,7 +838,7 @@ fn div_time_by_f32(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Divide TIME by LREAL
-/// Wraps on overflow; division by zero yields zero
+/// Saturates at the TIME range on overflow; division by zero yields zero
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -927,7 +928,7 @@ pub extern "C-unwind" fn MUL__LTIME__ULINT(in1: i64, in2: u64) -> i64 {
 
 /// .
 /// Compatibility alias for multiplying LTIME by REAL.
-/// Wraps on overflow
+/// Saturates at the TIME range on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -937,7 +938,7 @@ pub extern "C-unwind" fn MUL__LTIME__REAL(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Compatibility alias for multiplying LTIME by LREAL.
-/// Wraps on overflow
+/// Saturates at the TIME range on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -1027,7 +1028,7 @@ pub extern "C-unwind" fn DIV__LTIME__ULINT(in1: i64, in2: u64) -> i64 {
 
 /// .
 /// Compatibility alias for dividing LTIME by REAL.
-/// Wraps on overflow; division by zero yields zero
+/// Saturates at the TIME range on overflow; division by zero yields zero
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -1037,7 +1038,7 @@ pub extern "C-unwind" fn DIV__LTIME__REAL(in1: i64, in2: f32) -> i64 {
 
 /// .
 /// Compatibility alias for dividing LTIME by LREAL.
-/// Wraps on overflow; division by zero yields zero
+/// Saturates at the TIME range on overflow; division by zero yields zero
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -1197,7 +1198,7 @@ pub extern "C-unwind" fn SUB__LTIME_OF_DAY__LTIME_OF_DAY(in1: i64, in2: i64) -> 
 
 /// .
 /// Divide TIME by LREAL
-/// Wraps on overflow; division by zero yields zero
+/// Saturates at the TIME range on overflow; division by zero yields zero
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -1207,7 +1208,7 @@ pub extern "C-unwind" fn DIV_TIME__LREAL(in1: i64, in2: f64) -> i64 {
 
 /// .
 /// Divide LTIME by LREAL
-/// Wraps on overflow; division by zero yields zero
+/// Saturates at the TIME range on overflow; division by zero yields zero
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -1219,6 +1220,7 @@ fn div_time_by_f64(in1: i64, in2: f64) -> i64 {
     if in2 == 0.0 || in2.is_nan() {
         return 0;
     }
-    // the float-to-int cast saturates at the i64 range
-    (in1 as f64 / in2) as i64
+    // Round to the nearest nanosecond like the previous Duration-based
+    // implementation; the float-to-int cast saturates at the i64 range.
+    (in1 as f64 / in2).round() as i64
 }
