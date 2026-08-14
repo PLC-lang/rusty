@@ -30,6 +30,7 @@ cargo fmt --all && cargo clippy --workspace
 - Keep changes small and implement only what was requested. Make code self-explanatory.
 - Avoid comments except for genuinely complex code. Use brief skimming comments to separate every logical group, so functions read as outlines.
 - Define Rust structs, enums, and related items first, in logical order. Follow each with its `impl` block in the same order.
+- Prefer module-level functions over functions nested inside functions, unless nesting genuinely improves readability.
 - Use inline snapshots: `insta::assert_snapshot!(result, @r"");`, not `insta::assert_snapshot!(result);`.
 - Avoid fully qualified paths such as `plc_source::source_location::SourceLocation` unless name clashes require them.
 - Do not reference external plans, phases, tickets, or roadmap items in source code, doc comments, or tests. Describe the current behavior directly instead.
