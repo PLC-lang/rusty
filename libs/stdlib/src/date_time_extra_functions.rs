@@ -111,12 +111,12 @@ pub extern "C" fn CONCAT_DATE__ULINT(in1: u64, in2: u64, in3: u64) -> u32 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn concat_date(in1: i32, in2: u32, in3: u32) -> u32 {
-    // Invalid components (month 13, day 32, ...) and dates before the epoch
-    // yield DATE#1970-01-01 instead of panicking or silently wrapping the
-    // negative timestamp into a bogus date.
+    // Invalid components (month 13, day 32, ...) and dates outside the u32
+    // DATE range (before 1970, after 2106) yield DATE#1970-01-01 instead of
+    // panicking or silently wrapping the timestamp into a bogus date.
     NaiveDate::from_ymd_opt(in1, in2, in3)
         .and_then(|date| date.and_hms_opt(0, 0, 0))
-        .map(|dt| dt.and_utc().timestamp().max(0) as u32)
+        .and_then(|dt| u32::try_from(dt.and_utc().timestamp()).ok())
         .unwrap_or(0)
 }
 
@@ -373,11 +373,9 @@ pub extern "C" fn CONCAT_LDT__ULINT(
 #[no_mangle]
 pub extern "C" fn concat_tod(in1: u32, in2: u32, in3: u32, in4: u32) -> u32 {
     // Out-of-range components (hour 25, minute 61, ...) yield TOD#00:00:00
-    // instead of panicking.
-    if NaiveDate::from_ymd_opt(1970, 1, 1)
-        .and_then(|date| date.and_hms_milli_opt(in1, in2, in3, in4))
-        .is_none()
-    {
+    // instead of panicking. Checked by hand: chrono's time validation would
+    // admit leap-second milliseconds (1000..=1999) past the valid TOD range.
+    if in1 > 23 || in2 > 59 || in3 > 59 || in4 > 999 {
         return 0;
     }
 

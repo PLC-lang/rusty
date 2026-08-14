@@ -1101,9 +1101,23 @@ fn concat_date_before_epoch_yields_epoch() {
 }
 
 #[test]
+fn concat_date_beyond_u32_range_yields_epoch() {
+    assert_eq!(dtef::CONCAT_DATE__INT(2107, 1, 1), 0);
+    assert_eq!(dtef::CONCAT_DATE__INT(9999, 12, 31), 0);
+}
+
+#[test]
 fn concat_tod_with_invalid_components_yields_midnight() {
     assert_eq!(dtef::CONCAT_TOD__INT(25, 0, 0, 0), 0);
     assert_eq!(dtef::CONCAT_TOD__INT(1, 61, 0, 0), 0);
+}
+
+#[test]
+fn concat_tod_with_leap_second_millis_yields_midnight() {
+    // Chrono-style validation would admit 1000..=1999 as a leap-second
+    // encoding when the seconds component is 59.
+    assert_eq!(dtef::CONCAT_TOD__INT(23, 59, 59, 1999), 0);
+    assert_eq!(dtef::CONCAT_TOD__INT(0, 0, 59, 1000), 0);
 }
 
 #[test]
