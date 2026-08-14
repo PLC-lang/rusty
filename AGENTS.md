@@ -21,6 +21,7 @@ cargo fmt --all && cargo clippy --workspace
 
 - Keep messages concise without omitting important details. Use ASD-STE100 Simplified Technical English.
 - End every message with a 1-2 sentence TL;DR that summarizes the key points.
+- Do not use em dashes. Use commas, semicolons, or parentheses instead. This applies to all writing: messages, commit messages, PR descriptions, and comments.
 
 
 ## Code Quality
@@ -37,12 +38,15 @@ cargo fmt --all && cargo clippy --workspace
 ## Git
 
 - Use conventional commits: `<type>(<scope>): <description>`. Keep titles under 72 characters.
-- Use a commit body only when necessary, such as for a large change that needs a brief explanation. Keep it concise and use:
+- PR descriptions are for humans. They orient the reviewer: after reading, the reviewer must know the problem and the solution before they open the diff. Keep each part to 1-3 sentences and use:
     ```
-    Problem: <concise but detailed problem description>
+    Problem: <what breaks or is missing, with the observable effect>
 
-    Solution: <concise but detailed solution description>
+    Solution: <the approach, not the file-by-file details>
+
+    Refs: PRG-<JIRA Ticket ID>   (omit if unknown)
     ```
-- Use the same format for PR titles. Include a mandatory `Problem` and `Solution` description but also an optional `Refs: PRG-<JIRA Ticket ID>` if you have that information.
+- Do not enumerate affected functions or files in the description; the diff shows them.
+- Use the same `Problem:`/`Solution:` format for commit bodies, and only when the change needs explanation beyond its title.
 - Before committing or opening a PR, run `cargo test --workspace`, `./scripts/build.sh --lit`, `cargo fmt --all`, and `cargo clippy --workspace`. Fix all failures first.
 
