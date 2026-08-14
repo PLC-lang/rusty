@@ -441,6 +441,33 @@ fn real_to_string_conversion() {
 }
 
 #[test]
+fn real_to_string_conversion_large_value_uses_real_threshold() {
+    // REAL_TO_STRING routes through REAL_TO_STRING_EXT, so REAL's 1e6
+    // scientific-notation threshold applies instead of LREAL's 1e14.
+    let mut maintype = MainType { s: [0_u8; STR_SIZE] };
+    let src = r#"
+    FUNCTION main : STRING
+    VAR
+        in: REAL := 2000000.0;
+    END_VAR
+        main := REAL_TO_STRING(in);
+    END_FUNCTION
+    "#;
+
+    let includes = get_includes(&[
+        "string_functions.st",
+        "string_conversion.st",
+        "extra_functions.st",
+        "numerical_functions.st",
+    ]);
+
+    let expected = format!("{:.6e}", 2000000.0_f64);
+    let _: i32 = compile_and_run(vec![src.into()], includes, &mut maintype);
+    let res = unsafe { std::str::from_utf8_unchecked(&maintype.s) }.trim_end_matches('\0');
+    assert_eq!(expected, res);
+}
+
+#[test]
 fn real_to_wstring_conversion() {
     let mut maintype = MainType { s: [0_u16; STR_SIZE] };
     let src = r#"

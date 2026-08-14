@@ -98,6 +98,18 @@ VAR_IN_OUT
 END_VAR
 END_FUNCTION
 
+(* The value arrives widened to LREAL, but is formatted with REAL's
+   scientific-notation threshold. *)
+{external}
+FUNCTION REAL_TO_STRING_EXT : DINT
+VAR_INPUT
+    IN : LREAL;
+END_VAR
+VAR_IN_OUT
+    OUT : STRING[__STRING_LENGTH];
+END_VAR
+END_FUNCTION
+
 (******************************************************************************
 *
 * Converts DT to STRING.
@@ -331,7 +343,7 @@ FUNCTION REAL_TO_STRING : STRING[__STRING_LENGTH]
 VAR_INPUT
     IN : REAL;
 END_VAR
-    LREAL_TO_STRING_EXT(IN, REAL_TO_STRING);
+    REAL_TO_STRING_EXT(IN, REAL_TO_STRING);
 END_FUNCTION
 
 (******************************************************************************
