@@ -423,7 +423,6 @@ pub extern "C" fn SPLIT_DATE__INT(in1: u32, out1: &mut i16, out2: &mut i16, out3
 
 /// .
 /// Splits DATE into year, month, day of type UINT
-/// Panics on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -473,7 +472,6 @@ pub extern "C" fn SPLIT_DATE__UDINT(in1: u32, out1: &mut u32, out2: &mut u32, ou
 #[no_mangle]
 pub extern "C" fn SPLIT_DATE__LINT(in1: u32, out1: &mut i64, out2: &mut i64, out3: &mut i64) -> i16 {
     let date = dt_from_epoch_seconds(in1).date_naive();
-    // if year does not fit in target data type -> panic
     *out1 = date.year().into();
     *out2 = date.month() as i64;
     *out3 = date.day() as i64;
@@ -483,7 +481,6 @@ pub extern "C" fn SPLIT_DATE__LINT(in1: u32, out1: &mut i64, out2: &mut i64, out
 
 /// .
 /// Splits DATE into year, month, day of type ULINT
-/// Panics on overflow
 ///
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -765,7 +762,7 @@ pub extern "C" fn SPLIT_DT__INT(
     out7: &mut i16,
 ) -> i16 {
     let dt = dt_from_epoch_seconds(in1);
-    // if year does not fit in target data type -> panic
+    // the year of any representable DATE fits every target type; write 0 defensively otherwise
     *out1 = dt.year().try_into().unwrap_or_default();
     *out2 = dt.month() as i16;
     *out3 = dt.day() as i16;
@@ -793,7 +790,7 @@ pub extern "C" fn SPLIT_DT__UINT(
     out7: &mut u16,
 ) -> i16 {
     let dt = dt_from_epoch_seconds(in1);
-    // if year does not fit in target data type -> panic
+    // the year of any representable DATE fits every target type; write 0 defensively otherwise
     *out1 = dt.year().try_into().unwrap_or_default();
     *out2 = dt.month() as u16;
     *out3 = dt.day() as u16;
@@ -848,7 +845,7 @@ pub extern "C" fn SPLIT_DT__UDINT(
     out7: &mut u32,
 ) -> i16 {
     let dt = dt_from_epoch_seconds(in1);
-    // if year does not fit in target data type -> panic
+    // the year of any representable DATE fits every target type; write 0 defensively otherwise
     *out1 = dt.year().try_into().unwrap_or_default();
     *out2 = dt.month();
     *out3 = dt.day();
@@ -876,7 +873,6 @@ pub extern "C" fn SPLIT_DT__LINT(
     out7: &mut i64,
 ) -> i16 {
     let dt = dt_from_epoch_seconds(in1);
-    // if year does not fit in target data type -> panic
     *out1 = dt.year().into();
     *out2 = dt.month() as i64;
     *out3 = dt.day() as i64;
@@ -904,7 +900,7 @@ pub extern "C" fn SPLIT_DT__ULINT(
     out7: &mut u64,
 ) -> i16 {
     let dt = dt_from_epoch_seconds(in1);
-    // if year does not fit in target data type -> panic
+    // the year of any representable DATE fits every target type; write 0 defensively otherwise
     *out1 = dt.year().try_into().unwrap_or_default();
     *out2 = dt.month() as u64;
     *out3 = dt.day() as u64;

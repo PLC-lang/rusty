@@ -254,7 +254,15 @@ pub unsafe extern "C" fn FIND__STRING(src1: *const u8, src2: *const u8) -> i32 {
         return 0;
     }
 
-    if let Some(idx) = haystack.windows(needle.len()).position(|window| window == needle) {
+    // Skip byte-level matches that start on a UTF-8 continuation byte: they lie
+    // inside a multi-byte character and would report an index inconsistent with LEN.
+    let position = haystack
+        .windows(needle.len())
+        .enumerate()
+        .find(|(idx, window)| *window == needle && (haystack[*idx] & 0xC0) != 0x80)
+        .map(|(idx, _)| idx);
+
+    if let Some(idx) = position {
         // get chars until byte index; decode lossily so invalid UTF-8 counts as one
         // character per invalid sequence instead of failing
         let char_index = Utf8LossyChars::new(std::slice::from_raw_parts(src1, idx)).count();
@@ -281,7 +289,20 @@ pub unsafe extern "C" fn FIND__WSTRING(src1: *const u16, src2: *const u16) -> i3
         return 0;
     }
 
-    if let Some(idx) = haystack.windows(needle.len()).position(|window| window == needle) {
+    // Skip matches that start on the low half of a surrogate pair: they lie
+    // inside a single character and would report an index inconsistent with LEN.
+    let position = haystack
+        .windows(needle.len())
+        .enumerate()
+        .find(|(idx, window)| {
+            *window == needle
+                && !((0xDC00..=0xDFFF).contains(&haystack[*idx])
+                    && *idx > 0
+                    && (0xD800..=0xDBFF).contains(&haystack[*idx - 1]))
+        })
+        .map(|(idx, _)| idx);
+
+    if let Some(idx) = position {
         // match found. count utf16 chars to window position
         let char_index = decode_utf16(std::slice::from_raw_parts(src1, idx).iter().copied()).count();
 
@@ -1015,6 +1036,30 @@ mod test {
         unsafe {
             let res = FIND__STRING(haystack.as_ptr(), needle.as_ptr());
             assert_eq!(res, 10)
+        }
+    }
+
+    #[test]
+    fn test_find_no_match_inside_multibyte_char() {
+        // The needle bytes match inside 'é' (C3 A9), but no character-aligned
+        // occurrence exists, so FIND reports 'not found' instead of an index
+        // beyond LEN.
+        let haystack = [0xC3_u8, 0xA9, 0];
+        let needle = [0xA9_u8, 0];
+        unsafe {
+            let res = FIND__STRING(haystack.as_ptr(), needle.as_ptr());
+            assert_eq!(res, 0)
+        }
+    }
+
+    #[test]
+    fn test_find_wstring_no_match_inside_surrogate_pair() {
+        // The needle matches the low half of a surrogate pair (U+10000).
+        let haystack = [0xD800_u16, 0xDC00, 0x0061, 0];
+        let needle = [0xDC00_u16, 0];
+        unsafe {
+            let res = FIND__WSTRING(haystack.as_ptr(), needle.as_ptr());
+            assert_eq!(res, 0)
         }
     }
 

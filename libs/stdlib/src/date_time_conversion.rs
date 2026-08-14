@@ -10,15 +10,9 @@ const SECONDS_PER_DAY: u32 = 60 * 60 * 24;
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn DATE_AND_TIME_TO_DATE(input: u32) -> u32 {
-    let input_seconds = input as i64;
-    // Every u32 second count is a valid chrono timestamp; fall back to the
-    // epoch defensively instead of panicking.
-    chrono::Utc
-        .timestamp_opt(input_seconds, 0)
-        .single()
-        .and_then(|date_time| date_time.date_naive().and_hms_opt(0, 0, 0))
-        .map(|midnight| midnight.and_utc().timestamp() as u32)
-        .unwrap_or(0)
+    // Truncate the seconds since the epoch to midnight of the same day,
+    // exactly like DT_TO_DATE; no fallible chrono round-trip needed.
+    (input / SECONDS_PER_DAY) * SECONDS_PER_DAY
 }
 
 /// .
@@ -44,18 +38,9 @@ pub extern "C" fn LDATE_AND_TIME_TO_LDATE(input: i64) -> i64 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn DATE_AND_TIME_TO_TIME_OF_DAY(input: u32) -> u32 {
-    let input_seconds = input as i64;
-    // Every u32 second count is a valid chrono timestamp; fall back to midnight
-    // defensively instead of panicking.
-    chrono::Utc
-        .timestamp_opt(input_seconds, 0)
-        .single()
-        .and_then(|date_time| {
-            chrono::NaiveDate::from_ymd_opt(1970, 1, 1)
-                .and_then(|date| date.and_hms_opt(date_time.hour(), date_time.minute(), date_time.second()))
-        })
-        .map(|time_of_day| time_of_day.and_utc().timestamp_millis() as u32)
-        .unwrap_or(0)
+    // Keep the seconds within the day and scale to the millisecond-based TOD;
+    // no fallible chrono round-trip needed.
+    (input % SECONDS_PER_DAY) * 1_000
 }
 
 /// .
