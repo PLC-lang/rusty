@@ -141,6 +141,7 @@ pub fn visit_statement<T: AnnotationMap>(
         }
         AstStatement::UnaryExpression(data) => {
             visit_statement(validator, &data.value, context);
+            validate_unary_expression(validator, statement, &data.operator, &data.value, context);
         }
         AstStatement::ExpressionList(expressions) => {
             expressions.iter().for_each(|element| visit_statement(validator, element, context))
@@ -1089,6 +1090,31 @@ fn validate_binary_expression<T: AnnotationMap>(
             );
         }
     }
+}
+
+fn validate_unary_expression<T: AnnotationMap>(
+    validator: &mut Validator,
+    statement: &AstNode,
+    operator: &Operator,
+    value: &AstNode,
+    context: &ValidationContext<T>,
+) {
+    if !matches!(operator, Operator::Not) {
+        return;
+    }
+
+    let kind = context.annotations.get_type_or_void(value, context.index);
+    let kind_info = kind.get_type_information();
+    if kind.is_bit() || kind_info.is_int() {
+        return;
+    }
+
+    let slice = validator.get_type_name_or_slice(kind);
+    validator.push_diagnostic(
+        Diagnostic::new(format!("Unary `NOT` requires a bit or integer operand, got `{slice}`"))
+            .with_error_code("E151")
+            .with_location(statement),
+    );
 }
 
 fn compare_function_exists<T: AnnotationMap>(

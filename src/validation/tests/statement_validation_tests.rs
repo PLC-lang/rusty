@@ -2626,6 +2626,89 @@ fn while_loop_triggers_error_if_condition_is_not_boolean() {
 }
 
 #[test]
+fn unary_not_on_aggregate_operand_is_rejected() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE PI_T_mainTask_bToggle1 : STRUCT
+            out : BOOL;
+        END_STRUCT
+        END_TYPE
+
+        TYPE PI_T_mainTask : STRUCT
+            bToggle1 AT %QX1.2.3.4 : PI_T_mainTask_bToggle1;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL
+            mainTask_pi : PI_T_mainTask;
+        END_VAR
+
+        PROGRAM mainProg
+        VAR
+            cycleCnt : UDINT := 1;
+        END_VAR
+
+        cycleCnt := cycleCnt + 1;
+        mainTask_pi.bToggle1 := NOT mainTask_pi.bToggle1;
+        END_PROGRAM
+        ",
+    );
+
+    assert_snapshot!(&diagnostics, @"
+    error[E151]: Unary `NOT` requires a bit or integer operand, got `PI_T_mainTask_bToggle1`
+       ┌─ <internal>:22:33
+       │
+    22 │         mainTask_pi.bToggle1 := NOT mainTask_pi.bToggle1;
+       │                                 ^^^^^^^^^^^^^^^^^^^^^^^^ Unary `NOT` requires a bit or integer operand, got `PI_T_mainTask_bToggle1`
+    ");
+}
+
+#[test]
+fn unary_not_on_qualified_addressed_leaf_is_allowed() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        TYPE PI_T_mainTask_bToggle1 : STRUCT
+            out : BOOL;
+        END_STRUCT
+        END_TYPE
+
+        TYPE PI_T_mainTask : STRUCT
+            bToggle1 AT %QX1.2.3.4 : PI_T_mainTask_bToggle1;
+        END_STRUCT
+        END_TYPE
+
+        VAR_GLOBAL
+            mainTask_pi : PI_T_mainTask;
+        END_VAR
+
+        PROGRAM mainProg
+            mainTask_pi.bToggle1.out := NOT mainTask_pi.bToggle1.out;
+        END_PROGRAM
+        ",
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
+fn unary_not_on_integer_operand_is_allowed() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        PROGRAM mainProg
+        VAR
+            input  : UINT;
+            output : UINT;
+        END_VAR
+
+            output := NOT input;
+        END_PROGRAM
+        ",
+    );
+
+    assert!(diagnostics.is_empty(), "expected clean diagnostics, got:\n{diagnostics}");
+}
+
+#[test]
 fn action_calls_without_parentheses() {
     // Given a POU with defined actions,
     // when trying to call them without parentheses
