@@ -43,6 +43,6 @@ cargo fmt --all && cargo clippy --workspace
 
     Solution: <concise but detailed solution description>
     ```
-- Use the same format for PR titles. Include a mandatory `Problem` and `Solution` description.
+- Use the same format for PR titles. Include a mandatory `Problem` and `Solution` description but also an optional `Refs: PRG-<JIRA Ticket ID>` if you have that information.
 - Before committing or opening a PR, run `cargo test --workspace`, `./scripts/build.sh --lit`, `cargo fmt --all`, and `cargo clippy --workspace`. Fix all failures first.
 
